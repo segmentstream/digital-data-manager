@@ -1,4 +1,3 @@
-require("es5-shim");
 require("babel-polyfill");
 
 import test from 'tape';
