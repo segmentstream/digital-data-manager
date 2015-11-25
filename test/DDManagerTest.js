@@ -1,3 +1,5 @@
+require("babel-polyfill");
+
 import test from 'tape';
 import DigitalDataHelper from '../src/DDManager.js';
 

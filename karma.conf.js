@@ -36,7 +36,7 @@ module.exports = function(config) {
     },
     slME25Win10: {
       base: 'SauceLabs',
-      browserName: 'microsoft edge',
+      browserName: 'MicrosoftEdge',
       platform: 'Windows 10',
       version: '25'
     },
