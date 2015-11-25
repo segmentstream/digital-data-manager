@@ -1,14 +1,5 @@
 language: node_js
 node_js:
-- '5.1'
-env:
-  global:
-  - DISPLAY=99.0
-  matrix:
-  - BROWSER=chrome
-  - BROWSER=firefox
-  - BROWSER=safari
-  - BROWSER=ie:11
-  - BROWSER=ie:10
-  - BROWSER=ie:9
-  - BROWSER=ie:8
+  - "5"
+addons:
+  sauce_connect: true

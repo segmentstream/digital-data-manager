@@ -10,7 +10,7 @@
   },
   "scripts": {
     "lint": "eslint src",
-    "test": "browserify --debug test/* | tape-run --browser ${BROWSER:=electron} | faucet",
+    "test": "karma start karma.conf.js",
     "build": "browserify src/index.js -t babelify --debug | exorcist build/dd-manager.js.map > build/dd-manager.js",
     "dist": "browserify src/index.js -t babelify > dist/dd-manager.js && uglifyjs dist/dd-manager.js --output dist/dd-manager.min.js"
   },
@@ -38,6 +38,14 @@
     "eslint-plugin-react": "^3.10.0",
     "exorcist": "^0.4.0",
     "faucet": "0.0.1",
+    "karma": "^0.13.15",
+    "karma-babel-preprocessor": "^6.0.1",
+    "karma-browserify": "^4.4.0",
+    "karma-chrome-launcher": "^0.2.1",
+    "karma-firefox-launcher": "^0.1.7",
+    "karma-safari-launcher": "^0.1.1",
+    "karma-sauce-launcher": "^0.3.0",
+    "karma-tap": "^1.0.3",
     "tape": "^4.2.2",
     "tape-run": "^2.1.0",
     "uglifyify": "^3.0.1"
