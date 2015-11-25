@@ -10,19 +10,20 @@ class EventManager {
   }
 
   init() {
-    // process events
-    this.fireUnfiredEvents();
     const events = _digitalData.events;
-    events.push = (event) => {
-      this.fireEvent(event);
-      events[events.length] = event;
-    };
 
     // process callbacks
     this.addEarlyCallbacks();
     _ddListener.push = (callbackInfo) => {
       this.addCallback(callbackInfo);
       _ddListener[_ddListener.length] = callbackInfo;
+    };
+
+    // process events
+    this.fireUnfiredEvents();
+    events.push = (event) => {
+      this.fireEvent(event);
+      events[events.length] = event;
     };
   }
 
@@ -72,7 +73,7 @@ class EventManager {
     let event;
     for (event of events) {
       if (!event.hasFired) {
-        this.fireEvent(events);
+        this.fireEvent(event);
       }
     }
   }
