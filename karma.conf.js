@@ -92,12 +92,13 @@ module.exports = function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
-      'src/**/*.js': ['babel', 'browserify'],
-      'test/**/*.js': ['babel', 'browserify']
+      'src/**/*.js': ['browserify'],
+      'test/**/*.js': ['browserify']
     },
 
     browserify: {
-      debug: true
+      debug: true,
+      transform: ['babelify', ['polyify', { 'browsers': 'IE >= 8' }]]
     },
 
     babelPreprocessor: {

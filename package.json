@@ -24,7 +24,8 @@
   "homepage": "https://github.com/driveback/digital-data-manager",
   "browserify": {
     "transform": [
-      "babelify"
+      "babelify",
+      ["polyify", { "browsers": "IE >= 8" }]
     ]
   },
   "devDependencies": {
@@ -48,6 +49,7 @@
     "karma-safari-launcher": "^0.1.1",
     "karma-sauce-launcher": "^0.3.0",
     "karma-tap": "^1.0.3",
+    "polyify": "0.0.4",
     "tape": "^4.2.2",
     "tape-run": "^2.1.0",
     "uglifyify": "^3.0.1"
