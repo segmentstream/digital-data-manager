@@ -1,0 +1,13 @@
+language: node_js
+node_js:
+- '0.12'
+env:
+  global:
+  matrix:
+  - BROWSER=chrome
+  - BROWSER=firefox
+  - BROWSER=safari
+  - BROWSER=ie:11
+  - BROWSER=ie:10
+  - BROWSER=ie:9
+  - BROWSER=ie:8
