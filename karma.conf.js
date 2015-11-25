@@ -28,6 +28,12 @@ module.exports = function(config) {
       platform: 'Windows 7',
       version: '8'
     },
+    slIe7WinXp: {
+      base: 'SauceLabs',
+      browserName: 'internet explorer',
+      platform: 'Windows XP',
+      version: '7'
+    },
     slIe11Win10: {
       base: 'SauceLabs',
       browserName: 'internet explorer',
@@ -98,16 +104,8 @@ module.exports = function(config) {
 
     browserify: {
       debug: true,
-      transform: ['babelify', ['polyify', { 'browsers': 'IE >= 8' }]]
+      transform: ['babelify', ['polyify', { 'browsers': 'IE >= 7' }]]
     },
-
-    babelPreprocessor: {
-      options: {
-        presets: ['es2015'],
-        sourceMap: 'inline'
-      }
-    },
-
 
     // test results reporter to use
     // possible values: 'dots', 'progress'
