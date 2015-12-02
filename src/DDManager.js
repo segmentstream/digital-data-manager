@@ -1,3 +1,5 @@
+require("babel-polyfill");
+
 import EventManager from './EventManager.js';
 
 let _digitalDataNamespace = 'digitalData';
