@@ -11,10 +11,9 @@
   "scripts": {
     "lint": "eslint src",
     "test": "npm run build-test && karma start karma.conf.js",
-    "test2": "browserify --debug test/* | tape-run --browser ${BROWSER:=electron} | faucet",
-    "build": "browserify src/index.js -t babelify -t [ polyify --browsers=\"IE >= 8\" ] --debug | exorcist build/dd-manager.js.map > build/dd-manager.js",
-    "build-test": "browserify test/index.js -t babelify -t --debug | exorcist build/dd-manager-test.js.map > build/dd-manager-test.js",
-    "dist": "browserify src/index.js -t babelify -t [ polyify --browsers=\"IE >= 8\" ] > dist/dd-manager.js && uglifyjs dist/dd-manager.js --output dist/dd-manager.min.js",
+    "build": "browserify src/index.js -t babelify -t --debug | exorcist build/dd-manager.js.map > build/dd-manager.js",
+    "build-test": "mkdir -p build && browserify test/index.js -t babelify -t --debug | exorcist build/dd-manager-test.js.map > build/dd-manager-test.js",
+    "dist": "browserify src/index.js -t babelify -t > dist/dd-manager.js && uglifyjs dist/dd-manager.js --output dist/dd-manager.min.js",
     "mocha": "mocha build/dd-manager-test.js"
   },
   "repository": {
