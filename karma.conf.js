@@ -1,67 +1,73 @@
-module.exports = function(config) {
-  if (!process.env.SAUCE_USERNAME || !process.env.SAUCE_ACCESS_KEY) {
-    console.log('Make sure the SAUCE_USERNAME and SAUCE_ACCESS_KEY environment variables are set.')
-    process.exit(1)
-  }
+var fs = require('fs');
 
-  var customLaunchers = {
-    slChromeWinXp: {
-      base: 'SauceLabs',
-      browserName: 'chrome',
-      platform: 'Windows XP'
-    },
-    slIe10Win7: {
-      base: 'SauceLabs',
-      browserName: 'internet explorer',
-      platform: 'Windows 7',
-      version: '10'
-    },
-    slIe9Win7: {
-      base: 'SauceLabs',
-      browserName: 'internet explorer',
-      platform: 'Windows 7',
-      version: '9'
-    },
-    slIe8Win7: {
-      base: 'SauceLabs',
-      browserName: 'internet explorer',
-      platform: 'Windows 7',
-      version: '8'
-    },
-    slIe7WinXp: {
-      base: 'SauceLabs',
-      browserName: 'internet explorer',
-      platform: 'Windows XP',
-      version: '7'
-    },
-    slIe11Win10: {
-      base: 'SauceLabs',
-      browserName: 'internet explorer',
-      platform: 'Windows 10',
-      version: '11'
-    },
-    slME25Win10: {
-      base: 'SauceLabs',
-      browserName: 'microsoftedge',
-      platform: 'Windows 10',
-      version: '20'
-    },
-    slFfLinux: {
-      base: 'SauceLabs',
-      browserName: 'firefox',
-      platform: 'Linux'
-    },
-    slSafariOsx: {
-      base: 'SauceLabs',
-      browserName: 'safari',
-      platform: 'OS X 10.8'
-    },
-    slSafariOsx11: {
-      base: 'SauceLabs',
-      browserName: 'safari',
-      platform: 'OS X 10.11'
+module.exports = function(config) {
+  var customLaunchers;
+  var browsers;
+  if (!process.env.SAUCE_USERNAME || !process.env.SAUCE_ACCESS_KEY) {
+    if (!fs.existsSync('sauce.json')) {
+      console.log('Create a sauce.json with your credentials based on the sauce-sample.json file.');
+      process.exit(1);
+    } else {
+      process.env.SAUCE_USERNAME = require('./sauce').username;
+      process.env.SAUCE_ACCESS_KEY = require('./sauce').accessKey;
     }
-  };
+    customLaunchers = null;
+    browsers = ["Firefox"];
+  } else {
+    customLaunchers = {
+      slChromeWinXp: {
+        base: 'SauceLabs',
+        browserName: 'chrome',
+        platform: 'Windows XP'
+      },
+      slIe10Win7: {
+        base: 'SauceLabs',
+        browserName: 'internet explorer',
+        platform: 'Windows 7',
+        version: '10'
+      },
+      slIe9Win7: {
+        base: 'SauceLabs',
+        browserName: 'internet explorer',
+        platform: 'Windows 7',
+        version: '9'
+      },
+      slIe8Win7: {
+        base: 'SauceLabs',
+        browserName: 'internet explorer',
+        platform: 'Windows 7',
+        version: '8'
+      },
+      slIe11Win10: {
+        base: 'SauceLabs',
+        browserName: 'internet explorer',
+        platform: 'Windows 10',
+        version: '11'
+      },
+      slME25Win10: {
+        base: 'SauceLabs',
+        browserName: 'microsoftedge',
+        platform: 'Windows 10',
+        version: '20'
+      },
+      slFfLinux: {
+        base: 'SauceLabs',
+        browserName: 'firefox',
+        platform: 'Linux'
+      },
+      slSafariOsx: {
+        base: 'SauceLabs',
+        browserName: 'safari',
+        platform: 'OS X 10.8'
+      },
+      slSafariOsx11: {
+        base: 'SauceLabs',
+        browserName: 'safari',
+        platform: 'OS X 10.11'
+      }
+    };
+    browsers = Object.keys(customLaunchers);
+  }
 
   config.set({
 
@@ -71,7 +77,7 @@ module.exports = function(config) {
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['browserify', 'tap'],
+    frameworks: [/*'browserify',*/'mocha'],
 
     sauceLabs: {
       testName: 'Digital Data Manager Unit Tests',
@@ -85,8 +91,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'test/**/*.js',
-      'src/**/*.js'
+      'build/dd-manager-test.js'
     ],
 
 
@@ -97,15 +102,20 @@ module.exports = function(config) {
 
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
-    preprocessors: {
-      'src/**/*.js': ['browserify'],
-      'test/**/*.js': ['browserify']
-    },
-
-    browserify: {
-      debug: true,
-      transform: ['babelify', ['polyify', { 'browsers': 'IE >= 7' }]]
-    },
+    //preprocessors: {
+    //  'src/**/*.js': ['browserify'],
+    //  'test/**/*.js': ['browserify']
+    //},
+    //
+    //browserify: {
+    //  debug: true,
+    //  transform: ['babelify', ['polyify', { 'browsers': 'IE >= 7' }]],
+    //  configure: function(bundle) {
+    //    bundle.on('bundled', function(err, content) {
+    //      console.log(content);
+    //    });
+    //  }
+    //},
 
     // test results reporter to use
     // possible values: 'dots', 'progress'
@@ -123,7 +133,7 @@ module.exports = function(config) {
 
     // level of logging
     // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
-    logLevel: config.LOG_INFO,
+    logLevel: config.LOG_DISABLE,
 
 
     // enable / disable watching file and executing tests whenever any file changes
@@ -135,7 +145,7 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: Object.keys(customLaunchers),
+    browsers: browsers,
 
 
     // Continuous Integration mode

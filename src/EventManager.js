@@ -11,7 +11,6 @@ class EventManager {
 
   init() {
     const events = _digitalData.events;
-
     // process callbacks
     this.addEarlyCallbacks();
     _ddListener.push = (callbackInfo) => {
@@ -59,11 +58,11 @@ class EventManager {
     if (key) {
       _callbacks[type].push({
         key,
-        handler,
+        handler
       });
     } else {
       _callbacks[type].push({
-        handler,
+        handler
       });
     }
   }
