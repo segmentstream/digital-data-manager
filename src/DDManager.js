@@ -1,3 +1,4 @@
+import "core-js/es5";
 import "core-js/es6/object";
 import "core-js/es6/array";
 import EventManager from './EventManager.js';

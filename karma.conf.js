@@ -8,12 +8,13 @@ module.exports = function(config) {
       console.log('Create a sauce.json with your credentials based on the sauce-sample.json file.');
       process.exit(1);
     } else {
+      process.env.SAUCE_ENABLED = require('./sauce').enabled;
       process.env.SAUCE_USERNAME = require('./sauce').username;
       process.env.SAUCE_ACCESS_KEY = require('./sauce').accessKey;
     }
-    customLaunchers = null;
-    browsers = ["Firefox"];
-  } else {
+  }
+
+  if (process.env.SAUCE_ENABLED) {
     customLaunchers = {
       slChromeWinXp: {
         base: 'SauceLabs',
@@ -67,6 +68,9 @@ module.exports = function(config) {
       }
     };
     browsers = Object.keys(customLaunchers);
+  } else {
+    customLaunchers = null;
+    browsers = ["Firefox"];
   }
 
   config.set({
