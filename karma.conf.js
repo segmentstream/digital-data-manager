@@ -12,6 +12,8 @@ module.exports = function(config) {
       process.env.SAUCE_USERNAME = require('./sauce').username;
       process.env.SAUCE_ACCESS_KEY = require('./sauce').accessKey;
     }
+  } else {
+    process.env.SAUCE_ENABLED = true;
   }
 
   if (process.env.SAUCE_ENABLED) {
