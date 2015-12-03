@@ -1,5 +1,5 @@
-require("babel-polyfill");
-
+import "core-js/es6/object";
+import "core-js/es6/array";
 import EventManager from './EventManager.js';
 
 let _digitalDataNamespace = 'digitalData';

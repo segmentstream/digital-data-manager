@@ -1,3 +1,3 @@
-import DigitalDataManager from './DDManager.js';
+import DDManager from './DDManager.js';
 
-window.ddManager = new DigitalDataManager();
+window.ddManager = new DDManager();
