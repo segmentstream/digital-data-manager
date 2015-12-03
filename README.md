@@ -4,7 +4,7 @@
 
 The hassle-free way to integrate Digital Data Layer on your website.
 
-##How to Use
+##Installation
 
 ```html
 <script type="text/javascript">
@@ -20,4 +20,24 @@ window.digitalData = {
 }
 </script>
 <script src="dd-manager.js"></script>
+```
+
+##Event tracking
+
+###Listening and reacting to events
+
+```javascript
+window.ddListener.push(['on', 'event', function(event) {
+  if (event.action === 'Subscribed') {
+     console.log('event fired!');
+  }
+}]);
+```
+
+###Firing events
+```javascript
+window.digitalData.events.push({
+   'category': 'Email',
+   'action': 'Subscribed'
+});
 ```
