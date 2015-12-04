@@ -54,7 +54,7 @@ class Integration extends EventEmitter
     case 'script':
       el = loadScript(attr, (err) => {
         if (!err) return callback();
-        debug('error loading "%s" error="%s"', self.name, err);
+        debug('error loading "%s" error="%s"', tagName, err);
       });
       // TODO: hack until refactoring load-script
       deleteProperty(attr, 'src');
@@ -81,16 +81,17 @@ class Integration extends EventEmitter
   }
 
   addTag(name, tag) {
-    if (tag === null) {
+    if (!tag) {
       tag = name;
       name = 'library';
     }
+
     this._tags[name] = tag;
     return this;
   }
 
   getTag(name) {
-    if (name === null) {
+    if (!name) {
       name = 'library';
     }
     return this._tags[name];
