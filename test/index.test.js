@@ -1,18 +1,40 @@
+import 'core-js/es5';
+import 'core-js/es6/object';
+import 'core-js/es6/array';
 import assert from 'assert';
+import reset from './reset.js';
+import snippet from './snippet.js';
+import availableIntegrations from '../src/availableIntegrations.js';
 import DDManager from '../src/DDManager.js';
+import Integration from '../src/Integration.js';
+
+//other tests
+import './integrations/GoogleTagManagerSpec.js'
 
 describe('DDManager', () => {
+  afterEach(() => {
+    reset();
+  });
 
   describe('initialization:', () => {
-    let window = {};
-    before(() => {
-      new DDManager('digitalData', 'ddListener', window);
-    });
 
     it('should initialize Array objects for window.digitalData.events and window.ddListener', () => {
+      new DDManager();
       assert.ok(Array.isArray(window.digitalData.events));
       assert.ok(Array.isArray(window.ddListener));
     });
+
+    it('should work well with async load', () => {
+      snippet();
+      window.ddManager.initialize();
+      window.ddManager = new DDManager();
+      ddManager.processEarlyStubCalls();
+
+      assert.ok(window.ddManager.isInitialized);
+      assert.ok(Array.isArray(window.digitalData.events));
+      assert.ok(Array.isArray(window.ddListener));
+    });
+
   });
 
   describe('working with events:', () => {
@@ -23,10 +45,9 @@ describe('DDManager', () => {
     };
 
     it('should add time and hasFired fields to event', () => {
-      let window = {};
       let event = Object.assign({}, eventTemplate);
 
-      new DDManager('digitalData', 'ddListener', window);
+      new DDManager();
 
       window.digitalData.events.push(event);
 
@@ -36,12 +57,11 @@ describe('DDManager', () => {
     });
 
     it('should process callback for event', () => {
-      let window = {};
       let event = Object.assign({}, eventTemplate);
       let callbackFired = false;
       let receivedEvent;
 
-      new DDManager('digitalData', 'ddListener', window);
+      new DDManager();
 
       window.ddListener.push(['on', 'event', (e) => {
         callbackFired = true;
@@ -56,12 +76,11 @@ describe('DDManager', () => {
 
 
     it('should process early callback for event', () => {
-      let window = {
-        digitalData: {
-          events: []
-        },
-        ddListener: []
+      window.digitalData = {
+        events: []
       };
+      window.ddListener = [];
+
       let event = Object.assign({}, eventTemplate);
       let callbackFired = false;
       let receivedEvent;
@@ -71,7 +90,7 @@ describe('DDManager', () => {
         receivedEvent = e;
       }]);
 
-      new DDManager('digitalData', 'ddListener', window);
+      new DDManager();
 
       window.digitalData.events.push(event);
 
@@ -81,12 +100,11 @@ describe('DDManager', () => {
     });
 
     it('should process early callback for early event', () => {
-      let window = {
-        digitalData: {
-          events: []
-        },
-        ddListener: []
+      window.digitalData = {
+        events: []
       };
+      window.ddListener = [];
+
       let event = Object.assign({}, eventTemplate);
       let callbackFired = false;
       let receivedEvent;
@@ -97,10 +115,35 @@ describe('DDManager', () => {
       }]);
       window.digitalData.events.push(event);
 
-      new DDManager('digitalData', 'ddListener', window);
+      new DDManager();
+
       assert.ok(callbackFired);
       assert.equal(receivedEvent.action, event.action);
       assert.equal(receivedEvent.category, event.category);
+    });
+
+  });
+
+  describe('#initialize', () => {
+    it('should initialize DDManager instance', () => {
+      let ddManager = new DDManager();
+      ddManager.initialize();
+
+      assert.ok(ddManager.isInitialized);
+    });
+
+    it('should add integration', () => {
+      DDManager.setAvailableIntegrations(availableIntegrations);
+      let ddManager = new DDManager();
+      ddManager.initialize({
+        integrations: {
+          'Google Tag Manager': {
+            componentId: 'XXX'
+          }
+        }
+      });
+
+      assert.ok(ddManager.integrations['Google Tag Manager'] instanceof Integration);
     });
   });
 

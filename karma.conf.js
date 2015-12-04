@@ -8,15 +8,15 @@ module.exports = function(config) {
       console.log('Create a sauce.json with your credentials based on the sauce-sample.json file.');
       process.exit(1);
     } else {
-      process.env.SAUCE_ENABLED = require('./sauce').enabled;
-      process.env.SAUCE_USERNAME = require('./sauce').username;
-      process.env.SAUCE_ACCESS_KEY = require('./sauce').accessKey;
+      process.env.SAUCE_ENABLED = require('./sauce.json').enabled;
+      process.env.SAUCE_USERNAME = require('./sauce.json').username;
+      process.env.SAUCE_ACCESS_KEY = require('./sauce.json').accessKey;
     }
   } else {
     process.env.SAUCE_ENABLED = true;
   }
 
-  if (process.env.SAUCE_ENABLED) {
+  if (process.env.SAUCE_ENABLED == "true") {
     customLaunchers = {
       slChromeWinXp: {
         base: 'SauceLabs',
@@ -72,7 +72,7 @@ module.exports = function(config) {
     browsers = Object.keys(customLaunchers);
   } else {
     customLaunchers = null;
-    browsers = ["Firefox"];
+    browsers = ["Firefox", "Chrome", "Safari"];
   }
 
   config.set({
@@ -84,6 +84,12 @@ module.exports = function(config) {
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: [/*'browserify',*/'mocha'],
+
+    client: {
+      mocha: {
+        timeout : 5000
+      }
+    },
 
     sauceLabs: {
       testName: 'Digital Data Manager Unit Tests',
