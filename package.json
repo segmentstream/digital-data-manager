@@ -2,7 +2,7 @@
   "name": "digital-data-manager",
   "description": "The hassle-free way to integrate Digital Data Layer on your website.",
   "author": "Driveback LLC <opensource@driveback.ru>",
-  "version": "0.0.1",
+  "version": "1.0.0-alpha",
   "license": "MIT",
   "main": "dist/dd-manager.js",
   "directories": {
@@ -27,13 +27,7 @@
   "browser": "./mocha.js",
   "browserify": {
     "transform": [
-      "babelify",
-      [
-        "polyify",
-        {
-          "browsers": "IE >= 8"
-        }
-      ]
+      "babelify"
     ]
   },
   "devDependencies": {
@@ -69,5 +63,10 @@
     "tape": "^4.2.2",
     "tape-run": "^2.1.0",
     "uglifyify": "^3.0.1"
+  },
+  "dependencies": {
+    "async": "^1.5.0",
+    "debug": "^2.2.0",
+    "next-tick": "^0.2.2"
   }
 }

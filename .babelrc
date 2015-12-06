@@ -20,9 +20,7 @@
     ["transform-es2015-typeof-symbol", {"loose": true}],
     ["transform-es2015-unicode-regex", {"loose": true}],
     ["transform-regenerator", {"loose": true}],
-    "transform-proto-to-assign",
-    "transform-object-set-prototype-of-to-assign",
-    "transform-es3-member-expression-literals",
-    "transform-es3-property-literals",
+    ["transform-es3-member-expression-literals", {"loose": true}],
+    ["transform-es3-property-literals", {"loose": true}]
   ]
 }
