@@ -3,12 +3,12 @@ import deleteProperty from './../functions/deleteProperty.js';
 
 class GoogleTagManager extends Integration {
 
-  constructor(options) {
+  constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       containerId: '',
     }, options);
 
-    super(optionsWithDefaults);
+    super(digitalData, optionsWithDefaults);
 
     this.addTag({
       type: 'script',
@@ -23,7 +23,7 @@ class GoogleTagManager extends Integration {
   }
 
   initialize() {
-    window.dataLayer = [];
+    window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({ 'gtm.start': Number(new Date()), event: 'gtm.js' });
     this.load(this.ready);
   }
@@ -35,6 +35,16 @@ class GoogleTagManager extends Integration {
   reset() {
     deleteProperty(window, 'dataLayer');
     deleteProperty(window, 'google_tag_manager');
+  }
+
+  trackEvent(event) {
+    const name = event.name;
+    const category = event.category;
+    deleteProperty(event, 'name');
+    deleteProperty(event, 'category');
+    event.event = name;
+    event.eventCategory = category;
+    window.dataLayer.push(event);
   }
 }
 

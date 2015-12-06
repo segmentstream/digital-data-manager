@@ -1,12 +1,10 @@
 import 'core-js/es5';
 import 'core-js/es6/object';
 import 'core-js/es6/array';
-import DDManager from './DDManager.js';
+import ddManager from './ddManager.js';
 import availableIntegrations from './availableIntegrations.js';
 
-DDManager.setAvailableIntegrations(availableIntegrations);
-
-const ddManager = new DDManager();
+ddManager.setAvailableIntegrations(availableIntegrations);
 ddManager.processEarlyStubCalls();
 
 window.ddManager = ddManager;

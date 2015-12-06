@@ -1,4 +1,6 @@
-const _callbacks = {};
+import clone from './functions/clone.js';
+
+let _callbacks = {};
 let _ddListener = [];
 let _digitalData = {};
 
@@ -46,7 +48,7 @@ class EventManager {
     event.time = (new Date()).getTime();
     if (_callbacks.event) {
       for (eventCallback of _callbacks.event) {
-        eventCallback.handler(event);
+        eventCallback.handler(clone(event));
       }
     }
     event.hasFired = true;
@@ -82,6 +84,11 @@ class EventManager {
     for (callbackInfo of _ddListener) {
       this.addCallback(callbackInfo);
     }
+  }
+
+  reset() {
+    _ddListener.push = Array.prototype.push;
+    _callbacks = {};
   }
 }
 

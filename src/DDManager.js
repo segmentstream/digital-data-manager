@@ -6,7 +6,6 @@ import Integration from './Integration.js';
 import EventManager from './EventManager.js';
 import EventEmitter from 'component-emitter';
 
-
 /**
  * @type {string}
  * @private
@@ -38,10 +37,35 @@ let _digitalData = {};
 let _ddListener = [];
 
 /**
- * @type Map
+ * @type {Object}
  * @private
  */
 let _availableIntegrations;
+
+/**
+ * @type {EventManager}
+ * @private
+ */
+let _eventManager;
+
+/**
+ * @type {Object}
+ * @private
+ */
+let _integrations = {};
+
+
+/**
+ * @type {boolean}
+ * @private
+ */
+let _isInitialized = false;
+
+/**
+ * @type {boolean}
+ * @private
+ */
+let _isReady = false;
 
 function _prepareGlobals() {
   if (typeof window[_digitalDataNamespace] === 'object') {
@@ -62,39 +86,29 @@ function _prepareGlobals() {
 }
 
 
-class DDManager extends EventEmitter {
+const ddManager = {
 
-  constructor() {
-    super();
-
-    this.integrations = {};
-    this.isInitialized = false;
-    this.isReady = false;
-    this.earlyStubCalls = window[_ddManagerNamespace] || [];
-
-    _prepareGlobals();
-
-    this.eventManager = new EventManager(_digitalData, _ddListener);
-    this.eventManager.initialize();
-  }
-
-  static setAvailableIntegrations(availableIntegrations) {
+  setAvailableIntegrations: (availableIntegrations) => {
     _availableIntegrations = availableIntegrations;
-  }
+  },
 
-  processEarlyStubCalls() {
-    while (this.earlyStubCalls.length > 0) {
-      const args = this.earlyStubCalls.shift();
+  processEarlyStubCalls: () => {
+    const earlyStubCalls = window[_ddManagerNamespace] || [];
+    while (earlyStubCalls.length > 0) {
+      const args = earlyStubCalls.shift();
       const method = args.shift();
-      if (this[method]) {
-        this[method].apply(this, args);
+      if (ddManager[method]) {
+        ddManager[method].apply(undefined, args);
       }
     }
-  }
+  },
 
   /**
    * Initialize Digital Data Manager
    * @param settings
+   *
+   * Example:
+   *
    * {
    *    integrations: {
    *      'Google Tag Manager': {
@@ -106,44 +120,74 @@ class DDManager extends EventEmitter {
    *    }
    * }
    */
-  initialize(settings) {
+  initialize: (settings) => {
+    if (_isInitialized) {
+      throw new Error('ddManager is already initialized');
+    }
+
+    _prepareGlobals();
+
+    _eventManager = new EventManager(_digitalData, _ddListener);
+
     if (settings && typeof settings === 'object') {
       const integrationSettings = settings.integrations;
       if (integrationSettings) {
         each(integrationSettings, (name, options) => {
-          const integration = new _availableIntegrations[name](clone(options));
-          this.addIntegration(integration);
+          const integration = new _availableIntegrations[name](_digitalData, clone(options));
+          ddManager.addIntegration(integration);
         });
       }
     }
 
-    const ready = after(size(this.integrations), () => {
-      this.isReady = true;
-      this.emit('ready');
+    const ready = after(size(_integrations), () => {
+      _eventManager.initialize();
+      _isReady = true;
+      ddManager.emit('ready');
     });
 
-    each(this.integrations, (name, integration) => {
-      integration.once('ready', ready);
-      integration.initialize();
-    });
+    if (size(_integrations) > 0) {
+      each(_integrations, (name, integration) => {
+        integration.once('ready', ready);
+        integration.initialize();
+        // add event listeners for integration
+        _eventManager.addCallback(['on', 'event', integration.trackEvent]);
+      });
+    } else {
+      ready();
+    }
 
-    this.isInitialized = true;
-    this.emit('initialize', settings);
+    _isInitialized = true;
+    ddManager.emit('initialize', settings);
+  },
 
-    return this;
-  }
+  isInitialized: () => {
+    return _isInitialized;
+  },
 
-  addIntegration(integration) {
+  addIntegration: (integration) => {
+    if (_isInitialized) {
+      throw new Error('Adding integrations after ddManager initialization is not allowed');
+    }
+
     if (!integration instanceof Integration || !integration.getName()) {
       throw new TypeError('attempted to add an invalid integration');
     }
     const name = integration.getName();
-    this.integrations[name] = integration;
-  }
+    _integrations[name] = integration;
+  },
 
-  reset() {
-    this.integrations = [];
-  }
-}
+  getIntegration: (name) => {
+    return _integrations[name];
+  },
 
-export default DDManager;
+  reset: () => {
+    if (_eventManager instanceof EventManager) {
+      _eventManager.reset();
+    }
+    _eventManager = null;
+    _integrations = {};
+    _isInitialized = false;
+  }
+};
+
+export default EventEmitter(ddManager);

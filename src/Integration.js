@@ -11,10 +11,11 @@ import EventEmitter from 'component-emitter';
 
 class Integration extends EventEmitter
 {
-  constructor(options) {
+  constructor(digitalData, options) {
     super();
     this._options = options;
     this._tags = {};
+    this._digitalData = digitalData;
     this.ready = this.ready.bind(this);
   }
 
@@ -110,12 +111,12 @@ class Integration extends EventEmitter
     // abstract
   }
 
-  onPageLoad(digitalData) {
-
+  trackPage() {
+    // abstract
   }
 
-  onEvent(event, digitalData) {
-
+  trackEvent() {
+    // abstract
   }
 }
 

@@ -5,32 +5,33 @@ import assert from 'assert';
 import reset from './reset.js';
 import snippet from './snippet.js';
 import availableIntegrations from '../src/availableIntegrations.js';
-import DDManager from '../src/DDManager.js';
+import ddManager from '../src/ddManager.js';
 import Integration from '../src/Integration.js';
 
 //other tests
 import './integrations/GoogleTagManagerSpec.js'
 
 describe('DDManager', () => {
+
   afterEach(() => {
+    ddManager.reset();
     reset();
   });
 
   describe('initialization:', () => {
 
     it('should initialize Array objects for window.digitalData.events and window.ddListener', () => {
-      new DDManager();
+      ddManager.initialize();
       assert.ok(Array.isArray(window.digitalData.events));
       assert.ok(Array.isArray(window.ddListener));
     });
 
-    it('should work well with async load', () => {
+    it('should work well with async load using stubs from the snippet', () => {
       snippet();
       window.ddManager.initialize();
-      window.ddManager = new DDManager();
       ddManager.processEarlyStubCalls();
 
-      assert.ok(window.ddManager.isInitialized);
+      assert.ok(ddManager.isInitialized());
       assert.ok(Array.isArray(window.digitalData.events));
       assert.ok(Array.isArray(window.ddListener));
     });
@@ -47,8 +48,7 @@ describe('DDManager', () => {
     it('should add time and hasFired fields to event', () => {
       let event = Object.assign({}, eventTemplate);
 
-      new DDManager();
-
+      ddManager.initialize();
       window.digitalData.events.push(event);
 
       assert.ok(window.digitalData.events.length == 1);
@@ -61,7 +61,7 @@ describe('DDManager', () => {
       let callbackFired = false;
       let receivedEvent;
 
-      new DDManager();
+      ddManager.initialize();
 
       window.ddListener.push(['on', 'event', (e) => {
         callbackFired = true;
@@ -90,7 +90,7 @@ describe('DDManager', () => {
         receivedEvent = e;
       }]);
 
-      new DDManager();
+      ddManager.initialize();
 
       window.digitalData.events.push(event);
 
@@ -115,7 +115,7 @@ describe('DDManager', () => {
       }]);
       window.digitalData.events.push(event);
 
-      new DDManager();
+      ddManager.initialize();
 
       assert.ok(callbackFired);
       assert.equal(receivedEvent.action, event.action);
@@ -126,15 +126,12 @@ describe('DDManager', () => {
 
   describe('#initialize', () => {
     it('should initialize DDManager instance', () => {
-      let ddManager = new DDManager();
       ddManager.initialize();
-
       assert.ok(ddManager.isInitialized);
     });
 
     it('should add integration', () => {
-      DDManager.setAvailableIntegrations(availableIntegrations);
-      let ddManager = new DDManager();
+      ddManager.setAvailableIntegrations(availableIntegrations);
       ddManager.initialize({
         integrations: {
           'Google Tag Manager': {
@@ -143,7 +140,7 @@ describe('DDManager', () => {
         }
       });
 
-      assert.ok(ddManager.integrations['Google Tag Manager'] instanceof Integration);
+      assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration);
     });
   });
 

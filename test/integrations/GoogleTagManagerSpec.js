@@ -1,18 +1,16 @@
 import assert from 'assert';
 import reset from './../reset.js';
 import GoogleTagManager from './../../src/integrations/GoogleTagManager.js';
-import DDManager from './../../src/DDManager.js';
+import ddManager from './../../src/ddManager.js';
 
 describe('Integrations: GoogleTagManager', () => {
-  let ddManager;
   let gtm;
   const options = {
     containerId: 'GTM-M9CMLZ'
   };
 
   beforeEach(() => {
-    ddManager = new DDManager();
-    gtm = new GoogleTagManager(options);
+    gtm = new GoogleTagManager(window.digitalData, options);
     ddManager.addIntegration(gtm);
   });
 

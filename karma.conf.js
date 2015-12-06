@@ -72,7 +72,7 @@ module.exports = function(config) {
     browsers = Object.keys(customLaunchers);
   } else {
     customLaunchers = null;
-    browsers = ["Firefox", "Chrome", "Safari"];
+    browsers = ["Safari"];
   }
 
   config.set({

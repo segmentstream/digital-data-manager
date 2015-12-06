@@ -2,6 +2,8 @@ export default function () {
   // Create a queue, but don't obliterate an existing one!
   var ddManager = window.ddManager = window.ddManager || [];
   var ddListener = window.ddListener = window.ddListener || [];
+  var digitalData = window.digitalData =  window.digitalData || {};
+  digitalData.events = digitalData.events || [];
 
   // If the real ddManager is already on the page return.
   if (ddManager.init) return;
