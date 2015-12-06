@@ -21,10 +21,12 @@ window.digitalData = {
 ```
 
 ##Digital Data Manager Installation (Sync)
+```html
 <script type="text/javascript" src="dd-manager.js"></script>
 <script type="text/javascript">
   ddManager.initialize();
 </script>
+```
 
 ##Digital Data Manager Installation (Async)
 
