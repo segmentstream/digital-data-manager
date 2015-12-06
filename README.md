@@ -4,8 +4,7 @@
 
 The hassle-free way to integrate Digital Data Layer on your website.
 
-##Installation
-
+##Digital Data Layer installation
 ```html
 <script type="text/javascript">
 window.digitalData = {
@@ -19,7 +18,75 @@ window.digitalData = {
   events: []
 }
 </script>
-<script src="dd-manager.js"></script>
+```
+
+##Digital Data Manager Installation (Sync)
+
+```html
+<script type="text/javascript">
+(function () {
+  // Create a queue, but don't obliterate an existing one!
+  var ddManager = window.ddManager = window.ddManager || [];
+  var ddListener = window.ddListener = window.ddListener || [];
+  var digitalData = window.digitalData =  window.digitalData || {};
+  digitalData.events = digitalData.events || [];
+
+  // If the real ddManager is already on the page return.
+  if (ddManager.init) return;
+
+  // If the snippet was invoked already show an error.
+  if (ddManager.invoked) {
+      if (window.console && console.error) {
+          console.error('Digital Data Manager snippet included twice.');
+      }
+      return;
+  }
+  // Invoked flag, to make sure the snippet
+  // is never invoked twice.
+  ddManager.invoked = true;
+
+  // A list of the methods in Analytics.js to stub.
+  ddManager.methods = [
+      'initialize',
+      'addIntegration'
+  ];
+
+  // Define a factory to create stubs. These are placeholders
+  // for methods in Digital Data Manager so that you never have to wait
+  // for it to load to actually record data. The `method` is
+  // stored as the first argument, so we can replay the data.
+  ddManager.factory = function(method){
+      return function(){
+          var args = Array.prototype.slice.call(arguments);
+          args.unshift(method);
+          ddManager.push(args);
+          return ddManager;
+      };
+  };
+
+  // For each of our methods, generate a queueing stub.
+  for (var i = 0; i < ddManager.methods.length; i++) {
+      var key = ddManager.methods[i];
+      ddManager[key] = ddManager.factory(key);
+  }
+})();
+</script>
+<script type="text/javascript" async src="dd-manager.js"></script>
+<script type="text/javascript">
+  ddManager.initialize();
+</script>
+```
+
+##Digital Data Manager Installation (Async, Minified)
+```html
+<scrit type="text/javascript">
+(function(){var a=window.ddManager=window.ddManager||[];window.ddListener=window.ddListener||[];var b=window.digitalData=window.digitalData||{};b.events=b.events||[];if(!a.init)if(a.invoked)window.console&&console.error&&console.error("Digital Data Manager snippet included twice.");else for(a.invoked=!0,a.methods=["initialize","addIntegration"],a.factory=function(b){return function(){var c=Array.prototype.slice.call(arguments);c.unshift(b);a.push(c);return a}},b=0;b<a.methods.length;b++){var c=a.methods[b];
+a[c]=a.factory(c)}})();
+</script>
+<script type="text/javascript" async src="dd-manager.js"></script>
+<script type="text/javascript">
+  ddManager.initialize();
+</script>
 ```
 
 ##Event tracking
@@ -28,7 +95,7 @@ window.digitalData = {
 
 ```javascript
 window.ddListener.push(['on', 'event', function(event) {
-  if (event.action === 'Subscribed') {
+  if (event.name === 'Subscribed') {
      console.log('event fired!');
   }
 }]);
@@ -38,6 +105,6 @@ window.ddListener.push(['on', 'event', function(event) {
 ```javascript
 window.digitalData.events.push({
    'category': 'Email',
-   'action': 'Subscribed'
+   'name': 'Subscribed'
 });
 ```
