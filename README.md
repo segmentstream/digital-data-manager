@@ -20,7 +20,7 @@ window.digitalData = {
 </script>
 ```
 
-##Digital Data Manager Installation (Sync)
+##Installation (Sync)
 ```html
 <script type="text/javascript" src="dd-manager.js"></script>
 <script type="text/javascript">
@@ -28,7 +28,7 @@ window.digitalData = {
 </script>
 ```
 
-##Digital Data Manager Installation (Async)
+##Installation (Async)
 
 ```html
 <script type="text/javascript">
@@ -85,7 +85,7 @@ window.digitalData = {
 </script>
 ```
 
-##Digital Data Manager Installation (Async, Minified)
+##Installation (Async, Minified)
 ```html
 <scrit type="text/javascript">
 (function(){var a=window.ddManager=window.ddManager||[];window.ddListener=window.ddListener||[];var b=window.digitalData=window.digitalData||{};b.events=b.events||[];if(!a.init)if(a.invoked)window.console&&console.error&&console.error("Digital Data Manager snippet included twice.");else for(a.invoked=!0,a.methods=["initialize","addIntegration"],a.factory=function(b){return function(){var c=Array.prototype.slice.call(arguments);c.unshift(b);a.push(c);return a}},b=0;b<a.methods.length;b++){var c=a.methods[b];
