@@ -100,7 +100,7 @@ a[c]=a.factory(c)}})();
 ##Initialization With Integrations
 ```javascript
 ddManager.initialize({
-  'integrations: {
+  'integrations': {
     'Google Tag Manager': {
       'containerId': 'XXX'
     }
