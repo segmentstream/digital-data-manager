@@ -3,3 +3,4 @@ build
 node_modules
 npm-debug.log
 sauce.json
+sauce_connect.log

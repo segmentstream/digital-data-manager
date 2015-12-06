@@ -6,6 +6,8 @@
 .gitignore
 .npmignore
 .travis.yml
+sauce.json
+sauce_connect.log
 build
 dist
 test
