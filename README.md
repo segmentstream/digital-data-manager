@@ -4,7 +4,7 @@
 
 The hassle-free way to integrate Digital Data Layer on your website.
 
-##Digital Data Layer installation
+##Defining Digital Data Layer
 ```html
 <script type="text/javascript">
 window.digitalData = {
@@ -21,6 +21,12 @@ window.digitalData = {
 ```
 
 ##Digital Data Manager Installation (Sync)
+<script type="text/javascript" src="dd-manager.js"></script>
+<script type="text/javascript">
+  ddManager.initialize();
+</script>
+
+##Digital Data Manager Installation (Async)
 
 ```html
 <script type="text/javascript">
@@ -87,6 +93,17 @@ a[c]=a.factory(c)}})();
 <script type="text/javascript">
   ddManager.initialize();
 </script>
+```
+
+##Initialization With Integrations
+```javascript
+ddManager.initialize({
+  'integrations: {
+    'Google Tag Manager': {
+      'containerId': 'XXX'
+    }
+  }
+});
 ```
 
 ##Event tracking
