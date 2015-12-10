@@ -103,6 +103,9 @@ ddManager.initialize({
   'integrations': {
     'Google Tag Manager': {
       'containerId': 'XXX'
+    },
+    'Google Analytics': {
+      'trackingId': 'XXX'
     }
   }
 });
