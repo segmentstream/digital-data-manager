@@ -31,7 +31,7 @@ window.digitalData = {
 ##Async Installation
 ```html
 <scrit type="text/javascript">
-(function(){var a=window.ddManager=window.ddManager||[];window.ddListener=window.ddListener||[];var b=window.digitalData=window.digitalData||{};b.events=b.events||[];if(!a.init)if(a.invoked)window.console&&console.error&&console.error("Digital Data Manager snippet included twice.");else for(a.invoked=!0,a.methods=["initialize","addIntegration"],a.factory=function(b){return function(){var c=Array.prototype.slice.call(arguments);c.unshift(b);a.push(c);return a}},b=0;b<a.methods.length;b++){var c=a.methods[b];a[c]=a.factory(c)}})();
+(function(){var a=window.ddManager=window.ddManager||[];window.ddListener=window.ddListener||[];var b=window.digitalData=window.digitalData||{};b.events=b.events||[];if(!a.initialize)if(a.invoked)window.console&&console.error&&console.error("Digital Data Manager snippet included twice.");else for(a.invoked=!0,a.methods=["initialize","addIntegration"],a.factory=function(b){return function(){var c=Array.prototype.slice.call(arguments);c.unshift(b);a.push(c);return a}},b=0;b<a.methods.length;b++){var c=a.methods[b];a[c]=a.factory(c)}})();
 </script>
 <script type="text/javascript" async src="dd-manager.js"></script>
 <script type="text/javascript">
@@ -51,7 +51,7 @@ window.digitalData = {
   digitalData.events = digitalData.events || [];
 
   // If the real ddManager is already on the page return.
-  if (ddManager.init) return;
+  if (ddManager.initialize) return;
 
   // If the snippet was invoked already show an error.
   if (ddManager.invoked) {
