@@ -33,9 +33,9 @@ describe('Integrations: GoogleTagManager', () => {
   describe('#load', () => {
 
     it('should load', (done) => {
-      assert.ok(!gtm.isLoaded(), 'Expected `gtm.loaded()` to be false before loading.');
+      assert.ok(!gtm.isLoaded(), 'Expected `gtm.isLoaded()` to be false before loading.');
       ddManager.once('ready', () => {
-        assert.ok(gtm.isLoaded(), 'Expected `gtm.loaded()` to be true after loading.');
+        assert.ok(gtm.isLoaded(), 'Expected `gtm.isLoaded()` to be true after loading.');
         done();
       });
       ddManager.initialize();
@@ -43,12 +43,13 @@ describe('Integrations: GoogleTagManager', () => {
 
   });
 
-
-  describe('#initialize', () => {
+  describe('after loading', () => {
+    beforeEach((done) => {
+      ddManager.once('ready', done);
+      ddManager.initialize();
+    });
 
     it('should update dataLayer', () => {
-      gtm.initialize();
-
       let dl = window.dataLayer;
 
       assert.ok(dl);
@@ -56,6 +57,38 @@ describe('Integrations: GoogleTagManager', () => {
       assert.ok(typeof dl[0]['gtm.start'] === 'number');
     });
 
+    describe('#track', () => {
+
+      beforeEach(() => {
+        window.dataLayer = [];
+      });
+
+      it('should send event', () => {
+        window.digitalData.events.push({
+          name: 'some-event',
+          category: 'some-category'
+        });
+
+        let dl = window.dataLayer;
+
+        assert.ok(dl[0].event === 'some-event');
+        assert.ok(dl[0].eventCategory === 'some-category');
+      });
+
+      it('should send event with additional parameters', () => {
+        window.digitalData.events.push({
+          name: 'some-event',
+          category: 'some-category',
+          additionalParam: true
+        });
+
+        let dl = window.dataLayer;
+
+        assert.ok(dl[0].event === 'some-event');
+        assert.ok(dl[0].additionalParam === true);
+      });
+
+    });
   });
 
 });

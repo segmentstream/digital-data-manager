@@ -184,6 +184,7 @@ const ddManager = {
     if (_eventManager instanceof EventManager) {
       _eventManager.reset();
     }
+    ddManager.removeAllListeners();
     _eventManager = null;
     _integrations = {};
     _isInitialized = false;

@@ -6,7 +6,7 @@ export default function () {
   digitalData.events = digitalData.events || [];
 
   // If the real ddManager is already on the page return.
-  if (ddManager.init) return;
+  if (ddManager.initialize) return;
 
   // If the snippet was invoked already show an error.
   if (ddManager.invoked) {
