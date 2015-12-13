@@ -79,10 +79,6 @@ function _prepareGlobals() {
   } else {
     window[_ddListenerNamespace] = _ddListener;
   }
-
-  if (!Array.isArray(_digitalData.events)) {
-    _digitalData.events = [];
-  }
 }
 
 

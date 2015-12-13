@@ -1,14 +1,37 @@
-import clone from './functions/clone.js';
+import clone from './functions/clone.js'
+import deleteProperty from './functions/deleteProperty.js';
 
 let _callbacks = {};
 let _ddListener = [];
+let _previousDigitalData = {};
 let _digitalData = {};
+let _checkForChangesIntervalId;
+
+function _getCopyWithoutEvents(digitalData) {
+  let digitalDataCopy = clone(digitalData);
+  deleteProperty(digitalDataCopy, 'events');
+  return digitalDataCopy;
+}
+
+function _jsonIsEqual(json1, json2) {
+  if (typeof json1 !== "string") {
+    json1 = JSON.stringify(json1)
+  }
+  if (typeof json2 !== "string") {
+    json2 = JSON.stringify(json2)
+  }
+  return json1 === json2;
+}
 
 class EventManager {
 
   constructor(digitalData, ddListener) {
     _digitalData = digitalData || _digitalData;
+    if (!Array.isArray(_digitalData.events)) {
+      _digitalData.events = [];
+    }
     _ddListener = ddListener || _ddListener;
+    _previousDigitalData = _getCopyWithoutEvents(_digitalData);
   }
 
   initialize() {
@@ -26,6 +49,20 @@ class EventManager {
       this.fireEvent(event);
       events[events.length] = event;
     };
+
+    _checkForChangesIntervalId = setInterval(() => {
+      this.checkForChanges();
+    }, 100);
+  }
+
+  checkForChanges() {
+    if (_callbacks.change && _callbacks.change.length > 0) {
+      let digitalDataWithoutEvents = _getCopyWithoutEvents(_digitalData);
+      if (!_jsonIsEqual(_previousDigitalData, digitalDataWithoutEvents)) {
+        this.fireChange();
+        _previousDigitalData = digitalDataWithoutEvents
+      }
+    }
   }
 
   addCallback(callbackInfo) {
@@ -40,6 +77,20 @@ class EventManager {
       this.on(callbackInfo[1], callbackInfo[2]);
     } if (callbackInfo[0] === 'off') {
       // TODO
+    }
+  }
+
+  fireChange(newValue, previousValue) {
+    let changeCallback;
+    if (_callbacks.change) {
+      for (changeCallback of _callbacks.change) {
+        if (changeCallback.key) {
+          let key = changeCallback.key;
+          //check if only specific key was changed
+        } else {
+          changeCallback.handler();
+        }
+      }
     }
   }
 
@@ -87,6 +138,7 @@ class EventManager {
   }
 
   reset() {
+    clearInterval(_checkForChangesIntervalId);
     _ddListener.push = Array.prototype.push;
     _callbacks = {};
   }

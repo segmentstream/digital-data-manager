@@ -1,7 +1,7 @@
-import 'core-js/es5';
-import 'core-js/es6/object';
-import 'core-js/es6/array';
+import './../src/polyfill.js';
 
 //tests
 import './ddManagerSpec.js';
+import './DDHelperSpec.js';
+import './EventManagerSpec.js';
 import './integrations/GoogleTagManagerSpec.js';
