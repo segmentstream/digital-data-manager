@@ -1,4 +1,5 @@
-import clone from 'clone';
+import clone from 'component-clone';
+import nextTick from 'next-tick';
 import size from './functions/size.js';
 import after from './functions/after.js';
 import each from './functions/each.js';
@@ -83,6 +84,7 @@ function _prepareGlobals() {
 }
 
 
+
 const ddManager = {
 
   setAvailableIntegrations: (availableIntegrations) => {
@@ -95,7 +97,14 @@ const ddManager = {
       const args = earlyStubCalls.shift();
       const method = args.shift();
       if (ddManager[method]) {
-        ddManager[method].apply(undefined, args);
+        if (method == 'initialize' && earlyStubCalls.length > 0) {
+          //run initialize stub after all other stubs
+          nextTick(() => {
+            ddManager[method].apply(ddManager, args);
+          });
+        } else {
+          ddManager[method].apply(ddManager, args);
+        }
       }
     }
   },
@@ -189,6 +198,10 @@ const ddManager = {
     if (_eventManager instanceof EventManager) {
       _eventManager.reset();
     }
+    each(_integrations, (name, integration) => {
+      integration.removeAllListeners();
+      integration.reset();
+    });
     ddManager.removeAllListeners();
     _eventManager = null;
     _integrations = {};

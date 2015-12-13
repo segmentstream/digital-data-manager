@@ -1,4 +1,4 @@
-import clone from 'clone';
+import clone from 'component-clone';
 import deleteProperty from './functions/deleteProperty.js';
 import DDHelper from './DDHelper.js';
 
@@ -9,9 +9,9 @@ let _digitalData = {};
 let _checkForChangesIntervalId;
 
 function _getCopyWithoutEvents(digitalData) {
-  const digitalDataCopy = clone(digitalData, {
+  const digitalDataCopy = clone(digitalData/*, {
     prototype: Object
-  });
+  }*/);
   deleteProperty(digitalDataCopy, 'events');
   return digitalDataCopy;
 }

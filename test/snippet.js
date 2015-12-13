@@ -22,7 +22,10 @@ export default function () {
   // A list of the methods in Analytics.js to stub.
   ddManager.methods = [
     'initialize',
-    'addIntegration'
+    'addIntegration',
+    'on',
+    'once',
+    'off',
   ];
 
   // Define a factory to create stubs. These are placeholders

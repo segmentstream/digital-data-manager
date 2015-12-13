@@ -8,8 +8,10 @@ describe('EventManager', () => {
   let _eventManager;
 
   afterEach(() => {
-    _eventManager.reset();
-    _eventManager = undefined;
+    if (_eventManager) {
+      _eventManager.reset();
+      _eventManager = undefined;
+    }
     reset();
   });
 
@@ -40,7 +42,7 @@ describe('EventManager', () => {
       window.digitalData.test2 = 'test2';
     });
 
-    it.only('should fire change key callback', (done) => {
+    it('should fire change key callback', (done) => {
       window.ddListener.push(['on', 'change:user.returning', (newValue, previousValue) => {
         assert.ok(newValue === true);
         assert.ok(previousValue === false);
@@ -119,6 +121,21 @@ describe('EventManager', () => {
 
       window.digitalData.listing.items.pop();
       window.digitalData.listing.items.push({id: 3});
+    });
+
+    it('should NOT fire change callback if event was added', (done) => {
+      window.ddListener.push(['on', 'change', () => {
+        assert.ok(false);
+        done();
+      }]);
+      setTimeout(() => {
+        assert.ok(true);
+        done();
+      }, 101); //check interval is 100, so 101 will work
+
+      window.digitalData.events.push({
+        name: 'Test Event'
+      });
     });
 
   });

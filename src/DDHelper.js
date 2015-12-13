@@ -1,4 +1,4 @@
-import clone from 'clone';
+import clone from 'component-clone';
 
 function _keyToArray(key) {
   key = key.trim();

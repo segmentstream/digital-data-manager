@@ -1,4 +1,5 @@
 import assert from 'assert';
+import nextTick from 'next-tick';
 import reset from './reset.js';
 import snippet from './snippet.js';
 import availableIntegrations from '../src/availableIntegrations.js';
@@ -12,25 +13,34 @@ describe('DDManager', () => {
     reset();
   });
 
-  describe('initialization:', () => {
-
-    it('should initialize Array objects for window.digitalData.events and window.ddListener', () => {
-      ddManager.initialize();
-      assert.ok(Array.isArray(window.digitalData.events));
-      assert.ok(Array.isArray(window.ddListener));
-    });
-
-    it('should work well with async load using stubs from the snippet', () => {
-      snippet();
-      window.ddManager.initialize();
-      ddManager.processEarlyStubCalls();
-
-      assert.ok(ddManager.isInitialized());
-      assert.ok(Array.isArray(window.digitalData.events));
-      assert.ok(Array.isArray(window.ddListener));
-    });
-
-  });
+  //describe('initialization:', () => {
+  //
+  //  it('should initialize Array objects for window.digitalData.events and window.ddListener', () => {
+  //    ddManager.initialize();
+  //    assert.ok(Array.isArray(window.digitalData.events));
+  //    assert.ok(Array.isArray(window.ddListener));
+  //  });
+  //
+  //  it('should work well with async load using stubs from the snippet', () => {
+  //    snippet();
+  //    window.ddManager.initialize();
+  //    ddManager.processEarlyStubCalls();
+  //
+  //    assert.ok(ddManager.isInitialized());
+  //    assert.ok(Array.isArray(window.digitalData.events));
+  //    assert.ok(Array.isArray(window.ddListener));
+  //  });
+  //
+  //  it('should initialize after all other stubs', (done) => {
+  //    snippet();
+  //    window.ddManager.initialize();
+  //    window.ddManager.on('initialize', () => {
+  //      done();
+  //    });
+  //    ddManager.processEarlyStubCalls();
+  //  });
+  //
+  //});
 
   describe('working with events:', () => {
 
@@ -121,7 +131,7 @@ describe('DDManager', () => {
   describe('#initialize', () => {
     it('should initialize DDManager instance', () => {
       ddManager.initialize();
-      assert.ok(ddManager.isInitialized);
+      assert.ok(ddManager.isInitialized());
     });
 
     it('should add integration', () => {
