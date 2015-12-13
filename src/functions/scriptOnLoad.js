@@ -1,5 +1,3 @@
-import nextTick from 'next-tick';
-
 /**
  * Add event listener to `el`, `fn()`.
  *
@@ -28,8 +26,8 @@ function addEventListener(el, fn) {
 function attachEvent(el, fn) {
   el.attachEvent('onreadystatechange', (e) => {
     if (!/complete|loaded/.test(el.readyState)) return;
-    //IE8 FIX
-    if (el.readyState == 'loaded') {
+    // IE8 FIX
+    if (el.readyState === 'loaded') {
       setTimeout(() => {
         fn(null, e);
       }, 500);

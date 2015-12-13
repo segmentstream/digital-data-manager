@@ -1,5 +1,6 @@
-import clone from './functions/clone.js'
+import clone from 'clone';
 import deleteProperty from './functions/deleteProperty.js';
+import DDHelper from './DDHelper.js';
 
 let _callbacks = {};
 let _ddListener = [];
@@ -8,17 +9,17 @@ let _digitalData = {};
 let _checkForChangesIntervalId;
 
 function _getCopyWithoutEvents(digitalData) {
-  let digitalDataCopy = clone(digitalData);
+  const digitalDataCopy = clone(digitalData);
   deleteProperty(digitalDataCopy, 'events');
   return digitalDataCopy;
 }
 
 function _jsonIsEqual(json1, json2) {
-  if (typeof json1 !== "string") {
-    json1 = JSON.stringify(json1)
+  if (typeof json1 !== 'string') {
+    json1 = JSON.stringify(json1);
   }
-  if (typeof json2 !== "string") {
-    json2 = JSON.stringify(json2)
+  if (typeof json2 !== 'string') {
+    json2 = JSON.stringify(json2);
   }
   return json1 === json2;
 }
@@ -57,10 +58,10 @@ class EventManager {
 
   checkForChanges() {
     if (_callbacks.change && _callbacks.change.length > 0) {
-      let digitalDataWithoutEvents = _getCopyWithoutEvents(_digitalData);
+      const digitalDataWithoutEvents = _getCopyWithoutEvents(_digitalData);
       if (!_jsonIsEqual(_previousDigitalData, digitalDataWithoutEvents)) {
-        this.fireChange();
-        _previousDigitalData = digitalDataWithoutEvents
+        this.fireChange(digitalDataWithoutEvents, clone(_previousDigitalData));
+        _previousDigitalData = digitalDataWithoutEvents;
       }
     }
   }
@@ -85,10 +86,14 @@ class EventManager {
     if (_callbacks.change) {
       for (changeCallback of _callbacks.change) {
         if (changeCallback.key) {
-          let key = changeCallback.key;
-          //check if only specific key was changed
+          const key = changeCallback.key;
+          newValue = DDHelper.get(key, newValue);
+          previousValue = DDHelper.get(key, previousValue);
+          if (!_jsonIsEqual(newValue, previousValue)) {
+            changeCallback.handler(newValue, previousValue);
+          }
         } else {
-          changeCallback.handler();
+          changeCallback.handler(newValue, previousValue);
         }
       }
     }

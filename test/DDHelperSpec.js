@@ -3,11 +3,11 @@ import DDHelper from './../src/DDHelper.js';
 
 describe('DDHelper', () => {
 
-  let _ddHelper;
+  let _digitalData;
 
   describe('#get', () => {
     before(() => {
-      _ddHelper = new DDHelper({
+      _digitalData = {
         page: {
           type: 'category'
         },
@@ -25,23 +25,23 @@ describe('DDHelper', () => {
             }
           ]
         }
-      })
+      };
     });
 
     it('should get nested object', () => {
-      assert.ok(_ddHelper.get('page.type') === 'category');
+      assert.ok(DDHelper.get('page.type', _digitalData) === 'category');
     });
 
     it('should get nested object using array notation', () => {
-      assert.ok(_ddHelper.get('listing.items[1].id') === '2');
+      assert.ok(DDHelper.get('listing.items[1].id', _digitalData) === '2');
     });
 
     it('should get nested object using object notation', () => {
-      assert.ok(_ddHelper.get('listing.items.1.id') === '2');
+      assert.ok(DDHelper.get('listing.items.1.id', _digitalData) === '2');
     });
 
     it('should get nested object property', () => {
-      assert.ok(_ddHelper.get('listing.items.length') === 2);
+      assert.ok(DDHelper.get('listing.items.length', _digitalData) === 2);
     });
 
   });

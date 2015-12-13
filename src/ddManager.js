@@ -1,10 +1,11 @@
-import clone from './functions/clone.js';
+import clone from 'clone';
 import size from './functions/size.js';
 import after from './functions/after.js';
 import each from './functions/each.js';
+import emitter from 'component-emitter';
 import Integration from './Integration.js';
 import EventManager from './EventManager.js';
-import EventEmitter from 'component-emitter';
+import DDHelper from './DDHelper.js';
 
 /**
  * @type {string}
@@ -160,6 +161,10 @@ const ddManager = {
     return _isInitialized;
   },
 
+  isReady: () => {
+    return _isReady;
+  },
+
   addIntegration: (integration) => {
     if (_isInitialized) {
       throw new Error('Adding integrations after ddManager initialization is not allowed');
@@ -176,6 +181,10 @@ const ddManager = {
     return _integrations[name];
   },
 
+  get: (key) => {
+    return DDHelper.get(key, _digitalData);
+  },
+
   reset: () => {
     if (_eventManager instanceof EventManager) {
       _eventManager.reset();
@@ -184,7 +193,9 @@ const ddManager = {
     _eventManager = null;
     _integrations = {};
     _isInitialized = false;
-  }
+    _isReady = false;
+  },
+
 };
 
-export default EventEmitter(ddManager);
+export default emitter(ddManager);
