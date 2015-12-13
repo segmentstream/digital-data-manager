@@ -9,7 +9,9 @@ let _digitalData = {};
 let _checkForChangesIntervalId;
 
 function _getCopyWithoutEvents(digitalData) {
-  const digitalDataCopy = clone(digitalData);
+  const digitalDataCopy = clone(digitalData, {
+    prototype: Object
+  });
   deleteProperty(digitalDataCopy, 'events');
   return digitalDataCopy;
 }
@@ -60,8 +62,9 @@ class EventManager {
     if (_callbacks.change && _callbacks.change.length > 0) {
       const digitalDataWithoutEvents = _getCopyWithoutEvents(_digitalData);
       if (!_jsonIsEqual(_previousDigitalData, digitalDataWithoutEvents)) {
-        this.fireChange(digitalDataWithoutEvents, clone(_previousDigitalData));
-        _previousDigitalData = digitalDataWithoutEvents;
+        const previousDigitalDataWithoutEvents = _getCopyWithoutEvents(_previousDigitalData);
+        this.fireChange(digitalDataWithoutEvents, previousDigitalDataWithoutEvents);
+        _previousDigitalData = clone(digitalDataWithoutEvents);
       }
     }
   }

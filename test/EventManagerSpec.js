@@ -40,7 +40,7 @@ describe('EventManager', () => {
       window.digitalData.test2 = 'test2';
     });
 
-    it('should fire change key callback', (done) => {
+    it.only('should fire change key callback', (done) => {
       window.ddListener.push(['on', 'change:user.returning', (newValue, previousValue) => {
         assert.ok(newValue === true);
         assert.ok(previousValue === false);
