@@ -13,34 +13,73 @@ describe('DDManager', () => {
     reset();
   });
 
-  //describe('initialization:', () => {
-  //
-  //  it('should initialize Array objects for window.digitalData.events and window.ddListener', () => {
-  //    ddManager.initialize();
-  //    assert.ok(Array.isArray(window.digitalData.events));
-  //    assert.ok(Array.isArray(window.ddListener));
-  //  });
-  //
-  //  it('should work well with async load using stubs from the snippet', () => {
-  //    snippet();
-  //    window.ddManager.initialize();
-  //    ddManager.processEarlyStubCalls();
-  //
-  //    assert.ok(ddManager.isInitialized());
-  //    assert.ok(Array.isArray(window.digitalData.events));
-  //    assert.ok(Array.isArray(window.ddListener));
-  //  });
-  //
-  //  it('should initialize after all other stubs', (done) => {
-  //    snippet();
-  //    window.ddManager.initialize();
-  //    window.ddManager.on('initialize', () => {
-  //      done();
-  //    });
-  //    ddManager.processEarlyStubCalls();
-  //  });
-  //
-  //});
+  describe('#initialize', () => {
+    it('should initialize Array objects for window.digitalData.events and window.ddListener', () => {
+      ddManager.initialize();
+      assert.ok(Array.isArray(window.digitalData.events));
+      assert.ok(Array.isArray(window.ddListener));
+    });
+
+    it('should work well with async load using stubs from the snippet', () => {
+      snippet();
+      window.ddManager.initialize();
+      ddManager.processEarlyStubCalls();
+
+      assert.ok(ddManager.isInitialized());
+      assert.ok(Array.isArray(window.digitalData.events));
+      assert.ok(Array.isArray(window.ddListener));
+    });
+
+    it('should initialize after all other stubs', (done) => {
+      snippet();
+      window.ddManager.initialize();
+      window.ddManager.on('initialize', () => {
+        done();
+      });
+      ddManager.processEarlyStubCalls();
+    });
+
+    it('should initialize DDManager instance', () => {
+      ddManager.initialize();
+      assert.ok(ddManager.isInitialized());
+    });
+
+    it('should add integration', () => {
+      ddManager.setAvailableIntegrations(availableIntegrations);
+      ddManager.initialize({
+        integrations: {
+          'Google Tag Manager': {
+            componentId: 'XXX'
+          }
+        }
+      });
+
+      assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration);
+    });
+
+    it('it should fire ready event even if ddManager was ready before', (done) => {
+      ddManager.initialize();
+      if (ddManager.isReady()) {
+        ddManager.on('ready', () => {
+          done();
+        });
+      } else {
+        assert.ok(false);
+      }
+    });
+
+    it('it should fire ready event even if ddManager was intialized before', (done) => {
+      ddManager.initialize();
+      if (ddManager.isReady()) {
+        ddManager.on('initialize', () => {
+          done();
+        });
+      } else {
+        assert.ok(false);
+      }
+    });
+
+  });
 
   describe('working with events:', () => {
 
@@ -126,26 +165,6 @@ describe('DDManager', () => {
       assert.equal(receivedEvent.category, event.category);
     });
 
-  });
-
-  describe('#initialize', () => {
-    it('should initialize DDManager instance', () => {
-      ddManager.initialize();
-      assert.ok(ddManager.isInitialized());
-    });
-
-    it('should add integration', () => {
-      ddManager.setAvailableIntegrations(availableIntegrations);
-      ddManager.initialize({
-        integrations: {
-          'Google Tag Manager': {
-            componentId: 'XXX'
-          }
-        }
-      });
-
-      assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration);
-    });
   });
 
 });

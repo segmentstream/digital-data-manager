@@ -3511,9 +3511,7 @@ var _digitalData = {};
 var _checkForChangesIntervalId = undefined;
 
 function _getCopyWithoutEvents(digitalData) {
-  var digitalDataCopy = (0, _componentClone2['default'])(digitalData /*, {
-                                                                     prototype: Object
-                                                                     }*/);
+  var digitalDataCopy = (0, _componentClone2['default'])(digitalData);
   (0, _deleteProperty2['default'])(digitalDataCopy, 'events');
   return digitalDataCopy;
 }
@@ -4049,7 +4047,7 @@ var ddManager = {
       var args = earlyStubCalls.shift();
       var method = args.shift();
       if (ddManager[method]) {
-        if (method == 'initialize') {
+        if (method == 'initialize' && earlyStubCalls.length > 0) {
           //run initialize stub after all other stubs
           (0, _nextTick2['default'])(function () {
             ddManager[method].apply(ddManager, args);
@@ -4154,6 +4152,10 @@ var ddManager = {
     if (_eventManager instanceof _EventManager2['default']) {
       _eventManager.reset();
     }
+    (0, _each2['default'])(_integrations, function (name, integration) {
+      integration.removeAllListeners();
+      integration.reset();
+    });
     ddManager.removeAllListeners();
     _eventManager = null;
     _integrations = {};
@@ -4163,7 +4165,28 @@ var ddManager = {
 
 };
 
-exports['default'] = (0, _componentEmitter2['default'])(ddManager);
+(0, _componentEmitter2['default'])(ddManager);
+
+// fire ready and initialize event immediately
+// if ddManager is already ready or initialized
+var originalOn = ddManager.on;
+ddManager.on = function (event, handler) {
+  if (event === 'ready') {
+    if (_isReady) {
+      handler();
+      return;
+    }
+  } else if (event === 'initialized') {
+    if (_isInitialized) {
+      handler();
+      return;
+    }
+  }
+
+  return originalOn.call(ddManager, event, handler);
+};
+
+exports['default'] = ddManager;
 
 },{"./DDHelper.js":50,"./EventManager.js":51,"./Integration.js":52,"./functions/after.js":55,"./functions/each.js":57,"./functions/size.js":64,"component-clone":3,"component-emitter":4,"next-tick":48}],55:[function(require,module,exports){
 "use strict";
@@ -4495,7 +4518,6 @@ function _interopRequireDefault(obj) {
 }
 
 _ddManager2['default'].setAvailableIntegrations(_availableIntegrations2['default']);
-console.log('before process early stubs');
 _ddManager2['default'].processEarlyStubCalls();
 
 window.ddManager = _ddManager2['default'];

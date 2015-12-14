@@ -25,7 +25,7 @@ export default function () {
     'addIntegration',
     'on',
     'once',
-    'off',
+    'off'
   ];
 
   // Define a factory to create stubs. These are placeholders
