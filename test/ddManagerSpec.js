@@ -68,9 +68,9 @@ describe('DDManager', () => {
       }
     });
 
-    it('it should fire ready event even if ddManager was intialized before', (done) => {
+    it('it should fire ready event even if ddManager was initialized before', (done) => {
       ddManager.initialize();
-      if (ddManager.isReady()) {
+      if (ddManager.isInitialized()) {
         ddManager.on('initialize', () => {
           done();
         });

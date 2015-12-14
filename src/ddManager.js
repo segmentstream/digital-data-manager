@@ -220,7 +220,7 @@ ddManager.on = (event, handler) => {
       handler();
       return;
     }
-  } else if (event === 'initialized') {
+  } else if (event === 'initialize') {
     if (_isInitialized) {
       handler();
       return;
