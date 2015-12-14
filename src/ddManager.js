@@ -83,8 +83,6 @@ function _prepareGlobals() {
   }
 }
 
-
-
 const ddManager = {
 
   setAvailableIntegrations: (availableIntegrations) => {
@@ -211,4 +209,25 @@ const ddManager = {
 
 };
 
-export default emitter(ddManager);
+emitter(ddManager);
+
+// fire ready and initialize event immediately
+// if ddManager is already ready or initialized
+const originalOn = ddManager.on;
+ddManager.on = (event, handler) => {
+  if (event === 'ready') {
+    if (_isReady) {
+      handler();
+      return;
+    }
+  } else if (event === 'initialize') {
+    if (_isInitialized) {
+      handler();
+      return;
+    }
+  }
+
+  return originalOn.call(ddManager, event, handler);
+};
+
+export default ddManager;

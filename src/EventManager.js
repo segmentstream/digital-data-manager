@@ -9,9 +9,7 @@ let _digitalData = {};
 let _checkForChangesIntervalId;
 
 function _getCopyWithoutEvents(digitalData) {
-  const digitalDataCopy = clone(digitalData/*, {
-    prototype: Object
-  }*/);
+  const digitalDataCopy = clone(digitalData);
   deleteProperty(digitalDataCopy, 'events');
   return digitalDataCopy;
 }
