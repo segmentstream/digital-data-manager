@@ -1,14 +1,40 @@
-import clone from './functions/clone.js';
+import clone from 'component-clone';
+import deleteProperty from './functions/deleteProperty.js';
+import DDHelper from './DDHelper.js';
 
 let _callbacks = {};
 let _ddListener = [];
+let _previousDigitalData = {};
 let _digitalData = {};
+let _checkForChangesIntervalId;
+
+function _getCopyWithoutEvents(digitalData) {
+  const digitalDataCopy = clone(digitalData/*, {
+    prototype: Object
+  }*/);
+  deleteProperty(digitalDataCopy, 'events');
+  return digitalDataCopy;
+}
+
+function _jsonIsEqual(json1, json2) {
+  if (typeof json1 !== 'string') {
+    json1 = JSON.stringify(json1);
+  }
+  if (typeof json2 !== 'string') {
+    json2 = JSON.stringify(json2);
+  }
+  return json1 === json2;
+}
 
 class EventManager {
 
   constructor(digitalData, ddListener) {
     _digitalData = digitalData || _digitalData;
+    if (!Array.isArray(_digitalData.events)) {
+      _digitalData.events = [];
+    }
     _ddListener = ddListener || _ddListener;
+    _previousDigitalData = _getCopyWithoutEvents(_digitalData);
   }
 
   initialize() {
@@ -26,6 +52,21 @@ class EventManager {
       this.fireEvent(event);
       events[events.length] = event;
     };
+
+    _checkForChangesIntervalId = setInterval(() => {
+      this.checkForChanges();
+    }, 100);
+  }
+
+  checkForChanges() {
+    if (_callbacks.change && _callbacks.change.length > 0) {
+      const digitalDataWithoutEvents = _getCopyWithoutEvents(_digitalData);
+      if (!_jsonIsEqual(_previousDigitalData, digitalDataWithoutEvents)) {
+        const previousDigitalDataWithoutEvents = _getCopyWithoutEvents(_previousDigitalData);
+        this.fireChange(digitalDataWithoutEvents, previousDigitalDataWithoutEvents);
+        _previousDigitalData = clone(digitalDataWithoutEvents);
+      }
+    }
   }
 
   addCallback(callbackInfo) {
@@ -40,6 +81,24 @@ class EventManager {
       this.on(callbackInfo[1], callbackInfo[2]);
     } if (callbackInfo[0] === 'off') {
       // TODO
+    }
+  }
+
+  fireChange(newValue, previousValue) {
+    let changeCallback;
+    if (_callbacks.change) {
+      for (changeCallback of _callbacks.change) {
+        if (changeCallback.key) {
+          const key = changeCallback.key;
+          newValue = DDHelper.get(key, newValue);
+          previousValue = DDHelper.get(key, previousValue);
+          if (!_jsonIsEqual(newValue, previousValue)) {
+            changeCallback.handler(newValue, previousValue);
+          }
+        } else {
+          changeCallback.handler(newValue, previousValue);
+        }
+      }
     }
   }
 
@@ -87,6 +146,7 @@ class EventManager {
   }
 
   reset() {
+    clearInterval(_checkForChangesIntervalId);
     _ddListener.push = Array.prototype.push;
     _callbacks = {};
   }

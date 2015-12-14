@@ -6,7 +6,7 @@ export default function () {
   digitalData.events = digitalData.events || [];
 
   // If the real ddManager is already on the page return.
-  if (ddManager.init) return;
+  if (ddManager.initialize) return;
 
   // If the snippet was invoked already show an error.
   if (ddManager.invoked) {
@@ -21,7 +21,11 @@ export default function () {
 
   // A list of the methods in Analytics.js to stub.
   ddManager.methods = [
-    'initialize'
+    'initialize',
+    'addIntegration',
+    'on',
+    'once',
+    'off',
   ];
 
   // Define a factory to create stubs. These are placeholders

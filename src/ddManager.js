@@ -1,10 +1,12 @@
-import clone from './functions/clone.js';
+import clone from 'component-clone';
+import nextTick from 'next-tick';
 import size from './functions/size.js';
 import after from './functions/after.js';
 import each from './functions/each.js';
+import emitter from 'component-emitter';
 import Integration from './Integration.js';
 import EventManager from './EventManager.js';
-import EventEmitter from 'component-emitter';
+import DDHelper from './DDHelper.js';
 
 /**
  * @type {string}
@@ -79,11 +81,8 @@ function _prepareGlobals() {
   } else {
     window[_ddListenerNamespace] = _ddListener;
   }
-
-  if (!Array.isArray(_digitalData.events)) {
-    _digitalData.events = [];
-  }
 }
+
 
 
 const ddManager = {
@@ -98,7 +97,14 @@ const ddManager = {
       const args = earlyStubCalls.shift();
       const method = args.shift();
       if (ddManager[method]) {
-        ddManager[method].apply(undefined, args);
+        if (method == 'initialize' && earlyStubCalls.length > 0) {
+          //run initialize stub after all other stubs
+          nextTick(() => {
+            ddManager[method].apply(ddManager, args);
+          });
+        } else {
+          ddManager[method].apply(ddManager, args);
+        }
       }
     }
   },
@@ -164,6 +170,10 @@ const ddManager = {
     return _isInitialized;
   },
 
+  isReady: () => {
+    return _isReady;
+  },
+
   addIntegration: (integration) => {
     if (_isInitialized) {
       throw new Error('Adding integrations after ddManager initialization is not allowed');
@@ -180,14 +190,25 @@ const ddManager = {
     return _integrations[name];
   },
 
+  get: (key) => {
+    return DDHelper.get(key, _digitalData);
+  },
+
   reset: () => {
     if (_eventManager instanceof EventManager) {
       _eventManager.reset();
     }
+    each(_integrations, (name, integration) => {
+      integration.removeAllListeners();
+      integration.reset();
+    });
+    ddManager.removeAllListeners();
     _eventManager = null;
     _integrations = {};
     _isInitialized = false;
-  }
+    _isReady = false;
+  },
+
 };
 
-export default EventEmitter(ddManager);
+export default emitter(ddManager);

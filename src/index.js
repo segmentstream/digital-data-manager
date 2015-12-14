@@ -1,6 +1,4 @@
-import 'core-js/es5';
-import 'core-js/es6/object';
-import 'core-js/es6/array';
+import './polyfill.js';
 import ddManager from './ddManager.js';
 import availableIntegrations from './availableIntegrations.js';
 

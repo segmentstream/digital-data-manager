@@ -26,7 +26,14 @@ function addEventListener(el, fn) {
 function attachEvent(el, fn) {
   el.attachEvent('onreadystatechange', (e) => {
     if (!/complete|loaded/.test(el.readyState)) return;
-    fn(null, e);
+    // IE8 FIX
+    if (el.readyState === 'loaded') {
+      setTimeout(() => {
+        fn(null, e);
+      }, 500);
+    } else {
+      fn(null, e);
+    }
   });
   el.attachEvent('onerror', (e) => {
     const err = new Error('failed to load the script "' + el.src + '"');
