@@ -44,11 +44,6 @@ a.methods[b];a[c]=a.factory(c)}})();
 
 ```html
 <script type="text/javascript">
-// ==ClosureCompiler==
-// @output_file_name default.js
-// @compilation_level SIMPLE_OPTIMIZATIONS
-// ==/ClosureCompiler==
-
 (function () {
   // Create a queue, but don't obliterate an existing one!
   var ddManager = window.ddManager = window.ddManager || [];
@@ -172,12 +167,14 @@ window.ddListener.push(['on', 'change:cart.items.length', function(newValue, pre
 ###Firing changes to DDL
 
 ```javascript
+// user status changed to "returning"
 ddManager.on('ready', function() {
   digitalData.user.returning = true;
 });
 ```
 
 ```javascript
+// new product was added to cart
 ddManager.on('ready', function() {
   digitalData.cart.items.push({
     "id": 123,
