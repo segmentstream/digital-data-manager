@@ -31,7 +31,8 @@ window.digitalData = {
 ##Async Installation
 ```html
 <script type="text/javascript">
-(function(){var a=window.ddManager=window.ddManager||[];window.ddListener=window.ddListener||[];var b=window.digitalData=window.digitalData||{};b.events=b.events||[];if(!a.initialize)if(a.invoked)window.console&&console.error&&console.error("Digital Data Manager snippet included twice.");else for(a.invoked=!0,a.methods=["initialize","addIntegration"],a.factory=function(b){return function(){var c=Array.prototype.slice.call(arguments);c.unshift(b);a.push(c);return a}},b=0;b<a.methods.length;b++){var c=a.methods[b];a[c]=a.factory(c)}})();
+(function(){var a=window.ddManager=window.ddManager||[];window.ddListener=window.ddListener||[];var b=window.digitalData=window.digitalData||{};b.events=b.events||[];if(!a.initialize)if(a.invoked)window.console&&console.error&&console.error("Digital Data Manager snippet included twice.");else for(a.invoked=!0,a.methods=["initialize","addIntegration","on","once","off"],a.factory=function(b){return function(){var c=Array.prototype.slice.call(arguments);c.unshift(b);a.push(c);return a}},b=0;b<a.methods.length;b++){var c=
+a.methods[b];a[c]=a.factory(c)}})();
 </script>
 <script type="text/javascript" async src="dd-manager.js"></script>
 <script type="text/javascript">
@@ -43,6 +44,11 @@ window.digitalData = {
 
 ```html
 <script type="text/javascript">
+// ==ClosureCompiler==
+// @output_file_name default.js
+// @compilation_level SIMPLE_OPTIMIZATIONS
+// ==/ClosureCompiler==
+
 (function () {
   // Create a queue, but don't obliterate an existing one!
   var ddManager = window.ddManager = window.ddManager || [];
@@ -55,10 +61,10 @@ window.digitalData = {
 
   // If the snippet was invoked already show an error.
   if (ddManager.invoked) {
-      if (window.console && console.error) {
-          console.error('Digital Data Manager snippet included twice.');
-      }
-      return;
+    if (window.console && console.error) {
+      console.error('Digital Data Manager snippet included twice.');
+    }
+    return;
   }
   // Invoked flag, to make sure the snippet
   // is never invoked twice.
@@ -66,8 +72,11 @@ window.digitalData = {
 
   // A list of the methods in Analytics.js to stub.
   ddManager.methods = [
-      'initialize',
-      'addIntegration'
+    'initialize',
+    'addIntegration',
+    'on',
+    'once',
+    'off'
   ];
 
   // Define a factory to create stubs. These are placeholders
@@ -75,20 +84,20 @@ window.digitalData = {
   // for it to load to actually record data. The `method` is
   // stored as the first argument, so we can replay the data.
   ddManager.factory = function(method){
-      return function(){
-          var args = Array.prototype.slice.call(arguments);
-          args.unshift(method);
-          ddManager.push(args);
-          return ddManager;
-      };
+    return function(){
+      var args = Array.prototype.slice.call(arguments);
+      args.unshift(method);
+      ddManager.push(args);
+      return ddManager;
+    };
   };
 
   // For each of our methods, generate a queueing stub.
   for (var i = 0; i < ddManager.methods.length; i++) {
-      var key = ddManager.methods[i];
-      ddManager[key] = ddManager.factory(key);
+    var key = ddManager.methods[i];
+    ddManager[key] = ddManager.factory(key);
   }
-})();
+}());
 </script>
 <script type="text/javascript" async src="dd-manager.js"></script>
 <script type="text/javascript">
@@ -128,5 +137,51 @@ window.ddListener.push(['on', 'event', function(event) {
 window.digitalData.events.push({
    'category': 'Email',
    'name': 'Subscribed'
+});
+```
+
+##Changes tracking
+
+###Listening and reacting to changes inside DDL
+
+```javascript
+window.ddListener.push(['on', 'change', function(newValue, previousValue) {
+  console.log(newValue);
+  console.log(previousValue);
+}]);
+```
+
+###Listening and reacting to changes of specific key inside DDL
+
+```javascript
+window.ddListener.push(['on', 'change:user.returning', function(newValue, previousValue) {
+  console.log(newValue);
+  console.log(previousValue);
+}]);
+```
+
+###Listening and reacting to changes of key property inside DDL
+
+```javascript
+window.ddListener.push(['on', 'change:cart.items.length', function(newValue, previousValue) {
+  console.log(newValue);
+  console.log(previousValue);
+}]);
+```
+
+###Firing changes to DDL
+
+```javascript
+ddManager.on('ready', function() {
+  digitalData.user.returning = true;
+});
+```
+
+```javascript
+ddManager.on('ready', function() {
+  digitalData.cart.items.push({
+    "id": 123,
+    "name": "Product 1"
+  });
 });
 ```
