@@ -168,14 +168,14 @@ window.ddListener.push(['on', 'change:cart.items.length', function(newValue, pre
 
 ```javascript
 // user status changed to "returning"
-ddManager.on('ready', function() {
+ddManager.once('ready', function() {
   digitalData.user.returning = true;
 });
 ```
 
 ```javascript
 // new product was added to cart
-ddManager.on('ready', function() {
+ddManager.once('ready', function() {
   digitalData.cart.items.push({
     "id": 123,
     "name": "Product 1"
