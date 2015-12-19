@@ -15,6 +15,91 @@ describe('EventManager', () => {
     reset();
   });
 
+  describe('working with events:', () => {
+
+    const eventTemplate = {
+      action: 'Added Product',
+      category: 'Ecommerce'
+    };
+
+    beforeEach(() => {
+      window.digitalData = {
+        events: []
+      };
+      window.ddListener = [];
+      _eventManager = new EventManager(window.digitalData, window.ddListener);
+    });
+
+    it('should add time and hasFired fields to event', () => {
+      let event = Object.assign({}, eventTemplate);
+
+      _eventManager.initialize();
+
+      window.digitalData.events.push(event);
+
+      assert.ok(window.digitalData.events.length == 1);
+      assert.ok(window.digitalData.events[0].time > 100000);
+      assert.ok(window.digitalData.events[0].hasFired);
+    });
+
+    it('should process callback for event', () => {
+      let event = Object.assign({}, eventTemplate);
+      let callbackFired = false;
+      let receivedEvent;
+
+      _eventManager.initialize();
+
+      window.ddListener.push(['on', 'event', (e) => {
+        callbackFired = true;
+        receivedEvent = e;
+      }]);
+      window.digitalData.events.push(event);
+
+      assert.ok(callbackFired);
+      assert.equal(receivedEvent.action, event.action);
+      assert.equal(receivedEvent.category, event.category);
+    });
+
+
+    it('should process early callback for event', () => {
+      let event = Object.assign({}, eventTemplate);
+      let callbackFired = false;
+      let receivedEvent;
+
+      window.ddListener.push(['on', 'event', (e) => {
+        callbackFired = true;
+        receivedEvent = e;
+      }]);
+
+      _eventManager.initialize();
+
+      window.digitalData.events.push(event);
+
+      assert.ok(callbackFired);
+      assert.equal(receivedEvent.action, event.action);
+      assert.equal(receivedEvent.category, event.category);
+    });
+
+    it('should process early callback for early event', () => {
+      let event = Object.assign({}, eventTemplate);
+      let callbackFired = false;
+      let receivedEvent;
+
+      window.ddListener.push(['on', 'event', (e) => {
+        callbackFired = true;
+        receivedEvent = e;
+      }]);
+      window.digitalData.events.push(event);
+
+      _eventManager.initialize();
+
+      assert.ok(callbackFired);
+      assert.equal(receivedEvent.action, event.action);
+      assert.equal(receivedEvent.category, event.category);
+    });
+
+  });
+
   describe(': listening for digitalData changes', () => {
 
     beforeEach(() => {
@@ -67,6 +152,30 @@ describe('EventManager', () => {
         done();
       }]);
       window.digitalData.listing.items.push({id: 3});
+    });
+
+    it('should fire change callbacks asynchronously, ignoring possible exceptions', (done) => {
+      window.ddListener.push(['on', 'change', (newValue, previousValue) => {
+        throw new Error('test error');
+      }]);
+      window.ddListener.push(['on', 'change', (newValue, previousValue) => {
+        done();
+      }]);
+      window.digitalData.test2 = 'test2';
+    });
+
+    it('should handle change callback exception', (done) => {
+      const errorHandler = (error) => {
+        done();
+      };
+
+      //set custom callback for change handler result
+      _eventManager.setEventHandlerResultCallback(errorHandler);
+
+      window.ddListener.push(['on', 'change', (newValue, previousValue) => {
+        throw new Error('test error');
+      }]);
+      window.digitalData.test2 = 'test2';
     });
 
     it('should NOT fire change callback', (done) => {

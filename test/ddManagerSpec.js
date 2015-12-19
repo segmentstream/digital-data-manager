@@ -57,7 +57,7 @@ describe('DDManager', () => {
       assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration);
     });
 
-    it('it should fire ready event even if ddManager was ready before', (done) => {
+    it('it should fire on("ready") event even if ddManager was ready before', (done) => {
       ddManager.initialize();
       if (ddManager.isReady()) {
         ddManager.on('ready', () => {
@@ -68,7 +68,18 @@ describe('DDManager', () => {
       }
     });
 
-    it('it should fire ready event even if ddManager was initialized before', (done) => {
+    it('it should fire once("ready") event even if ddManager was ready before', (done) => {
+      ddManager.initialize();
+      if (ddManager.isReady()) {
+        ddManager.once('ready', () => {
+          done();
+        });
+      } else {
+        assert.ok(false);
+      }
+    });
+
+    it('it should fire on("initialize") event even if ddManager was initialized before', (done) => {
       ddManager.initialize();
       if (ddManager.isInitialized()) {
         ddManager.on('initialize', () => {
@@ -79,90 +90,15 @@ describe('DDManager', () => {
       }
     });
 
-  });
-
-  describe('working with events:', () => {
-
-    const eventTemplate = {
-      action: 'Added Product',
-      category: 'Ecommerce'
-    };
-
-    it('should add time and hasFired fields to event', () => {
-      let event = Object.assign({}, eventTemplate);
-
+    it('it should fire once("initialize") event even if ddManager was initialized before', (done) => {
       ddManager.initialize();
-      window.digitalData.events.push(event);
-
-      assert.ok(window.digitalData.events.length == 1);
-      assert.ok(window.digitalData.events[0].time > 100000);
-      assert.ok(window.digitalData.events[0].hasFired);
-    });
-
-    it('should process callback for event', () => {
-      let event = Object.assign({}, eventTemplate);
-      let callbackFired = false;
-      let receivedEvent;
-
-      ddManager.initialize();
-
-      window.ddListener.push(['on', 'event', (e) => {
-        callbackFired = true;
-        receivedEvent = e;
-      }]);
-      window.digitalData.events.push(event);
-
-      assert.ok(callbackFired);
-      assert.equal(receivedEvent.action, event.action);
-      assert.equal(receivedEvent.category, event.category);
-    });
-
-
-    it('should process early callback for event', () => {
-      window.digitalData = {
-        events: []
-      };
-      window.ddListener = [];
-
-      let event = Object.assign({}, eventTemplate);
-      let callbackFired = false;
-      let receivedEvent;
-
-      window.ddListener.push(['on', 'event', (e) => {
-        callbackFired = true;
-        receivedEvent = e;
-      }]);
-
-      ddManager.initialize();
-
-      window.digitalData.events.push(event);
-
-      assert.ok(callbackFired);
-      assert.equal(receivedEvent.action, event.action);
-      assert.equal(receivedEvent.category, event.category);
-    });
-
-    it('should process early callback for early event', () => {
-      window.digitalData = {
-        events: []
-      };
-      window.ddListener = [];
-
-      let event = Object.assign({}, eventTemplate);
-      let callbackFired = false;
-      let receivedEvent;
-
-      window.ddListener.push(['on', 'event', (e) => {
-        callbackFired = true;
-        receivedEvent = e;
-      }]);
-      window.digitalData.events.push(event);
-
-      ddManager.initialize();
-
-      assert.ok(callbackFired);
-      assert.equal(receivedEvent.action, event.action);
-      assert.equal(receivedEvent.category, event.category);
+      if (ddManager.isInitialized()) {
+        ddManager.once('initialize', () => {
+          done();
+        });
+      } else {
+        assert.ok(false);
+      }
     });
 
   });
