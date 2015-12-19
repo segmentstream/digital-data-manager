@@ -1,5 +1,5 @@
 import clone from 'component-clone';
-import nextTick from 'next-tick';
+import async from 'async';
 import size from './functions/size.js';
 import after from './functions/after.js';
 import each from './functions/each.js';
@@ -91,15 +91,19 @@ const ddManager = {
 
   processEarlyStubCalls: () => {
     const earlyStubCalls = window[_ddManagerNamespace] || [];
+    const methodCallPromise = (method, args) => {
+      return () => {
+        ddManager[method].apply(ddManager, args);
+      };
+    };
+
     while (earlyStubCalls.length > 0) {
       const args = earlyStubCalls.shift();
       const method = args.shift();
       if (ddManager[method]) {
-        if (method == 'initialize' && earlyStubCalls.length > 0) {
-          //run initialize stub after all other stubs
-          nextTick(() => {
-            ddManager[method].apply(ddManager, args);
-          });
+        if (method === 'initialize' && earlyStubCalls.length > 0) {
+          // run initialize stub after all other stubs
+          async.nextTick(methodCallPromise(method, args));
         } else {
           ddManager[method].apply(ddManager, args);
         }
@@ -151,8 +155,12 @@ const ddManager = {
 
     if (size(_integrations) > 0) {
       each(_integrations, (name, integration) => {
-        integration.once('ready', ready);
-        integration.initialize();
+        if (!integration.isLoaded()) {
+          integration.once('ready', ready);
+          integration.initialize();
+        } else {
+          ready();
+        }
         // add event listeners for integration
         _eventManager.addCallback(['on', 'event', integration.trackEvent]);
       });
@@ -214,7 +222,7 @@ emitter(ddManager);
 // fire ready and initialize event immediately
 // if ddManager is already ready or initialized
 const originalOn = ddManager.on;
-ddManager.on = (event, handler) => {
+ddManager.on = ddManager.addEventListener = (event, handler) => {
   if (event === 'ready') {
     if (_isReady) {
       handler();
@@ -227,7 +235,7 @@ ddManager.on = (event, handler) => {
     }
   }
 
-  return originalOn.call(ddManager, event, handler);
+  originalOn.call(ddManager, event, handler);
 };
 
 export default ddManager;

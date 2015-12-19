@@ -1,4 +1,6 @@
 import clone from 'component-clone';
+import async from 'async';
+import debug from 'debug';
 import deleteProperty from './functions/deleteProperty.js';
 import DDHelper from './DDHelper.js';
 
@@ -7,6 +9,13 @@ let _ddListener = [];
 let _previousDigitalData = {};
 let _digitalData = {};
 let _checkForChangesIntervalId;
+
+// default event handler result callback
+let _eventCallback = (error) => {
+  if (error) {
+    debug('error firing callback error="%s"', error);
+  }
+};
 
 function _getCopyWithoutEvents(digitalData) {
   const digitalDataCopy = clone(digitalData);
@@ -61,8 +70,8 @@ class EventManager {
       const digitalDataWithoutEvents = _getCopyWithoutEvents(_digitalData);
       if (!_jsonIsEqual(_previousDigitalData, digitalDataWithoutEvents)) {
         const previousDigitalDataWithoutEvents = _getCopyWithoutEvents(_previousDigitalData);
-        this.fireChange(digitalDataWithoutEvents, previousDigitalDataWithoutEvents);
         _previousDigitalData = clone(digitalDataWithoutEvents);
+        this.fireChange(digitalDataWithoutEvents, previousDigitalDataWithoutEvents);
       }
     }
   }
@@ -76,7 +85,8 @@ class EventManager {
       if (callbackInfo.length < 3) {
         return;
       }
-      this.on(callbackInfo[1], callbackInfo[2]);
+      const asyncHandler = async.asyncify(callbackInfo[2]);
+      this.on(callbackInfo[1], asyncHandler);
     } if (callbackInfo[0] === 'off') {
       // TODO
     }
@@ -91,10 +101,10 @@ class EventManager {
           newValue = DDHelper.get(key, newValue);
           previousValue = DDHelper.get(key, previousValue);
           if (!_jsonIsEqual(newValue, previousValue)) {
-            changeCallback.handler(newValue, previousValue);
+            changeCallback.handler(newValue, previousValue, _eventCallback);
           }
         } else {
-          changeCallback.handler(newValue, previousValue);
+          changeCallback.handler(newValue, previousValue, _eventCallback);
         }
       }
     }
@@ -105,7 +115,7 @@ class EventManager {
     event.time = (new Date()).getTime();
     if (_callbacks.event) {
       for (eventCallback of _callbacks.event) {
-        eventCallback.handler(clone(event));
+        eventCallback.handler(clone(event), _eventCallback);
       }
     }
     event.hasFired = true;
@@ -141,6 +151,10 @@ class EventManager {
     for (callbackInfo of _ddListener) {
       this.addCallback(callbackInfo);
     }
+  }
+
+  setEventHandlerResultCallback(fn) {
+    _eventCallback = fn;
   }
 
   reset() {

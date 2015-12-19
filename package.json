@@ -2,10 +2,12 @@
   "name": "digital-data-manager",
   "description": "The hassle-free way to integrate Digital Data Layer on your website.",
   "author": "Driveback LLC <opensource@driveback.ru>",
-  "version": "1.0.0-alpha",
+  "version": "1.0.0-beta3",
   "license": "MIT",
   "main": "dist/dd-manager.js",
   "directories": {
+    "src": "src",
+    "dist": "dist",
     "test": "test"
   },
   "scripts": {
@@ -13,7 +15,7 @@
     "test": "npm run build-test && karma start karma.conf.js",
     "build": "browserify src/index.js -t babelify -t --debug | exorcist build/dd-manager.js.map > build/dd-manager.js",
     "build-test": "mkdir -p build && browserify test/index.test.js -t babelify -t --debug | exorcist build/dd-manager-test.js.map > build/dd-manager-test.js",
-    "dist": "browserify src/index.js -t babelify -t > dist/dd-manager.js && uglifyjs dist/dd-manager.js --output dist/dd-manager.min.js",
+    "dist": "browserify src/index.js -t babelify -t > dist/dd-manager.js && uglifyjs dist/dd-manager.js --output dist/dd-manager.min.js -c -m",
     "mocha": "mocha build/dd-manager-test.js"
   },
   "repository": {
@@ -66,9 +68,7 @@
   },
   "dependencies": {
     "async": "^1.5.0",
-    "clone": "^1.0.2",
     "component-clone": "^0.2.2",
-    "debug": "^2.2.0",
-    "next-tick": "^0.2.2"
+    "debug": "^2.2.0"
   }
 }
