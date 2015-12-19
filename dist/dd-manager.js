@@ -4782,6 +4782,13 @@ var _previousDigitalData = {};
 var _digitalData = {};
 var _checkForChangesIntervalId = undefined;
 
+// default event handler result callback
+var _eventCallback = function _eventCallback(error) {
+  if (error) {
+    (0, _debug2['default'])('error firing callback error="%s"', error);
+  }
+};
+
 function _getCopyWithoutEvents(digitalData) {
   var digitalDataCopy = (0, _componentClone2['default'])(digitalData);
   (0, _deleteProperty2['default'])(digitalDataCopy, 'events');
@@ -4796,12 +4803,6 @@ function _jsonIsEqual(json1, json2) {
     json2 = JSON.stringify(json2);
   }
   return json1 === json2;
-}
-
-function _eventCallback(error) {
-  if (error) {
-    (0, _debug2['default'])('error firing callback error="%s"', error);
-  }
 }
 
 var EventManager = (function () {

@@ -33,9 +33,22 @@ describe('Integrations: GoogleTagManager', () => {
   describe('#load', () => {
 
     it('should load', (done) => {
-      assert.ok(!gtm.isLoaded(), 'Expected `gtm.isLoaded()` to be false before loading.');
+      assert.ok(!gtm.isLoaded());
       ddManager.once('ready', () => {
-        assert.ok(gtm.isLoaded(), 'Expected `gtm.isLoaded()` to be true after loading.');
+        assert.ok(gtm.isLoaded());
+        done();
+      });
+      ddManager.initialize();
+    });
+
+    it('should not load if gtm is already loaded', (done) => {
+      const originalIsLoaded = gtm.isLoaded;
+      gtm.isLoaded = () => {
+        return true;
+      };
+      assert.ok(gtm.isLoaded());
+      ddManager.once('ready', () => {
+        assert.ok(!originalIsLoaded());
         done();
       });
       ddManager.initialize();
