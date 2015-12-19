@@ -6,6 +6,8 @@
   "license": "MIT",
   "main": "dist/dd-manager.js",
   "directories": {
+    "src": "src",
+    "dist": "dist",
     "test": "test"
   },
   "scripts": {
@@ -13,7 +15,7 @@
     "test": "npm run build-test && karma start karma.conf.js",
     "build": "browserify src/index.js -t babelify -t --debug | exorcist build/dd-manager.js.map > build/dd-manager.js",
     "build-test": "mkdir -p build && browserify test/index.test.js -t babelify -t --debug | exorcist build/dd-manager-test.js.map > build/dd-manager-test.js",
-    "dist": "browserify src/index.js -t babelify -t > dist/dd-manager.js && uglifyjs dist/dd-manager.js --output dist/dd-manager.min.js",
+    "dist": "browserify src/index.js -t babelify -t > dist/dd-manager.js && uglifyjs dist/dd-manager.js --output dist/dd-manager.min.js -c -m",
     "mocha": "mocha build/dd-manager-test.js"
   },
   "repository": {
