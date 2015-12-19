@@ -1262,7 +1262,7 @@
 }());
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":50}],2:[function(require,module,exports){
+},{"_process":49}],2:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -4527,74 +4527,6 @@ function plural(ms, n, name) {
 }
 
 },{}],49:[function(require,module,exports){
-(function (process){
-'use strict';
-
-var callable, byObserver;
-
-callable = function (fn) {
-	if (typeof fn !== 'function') throw new TypeError(fn + " is not a function");
-	return fn;
-};
-
-byObserver = function (Observer) {
-	var node = document.createTextNode(''), queue, i = 0;
-	new Observer(function () {
-		var data;
-		if (!queue) return;
-		data = queue;
-		queue = null;
-		if (typeof data === 'function') {
-			data();
-			return;
-		}
-		data.forEach(function (fn) { fn(); });
-	}).observe(node, { characterData: true });
-	return function (fn) {
-		callable(fn);
-		if (queue) {
-			if (typeof queue === 'function') queue = [queue, fn];
-			else queue.push(fn);
-			return;
-		}
-		queue = fn;
-		node.data = (i = ++i % 2);
-	};
-};
-
-module.exports = (function () {
-	// Node.js
-	if ((typeof process !== 'undefined') && process &&
-			(typeof process.nextTick === 'function')) {
-		return process.nextTick;
-	}
-
-	// MutationObserver=
-	if ((typeof document === 'object') && document) {
-		if (typeof MutationObserver === 'function') {
-			return byObserver(MutationObserver);
-		}
-		if (typeof WebKitMutationObserver === 'function') {
-			return byObserver(WebKitMutationObserver);
-		}
-	}
-
-	// W3C Draft
-	// http://dvcs.w3.org/hg/webperf/raw-file/tip/specs/setImmediate/Overview.html
-	if (typeof setImmediate === 'function') {
-		return function (cb) { setImmediate(callable(cb)); };
-	}
-
-	// Wide available standard
-	if (typeof setTimeout === 'function') {
-		return function (cb) { setTimeout(callable(cb), 0); };
-	}
-
-	return null;
-}());
-
-}).call(this,require('_process'))
-},{"_process":50}],50:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -4687,7 +4619,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],51:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -4741,7 +4673,7 @@ var DDHelper = (function () {
 
 exports['default'] = DDHelper;
 
-},{"component-clone":4}],52:[function(require,module,exports){
+},{"component-clone":4}],51:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -4983,7 +4915,7 @@ var EventManager = (function () {
 
 exports['default'] = EventManager;
 
-},{"./DDHelper.js":51,"./functions/deleteProperty.js":57,"async":1,"component-clone":4,"debug":44}],53:[function(require,module,exports){
+},{"./DDHelper.js":50,"./functions/deleteProperty.js":56,"async":1,"component-clone":4,"debug":44}],52:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -5022,9 +4954,9 @@ var _debug = require('debug');
 
 var _debug2 = _interopRequireDefault(_debug);
 
-var _nextTick = require('next-tick');
+var _async = require('async');
 
-var _nextTick2 = _interopRequireDefault(_nextTick);
+var _async2 = _interopRequireDefault(_async);
 
 var _componentEmitter = require('component-emitter');
 
@@ -5069,7 +5001,7 @@ var Integration = (function (_EventEmitter) {
 
   Integration.prototype.initialize = function initialize() {
     var ready = this.ready;
-    (0, _nextTick2['default'])(ready);
+    _async2['default'].nextTick(ready);
   };
 
   Integration.prototype.setName = function setName(name) {
@@ -5174,7 +5106,7 @@ var Integration = (function (_EventEmitter) {
 
 exports['default'] = Integration;
 
-},{"./functions/deleteProperty.js":57,"./functions/each.js":58,"./functions/format.js":59,"./functions/loadIframe.js":60,"./functions/loadPixel.js":61,"./functions/loadScript.js":62,"./functions/noop.js":63,"component-emitter":5,"debug":44,"next-tick":49}],54:[function(require,module,exports){
+},{"./functions/deleteProperty.js":56,"./functions/each.js":57,"./functions/format.js":58,"./functions/loadIframe.js":59,"./functions/loadPixel.js":60,"./functions/loadScript.js":61,"./functions/noop.js":62,"async":1,"component-emitter":5,"debug":44}],53:[function(require,module,exports){
 'use strict';
 
 var _integrations;
@@ -5193,7 +5125,7 @@ var integrations = (_integrations = {}, _integrations[_GoogleTagManager2['defaul
 
 exports['default'] = integrations;
 
-},{"./integrations/GoogleTagManager.js":67}],55:[function(require,module,exports){
+},{"./integrations/GoogleTagManager.js":66}],54:[function(require,module,exports){
 'use strict';
 
 function _typeof2(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -5204,9 +5136,9 @@ var _componentClone = require('component-clone');
 
 var _componentClone2 = _interopRequireDefault(_componentClone);
 
-var _nextTick = require('next-tick');
+var _async = require('async');
 
-var _nextTick2 = _interopRequireDefault(_nextTick);
+var _async2 = _interopRequireDefault(_async);
 
 var _size = require('./functions/size.js');
 
@@ -5338,7 +5270,7 @@ var ddManager = {
       if (ddManager[method]) {
         if (method === 'initialize' && earlyStubCalls.length > 0) {
           // run initialize stub after all other stubs
-          (0, _nextTick2['default'])(methodCallPromise(method, args));
+          _async2['default'].nextTick(methodCallPromise(method, args));
         } else {
           ddManager[method].apply(ddManager, args);
         }
@@ -5475,7 +5407,7 @@ ddManager.on = ddManager.addEventListener = function (event, handler) {
 
 exports['default'] = ddManager;
 
-},{"./DDHelper.js":51,"./EventManager.js":52,"./Integration.js":53,"./functions/after.js":56,"./functions/each.js":58,"./functions/size.js":65,"component-clone":4,"component-emitter":5,"next-tick":49}],56:[function(require,module,exports){
+},{"./DDHelper.js":50,"./EventManager.js":51,"./Integration.js":52,"./functions/after.js":55,"./functions/each.js":57,"./functions/size.js":64,"async":1,"component-clone":4,"component-emitter":5}],55:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -5492,7 +5424,7 @@ exports["default"] = function (times, fn) {
   };
 };
 
-},{}],57:[function(require,module,exports){
+},{}],56:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -5505,7 +5437,7 @@ exports["default"] = function (obj, prop) {
   }
 };
 
-},{}],58:[function(require,module,exports){
+},{}],57:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -5518,7 +5450,7 @@ exports["default"] = function (obj, fn) {
   }
 };
 
-},{}],59:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -5557,7 +5489,7 @@ function format(str) {
   });
 }
 
-},{}],60:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5594,7 +5526,7 @@ exports['default'] = function (options, fn) {
     (0, _scriptOnLoad2['default'])(iframe, fn);
   }
 
-  (0, _nextTick2['default'])(function () {
+  _async2['default'].nextTick(function () {
     // Append after event listeners are attached for IE.
     var firstScript = document.getElementsByTagName('script')[0];
     firstScript.parentNode.insertBefore(iframe, firstScript);
@@ -5609,15 +5541,15 @@ var _scriptOnLoad = require('./scriptOnLoad.js');
 
 var _scriptOnLoad2 = _interopRequireDefault(_scriptOnLoad);
 
-var _nextTick = require('next-tick');
+var _async = require('async');
 
-var _nextTick2 = _interopRequireDefault(_nextTick);
+var _async2 = _interopRequireDefault(_async);
 
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":64,"next-tick":49}],61:[function(require,module,exports){
+},{"./scriptOnLoad.js":63,"async":1}],60:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5653,7 +5585,7 @@ function error(fn, message, img) {
   };
 }
 
-},{}],62:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5689,7 +5621,7 @@ exports['default'] = function (options, fn) {
     (0, _scriptOnLoad2['default'])(script, fn);
   }
 
-  (0, _nextTick2['default'])(function () {
+  _async2['default'].nextTick(function () {
     // Append after event listeners are attached for IE.
     var firstScript = document.getElementsByTagName('script')[0];
     firstScript.parentNode.insertBefore(script, firstScript);
@@ -5704,22 +5636,22 @@ var _scriptOnLoad = require('./scriptOnLoad.js');
 
 var _scriptOnLoad2 = _interopRequireDefault(_scriptOnLoad);
 
-var _nextTick = require('next-tick');
+var _async = require('async');
 
-var _nextTick2 = _interopRequireDefault(_nextTick);
+var _async2 = _interopRequireDefault(_async);
 
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":64,"next-tick":49}],63:[function(require,module,exports){
+},{"./scriptOnLoad.js":63,"async":1}],62:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
 
 exports["default"] = function () {};
 
-},{}],64:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5774,7 +5706,7 @@ function attachEvent(el, fn) {
   });
 }
 
-},{}],65:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -5787,7 +5719,7 @@ exports["default"] = function (obj) {
   return size;
 };
 
-},{}],66:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 'use strict';
 
 require('./polyfill.js');
@@ -5809,7 +5741,7 @@ _ddManager2['default'].processEarlyStubCalls();
 
 window.ddManager = _ddManager2['default'];
 
-},{"./availableIntegrations.js":54,"./ddManager.js":55,"./polyfill.js":68}],67:[function(require,module,exports){
+},{"./availableIntegrations.js":53,"./ddManager.js":54,"./polyfill.js":67}],66:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -5901,7 +5833,7 @@ var GoogleTagManager = (function (_Integration) {
 
 exports['default'] = GoogleTagManager;
 
-},{"./../Integration.js":53,"./../functions/deleteProperty.js":57}],68:[function(require,module,exports){
+},{"./../Integration.js":52,"./../functions/deleteProperty.js":56}],67:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es5');
@@ -5910,4 +5842,4 @@ require('core-js/modules/es6.object.assign');
 
 require('core-js/modules/es6.string.trim');
 
-},{"core-js/modules/es5":41,"core-js/modules/es6.object.assign":42,"core-js/modules/es6.string.trim":43}]},{},[66]);
+},{"core-js/modules/es5":41,"core-js/modules/es6.object.assign":42,"core-js/modules/es6.string.trim":43}]},{},[65]);

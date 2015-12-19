@@ -1,7 +1,6 @@
 import assert from 'assert';
 import reset from './reset.js';
 import EventManager from './../src/EventManager.js';
-import nextTick from 'next-tick';
 
 describe('EventManager', () => {
 

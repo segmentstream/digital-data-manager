@@ -6,7 +6,7 @@ import noop from './functions/noop.js';
 import each from './functions/each.js';
 import deleteProperty from './functions/deleteProperty.js';
 import debug from 'debug';
-import nextTick from 'next-tick';
+import async from 'async';
 import EventEmitter from 'component-emitter';
 
 class Integration extends EventEmitter
@@ -21,7 +21,7 @@ class Integration extends EventEmitter
 
   initialize() {
     const ready = this.ready;
-    nextTick(ready);
+    async.nextTick(ready);
   }
 
   setName(name) {

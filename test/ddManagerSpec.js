@@ -1,5 +1,4 @@
 import assert from 'assert';
-import nextTick from 'next-tick';
 import reset from './reset.js';
 import snippet from './snippet.js';
 import availableIntegrations from '../src/availableIntegrations.js';

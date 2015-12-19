@@ -1,5 +1,5 @@
 import clone from 'component-clone';
-import nextTick from 'next-tick';
+import async from 'async';
 import size from './functions/size.js';
 import after from './functions/after.js';
 import each from './functions/each.js';
@@ -103,7 +103,7 @@ const ddManager = {
       if (ddManager[method]) {
         if (method === 'initialize' && earlyStubCalls.length > 0) {
           // run initialize stub after all other stubs
-          nextTick(methodCallPromise(method, args));
+          async.nextTick(methodCallPromise(method, args));
         } else {
           ddManager[method].apply(ddManager, args);
         }
