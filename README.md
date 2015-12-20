@@ -182,3 +182,11 @@ ddManager.once('ready', function() {
   });
 });
 ```
+
+## Learn more at these links (in Russian)
+- [Digital Data Layer Website](https://www.data-layer.net)
+- [Driveback Blog](http://blog.driveback.ru)
+
+## License
+
+The Digigal Data Manager is licensed under the MIT license. See [License File](LICENSE.md) for more information.
