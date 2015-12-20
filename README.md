@@ -189,4 +189,4 @@ ddManager.once('ready', function() {
 
 ## License
 
-The Digigal Data Manager is licensed under the MIT license. See [License File](LICENSE.md) for more information.
+The Digital Data Manager is licensed under the MIT license. See [License File](LICENSE.md) for more information.
