@@ -115,6 +115,8 @@ ddManager.initialize({
 });
 ```
 
+**Note.**You can even remove you GTM or Google Analytics tags from the code. Digital Data Manager will load them automatically.
+
 ##Event tracking
 
 ###Listening and reacting to events
@@ -189,4 +191,4 @@ ddManager.once('ready', function() {
 
 ## License
 
-The Digital Data Manager is licensed under the MIT license. See [License File](LICENSE.md) for more information.
+The Digital Data Manager is licensed under the MIT license. See [License File](LICENSE.txt) for more information.
