@@ -6,6 +6,7 @@ import each from './functions/each.js';
 import emitter from 'component-emitter';
 import Integration from './Integration.js';
 import EventManager from './EventManager.js';
+import AutoEvents from './AutoEvents.js';
 import DDHelper from './DDHelper.js';
 
 /**
@@ -49,6 +50,12 @@ let _availableIntegrations;
  * @private
  */
 let _eventManager;
+
+/**
+ * @type {AutoEvents}
+ * @private
+ */
+let _autoEvents;
 
 /**
  * @type {Object}
@@ -118,6 +125,7 @@ const ddManager = {
    * Example:
    *
    * {
+   *    autoEvents: true,
    *    integrations: {
    *      'Google Tag Manager': {
    *        containerId: 'XXX'
@@ -129,6 +137,10 @@ const ddManager = {
    * }
    */
   initialize: (settings) => {
+    settings = Object.assign({
+      autoEvents: true
+    }, settings);
+
     if (_isInitialized) {
       throw new Error('ddManager is already initialized');
     }
@@ -136,6 +148,9 @@ const ddManager = {
     _prepareGlobals();
 
     _eventManager = new EventManager(_digitalData, _ddListener);
+    if (settings.autoEvents) {
+      _autoEvents = new AutoEvents(_digitalData);
+    }
 
     if (settings && typeof settings === 'object') {
       const integrationSettings = settings.integrations;
@@ -149,6 +164,9 @@ const ddManager = {
 
     const ready = after(size(_integrations), () => {
       _eventManager.initialize();
+      if (_autoEvents && _autoEvents instanceof AutoEvents) {
+        _autoEvents.fire();
+      }
       _isReady = true;
       ddManager.emit('ready');
     });

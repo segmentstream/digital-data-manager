@@ -27,6 +27,14 @@ class DDHelper {
     return nestedVar;
   }
 
+  static getProduct(id) {
+    console.log(id);
+  }
+
+  static getCampaign(id) {
+    console.log(id);
+  }
+
 }
 
 export default DDHelper;

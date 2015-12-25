@@ -4624,6 +4624,170 @@ process.umask = function() { return 0; };
 
 exports.__esModule = true;
 
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+var AutoEvents = (function () {
+  function AutoEvents(digitalData) {
+    _classCallCheck(this, AutoEvents);
+
+    this.digitalData = digitalData;
+  }
+
+  AutoEvents.prototype.fire = function fire() {
+    this.fireViewedPage();
+
+    if (this.digitalData.page) {
+      if (this.digitalData.page.type === 'category') {
+        this.fireViewedProductCategory();
+      }
+
+      if (this.digitalData.page.type === 'product') {
+        this.fireViewedProductDetail();
+      }
+
+      if (this.digitalData.page.type === 'cart' || this.digitalData.page.type === 'checkout') {
+        this.fireViewedCheckoutStep();
+      }
+    }
+
+    if (this.digitalData.transaction && this.digitalData.transaction.isReturning !== true) {
+      this.fireCompletedTransaction();
+    }
+
+    if (this.digitalData.listing) {
+      this.fireViewedProducts(this.digitalData.listing);
+    }
+
+    if (this.digitalData.recommendation) {
+      this.fireViewedProducts(this.digitalData.recommendation);
+    }
+
+    if (this.digitalData.campaigns) {
+      this.fireViewedCampaigns(this.digitalData.campaigns);
+    }
+  };
+
+  AutoEvents.prototype.fireViewedProducts = function fireViewedProducts(listing) {
+    if (listing.items && listing.items.length > 0) {
+      var items = [];
+      for (var _iterator = listing.items, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+        var _ref;
+
+        if (_isArray) {
+          if (_i >= _iterator.length) break;
+          _ref = _iterator[_i++];
+        } else {
+          _i = _iterator.next();
+          if (_i.done) break;
+          _ref = _i.value;
+        }
+
+        var product = _ref;
+
+        if (product.wasViewed) {
+          items.push(product.id);
+        }
+      }
+
+      var event = {
+        updateDigitalData: false,
+        name: 'Viewed Product',
+        category: 'Ecommerce',
+        items: items
+      };
+
+      if (listing.listName) {
+        event.listName = listing.listName;
+      }
+
+      this.digitalData.events.push(event);
+    }
+  };
+
+  AutoEvents.prototype.fireViewedCampaigns = function fireViewedCampaigns(campaigns) {
+    if (campaigns.length > 0) {
+      var viewedCampaigns = [];
+      for (var _iterator2 = campaigns, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+        var _ref2;
+
+        if (_isArray2) {
+          if (_i2 >= _iterator2.length) break;
+          _ref2 = _iterator2[_i2++];
+        } else {
+          _i2 = _iterator2.next();
+          if (_i2.done) break;
+          _ref2 = _i2.value;
+        }
+
+        var campaign = _ref2;
+
+        if (campaign.wasViewed) {
+          viewedCampaigns.push(campaign.id);
+        }
+      }
+      this.digitalData.events.push({
+        updateDigitalData: false,
+        name: 'Viewed Campaign',
+        category: 'Promo',
+        campaigns: viewedCampaigns
+      });
+    }
+  };
+
+  AutoEvents.prototype.fireViewedPage = function fireViewedPage() {
+    this.digitalData.events.push({
+      updateDigitalData: false,
+      name: 'Viewed Page',
+      category: 'Content'
+    });
+  };
+
+  AutoEvents.prototype.fireViewedProductCategory = function fireViewedProductCategory() {
+    this.digitalData.events.push({
+      updateDigitalData: false,
+      name: 'Viewed Product Category',
+      category: 'Ecommerce'
+    });
+  };
+
+  AutoEvents.prototype.fireViewedProductDetail = function fireViewedProductDetail() {
+    this.digitalData.events.push({
+      updateDigitalData: false,
+      name: 'Viewed Product Detail',
+      category: 'Ecommerce'
+    });
+  };
+
+  AutoEvents.prototype.fireViewedCheckoutStep = function fireViewedCheckoutStep() {
+    this.digitalData.events.push({
+      updateDigitalData: false,
+      name: 'Viewed Checkout Step',
+      category: 'Ecommerce'
+    });
+  };
+
+  AutoEvents.prototype.fireCompletedTransaction = function fireCompletedTransaction() {
+    this.digitalData.events.push({
+      updateDigitalData: false,
+      name: 'Completed Transaction',
+      category: 'Ecommerce'
+    });
+  };
+
+  return AutoEvents;
+})();
+
+exports['default'] = AutoEvents;
+
+},{}],51:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
 var _componentClone = require('component-clone');
 
 var _componentClone2 = _interopRequireDefault(_componentClone);
@@ -4668,12 +4832,20 @@ var DDHelper = (function () {
     return nestedVar;
   };
 
+  DDHelper.getProduct = function getProduct(id) {
+    console.log(id);
+  };
+
+  DDHelper.getCampaign = function getCampaign(id) {
+    console.log(id);
+  };
+
   return DDHelper;
 })();
 
 exports['default'] = DDHelper;
 
-},{"component-clone":4}],51:[function(require,module,exports){
+},{"component-clone":4}],52:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -4915,7 +5087,7 @@ var EventManager = (function () {
 
 exports['default'] = EventManager;
 
-},{"./DDHelper.js":50,"./functions/deleteProperty.js":56,"async":1,"component-clone":4,"debug":44}],52:[function(require,module,exports){
+},{"./DDHelper.js":51,"./functions/deleteProperty.js":57,"async":1,"component-clone":4,"debug":44}],53:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -5093,10 +5265,6 @@ var Integration = (function (_EventEmitter) {
     // abstract
   };
 
-  Integration.prototype.trackPage = function trackPage() {
-    // abstract
-  };
-
   Integration.prototype.trackEvent = function trackEvent() {
     // abstract
   };
@@ -5106,7 +5274,7 @@ var Integration = (function (_EventEmitter) {
 
 exports['default'] = Integration;
 
-},{"./functions/deleteProperty.js":56,"./functions/each.js":57,"./functions/format.js":58,"./functions/loadIframe.js":59,"./functions/loadPixel.js":60,"./functions/loadScript.js":61,"./functions/noop.js":62,"async":1,"component-emitter":5,"debug":44}],53:[function(require,module,exports){
+},{"./functions/deleteProperty.js":57,"./functions/each.js":58,"./functions/format.js":59,"./functions/loadIframe.js":60,"./functions/loadPixel.js":61,"./functions/loadScript.js":62,"./functions/noop.js":63,"async":1,"component-emitter":5,"debug":44}],54:[function(require,module,exports){
 'use strict';
 
 var _integrations;
@@ -5125,7 +5293,7 @@ var integrations = (_integrations = {}, _integrations[_GoogleTagManager2['defaul
 
 exports['default'] = integrations;
 
-},{"./integrations/GoogleTagManager.js":66}],54:[function(require,module,exports){
+},{"./integrations/GoogleTagManager.js":67}],55:[function(require,module,exports){
 'use strict';
 
 function _typeof2(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -5163,6 +5331,10 @@ var _Integration2 = _interopRequireDefault(_Integration);
 var _EventManager = require('./EventManager.js');
 
 var _EventManager2 = _interopRequireDefault(_EventManager);
+
+var _AutoEvents = require('./AutoEvents.js');
+
+var _AutoEvents2 = _interopRequireDefault(_AutoEvents);
 
 var _DDHelper = require('./DDHelper.js');
 
@@ -5217,6 +5389,12 @@ var _availableIntegrations = undefined;
  * @private
  */
 var _eventManager = undefined;
+
+/**
+ * @type {AutoEvents}
+ * @private
+ */
+var _autoEvents = undefined;
 
 /**
  * @type {Object}
@@ -5285,6 +5463,7 @@ var ddManager = {
    * Example:
    *
    * {
+   *    autoEvents: true,
    *    integrations: {
    *      'Google Tag Manager': {
    *        containerId: 'XXX'
@@ -5296,6 +5475,10 @@ var ddManager = {
    * }
    */
   initialize: function initialize(settings) {
+    settings = Object.assign({
+      autoEvents: true
+    }, settings);
+
     if (_isInitialized) {
       throw new Error('ddManager is already initialized');
     }
@@ -5303,6 +5486,9 @@ var ddManager = {
     _prepareGlobals();
 
     _eventManager = new _EventManager2['default'](_digitalData, _ddListener);
+    if (settings.autoEvents) {
+      _autoEvents = new _AutoEvents2['default'](_digitalData);
+    }
 
     if (settings && (typeof settings === 'undefined' ? 'undefined' : _typeof(settings)) === 'object') {
       var integrationSettings = settings.integrations;
@@ -5316,6 +5502,9 @@ var ddManager = {
 
     var ready = (0, _after2['default'])((0, _size2['default'])(_integrations), function () {
       _eventManager.initialize();
+      if (_autoEvents && _autoEvents instanceof _AutoEvents2['default']) {
+        _autoEvents.fire();
+      }
       _isReady = true;
       ddManager.emit('ready');
     });
@@ -5407,7 +5596,7 @@ ddManager.on = ddManager.addEventListener = function (event, handler) {
 
 exports['default'] = ddManager;
 
-},{"./DDHelper.js":50,"./EventManager.js":51,"./Integration.js":52,"./functions/after.js":55,"./functions/each.js":57,"./functions/size.js":64,"async":1,"component-clone":4,"component-emitter":5}],55:[function(require,module,exports){
+},{"./AutoEvents.js":50,"./DDHelper.js":51,"./EventManager.js":52,"./Integration.js":53,"./functions/after.js":56,"./functions/each.js":58,"./functions/size.js":65,"async":1,"component-clone":4,"component-emitter":5}],56:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -5424,7 +5613,7 @@ exports["default"] = function (times, fn) {
   };
 };
 
-},{}],56:[function(require,module,exports){
+},{}],57:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -5437,7 +5626,7 @@ exports["default"] = function (obj, prop) {
   }
 };
 
-},{}],57:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -5450,7 +5639,7 @@ exports["default"] = function (obj, fn) {
   }
 };
 
-},{}],58:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -5489,7 +5678,7 @@ function format(str) {
   });
 }
 
-},{}],59:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5549,7 +5738,7 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":63,"async":1}],60:[function(require,module,exports){
+},{"./scriptOnLoad.js":64,"async":1}],61:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5585,7 +5774,7 @@ function error(fn, message, img) {
   };
 }
 
-},{}],61:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5644,14 +5833,14 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":63,"async":1}],62:[function(require,module,exports){
+},{"./scriptOnLoad.js":64,"async":1}],63:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
 
 exports["default"] = function () {};
 
-},{}],63:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5706,7 +5895,7 @@ function attachEvent(el, fn) {
   });
 }
 
-},{}],64:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -5719,7 +5908,7 @@ exports["default"] = function (obj) {
   return size;
 };
 
-},{}],65:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 'use strict';
 
 require('./polyfill.js');
@@ -5741,7 +5930,7 @@ _ddManager2['default'].processEarlyStubCalls();
 
 window.ddManager = _ddManager2['default'];
 
-},{"./availableIntegrations.js":53,"./ddManager.js":54,"./polyfill.js":67}],66:[function(require,module,exports){
+},{"./availableIntegrations.js":54,"./ddManager.js":55,"./polyfill.js":68}],67:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -5833,7 +6022,7 @@ var GoogleTagManager = (function (_Integration) {
 
 exports['default'] = GoogleTagManager;
 
-},{"./../Integration.js":52,"./../functions/deleteProperty.js":56}],67:[function(require,module,exports){
+},{"./../Integration.js":53,"./../functions/deleteProperty.js":57}],68:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es5');
@@ -5842,4 +6031,4 @@ require('core-js/modules/es6.object.assign');
 
 require('core-js/modules/es6.string.trim');
 
-},{"core-js/modules/es5":41,"core-js/modules/es6.object.assign":42,"core-js/modules/es6.string.trim":43}]},{},[65]);
+},{"core-js/modules/es5":41,"core-js/modules/es6.object.assign":42,"core-js/modules/es6.string.trim":43}]},{},[66]);

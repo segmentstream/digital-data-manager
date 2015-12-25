@@ -111,10 +111,6 @@ class Integration extends EventEmitter
     // abstract
   }
 
-  trackPage() {
-    // abstract
-  }
-
   trackEvent() {
     // abstract
   }
