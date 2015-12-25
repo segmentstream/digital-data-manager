@@ -5,9 +5,8 @@ class GoogleTagManager extends Integration {
 
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
-      containerId: '',
+      containerId: null,
     }, options);
-
     super(digitalData, optionsWithDefaults);
 
     this.addTag({
@@ -23,9 +22,13 @@ class GoogleTagManager extends Integration {
   }
 
   initialize() {
-    window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push({ 'gtm.start': Number(new Date()), event: 'gtm.js' });
-    this.load(this.ready);
+    if (this.getOption('containerId')) {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ 'gtm.start': Number(new Date()), event: 'gtm.js' });
+      this.load(this.ready);
+    } else {
+      this.ready();
+    }
   }
 
   isLoaded() {

@@ -5974,8 +5974,9 @@ var GoogleTagManager = (function (_Integration) {
     _classCallCheck(this, GoogleTagManager);
 
     var optionsWithDefaults = Object.assign({
-      containerId: ''
+      containerId: null
     }, options);
+    console.log(optionsWithDefaults);
 
     var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
 
@@ -5993,9 +5994,13 @@ var GoogleTagManager = (function (_Integration) {
   };
 
   GoogleTagManager.prototype.initialize = function initialize() {
-    window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push({ 'gtm.start': Number(new Date()), event: 'gtm.js' });
-    this.load(this.ready);
+    if (this.getOption('containerId')) {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ 'gtm.start': Number(new Date()), event: 'gtm.js' });
+      this.load(this.ready);
+    } else {
+      this.ready();
+    }
   };
 
   GoogleTagManager.prototype.isLoaded = function isLoaded() {
