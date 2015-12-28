@@ -7,7 +7,7 @@ export default function throwError(code, message) {
   }
   const error = {
     code: code,
-    message: message
+    message: message,
   };
   debug(message);
   throw error;

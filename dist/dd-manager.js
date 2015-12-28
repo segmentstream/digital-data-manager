@@ -4820,7 +4820,6 @@ var DDHelper = (function () {
   DDHelper.get = function get(key, digitalData) {
     var keyParts = _keyToArray(key);
     var nestedVar = (0, _componentClone2['default'])(digitalData);
-
     while (keyParts.length > 0) {
       var childKey = keyParts.shift();
       if (nestedVar.hasOwnProperty(childKey)) {
@@ -4866,6 +4865,14 @@ var _deleteProperty = require('./functions/deleteProperty.js');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
+var _size = require('./functions/size.js');
+
+var _size2 = _interopRequireDefault(_size);
+
+var _after = require('./functions/after.js');
+
+var _after2 = _interopRequireDefault(_after);
+
 var _DDHelper = require('./DDHelper.js');
 
 var _DDHelper2 = _interopRequireDefault(_DDHelper);
@@ -4886,10 +4893,9 @@ var _previousDigitalData = {};
 var _digitalData = {};
 var _checkForChangesIntervalId = undefined;
 
-// default event handler result callback
-var _eventCallback = function _eventCallback(error) {
+var _callbackOnComplete = function _callbackOnComplete(error) {
   if (error) {
-    (0, _debug2['default'])('error firing callback error="%s"', error);
+    (0, _debug2['default'])('ddListener callback error: %s', error);
   }
 };
 
@@ -4986,13 +4992,13 @@ var EventManager = (function () {
 
         if (changeCallback.key) {
           var key = changeCallback.key;
-          newValue = _DDHelper2['default'].get(key, newValue);
-          previousValue = _DDHelper2['default'].get(key, previousValue);
-          if (!_jsonIsEqual(newValue, previousValue)) {
-            changeCallback.handler(newValue, previousValue, _eventCallback);
+          var newKeyValue = _DDHelper2['default'].get(key, newValue);
+          var previousKeyValue = _DDHelper2['default'].get(key, previousValue);
+          if (!_jsonIsEqual(newKeyValue, previousKeyValue)) {
+            changeCallback.handler(newKeyValue, previousKeyValue, _callbackOnComplete);
           }
         } else {
-          changeCallback.handler(newValue, previousValue, _eventCallback);
+          changeCallback.handler(newValue, previousValue, _callbackOnComplete);
         }
       }
     }
@@ -5001,20 +5007,50 @@ var EventManager = (function () {
   EventManager.prototype.fireEvent = function fireEvent(event) {
     var eventCallback = undefined;
     event.time = new Date().getTime();
-    if (_callbacks.event) {
-      for (var _iterator2 = _callbacks.event, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
-        if (_isArray2) {
-          if (_i2 >= _iterator2.length) break;
-          eventCallback = _iterator2[_i2++];
-        } else {
-          _i2 = _iterator2.next();
-          if (_i2.done) break;
-          eventCallback = _i2.value;
-        }
 
-        eventCallback.handler((0, _componentClone2['default'])(event), _eventCallback);
+    if (_callbacks.event) {
+      (function () {
+        var results = [];
+        var errors = [];
+        var ready = (0, _after2['default'])((0, _size2['default'])(_callbacks.event), function () {
+          if (typeof event.callback === 'function') {
+            event.callback(results, errors);
+          }
+        });
+
+        var eventCallbackOnComplete = function eventCallbackOnComplete(error, result) {
+          if (result !== undefined) {
+            results.push(result);
+          }
+          if (error) {
+            errors.push(error);
+          }
+          _callbackOnComplete(error);
+          ready();
+        };
+
+        for (var _iterator2 = _callbacks.event, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+          if (_isArray2) {
+            if (_i2 >= _iterator2.length) break;
+            eventCallback = _iterator2[_i2++];
+          } else {
+            _i2 = _iterator2.next();
+            if (_i2.done) break;
+            eventCallback = _i2.value;
+          }
+
+          var eventCopy = (0, _componentClone2['default'])(event);
+          (0, _deleteProperty2['default'])(eventCopy, 'updateDigitalData');
+          (0, _deleteProperty2['default'])(eventCopy, 'callback');
+          eventCallback.handler(eventCopy, eventCallbackOnComplete);
+        }
+      })();
+    } else {
+      if (typeof event.callback === 'function') {
+        event.callback();
       }
     }
+
     event.hasFired = true;
   };
 
@@ -5072,10 +5108,6 @@ var EventManager = (function () {
     }
   };
 
-  EventManager.prototype.setEventHandlerResultCallback = function setEventHandlerResultCallback(fn) {
-    _eventCallback = fn;
-  };
-
   EventManager.prototype.reset = function reset() {
     clearInterval(_checkForChangesIntervalId);
     _ddListener.push = Array.prototype.push;
@@ -5087,7 +5119,7 @@ var EventManager = (function () {
 
 exports['default'] = EventManager;
 
-},{"./DDHelper.js":51,"./functions/deleteProperty.js":57,"async":1,"component-clone":4,"debug":44}],53:[function(require,module,exports){
+},{"./DDHelper.js":51,"./functions/after.js":56,"./functions/deleteProperty.js":57,"./functions/size.js":66,"async":1,"component-clone":4,"debug":44}],53:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -5256,8 +5288,8 @@ var Integration = (function (_EventEmitter) {
     return this._tags[name];
   };
 
-  Integration.prototype.addOption = function addOption(name, defaultValue) {
-    this._options[name] = defaultValue;
+  Integration.prototype.setOption = function setOption(name, value) {
+    this._options[name] = value;
     return this;
   };
 
@@ -5282,7 +5314,7 @@ var Integration = (function (_EventEmitter) {
 
 exports['default'] = Integration;
 
-},{"./DDHelper.js":51,"./functions/deleteProperty.js":57,"./functions/each.js":58,"./functions/format.js":59,"./functions/loadIframe.js":60,"./functions/loadPixel.js":61,"./functions/loadScript.js":62,"./functions/noop.js":63,"async":1,"component-emitter":5,"debug":44}],54:[function(require,module,exports){
+},{"./DDHelper.js":51,"./functions/deleteProperty.js":57,"./functions/each.js":58,"./functions/format.js":59,"./functions/loadIframe.js":61,"./functions/loadPixel.js":62,"./functions/loadScript.js":63,"./functions/noop.js":64,"async":1,"component-emitter":5,"debug":44}],54:[function(require,module,exports){
 'use strict';
 
 var _integrations;
@@ -5309,7 +5341,7 @@ var integrations = (_integrations = {}, _integrations[_GoogleTagManager2['defaul
 
 exports['default'] = integrations;
 
-},{"./integrations/Driveback.js":67,"./integrations/GoogleTagManager.js":68,"./integrations/RetailRocket.js":69}],55:[function(require,module,exports){
+},{"./integrations/Driveback.js":69,"./integrations/GoogleTagManager.js":70,"./integrations/RetailRocket.js":71}],55:[function(require,module,exports){
 'use strict';
 
 function _typeof2(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -5542,7 +5574,9 @@ var ddManager = {
           ready();
         }
         // add event listeners for integration
-        _eventManager.addCallback(['on', 'event', integration.trackEvent]);
+        _eventManager.addCallback(['on', 'event', function (event) {
+          integration.trackEvent(event);
+        }]);
       });
     } else {
       ready();
@@ -5620,19 +5654,16 @@ ddManager.on = ddManager.addEventListener = function (event, handler) {
 
 exports['default'] = ddManager;
 
-},{"./AutoEvents.js":50,"./DDHelper.js":51,"./EventManager.js":52,"./Integration.js":53,"./functions/after.js":56,"./functions/each.js":58,"./functions/size.js":65,"async":1,"component-clone":4,"component-emitter":5}],56:[function(require,module,exports){
+},{"./AutoEvents.js":50,"./DDHelper.js":51,"./EventManager.js":52,"./Integration.js":53,"./functions/after.js":56,"./functions/each.js":58,"./functions/size.js":66,"async":1,"component-clone":4,"component-emitter":5}],56:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
 
 exports["default"] = function (times, fn) {
-  var _this = this,
-      _arguments = arguments;
-
   var timeLeft = times;
-  return function () {
+  return function afterAll() {
     if (--timeLeft < 1) {
-      return fn.apply(_this, _arguments);
+      return fn.apply(this, arguments);
     }
   };
 };
@@ -5706,6 +5737,21 @@ function format(str) {
 'use strict';
 
 exports.__esModule = true;
+exports['default'] = getQueryParam;
+function getQueryParam(name, queryString) {
+  if (!queryString) {
+    queryString = location.search;
+  }
+  name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+  var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+  var results = regex.exec(queryString);
+  return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+}
+
+},{}],61:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
 
 exports['default'] = function (options, fn) {
   if (!options) throw new Error('Cant load nothing...');
@@ -5762,7 +5808,7 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":64,"async":1}],61:[function(require,module,exports){
+},{"./scriptOnLoad.js":65,"async":1}],62:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5798,7 +5844,7 @@ function error(fn, message, img) {
   };
 }
 
-},{}],62:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5857,14 +5903,14 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":64,"async":1}],63:[function(require,module,exports){
+},{"./scriptOnLoad.js":65,"async":1}],64:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
 
 exports["default"] = function () {};
 
-},{}],64:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5919,7 +5965,7 @@ function attachEvent(el, fn) {
   });
 }
 
-},{}],65:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -5932,7 +5978,34 @@ exports["default"] = function (obj) {
   return size;
 };
 
-},{}],66:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+exports['default'] = throwError;
+
+var _debug = require('debug');
+
+var _debug2 = _interopRequireDefault(_debug);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function throwError(code, message) {
+  if (arguments.length === 1) {
+    message = code;
+    code = 'error';
+  }
+  var error = {
+    code: code,
+    message: message
+  };
+  (0, _debug2['default'])(message);
+  throw error;
+}
+
+},{"debug":44}],68:[function(require,module,exports){
 'use strict';
 
 require('./polyfill.js');
@@ -5954,7 +6027,7 @@ _ddManager2['default'].processEarlyStubCalls();
 
 window.ddManager = _ddManager2['default'];
 
-},{"./availableIntegrations.js":54,"./ddManager.js":55,"./polyfill.js":70}],67:[function(require,module,exports){
+},{"./availableIntegrations.js":54,"./ddManager.js":55,"./polyfill.js":72}],69:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -6046,14 +6119,12 @@ var Driveback = (function (_Integration) {
     (0, _deleteProperty2['default'])(window, 'DrivebackAsyncInit');
   };
 
-  Driveback.prototype.trackEvent = function trackEvent(event) {};
-
   return Driveback;
 })(_Integration3['default']);
 
 exports['default'] = Driveback;
 
-},{"./../Integration.js":53,"./../functions/deleteProperty.js":57}],68:[function(require,module,exports){
+},{"./../Integration.js":53,"./../functions/deleteProperty.js":57}],70:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -6149,7 +6220,7 @@ var GoogleTagManager = (function (_Integration) {
 
 exports['default'] = GoogleTagManager;
 
-},{"./../Integration.js":53,"./../functions/deleteProperty.js":57}],69:[function(require,module,exports){
+},{"./../Integration.js":53,"./../functions/deleteProperty.js":57}],71:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -6164,13 +6235,21 @@ var _deleteProperty = require('./../functions/deleteProperty.js');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
-var _debug = require('debug');
+var _throwError = require('./../functions/throwError.js');
 
-var _debug2 = _interopRequireDefault(_debug);
+var _throwError2 = _interopRequireDefault(_throwError);
+
+var _componentType = require('component-type');
+
+var _componentType2 = _interopRequireDefault(_componentType);
 
 var _format = require('./../functions/format.js');
 
 var _format2 = _interopRequireDefault(_format);
+
+var _getQueryParam = require('./../functions/getQueryParam.js');
+
+var _getQueryParam2 = _interopRequireDefault(_getQueryParam);
 
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
@@ -6201,7 +6280,8 @@ var RetailRocket = (function (_Integration) {
     _classCallCheck(this, RetailRocket);
 
     var optionsWithDefaults = Object.assign({
-      partnerId: ''
+      partnerId: '',
+      trackAllEmails: false
     }, options);
 
     var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
@@ -6226,6 +6306,9 @@ var RetailRocket = (function (_Integration) {
       window.rrApi = {};
       window.rrApiOnReady = window.rrApiOnReady || [];
       window.rrApi.addToBasket = window.rrApi.order = window.rrApi.categoryView = window.rrApi.view = window.rrApi.recomMouseDown = window.rrApi.recomAddToCart = function () {};
+
+      this.trackEmail();
+
       this.load(this.ready);
     } else {
       this.ready();
@@ -6240,10 +6323,17 @@ var RetailRocket = (function (_Integration) {
     (0, _deleteProperty2['default'])(window, 'rrPartnerId');
     (0, _deleteProperty2['default'])(window, 'rrApi');
     (0, _deleteProperty2['default'])(window, 'rrApiOnReady');
+    (0, _deleteProperty2['default'])(window, 'rcApi');
+    (0, _deleteProperty2['default'])(window, 'retailrocket');
+    (0, _deleteProperty2['default'])(window, 'retailrocket_products');
+    (0, _deleteProperty2['default'])(window, 'rrLibrary');
+    var script = document.getElementById('rrApi-jssdk');
+    if (script && script.parentNode) {
+      script.parentNode.removeChild(script);
+    }
   };
 
   RetailRocket.prototype.trackEvent = function trackEvent(event) {
-    console.log(event);
     if (event.name === 'Viewed Product Category') {
       this.onViewedProductCategory(event.page);
     } else if (event.name === 'Added Product') {
@@ -6257,8 +6347,30 @@ var RetailRocket = (function (_Integration) {
     }
   };
 
-  RetailRocket.prototype.onViewedProductCategory = function onViewedProductCategory(page) {
+  RetailRocket.prototype.trackEmail = function trackEmail() {
     var _this2 = this;
+
+    if (this.get('user.email')) {
+      if (this.getOption('trackAllEmails') === true || this.get('user.isSubscribed') === true) {
+        this.onSubscribed();
+      }
+    } else {
+      var email = (0, _getQueryParam2['default'])('rr_setemail', this.getQueryString());
+      if (email) {
+        window.digitalData.user.email = email;
+        // Retail Rocker will track this query param automatically
+      } else {
+          window.ddListener.push(['on', 'change:user.email', function () {
+            if (_this2.getOption('trackAllEmails') === true || _this2.get('user.isSubscribed') === true) {
+              _this2.onSubscribed();
+            }
+          }]);
+        }
+    }
+  };
+
+  RetailRocket.prototype.onViewedProductCategory = function onViewedProductCategory(page) {
+    var _this3 = this;
 
     page = page || {};
     var categoryId = page.categoryId || this.get('page.categoryId');
@@ -6268,54 +6380,49 @@ var RetailRocket = (function (_Integration) {
     }
     window.rrApiOnReady.push(function () {
       try {
-        window.rrApi.categoryView(page.categoryId);
-        _this2.onSuccess();
-      } catch (e) {
-        _this2.onError(e);
-      }
-    });
-  };
-
-  RetailRocket.prototype.onViewedProductDetail = function onViewedProductDetail(product) {
-    var _this3 = this;
-
-    product = product || {};
-    var productId = product.id || this.get('product.id');
-    if (!productId) {
-      this.onValidationError('product.id');
-      return;
-    }
-    window.rrApiOnReady.push(function () {
-      try {
-        window.rrApi.view(product.id);
-        _this3.onSuccess();
+        window.rrApi.categoryView(categoryId);
       } catch (e) {
         _this3.onError(e);
       }
     });
   };
 
-  RetailRocket.prototype.onAddedProduct = function onAddedProduct(product) {
+  RetailRocket.prototype.onViewedProductDetail = function onViewedProductDetail(product) {
     var _this4 = this;
 
-    product = product || {};
-    var productId = product.id || this.get('product.id');
+    var productId = this.getProductId(product);
     if (!productId) {
       this.onValidationError('product.id');
       return;
     }
     window.rrApiOnReady.push(function () {
       try {
-        window.rrApi.addToBasket(product.id);
-        _this4.onSuccess();
+        window.rrApi.view(productId);
       } catch (e) {
         _this4.onError(e);
       }
     });
   };
 
-  RetailRocket.prototype.onCompletedTransaction = function onCompletedTransaction(transaction) {
+  RetailRocket.prototype.onAddedProduct = function onAddedProduct(product) {
     var _this5 = this;
+
+    var productId = this.getProductId(product);
+    if (!productId) {
+      this.onValidationError('product.id');
+      return;
+    }
+    window.rrApiOnReady.push(function () {
+      try {
+        window.rrApi.addToBasket(productId);
+      } catch (e) {
+        _this5.onError(e);
+      }
+    });
+  };
+
+  RetailRocket.prototype.onCompletedTransaction = function onCompletedTransaction(transaction) {
+    var _this6 = this;
 
     transaction = transaction || this.get('transaction') || {};
     if (!this.validateTransaction(transaction)) {
@@ -6342,23 +6449,25 @@ var RetailRocket = (function (_Integration) {
           transaction: transaction.orderId,
           items: items
         });
-        _this5.onSuccess();
       } catch (e) {
-        _this5.onError(e);
+        _this6.onError(e);
       }
     });
   };
 
   RetailRocket.prototype.onSubscribed = function onSubscribed(user) {
-    var _this6 = this;
+    var _this7 = this;
 
-    user = user || {};
+    user = user || this.get('user') || {};
+    if (!user.email) {
+      this.onValidationError('user.email');
+      return;
+    }
     window.rrApiOnReady.push(function () {
       try {
         window.rrApi.setEmail(user.email);
-        _this6.onSuccess();
       } catch (e) {
-        _this6.onError(e);
+        _this7.onError(e);
       }
     });
   };
@@ -6394,10 +6503,6 @@ var RetailRocket = (function (_Integration) {
       this.onValidationError((0, _format2['default'])('transaction.lineItems[%d].product.salePrice', index));
       isValid = false;
     }
-    if (!product.salePrice && !product.price) {
-      this.onValidationError((0, _format2['default'])('transaction.lineItems[%d].product.salePrice', index));
-      isValid = false;
-    }
     if (!lineItem.quantity) {
       this.onValidationError((0, _format2['default'])('transaction.lineItems[%d].quantity', index));
       isValid = false;
@@ -6406,16 +6511,32 @@ var RetailRocket = (function (_Integration) {
     return isValid;
   };
 
+  RetailRocket.prototype.getProductId = function getProductId(product) {
+    product = product || {};
+    var productId = undefined;
+    if ((0, _componentType2['default'])(product) === 'object') {
+      productId = product.id || this.get('product.id');
+    } else {
+      productId = product;
+    }
+    return productId;
+  };
+
   RetailRocket.prototype.onError = function onError(err) {
-    (0, _debug2['default'])('Retail Rocket integration error: "%s"', err);
+    (0, _throwError2['default'])('external_error', (0, _format2['default'])('Retail Rocket integration error: "%s"', err));
   };
 
   RetailRocket.prototype.onValidationError = function onValidationError(variableName) {
-    (0, _debug2['default'])('Retail Rocket integration error: DDL or event variable "%s" is not defined or empty', variableName);
+    (0, _throwError2['default'])('validation_error', (0, _format2['default'])('Retail Rocket integration error: DDL or event variable "%s" is not defined or empty', variableName));
   };
 
-  RetailRocket.prototype.onSuccess = function onSuccess() {
-    // abstract, can be overriden for testing
+  /**
+   * Can be stubbed in unit tests
+   * @returns string
+   */
+
+  RetailRocket.prototype.getQueryString = function getQueryString() {
+    return window.location.search;
   };
 
   return RetailRocket;
@@ -6423,7 +6544,7 @@ var RetailRocket = (function (_Integration) {
 
 exports['default'] = RetailRocket;
 
-},{"./../Integration.js":53,"./../functions/deleteProperty.js":57,"./../functions/format.js":59,"debug":44}],70:[function(require,module,exports){
+},{"./../Integration.js":53,"./../functions/deleteProperty.js":57,"./../functions/format.js":59,"./../functions/getQueryParam.js":60,"./../functions/throwError.js":67,"component-type":6}],72:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es5');
@@ -6432,4 +6553,4 @@ require('core-js/modules/es6.object.assign');
 
 require('core-js/modules/es6.string.trim');
 
-},{"core-js/modules/es5":41,"core-js/modules/es6.object.assign":42,"core-js/modules/es6.string.trim":43}]},{},[66]);
+},{"core-js/modules/es5":41,"core-js/modules/es6.object.assign":42,"core-js/modules/es6.string.trim":43}]},{},[68]);

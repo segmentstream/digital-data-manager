@@ -189,7 +189,7 @@ const ddManager = {
         }
         // add event listeners for integration
         _eventManager.addCallback(['on', 'event', (event) => {
-          integration.trackEvent(event)
+          integration.trackEvent(event);
         }]);
       });
     } else {

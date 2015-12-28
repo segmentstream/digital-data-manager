@@ -10,7 +10,7 @@ class RetailRocket extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       partnerId: '',
-      trackAllEmails: false
+      trackAllEmails: false,
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -56,7 +56,7 @@ class RetailRocket extends Integration {
     deleteProperty(window, 'retailrocket');
     deleteProperty(window, 'retailrocket_products');
     deleteProperty(window, 'rrLibrary');
-    var script = document.getElementById('rrApi-jssdk');
+    const script = document.getElementById('rrApi-jssdk');
     if (script && script.parentNode) {
       script.parentNode.removeChild(script);
     }
@@ -84,7 +84,7 @@ class RetailRocket extends Integration {
     } else {
       const email = getQueryParam('rr_setemail', this.getQueryString());
       if (email) {
-        digitalData.user.email = email;
+        window.digitalData.user.email = email;
         // Retail Rocker will track this query param automatically
       } else {
         window.ddListener.push(['on', 'change:user.email', () => {

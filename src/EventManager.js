@@ -12,7 +12,7 @@ let _previousDigitalData = {};
 let _digitalData = {};
 let _checkForChangesIntervalId;
 
-let _callbackOnComplete = (error) => {
+const _callbackOnComplete = (error) => {
   if (error) {
     debug('ddListener callback error: %s', error);
   }
@@ -118,7 +118,7 @@ class EventManager {
     if (_callbacks.event) {
       const results = [];
       const errors = [];
-      const ready = after(size(_callbacks.event), (results, errors) => {
+      const ready = after(size(_callbacks.event), () => {
         if (typeof event.callback === 'function') {
           event.callback(results, errors);
         }
@@ -132,11 +132,11 @@ class EventManager {
           errors.push(error);
         }
         _callbackOnComplete(error);
-        ready(results, errors);
+        ready();
       };
 
       for (eventCallback of _callbacks.event) {
-        let eventCopy = clone(event);
+        const eventCopy = clone(event);
         deleteProperty(eventCopy, 'updateDigitalData');
         deleteProperty(eventCopy, 'callback');
         eventCallback.handler(eventCopy, eventCallbackOnComplete);
