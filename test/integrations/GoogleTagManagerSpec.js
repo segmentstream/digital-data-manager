@@ -70,7 +70,7 @@ describe('Integrations: GoogleTagManager', () => {
       assert.ok(typeof dl[0]['gtm.start'] === 'number');
     });
 
-    describe('#track', () => {
+    describe('#trackEvent', () => {
 
       beforeEach(() => {
         window.dataLayer = [];

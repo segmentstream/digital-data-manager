@@ -83,6 +83,12 @@ function _prepareGlobals() {
     window[_digitalDataNamespace] = _digitalData;
   }
 
+  _digitalData.page = _digitalData.page || {};
+  _digitalData.user = _digitalData.user || {};
+  if (!_digitalData.page.type || _digitalData.page.type !== 'confirmation') {
+    _digitalData.cart = _digitalData.cart || {};
+  }
+
   if (Array.isArray(window[_ddListenerNamespace])) {
     _ddListener = window[_ddListenerNamespace];
   } else {
@@ -138,7 +144,7 @@ const ddManager = {
    */
   initialize: (settings) => {
     settings = Object.assign({
-      autoEvents: true
+      autoEvents: true,
     }, settings);
 
     if (_isInitialized) {
@@ -156,8 +162,10 @@ const ddManager = {
       const integrationSettings = settings.integrations;
       if (integrationSettings) {
         each(integrationSettings, (name, options) => {
-          const integration = new _availableIntegrations[name](_digitalData, clone(options));
-          ddManager.addIntegration(integration);
+          if (typeof _availableIntegrations[name] === 'function') {
+            const integration = new _availableIntegrations[name](_digitalData, clone(options));
+            ddManager.addIntegration(integration);
+          }
         });
       }
     }
@@ -180,7 +188,9 @@ const ddManager = {
           ready();
         }
         // add event listeners for integration
-        _eventManager.addCallback(['on', 'event', integration.trackEvent]);
+        _eventManager.addCallback(['on', 'event', (event) => {
+          integration.trackEvent(event)
+        }]);
       });
     } else {
       ready();

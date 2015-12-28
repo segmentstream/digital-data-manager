@@ -117,7 +117,7 @@ class AutoEvents
       name: 'Completed Transaction',
       category: 'Ecommerce',
     });
-  };
+  }
 }
 
 export default AutoEvents;

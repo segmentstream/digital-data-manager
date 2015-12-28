@@ -97,6 +97,34 @@ describe('EventManager', () => {
       assert.equal(receivedEvent.category, event.category);
     });
 
+    it('should fire event with callback inside when no listeners', (done) => {
+      _eventManager.initialize();
+      window.digitalData.events.push({
+        name: 'Test',
+        category: 'Test',
+        callback: function(result) {
+          done();
+        }
+      });
+    });
+
+    it('should fire event with callback inside after listeners completed', (done) => {
+      _eventManager.initialize();
+
+      window.ddListener.push(['on', 'event', (e) => {
+        return 'test result';
+      }]);
+
+      window.digitalData.events.push({
+        name: 'Test',
+        category: 'Test',
+        callback: (results) => {
+          assert.ok(results[0] == 'test result');
+          done();
+        }
+      });
+    });
+
   });
 
   describe(': listening for digitalData changes', () => {
@@ -164,17 +192,11 @@ describe('EventManager', () => {
     });
 
     it('should handle change callback exception', (done) => {
-      const errorHandler = (error) => {
-        done();
-      };
-
-      //set custom callback for change handler result
-      _eventManager.setEventHandlerResultCallback(errorHandler);
-
       window.ddListener.push(['on', 'change', (newValue, previousValue) => {
         throw new Error('test error');
       }]);
       window.digitalData.test2 = 'test2';
+      setTimeout(done, 1000);
     });
 
     it('should NOT fire change callback', (done) => {

@@ -5134,6 +5134,10 @@ var _componentEmitter = require('component-emitter');
 
 var _componentEmitter2 = _interopRequireDefault(_componentEmitter);
 
+var _DDHelper = require('./DDHelper.js');
+
+var _DDHelper2 = _interopRequireDefault(_DDHelper);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -5261,6 +5265,10 @@ var Integration = (function (_EventEmitter) {
     return this._options[name];
   };
 
+  Integration.prototype.get = function get(key) {
+    return _DDHelper2['default'].get(key, this._digitalData);
+  };
+
   Integration.prototype.reset = function reset() {
     // abstract
   };
@@ -5274,7 +5282,7 @@ var Integration = (function (_EventEmitter) {
 
 exports['default'] = Integration;
 
-},{"./functions/deleteProperty.js":57,"./functions/each.js":58,"./functions/format.js":59,"./functions/loadIframe.js":60,"./functions/loadPixel.js":61,"./functions/loadScript.js":62,"./functions/noop.js":63,"async":1,"component-emitter":5,"debug":44}],54:[function(require,module,exports){
+},{"./DDHelper.js":51,"./functions/deleteProperty.js":57,"./functions/each.js":58,"./functions/format.js":59,"./functions/loadIframe.js":60,"./functions/loadPixel.js":61,"./functions/loadScript.js":62,"./functions/noop.js":63,"async":1,"component-emitter":5,"debug":44}],54:[function(require,module,exports){
 'use strict';
 
 var _integrations;
@@ -5285,15 +5293,23 @@ var _GoogleTagManager = require('./integrations/GoogleTagManager.js');
 
 var _GoogleTagManager2 = _interopRequireDefault(_GoogleTagManager);
 
+var _Driveback = require('./integrations/Driveback.js');
+
+var _Driveback2 = _interopRequireDefault(_Driveback);
+
+var _RetailRocket = require('./integrations/RetailRocket.js');
+
+var _RetailRocket2 = _interopRequireDefault(_RetailRocket);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-var integrations = (_integrations = {}, _integrations[_GoogleTagManager2['default'].getName()] = _GoogleTagManager2['default'], _integrations);
+var integrations = (_integrations = {}, _integrations[_GoogleTagManager2['default'].getName()] = _GoogleTagManager2['default'], _integrations[_Driveback2['default'].getName()] = _Driveback2['default'], _integrations[_RetailRocket2['default'].getName()] = _RetailRocket2['default'], _integrations);
 
 exports['default'] = integrations;
 
-},{"./integrations/GoogleTagManager.js":67}],55:[function(require,module,exports){
+},{"./integrations/Driveback.js":67,"./integrations/GoogleTagManager.js":68,"./integrations/RetailRocket.js":69}],55:[function(require,module,exports){
 'use strict';
 
 function _typeof2(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -5421,6 +5437,12 @@ function _prepareGlobals() {
     window[_digitalDataNamespace] = _digitalData;
   }
 
+  _digitalData.page = _digitalData.page || {};
+  _digitalData.user = _digitalData.user || {};
+  if (!_digitalData.page.type || _digitalData.page.type !== 'confirmation') {
+    _digitalData.cart = _digitalData.cart || {};
+  }
+
   if (Array.isArray(window[_ddListenerNamespace])) {
     _ddListener = window[_ddListenerNamespace];
   } else {
@@ -5494,8 +5516,10 @@ var ddManager = {
       var integrationSettings = settings.integrations;
       if (integrationSettings) {
         (0, _each2['default'])(integrationSettings, function (name, options) {
-          var integration = new _availableIntegrations[name](_digitalData, (0, _componentClone2['default'])(options));
-          ddManager.addIntegration(integration);
+          if (typeof _availableIntegrations[name] === 'function') {
+            var integration = new _availableIntegrations[name](_digitalData, (0, _componentClone2['default'])(options));
+            ddManager.addIntegration(integration);
+          }
         });
       }
     }
@@ -5930,7 +5954,106 @@ _ddManager2['default'].processEarlyStubCalls();
 
 window.ddManager = _ddManager2['default'];
 
-},{"./availableIntegrations.js":54,"./ddManager.js":55,"./polyfill.js":68}],67:[function(require,module,exports){
+},{"./availableIntegrations.js":54,"./ddManager.js":55,"./polyfill.js":70}],67:[function(require,module,exports){
+'use strict';
+
+function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+var _deleteProperty = require('./../functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+var Driveback = (function (_Integration) {
+  _inherits(Driveback, _Integration);
+
+  function Driveback(digitalData, options) {
+    _classCallCheck(this, Driveback);
+
+    var optionsWithDefaults = Object.assign({
+      websiteToken: ''
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        id: 'driveback-sdk',
+        src: '//cdn.driveback.ru/js/loader.js'
+      }
+    });
+    return _this;
+  }
+
+  Driveback.getName = function getName() {
+    return 'Driveback';
+  };
+
+  Driveback.prototype.initialize = function initialize() {
+    var _this2 = this;
+
+    if (this.getOption('websiteToken')) {
+      window.DrivebackNamespace = 'Driveback';
+      window.Driveback = window.Driveback || {};
+      window.DrivebackOnLoad = window.DrivebackOnLoad || [];
+      window.DrivebackLoaderAsyncInit = function () {
+        window.Driveback.Loader.init(_this2.getOption('websiteToken'));
+      };
+      this.load(this.ready);
+    } else {
+      this.ready();
+    }
+  };
+
+  Driveback.prototype.isLoaded = function isLoaded() {
+    return !!(window.Driveback && window.Driveback.Loader);
+  };
+
+  Driveback.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, 'Driveback');
+    (0, _deleteProperty2['default'])(window, 'DriveBack');
+    (0, _deleteProperty2['default'])(window, 'DrivebackNamespace');
+    (0, _deleteProperty2['default'])(window, 'DrivebackOnLoad');
+    (0, _deleteProperty2['default'])(window, 'DrivebackLoaderAsyncInit');
+    (0, _deleteProperty2['default'])(window, 'DrivebackAsyncInit');
+  };
+
+  Driveback.prototype.trackEvent = function trackEvent(event) {};
+
+  return Driveback;
+})(_Integration3['default']);
+
+exports['default'] = Driveback;
+
+},{"./../Integration.js":53,"./../functions/deleteProperty.js":57}],68:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -5976,7 +6099,6 @@ var GoogleTagManager = (function (_Integration) {
     var optionsWithDefaults = Object.assign({
       containerId: null
     }, options);
-    console.log(optionsWithDefaults);
 
     var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
 
@@ -6027,7 +6149,281 @@ var GoogleTagManager = (function (_Integration) {
 
 exports['default'] = GoogleTagManager;
 
-},{"./../Integration.js":53,"./../functions/deleteProperty.js":57}],68:[function(require,module,exports){
+},{"./../Integration.js":53,"./../functions/deleteProperty.js":57}],69:[function(require,module,exports){
+'use strict';
+
+function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+var _deleteProperty = require('./../functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+var _debug = require('debug');
+
+var _debug2 = _interopRequireDefault(_debug);
+
+var _format = require('./../functions/format.js');
+
+var _format2 = _interopRequireDefault(_format);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+var RetailRocket = (function (_Integration) {
+  _inherits(RetailRocket, _Integration);
+
+  function RetailRocket(digitalData, options) {
+    _classCallCheck(this, RetailRocket);
+
+    var optionsWithDefaults = Object.assign({
+      partnerId: ''
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        id: 'rrApi-jssdk',
+        src: '//cdn.retailrocket.ru/content/javascript/api.js'
+      }
+    });
+    return _this;
+  }
+
+  RetailRocket.getName = function getName() {
+    return 'Retail Rocket';
+  };
+
+  RetailRocket.prototype.initialize = function initialize() {
+    if (this.getOption('partnerId')) {
+      window.rrPartnerId = this.getOption('partnerId');
+      window.rrApi = {};
+      window.rrApiOnReady = window.rrApiOnReady || [];
+      window.rrApi.addToBasket = window.rrApi.order = window.rrApi.categoryView = window.rrApi.view = window.rrApi.recomMouseDown = window.rrApi.recomAddToCart = function () {};
+      this.load(this.ready);
+    } else {
+      this.ready();
+    }
+  };
+
+  RetailRocket.prototype.isLoaded = function isLoaded() {
+    return !!(window.rrApi && typeof window.rrApi._initialize === 'function');
+  };
+
+  RetailRocket.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, 'rrPartnerId');
+    (0, _deleteProperty2['default'])(window, 'rrApi');
+    (0, _deleteProperty2['default'])(window, 'rrApiOnReady');
+  };
+
+  RetailRocket.prototype.trackEvent = function trackEvent(event) {
+    console.log(event);
+    if (event.name === 'Viewed Product Category') {
+      this.onViewedProductCategory(event.page);
+    } else if (event.name === 'Added Product') {
+      this.onAddedProduct(event.product);
+    } else if (event.name === 'Viewed Product Detail') {
+      this.onViewedProductDetail(event.product);
+    } else if (event.name === 'Completed Transaction') {
+      this.onCompletedTransaction(event.transaction);
+    } else if (event.name === 'Subscribed') {
+      this.onSubscribed(event.user);
+    }
+  };
+
+  RetailRocket.prototype.onViewedProductCategory = function onViewedProductCategory(page) {
+    var _this2 = this;
+
+    page = page || {};
+    var categoryId = page.categoryId || this.get('page.categoryId');
+    if (!categoryId) {
+      this.onValidationError('page.categoryId');
+      return;
+    }
+    window.rrApiOnReady.push(function () {
+      try {
+        window.rrApi.categoryView(page.categoryId);
+        _this2.onSuccess();
+      } catch (e) {
+        _this2.onError(e);
+      }
+    });
+  };
+
+  RetailRocket.prototype.onViewedProductDetail = function onViewedProductDetail(product) {
+    var _this3 = this;
+
+    product = product || {};
+    var productId = product.id || this.get('product.id');
+    if (!productId) {
+      this.onValidationError('product.id');
+      return;
+    }
+    window.rrApiOnReady.push(function () {
+      try {
+        window.rrApi.view(product.id);
+        _this3.onSuccess();
+      } catch (e) {
+        _this3.onError(e);
+      }
+    });
+  };
+
+  RetailRocket.prototype.onAddedProduct = function onAddedProduct(product) {
+    var _this4 = this;
+
+    product = product || {};
+    var productId = product.id || this.get('product.id');
+    if (!productId) {
+      this.onValidationError('product.id');
+      return;
+    }
+    window.rrApiOnReady.push(function () {
+      try {
+        window.rrApi.addToBasket(product.id);
+        _this4.onSuccess();
+      } catch (e) {
+        _this4.onError(e);
+      }
+    });
+  };
+
+  RetailRocket.prototype.onCompletedTransaction = function onCompletedTransaction(transaction) {
+    var _this5 = this;
+
+    transaction = transaction || this.get('transaction') || {};
+    if (!this.validateTransaction(transaction)) {
+      return;
+    }
+
+    var items = [];
+    var lineItems = transaction.lineItems;
+    for (var i = 0, length = lineItems.length; i < length; i++) {
+      if (!this.validateLineItem(lineItems[i], i)) {
+        continue;
+      }
+      var product = lineItems[i].product;
+      items.push({
+        id: product.id,
+        qnt: lineItems[i].quantity,
+        price: product.salePrice || product.price
+      });
+    }
+
+    window.rrApiOnReady.push(function () {
+      try {
+        window.rrApi.order({
+          transaction: transaction.orderId,
+          items: items
+        });
+        _this5.onSuccess();
+      } catch (e) {
+        _this5.onError(e);
+      }
+    });
+  };
+
+  RetailRocket.prototype.onSubscribed = function onSubscribed(user) {
+    var _this6 = this;
+
+    user = user || {};
+    window.rrApiOnReady.push(function () {
+      try {
+        window.rrApi.setEmail(user.email);
+        _this6.onSuccess();
+      } catch (e) {
+        _this6.onError(e);
+      }
+    });
+  };
+
+  RetailRocket.prototype.validateTransaction = function validateTransaction(transaction) {
+    var isValid = true;
+    if (!transaction.orderId) {
+      this.onValidationError('transaction.orderId');
+      isValid = false;
+    }
+
+    var lineItems = transaction.lineItems;
+    if (!lineItems || !Array.isArray(lineItems) || lineItems.length === 0) {
+      this.onValidationError('transaction.lineItems');
+      isValid = false;
+    }
+
+    return isValid;
+  };
+
+  RetailRocket.prototype.validateLineItem = function validateLineItem(lineItem, index) {
+    var isValid = true;
+    if (!lineItem.product) {
+      this.onValidationError((0, _format2['default'])('transaction.lineItems[%d].product', index));
+      isValid = false;
+    }
+    var product = lineItem.product;
+    if (!product.id) {
+      this.onValidationError((0, _format2['default'])('transaction.lineItems[%d].product.id', index));
+      isValid = false;
+    }
+    if (!product.salePrice && !product.price) {
+      this.onValidationError((0, _format2['default'])('transaction.lineItems[%d].product.salePrice', index));
+      isValid = false;
+    }
+    if (!product.salePrice && !product.price) {
+      this.onValidationError((0, _format2['default'])('transaction.lineItems[%d].product.salePrice', index));
+      isValid = false;
+    }
+    if (!lineItem.quantity) {
+      this.onValidationError((0, _format2['default'])('transaction.lineItems[%d].quantity', index));
+      isValid = false;
+    }
+
+    return isValid;
+  };
+
+  RetailRocket.prototype.onError = function onError(err) {
+    (0, _debug2['default'])('Retail Rocket integration error: "%s"', err);
+  };
+
+  RetailRocket.prototype.onValidationError = function onValidationError(variableName) {
+    (0, _debug2['default'])('Retail Rocket integration error: DDL or event variable "%s" is not defined or empty', variableName);
+  };
+
+  RetailRocket.prototype.onSuccess = function onSuccess() {
+    // abstract, can be overriden for testing
+  };
+
+  return RetailRocket;
+})(_Integration3['default']);
+
+exports['default'] = RetailRocket;
+
+},{"./../Integration.js":53,"./../functions/deleteProperty.js":57,"./../functions/format.js":59,"debug":44}],70:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es5');

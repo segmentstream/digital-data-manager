@@ -8,7 +8,7 @@
 
 export default function(times, fn) {
   let timeLeft = times;
-  return () => {
+  return function() {
     if (--timeLeft < 1) {
       return fn.apply(this, arguments);
     }
