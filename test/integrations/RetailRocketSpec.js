@@ -29,6 +29,7 @@ describe('Integrations: RetailRocket', () => {
       window.rrApi.view.restore();
       window.rrApi.categoryView.restore();
       window.rrApi.order.restore();
+      window.rrApi.pageView.restore();
     }
     retailRocket.reset();
     ddManager.reset();
@@ -67,6 +68,7 @@ describe('Integrations: RetailRocket', () => {
       sinon.stub(window.rrApi, 'view');
       sinon.stub(window.rrApi, 'categoryView');
       sinon.stub(window.rrApi, 'order');
+      sinon.stub(window.rrApi, 'pageView');
       stubsPrepared = true;
     };
 
@@ -449,6 +451,10 @@ describe('Integrations: RetailRocket', () => {
 
     describe('#onSubscribed', () => {
 
+      beforeEach(() => {
+        sinon.stub(window.rrApi, "setEmail");
+      });
+
       afterEach(() => {
         if (window.rrApi.setEmail.restore !== undefined) {
           window.rrApi.setEmail.restore();
@@ -463,7 +469,7 @@ describe('Integrations: RetailRocket', () => {
             email: 'test@driveback.ru'
           },
           callback: () => {
-            assert.ok(true);
+            assert.ok(window.rrApi.setEmail.calledOnce);
             done();
           }
         });
@@ -477,7 +483,7 @@ describe('Integrations: RetailRocket', () => {
           name: 'Subscribed',
           category: 'Email',
           callback: () => {
-            assert.ok(true);
+            assert.ok(window.rrApi.setEmail.calledOnce);
             done();
           }
         });
@@ -491,6 +497,7 @@ describe('Integrations: RetailRocket', () => {
           callback: (results, errors) => {
             assert.ok(errors.length > 0);
             assert.ok(errors[0].code === 'validation_error');
+            assert.ok(!window.rrApi.setEmail.called);
             done();
           }
         });
@@ -501,7 +508,6 @@ describe('Integrations: RetailRocket', () => {
           email: 'test@driveback.ru',
           isSubscribed: true
         };
-        sinon.spy(window.rrApi, "setEmail");
         retailRocket.setOption('trackAllEmails', false);
         retailRocket.trackEmail();
         assert.ok(window.rrApi.setEmail.calledOnce);
@@ -512,7 +518,6 @@ describe('Integrations: RetailRocket', () => {
           email: 'test@driveback.ru',
           isSubscribed: false
         };
-        sinon.spy(window.rrApi, "setEmail");
         retailRocket.setOption('trackAllEmails', false);
         retailRocket.trackEmail();
         assert.ok(!window.rrApi.setEmail.called);
@@ -523,7 +528,6 @@ describe('Integrations: RetailRocket', () => {
           email: 'test@driveback.ru',
           isSubscribed: false
         };
-        sinon.spy(window.rrApi, 'setEmail');
         retailRocket.setOption('trackAllEmails', true);
         retailRocket.trackEmail();
         assert.ok(window.rrApi.setEmail.calledOnce);
@@ -547,7 +551,6 @@ describe('Integrations: RetailRocket', () => {
         window.digitalData.user = {};
         window.ddListener = [];
 
-        sinon.spy(window.rrApi, 'setEmail');
         retailRocket.setOption('trackAllEmails', true);
         retailRocket.trackEmail();
 
@@ -564,7 +567,6 @@ describe('Integrations: RetailRocket', () => {
         window.digitalData.user = {};
         window.ddListener = [];
 
-        sinon.spy(window.rrApi, 'setEmail');
         retailRocket.setOption('trackAllEmails', false);
         retailRocket.trackEmail();
 
