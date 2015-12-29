@@ -9,6 +9,7 @@ describe('Integrations: RetailRocket', () => {
   // this var will be reused in all Retail Rocket tests
   // as Retail Rocket throws error when loaded few times
   let retailRocket;
+  let stubsPrepared = false;
 
   const options = {
     partnerId: '567c343e6c7d3d14101afee5'
@@ -23,6 +24,12 @@ describe('Integrations: RetailRocket', () => {
   });
 
   after(() => {
+    if (stubsPrepared) {
+      window.rrApi.addToBasket.restore();
+      window.rrApi.view.restore();
+      window.rrApi.categoryView.restore();
+      window.rrApi.order.restore();
+    }
     retailRocket.reset();
     ddManager.reset();
     reset();
@@ -55,16 +62,26 @@ describe('Integrations: RetailRocket', () => {
 
   describe('after loading', () => {
 
+    const prepareStubs = () => {
+      sinon.stub(window.rrApi, 'addToBasket');
+      sinon.stub(window.rrApi, 'view');
+      sinon.stub(window.rrApi, 'categoryView');
+      sinon.stub(window.rrApi, 'order');
+      stubsPrepared = true;
+    };
+
     before((done) => {
       if (!ddManager.isInitialized()) {
        ddManager.once('ready', () => {
          window.rrApiOnReady.push(() => {
+           prepareStubs();
            done();
          });
        });
        ddManager.initialize();
       } else {
         window.rrApiOnReady.push(() => {
+          prepareStubs();
           done();
         });
       }
