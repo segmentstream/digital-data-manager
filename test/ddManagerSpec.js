@@ -100,6 +100,33 @@ describe('DDManager', () => {
       }
     });
 
+    it('it should fire fire "Viewed Page" event if autoEvents == true', (done) => {
+      ddManager.initialize();
+      if (ddManager.isInitialized()) {
+        ddManager.once('initialize', () => {
+          assert.ok(window.digitalData.events[0].name === 'Viewed Page');
+          assert.ok(window.digitalData.events.length === 1);
+          done();
+        });
+      } else {
+        assert.ok(false);
+      }
+    });
+
+    it('it should fire fire "Viewed Page" event if autoEvents == true', (done) => {
+      ddManager.initialize({
+        autoEvents: false
+      });
+      if (ddManager.isInitialized()) {
+        ddManager.once('initialize', () => {
+          assert.ok(window.digitalData.events.length === 0);
+          done();
+        });
+      } else {
+        assert.ok(false);
+      }
+    });
+
   });
 
 });

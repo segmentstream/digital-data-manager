@@ -2,6 +2,8 @@ import clone from 'component-clone';
 import async from 'async';
 import debug from 'debug';
 import deleteProperty from './functions/deleteProperty.js';
+import size from './functions/size.js';
+import after from './functions/after.js';
 import DDHelper from './DDHelper.js';
 
 let _callbacks = {};
@@ -10,10 +12,9 @@ let _previousDigitalData = {};
 let _digitalData = {};
 let _checkForChangesIntervalId;
 
-// default event handler result callback
-let _eventCallback = (error) => {
+const _callbackOnComplete = (error) => {
   if (error) {
-    debug('error firing callback error="%s"', error);
+    debug('ddListener callback error: %s', error);
   }
 };
 
@@ -98,13 +99,13 @@ class EventManager {
       for (changeCallback of _callbacks.change) {
         if (changeCallback.key) {
           const key = changeCallback.key;
-          newValue = DDHelper.get(key, newValue);
-          previousValue = DDHelper.get(key, previousValue);
-          if (!_jsonIsEqual(newValue, previousValue)) {
-            changeCallback.handler(newValue, previousValue, _eventCallback);
+          const newKeyValue = DDHelper.get(key, newValue);
+          const previousKeyValue = DDHelper.get(key, previousValue);
+          if (!_jsonIsEqual(newKeyValue, previousKeyValue)) {
+            changeCallback.handler(newKeyValue, previousKeyValue, _callbackOnComplete);
           }
         } else {
-          changeCallback.handler(newValue, previousValue, _eventCallback);
+          changeCallback.handler(newValue, previousValue, _callbackOnComplete);
         }
       }
     }
@@ -113,11 +114,39 @@ class EventManager {
   fireEvent(event) {
     let eventCallback;
     event.time = (new Date()).getTime();
+
     if (_callbacks.event) {
+      const results = [];
+      const errors = [];
+      const ready = after(size(_callbacks.event), () => {
+        if (typeof event.callback === 'function') {
+          event.callback(results, errors);
+        }
+      });
+
+      const eventCallbackOnComplete = (error, result) => {
+        if (result !== undefined) {
+          results.push(result);
+        }
+        if (error) {
+          errors.push(error);
+        }
+        _callbackOnComplete(error);
+        ready();
+      };
+
       for (eventCallback of _callbacks.event) {
-        eventCallback.handler(clone(event), _eventCallback);
+        const eventCopy = clone(event);
+        deleteProperty(eventCopy, 'updateDigitalData');
+        deleteProperty(eventCopy, 'callback');
+        eventCallback.handler(eventCopy, eventCallbackOnComplete);
+      }
+    } else {
+      if (typeof event.callback === 'function') {
+        event.callback();
       }
     }
+
     event.hasFired = true;
   }
 
@@ -151,10 +180,6 @@ class EventManager {
     for (callbackInfo of _ddListener) {
       this.addCallback(callbackInfo);
     }
-  }
-
-  setEventHandlerResultCallback(fn) {
-    _eventCallback = fn;
   }
 
   reset() {

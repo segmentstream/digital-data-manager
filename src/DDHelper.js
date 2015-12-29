@@ -15,7 +15,6 @@ class DDHelper {
   static get(key, digitalData) {
     const keyParts = _keyToArray(key);
     let nestedVar = clone(digitalData);
-
     while (keyParts.length > 0) {
       const childKey = keyParts.shift();
       if (nestedVar.hasOwnProperty(childKey)) {
@@ -25,6 +24,14 @@ class DDHelper {
       }
     }
     return nestedVar;
+  }
+
+  static getProduct(id) {
+    console.log(id);
+  }
+
+  static getCampaign(id) {
+    console.log(id);
   }
 
 }

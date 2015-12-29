@@ -6,6 +6,7 @@ import each from './functions/each.js';
 import emitter from 'component-emitter';
 import Integration from './Integration.js';
 import EventManager from './EventManager.js';
+import AutoEvents from './AutoEvents.js';
 import DDHelper from './DDHelper.js';
 
 /**
@@ -51,6 +52,12 @@ let _availableIntegrations;
 let _eventManager;
 
 /**
+ * @type {AutoEvents}
+ * @private
+ */
+let _autoEvents;
+
+/**
  * @type {Object}
  * @private
  */
@@ -74,6 +81,12 @@ function _prepareGlobals() {
     _digitalData = window[_digitalDataNamespace];
   } else {
     window[_digitalDataNamespace] = _digitalData;
+  }
+
+  _digitalData.page = _digitalData.page || {};
+  _digitalData.user = _digitalData.user || {};
+  if (!_digitalData.page.type || _digitalData.page.type !== 'confirmation') {
+    _digitalData.cart = _digitalData.cart || {};
   }
 
   if (Array.isArray(window[_ddListenerNamespace])) {
@@ -118,6 +131,7 @@ const ddManager = {
    * Example:
    *
    * {
+   *    autoEvents: true,
    *    integrations: {
    *      'Google Tag Manager': {
    *        containerId: 'XXX'
@@ -129,6 +143,10 @@ const ddManager = {
    * }
    */
   initialize: (settings) => {
+    settings = Object.assign({
+      autoEvents: true,
+    }, settings);
+
     if (_isInitialized) {
       throw new Error('ddManager is already initialized');
     }
@@ -136,19 +154,27 @@ const ddManager = {
     _prepareGlobals();
 
     _eventManager = new EventManager(_digitalData, _ddListener);
+    if (settings.autoEvents) {
+      _autoEvents = new AutoEvents(_digitalData);
+    }
 
     if (settings && typeof settings === 'object') {
       const integrationSettings = settings.integrations;
       if (integrationSettings) {
         each(integrationSettings, (name, options) => {
-          const integration = new _availableIntegrations[name](_digitalData, clone(options));
-          ddManager.addIntegration(integration);
+          if (typeof _availableIntegrations[name] === 'function') {
+            const integration = new _availableIntegrations[name](_digitalData, clone(options));
+            ddManager.addIntegration(integration);
+          }
         });
       }
     }
 
     const ready = after(size(_integrations), () => {
       _eventManager.initialize();
+      if (_autoEvents && _autoEvents instanceof AutoEvents) {
+        _autoEvents.fire();
+      }
       _isReady = true;
       ddManager.emit('ready');
     });
@@ -162,7 +188,9 @@ const ddManager = {
           ready();
         }
         // add event listeners for integration
-        _eventManager.addCallback(['on', 'event', integration.trackEvent]);
+        _eventManager.addCallback(['on', 'event', (event) => {
+          integration.trackEvent(event);
+        }]);
       });
     } else {
       ready();

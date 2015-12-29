@@ -8,6 +8,7 @@ import deleteProperty from './functions/deleteProperty.js';
 import debug from 'debug';
 import async from 'async';
 import EventEmitter from 'component-emitter';
+import DDHelper from './DDHelper.js';
 
 class Integration extends EventEmitter
 {
@@ -98,8 +99,8 @@ class Integration extends EventEmitter
     return this._tags[name];
   }
 
-  addOption(name, defaultValue) {
-    this._options[name] = defaultValue;
+  setOption(name, value) {
+    this._options[name] = value;
     return this;
   }
 
@@ -107,11 +108,11 @@ class Integration extends EventEmitter
     return this._options[name];
   }
 
-  reset() {
-    // abstract
+  get(key) {
+    return DDHelper.get(key, this._digitalData);
   }
 
-  trackPage() {
+  reset() {
     // abstract
   }
 
