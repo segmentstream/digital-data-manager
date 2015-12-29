@@ -158,7 +158,7 @@ class RetailRocket extends Integration {
       items.push({
         id: product.id,
         qnt: lineItems[i].quantity,
-        price: product.salePrice || product.price,
+        price: product.unitSalePrice || product.unitPrice,
       });
     }
 
@@ -216,8 +216,8 @@ class RetailRocket extends Integration {
       this.onValidationError(format('transaction.lineItems[%d].product.id', index));
       isValid = false;
     }
-    if (!product.salePrice && !product.price) {
-      this.onValidationError(format('transaction.lineItems[%d].product.salePrice', index));
+    if (!product.unitSalePrice && !product.unitPrice) {
+      this.onValidationError(format('transaction.lineItems[%d].product.unitSalePrice', index));
       isValid = false;
     }
     if (!lineItem.quantity) {

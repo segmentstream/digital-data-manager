@@ -288,14 +288,44 @@ describe('Integrations: RetailRocket', () => {
               {
                 product: {
                   id: '327',
-                  salePrice: 245
+                  unitSalePrice: 245
                 },
                 quantity: 1
               },
               {
                 product: {
                   id: '328',
-                  salePrice: 245
+                  unitSalePrice: 245
+                },
+                quantity: 2
+              }
+            ]
+          },
+          callback: () => {
+            assert.ok(true);
+            done();
+          }
+        });
+      });
+
+      it('should track "Completed Transaction" with transaction param and product.unitPrice instead of product.unitSalePrice', (done) => {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          transaction: {
+            orderId: '123',
+            lineItems: [
+              {
+                product: {
+                  id: '327',
+                  unitPrice: 245
+                },
+                quantity: 1
+              },
+              {
+                product: {
+                  id: '328',
+                  unitPrice: 245
                 },
                 quantity: 2
               }
@@ -315,14 +345,14 @@ describe('Integrations: RetailRocket', () => {
             {
               product: {
                 id: '327',
-                salePrice: 245
+                unitSalePrice: 245
               },
               quantity: 1
             },
             {
               product: {
                 id: '328',
-                salePrice: 245
+                unitSalePrice: 245
               },
               quantity: 2
             }
@@ -396,13 +426,13 @@ describe('Integrations: RetailRocket', () => {
             {
               product: {
                 id: '327',
-                salePrice: 245
+                unitSalePrice: 245
               }
             },
             {
               product: {
                 id: '328',
-                salePrice: 245
+                unitSalePrice: 245
               }
             }
           ]
@@ -418,7 +448,7 @@ describe('Integrations: RetailRocket', () => {
         });
       });
 
-      it('should throw validation error for "Completed Transaction" event when missing product.salePrice params', (done) => {
+      it('should throw validation error for "Completed Transaction" event when missing product.unitSalePrice params', (done) => {
         window.digitalData.transaction = {
           orderId: '123',
           lineItems: [
