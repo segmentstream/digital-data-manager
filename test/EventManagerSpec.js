@@ -125,6 +125,26 @@ describe('EventManager', () => {
       });
     });
 
+    it.only('should enrich product data from DDL', (done) => {
+      window.digitalData.product = {
+        id: '123',
+        name: 'Test Product'
+      };
+
+      _eventManager.initialize();
+
+      window.ddListener.push(['on', 'event', (e) => {
+        assert(e.product.name === 'Test Product');
+        done();
+      }]);
+
+      window.digitalData.events.push({
+        name: 'Clicked Product',
+        category: 'Ecommerce',
+        product: '123'
+      });
+    });
+
   });
 
   describe(': listening for digitalData changes', () => {

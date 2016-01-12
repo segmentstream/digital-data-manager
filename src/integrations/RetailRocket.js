@@ -66,7 +66,7 @@ class RetailRocket extends Integration {
     if (event.name === 'Viewed Product Category') {
       this.onViewedProductCategory(event.page);
     } else if (event.name === 'Added Product') {
-      this.onAddedProduct(event.product);
+      this.onAddedProduct(event.lineItems);
     } else if (event.name === 'Viewed Product Detail') {
       this.onViewedProductDetail(event.product);
     } else if (event.name === 'Completed Transaction') {
@@ -127,19 +127,29 @@ class RetailRocket extends Integration {
     });
   }
 
-  onAddedProduct(product) {
-    const productId = this.getProductId(product);
-    if (!productId) {
-      this.onValidationError('product.id');
+  onAddedProduct(lineItems) {
+    if (!lineItems || !lineItems.length) {
+      this.onValidationError('lineItems');
       return;
     }
-    window.rrApiOnReady.push(() => {
-      try {
-        window.rrApi.addToBasket(productId);
-      } catch (e) {
-        this.onError(e);
+    for (let i = 0, length = lineItems.length; i < length; i++) {
+      if (!this.validateLineItem(lineItems[i], i)) {
+        continue;
       }
-    });
+      const product = lineItems[i].product;
+      const productId = this.getProductId(product);
+      if (!productId) {
+        this.onValidationError('product.id');
+        return;
+      }
+      window.rrApiOnReady.push(() => {
+        try {
+          window.rrApi.addToBasket(lineItems[i].product);
+        } catch (e) {
+          this.onError(e);
+        }
+      });
+    }
   }
 
   onCompletedTransaction(transaction) {
@@ -151,7 +161,7 @@ class RetailRocket extends Integration {
     const items = [];
     const lineItems = transaction.lineItems;
     for (let i = 0, length = lineItems.length; i < length; i++) {
-      if (!this.validateLineItem(lineItems[i], i)) {
+      if (!this.validateTransactionLineItem(lineItems[i], i)) {
         continue;
       }
       const product = lineItems[i].product;
@@ -208,20 +218,27 @@ class RetailRocket extends Integration {
   validateLineItem(lineItem, index) {
     let isValid = true;
     if (!lineItem.product) {
-      this.onValidationError(format('transaction.lineItems[%d].product', index));
+      this.onValidationError(format('lineItems[%d].product', index));
       isValid = false;
     }
+
+    return isValid;
+  }
+
+  validateTransactionLineItem(lineItem, index) {
+    let isValid = this.validateLineItem(lineItem, index);
+
     const product = lineItem.product;
     if (!product.id) {
-      this.onValidationError(format('transaction.lineItems[%d].product.id', index));
+      this.onValidationError(format('lineItems[%d].product.id', index));
       isValid = false;
     }
     if (!product.unitSalePrice && !product.unitPrice) {
-      this.onValidationError(format('transaction.lineItems[%d].product.unitSalePrice', index));
+      this.onValidationError(format('lineItems[%d].product.unitSalePrice', index));
       isValid = false;
     }
     if (!lineItem.quantity) {
-      this.onValidationError(format('transaction.lineItems[%d].quantity', index));
+      this.onValidationError(format('lineItems[%d].quantity', index));
       isValid = false;
     }
 

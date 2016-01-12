@@ -5,6 +5,7 @@ import deleteProperty from './functions/deleteProperty.js';
 import size from './functions/size.js';
 import after from './functions/after.js';
 import DDHelper from './DDHelper.js';
+import EventDataEnricher from './EventDataEnricher.js';
 
 let _callbacks = {};
 let _ddListener = [];
@@ -136,9 +137,10 @@ class EventManager {
       };
 
       for (eventCallback of _callbacks.event) {
-        const eventCopy = clone(event);
+        let eventCopy = clone(event);
         deleteProperty(eventCopy, 'updateDigitalData');
         deleteProperty(eventCopy, 'callback');
+        eventCopy = this.enrichEventWithData(eventCopy);
         eventCallback.handler(eventCopy, eventCallbackOnComplete);
       }
     } else {
@@ -182,8 +184,32 @@ class EventManager {
     }
   }
 
+  enrichEventWithData(event) {
+    const enrichableVars = [
+      'product',
+      'transaction',
+      'campaign',
+      'campaigns',
+      'items',
+      'lineItems',
+      'user',
+      'page',
+    ];
+
+    for (const enrichableVar of enrichableVars) {
+      if (event[enrichableVar]) {
+        const enricherMethod = EventDataEnricher[enrichableVar];
+        const eventVar = event[enrichableVar];
+        event[enrichableVar] = enricherMethod(eventVar, _digitalData);
+      }
+    }
+
+    return event;
+  }
+
   reset() {
     clearInterval(_checkForChangesIntervalId);
+
     _ddListener.push = Array.prototype.push;
     _callbacks = {};
   }

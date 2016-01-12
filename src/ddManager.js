@@ -228,6 +228,14 @@ const ddManager = {
     return DDHelper.get(key, _digitalData);
   },
 
+  getProduct: (id) => {
+    return DDHelper.getProduct(id, _digitalData);
+  },
+
+  getCampaign: (id) => {
+    return DDHelper.getCampaign(id, _digitalData);
+  },
+
   reset: () => {
     if (_eventManager instanceof EventManager) {
       _eventManager.reset();
