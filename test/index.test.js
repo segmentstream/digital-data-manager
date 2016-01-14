@@ -12,3 +12,4 @@ import './EventDataEnricherSpec.js';
 import './integrations/GoogleTagManagerSpec.js';
 import './integrations/DrivebackSpec.js';
 import './integrations/RetailRocketSpec.js';
+import './integrations/FacebookPixelSpec.js';

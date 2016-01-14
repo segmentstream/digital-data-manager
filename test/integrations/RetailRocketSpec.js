@@ -15,6 +15,23 @@ describe('Integrations: RetailRocket', () => {
     partnerId: '567c343e6c7d3d14101afee5'
   };
 
+  const prepareStubs = () => {
+    sinon.stub(window.rrApi, 'addToBasket');
+    sinon.stub(window.rrApi, 'view');
+    sinon.stub(window.rrApi, 'categoryView');
+    sinon.stub(window.rrApi, 'order');
+    sinon.stub(window.rrApi, 'pageView');
+    stubsPrepared = true;
+  };
+
+  const restoreStubs = () => {
+    window.rrApi.addToBasket.restore();
+    window.rrApi.view.restore();
+    window.rrApi.categoryView.restore();
+    window.rrApi.order.restore();
+    window.rrApi.pageView.restore();
+  };
+
   before(() => {
     window.digitalData = {
       events: []
@@ -27,6 +44,10 @@ describe('Integrations: RetailRocket', () => {
     retailRocket.reset();
     ddManager.reset();
     reset();
+
+    // stubs for callbacks (hack)
+    window.rrApi = {};
+    window.rrApi.pageViewCompleted = function() {};
   });
 
   describe('#constructor', () => {
@@ -56,15 +77,6 @@ describe('Integrations: RetailRocket', () => {
 
   describe('after loading', () => {
 
-    const prepareStubs = () => {
-      sinon.stub(window.rrApi, 'addToBasket');
-      sinon.stub(window.rrApi, 'view');
-      sinon.stub(window.rrApi, 'categoryView');
-      sinon.stub(window.rrApi, 'order');
-      sinon.stub(window.rrApi, 'pageView');
-      stubsPrepared = true;
-    };
-
     before((done) => {
       if (!ddManager.isInitialized()) {
        ddManager.once('ready', () => {
@@ -89,11 +101,7 @@ describe('Integrations: RetailRocket', () => {
 
     afterEach(() => {
       if (stubsPrepared) {
-        window.rrApi.addToBasket.restore();
-        window.rrApi.view.restore();
-        window.rrApi.categoryView.restore();
-        window.rrApi.order.restore();
-        window.rrApi.pageView.restore();
+        restoreStubs();
       }
       stubsPrepared = false;
     });
@@ -120,21 +128,6 @@ describe('Integrations: RetailRocket', () => {
           page: {
             categoryId: '28'
           },
-          callback: () => {
-            assert.ok(true);
-            done();
-          }
-        });
-      });
-
-      it('should track "Viewed Product Category" event without categoryId param', (done) => {
-        window.digitalData.page = {
-          type: 'category',
-          categoryId: '28'
-        };
-        window.digitalData.events.push({
-          name: 'Viewed Product Category',
-          category: 'Ecommerce',
           callback: () => {
             assert.ok(true);
             done();
@@ -188,23 +181,6 @@ describe('Integrations: RetailRocket', () => {
         });
       });
 
-      it('should track "Viewed Product Detail" event without product.id param', (done) => {
-        window.digitalData.page = {
-          type: 'product'
-        };
-        window.digitalData.product = {
-          id: '327'
-        };
-        window.digitalData.events.push({
-          name: 'Viewed Product Detail',
-          category: 'Ecommerce',
-          callback: () => {
-            assert.ok(true);
-            done();
-          }
-        });
-      });
-
       it('should throw validation error for "Viewed Product Detail" event', (done) => {
         window.digitalData.page = {};
         window.digitalData.product = {};
@@ -223,18 +199,14 @@ describe('Integrations: RetailRocket', () => {
 
     describe('#onAddedProduct', () => {
 
-      it('should track "Added Product" with lineItems[n].product.id param', (done) => {
+      it('should track "Added Product" with product.id param', (done) => {
         window.digitalData.events.push({
           name: 'Added Product',
           category: 'Ecommerce',
-          lineItems: [
-            {
-              product: {
-                id: '327'
-              },
-              quantity: 1
-            }
-          ],
+          product: {
+            id: '327'
+          },
+          quantity: 1,
           callback: () => {
             assert.ok(window.rrApi.addToBasket.calledOnce);
             done();
@@ -242,19 +214,15 @@ describe('Integrations: RetailRocket', () => {
         });
       });
 
-      it('should track "Added Product" event with lineItems[n].product param', (done) => {
+      it('should track "Added Product" event by product id', (done) => {
         window.digitalData.page = {
           type: 'product'
         };
         window.digitalData.events.push({
           name: 'Added Product',
           category: 'Ecommerce',
-          lineItems: [
-            {
-              product: '327',
-              quantity: 1
-            }
-          ],
+          product: '327',
+          quantity: 1,
           callback: () => {
             assert.ok(window.rrApi.addToBasket.calledOnce);
             done();
@@ -333,36 +301,6 @@ describe('Integrations: RetailRocket', () => {
               }
             ]
           },
-          callback: () => {
-            assert.ok(true);
-            done();
-          }
-        });
-      });
-
-      it('should track "Completed Transaction" event without transaction param', (done) => {
-        window.digitalData.transaction = {
-          orderId: '123',
-          lineItems: [
-            {
-              product: {
-                id: '327',
-                unitSalePrice: 245
-              },
-              quantity: 1
-            },
-            {
-              product: {
-                id: '328',
-                unitSalePrice: 245
-              },
-              quantity: 2
-            }
-          ]
-        };
-        window.digitalData.events.push({
-          name: 'Completed Transaction',
-          category: 'Ecommerce',
           callback: () => {
             assert.ok(true);
             done();
@@ -500,20 +438,6 @@ describe('Integrations: RetailRocket', () => {
           user: {
             email: 'test@driveback.ru'
           },
-          callback: () => {
-            assert.ok(window.rrApi.setEmail.calledOnce);
-            done();
-          }
-        });
-      });
-
-      it('should track "Subscribed" event without user.email param', (done) => {
-        window.digitalData.user = {
-          email: 'test@driveback.ru'
-        };
-        window.digitalData.events.push({
-          name: 'Subscribed',
-          category: 'Email',
           callback: () => {
             assert.ok(window.rrApi.setEmail.calledOnce);
             done();

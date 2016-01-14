@@ -11,7 +11,7 @@ class EventDataEnricher
     } else {
       productId = product;
       product = {
-        id: productId
+        id: productId,
       };
     }
 
@@ -43,7 +43,7 @@ class EventDataEnricher
     } else {
       campaignId = campaign;
       campaign = {
-        id: campaignId
+        id: campaignId,
       };
     }
 
@@ -55,43 +55,6 @@ class EventDataEnricher
     }
 
     return campaign;
-  }
-
-  static campaigns(campaigns, digitalData) {
-    campaigns = campaigns || [];
-    const enrichedCampaigns = [];
-    if (campaigns && Array.isArray(campaigns)) {
-      for (let campaign of campaigns) {
-        campaign = EventDataEnricher.campaign(campaign, digitalData);
-        enrichedCampaigns.push(campaign);
-      }
-    }
-
-    return enrichedCampaigns;
-  }
-
-  static items(items, digitalData) {
-    items = items || [];
-    const enrichedItems = [];
-    if (items && Array.isArray(items)) {
-      for (let product of items) {
-        product = EventDataEnricher.product(product, digitalData);
-        enrichedItems.push(product);
-      }
-    }
-
-    return enrichedItems;
-  }
-
-  static lineItems(lineItems, digitalData) {
-    lineItems = lineItems || [];
-    if (lineItems && Array.isArray(lineItems)) {
-      for (let lineItem of lineItems) {
-        lineItem.product = EventDataEnricher.product(lineItem.product, digitalData);
-      }
-    }
-
-    return lineItems;
   }
 
   static user(user, digitalData) {

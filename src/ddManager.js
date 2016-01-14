@@ -52,12 +52,6 @@ let _availableIntegrations;
 let _eventManager;
 
 /**
- * @type {AutoEvents}
- * @private
- */
-let _autoEvents;
-
-/**
  * @type {Object}
  * @private
  */
@@ -155,7 +149,7 @@ const ddManager = {
 
     _eventManager = new EventManager(_digitalData, _ddListener);
     if (settings.autoEvents) {
-      _autoEvents = new AutoEvents(_digitalData);
+      _eventManager.setAutoEvents(new AutoEvents());
     }
 
     if (settings && typeof settings === 'object') {
@@ -172,9 +166,6 @@ const ddManager = {
 
     const ready = after(size(_integrations), () => {
       _eventManager.initialize();
-      if (_autoEvents && _autoEvents instanceof AutoEvents) {
-        _autoEvents.fire();
-      }
       _isReady = true;
       ddManager.emit('ready');
     });

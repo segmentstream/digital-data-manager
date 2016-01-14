@@ -4631,150 +4631,129 @@ function _classCallCheck(instance, Constructor) {
 }
 
 var AutoEvents = (function () {
-  function AutoEvents(digitalData) {
+  function AutoEvents() {
     _classCallCheck(this, AutoEvents);
-
-    this.digitalData = digitalData;
   }
 
-  AutoEvents.prototype.fire = function fire() {
-    this.fireViewedPage();
+  AutoEvents.prototype.setDigitalData = function setDigitalData(digitalData) {
+    this.digitalData = digitalData;
+  };
 
-    if (this.digitalData.page) {
-      if (this.digitalData.page.type === 'category') {
-        this.fireViewedProductCategory();
-      }
+  AutoEvents.prototype.setDDListener = function setDDListener(ddListener) {
+    this.ddListener = ddListener;
+  };
 
-      if (this.digitalData.page.type === 'product') {
-        this.fireViewedProductDetail();
-      }
+  AutoEvents.prototype.onInitialize = function onInitialize() {
+    var _this = this;
 
-      if (this.digitalData.page.type === 'cart' || this.digitalData.page.type === 'checkout') {
-        this.fireViewedCheckoutStep();
+    if (this.digitalData) {
+      this.fireViewedPage();
+      this.fireViewedProductCategory();
+      this.fireViewedProductDetail();
+      this.fireViewedCheckoutStep();
+      this.fireCompletedTransaction();
+
+      if (this.ddListener) {
+        this.ddListener.push(['on', 'change:page', function (newPage, oldPage) {
+          _this.onPageChange(newPage, oldPage);
+        }]);
+
+        this.ddListener.push(['on', 'change:product.id', function (newProductId, oldProductId) {
+          _this.onProductChange(newProductId, oldProductId);
+        }]);
+
+        this.ddListener.push(['on', 'change:transaction.orderId', function (newOrderId, oldOrderId) {
+          _this.onTransactionChange(newOrderId, oldOrderId);
+        }]);
+
+        // TODO: checkout step change
       }
     }
+  };
 
-    if (this.digitalData.transaction && this.digitalData.transaction.isReturning !== true) {
+  AutoEvents.prototype.onPageChange = function onPageChange(newPage, oldPage) {
+    if (String(newPage.pageId) !== String(oldPage.pageId) || newPage.url !== oldPage.url || newPage.type !== oldPage.type || newPage.breadcrumb !== oldPage.breadcrumb || String(newPage.categoryId) !== String(oldPage.categoryId)) {
+      this.fireViewedPage();
+      this.fireViewedProductCategory();
+    }
+  };
+
+  AutoEvents.prototype.onProductChange = function onProductChange(newProductId, oldProductId) {
+    if (newProductId !== oldProductId) {
+      this.fireViewedProductDetail();
+    }
+  };
+
+  AutoEvents.prototype.onTransactionChange = function onTransactionChange(newOrderId, oldOrderId) {
+    if (newOrderId !== oldOrderId) {
       this.fireCompletedTransaction();
     }
-
-    if (this.digitalData.listing) {
-      this.fireViewedProducts(this.digitalData.listing);
-    }
-
-    if (this.digitalData.recommendation) {
-      this.fireViewedProducts(this.digitalData.recommendation);
-    }
-
-    if (this.digitalData.campaigns) {
-      this.fireViewedCampaigns(this.digitalData.campaigns);
-    }
   };
 
-  AutoEvents.prototype.fireViewedProducts = function fireViewedProducts(listing) {
-    if (listing.items && listing.items.length > 0) {
-      var items = [];
-      for (var _iterator = listing.items, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
-        var _ref;
-
-        if (_isArray) {
-          if (_i >= _iterator.length) break;
-          _ref = _iterator[_i++];
-        } else {
-          _i = _iterator.next();
-          if (_i.done) break;
-          _ref = _i.value;
-        }
-
-        var product = _ref;
-
-        if (product.wasViewed) {
-          items.push(product.id);
-        }
-      }
-
-      var event = {
-        updateDigitalData: false,
-        name: 'Viewed Product',
-        category: 'Ecommerce',
-        items: items
-      };
-
-      if (listing.listName) {
-        event.listName = listing.listName;
-      }
-
-      this.digitalData.events.push(event);
-    }
-  };
-
-  AutoEvents.prototype.fireViewedCampaigns = function fireViewedCampaigns(campaigns) {
-    if (campaigns.length > 0) {
-      var viewedCampaigns = [];
-      for (var _iterator2 = campaigns, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
-        var _ref2;
-
-        if (_isArray2) {
-          if (_i2 >= _iterator2.length) break;
-          _ref2 = _iterator2[_i2++];
-        } else {
-          _i2 = _iterator2.next();
-          if (_i2.done) break;
-          _ref2 = _i2.value;
-        }
-
-        var campaign = _ref2;
-
-        if (campaign.wasViewed) {
-          viewedCampaigns.push(campaign.id);
-        }
-      }
-      this.digitalData.events.push({
-        updateDigitalData: false,
-        name: 'Viewed Campaign',
-        category: 'Promo',
-        campaigns: viewedCampaigns
-      });
-    }
-  };
-
-  AutoEvents.prototype.fireViewedPage = function fireViewedPage() {
+  AutoEvents.prototype.fireViewedPage = function fireViewedPage(page) {
+    page = page || this.digitalData.page;
     this.digitalData.events.push({
       updateDigitalData: false,
+      enrichEventData: false,
       name: 'Viewed Page',
-      category: 'Content'
+      category: 'Content',
+      page: page
     });
   };
 
-  AutoEvents.prototype.fireViewedProductCategory = function fireViewedProductCategory() {
+  AutoEvents.prototype.fireViewedProductCategory = function fireViewedProductCategory(page) {
+    page = page || this.digitalData.page || {};
+    if (page.type !== 'category') {
+      return;
+    }
     this.digitalData.events.push({
       updateDigitalData: false,
+      enrichEventData: false,
       name: 'Viewed Product Category',
-      category: 'Ecommerce'
+      category: 'Ecommerce',
+      page: page
     });
   };
 
-  AutoEvents.prototype.fireViewedProductDetail = function fireViewedProductDetail() {
+  AutoEvents.prototype.fireViewedProductDetail = function fireViewedProductDetail(product) {
+    product = product || this.digitalData.product;
+    if (!product) {
+      return;
+    }
     this.digitalData.events.push({
       updateDigitalData: false,
+      enrichEventData: false,
       name: 'Viewed Product Detail',
-      category: 'Ecommerce'
+      category: 'Ecommerce',
+      product: product
     });
   };
 
-  AutoEvents.prototype.fireViewedCheckoutStep = function fireViewedCheckoutStep() {
+  AutoEvents.prototype.fireViewedCheckoutStep = function fireViewedCheckoutStep(page) {
+    page = page || this.digitalData.page || {};
+    if (page.type !== 'cart' && page.type !== 'checkout') {
+      return;
+    }
     this.digitalData.events.push({
       updateDigitalData: false,
+      enrichEventData: false,
       name: 'Viewed Checkout Step',
-      category: 'Ecommerce'
+      category: 'Ecommerce',
+      page: page
     });
   };
 
-  AutoEvents.prototype.fireCompletedTransaction = function fireCompletedTransaction() {
+  AutoEvents.prototype.fireCompletedTransaction = function fireCompletedTransaction(transaction) {
+    transaction = transaction || this.digitalData.transaction;
+    if (!transaction || transaction.isReturning === true) {
+      return;
+    }
     this.digitalData.events.push({
       updateDigitalData: false,
+      enrichEventData: false,
       name: 'Completed Transaction',
-      category: 'Ecommerce'
+      category: 'Ecommerce',
+      transaction: transaction
     });
   };
 
@@ -4831,12 +4810,100 @@ var DDHelper = (function () {
     return nestedVar;
   };
 
-  DDHelper.getProduct = function getProduct(id) {
-    console.log(id);
+  DDHelper.getProduct = function getProduct(id, digitalData) {
+    if (digitalData.product && String(digitalData.product.id) === String(id)) {
+      return (0, _componentClone2['default'])(digitalData.product);
+    }
+    // search in listings
+    var _arr = ['listing', 'recommendation'];
+    for (var _i = 0; _i < _arr.length; _i++) {
+      var listingKey = _arr[_i];
+      var listings = digitalData[listingKey];
+      if (listings) {
+        if (!Array.isArray(listings)) {
+          listings = [listings];
+        }
+        for (var _iterator2 = listings, _isArray2 = Array.isArray(_iterator2), _i3 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+          var _ref2;
+
+          if (_isArray2) {
+            if (_i3 >= _iterator2.length) break;
+            _ref2 = _iterator2[_i3++];
+          } else {
+            _i3 = _iterator2.next();
+            if (_i3.done) break;
+            _ref2 = _i3.value;
+          }
+
+          var listing = _ref2;
+
+          if (listing.items && listing.items.length) {
+            for (var _iterator3 = listing.items, _isArray3 = Array.isArray(_iterator3), _i4 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
+              var _ref3;
+
+              if (_isArray3) {
+                if (_i4 >= _iterator3.length) break;
+                _ref3 = _iterator3[_i4++];
+              } else {
+                _i4 = _iterator3.next();
+                if (_i4.done) break;
+                _ref3 = _i4.value;
+              }
+
+              var product = _ref3;
+
+              if (product.id && String(product.id) === String(id)) {
+                return (0, _componentClone2['default'])(product);
+              }
+            }
+          }
+        }
+      }
+    }
+    // search in cart
+    if (digitalData.cart && digitalData.cart.lineItems && digitalData.cart.lineItems.length) {
+      for (var _iterator = digitalData.cart.lineItems, _isArray = Array.isArray(_iterator), _i2 = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+        var _ref;
+
+        if (_isArray) {
+          if (_i2 >= _iterator.length) break;
+          _ref = _iterator[_i2++];
+        } else {
+          _i2 = _iterator.next();
+          if (_i2.done) break;
+          _ref = _i2.value;
+        }
+
+        var lineItem = _ref;
+
+        if (lineItem.product && String(lineItem.product.id) === String(id)) {
+          return (0, _componentClone2['default'])(lineItem.product);
+        }
+      }
+    }
   };
 
-  DDHelper.getCampaign = function getCampaign(id) {
-    console.log(id);
+  DDHelper.getCampaign = function getCampaign(id, digitalData) {
+    if (digitalData.campaigns && digitalData.campaigns.length) {
+      for (var _iterator4 = digitalData.campaigns, _isArray4 = Array.isArray(_iterator4), _i5 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
+        var _ref4;
+
+        if (_isArray4) {
+          if (_i5 >= _iterator4.length) break;
+          _ref4 = _iterator4[_i5++];
+        } else {
+          _i5 = _iterator4.next();
+          if (_i5.done) break;
+          _ref4 = _i5.value;
+        }
+
+        var campaign = _ref4;
+
+        if (campaign.id && String(campaign.id) === String(id)) {
+          return (0, _componentClone2['default'])(campaign);
+        }
+      }
+    }
   };
 
   return DDHelper;
@@ -4845,6 +4912,113 @@ var DDHelper = (function () {
 exports['default'] = DDHelper;
 
 },{"component-clone":4}],52:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+var _componentType = require('component-type');
+
+var _componentType2 = _interopRequireDefault(_componentType);
+
+var _DDHelper = require('./DDHelper.js');
+
+var _DDHelper2 = _interopRequireDefault(_DDHelper);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+var EventDataEnricher = (function () {
+  function EventDataEnricher() {
+    _classCallCheck(this, EventDataEnricher);
+  }
+
+  EventDataEnricher.product = function product(_product, digitalData) {
+    _product = _product || {};
+    var productId = undefined;
+    if ((0, _componentType2['default'])(_product) === 'object') {
+      productId = _product.id;
+    } else {
+      productId = _product;
+      _product = {
+        id: productId
+      };
+    }
+
+    if (productId) {
+      var ddlProduct = _DDHelper2['default'].getProduct(productId, digitalData) || {};
+      if (ddlProduct) {
+        _product = Object.assign(ddlProduct, _product);
+      }
+    }
+
+    return _product;
+  };
+
+  EventDataEnricher.transaction = function transaction(_transaction, digitalData) {
+    _transaction = _transaction || {};
+    var ddlTransaction = _DDHelper2['default'].get('transaction', digitalData) || {};
+    if (ddlTransaction) {
+      _transaction = Object.assign(ddlTransaction, _transaction);
+    }
+
+    return _transaction;
+  };
+
+  EventDataEnricher.campaign = function campaign(_campaign, digitalData) {
+    _campaign = _campaign || {};
+    var campaignId = undefined;
+    if ((0, _componentType2['default'])(_campaign) === 'object') {
+      campaignId = _campaign.id;
+    } else {
+      campaignId = _campaign;
+      _campaign = {
+        id: campaignId
+      };
+    }
+
+    if (campaignId) {
+      var ddlCampaign = _DDHelper2['default'].getCampaign(campaignId, digitalData) || {};
+      if (ddlCampaign) {
+        _campaign = Object.assign(ddlCampaign, _campaign);
+      }
+    }
+
+    return _campaign;
+  };
+
+  EventDataEnricher.user = function user(_user, digitalData) {
+    _user = _user || {};
+    var ddlUser = _DDHelper2['default'].get('user', digitalData) || {};
+    if (ddlUser) {
+      _user = Object.assign(ddlUser, _user);
+    }
+
+    return _user;
+  };
+
+  EventDataEnricher.page = function page(_page, digitalData) {
+    _page = _page || {};
+    var ddlPage = _DDHelper2['default'].get('page', digitalData) || {};
+    if (ddlPage) {
+      _page = Object.assign(ddlPage, _page);
+    }
+
+    return _page;
+  };
+
+  return EventDataEnricher;
+})();
+
+exports['default'] = EventDataEnricher;
+
+},{"./DDHelper.js":51,"component-type":6}],53:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -4873,9 +5047,17 @@ var _after = require('./functions/after.js');
 
 var _after2 = _interopRequireDefault(_after);
 
+var _jsonIsEqual = require('./functions/jsonIsEqual.js');
+
+var _jsonIsEqual2 = _interopRequireDefault(_jsonIsEqual);
+
 var _DDHelper = require('./DDHelper.js');
 
 var _DDHelper2 = _interopRequireDefault(_DDHelper);
+
+var _EventDataEnricher = require('./EventDataEnricher.js');
+
+var _EventDataEnricher2 = _interopRequireDefault(_EventDataEnricher);
 
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
@@ -4892,6 +5074,7 @@ var _ddListener = [];
 var _previousDigitalData = {};
 var _digitalData = {};
 var _checkForChangesIntervalId = undefined;
+var _autoEvents = undefined;
 
 var _callbackOnComplete = function _callbackOnComplete(error) {
   if (error) {
@@ -4903,16 +5086,6 @@ function _getCopyWithoutEvents(digitalData) {
   var digitalDataCopy = (0, _componentClone2['default'])(digitalData);
   (0, _deleteProperty2['default'])(digitalDataCopy, 'events');
   return digitalDataCopy;
-}
-
-function _jsonIsEqual(json1, json2) {
-  if (typeof json1 !== 'string') {
-    json1 = JSON.stringify(json1);
-  }
-  if (typeof json2 !== 'string') {
-    json2 = JSON.stringify(json2);
-  }
-  return json1 === json2;
 }
 
 var EventManager = (function () {
@@ -4945,15 +5118,25 @@ var EventManager = (function () {
       events[events.length] = event;
     };
 
+    if (_autoEvents) {
+      _autoEvents.onInitialize();
+    }
+
     _checkForChangesIntervalId = setInterval(function () {
       _this.checkForChanges();
     }, 100);
   };
 
+  EventManager.prototype.setAutoEvents = function setAutoEvents(autoEvents) {
+    _autoEvents = autoEvents;
+    _autoEvents.setDigitalData(_digitalData);
+    _autoEvents.setDDListener(_ddListener);
+  };
+
   EventManager.prototype.checkForChanges = function checkForChanges() {
     if (_callbacks.change && _callbacks.change.length > 0) {
       var digitalDataWithoutEvents = _getCopyWithoutEvents(_digitalData);
-      if (!_jsonIsEqual(_previousDigitalData, digitalDataWithoutEvents)) {
+      if (!(0, _jsonIsEqual2['default'])(_previousDigitalData, digitalDataWithoutEvents)) {
         var previousDigitalDataWithoutEvents = _getCopyWithoutEvents(_previousDigitalData);
         _previousDigitalData = (0, _componentClone2['default'])(digitalDataWithoutEvents);
         this.fireChange(digitalDataWithoutEvents, previousDigitalDataWithoutEvents);
@@ -4994,7 +5177,7 @@ var EventManager = (function () {
           var key = changeCallback.key;
           var newKeyValue = _DDHelper2['default'].get(key, newValue);
           var previousKeyValue = _DDHelper2['default'].get(key, previousValue);
-          if (!_jsonIsEqual(newKeyValue, previousKeyValue)) {
+          if (!(0, _jsonIsEqual2['default'])(newKeyValue, previousKeyValue)) {
             changeCallback.handler(newKeyValue, previousKeyValue, _callbackOnComplete);
           }
         } else {
@@ -5005,6 +5188,8 @@ var EventManager = (function () {
   };
 
   EventManager.prototype.fireEvent = function fireEvent(event) {
+    var _this2 = this;
+
     var eventCallback = undefined;
     event.time = new Date().getTime();
 
@@ -5042,6 +5227,9 @@ var EventManager = (function () {
           var eventCopy = (0, _componentClone2['default'])(event);
           (0, _deleteProperty2['default'])(eventCopy, 'updateDigitalData');
           (0, _deleteProperty2['default'])(eventCopy, 'callback');
+          if (eventCopy.enrichEventData !== false) {
+            eventCopy = _this2.enrichEventWithData(eventCopy);
+          }
           eventCallback.handler(eventCopy, eventCallbackOnComplete);
         }
       })();
@@ -5108,8 +5296,36 @@ var EventManager = (function () {
     }
   };
 
+  EventManager.prototype.enrichEventWithData = function enrichEventWithData(event) {
+    var enrichableVars = ['product', 'transaction', 'campaign', 'user', 'page'];
+
+    for (var _iterator5 = enrichableVars, _isArray5 = Array.isArray(_iterator5), _i5 = 0, _iterator5 = _isArray5 ? _iterator5 : _iterator5[Symbol.iterator]();;) {
+      var _ref;
+
+      if (_isArray5) {
+        if (_i5 >= _iterator5.length) break;
+        _ref = _iterator5[_i5++];
+      } else {
+        _i5 = _iterator5.next();
+        if (_i5.done) break;
+        _ref = _i5.value;
+      }
+
+      var enrichableVar = _ref;
+
+      if (event[enrichableVar]) {
+        var enricherMethod = _EventDataEnricher2['default'][enrichableVar];
+        var eventVar = event[enrichableVar];
+        event[enrichableVar] = enricherMethod(eventVar, _digitalData);
+      }
+    }
+
+    return event;
+  };
+
   EventManager.prototype.reset = function reset() {
     clearInterval(_checkForChangesIntervalId);
+
     _ddListener.push = Array.prototype.push;
     _callbacks = {};
   };
@@ -5119,7 +5335,7 @@ var EventManager = (function () {
 
 exports['default'] = EventManager;
 
-},{"./DDHelper.js":51,"./functions/after.js":56,"./functions/deleteProperty.js":57,"./functions/size.js":66,"async":1,"component-clone":4,"debug":44}],53:[function(require,module,exports){
+},{"./DDHelper.js":51,"./EventDataEnricher.js":52,"./functions/after.js":57,"./functions/deleteProperty.js":58,"./functions/jsonIsEqual.js":62,"./functions/size.js":68,"async":1,"component-clone":4,"debug":44}],54:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -5314,7 +5530,7 @@ var Integration = (function (_EventEmitter) {
 
 exports['default'] = Integration;
 
-},{"./DDHelper.js":51,"./functions/deleteProperty.js":57,"./functions/each.js":58,"./functions/format.js":59,"./functions/loadIframe.js":61,"./functions/loadPixel.js":62,"./functions/loadScript.js":63,"./functions/noop.js":64,"async":1,"component-emitter":5,"debug":44}],54:[function(require,module,exports){
+},{"./DDHelper.js":51,"./functions/deleteProperty.js":58,"./functions/each.js":59,"./functions/format.js":60,"./functions/loadIframe.js":63,"./functions/loadPixel.js":64,"./functions/loadScript.js":65,"./functions/noop.js":66,"async":1,"component-emitter":5,"debug":44}],55:[function(require,module,exports){
 'use strict';
 
 var _integrations;
@@ -5333,15 +5549,19 @@ var _RetailRocket = require('./integrations/RetailRocket.js');
 
 var _RetailRocket2 = _interopRequireDefault(_RetailRocket);
 
+var _FacebookPixel = require('./integrations/FacebookPixel.js');
+
+var _FacebookPixel2 = _interopRequireDefault(_FacebookPixel);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-var integrations = (_integrations = {}, _integrations[_GoogleTagManager2['default'].getName()] = _GoogleTagManager2['default'], _integrations[_Driveback2['default'].getName()] = _Driveback2['default'], _integrations[_RetailRocket2['default'].getName()] = _RetailRocket2['default'], _integrations);
+var integrations = (_integrations = {}, _integrations[_GoogleTagManager2['default'].getName()] = _GoogleTagManager2['default'], _integrations[_FacebookPixel2['default'].getName()] = _FacebookPixel2['default'], _integrations[_Driveback2['default'].getName()] = _Driveback2['default'], _integrations[_RetailRocket2['default'].getName()] = _RetailRocket2['default'], _integrations);
 
 exports['default'] = integrations;
 
-},{"./integrations/Driveback.js":69,"./integrations/GoogleTagManager.js":70,"./integrations/RetailRocket.js":71}],55:[function(require,module,exports){
+},{"./integrations/Driveback.js":71,"./integrations/FacebookPixel.js":72,"./integrations/GoogleTagManager.js":73,"./integrations/RetailRocket.js":74}],56:[function(require,module,exports){
 'use strict';
 
 function _typeof2(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -5437,12 +5657,6 @@ var _availableIntegrations = undefined;
  * @private
  */
 var _eventManager = undefined;
-
-/**
- * @type {AutoEvents}
- * @private
- */
-var _autoEvents = undefined;
 
 /**
  * @type {Object}
@@ -5541,7 +5755,7 @@ var ddManager = {
 
     _eventManager = new _EventManager2['default'](_digitalData, _ddListener);
     if (settings.autoEvents) {
-      _autoEvents = new _AutoEvents2['default'](_digitalData);
+      _eventManager.setAutoEvents(new _AutoEvents2['default']());
     }
 
     if (settings && (typeof settings === 'undefined' ? 'undefined' : _typeof(settings)) === 'object') {
@@ -5558,9 +5772,6 @@ var ddManager = {
 
     var ready = (0, _after2['default'])((0, _size2['default'])(_integrations), function () {
       _eventManager.initialize();
-      if (_autoEvents && _autoEvents instanceof _AutoEvents2['default']) {
-        _autoEvents.fire();
-      }
       _isReady = true;
       ddManager.emit('ready');
     });
@@ -5614,6 +5825,14 @@ var ddManager = {
     return _DDHelper2['default'].get(key, _digitalData);
   },
 
+  getProduct: function getProduct(id) {
+    return _DDHelper2['default'].getProduct(id, _digitalData);
+  },
+
+  getCampaign: function getCampaign(id) {
+    return _DDHelper2['default'].getCampaign(id, _digitalData);
+  },
+
   reset: function reset() {
     if (_eventManager instanceof _EventManager2['default']) {
       _eventManager.reset();
@@ -5654,7 +5873,7 @@ ddManager.on = ddManager.addEventListener = function (event, handler) {
 
 exports['default'] = ddManager;
 
-},{"./AutoEvents.js":50,"./DDHelper.js":51,"./EventManager.js":52,"./Integration.js":53,"./functions/after.js":56,"./functions/each.js":58,"./functions/size.js":66,"async":1,"component-clone":4,"component-emitter":5}],56:[function(require,module,exports){
+},{"./AutoEvents.js":50,"./DDHelper.js":51,"./EventManager.js":53,"./Integration.js":54,"./functions/after.js":57,"./functions/each.js":59,"./functions/size.js":68,"async":1,"component-clone":4,"component-emitter":5}],57:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -5668,7 +5887,7 @@ exports["default"] = function (times, fn) {
   };
 };
 
-},{}],57:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -5681,7 +5900,7 @@ exports["default"] = function (obj, prop) {
   }
 };
 
-},{}],58:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -5694,7 +5913,7 @@ exports["default"] = function (obj, fn) {
   }
 };
 
-},{}],59:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -5733,7 +5952,7 @@ function format(str) {
   });
 }
 
-},{}],60:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5748,7 +5967,22 @@ function getQueryParam(name, queryString) {
   return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
 }
 
-},{}],61:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+exports['default'] = jsonIsEqual;
+function jsonIsEqual(json1, json2) {
+  if (typeof json1 !== 'string') {
+    json1 = JSON.stringify(json1);
+  }
+  if (typeof json2 !== 'string') {
+    json2 = JSON.stringify(json2);
+  }
+  return json1 === json2;
+}
+
+},{}],63:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5808,7 +6042,7 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":65,"async":1}],62:[function(require,module,exports){
+},{"./scriptOnLoad.js":67,"async":1}],64:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5844,7 +6078,7 @@ function error(fn, message, img) {
   };
 }
 
-},{}],63:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5903,14 +6137,14 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":65,"async":1}],64:[function(require,module,exports){
+},{"./scriptOnLoad.js":67,"async":1}],66:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
 
 exports["default"] = function () {};
 
-},{}],65:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5965,7 +6199,7 @@ function attachEvent(el, fn) {
   });
 }
 
-},{}],66:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -5978,7 +6212,7 @@ exports["default"] = function (obj) {
   return size;
 };
 
-},{}],67:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -6005,7 +6239,7 @@ function throwError(code, message) {
   throw error;
 }
 
-},{"debug":44}],68:[function(require,module,exports){
+},{"debug":44}],70:[function(require,module,exports){
 'use strict';
 
 require('./polyfill.js');
@@ -6027,7 +6261,7 @@ _ddManager2['default'].processEarlyStubCalls();
 
 window.ddManager = _ddManager2['default'];
 
-},{"./availableIntegrations.js":54,"./ddManager.js":55,"./polyfill.js":72}],69:[function(require,module,exports){
+},{"./availableIntegrations.js":55,"./ddManager.js":56,"./polyfill.js":75}],71:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -6124,7 +6358,200 @@ var Driveback = (function (_Integration) {
 
 exports['default'] = Driveback;
 
-},{"./../Integration.js":53,"./../functions/deleteProperty.js":57}],70:[function(require,module,exports){
+},{"./../Integration.js":54,"./../functions/deleteProperty.js":58}],72:[function(require,module,exports){
+'use strict';
+
+function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+var _deleteProperty = require('./../functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+var _componentType = require('component-type');
+
+var _componentType2 = _interopRequireDefault(_componentType);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+var FacebookPixel = (function (_Integration) {
+  _inherits(FacebookPixel, _Integration);
+
+  function FacebookPixel(digitalData, options) {
+    _classCallCheck(this, FacebookPixel);
+
+    var optionsWithDefaults = Object.assign({
+      pixelId: ''
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        src: '//connect.facebook.net/en_US/fbevents.js'
+      }
+    });
+    return _this;
+  }
+
+  FacebookPixel.getName = function getName() {
+    return 'Facebook Pixel';
+  };
+
+  FacebookPixel.prototype.initialize = function initialize() {
+    var _arguments = arguments;
+
+    if (this.getOption('pixelId')) {
+      window.fbq = window._fbq = function () {
+        if (window.fbq.callMethod) {
+          window.fbq.callMethod.apply(window.fbq, _arguments);
+        } else {
+          window.fbq.queue.push(_arguments);
+        }
+      };
+      window.fbq.push = window.fbq;
+      window.fbq.loaded = true;
+      window.fbq.version = '2.0';
+      window.fbq.queue = [];
+      this.load(this.ready);
+      window.fbq('init', this.getOption('pixelId'));
+    } else {
+      this.ready();
+    }
+  };
+
+  FacebookPixel.prototype.isLoaded = function isLoaded() {
+    return !!(window.fbq && window.fbq.callMethod);
+  };
+
+  FacebookPixel.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, 'fbq');
+  };
+
+  FacebookPixel.prototype.trackEvent = function trackEvent(event) {
+    if (event.name === 'Viewed Page') {
+      this.onViewedPage();
+    } else if (event.name === 'Viewed Product Category') {
+      this.onViewedProductCategory(event.page);
+    } else if (event.name === 'Viewed Product Detail') {
+      this.onViewedProductDetail(event.product);
+    } else if (event.name === 'Added Product') {
+      this.onAddedProduct(event.product, event.quantity);
+    } else if (event.name === 'Completed Transaction') {
+      this.onCompletedTransaction(event.transaction);
+    }
+  };
+
+  FacebookPixel.prototype.onViewedPage = function onViewedPage() {
+    window.fbq('track', 'PageView');
+  };
+
+  FacebookPixel.prototype.onViewedProductCategory = function onViewedProductCategory(page) {
+    window.fbq('track', 'ViewContent', {
+      content_ids: [page.categoryId || ''],
+      content_type: 'product_group'
+    });
+  };
+
+  FacebookPixel.prototype.onViewedProductDetail = function onViewedProductDetail(product) {
+    window.fbq('track', 'ViewContent', {
+      content_ids: [product.id || product.skuCode || ''],
+      content_type: 'product',
+      content_name: product.name || '',
+      content_category: product.category || '',
+      currency: product.currency || '',
+      value: product.unitSalePrice || product.unitPrice || 0
+    });
+  };
+
+  FacebookPixel.prototype.onAddedProduct = function onAddedProduct(product, quantity) {
+    if (product && (0, _componentType2['default'])(product) === 'object') {
+      quantity = quantity || 1;
+      window.fbq('track', 'AddToCart', {
+        content_ids: [product.id || product.skuCode || ''],
+        content_type: 'product',
+        content_name: product.name || '',
+        content_category: product.category || '',
+        currency: product.currency || '',
+        value: quantity * (product.unitSalePrice || product.unitPrice || 0)
+      });
+    }
+  };
+
+  FacebookPixel.prototype.onCompletedTransaction = function onCompletedTransaction(transaction) {
+    if (transaction.lineItems && transaction.lineItems.length) {
+      var contentIds = [];
+      var revenue1 = 0;
+      var revenue2 = 0;
+      var currency1 = null;
+      var currency2 = null;
+      for (var _iterator = transaction.lineItems, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+        var _ref;
+
+        if (_isArray) {
+          if (_i >= _iterator.length) break;
+          _ref = _iterator[_i++];
+        } else {
+          _i = _iterator.next();
+          if (_i.done) break;
+          _ref = _i.value;
+        }
+
+        var lineItem = _ref;
+
+        if (lineItem.product) {
+          var product = lineItem.product;
+          if (product.id) {
+            contentIds.push(product.id);
+          }
+          revenue2 += (lineItem.quantity || 1) * (product.unitSalePrice || product.unitPrice || 0);
+          currency2 = currency2 || product.currency;
+        }
+        revenue1 += lineItem.subtotal;
+        currency1 = currency1 || lineItem.currency;
+      }
+
+      window.fbq('track', 'Purchase', {
+        content_ids: contentIds,
+        content_type: 'product',
+        currency: transaction.currency || currency1 || currency2 || '',
+        value: transaction.total || revenue1 || revenue2 || 0
+      });
+    }
+  };
+
+  return FacebookPixel;
+})(_Integration3['default']);
+
+exports['default'] = FacebookPixel;
+
+},{"./../Integration.js":54,"./../functions/deleteProperty.js":58,"component-type":6}],73:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -6220,7 +6647,7 @@ var GoogleTagManager = (function (_Integration) {
 
 exports['default'] = GoogleTagManager;
 
-},{"./../Integration.js":53,"./../functions/deleteProperty.js":57}],71:[function(require,module,exports){
+},{"./../Integration.js":54,"./../functions/deleteProperty.js":58}],74:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -6352,7 +6779,7 @@ var RetailRocket = (function (_Integration) {
 
     if (this.get('user.email')) {
       if (this.getOption('trackAllEmails') === true || this.get('user.isSubscribed') === true) {
-        this.onSubscribed();
+        this.onSubscribed(this.get('user'));
       }
     } else {
       var email = (0, _getQueryParam2['default'])('rr_setemail', this.getQueryString());
@@ -6362,7 +6789,7 @@ var RetailRocket = (function (_Integration) {
       } else {
           window.ddListener.push(['on', 'change:user.email', function () {
             if (_this2.getOption('trackAllEmails') === true || _this2.get('user.isSubscribed') === true) {
-              _this2.onSubscribed();
+              _this2.onSubscribed(_this2.get('user'));
             }
           }]);
         }
@@ -6373,7 +6800,7 @@ var RetailRocket = (function (_Integration) {
     var _this3 = this;
 
     page = page || {};
-    var categoryId = page.categoryId || this.get('page.categoryId');
+    var categoryId = page.categoryId;
     if (!categoryId) {
       this.onValidationError('page.categoryId');
       return;
@@ -6424,7 +6851,7 @@ var RetailRocket = (function (_Integration) {
   RetailRocket.prototype.onCompletedTransaction = function onCompletedTransaction(transaction) {
     var _this6 = this;
 
-    transaction = transaction || this.get('transaction') || {};
+    transaction = transaction || {};
     if (!this.validateTransaction(transaction)) {
       return;
     }
@@ -6432,7 +6859,7 @@ var RetailRocket = (function (_Integration) {
     var items = [];
     var lineItems = transaction.lineItems;
     for (var i = 0, length = lineItems.length; i < length; i++) {
-      if (!this.validateLineItem(lineItems[i], i)) {
+      if (!this.validateTransactionLineItem(lineItems[i], i)) {
         continue;
       }
       var product = lineItems[i].product;
@@ -6458,7 +6885,7 @@ var RetailRocket = (function (_Integration) {
   RetailRocket.prototype.onSubscribed = function onSubscribed(user) {
     var _this7 = this;
 
-    user = user || this.get('user') || {};
+    user = user || {};
     if (!user.email) {
       this.onValidationError('user.email');
       return;
@@ -6491,20 +6918,27 @@ var RetailRocket = (function (_Integration) {
   RetailRocket.prototype.validateLineItem = function validateLineItem(lineItem, index) {
     var isValid = true;
     if (!lineItem.product) {
-      this.onValidationError((0, _format2['default'])('transaction.lineItems[%d].product', index));
+      this.onValidationError((0, _format2['default'])('lineItems[%d].product', index));
       isValid = false;
     }
+
+    return isValid;
+  };
+
+  RetailRocket.prototype.validateTransactionLineItem = function validateTransactionLineItem(lineItem, index) {
+    var isValid = this.validateLineItem(lineItem, index);
+
     var product = lineItem.product;
     if (!product.id) {
-      this.onValidationError((0, _format2['default'])('transaction.lineItems[%d].product.id', index));
+      this.onValidationError((0, _format2['default'])('lineItems[%d].product.id', index));
       isValid = false;
     }
     if (!product.unitSalePrice && !product.unitPrice) {
-      this.onValidationError((0, _format2['default'])('transaction.lineItems[%d].product.unitSalePrice', index));
+      this.onValidationError((0, _format2['default'])('lineItems[%d].product.unitSalePrice', index));
       isValid = false;
     }
     if (!lineItem.quantity) {
-      this.onValidationError((0, _format2['default'])('transaction.lineItems[%d].quantity', index));
+      this.onValidationError((0, _format2['default'])('lineItems[%d].quantity', index));
       isValid = false;
     }
 
@@ -6515,7 +6949,7 @@ var RetailRocket = (function (_Integration) {
     product = product || {};
     var productId = undefined;
     if ((0, _componentType2['default'])(product) === 'object') {
-      productId = product.id || this.get('product.id');
+      productId = product.id;
     } else {
       productId = product;
     }
@@ -6544,7 +6978,7 @@ var RetailRocket = (function (_Integration) {
 
 exports['default'] = RetailRocket;
 
-},{"./../Integration.js":53,"./../functions/deleteProperty.js":57,"./../functions/format.js":59,"./../functions/getQueryParam.js":60,"./../functions/throwError.js":67,"component-type":6}],72:[function(require,module,exports){
+},{"./../Integration.js":54,"./../functions/deleteProperty.js":58,"./../functions/format.js":60,"./../functions/getQueryParam.js":61,"./../functions/throwError.js":69,"component-type":6}],75:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es5');
@@ -6553,4 +6987,4 @@ require('core-js/modules/es6.object.assign');
 
 require('core-js/modules/es6.string.trim');
 
-},{"core-js/modules/es5":41,"core-js/modules/es6.object.assign":42,"core-js/modules/es6.string.trim":43}]},{},[68]);
+},{"core-js/modules/es5":41,"core-js/modules/es6.object.assign":42,"core-js/modules/es6.string.trim":43}]},{},[70]);

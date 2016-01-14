@@ -66,7 +66,7 @@ class RetailRocket extends Integration {
     if (event.name === 'Viewed Product Category') {
       this.onViewedProductCategory(event.page);
     } else if (event.name === 'Added Product') {
-      this.onAddedProduct(event.lineItems);
+      this.onAddedProduct(event.product);
     } else if (event.name === 'Viewed Product Detail') {
       this.onViewedProductDetail(event.product);
     } else if (event.name === 'Completed Transaction') {
@@ -79,7 +79,7 @@ class RetailRocket extends Integration {
   trackEmail() {
     if (this.get('user.email')) {
       if (this.getOption('trackAllEmails') === true || this.get('user.isSubscribed') === true) {
-        this.onSubscribed();
+        this.onSubscribed(this.get('user'));
       }
     } else {
       const email = getQueryParam('rr_setemail', this.getQueryString());
@@ -89,7 +89,7 @@ class RetailRocket extends Integration {
       } else {
         window.ddListener.push(['on', 'change:user.email', () => {
           if (this.getOption('trackAllEmails') === true || this.get('user.isSubscribed') === true) {
-            this.onSubscribed();
+            this.onSubscribed(this.get('user'));
           }
         }]);
       }
@@ -98,7 +98,7 @@ class RetailRocket extends Integration {
 
   onViewedProductCategory(page) {
     page = page || {};
-    const categoryId = page.categoryId || this.get('page.categoryId');
+    const categoryId = page.categoryId;
     if (!categoryId) {
       this.onValidationError('page.categoryId');
       return;
@@ -127,33 +127,23 @@ class RetailRocket extends Integration {
     });
   }
 
-  onAddedProduct(lineItems) {
-    if (!lineItems || !lineItems.length) {
-      this.onValidationError('lineItems');
+  onAddedProduct(product) {
+    const productId = this.getProductId(product);
+    if (!productId) {
+      this.onValidationError('product.id');
       return;
     }
-    for (let i = 0, length = lineItems.length; i < length; i++) {
-      if (!this.validateLineItem(lineItems[i], i)) {
-        continue;
+    window.rrApiOnReady.push(() => {
+      try {
+        window.rrApi.addToBasket(productId);
+      } catch (e) {
+        this.onError(e);
       }
-      const product = lineItems[i].product;
-      const productId = this.getProductId(product);
-      if (!productId) {
-        this.onValidationError('product.id');
-        return;
-      }
-      window.rrApiOnReady.push(() => {
-        try {
-          window.rrApi.addToBasket(lineItems[i].product);
-        } catch (e) {
-          this.onError(e);
-        }
-      });
-    }
+    });
   }
 
   onCompletedTransaction(transaction) {
-    transaction = transaction || this.get('transaction') || {};
+    transaction = transaction || {};
     if (!this.validateTransaction(transaction)) {
       return;
     }
@@ -185,7 +175,7 @@ class RetailRocket extends Integration {
   }
 
   onSubscribed(user) {
-    user = user || this.get('user') || {};
+    user = user || {};
     if (!user.email) {
       this.onValidationError('user.email');
       return;
@@ -249,7 +239,7 @@ class RetailRocket extends Integration {
     product = product || {};
     let productId;
     if (type(product) === 'object') {
-      productId = product.id || this.get('product.id');
+      productId = product.id;
     } else {
       productId = product;
     }
