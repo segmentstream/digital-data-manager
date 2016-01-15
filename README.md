@@ -31,12 +31,45 @@ window.digitalData = {
 ##Async Installation
 ```html
 <script type="text/javascript">
-(function(){var a=window.ddManager=window.ddManager||[];window.ddListener=window.ddListener||[];var b=window.digitalData=window.digitalData||{};b.events=b.events||[];if(!a.initialize)if(a.invoked)window.console&&console.error&&console.error("Digital Data Manager snippet included twice.");else for(a.invoked=!0,a.methods=["initialize","addIntegration","on","once","off"],a.factory=function(b){return function(){var c=Array.prototype.slice.call(arguments);c.unshift(b);a.push(c);return a}},b=0;b<a.methods.length;b++){var c=
-a.methods[b];a[c]=a.factory(c)}})();
-</script>
-<script type="text/javascript" async src="dd-manager.js"></script>
-<script type="text/javascript">
-  ddManager.initialize();
+(function() {
+  var a = window.ddManager = window.ddManager || [];
+  window.ddListener = window.ddListener || [];
+  var b = window.digitalData = window.digitalData || {};
+  b.events = b.events || [];
+  if (!a.initialize) {
+    if (a.invoked) {
+      window.console && console.error && console.error("Digital Data Manager snippet included twice.");
+    } else {
+      a.invoked = !0;
+      a.methods = ["initialize", "addIntegration", "on", "once", "off"];
+      a.factory = function(b) {
+        return function() {
+          var c = Array.prototype.slice.call(arguments);
+          c.unshift(b);
+          a.push(c);
+          return a;
+        };
+      };
+      for (b = 0;b < a.methods.length;b++) {
+        var d = a.methods[b];
+        a[d] = a.factory(d);
+      }
+      a.load = function() {
+        var a = document.createElement("script");
+        a.type = "text/javascript";
+        a.async = !0;
+        a.src = "<path to dd-manager.min.js>";
+        var b = document.getElementsByTagName("script")[0];
+        b.parentNode.insertBefore(a, b);
+      };
+      a.SNIPPET_VERSION = "1.0.1";
+      a.load();
+    }
+  }
+})();
+
+// initialize ddManager
+window.ddManager.initialize();
 </script>
 ```
 
@@ -92,11 +125,30 @@ a.methods[b];a[c]=a.factory(c)}})();
     var key = ddManager.methods[i];
     ddManager[key] = ddManager.factory(key);
   }
+
+  // Define a method to load ddManager from our CDN,
+  // and that will be sure to only ever load it once.
+  ddManager.load = function(){
+    // Create an async script element.
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.async = true;
+    script.src = '<path to dd-manager.min.js>';
+
+    // Insert our script next to the first script element.
+    var first = document.getElementsByTagName('script')[0];
+    first.parentNode.insertBefore(script, first);
+  };
+
+  // Add a version to keep track of what's in the wild.
+  ddManager.SNIPPET_VERSION = '1.0.1';
+
+  // Load ddManager
+  ddManager.load();
 }());
-</script>
-<script type="text/javascript" async src="dd-manager.js"></script>
-<script type="text/javascript">
-  ddManager.initialize();
+
+// Initialize ddManager
+window.ddManager.initialize();
 </script>
 ```
 
