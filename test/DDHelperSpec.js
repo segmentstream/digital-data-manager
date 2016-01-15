@@ -46,4 +46,94 @@ describe('DDHelper', () => {
 
   });
 
+  describe('#getProduct', () => {
+    before(() => {
+      _digitalData = {
+        page: {
+          type: 'category'
+        },
+        user: {
+          email: 'text@email.com',
+          userId: '123'
+        },
+        product: {
+          id: '1'
+        },
+        listing: {
+          items: [
+            {
+              id: '2'
+            },
+            {
+              id: '3'
+            }
+          ]
+        },
+        recommendation: {
+          items: [
+            {
+              id: '4'
+            },
+            {
+              id: '5'
+            }
+          ]
+        },
+        cart: {
+          lineItems: [
+            {
+              product: {
+                id: '6'
+              },
+              quantity: 2
+            }
+          ]
+        }
+      };
+    });
+
+    it('should get product from product key', () => {
+      assert.ok(DDHelper.getProduct('1', _digitalData).id === '1');
+    });
+
+    it('should get product from listing key', () => {
+      assert.ok(DDHelper.getProduct('2', _digitalData).id === '2');
+    });
+
+    it('should get product from recommendation key', () => {
+      assert.ok(DDHelper.getProduct('4', _digitalData).id === '4');
+    });
+
+    it('should get product from cart key', () => {
+      assert.ok(DDHelper.getProduct('6', _digitalData).id === '6');
+    });
+  });
+
+  describe('#getCampaign', () => {
+    before(() => {
+      _digitalData = {
+        page: {
+          type: 'category'
+        },
+        user: {
+          email: 'text@email.com',
+          userId: '123'
+        },
+        campaigns: [
+          {
+            id: '1'
+          },
+          {
+            id: '2'
+          }
+        ]
+      };
+    });
+
+    it('should get campaign from campaigns key', () => {
+      assert.ok(DDHelper.getCampaign('1', _digitalData).id === '1');
+    });
+
+  });
+
 });

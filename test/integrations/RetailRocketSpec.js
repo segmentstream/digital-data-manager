@@ -15,6 +15,23 @@ describe('Integrations: RetailRocket', () => {
     partnerId: '567c343e6c7d3d14101afee5'
   };
 
+  const prepareStubs = () => {
+    sinon.stub(window.rrApi, 'addToBasket');
+    sinon.stub(window.rrApi, 'view');
+    sinon.stub(window.rrApi, 'categoryView');
+    sinon.stub(window.rrApi, 'order');
+    sinon.stub(window.rrApi, 'pageView');
+    stubsPrepared = true;
+  };
+
+  const restoreStubs = () => {
+    window.rrApi.addToBasket.restore();
+    window.rrApi.view.restore();
+    window.rrApi.categoryView.restore();
+    window.rrApi.order.restore();
+    window.rrApi.pageView.restore();
+  };
+
   before(() => {
     window.digitalData = {
       events: []
@@ -24,16 +41,13 @@ describe('Integrations: RetailRocket', () => {
   });
 
   after(() => {
-    if (stubsPrepared) {
-      window.rrApi.addToBasket.restore();
-      window.rrApi.view.restore();
-      window.rrApi.categoryView.restore();
-      window.rrApi.order.restore();
-      window.rrApi.pageView.restore();
-    }
     retailRocket.reset();
     ddManager.reset();
     reset();
+
+    // stubs for callbacks (hack)
+    window.rrApi = {};
+    window.rrApi.pageViewCompleted = function() {};
   });
 
   describe('#constructor', () => {
@@ -63,30 +77,33 @@ describe('Integrations: RetailRocket', () => {
 
   describe('after loading', () => {
 
-    const prepareStubs = () => {
-      sinon.stub(window.rrApi, 'addToBasket');
-      sinon.stub(window.rrApi, 'view');
-      sinon.stub(window.rrApi, 'categoryView');
-      sinon.stub(window.rrApi, 'order');
-      sinon.stub(window.rrApi, 'pageView');
-      stubsPrepared = true;
-    };
-
     before((done) => {
       if (!ddManager.isInitialized()) {
        ddManager.once('ready', () => {
          window.rrApiOnReady.push(() => {
-           prepareStubs();
            done();
          });
        });
        ddManager.initialize();
       } else {
         window.rrApiOnReady.push(() => {
-          prepareStubs();
           done();
         });
       }
+    });
+
+    beforeEach((done) => {
+      window.rrApiOnReady.push(() => {
+        prepareStubs();
+        done();
+      });
+    });
+
+    afterEach(() => {
+      if (stubsPrepared) {
+        restoreStubs();
+      }
+      stubsPrepared = false;
     });
 
     it('should initialize all methods', () => {
@@ -111,21 +128,6 @@ describe('Integrations: RetailRocket', () => {
           page: {
             categoryId: '28'
           },
-          callback: () => {
-            assert.ok(true);
-            done();
-          }
-        });
-      });
-
-      it('should track "Viewed Product Category" event without categoryId param', (done) => {
-        window.digitalData.page = {
-          type: 'category',
-          categoryId: '28'
-        };
-        window.digitalData.events.push({
-          name: 'Viewed Product Category',
-          category: 'Ecommerce',
           callback: () => {
             assert.ok(true);
             done();
@@ -179,23 +181,6 @@ describe('Integrations: RetailRocket', () => {
         });
       });
 
-      it('should track "Viewed Product Detail" event without product.id param', (done) => {
-        window.digitalData.page = {
-          type: 'product'
-        };
-        window.digitalData.product = {
-          id: '327'
-        };
-        window.digitalData.events.push({
-          name: 'Viewed Product Detail',
-          category: 'Ecommerce',
-          callback: () => {
-            assert.ok(true);
-            done();
-          }
-        });
-      });
-
       it('should throw validation error for "Viewed Product Detail" event', (done) => {
         window.digitalData.page = {};
         window.digitalData.product = {};
@@ -221,14 +206,15 @@ describe('Integrations: RetailRocket', () => {
           product: {
             id: '327'
           },
+          quantity: 1,
           callback: () => {
-            assert.ok(true);
+            assert.ok(window.rrApi.addToBasket.calledOnce);
             done();
           }
         });
       });
 
-      it('should track "Added Product" event with product param', (done) => {
+      it('should track "Added Product" event by product id', (done) => {
         window.digitalData.page = {
           type: 'product'
         };
@@ -236,25 +222,9 @@ describe('Integrations: RetailRocket', () => {
           name: 'Added Product',
           category: 'Ecommerce',
           product: '327',
+          quantity: 1,
           callback: () => {
-            assert.ok(true);
-            done();
-          }
-        });
-      });
-
-      it('should track "Added Product" event without product.id param', (done) => {
-        window.digitalData.page = {
-          type: 'product'
-        };
-        window.digitalData.product = {
-          id: '327'
-        };
-        window.digitalData.events.push({
-          name: 'Added Product',
-          category: 'Ecommerce',
-          callback: () => {
-            assert.ok(true);
+            assert.ok(window.rrApi.addToBasket.calledOnce);
             done();
           }
         });
@@ -338,36 +308,6 @@ describe('Integrations: RetailRocket', () => {
         });
       });
 
-      it('should track "Completed Transaction" event without transaction param', (done) => {
-        window.digitalData.transaction = {
-          orderId: '123',
-          lineItems: [
-            {
-              product: {
-                id: '327',
-                unitSalePrice: 245
-              },
-              quantity: 1
-            },
-            {
-              product: {
-                id: '328',
-                unitSalePrice: 245
-              },
-              quantity: 2
-            }
-          ]
-        };
-        window.digitalData.events.push({
-          name: 'Completed Transaction',
-          category: 'Ecommerce',
-          callback: () => {
-            assert.ok(true);
-            done();
-          }
-        });
-      });
-
       it('should throw validation error for "Completed Transaction" event when missing transaction param', (done) => {
         deleteProperty(window.digitalData, 'transaction');
         window.digitalData.events.push({
@@ -412,8 +352,8 @@ describe('Integrations: RetailRocket', () => {
           name: 'Completed Transaction',
           category: 'Ecommerce',
           callback: (results, errors) => {
-            assert.ok(errors.length > 0);
-            assert.ok(errors[0].code === 'validation_error');
+            assert.ok(errors.length > 0, 'There was no errors');
+            assert.ok(errors[0].code === 'validation_error', 'Error code is not correct');
             done();
           }
         });
@@ -441,8 +381,8 @@ describe('Integrations: RetailRocket', () => {
           name: 'Completed Transaction',
           category: 'Ecommerce',
           callback: (results, errors) => {
-            assert.ok(errors.length > 0);
-            assert.ok(errors[0].code === 'validation_error');
+            assert.ok(errors.length > 0, 'There was no errors');
+            assert.ok(errors[0].code === 'validation_error', 'Error code is not correct');
             done();
           }
         });
@@ -498,20 +438,6 @@ describe('Integrations: RetailRocket', () => {
           user: {
             email: 'test@driveback.ru'
           },
-          callback: () => {
-            assert.ok(window.rrApi.setEmail.calledOnce);
-            done();
-          }
-        });
-      });
-
-      it('should track "Subscribed" event without user.email param', (done) => {
-        window.digitalData.user = {
-          email: 'test@driveback.ru'
-        };
-        window.digitalData.events.push({
-          name: 'Subscribed',
-          category: 'Email',
           callback: () => {
             assert.ok(window.rrApi.setEmail.calledOnce);
             done();
@@ -579,23 +505,26 @@ describe('Integrations: RetailRocket', () => {
 
       it('should track email anytime user.email updated if trackAllEmails is TRUE', (done) => {
         window.digitalData.user = {};
-        window.ddListener = [];
 
-        retailRocket.setOption('trackAllEmails', true);
-        retailRocket.trackEmail();
-
-        window.digitalData.user.email = 'test@driveback.ru';
-
+        // wait 101 while DDL changes listener will update to new state
         setTimeout(() => {
-          assert.ok(window.rrApi.setEmail.calledOnce);
-          done();
+          if (window.rrApi.setEmail.restore !== undefined) {
+            window.rrApi.setEmail.restore();
+          }
+          sinon.stub(window.rrApi, "setEmail", function() {
+            assert.ok(true);
+            done();
+          });
+
+          retailRocket.setOption('trackAllEmails', true);
+          retailRocket.trackEmail();
+
+          window.digitalData.user.email = 'test@driveback.ru';
         }, 101);
       });
 
-
       it('should NOT track email anytime user.email updated if trackAllEmails is FALSE', (done) => {
         window.digitalData.user = {};
-        window.ddListener = [];
 
         retailRocket.setOption('trackAllEmails', false);
         retailRocket.trackEmail();

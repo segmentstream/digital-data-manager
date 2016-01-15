@@ -1,6 +1,7 @@
 import assert from 'assert';
 import reset from './reset.js';
 import EventManager from './../src/EventManager.js';
+import AutoEvents from './../src/AutoEvents.js';
 
 describe('EventManager', () => {
 
@@ -62,39 +63,29 @@ describe('EventManager', () => {
 
     it('should process early callback for event', () => {
       let event = Object.assign({}, eventTemplate);
-      let callbackFired = false;
-      let receivedEvent;
 
       window.ddListener.push(['on', 'event', (e) => {
-        callbackFired = true;
-        receivedEvent = e;
+        assert.ok(true);
+        assert.equal(e.action, event.action);
+        assert.equal(e.category, event.category);
       }]);
 
       _eventManager.initialize();
 
       window.digitalData.events.push(event);
-
-      assert.ok(callbackFired);
-      assert.equal(receivedEvent.action, event.action);
-      assert.equal(receivedEvent.category, event.category);
     });
 
     it('should process early callback for early event', () => {
       let event = Object.assign({}, eventTemplate);
-      let callbackFired = false;
-      let receivedEvent;
 
       window.ddListener.push(['on', 'event', (e) => {
-        callbackFired = true;
-        receivedEvent = e;
+        assert.ok(true);
+        assert.equal(e.action, event.action);
+        assert.equal(e.category, event.category);
       }]);
       window.digitalData.events.push(event);
 
       _eventManager.initialize();
-
-      assert.ok(callbackFired);
-      assert.equal(receivedEvent.action, event.action);
-      assert.equal(receivedEvent.category, event.category);
     });
 
     it('should fire event with callback inside when no listeners', (done) => {
@@ -122,6 +113,47 @@ describe('EventManager', () => {
           assert.ok(results[0] == 'test result');
           done();
         }
+      });
+    });
+
+    it('should enrich product data from DDL', (done) => {
+      window.digitalData.product = {
+        id: '123',
+        name: 'Test Product'
+      };
+
+      _eventManager.initialize();
+
+      window.ddListener.push(['on', 'event', (e) => {
+        assert(e.product.name === 'Test Product');
+        done();
+      }]);
+
+      window.digitalData.events.push({
+        name: 'Clicked Product',
+        category: 'Ecommerce',
+        product: '123'
+      });
+    });
+
+    it('should not enrich product data from DDL', (done) => {
+      window.digitalData.product = {
+        id: '123',
+        name: 'Test Product'
+      };
+
+      _eventManager.initialize();
+
+      window.ddListener.push(['on', 'event', (e) => {
+        assert(!e.product.name);
+        done();
+      }]);
+
+      window.digitalData.events.push({
+        name: 'Clicked Product',
+        enrichEventData: false,
+        category: 'Ecommerce',
+        product: '123'
       });
     });
 
@@ -270,5 +302,71 @@ describe('EventManager', () => {
 
   });
 
+
+  describe(': listening for autoEvents based on DDL changes', () => {
+
+    beforeEach(() => {
+      window.digitalData = {
+        page: {
+          type: 'home'
+        }
+      };
+      window.ddListener = [];
+      _eventManager = new EventManager(window.digitalData, window.ddListener);
+      _eventManager.setAutoEvents(new AutoEvents());
+      _eventManager.initialize();
+    });
+
+    it('should fire Viewed Page event', (done) => {
+      window.digitalData.page = {
+        type: 'content'
+      };
+      setTimeout(() => {
+        assert.ok(window.digitalData.events.length === 2);
+        assert.ok(window.digitalData.events[1].name === 'Viewed Page');
+        assert.ok(window.digitalData.events[1].page.type === 'content');
+        done();
+      }, 101)
+    });
+
+    it('should fire Viewed Page and Viewed Product Category events', (done) => {
+      window.digitalData.page = {
+        type: 'category'
+      };
+      setTimeout(() => {
+        assert.ok(window.digitalData.events.length === 3);
+        assert.ok(window.digitalData.events[1].name === 'Viewed Page');
+        assert.ok(window.digitalData.events[1].page.type === 'category');
+        assert.ok(window.digitalData.events[2].name === 'Viewed Product Category');
+        assert.ok(window.digitalData.events[2].page.type === 'category');
+        done();
+      }, 101);
+    });
+
+    it('should fire Viewed Product Detail event', (done) => {
+      window.digitalData.product = {
+        id: '123',
+        name: 'Test Product'
+      };
+      setTimeout(() => {
+        assert.ok(window.digitalData.events.length === 2);
+        assert.ok(window.digitalData.events[1].name === 'Viewed Product Detail');
+        assert.ok(window.digitalData.events[1].product.id === '123');
+        done();
+      }, 101);
+    });
+
+    it('should fire Completed Transaction event', (done) => {
+      window.digitalData.transaction = {
+        orderId: '123',
+      };
+      setTimeout(() => {
+        assert.ok(window.digitalData.events.length === 2);
+        assert.ok(window.digitalData.events[1].name === 'Completed Transaction');
+        assert.ok(window.digitalData.events[1].transaction.orderId === '123');
+        done();
+      }, 101);
+    });
+  });
 
 });

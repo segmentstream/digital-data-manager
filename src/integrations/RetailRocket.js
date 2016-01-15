@@ -79,7 +79,7 @@ class RetailRocket extends Integration {
   trackEmail() {
     if (this.get('user.email')) {
       if (this.getOption('trackAllEmails') === true || this.get('user.isSubscribed') === true) {
-        this.onSubscribed();
+        this.onSubscribed(this.get('user'));
       }
     } else {
       const email = getQueryParam('rr_setemail', this.getQueryString());
@@ -89,7 +89,7 @@ class RetailRocket extends Integration {
       } else {
         window.ddListener.push(['on', 'change:user.email', () => {
           if (this.getOption('trackAllEmails') === true || this.get('user.isSubscribed') === true) {
-            this.onSubscribed();
+            this.onSubscribed(this.get('user'));
           }
         }]);
       }
@@ -98,7 +98,7 @@ class RetailRocket extends Integration {
 
   onViewedProductCategory(page) {
     page = page || {};
-    const categoryId = page.categoryId || this.get('page.categoryId');
+    const categoryId = page.categoryId;
     if (!categoryId) {
       this.onValidationError('page.categoryId');
       return;
@@ -143,7 +143,7 @@ class RetailRocket extends Integration {
   }
 
   onCompletedTransaction(transaction) {
-    transaction = transaction || this.get('transaction') || {};
+    transaction = transaction || {};
     if (!this.validateTransaction(transaction)) {
       return;
     }
@@ -151,7 +151,7 @@ class RetailRocket extends Integration {
     const items = [];
     const lineItems = transaction.lineItems;
     for (let i = 0, length = lineItems.length; i < length; i++) {
-      if (!this.validateLineItem(lineItems[i], i)) {
+      if (!this.validateTransactionLineItem(lineItems[i], i)) {
         continue;
       }
       const product = lineItems[i].product;
@@ -175,7 +175,7 @@ class RetailRocket extends Integration {
   }
 
   onSubscribed(user) {
-    user = user || this.get('user') || {};
+    user = user || {};
     if (!user.email) {
       this.onValidationError('user.email');
       return;
@@ -208,20 +208,27 @@ class RetailRocket extends Integration {
   validateLineItem(lineItem, index) {
     let isValid = true;
     if (!lineItem.product) {
-      this.onValidationError(format('transaction.lineItems[%d].product', index));
+      this.onValidationError(format('lineItems[%d].product', index));
       isValid = false;
     }
+
+    return isValid;
+  }
+
+  validateTransactionLineItem(lineItem, index) {
+    let isValid = this.validateLineItem(lineItem, index);
+
     const product = lineItem.product;
     if (!product.id) {
-      this.onValidationError(format('transaction.lineItems[%d].product.id', index));
+      this.onValidationError(format('lineItems[%d].product.id', index));
       isValid = false;
     }
     if (!product.unitSalePrice && !product.unitPrice) {
-      this.onValidationError(format('transaction.lineItems[%d].product.unitSalePrice', index));
+      this.onValidationError(format('lineItems[%d].product.unitSalePrice', index));
       isValid = false;
     }
     if (!lineItem.quantity) {
-      this.onValidationError(format('transaction.lineItems[%d].quantity', index));
+      this.onValidationError(format('lineItems[%d].quantity', index));
       isValid = false;
     }
 
@@ -232,7 +239,7 @@ class RetailRocket extends Integration {
     product = product || {};
     let productId;
     if (type(product) === 'object') {
-      productId = product.id || this.get('product.id');
+      productId = product.id;
     } else {
       productId = product;
     }

@@ -4,13 +4,16 @@ import debug from 'debug';
 import deleteProperty from './functions/deleteProperty.js';
 import size from './functions/size.js';
 import after from './functions/after.js';
+import jsonIsEqual from './functions/jsonIsEqual.js';
 import DDHelper from './DDHelper.js';
+import EventDataEnricher from './EventDataEnricher.js';
 
 let _callbacks = {};
 let _ddListener = [];
 let _previousDigitalData = {};
 let _digitalData = {};
 let _checkForChangesIntervalId;
+let _autoEvents;
 
 const _callbackOnComplete = (error) => {
   if (error) {
@@ -22,16 +25,6 @@ function _getCopyWithoutEvents(digitalData) {
   const digitalDataCopy = clone(digitalData);
   deleteProperty(digitalDataCopy, 'events');
   return digitalDataCopy;
-}
-
-function _jsonIsEqual(json1, json2) {
-  if (typeof json1 !== 'string') {
-    json1 = JSON.stringify(json1);
-  }
-  if (typeof json2 !== 'string') {
-    json2 = JSON.stringify(json2);
-  }
-  return json1 === json2;
 }
 
 class EventManager {
@@ -61,15 +54,25 @@ class EventManager {
       events[events.length] = event;
     };
 
+    if (_autoEvents) {
+      _autoEvents.onInitialize();
+    }
+
     _checkForChangesIntervalId = setInterval(() => {
       this.checkForChanges();
     }, 100);
   }
 
+  setAutoEvents(autoEvents) {
+    _autoEvents = autoEvents;
+    _autoEvents.setDigitalData(_digitalData);
+    _autoEvents.setDDListener(_ddListener);
+  }
+
   checkForChanges() {
     if (_callbacks.change && _callbacks.change.length > 0) {
       const digitalDataWithoutEvents = _getCopyWithoutEvents(_digitalData);
-      if (!_jsonIsEqual(_previousDigitalData, digitalDataWithoutEvents)) {
+      if (!jsonIsEqual(_previousDigitalData, digitalDataWithoutEvents)) {
         const previousDigitalDataWithoutEvents = _getCopyWithoutEvents(_previousDigitalData);
         _previousDigitalData = clone(digitalDataWithoutEvents);
         this.fireChange(digitalDataWithoutEvents, previousDigitalDataWithoutEvents);
@@ -101,7 +104,7 @@ class EventManager {
           const key = changeCallback.key;
           const newKeyValue = DDHelper.get(key, newValue);
           const previousKeyValue = DDHelper.get(key, previousValue);
-          if (!_jsonIsEqual(newKeyValue, previousKeyValue)) {
+          if (!jsonIsEqual(newKeyValue, previousKeyValue)) {
             changeCallback.handler(newKeyValue, previousKeyValue, _callbackOnComplete);
           }
         } else {
@@ -136,9 +139,12 @@ class EventManager {
       };
 
       for (eventCallback of _callbacks.event) {
-        const eventCopy = clone(event);
+        let eventCopy = clone(event);
         deleteProperty(eventCopy, 'updateDigitalData');
         deleteProperty(eventCopy, 'callback');
+        if (eventCopy.enrichEventData !== false) {
+          eventCopy = this.enrichEventWithData(eventCopy);
+        }
         eventCallback.handler(eventCopy, eventCallbackOnComplete);
       }
     } else {
@@ -182,8 +188,29 @@ class EventManager {
     }
   }
 
+  enrichEventWithData(event) {
+    const enrichableVars = [
+      'product',
+      'transaction',
+      'campaign',
+      'user',
+      'page',
+    ];
+
+    for (const enrichableVar of enrichableVars) {
+      if (event[enrichableVar]) {
+        const enricherMethod = EventDataEnricher[enrichableVar];
+        const eventVar = event[enrichableVar];
+        event[enrichableVar] = enricherMethod(eventVar, _digitalData);
+      }
+    }
+
+    return event;
+  }
+
   reset() {
     clearInterval(_checkForChangesIntervalId);
+
     _ddListener.push = Array.prototype.push;
     _callbacks = {};
   }

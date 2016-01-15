@@ -1,121 +1,125 @@
 class AutoEvents
 {
-  constructor(digitalData) {
+  setDigitalData(digitalData) {
     this.digitalData = digitalData;
   }
 
-  fire() {
-    this.fireViewedPage();
+  setDDListener(ddListener) {
+    this.ddListener = ddListener;
+  }
 
-    if (this.digitalData.page) {
-      if (this.digitalData.page.type === 'category') {
-        this.fireViewedProductCategory();
-      }
+  onInitialize() {
+    if (this.digitalData) {
+      this.fireViewedPage();
+      this.fireViewedProductCategory();
+      this.fireViewedProductDetail();
+      this.fireViewedCheckoutStep();
+      this.fireCompletedTransaction();
 
-      if (this.digitalData.page.type === 'product') {
-        this.fireViewedProductDetail();
-      }
+      if (this.ddListener) {
+        this.ddListener.push(['on', 'change:page', (newPage, oldPage) => {
+          this.onPageChange(newPage, oldPage);
+        }]);
 
-      if (this.digitalData.page.type === 'cart' || this.digitalData.page.type === 'checkout') {
-        this.fireViewedCheckoutStep();
+        this.ddListener.push(['on', 'change:product.id', (newProductId, oldProductId) => {
+          this.onProductChange(newProductId, oldProductId);
+        }]);
+
+        this.ddListener.push(['on', 'change:transaction.orderId', (newOrderId, oldOrderId) => {
+          this.onTransactionChange(newOrderId, oldOrderId);
+        }]);
+
+        // TODO: checkout step change
       }
     }
+  }
 
-    if (this.digitalData.transaction && this.digitalData.transaction.isReturning !== true) {
+  onPageChange(newPage, oldPage) {
+    if (String(newPage.pageId) !== String(oldPage.pageId) || newPage.url !== oldPage.url ||
+        newPage.type !== oldPage.type || newPage.breadcrumb !== oldPage.breadcrumb ||
+        String(newPage.categoryId) !== String(oldPage.categoryId)
+    ) {
+      this.fireViewedPage();
+      this.fireViewedProductCategory();
+    }
+  }
+
+  onProductChange(newProductId, oldProductId) {
+    if (newProductId !== oldProductId) {
+      this.fireViewedProductDetail();
+    }
+  }
+
+  onTransactionChange(newOrderId, oldOrderId) {
+    if (newOrderId !== oldOrderId) {
       this.fireCompletedTransaction();
     }
-
-    if (this.digitalData.listing) {
-      this.fireViewedProducts(this.digitalData.listing);
-    }
-
-    if (this.digitalData.recommendation) {
-      this.fireViewedProducts(this.digitalData.recommendation);
-    }
-
-    if (this.digitalData.campaigns) {
-      this.fireViewedCampaigns(this.digitalData.campaigns);
-    }
   }
 
-  fireViewedProducts(listing) {
-    if (listing.items && listing.items.length > 0) {
-      const items = [];
-      for (const product of listing.items) {
-        if (product.wasViewed) {
-          items.push(product.id);
-        }
-      }
-
-      const event = {
-        updateDigitalData: false,
-        name: 'Viewed Product',
-        category: 'Ecommerce',
-        items: items,
-      };
-
-      if (listing.listName) {
-        event.listName = listing.listName;
-      }
-
-      this.digitalData.events.push(event);
-    }
-  }
-
-  fireViewedCampaigns(campaigns) {
-    if (campaigns.length > 0) {
-      const viewedCampaigns = [];
-      for (const campaign of campaigns) {
-        if (campaign.wasViewed) {
-          viewedCampaigns.push(campaign.id);
-        }
-      }
-      this.digitalData.events.push({
-        updateDigitalData: false,
-        name: 'Viewed Campaign',
-        category: 'Promo',
-        campaigns: viewedCampaigns,
-      });
-    }
-  }
-
-  fireViewedPage() {
+  fireViewedPage(page) {
+    page = page || this.digitalData.page;
     this.digitalData.events.push({
       updateDigitalData: false,
+      enrichEventData: false,
       name: 'Viewed Page',
       category: 'Content',
+      page: page,
     });
   }
 
-  fireViewedProductCategory() {
+  fireViewedProductCategory(page) {
+    page = page || this.digitalData.page || {};
+    if (page.type !== 'category') {
+      return;
+    }
     this.digitalData.events.push({
       updateDigitalData: false,
+      enrichEventData: false,
       name: 'Viewed Product Category',
       category: 'Ecommerce',
+      page: page,
     });
   }
 
-  fireViewedProductDetail() {
+  fireViewedProductDetail(product) {
+    product = product || this.digitalData.product;
+    if (!product) {
+      return;
+    }
     this.digitalData.events.push({
       updateDigitalData: false,
+      enrichEventData: false,
       name: 'Viewed Product Detail',
       category: 'Ecommerce',
+      product: product,
     });
   }
 
-  fireViewedCheckoutStep() {
+  fireViewedCheckoutStep(page) {
+    page = page || this.digitalData.page || {};
+    if (page.type !== 'cart' && page.type !== 'checkout') {
+      return;
+    }
     this.digitalData.events.push({
       updateDigitalData: false,
+      enrichEventData: false,
       name: 'Viewed Checkout Step',
       category: 'Ecommerce',
+      page: page,
     });
   }
 
-  fireCompletedTransaction() {
+  fireCompletedTransaction(transaction) {
+    transaction = transaction || this.digitalData.transaction;
+    if (!transaction || transaction.isReturning === true) {
+      return;
+    }
     this.digitalData.events.push({
       updateDigitalData: false,
+      enrichEventData: false,
       name: 'Completed Transaction',
       category: 'Ecommerce',
+      transaction: transaction,
     });
   }
 }
