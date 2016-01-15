@@ -65,7 +65,7 @@ a.methods[b];a[c]=a.factory(c)}})();
   // is never invoked twice.
   ddManager.invoked = true;
 
-  // A list of the methods in Analytics.js to stub.
+  // A list of the methods in ddManager to stub.
   ddManager.methods = [
     'initialize',
     'addIntegration',
