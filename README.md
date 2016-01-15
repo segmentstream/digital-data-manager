@@ -54,22 +54,20 @@ window.digitalData = {
         var d = a.methods[b];
         a[d] = a.factory(d);
       }
-      a.load = function() {
-        var a = document.createElement("script");
-        a.type = "text/javascript";
-        a.async = !0;
-        a.src = "<path to dd-manager.min.js>";
-        var b = document.getElementsByTagName("script")[0];
-        b.parentNode.insertBefore(a, b);
+      a.load = function(a) {
+        var b = document.createElement("script");
+        b.type = "text/javascript";
+        b.async = !0;
+        b.src = a;
+        a = document.getElementsByTagName("script")[0];
+        a.parentNode.insertBefore(b, a);
       };
       a.SNIPPET_VERSION = "1.0.1";
-      a.load();
+      a.load("dd-manager.min.js");
+      a.initialize();
     }
   }
 })();
-
-// initialize ddManager
-window.ddManager.initialize();
 </script>
 ```
 
@@ -128,12 +126,12 @@ window.ddManager.initialize();
 
   // Define a method to load ddManager from our CDN,
   // and that will be sure to only ever load it once.
-  ddManager.load = function(){
+  ddManager.load = function(path){
     // Create an async script element.
     var script = document.createElement('script');
     script.type = 'text/javascript';
     script.async = true;
-    script.src = '<path to dd-manager.min.js>';
+    script.src = path;
 
     // Insert our script next to the first script element.
     var first = document.getElementsByTagName('script')[0];
@@ -144,11 +142,11 @@ window.ddManager.initialize();
   ddManager.SNIPPET_VERSION = '1.0.1';
 
   // Load ddManager
-  ddManager.load();
-}());
+  ddManager.load('dd-manager.min.js');
 
-// Initialize ddManager
-window.ddManager.initialize();
+  // Initialize ddManager
+  ddManager.initialize();
+}());
 </script>
 ```
 
