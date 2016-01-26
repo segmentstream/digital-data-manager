@@ -13,7 +13,6 @@ class AutoEvents
       this.fireViewedPage();
       this.fireViewedProductCategory();
       this.fireViewedProductDetail();
-      this.fireViewedCheckoutStep();
       this.fireCompletedTransaction();
 
       if (this.ddListener) {
@@ -59,7 +58,6 @@ class AutoEvents
   fireViewedPage(page) {
     page = page || this.digitalData.page;
     this.digitalData.events.push({
-      updateDigitalData: false,
       enrichEventData: false,
       name: 'Viewed Page',
       category: 'Content',
@@ -73,7 +71,6 @@ class AutoEvents
       return;
     }
     this.digitalData.events.push({
-      updateDigitalData: false,
       enrichEventData: false,
       name: 'Viewed Product Category',
       category: 'Ecommerce',
@@ -87,25 +84,10 @@ class AutoEvents
       return;
     }
     this.digitalData.events.push({
-      updateDigitalData: false,
       enrichEventData: false,
       name: 'Viewed Product Detail',
       category: 'Ecommerce',
       product: product,
-    });
-  }
-
-  fireViewedCheckoutStep(page) {
-    page = page || this.digitalData.page || {};
-    if (page.type !== 'cart' && page.type !== 'checkout') {
-      return;
-    }
-    this.digitalData.events.push({
-      updateDigitalData: false,
-      enrichEventData: false,
-      name: 'Viewed Checkout Step',
-      category: 'Ecommerce',
-      page: page,
     });
   }
 
@@ -115,7 +97,6 @@ class AutoEvents
       return;
     }
     this.digitalData.events.push({
-      updateDigitalData: false,
       enrichEventData: false,
       name: 'Completed Transaction',
       category: 'Ecommerce',

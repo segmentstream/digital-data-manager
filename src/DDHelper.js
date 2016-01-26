@@ -39,9 +39,12 @@ class DDHelper {
         }
         for (const listing of listings) {
           if (listing.items && listing.items.length) {
-            for (const product of listing.items) {
-              if (product.id && String(product.id) === String(id)) {
-                return clone(product);
+            for (let i = 0, length = listing.items.length; i < length; i++) {
+              if (listing.items[i].id && String(listing.items[i].id) === String(id)) {
+                const product = clone(listing.items[i]);
+                product.position = product.position || (i + 1);
+                if (listing.listName) product.listName = product.listName || listing.listName;
+                return product;
               }
             }
           }

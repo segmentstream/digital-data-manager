@@ -53,7 +53,7 @@ class FacebookPixel extends Integration {
 
   trackEvent(event) {
     if (event.name === 'Viewed Page') {
-      this.onViewedPage();
+      this.onViewedPage(event.page);
     } else if (event.name === 'Viewed Product Category') {
       this.onViewedProductCategory(event.page);
     } else if (event.name === 'Viewed Product Detail') {
