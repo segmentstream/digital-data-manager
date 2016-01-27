@@ -787,7 +787,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 currency: 'CAD',
               }]);
               assert.deepEqual(window.ga.args[3], ['ec:setAction', 'add', {}]);
-              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Added Product', undefined, { nonInteraction: 1 }]);
+              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }]);
             }
           });
         });
@@ -819,7 +819,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 currency: 'CAD',
               }]);
               assert.deepEqual(window.ga.args[3], ['ec:setAction', 'add', {}]);
-              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Added Product', undefined, { nonInteraction: 1 }]);
+              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }]);
             }
           });
         });
@@ -882,7 +882,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 currency: 'CAD',
               }]);
               assert.deepEqual(window.ga.args[3], ['ec:setAction', 'remove', {}]);
-              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Removed Product', undefined, { nonInteraction: 1 }]);
+              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: 1 }]);
             }
           });
         });
@@ -911,7 +911,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 currency: 'CAD',
               }]);
               assert.deepEqual(window.ga.args[3], ['ec:setAction', 'detail', {}]);
-              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Viewed Product Detail', undefined, { nonInteraction: 1 }]);
+              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }]);
             }
           });
         });
@@ -944,7 +944,7 @@ describe('Integrations: GoogleAnalytics', () => {
               assert.deepEqual(window.ga.args[3], ['ec:setAction', 'click', {
                 list: 'search results'
               }]);
-              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Clicked Product', undefined, { nonInteraction: 1 }]);
+              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: 1 }]);
             }
           });
         });
@@ -983,7 +983,7 @@ describe('Integrations: GoogleAnalytics', () => {
               assert.deepEqual(window.ga.args[3], ['ec:setAction', 'click', {
                 list: 'search results'
               }]);
-              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Clicked Product', undefined, { nonInteraction: 1 }]);
+              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: 1 }]);
             }
           });
         });
@@ -1016,7 +1016,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 variant: undefined,
                 position: 2,
               }]);
-              assert.deepEqual(window.ga.args[3], ['send', 'event', 'Ecommerce', 'Viewed Product', undefined, { nonInteraction: 1 }]);
+              assert.deepEqual(window.ga.args[3], ['send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }]);
             }
           });
         });
@@ -1062,7 +1062,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 variant: undefined,
                 position: 2,
               }]);
-              assert.deepEqual(window.ga.args[3], ['send', 'event', 'Ecommerce', 'Viewed Product', undefined, { nonInteraction: 1 }]);
+              assert.deepEqual(window.ga.args[3], ['send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }]);
             }
           });
         });
@@ -1086,7 +1086,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
               }]);
-              assert.deepEqual(window.ga.args[3], ['send', 'event', 'Promo', 'Viewed Campaign', undefined, { nonInteraction: 1 }]);
+              assert.deepEqual(window.ga.args[3], ['send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }]);
             }
           });
         });
@@ -1111,7 +1111,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
               }]);
-              assert.deepEqual(window.ga.args[3], ['send', 'event', 'Promo', 'Viewed Campaign', undefined, { nonInteraction: 1 }]);
+              assert.deepEqual(window.ga.args[3], ['send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }]);
             }
           });
         });
@@ -1136,7 +1136,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 position: 'banner_slot1'
               }]);
               assert.deepEqual(window.ga.args[3], ['ec:setAction', 'promo_click', {}]);
-              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Promo', 'Clicked Campaign', undefined, { nonInteraction: 1 }]);
+              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Promo', 'Clicked Campaign', { nonInteraction: 1 }]);
             }
           });
         });
@@ -1196,7 +1196,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 step: 1,
                 option: 'Visa'
               }]);
-              assert.deepEqual(argumentsToArray(window.ga.args[5]), ['send', 'event', 'Ecommerce', 'Viewed Checkout Step', undefined, { nonInteraction: 1 }]);
+              assert.deepEqual(argumentsToArray(window.ga.args[5]), ['send', 'event', 'Ecommerce', 'Viewed Checkout Step', { nonInteraction: 1 }]);
             }
           });
         });
@@ -1237,7 +1237,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 step: 2,
                 option: 'FedEx'
               }]);
-              assert.deepEqual(argumentsToArray(window.ga.args[3]), ['send', 'event', 'Ecommerce', 'Completed Checkout Step', undefined, { nonInteraction: 1 }]);
+              assert.deepEqual(argumentsToArray(window.ga.args[3]), ['send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }]);
             }
           });
         });
@@ -1279,7 +1279,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 step: 2,
                 option: 'Visa, FedEx'
               }]);
-              assert.deepEqual(argumentsToArray(window.ga.args[3]), ['send', 'event', 'Ecommerce', 'Completed Checkout Step', undefined, { nonInteraction: 1 }]);
+              assert.deepEqual(argumentsToArray(window.ga.args[3]), ['send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }]);
             }
           });
         });
@@ -1323,7 +1323,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 shipping: undefined,
                 coupon: undefined
               }]);
-              assert.deepEqual(argumentsToArray(window.ga.args[3]), ['send', 'event', 'Ecommerce', 'Completed Transaction', undefined, { nonInteraction: 1 }]);
+              assert.deepEqual(argumentsToArray(window.ga.args[3]), ['send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }]);
             }
           });
         });
@@ -1395,7 +1395,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 shipping: 13.99,
                 coupon: 'coupon'
               }]);
-              assert.deepEqual(argumentsToArray(window.ga.args[5]), ['send', 'event', 'Ecommerce', 'Completed Transaction', undefined, { nonInteraction: 1 }]);
+              assert.deepEqual(argumentsToArray(window.ga.args[5]), ['send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }]);
             }
           });
         });
@@ -1469,7 +1469,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 shipping: 13.99,
                 coupon: 'coupon'
               }]);
-              assert.deepEqual(argumentsToArray(window.ga.args[5]), ['send', 'event', 'Ecommerce', 'Completed Transaction', undefined, { nonInteraction: 1 }]);
+              assert.deepEqual(argumentsToArray(window.ga.args[5]), ['send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }]);
             }
           });
         });
@@ -1516,7 +1516,7 @@ describe('Integrations: GoogleAnalytics', () => {
               assert.deepEqual(window.ga.args[2], ['ec:setAction', 'refund', {
                 id: '780bc55'
               }]);
-              assert.deepEqual(window.ga.args[3], ['send', 'event', 'Ecommerce', 'Refunded Transaction', undefined, { nonInteraction: 1 }]);
+              assert.deepEqual(window.ga.args[3], ['send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: 1 }]);
             }
           });
         });
@@ -1571,7 +1571,7 @@ describe('Integrations: GoogleAnalytics', () => {
               assert.deepEqual(window.ga.args[4], ['ec:setAction', 'refund', {
                 id: '780bc55'
               }]);
-              assert.deepEqual(window.ga.args[5], ['send', 'event', 'Ecommerce', 'Refunded Transaction', undefined, { nonInteraction: 1 }]);
+              assert.deepEqual(window.ga.args[5], ['send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: 1 }]);
             }
           });
         });

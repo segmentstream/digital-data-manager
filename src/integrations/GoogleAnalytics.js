@@ -163,13 +163,23 @@ class GoogleAnalytics extends Integration {
   pushEnhancedEcommerce(event) {
     // Send a custom non-interaction event to ensure all EE data is pushed.
     // Without doing this we'd need to require page display after setting EE data.
-    let eventCategory = event.category || 'Ecommerce';
-    let eventAction = event.name || 'not defined';
-    let eventLabel = event.label;
+    const cleanedArgs = [];
+    const args = [
+      'send',
+      'event',
+      event.category || 'Ecommerce',
+      event.name || 'not defined',
+      event.label,
+      { nonInteraction: 1 }
+    ];
 
-    window.ga('send', 'event', eventCategory, eventAction, eventLabel, {
-      nonInteraction: 1
-    });
+    for (const arg of args) {
+      if (arg !== undefined) {
+        cleanedArgs.push(arg);
+      }
+    }
+
+    window.ga.apply(window, cleanedArgs);
   }
 
   trackEvent(event) {
