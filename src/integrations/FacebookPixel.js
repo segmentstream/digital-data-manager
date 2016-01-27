@@ -25,7 +25,7 @@ class FacebookPixel extends Integration {
 
   initialize() {
     if (this.getOption('pixelId')) {
-      window.fbq = window._fbq = function() => {
+      window.fbq = window._fbq = function() {
         if (window.fbq.callMethod) {
           window.fbq.callMethod.apply(window.fbq, arguments);
         } else {

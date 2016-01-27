@@ -6425,14 +6425,12 @@ var FacebookPixel = (function (_Integration) {
   };
 
   FacebookPixel.prototype.initialize = function initialize() {
-    var _arguments = arguments;
-
     if (this.getOption('pixelId')) {
       window.fbq = window._fbq = function () {
         if (window.fbq.callMethod) {
-          window.fbq.callMethod.apply(window.fbq, _arguments);
+          window.fbq.callMethod.apply(window.fbq, arguments);
         } else {
-          window.fbq.queue.push(_arguments);
+          window.fbq.queue.push(arguments);
         }
       };
       window.fbq.push = window.fbq;
