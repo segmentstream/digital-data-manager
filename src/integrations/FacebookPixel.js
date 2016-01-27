@@ -24,7 +24,7 @@ class FacebookPixel extends Integration {
   }
 
   initialize() {
-    if (this.getOption('pixelId')) {
+    if (this.getOption('pixelId') && !window.fbq) {
       window.fbq = window._fbq = function() {
         if (window.fbq.callMethod) {
           window.fbq.callMethod.apply(window.fbq, arguments);
@@ -53,7 +53,7 @@ class FacebookPixel extends Integration {
 
   trackEvent(event) {
     if (event.name === 'Viewed Page') {
-      this.onViewedPage(event.page);
+      this.onViewedPage();
     } else if (event.name === 'Viewed Product Category') {
       this.onViewedProductCategory(event.page);
     } else if (event.name === 'Viewed Product Detail') {

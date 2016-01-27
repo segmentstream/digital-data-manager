@@ -2,7 +2,7 @@
   "name": "digital-data-manager",
   "description": "The hassle-free way to integrate Digital Data Layer on your website.",
   "author": "Driveback LLC <opensource@driveback.ru>",
-  "version": "1.0.0-beta5",
+  "version": "1.0.0-beta6",
   "license": "MIT",
   "main": "dist/dd-manager.js",
   "directories": {
@@ -61,7 +61,7 @@
     "karma-safari-launcher": "^0.1.1",
     "karma-sauce-launcher": "^0.3.0",
     "karma-tap": "^1.0.3",
-    "mocha": "^2.3.4",
+    "mocha": "2.3.4",
     "polyify": "0.0.4",
     "sinon": "^1.17.2",
     "tape": "^4.2.2",
