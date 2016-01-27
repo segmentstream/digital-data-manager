@@ -6425,7 +6425,7 @@ var FacebookPixel = (function (_Integration) {
   };
 
   FacebookPixel.prototype.initialize = function initialize() {
-    if (this.getOption('pixelId')) {
+    if (this.getOption('pixelId') && !window.fbq) {
       window.fbq = window._fbq = function () {
         if (window.fbq.callMethod) {
           window.fbq.callMethod.apply(window.fbq, arguments);
