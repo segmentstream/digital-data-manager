@@ -71,8 +71,8 @@ class DigitalDataEnricher
     let landingPage = this.storage.get('context.landingPage');
     if (!landingPage) {
       landingPage =  clone(this.digitalData.page);
-      this.storage.set('context.landingPage', landingPage, this.getOption('sessionLength'));
     }
+    this.storage.set('context.landingPage', landingPage, this.getOption('sessionLength'));
     return landingPage;
   }
 
@@ -80,7 +80,7 @@ class DigitalDataEnricher
     let campaign = this.storage.get('context.campaign');
     if (!campaign) {
       campaign = utmParams(htmlGlobals.getLocation().search);
-      this.storage.set('context.campaign', campaign, this.getOption('sessionLength'));
+      this.storage.set('context.campaign', campaign);
     }
     return campaign;
   }
