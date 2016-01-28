@@ -48,6 +48,7 @@ describe('Integrations: RetailRocket', () => {
     // stubs for callbacks (hack)
     window.rrApi = {};
     window.rrApi.pageViewCompleted = function() {};
+    window.rrApi.setEmailCompleted = function() {};
   });
 
   describe('#constructor', () => {
