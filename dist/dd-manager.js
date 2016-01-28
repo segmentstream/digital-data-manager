@@ -6177,8 +6177,8 @@ var Storage = (function () {
   function Storage(options) {
     _classCallCheck(this, Storage);
 
-    var cookieDomain = window.location.hostname;
-    var domainParts = cookieDomain.split('.');
+    var cookieDomain = location.hostname;
+    var domainParts = location.hostname ? cookieDomain.split('.') : [];
     if (domainParts.length >= 2) {
       cookieDomain = '.' + cookieDomain.slice(-2).join('.');
     } else {

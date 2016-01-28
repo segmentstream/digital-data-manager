@@ -5,8 +5,8 @@ import debug from 'debug';
 class Storage
 {
   constructor(options) {
-    let cookieDomain = window.location.hostname;
-    const domainParts = cookieDomain.split('.');
+    let cookieDomain = location.hostname;
+    const domainParts = (location.hostname) ? cookieDomain.split('.') : [];
     if (domainParts.length >= 2) {
       cookieDomain = '.' + cookieDomain.slice(-2).join('.');
     } else {
