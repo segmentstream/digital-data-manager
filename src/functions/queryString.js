@@ -1,6 +1,7 @@
 import type from 'component-type';
+import each from './each.js';
 
-var pattern = /(\w+)\[(\d+)\]/;
+const pattern = /(\w+)\[(\d+)\]/;
 
 /**
  * Safely encode the given string
@@ -10,7 +11,7 @@ var pattern = /(\w+)\[(\d+)\]/;
  * @api private
  */
 
-var encode = function(str) {
+const encode = function encode(str) {
   try {
     return encodeURIComponent(str);
   } catch (e) {
@@ -26,7 +27,7 @@ var encode = function(str) {
  * @api private
  */
 
-var decode = function(str) {
+const decode = function decode(str) {
   try {
     return decodeURIComponent(str.replace(/\+/g, ' '));
   } catch (e) {
@@ -42,33 +43,33 @@ var decode = function(str) {
  * @api public
  */
 
-export function parse(str){
-  if ('string' != typeof str) return {};
+export function parse(str) {
+  if (typeof str !== 'string') return {};
 
   str = str.trim();
-  if ('' == str) return {};
-  if ('?' == str.charAt(0)) str = str.slice(1);
+  if (str === '') return {};
+  if (str.charAt(0) === '?') str = str.slice(1);
 
-  var obj = {};
-  var pairs = str.split('&');
-  for (var i = 0; i < pairs.length; i++) {
-    var parts = pairs[i].split('=');
-    var key = decode(parts[0]);
-    var m;
+  const obj = {};
+  const pairs = str.split('&');
+  for (let i = 0; i < pairs.length; i++) {
+    const parts = pairs[i].split('=');
+    const key = decode(parts[0]);
+    const m = pattern.exec(key);
 
-    if (m = pattern.exec(key)) {
+    if (m) {
       obj[m[1]] = obj[m[1]] || [];
       obj[m[1]][m[2]] = decode(parts[1]);
       continue;
     }
 
-    obj[parts[0]] = null == parts[1]
+    obj[parts[0]] = parts[1] === null
         ? ''
         : decode(parts[1]);
   }
 
   return obj;
-};
+}
 
 /**
  * Stringify the given `obj`.
@@ -78,22 +79,20 @@ export function parse(str){
  * @api public
  */
 
-export function stringify(obj){
+export function stringify(obj) {
   if (!obj) return '';
-  var pairs = [];
+  const pairs = [];
 
-  for (var key in obj) {
-    var value = obj[key];
-
-    if ('array' == type(value)) {
-      for (var i = 0; i < value.length; ++i) {
+  each(obj, (key, value) => {
+    if (type(value) === 'array') {
+      for (let i = 0; i < value.length; ++i) {
         pairs.push(encode(key + '[' + i + ']') + '=' + encode(value[i]));
       }
-      continue;
+      return;
     }
 
     pairs.push(encode(key) + '=' + encode(obj[key]));
-  }
+  });
 
   return pairs.join('&');
-};
+}

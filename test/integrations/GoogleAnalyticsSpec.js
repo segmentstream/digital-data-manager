@@ -107,90 +107,47 @@ describe('Integrations: GoogleAnalytics', () => {
           assert.deepEqual(argumentsToArray(window.ga.q[1]), ['set', 'userId', 'baz']);
         });
 
-        //it('should map custom dimensions & metrics using DDL user data, function() {
-        //  ga.setOption('metrics', {
-        //    firstName: 'metric1',
-        //    last_name: 'metric2',
-        //    foo: 'metric3'
-        //  });
-        //  ga.setOption('dimensions', {
-        //    Age: 'dimension2',
-        //    bar: 'dimension3'
-        //  });
-        //  window.digitalData.user = {
-        //    firstName: 'John',
-        //    lastName: 'Doe',
-        //    age: 20,
-        //    foo: true,
-        //    bar: false
-        //  };
-        //  ddManager.initialize();
-        //
-        //  assert.deepEqual(argumentsToArray(window.ga.q[2]), ['set', {
-        //    metric1: 'John',
-        //    metric2: 'Doe',
-        //    metric3: 'true',
-        //    dimension2: 20,
-        //    dimension3: 'false'
-        //  }]);
-        //});
-        //
-        //it('should not set metrics and dimensions if there is no DDL user data', function() {
-        //  ga.setOption('metrics', {
-        //    metric1: 'something'
-        //  });
-        //  ga.setOption('dimensions', {
-        //    dimension3: 'industry'
-        //  });
-        //  ddManager.initialize();
-        //  assert.deepEqual(window.ga.q[2], undefined);
-        //});
-        //
-        //it('should set metrics and dimensions that have dots but arent nested', function() {
-        //  ga.setOption('metrics', {
-        //    'name.first': 'metric1',
-        //    'name.last': 'metric2'
-        //  });
-        //  ga.setOption('dimensions', {
-        //    Age: 'dimension2'
-        //  });
-        //  window.digitalData.user = {
-        //    'name.first': 'John',
-        //    'name.last': 'Doe',
-        //    age: 20
-        //  };
-        //  ddManager.initialize();
-        //
-        //  assert.deepEqual(argumentsToArray(window.ga.q[2]), ['set', {
-        //    metric1: 'John',
-        //    metric2: 'Doe',
-        //    dimension2: 20
-        //  }]);
-        //});
-        //
-        //it('should set metrics and dimensions that are nested, using dot notation', function() {
-        //  ga.setOption('metrics', {
-        //    'name.first': 'metric1',
-        //    'name.last': 'metric2'
-        //  });
-        //  ga.setOption('dimensions', {
-        //    Age: 'dimension2'
-        //  });
-        //  window.digitalData.user = {
-        //    name: {
-        //      first: 'John',
-        //      last: 'Doe'
-        //    },
-        //    age: 20
-        //  };
-        //  ddManager.initialize();
-        //
-        //  assert.deepEqual(argumentsToArray(window.ga.q[2]), ['set', {
-        //    metric1: 'John',
-        //    metric2: 'Doe',
-        //    dimension2: 20
-        //  }]);
-        //});
+        it('should map custom dimensions & metrics using DDL data', function() {
+          ga.setOption('metrics', {
+            metric1: 'user.firstName',
+            metric2: 'user.lastName',
+            metric3: 'user.isSubscribed'
+          });
+          ga.setOption('dimensions', {
+            dimension2: 'user.age',
+            dimension3: 'user.hasTransacted'
+          });
+          window.digitalData.user = {
+            firstName: 'John',
+            lastName: 'Doe',
+            age: 20,
+            isSubscribed: true,
+            hasTransacted: false
+          };
+          ddManager.initialize();
+
+          assert.deepEqual(argumentsToArray(window.ga.q[2]), ['set', {
+            metric1: 'John',
+            metric2: 'Doe',
+            metric3: 'true',
+            dimension2: 20,
+            dimension3: 'false'
+          }]);
+        });
+
+        it('should not set metrics, dimensions & content groupings if there is no data in DDL', function() {
+          ga.setOption('metrics', {
+            metric1: 'something'
+          });
+          ga.setOption('dimensions', {
+            dimension3: 'industry'
+          });
+          ga.setOption('contentGroupings', {
+            contentGrouping1: 'foo'
+          });
+          ddManager.initialize();
+          assert.deepEqual(window.ga.q[2], undefined);
+        });
       });
 
     });
@@ -353,32 +310,36 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        //it('should map custom dimensions & metrics using track.properties()', (done) => {
-        //  ga.setOption('metrics', {
-        //    score: 'metric1'
-        //  });
-        //  ga.setOption('dimensions', {
-        //    author: 'dimension1',
-        //    postType: 'dimension2'
-        //  });
-        //
-        //  digitalData.events.push({
-        //    name: 'Viewed Page',
-        //    page: {
-        //      score: 21,
-        //      author: 'Author',
-        //      postType: 'blog'
-        //    },
-        //    callback: () => {
-        //      assert.ok(window.ga.calledWith('set', {
-        //        metric1: 21,
-        //        dimension1: 'Author',
-        //        dimension2: 'blog'
-        //      }));
-        //      done();
-        //    }
-        //  });
-        //});
+        it('should map custom dimensions, metrics & cuntent groupings using event properties', (done) => {
+          ga.setOption('metrics', {
+            metric1: 'page.score'
+          });
+          ga.setOption('dimensions', {
+            dimension1: 'page.author',
+            dimension2: 'page.postType'
+          });
+          ga.setOption('contentGroupings', {
+            contentGrouping1: 'page.section'
+          });
+          window.digitalData.events.push({
+            name: 'Custom Event',
+            page: {
+              score: 21,
+              author: 'Author',
+              postType: 'blog',
+              section: 'News'
+            },
+            callback: () => {
+              assert.ok(window.ga.calledWith('set', {
+                metric1: 21,
+                dimension1: 'Author',
+                dimension2: 'blog',
+                contentGrouping1: 'News'
+              }));
+              done();
+            }
+          });
+        });
 
       });
 
@@ -489,29 +450,29 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        //it('should map custom dimensions & metrics', function() {
-        //  ga.setOption('metrics', {
-        //    loadTime: 'metric1',
-        //    levelAchieved: 'metric2'
-        //  });
-        //  ga.setOption('dimensions', {
-        //    referrer: 'dimension2'
-        //  });
-        //
-        //  window.digitalData.events.push({
-        //    name: 'Level Unlocked',
-        //    loadTime: '100',
-        //    levelAchieved: '5',
-        //    referrer: 'Google',
-        //    callback: () => {
-        //      assert.ok(window.ga.calledWith('set', {
-        //        metric1: '100',
-        //        metric2: '5',
-        //        dimension2: 'Google'
-        //      }));
-        //    }
-        //  });
-        //});
+        it('should map custom dimensions & metrics', function() {
+          ga.setOption('metrics', {
+            metric1: 'loadTime',
+            metric2: 'levelAchieved'
+          });
+          ga.setOption('dimensions', {
+            dimension2: 'referrer'
+          });
+
+          window.digitalData.events.push({
+            name: 'Level Unlocked',
+            loadTime: '100',
+            levelAchieved: '5',
+            referrer: 'Google',
+            callback: () => {
+              assert.ok(window.ga.calledWith('set', {
+                metric1: '100',
+                metric2: '5',
+                dimension2: 'Google'
+              }));
+            }
+          });
+        });
       });
 
       describe('ecommerce', function () {

@@ -27,8 +27,6 @@ class AutoEvents
         this.ddListener.push(['on', 'change:transaction.orderId', (newOrderId, oldOrderId) => {
           this.onTransactionChange(newOrderId, oldOrderId);
         }]);
-
-        // TODO: checkout step change
       }
     }
   }

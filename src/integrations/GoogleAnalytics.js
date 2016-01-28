@@ -1,6 +1,10 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
+import getProperty from './../functions/getProperty.js';
 import each from './../functions/each.js';
+import size from './../functions/size.js';
+import type from 'component-type';
+import clone from 'component-clone';
 
 function enhancedEcommerceTrackProduct(product, quantity) {
   const gaProduct = {
@@ -65,7 +69,10 @@ class GoogleAnalytics extends Integration {
       domain: 'auto',
       includeSearch: false,
       siteSpeedSampleRate: 1,
-      defaultCurrency: 'USD'
+      defaultCurrency: 'USD',
+      metrics: {},
+      dimensions: {},
+      contentGroupings: {},
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -74,13 +81,6 @@ class GoogleAnalytics extends Integration {
       type: 'script',
       attr: {
         src: '//www.google-analytics.com/analytics.js',
-      },
-    });
-
-    this.addTag('double click', {
-      type: 'script',
-      attr: {
-        src: '//stats.g.doubleclick.net/dc.js',
       },
     });
   }
@@ -95,7 +95,7 @@ class GoogleAnalytics extends Integration {
 
       // setup the tracker globals
       window.GoogleAnalyticsObject = 'ga';
-      window.ga = window.ga || function() {
+      window.ga = window.ga || function ga() {
         window.ga.q = window.ga.q || [];
         window.ga.q.push(arguments);
       };
@@ -109,7 +109,7 @@ class GoogleAnalytics extends Integration {
         // Fall back on default to protect against empty string
         cookieDomain: this.getOption('domain'),
         siteSpeedSampleRate: this.getOption('siteSpeedSampleRate'),
-        allowLinker: true
+        allowLinker: true,
       });
 
       // display advertising
@@ -132,7 +132,9 @@ class GoogleAnalytics extends Integration {
       if (this.getOption('anonymizeIp')) window.ga('set', 'anonymizeIp', true);
 
       // custom dimensions & metrics
-      // TODO
+      const custom = this.getCustomDimensions();
+      if (size(custom)) window.ga('set', custom);
+
       this.load(this.ready);
     } else {
       this.ready();
@@ -150,6 +152,26 @@ class GoogleAnalytics extends Integration {
     this.pageCalled = false;
   }
 
+  getCustomDimensions(source) {
+    source = source || this._digitalData;
+    const settings = Object.assign(
+        Object.assign(
+            this.getOption('metrics'),
+            this.getOption('dimensions')
+        ),
+        this.getOption('contentGroupings')
+    );
+    const custom = {};
+    each(settings, (key, value) => {
+      let dimensionVal = getProperty(source, value);
+      if (dimensionVal !== undefined) {
+        if (type(dimensionVal) === 'boolean') dimensionVal = dimensionVal.toString();
+        custom[key] = dimensionVal;
+      }
+    });
+    return custom;
+  }
+
   loadEnhancedEcommerce(currency) {
     if (!this.enhancedEcommerceLoaded) {
       window.ga('require', 'ec');
@@ -158,7 +180,7 @@ class GoogleAnalytics extends Integration {
 
     // Ensure we set currency for every hit
     window.ga('set', '&cu', currency || this.getOption('defaultCurrency'));
-  };
+  }
 
   pushEnhancedEcommerce(event) {
     // Send a custom non-interaction event to ensure all EE data is pushed.
@@ -170,7 +192,9 @@ class GoogleAnalytics extends Integration {
       event.category || 'Ecommerce',
       event.name || 'not defined',
       event.label,
-      { nonInteraction: 1 }
+      {
+        nonInteraction: 1,
+      },
     ];
 
     for (const arg of args) {
@@ -210,7 +234,7 @@ class GoogleAnalytics extends Integration {
         this.onViewedCheckoutStep(event);
       } else if (event.name === 'Completed Checkout Step') {
         this.onCompletedCheckoutStep(event);
-      }else {
+      } else {
         this.onCustomEvent(event);
       }
     } else {
@@ -223,15 +247,15 @@ class GoogleAnalytics extends Integration {
   }
 
   onViewedPage(event) {
-    var page = event.page;
-    var campaign = this.get('context.campaign') || {};
-    var pageview = {};
-    var pageUrl = page.url;
-    var pagePath = page.path;
+    const page = event.page;
+    const campaign = this.get('context.campaign') || {};
+    const pageview = {};
+    const pageUrl = page.url;
+    let pagePath = page.path;
     if (this.getOption('includeSearch') && page.queryString) {
       pagePath = pagePath + page.queryString;
     }
-    var pageTitle = page.name || page.title;
+    const pageTitle = page.name || page.title;
 
     pageview.page = pagePath;
     pageview.title = pageTitle;
@@ -243,14 +267,10 @@ class GoogleAnalytics extends Integration {
     if (campaign.content) pageview.campaignContent = campaign.content;
     if (campaign.term) pageview.campaignKeyword = campaign.term;
 
-    // custom dimensions and metrics
-    //var custom = metrics(props, opts);
-    //if (len(custom)) window.ga('set', custom);
-
     // set
     window.ga('set', {
       page: pagePath,
-      title: pageTitle
+      title: pageTitle,
     });
 
     if (this.pageCalled) {
@@ -261,10 +281,6 @@ class GoogleAnalytics extends Integration {
     window.ga('send', 'pageview', pageview);
 
     this.pageCalled = true;
-  }
-
-  onViewedProductCategory(page) {
-
   }
 
   onViewedProduct(event) {
@@ -282,7 +298,7 @@ class GoogleAnalytics extends Integration {
       price: product.unitSalePrice || product.unitPrice,
       currency: product.currency || this.getOption('defaultCurrency'),
       variant: product.variant,
-      position: product.position
+      position: product.position,
     });
     this.pushEnhancedEcommerce(event);
   }
@@ -291,7 +307,7 @@ class GoogleAnalytics extends Integration {
     const product = event.product;
     this.loadEnhancedEcommerce(product.currency);
     enhancedEcommerceProductAction(event, 'click', {
-      list: product.listName
+      list: product.listName,
     });
     this.pushEnhancedEcommerce(event);
   }
@@ -339,7 +355,7 @@ class GoogleAnalytics extends Integration {
     });
 
     // add products
-    each(transaction.lineItems, function(key, lineItem) {
+    each(transaction.lineItems, function addProduct(key, lineItem) {
       const product = lineItem.product;
       if (product) {
         window.ga('ecommerce:addItem', {
@@ -366,7 +382,7 @@ class GoogleAnalytics extends Integration {
 
     this.loadEnhancedEcommerce(transaction.currency);
 
-    each(transaction.lineItems, function(key, lineItem) {
+    each(transaction.lineItems, function addProduct(key, lineItem) {
       const product = lineItem.product;
       if (product) {
         product.currency = product.currency || transaction.currency || this.getOption('defaultCurrency');
@@ -374,14 +390,14 @@ class GoogleAnalytics extends Integration {
       }
     });
 
-    let voucher = getTransactionVoucher(transaction);
+    const voucher = getTransactionVoucher(transaction);
     window.ga('ec:setAction', 'purchase', {
       id: transaction.orderId,
       affiliation: transaction.affiliation,
       revenue: transaction.total || transaction.subtotal || 0,
       tax: transaction.tax,
       shipping: transaction.shippingCost,
-      coupon: voucher
+      coupon: voucher,
     });
 
     this.pushEnhancedEcommerce(event);
@@ -395,7 +411,7 @@ class GoogleAnalytics extends Integration {
 
     this.loadEnhancedEcommerce(transaction.currency);
 
-    each(transaction.lineItems, function(key, lineItem) {
+    each(transaction.lineItems, function addProduct(key, lineItem) {
       const product = lineItem.product;
       if (product) {
         product.currency = product.currency || transaction.currency || this.getOption('defaultCurrency');
@@ -422,7 +438,7 @@ class GoogleAnalytics extends Integration {
       id: campaign.id,
       name: campaign.name,
       creative: campaign.design || campaign.creative,
-      position: campaign.position
+      position: campaign.position,
     });
     this.pushEnhancedEcommerce(event);
   }
@@ -439,7 +455,7 @@ class GoogleAnalytics extends Integration {
       id: campaign.id,
       name: campaign.name,
       creative: campaign.design || campaign.creative,
-      position: campaign.position
+      position: campaign.position,
     });
     window.ga('ec:setAction', 'promo_click', {});
     this.pushEnhancedEcommerce(event);
@@ -450,7 +466,7 @@ class GoogleAnalytics extends Integration {
 
     this.loadEnhancedEcommerce(cartOrTransaction.currency);
 
-    each(cartOrTransaction.lineItems, function(key, lineItem) {
+    each(cartOrTransaction.lineItems, function addProduct(key, lineItem) {
       const product = lineItem.product;
       if (product) {
         product.currency = product.currency || cartOrTransaction.currency || this.getOption('defaultCurrency');
@@ -485,17 +501,21 @@ class GoogleAnalytics extends Integration {
   }
 
   onCustomEvent(event) {
-    var campaign = this.get('context.campaign') || {};
+    const campaign = this.get('context.campaign') || {};
 
     // custom dimensions & metrics
-    // TODO: add custom dimensions & metrics
+    const source = clone(event);
+    deleteProperty(source, 'name');
+    deleteProperty(source, 'category');
+    const custom = this.getCustomDimensions(source);
+    if (size(custom)) window.ga('set', custom);
 
-    var payload = {
+    const payload = {
       eventAction: event.name || 'event',
       eventCategory: event.category || 'All',
       eventLabel: event.label,
       eventValue: Math.round(event.value) || 0,
-      nonInteraction: !!event.nonInteraction
+      nonInteraction: !!event.nonInteraction,
     };
 
     if (campaign.name) payload.campaignName = campaign.name;

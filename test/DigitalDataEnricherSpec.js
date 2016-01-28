@@ -71,71 +71,6 @@ describe('DigitalDataEnricher', () => {
 
   });
 
-
-  describe('#getLandingPage', () => {
-
-    before(() => {
-      _digitalData = {
-        page: {
-          type: 'home',
-          url: 'http://example.com/home'
-        },
-        context: {},
-        events: []
-      };
-    });
-
-    it('should get landingPage', () => {
-      let landingPage;
-
-      _digitalDataEnricher.setDigitalData(_digitalData);
-
-      landingPage = _digitalDataEnricher.getLandingPage();
-      assert.ok(landingPage.url === 'http://example.com/home');
-
-      _digitalData.page.url = 'http://example.com/internal';
-
-      landingPage = _digitalDataEnricher.getLandingPage();
-      assert.ok(landingPage.url === 'http://example.com/home');
-
-    });
-
-  });
-
-
-  describe('#getCampaign', () => {
-
-    before(() => {
-      _digitalData = {
-        page: {
-          type: 'home',
-          url: 'http://example.com/home'
-        },
-        context: {},
-        events: []
-      };
-    });
-
-    it('should get campaign', () => {
-      const locationSearch = _location.search;
-      let campaign;
-
-      _digitalDataEnricher.setDigitalData(_digitalData);
-
-      campaign = _digitalDataEnricher.getCampaign();
-      assert.ok(campaign.name === 'test_campaign');
-
-      _location.search = '?test=1';
-
-      campaign = _digitalDataEnricher.getCampaign();
-      assert.ok(campaign.name === 'test_campaign');
-
-      _location.search = locationSearch;
-    });
-
-  });
-
-
   describe('#enrichContextData', () => {
 
     before(() => {
@@ -150,25 +85,9 @@ describe('DigitalDataEnricher', () => {
     });
 
     it('should enrich DDL context variable', () => {
-      const locationSearch = _location.search;
       _digitalDataEnricher.setDigitalData(_digitalData);
       _digitalDataEnricher.enrichContextData();
       assert.ok(_digitalData.context.userAgent === _navigator.userAgent);
-      assert.ok(_digitalData.context.landingPage.url === 'http://example.com/home');
-      assert.ok(_digitalData.context.campaign.name === 'test_campaign');
-
-      // change some values
-      _digitalData.page.url = 'http://example.com/internal';
-      _location.search = '?test=1';
-
-      assert.ok(_digitalDataEnricher.getLandingPage().url === 'http://example.com/home', 'landingPage.url is not correct');
-      assert.ok(_digitalDataEnricher.getCampaign().name === 'test_campaign', 'campaign.name is not correct');
-
-      // enrich context data again
-      _digitalDataEnricher.enrichContextData();
-
-      // restore previous values
-      _location.search = locationSearch;
     });
 
   });

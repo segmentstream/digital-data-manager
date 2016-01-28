@@ -9,5 +9,5 @@ export default {
 
   getNavigator: () => {
     return window.navigator;
-  }
-}
+  },
+};

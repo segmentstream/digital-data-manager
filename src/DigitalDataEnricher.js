@@ -1,10 +1,5 @@
-import type from 'component-type';
-import utmParams from './functions/utmParams.js';
 import htmlGlobals from './functions/htmlGlobals.js';
 import uuid from 'uuid';
-import clone from 'component-clone';
-import Storage from './Storage.js';
-import DDHelper from './DDHelper.js';
 
 class DigitalDataEnricher
 {
@@ -12,7 +7,7 @@ class DigitalDataEnricher
     this.digitalData = digitalData;
     this.storage = storage;
     this.options = Object.assign({
-      sessionLength: 3600
+      sessionLength: 3600,
     }, options);
   }
 
@@ -35,15 +30,14 @@ class DigitalDataEnricher
   }
 
   enrichPageData() {
-    const htmlGlobals = this.getHtmlGlobals();
     const page = this.digitalData.page;
 
-    page.path = page.path || htmlGlobals.getLocation().pathname;
-    page.referrer = page.referrer || htmlGlobals.getDocument().referrer;
-    page.queryString = page.queryString || htmlGlobals.getLocation().search;
-    page.title = page.title || htmlGlobals.getDocument().title;
-    page.url = page.url || htmlGlobals.getLocation().href;
-    page.hash = page.hash || htmlGlobals.getLocation().hash;
+    page.path = page.path || this.getHtmlGlobals().getLocation().pathname;
+    page.referrer = page.referrer || this.getHtmlGlobals().getDocument().referrer;
+    page.queryString = page.queryString || this.getHtmlGlobals().getLocation().search;
+    page.title = page.title || this.getHtmlGlobals().getDocument().title;
+    page.url = page.url || this.getHtmlGlobals().getLocation().href;
+    page.hash = page.hash || this.getHtmlGlobals().getLocation().hash;
   }
 
   enrichUserData() {
@@ -53,10 +47,7 @@ class DigitalDataEnricher
 
   enrichContextData() {
     const context = this.digitalData.context;
-
-    context.userAgent = htmlGlobals.getNavigator().userAgent;
-    context.landingPage = this.getLandingPage();
-    context.campaign = this.getCampaign();
+    context.userAgent = this.getHtmlGlobals().getNavigator().userAgent;
   }
 
   /**
@@ -65,24 +56,6 @@ class DigitalDataEnricher
    */
   getHtmlGlobals() {
     return htmlGlobals;
-  }
-
-  getLandingPage() {
-    let landingPage = this.storage.get('context.landingPage');
-    if (!landingPage) {
-      landingPage =  clone(this.digitalData.page);
-    }
-    this.storage.set('context.landingPage', landingPage, this.getOption('sessionLength'));
-    return landingPage;
-  }
-
-  getCampaign() {
-    let campaign = this.storage.get('context.campaign');
-    if (!campaign) {
-      campaign = utmParams(htmlGlobals.getLocation().search);
-      this.storage.set('context.campaign', campaign);
-    }
-    return campaign;
   }
 
   getUserAnonymousId() {

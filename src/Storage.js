@@ -1,13 +1,41 @@
 import store from 'store';
 import cookie from 'js-cookie';
+import debug from 'debug';
 
 class Storage
 {
   constructor(options) {
+    let cookieDomain = window.location.hostname;
+    const domainParts = cookieDomain.split('.');
+    if (domainParts.length >= 2) {
+      cookieDomain = '.' + cookieDomain.slice(-2).join('.');
+    } else {
+      cookieDomain = null;
+    }
+
     this.options = Object.assign({
+      cookieDomain: cookieDomain,
+      cookieMaxAge: 31536000000, // default to a year
       prefix: 'ddl:',
-      sessionLength: 3600
     }, options);
+
+    // http://curl.haxx.se/rfc/cookie_spec.html
+    // https://publicsuffix.org/list/effective_tld_names.dat
+    //
+    // try setting a dummy cookie with the options
+    // if the cookie isn't set, it probably means
+    // that the domain is on the public suffix list
+    // like myapp.herokuapp.com or localhost / ip.
+    if (this.getOption('cookieDomain')) {
+      cookie.set('__tld__', true, {
+        domain: this.getOption('cookieDomain'),
+      });
+      if (!this.get('__tld__')) {
+        debug('fallback to domain=null');
+        cookieDomain = null;
+      }
+      cookie.remove('__tld__');
+    }
   }
 
   set(key, val, exp) {
@@ -16,12 +44,14 @@ class Storage
       store.set(key, {
         val: val,
         exp: exp,
-        time: new Date().getTime()
+        time: new Date().getTime(),
       });
     } else {
+      exp = exp || this.getOption('cookieMaxAge');
       const expDays = exp / 86400;
-      cookie.set(key, value, {
-        expires: expDays
+      cookie.set(key, val, {
+        expires: expDays,
+        domain: this.getOption('cookieDomain'),
       });
     }
   }
@@ -29,7 +59,7 @@ class Storage
   get(key) {
     key = this.prefix + key;
     if (store.enabled) {
-      var info = store.get(key);
+      const info = store.get(key);
       if (!info) {
         return null;
       }
@@ -37,18 +67,16 @@ class Storage
         return null;
       }
       return info.val;
-    } else {
-      return cookie.get(key);
     }
+    return cookie.get(key);
   }
 
   remove(key) {
     key = this.prefix + key;
     if (store.enabled) {
       return store.remove(key);
-    } else {
-      cookie.remove(key);
     }
+    cookie.remove(key);
   }
 
   clear() {

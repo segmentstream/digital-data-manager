@@ -1,4 +1,4 @@
-import {parse, stringify} from './queryString.js';
+import {parse} from './queryString.js';
 import each from './each.js';
 
 export default function utmParams(query) {
@@ -9,8 +9,8 @@ export default function utmParams(query) {
 
   query = query.replace(/\?/g, '&');
 
-  var params = parse(query);
-  var results = {};
+  const params = parse(query);
+  const results = {};
 
   each(params, (key, param) => {
     if (key.substr(0, 4) === 'utm_') {

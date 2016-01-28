@@ -148,6 +148,7 @@ const ddManager = {
    */
   initialize: (settings) => {
     settings = Object.assign({
+      domain: null,
       autoEvents: true,
       sessionLength: 3600,
     }, settings);
@@ -159,11 +160,13 @@ const ddManager = {
     _prepareGlobals();
 
     // initialize storage
-    _storage = new Storage();
+    _storage = new Storage({
+      cookieDomain: settings.domain,
+    });
 
     // initialize digital data enricher
     const digitalDataEnricher = new DigitalDataEnricher(_digitalData, _storage, {
-      sessionLength: settings.sessionLength
+      sessionLength: settings.sessionLength,
     });
     digitalDataEnricher.enrichDigitalData();
 
