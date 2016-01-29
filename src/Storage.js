@@ -1,20 +1,13 @@
 import store from 'store';
 import cookie from 'js-cookie';
 import debug from 'debug';
+import topDomain from './functions/topDomain.js';
 
 class Storage
 {
   constructor(options) {
-    let cookieDomain = location.hostname;
-    const domainParts = (location.hostname) ? cookieDomain.split('.') : [];
-    if (domainParts.length >= 2) {
-      cookieDomain = '.' + cookieDomain.slice(-2).join('.');
-    } else {
-      cookieDomain = null;
-    }
-
     this.options = Object.assign({
-      cookieDomain: cookieDomain,
+      cookieDomain: topDomain(location.href),
       cookieMaxAge: 31536000000, // default to a year
       prefix: 'ddl:',
     }, options);
@@ -32,7 +25,7 @@ class Storage
       });
       if (!this.get('__tld__')) {
         debug('fallback to domain=null');
-        cookieDomain = null;
+        this.setOption('cookieDomain', null);
       }
       cookie.remove('__tld__');
     }
