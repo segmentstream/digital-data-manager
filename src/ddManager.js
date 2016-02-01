@@ -8,6 +8,8 @@ import Integration from './Integration.js';
 import EventManager from './EventManager.js';
 import AutoEvents from './AutoEvents.js';
 import DDHelper from './DDHelper.js';
+import DigitalDataEnricher from './DigitalDataEnricher.js';
+import Storage from './Storage.js';
 
 /**
  * @type {string}
@@ -38,6 +40,12 @@ let _digitalData = {};
  * @private
  */
 let _ddListener = [];
+
+/**
+ * @type {Storage}
+ * @private
+ */
+let _storage;
 
 /**
  * @type {Object}
@@ -79,6 +87,7 @@ function _prepareGlobals() {
 
   _digitalData.page = _digitalData.page || {};
   _digitalData.user = _digitalData.user || {};
+  _digitalData.context = _digitalData.context || {};
   if (!_digitalData.page.type || _digitalData.page.type !== 'confirmation') {
     _digitalData.cart = _digitalData.cart || {};
   }
@@ -126,6 +135,7 @@ const ddManager = {
    *
    * {
    *    autoEvents: true,
+   *    sessionLength: 3600,
    *    integrations: {
    *      'Google Tag Manager': {
    *        containerId: 'XXX'
@@ -138,7 +148,9 @@ const ddManager = {
    */
   initialize: (settings) => {
     settings = Object.assign({
+      domain: null,
       autoEvents: true,
+      sessionLength: 3600,
     }, settings);
 
     if (_isInitialized) {
@@ -147,6 +159,18 @@ const ddManager = {
 
     _prepareGlobals();
 
+    // initialize storage
+    _storage = new Storage({
+      cookieDomain: settings.domain,
+    });
+
+    // initialize digital data enricher
+    const digitalDataEnricher = new DigitalDataEnricher(_digitalData, _storage, {
+      sessionLength: settings.sessionLength,
+    });
+    digitalDataEnricher.enrichDigitalData();
+
+    // initialize event manager
     _eventManager = new EventManager(_digitalData, _ddListener);
     if (settings.autoEvents) {
       _eventManager.setAutoEvents(new AutoEvents());

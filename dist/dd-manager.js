@@ -1262,7 +1262,7 @@
 }());
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":49}],2:[function(require,module,exports){
+},{"_process":50}],2:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -4278,7 +4278,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":48}],46:[function(require,module,exports){
+},{"ms":49}],46:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -4400,6 +4400,153 @@ module.exports = isArray || function (val) {
 };
 
 },{}],48:[function(require,module,exports){
+/*!
+ * JavaScript Cookie v2.1.0
+ * https://github.com/js-cookie/js-cookie
+ *
+ * Copyright 2006, 2015 Klaus Hartl & Fagner Brack
+ * Released under the MIT license
+ */
+(function (factory) {
+	if (typeof define === 'function' && define.amd) {
+		define(factory);
+	} else if (typeof exports === 'object') {
+		module.exports = factory();
+	} else {
+		var _OldCookies = window.Cookies;
+		var api = window.Cookies = factory();
+		api.noConflict = function () {
+			window.Cookies = _OldCookies;
+			return api;
+		};
+	}
+}(function () {
+	function extend () {
+		var i = 0;
+		var result = {};
+		for (; i < arguments.length; i++) {
+			var attributes = arguments[ i ];
+			for (var key in attributes) {
+				result[key] = attributes[key];
+			}
+		}
+		return result;
+	}
+
+	function init (converter) {
+		function api (key, value, attributes) {
+			var result;
+
+			// Write
+
+			if (arguments.length > 1) {
+				attributes = extend({
+					path: '/'
+				}, api.defaults, attributes);
+
+				if (typeof attributes.expires === 'number') {
+					var expires = new Date();
+					expires.setMilliseconds(expires.getMilliseconds() + attributes.expires * 864e+5);
+					attributes.expires = expires;
+				}
+
+				try {
+					result = JSON.stringify(value);
+					if (/^[\{\[]/.test(result)) {
+						value = result;
+					}
+				} catch (e) {}
+
+				if (!converter.write) {
+					value = encodeURIComponent(String(value))
+						.replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g, decodeURIComponent);
+				} else {
+					value = converter.write(value, key);
+				}
+
+				key = encodeURIComponent(String(key));
+				key = key.replace(/%(23|24|26|2B|5E|60|7C)/g, decodeURIComponent);
+				key = key.replace(/[\(\)]/g, escape);
+
+				return (document.cookie = [
+					key, '=', value,
+					attributes.expires && '; expires=' + attributes.expires.toUTCString(), // use expires attribute, max-age is not supported by IE
+					attributes.path    && '; path=' + attributes.path,
+					attributes.domain  && '; domain=' + attributes.domain,
+					attributes.secure ? '; secure' : ''
+				].join(''));
+			}
+
+			// Read
+
+			if (!key) {
+				result = {};
+			}
+
+			// To prevent the for loop in the first place assign an empty array
+			// in case there are no cookies at all. Also prevents odd result when
+			// calling "get()"
+			var cookies = document.cookie ? document.cookie.split('; ') : [];
+			var rdecode = /(%[0-9A-Z]{2})+/g;
+			var i = 0;
+
+			for (; i < cookies.length; i++) {
+				var parts = cookies[i].split('=');
+				var name = parts[0].replace(rdecode, decodeURIComponent);
+				var cookie = parts.slice(1).join('=');
+
+				if (cookie.charAt(0) === '"') {
+					cookie = cookie.slice(1, -1);
+				}
+
+				try {
+					cookie = converter.read ?
+						converter.read(cookie, name) : converter(cookie, name) ||
+						cookie.replace(rdecode, decodeURIComponent);
+
+					if (this.json) {
+						try {
+							cookie = JSON.parse(cookie);
+						} catch (e) {}
+					}
+
+					if (key === name) {
+						result = cookie;
+						break;
+					}
+
+					if (!key) {
+						result[name] = cookie;
+					}
+				} catch (e) {}
+			}
+
+			return result;
+		}
+
+		api.get = api.set = api;
+		api.getJSON = function () {
+			return api.apply({
+				json: true
+			}, [].slice.call(arguments));
+		};
+		api.defaults = {};
+
+		api.remove = function (key, attributes) {
+			api(key, '', extend(attributes, {
+				expires: -1
+			}));
+		};
+
+		api.withConverter = init;
+
+		return api;
+	}
+
+	return init(function () {});
+}));
+
+},{}],49:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -4526,7 +4673,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],49:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -4619,7 +4766,422 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],50:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
+(function (global){
+"use strict"
+// Module export pattern from
+// https://github.com/umdjs/umd/blob/master/returnExports.js
+;(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define([], factory);
+    } else if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = factory();
+    } else {
+        // Browser globals (root is window)
+        root.store = factory();
+  }
+}(this, function () {
+	
+	// Store.js
+	var store = {},
+		win = (typeof window != 'undefined' ? window : global),
+		doc = win.document,
+		localStorageName = 'localStorage',
+		scriptTag = 'script',
+		storage
+
+	store.disabled = false
+	store.version = '1.3.20'
+	store.set = function(key, value) {}
+	store.get = function(key, defaultVal) {}
+	store.has = function(key) { return store.get(key) !== undefined }
+	store.remove = function(key) {}
+	store.clear = function() {}
+	store.transact = function(key, defaultVal, transactionFn) {
+		if (transactionFn == null) {
+			transactionFn = defaultVal
+			defaultVal = null
+		}
+		if (defaultVal == null) {
+			defaultVal = {}
+		}
+		var val = store.get(key, defaultVal)
+		transactionFn(val)
+		store.set(key, val)
+	}
+	store.getAll = function() {}
+	store.forEach = function() {}
+
+	store.serialize = function(value) {
+		return JSON.stringify(value)
+	}
+	store.deserialize = function(value) {
+		if (typeof value != 'string') { return undefined }
+		try { return JSON.parse(value) }
+		catch(e) { return value || undefined }
+	}
+
+	// Functions to encapsulate questionable FireFox 3.6.13 behavior
+	// when about.config::dom.storage.enabled === false
+	// See https://github.com/marcuswestin/store.js/issues#issue/13
+	function isLocalStorageNameSupported() {
+		try { return (localStorageName in win && win[localStorageName]) }
+		catch(err) { return false }
+	}
+
+	if (isLocalStorageNameSupported()) {
+		storage = win[localStorageName]
+		store.set = function(key, val) {
+			if (val === undefined) { return store.remove(key) }
+			storage.setItem(key, store.serialize(val))
+			return val
+		}
+		store.get = function(key, defaultVal) {
+			var val = store.deserialize(storage.getItem(key))
+			return (val === undefined ? defaultVal : val)
+		}
+		store.remove = function(key) { storage.removeItem(key) }
+		store.clear = function() { storage.clear() }
+		store.getAll = function() {
+			var ret = {}
+			store.forEach(function(key, val) {
+				ret[key] = val
+			})
+			return ret
+		}
+		store.forEach = function(callback) {
+			for (var i=0; i<storage.length; i++) {
+				var key = storage.key(i)
+				callback(key, store.get(key))
+			}
+		}
+	} else if (doc && doc.documentElement.addBehavior) {
+		var storageOwner,
+			storageContainer
+		// Since #userData storage applies only to specific paths, we need to
+		// somehow link our data to a specific path.  We choose /favicon.ico
+		// as a pretty safe option, since all browsers already make a request to
+		// this URL anyway and being a 404 will not hurt us here.  We wrap an
+		// iframe pointing to the favicon in an ActiveXObject(htmlfile) object
+		// (see: http://msdn.microsoft.com/en-us/library/aa752574(v=VS.85).aspx)
+		// since the iframe access rules appear to allow direct access and
+		// manipulation of the document element, even for a 404 page.  This
+		// document can be used instead of the current document (which would
+		// have been limited to the current path) to perform #userData storage.
+		try {
+			storageContainer = new ActiveXObject('htmlfile')
+			storageContainer.open()
+			storageContainer.write('<'+scriptTag+'>document.w=window</'+scriptTag+'><iframe src="/favicon.ico"></iframe>')
+			storageContainer.close()
+			storageOwner = storageContainer.w.frames[0].document
+			storage = storageOwner.createElement('div')
+		} catch(e) {
+			// somehow ActiveXObject instantiation failed (perhaps some special
+			// security settings or otherwse), fall back to per-path storage
+			storage = doc.createElement('div')
+			storageOwner = doc.body
+		}
+		var withIEStorage = function(storeFunction) {
+			return function() {
+				var args = Array.prototype.slice.call(arguments, 0)
+				args.unshift(storage)
+				// See http://msdn.microsoft.com/en-us/library/ms531081(v=VS.85).aspx
+				// and http://msdn.microsoft.com/en-us/library/ms531424(v=VS.85).aspx
+				storageOwner.appendChild(storage)
+				storage.addBehavior('#default#userData')
+				storage.load(localStorageName)
+				var result = storeFunction.apply(store, args)
+				storageOwner.removeChild(storage)
+				return result
+			}
+		}
+
+		// In IE7, keys cannot start with a digit or contain certain chars.
+		// See https://github.com/marcuswestin/store.js/issues/40
+		// See https://github.com/marcuswestin/store.js/issues/83
+		var forbiddenCharsRegex = new RegExp("[!\"#$%&'()*+,/\\\\:;<=>?@[\\]^`{|}~]", "g")
+		var ieKeyFix = function(key) {
+			return key.replace(/^d/, '___$&').replace(forbiddenCharsRegex, '___')
+		}
+		store.set = withIEStorage(function(storage, key, val) {
+			key = ieKeyFix(key)
+			if (val === undefined) { return store.remove(key) }
+			storage.setAttribute(key, store.serialize(val))
+			storage.save(localStorageName)
+			return val
+		})
+		store.get = withIEStorage(function(storage, key, defaultVal) {
+			key = ieKeyFix(key)
+			var val = store.deserialize(storage.getAttribute(key))
+			return (val === undefined ? defaultVal : val)
+		})
+		store.remove = withIEStorage(function(storage, key) {
+			key = ieKeyFix(key)
+			storage.removeAttribute(key)
+			storage.save(localStorageName)
+		})
+		store.clear = withIEStorage(function(storage) {
+			var attributes = storage.XMLDocument.documentElement.attributes
+			storage.load(localStorageName)
+			for (var i=attributes.length-1; i>=0; i--) {
+				storage.removeAttribute(attributes[i].name)
+			}
+			storage.save(localStorageName)
+		})
+		store.getAll = function(storage) {
+			var ret = {}
+			store.forEach(function(key, val) {
+				ret[key] = val
+			})
+			return ret
+		}
+		store.forEach = withIEStorage(function(storage, callback) {
+			var attributes = storage.XMLDocument.documentElement.attributes
+			for (var i=0, attr; attr=attributes[i]; ++i) {
+				callback(attr.name, store.deserialize(storage.getAttribute(attr.name)))
+			}
+		})
+	}
+
+	try {
+		var testKey = '__storejs__'
+		store.set(testKey, testKey)
+		if (store.get(testKey) != testKey) { store.disabled = true }
+		store.remove(testKey)
+	} catch(e) {
+		store.disabled = true
+	}
+	store.enabled = !store.disabled
+	
+	return store
+}));
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],52:[function(require,module,exports){
+(function (global){
+
+var rng;
+
+if (global.crypto && crypto.getRandomValues) {
+  // WHATWG crypto-based RNG - http://wiki.whatwg.org/wiki/Crypto
+  // Moderately fast, high quality
+  var _rnds8 = new Uint8Array(16);
+  rng = function whatwgRNG() {
+    crypto.getRandomValues(_rnds8);
+    return _rnds8;
+  };
+}
+
+if (!rng) {
+  // Math.random()-based (RNG)
+  //
+  // If all else fails, use Math.random().  It's fast, but is of unspecified
+  // quality.
+  var  _rnds = new Array(16);
+  rng = function() {
+    for (var i = 0, r; i < 16; i++) {
+      if ((i & 0x03) === 0) r = Math.random() * 0x100000000;
+      _rnds[i] = r >>> ((i & 0x03) << 3) & 0xff;
+    }
+
+    return _rnds;
+  };
+}
+
+module.exports = rng;
+
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],53:[function(require,module,exports){
+//     uuid.js
+//
+//     Copyright (c) 2010-2012 Robert Kieffer
+//     MIT License - http://opensource.org/licenses/mit-license.php
+
+// Unique ID creation requires a high quality random # generator.  We feature
+// detect to determine the best RNG source, normalizing to a function that
+// returns 128-bits of randomness, since that's what's usually required
+var _rng = require('./rng');
+
+// Maps for number <-> hex string conversion
+var _byteToHex = [];
+var _hexToByte = {};
+for (var i = 0; i < 256; i++) {
+  _byteToHex[i] = (i + 0x100).toString(16).substr(1);
+  _hexToByte[_byteToHex[i]] = i;
+}
+
+// **`parse()` - Parse a UUID into it's component bytes**
+function parse(s, buf, offset) {
+  var i = (buf && offset) || 0, ii = 0;
+
+  buf = buf || [];
+  s.toLowerCase().replace(/[0-9a-f]{2}/g, function(oct) {
+    if (ii < 16) { // Don't overflow!
+      buf[i + ii++] = _hexToByte[oct];
+    }
+  });
+
+  // Zero out remaining bytes if string was short
+  while (ii < 16) {
+    buf[i + ii++] = 0;
+  }
+
+  return buf;
+}
+
+// **`unparse()` - Convert UUID byte array (ala parse()) into a string**
+function unparse(buf, offset) {
+  var i = offset || 0, bth = _byteToHex;
+  return  bth[buf[i++]] + bth[buf[i++]] +
+          bth[buf[i++]] + bth[buf[i++]] + '-' +
+          bth[buf[i++]] + bth[buf[i++]] + '-' +
+          bth[buf[i++]] + bth[buf[i++]] + '-' +
+          bth[buf[i++]] + bth[buf[i++]] + '-' +
+          bth[buf[i++]] + bth[buf[i++]] +
+          bth[buf[i++]] + bth[buf[i++]] +
+          bth[buf[i++]] + bth[buf[i++]];
+}
+
+// **`v1()` - Generate time-based UUID**
+//
+// Inspired by https://github.com/LiosK/UUID.js
+// and http://docs.python.org/library/uuid.html
+
+// random #'s we need to init node and clockseq
+var _seedBytes = _rng();
+
+// Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
+var _nodeId = [
+  _seedBytes[0] | 0x01,
+  _seedBytes[1], _seedBytes[2], _seedBytes[3], _seedBytes[4], _seedBytes[5]
+];
+
+// Per 4.2.2, randomize (14 bit) clockseq
+var _clockseq = (_seedBytes[6] << 8 | _seedBytes[7]) & 0x3fff;
+
+// Previous uuid creation time
+var _lastMSecs = 0, _lastNSecs = 0;
+
+// See https://github.com/broofa/node-uuid for API details
+function v1(options, buf, offset) {
+  var i = buf && offset || 0;
+  var b = buf || [];
+
+  options = options || {};
+
+  var clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq;
+
+  // UUID timestamps are 100 nano-second units since the Gregorian epoch,
+  // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
+  // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
+  // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
+  var msecs = options.msecs !== undefined ? options.msecs : new Date().getTime();
+
+  // Per 4.2.1.2, use count of uuid's generated during the current clock
+  // cycle to simulate higher resolution clock
+  var nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1;
+
+  // Time since last uuid creation (in msecs)
+  var dt = (msecs - _lastMSecs) + (nsecs - _lastNSecs)/10000;
+
+  // Per 4.2.1.2, Bump clockseq on clock regression
+  if (dt < 0 && options.clockseq === undefined) {
+    clockseq = clockseq + 1 & 0x3fff;
+  }
+
+  // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
+  // time interval
+  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
+    nsecs = 0;
+  }
+
+  // Per 4.2.1.2 Throw error if too many uuids are requested
+  if (nsecs >= 10000) {
+    throw new Error('uuid.v1(): Can\'t create more than 10M uuids/sec');
+  }
+
+  _lastMSecs = msecs;
+  _lastNSecs = nsecs;
+  _clockseq = clockseq;
+
+  // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
+  msecs += 12219292800000;
+
+  // `time_low`
+  var tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
+  b[i++] = tl >>> 24 & 0xff;
+  b[i++] = tl >>> 16 & 0xff;
+  b[i++] = tl >>> 8 & 0xff;
+  b[i++] = tl & 0xff;
+
+  // `time_mid`
+  var tmh = (msecs / 0x100000000 * 10000) & 0xfffffff;
+  b[i++] = tmh >>> 8 & 0xff;
+  b[i++] = tmh & 0xff;
+
+  // `time_high_and_version`
+  b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
+  b[i++] = tmh >>> 16 & 0xff;
+
+  // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
+  b[i++] = clockseq >>> 8 | 0x80;
+
+  // `clock_seq_low`
+  b[i++] = clockseq & 0xff;
+
+  // `node`
+  var node = options.node || _nodeId;
+  for (var n = 0; n < 6; n++) {
+    b[i + n] = node[n];
+  }
+
+  return buf ? buf : unparse(b);
+}
+
+// **`v4()` - Generate random UUID**
+
+// See https://github.com/broofa/node-uuid for API details
+function v4(options, buf, offset) {
+  // Deprecated - 'format' argument, as supported in v1.2
+  var i = buf && offset || 0;
+
+  if (typeof(options) == 'string') {
+    buf = options == 'binary' ? new Array(16) : null;
+    options = null;
+  }
+  options = options || {};
+
+  var rnds = options.random || (options.rng || _rng)();
+
+  // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
+  rnds[6] = (rnds[6] & 0x0f) | 0x40;
+  rnds[8] = (rnds[8] & 0x3f) | 0x80;
+
+  // Copy bytes to buffer, if provided
+  if (buf) {
+    for (var ii = 0; ii < 16; ii++) {
+      buf[i + ii] = rnds[ii];
+    }
+  }
+
+  return buf || unparse(rnds);
+}
+
+// Export public API
+var uuid = v4;
+uuid.v1 = v1;
+uuid.v4 = v4;
+uuid.parse = parse;
+uuid.unparse = unparse;
+
+module.exports = uuid;
+
+},{"./rng":52}],54:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -4650,7 +5212,6 @@ var AutoEvents = (function () {
       this.fireViewedPage();
       this.fireViewedProductCategory();
       this.fireViewedProductDetail();
-      this.fireViewedCheckoutStep();
       this.fireCompletedTransaction();
 
       if (this.ddListener) {
@@ -4665,8 +5226,6 @@ var AutoEvents = (function () {
         this.ddListener.push(['on', 'change:transaction.orderId', function (newOrderId, oldOrderId) {
           _this.onTransactionChange(newOrderId, oldOrderId);
         }]);
-
-        // TODO: checkout step change
       }
     }
   };
@@ -4693,7 +5252,6 @@ var AutoEvents = (function () {
   AutoEvents.prototype.fireViewedPage = function fireViewedPage(page) {
     page = page || this.digitalData.page;
     this.digitalData.events.push({
-      updateDigitalData: false,
       enrichEventData: false,
       name: 'Viewed Page',
       category: 'Content',
@@ -4707,7 +5265,6 @@ var AutoEvents = (function () {
       return;
     }
     this.digitalData.events.push({
-      updateDigitalData: false,
       enrichEventData: false,
       name: 'Viewed Product Category',
       category: 'Ecommerce',
@@ -4721,25 +5278,10 @@ var AutoEvents = (function () {
       return;
     }
     this.digitalData.events.push({
-      updateDigitalData: false,
       enrichEventData: false,
       name: 'Viewed Product Detail',
       category: 'Ecommerce',
       product: product
-    });
-  };
-
-  AutoEvents.prototype.fireViewedCheckoutStep = function fireViewedCheckoutStep(page) {
-    page = page || this.digitalData.page || {};
-    if (page.type !== 'cart' && page.type !== 'checkout') {
-      return;
-    }
-    this.digitalData.events.push({
-      updateDigitalData: false,
-      enrichEventData: false,
-      name: 'Viewed Checkout Step',
-      category: 'Ecommerce',
-      page: page
     });
   };
 
@@ -4749,7 +5291,6 @@ var AutoEvents = (function () {
       return;
     }
     this.digitalData.events.push({
-      updateDigitalData: false,
       enrichEventData: false,
       name: 'Completed Transaction',
       category: 'Ecommerce',
@@ -4762,10 +5303,14 @@ var AutoEvents = (function () {
 
 exports['default'] = AutoEvents;
 
-},{}],51:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
+
+var _getProperty = require('./functions/getProperty.js');
+
+var _getProperty2 = _interopRequireDefault(_getProperty);
 
 var _componentClone = require('component-clone');
 
@@ -4781,33 +5326,14 @@ function _classCallCheck(instance, Constructor) {
   }
 }
 
-function _keyToArray(key) {
-  key = key.trim();
-  if (key === '') {
-    return [];
-  }
-  key = key.replace(/\[(\w+)\]/g, '.$1');
-  key = key.replace(/^\./, '');
-  return key.split('.');
-}
-
 var DDHelper = (function () {
   function DDHelper() {
     _classCallCheck(this, DDHelper);
   }
 
   DDHelper.get = function get(key, digitalData) {
-    var keyParts = _keyToArray(key);
-    var nestedVar = (0, _componentClone2['default'])(digitalData);
-    while (keyParts.length > 0) {
-      var childKey = keyParts.shift();
-      if (nestedVar.hasOwnProperty(childKey)) {
-        nestedVar = nestedVar[childKey];
-      } else {
-        return undefined;
-      }
-    }
-    return nestedVar;
+    var value = (0, _getProperty2['default'])(digitalData, key);
+    return (0, _componentClone2['default'])(value);
   };
 
   DDHelper.getProduct = function getProduct(id, digitalData) {
@@ -4838,22 +5364,12 @@ var DDHelper = (function () {
           var listing = _ref2;
 
           if (listing.items && listing.items.length) {
-            for (var _iterator3 = listing.items, _isArray3 = Array.isArray(_iterator3), _i4 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
-              var _ref3;
-
-              if (_isArray3) {
-                if (_i4 >= _iterator3.length) break;
-                _ref3 = _iterator3[_i4++];
-              } else {
-                _i4 = _iterator3.next();
-                if (_i4.done) break;
-                _ref3 = _i4.value;
-              }
-
-              var product = _ref3;
-
-              if (product.id && String(product.id) === String(id)) {
-                return (0, _componentClone2['default'])(product);
+            for (var i = 0, length = listing.items.length; i < length; i++) {
+              if (listing.items[i].id && String(listing.items[i].id) === String(id)) {
+                var product = (0, _componentClone2['default'])(listing.items[i]);
+                product.position = product.position || i + 1;
+                if (listing.listName) product.listName = product.listName || listing.listName;
+                return product;
               }
             }
           }
@@ -4885,19 +5401,19 @@ var DDHelper = (function () {
 
   DDHelper.getCampaign = function getCampaign(id, digitalData) {
     if (digitalData.campaigns && digitalData.campaigns.length) {
-      for (var _iterator4 = digitalData.campaigns, _isArray4 = Array.isArray(_iterator4), _i5 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
-        var _ref4;
+      for (var _iterator3 = digitalData.campaigns, _isArray3 = Array.isArray(_iterator3), _i4 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
+        var _ref3;
 
-        if (_isArray4) {
-          if (_i5 >= _iterator4.length) break;
-          _ref4 = _iterator4[_i5++];
+        if (_isArray3) {
+          if (_i4 >= _iterator3.length) break;
+          _ref3 = _iterator3[_i4++];
         } else {
-          _i5 = _iterator4.next();
-          if (_i5.done) break;
-          _ref4 = _i5.value;
+          _i4 = _iterator3.next();
+          if (_i4.done) break;
+          _ref3 = _i4.value;
         }
 
-        var campaign = _ref4;
+        var campaign = _ref3;
 
         if (campaign.id && String(campaign.id) === String(id)) {
           return (0, _componentClone2['default'])(campaign);
@@ -4911,7 +5427,107 @@ var DDHelper = (function () {
 
 exports['default'] = DDHelper;
 
-},{"component-clone":4}],52:[function(require,module,exports){
+},{"./functions/getProperty.js":67,"component-clone":4}],56:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+var _htmlGlobals = require('./functions/htmlGlobals.js');
+
+var _htmlGlobals2 = _interopRequireDefault(_htmlGlobals);
+
+var _uuid = require('uuid');
+
+var _uuid2 = _interopRequireDefault(_uuid);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+var DigitalDataEnricher = (function () {
+  function DigitalDataEnricher(digitalData, storage, options) {
+    _classCallCheck(this, DigitalDataEnricher);
+
+    this.digitalData = digitalData;
+    this.storage = storage;
+    this.options = Object.assign({
+      sessionLength: 3600
+    }, options);
+  }
+
+  DigitalDataEnricher.prototype.setDigitalData = function setDigitalData(digitalData) {
+    this.digitalData = digitalData;
+  };
+
+  DigitalDataEnricher.prototype.setStorage = function setStorage(storage) {
+    this.storage = storage;
+  };
+
+  DigitalDataEnricher.prototype.getStorage = function getStorage() {
+    return this.storage;
+  };
+
+  DigitalDataEnricher.prototype.enrichDigitalData = function enrichDigitalData() {
+    this.enrichPageData();
+    this.enrichUserData();
+    this.enrichContextData();
+  };
+
+  DigitalDataEnricher.prototype.enrichPageData = function enrichPageData() {
+    var page = this.digitalData.page;
+
+    page.path = page.path || this.getHtmlGlobals().getLocation().pathname;
+    page.referrer = page.referrer || this.getHtmlGlobals().getDocument().referrer;
+    page.queryString = page.queryString || this.getHtmlGlobals().getLocation().search;
+    page.title = page.title || this.getHtmlGlobals().getDocument().title;
+    page.url = page.url || this.getHtmlGlobals().getLocation().href;
+    page.hash = page.hash || this.getHtmlGlobals().getLocation().hash;
+  };
+
+  DigitalDataEnricher.prototype.enrichUserData = function enrichUserData() {
+    var user = this.digitalData.user;
+    user.anonymousId = this.getUserAnonymousId();
+  };
+
+  DigitalDataEnricher.prototype.enrichContextData = function enrichContextData() {
+    var context = this.digitalData.context;
+    context.userAgent = this.getHtmlGlobals().getNavigator().userAgent;
+  };
+
+  /**
+   * Can be overriden for test purposes
+   * @returns {{getDocument, getLocation, getNavigator}}
+   */
+
+  DigitalDataEnricher.prototype.getHtmlGlobals = function getHtmlGlobals() {
+    return _htmlGlobals2['default'];
+  };
+
+  DigitalDataEnricher.prototype.getUserAnonymousId = function getUserAnonymousId() {
+    var anonymousId = this.storage.get('user.anonymousId');
+    if (!anonymousId) {
+      anonymousId = (0, _uuid2['default'])();
+      this.storage.set('user.anonymousId', anonymousId);
+    }
+    return anonymousId;
+  };
+
+  DigitalDataEnricher.prototype.getOption = function getOption(name) {
+    return this.options[name];
+  };
+
+  return DigitalDataEnricher;
+})();
+
+exports['default'] = DigitalDataEnricher;
+
+},{"./functions/htmlGlobals.js":69,"uuid":53}],57:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5018,7 +5634,7 @@ var EventDataEnricher = (function () {
 
 exports['default'] = EventDataEnricher;
 
-},{"./DDHelper.js":51,"component-type":6}],53:[function(require,module,exports){
+},{"./DDHelper.js":55,"component-type":6}],58:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5335,7 +5951,7 @@ var EventManager = (function () {
 
 exports['default'] = EventManager;
 
-},{"./DDHelper.js":51,"./EventDataEnricher.js":52,"./functions/after.js":57,"./functions/deleteProperty.js":58,"./functions/jsonIsEqual.js":62,"./functions/size.js":68,"async":1,"component-clone":4,"debug":44}],54:[function(require,module,exports){
+},{"./DDHelper.js":55,"./EventDataEnricher.js":57,"./functions/after.js":63,"./functions/deleteProperty.js":64,"./functions/jsonIsEqual.js":70,"./functions/size.js":76,"async":1,"component-clone":4,"debug":44}],59:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -5530,12 +6146,136 @@ var Integration = (function (_EventEmitter) {
 
 exports['default'] = Integration;
 
-},{"./DDHelper.js":51,"./functions/deleteProperty.js":58,"./functions/each.js":59,"./functions/format.js":60,"./functions/loadIframe.js":63,"./functions/loadPixel.js":64,"./functions/loadScript.js":65,"./functions/noop.js":66,"async":1,"component-emitter":5,"debug":44}],55:[function(require,module,exports){
+},{"./DDHelper.js":55,"./functions/deleteProperty.js":64,"./functions/each.js":65,"./functions/format.js":66,"./functions/loadIframe.js":71,"./functions/loadPixel.js":72,"./functions/loadScript.js":73,"./functions/noop.js":74,"async":1,"component-emitter":5,"debug":44}],60:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+var _store = require('store');
+
+var _store2 = _interopRequireDefault(_store);
+
+var _jsCookie = require('js-cookie');
+
+var _jsCookie2 = _interopRequireDefault(_jsCookie);
+
+var _debug = require('debug');
+
+var _debug2 = _interopRequireDefault(_debug);
+
+var _topDomain = require('./functions/topDomain.js');
+
+var _topDomain2 = _interopRequireDefault(_topDomain);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+var Storage = (function () {
+  function Storage(options) {
+    _classCallCheck(this, Storage);
+
+    this.options = Object.assign({
+      cookieDomain: (0, _topDomain2['default'])(location.href),
+      cookieMaxAge: 31536000000, // default to a year
+      prefix: 'ddl:'
+    }, options);
+
+    // http://curl.haxx.se/rfc/cookie_spec.html
+    // https://publicsuffix.org/list/effective_tld_names.dat
+    //
+    // try setting a dummy cookie with the options
+    // if the cookie isn't set, it probably means
+    // that the domain is on the public suffix list
+    // like myapp.herokuapp.com or localhost / ip.
+    if (this.getOption('cookieDomain')) {
+      _jsCookie2['default'].set('__tld__', true, {
+        domain: this.getOption('cookieDomain')
+      });
+      if (!this.get('__tld__')) {
+        (0, _debug2['default'])('fallback to domain=null');
+        this.setOption('cookieDomain', null);
+      }
+      _jsCookie2['default'].remove('__tld__');
+    }
+  }
+
+  Storage.prototype.set = function set(key, val, exp) {
+    key = this.prefix + key;
+    if (_store2['default'].enabled) {
+      _store2['default'].set(key, {
+        val: val,
+        exp: exp,
+        time: new Date().getTime()
+      });
+    } else {
+      exp = exp || this.getOption('cookieMaxAge');
+      var expDays = exp / 86400;
+      _jsCookie2['default'].set(key, val, {
+        expires: expDays,
+        domain: this.getOption('cookieDomain')
+      });
+    }
+  };
+
+  Storage.prototype.get = function get(key) {
+    key = this.prefix + key;
+    if (_store2['default'].enabled) {
+      var info = _store2['default'].get(key);
+      if (!info) {
+        return null;
+      }
+      if (new Date().getTime() - info.time > info.exp) {
+        return null;
+      }
+      return info.val;
+    }
+    return _jsCookie2['default'].get(key);
+  };
+
+  Storage.prototype.remove = function remove(key) {
+    key = this.prefix + key;
+    if (_store2['default'].enabled) {
+      return _store2['default'].remove(key);
+    }
+    _jsCookie2['default'].remove(key);
+  };
+
+  Storage.prototype.clear = function clear() {
+    if (_store2['default'].enabled) {
+      return _store2['default'].clear();
+    }
+  };
+
+  Storage.prototype.isEnabled = function isEnabled() {
+    return _store2['default'].enabled;
+  };
+
+  Storage.prototype.getOption = function getOption(name) {
+    return this.options[name];
+  };
+
+  return Storage;
+})();
+
+exports['default'] = Storage;
+
+},{"./functions/topDomain.js":78,"debug":44,"js-cookie":48,"store":51}],61:[function(require,module,exports){
 'use strict';
 
 var _integrations;
 
 exports.__esModule = true;
+
+var _GoogleAnalytics = require('./integrations/GoogleAnalytics.js');
+
+var _GoogleAnalytics2 = _interopRequireDefault(_GoogleAnalytics);
 
 var _GoogleTagManager = require('./integrations/GoogleTagManager.js');
 
@@ -5557,11 +6297,11 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-var integrations = (_integrations = {}, _integrations[_GoogleTagManager2['default'].getName()] = _GoogleTagManager2['default'], _integrations[_FacebookPixel2['default'].getName()] = _FacebookPixel2['default'], _integrations[_Driveback2['default'].getName()] = _Driveback2['default'], _integrations[_RetailRocket2['default'].getName()] = _RetailRocket2['default'], _integrations);
+var integrations = (_integrations = {}, _integrations[_GoogleAnalytics2['default'].getName()] = _GoogleAnalytics2['default'], _integrations[_GoogleTagManager2['default'].getName()] = _GoogleTagManager2['default'], _integrations[_FacebookPixel2['default'].getName()] = _FacebookPixel2['default'], _integrations[_Driveback2['default'].getName()] = _Driveback2['default'], _integrations[_RetailRocket2['default'].getName()] = _RetailRocket2['default'], _integrations);
 
 exports['default'] = integrations;
 
-},{"./integrations/Driveback.js":71,"./integrations/FacebookPixel.js":72,"./integrations/GoogleTagManager.js":73,"./integrations/RetailRocket.js":74}],56:[function(require,module,exports){
+},{"./integrations/Driveback.js":81,"./integrations/FacebookPixel.js":82,"./integrations/GoogleAnalytics.js":83,"./integrations/GoogleTagManager.js":84,"./integrations/RetailRocket.js":85}],62:[function(require,module,exports){
 'use strict';
 
 function _typeof2(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -5608,6 +6348,14 @@ var _DDHelper = require('./DDHelper.js');
 
 var _DDHelper2 = _interopRequireDefault(_DDHelper);
 
+var _DigitalDataEnricher = require('./DigitalDataEnricher.js');
+
+var _DigitalDataEnricher2 = _interopRequireDefault(_DigitalDataEnricher);
+
+var _Storage = require('./Storage.js');
+
+var _Storage2 = _interopRequireDefault(_Storage);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -5645,6 +6393,12 @@ var _digitalData = {};
  * @private
  */
 var _ddListener = [];
+
+/**
+ * @type {Storage}
+ * @private
+ */
+var _storage = undefined;
 
 /**
  * @type {Object}
@@ -5685,6 +6439,7 @@ function _prepareGlobals() {
 
   _digitalData.page = _digitalData.page || {};
   _digitalData.user = _digitalData.user || {};
+  _digitalData.context = _digitalData.context || {};
   if (!_digitalData.page.type || _digitalData.page.type !== 'confirmation') {
     _digitalData.cart = _digitalData.cart || {};
   }
@@ -5732,6 +6487,7 @@ var ddManager = {
    *
    * {
    *    autoEvents: true,
+   *    sessionLength: 3600,
    *    integrations: {
    *      'Google Tag Manager': {
    *        containerId: 'XXX'
@@ -5744,7 +6500,9 @@ var ddManager = {
    */
   initialize: function initialize(settings) {
     settings = Object.assign({
-      autoEvents: true
+      domain: null,
+      autoEvents: true,
+      sessionLength: 3600
     }, settings);
 
     if (_isInitialized) {
@@ -5753,6 +6511,18 @@ var ddManager = {
 
     _prepareGlobals();
 
+    // initialize storage
+    _storage = new _Storage2['default']({
+      cookieDomain: settings.domain
+    });
+
+    // initialize digital data enricher
+    var digitalDataEnricher = new _DigitalDataEnricher2['default'](_digitalData, _storage, {
+      sessionLength: settings.sessionLength
+    });
+    digitalDataEnricher.enrichDigitalData();
+
+    // initialize event manager
     _eventManager = new _EventManager2['default'](_digitalData, _ddListener);
     if (settings.autoEvents) {
       _eventManager.setAutoEvents(new _AutoEvents2['default']());
@@ -5873,7 +6643,7 @@ ddManager.on = ddManager.addEventListener = function (event, handler) {
 
 exports['default'] = ddManager;
 
-},{"./AutoEvents.js":50,"./DDHelper.js":51,"./EventManager.js":53,"./Integration.js":54,"./functions/after.js":57,"./functions/each.js":59,"./functions/size.js":68,"async":1,"component-clone":4,"component-emitter":5}],57:[function(require,module,exports){
+},{"./AutoEvents.js":54,"./DDHelper.js":55,"./DigitalDataEnricher.js":56,"./EventManager.js":58,"./Integration.js":59,"./Storage.js":60,"./functions/after.js":63,"./functions/each.js":65,"./functions/size.js":76,"async":1,"component-clone":4,"component-emitter":5}],63:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -5887,7 +6657,7 @@ exports["default"] = function (times, fn) {
   };
 };
 
-},{}],58:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -5900,7 +6670,7 @@ exports["default"] = function (obj, prop) {
   }
 };
 
-},{}],59:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -5913,7 +6683,7 @@ exports["default"] = function (obj, fn) {
   }
 };
 
-},{}],60:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -5952,7 +6722,36 @@ function format(str) {
   });
 }
 
-},{}],61:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+exports['default'] = function (obj, prop) {
+  var keyParts = _keyToArray(prop);
+  var nestedVar = obj;
+  while (keyParts.length > 0) {
+    var childKey = keyParts.shift();
+    if (nestedVar.hasOwnProperty(childKey)) {
+      nestedVar = nestedVar[childKey];
+    } else {
+      return undefined;
+    }
+  }
+  return nestedVar;
+};
+
+function _keyToArray(key) {
+  key = key.trim();
+  if (key === '') {
+    return [];
+  }
+  key = key.replace(/\[(\w+)\]/g, '.$1');
+  key = key.replace(/^\./, '');
+  return key.split('.');
+}
+
+},{}],68:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5967,7 +6766,25 @@ function getQueryParam(name, queryString) {
   return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
 }
 
-},{}],62:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
+"use strict";
+
+exports.__esModule = true;
+exports["default"] = {
+  getDocument: function getDocument() {
+    return window.document;
+  },
+
+  getLocation: function getLocation() {
+    return window.location;
+  },
+
+  getNavigator: function getNavigator() {
+    return window.navigator;
+  }
+};
+
+},{}],70:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5982,7 +6799,7 @@ function jsonIsEqual(json1, json2) {
   return json1 === json2;
 }
 
-},{}],63:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -6042,7 +6859,7 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":67,"async":1}],64:[function(require,module,exports){
+},{"./scriptOnLoad.js":75,"async":1}],72:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -6078,7 +6895,7 @@ function error(fn, message, img) {
   };
 }
 
-},{}],65:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -6137,14 +6954,14 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":67,"async":1}],66:[function(require,module,exports){
+},{"./scriptOnLoad.js":75,"async":1}],74:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
 
 exports["default"] = function () {};
 
-},{}],67:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -6199,7 +7016,7 @@ function attachEvent(el, fn) {
   });
 }
 
-},{}],68:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -6212,7 +7029,7 @@ exports["default"] = function (obj) {
   return size;
 };
 
-},{}],69:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -6239,7 +7056,144 @@ function throwError(code, message) {
   throw error;
 }
 
-},{"debug":44}],70:[function(require,module,exports){
+},{"debug":44}],78:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+exports['default'] = topDomain;
+
+var _url = require('./url.js');
+
+var _jsCookie = require('js-cookie');
+
+var _jsCookie2 = _interopRequireDefault(_jsCookie);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+/**
+ * Levels returns all levels of the given url.
+ *
+ * @param {String} url
+ * @return {Array}
+ * @api public
+ */
+function getLevels(url) {
+  var host = (0, _url.parse)(url).hostname;
+  var parts = host.split('.');
+  var last = parts[parts.length - 1];
+  var levels = [];
+
+  // Ip address.
+  if (parts.length === 4 && parseInt(last, 10) === last) {
+    return levels;
+  }
+
+  // Localhost.
+  if (parts.length <= 1) {
+    return levels;
+  }
+
+  // Create levels.
+  for (var i = parts.length - 2; i >= 0; --i) {
+    levels.push(parts.slice(i).join('.'));
+  }
+
+  return levels;
+}
+
+/**
+ * Get the top domain.
+ *
+ * The function constructs the levels of domain
+ * and attempts to set a global cookie on each one
+ * when it succeeds it returns the top level domain.
+ *
+ * The method returns an empty string when the hostname
+ * is an ip or `localhost`.
+ *
+ * Example levels:
+ *
+ *      domain.levels('http://www.google.co.uk');
+ *      // => ["co.uk", "google.co.uk", "www.google.co.uk"]
+ *
+ * Example:
+ *
+ *      domain('http://localhost:3000/baz');
+ *      // => ''
+ *      domain('http://dev:3000/baz');
+ *      // => ''
+ *      domain('http://127.0.0.1:3000/baz');
+ *      // => ''
+ *      domain('http://example.com/baz');
+ *      // => 'example.com'
+ *
+ * @param {String} url
+ * @return {String}
+ * @api public
+ */
+
+function topDomain(url) {
+  var levels = getLevels(url);
+
+  // Lookup the real top level one.
+  for (var i = 0; i < levels.length; ++i) {
+    var cname = '__tld__';
+    var domain = levels[i];
+    var opts = {
+      domain: '.' + domain
+    };
+    _jsCookie2['default'].set(cname, 1, opts);
+    if (_jsCookie2['default'].get(cname)) {
+      _jsCookie2['default'].set(cname, null, opts);
+      return domain;
+    }
+  }
+
+  return '';
+}
+
+},{"./url.js":79,"js-cookie":48}],79:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+exports.parse = parse;
+/**
+ * Return default port for `protocol`.
+ *
+ * @param  {String} protocol
+ * @return {String}
+ * @api private
+ */
+function port(protocol) {
+  switch (protocol) {
+    case 'http:':
+      return 80;
+    case 'https:':
+      return 443;
+    default:
+      return location.port;
+  }
+}
+
+function parse(url) {
+  var a = document.createElement('a');
+  a.href = url;
+  return {
+    href: a.href,
+    host: a.host || location.host,
+    port: a.port === '0' || a.port === '' ? port(a.protocol) : a.port,
+    hash: a.hash,
+    hostname: a.hostname || location.hostname,
+    pathname: a.pathname.charAt(0) !== '/' ? '/' + a.pathname : a.pathname,
+    protocol: !a.protocol || a.protocol === ':' ? location.protocol : a.protocol,
+    search: a.search,
+    query: a.search.slice(1)
+  };
+}
+
+},{}],80:[function(require,module,exports){
 'use strict';
 
 require('./polyfill.js');
@@ -6261,7 +7215,7 @@ _ddManager2['default'].processEarlyStubCalls();
 
 window.ddManager = _ddManager2['default'];
 
-},{"./availableIntegrations.js":55,"./ddManager.js":56,"./polyfill.js":75}],71:[function(require,module,exports){
+},{"./availableIntegrations.js":61,"./ddManager.js":62,"./polyfill.js":86}],81:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -6358,7 +7312,7 @@ var Driveback = (function (_Integration) {
 
 exports['default'] = Driveback;
 
-},{"./../Integration.js":54,"./../functions/deleteProperty.js":58}],72:[function(require,module,exports){
+},{"./../Integration.js":59,"./../functions/deleteProperty.js":64}],82:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -6426,7 +7380,7 @@ var FacebookPixel = (function (_Integration) {
 
   FacebookPixel.prototype.initialize = function initialize() {
     if (this.getOption('pixelId') && !window.fbq) {
-      window.fbq = window._fbq = function () {
+      window.fbq = window._fbq = function fbq() {
         if (window.fbq.callMethod) {
           window.fbq.callMethod.apply(window.fbq, arguments);
         } else {
@@ -6549,7 +7503,607 @@ var FacebookPixel = (function (_Integration) {
 
 exports['default'] = FacebookPixel;
 
-},{"./../Integration.js":54,"./../functions/deleteProperty.js":58,"component-type":6}],73:[function(require,module,exports){
+},{"./../Integration.js":59,"./../functions/deleteProperty.js":64,"component-type":6}],83:[function(require,module,exports){
+'use strict';
+
+function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+var _deleteProperty = require('./../functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+var _getProperty = require('./../functions/getProperty.js');
+
+var _getProperty2 = _interopRequireDefault(_getProperty);
+
+var _each = require('./../functions/each.js');
+
+var _each2 = _interopRequireDefault(_each);
+
+var _size = require('./../functions/size.js');
+
+var _size2 = _interopRequireDefault(_size);
+
+var _componentType = require('component-type');
+
+var _componentType2 = _interopRequireDefault(_componentType);
+
+var _componentClone = require('component-clone');
+
+var _componentClone2 = _interopRequireDefault(_componentClone);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+function enhancedEcommerceTrackProduct(product, quantity) {
+  var gaProduct = {
+    id: product.id || product.skuCode,
+    name: product.name,
+    category: product.category,
+    quantity: quantity,
+    price: product.unitSalePrice || product.unitPrice,
+    brand: product.brand || product.manufacturer,
+    variant: product.variant,
+    currency: product.currency
+  };
+  // append coupon if it set
+  // https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#measuring-transactions
+  if (product.voucher) gaProduct.coupon = product.voucher;
+  window.ga('ec:addProduct', gaProduct);
+}
+
+function enhancedEcommerceProductAction(event, action, data) {
+  enhancedEcommerceTrackProduct(event.product, event.quantity);
+  window.ga('ec:setAction', action, data || {});
+}
+
+function getTransactionVoucher(transaction) {
+  var voucher = undefined;
+  if (Array.isArray(transaction.vouchers)) {
+    voucher = transaction.vouchers[0];
+  } else {
+    voucher = transaction.voucher;
+  }
+  if (!voucher) {
+    if (Array.isArray(transaction.promotions)) {
+      voucher = transaction.promotions[0];
+    } else {
+      voucher = transaction.promotion;
+    }
+  }
+  return voucher;
+}
+
+function getCheckoutOptions(event) {
+  var optionNames = ['paymentMethod', 'shippingMethod'];
+  var options = [];
+  for (var _iterator = optionNames, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+    var _ref;
+
+    if (_isArray) {
+      if (_i >= _iterator.length) break;
+      _ref = _iterator[_i++];
+    } else {
+      _i = _iterator.next();
+      if (_i.done) break;
+      _ref = _i.value;
+    }
+
+    var optionName = _ref;
+
+    if (event[optionName]) {
+      options.push(event[optionName]);
+    }
+  }
+  return options.join(', ');
+}
+
+var GoogleAnalytics = (function (_Integration) {
+  _inherits(GoogleAnalytics, _Integration);
+
+  function GoogleAnalytics(digitalData, options) {
+    _classCallCheck(this, GoogleAnalytics);
+
+    var optionsWithDefaults = Object.assign({
+      trackingId: '',
+      doubleClick: false,
+      enhancedLinkAttribution: false,
+      enhancedEcommerce: false,
+      sendUserId: false,
+      anonymizeIp: false,
+      domain: 'auto',
+      includeSearch: false,
+      siteSpeedSampleRate: 1,
+      defaultCurrency: 'USD',
+      metrics: {},
+      dimensions: {},
+      contentGroupings: {}
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        src: '//www.google-analytics.com/analytics.js'
+      }
+    });
+    return _this;
+  }
+
+  GoogleAnalytics.getName = function getName() {
+    return 'Google Analytics';
+  };
+
+  GoogleAnalytics.prototype.initialize = function initialize() {
+    if (this.getOption('trackingId')) {
+      this.pageCalled = false;
+
+      // setup the tracker globals
+      window.GoogleAnalyticsObject = 'ga';
+      window.ga = window.ga || function ga() {
+        window.ga.q = window.ga.q || [];
+        window.ga.q.push(arguments);
+      };
+      window.ga.l = new Date().getTime();
+
+      if (window.location.hostname === 'localhost') {
+        this.setOption('domain', 'none');
+      }
+
+      window.ga('create', this.getOption('trackingId'), {
+        // Fall back on default to protect against empty string
+        cookieDomain: this.getOption('domain'),
+        siteSpeedSampleRate: this.getOption('siteSpeedSampleRate'),
+        allowLinker: true
+      });
+
+      // display advertising
+      if (this.getOption('doubleClick')) {
+        window.ga('require', 'displayfeatures');
+      }
+      // https://support.google.com/analytics/answer/2558867?hl=en
+      if (this.getOption('enhancedLinkAttribution')) {
+        window.ga('require', 'linkid', 'linkid.js');
+      }
+
+      // send global id
+      var userId = this.get('user.id');
+      if (this.getOption('sendUserId') && userId) {
+        window.ga('set', 'userId', userId);
+      }
+
+      // anonymize after initializing, otherwise a warning is shown
+      // in google analytics debugger
+      if (this.getOption('anonymizeIp')) window.ga('set', 'anonymizeIp', true);
+
+      // custom dimensions & metrics
+      var custom = this.getCustomDimensions();
+      if ((0, _size2['default'])(custom)) window.ga('set', custom);
+
+      this.load(this.ready);
+    } else {
+      this.ready();
+    }
+  };
+
+  GoogleAnalytics.prototype.isLoaded = function isLoaded() {
+    return !!window.gaplugins;
+  };
+
+  GoogleAnalytics.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, 'GoogleAnalyticsObject');
+    (0, _deleteProperty2['default'])(window, 'ga');
+    (0, _deleteProperty2['default'])(window, 'gaplugins');
+    this.pageCalled = false;
+  };
+
+  GoogleAnalytics.prototype.getCustomDimensions = function getCustomDimensions(source) {
+    source = source || this._digitalData;
+    var settings = Object.assign(Object.assign(this.getOption('metrics'), this.getOption('dimensions')), this.getOption('contentGroupings'));
+    var custom = {};
+    (0, _each2['default'])(settings, function (key, value) {
+      var dimensionVal = (0, _getProperty2['default'])(source, value);
+      if (dimensionVal !== undefined) {
+        if ((0, _componentType2['default'])(dimensionVal) === 'boolean') dimensionVal = dimensionVal.toString();
+        custom[key] = dimensionVal;
+      }
+    });
+    return custom;
+  };
+
+  GoogleAnalytics.prototype.loadEnhancedEcommerce = function loadEnhancedEcommerce(currency) {
+    if (!this.enhancedEcommerceLoaded) {
+      window.ga('require', 'ec');
+      this.enhancedEcommerceLoaded = true;
+    }
+
+    // Ensure we set currency for every hit
+    window.ga('set', '&cu', currency || this.getOption('defaultCurrency'));
+  };
+
+  GoogleAnalytics.prototype.pushEnhancedEcommerce = function pushEnhancedEcommerce(event) {
+    // Send a custom non-interaction event to ensure all EE data is pushed.
+    // Without doing this we'd need to require page display after setting EE data.
+    var cleanedArgs = [];
+    var args = ['send', 'event', event.category || 'Ecommerce', event.name || 'not defined', event.label, {
+      nonInteraction: 1
+    }];
+
+    for (var _iterator2 = args, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+      var _ref2;
+
+      if (_isArray2) {
+        if (_i2 >= _iterator2.length) break;
+        _ref2 = _iterator2[_i2++];
+      } else {
+        _i2 = _iterator2.next();
+        if (_i2.done) break;
+        _ref2 = _i2.value;
+      }
+
+      var arg = _ref2;
+
+      if (arg !== undefined) {
+        cleanedArgs.push(arg);
+      }
+    }
+
+    window.ga.apply(window, cleanedArgs);
+  };
+
+  GoogleAnalytics.prototype.trackEvent = function trackEvent(event) {
+    if (event.name === 'Viewed Page') {
+      this.onViewedPage(event);
+    } else if (this.getOption('enhancedEcommerce')) {
+      if (event.name === 'Viewed Product') {
+        this.onViewedProduct(event);
+      } else if (event.name === 'Clicked Product') {
+        this.onClickedProduct(event);
+      } else if (event.name === 'Viewed Product Detail') {
+        this.onViewedProductDetail(event);
+      } else if (event.name === 'Added Product') {
+        this.onAddedProduct(event);
+      } else if (event.name === 'Removed Product') {
+        this.onRemovedProduct(event);
+      } else if (event.name === 'Completed Transaction') {
+        this.onCompletedTransactionEnhanced(event);
+      } else if (event.name === 'Refunded Transaction') {
+        this.onRefundedTransaction(event);
+      } else if (event.name === 'Viewed Product Category') {
+        this.onViewedProductCategory(event);
+      } else if (event.name === 'Viewed Campaign') {
+        this.onViewedCampaign(event);
+      } else if (event.name === 'Clicked Campaign') {
+        this.onClickedCampaign(event);
+      } else if (event.name === 'Viewed Checkout Step') {
+        this.onViewedCheckoutStep(event);
+      } else if (event.name === 'Completed Checkout Step') {
+        this.onCompletedCheckoutStep(event);
+      } else {
+        this.onCustomEvent(event);
+      }
+    } else {
+      if (event.name === 'Completed Transaction') {
+        this.onCompletedTransaction(event);
+      } else {
+        this.onCustomEvent(event);
+      }
+    }
+  };
+
+  GoogleAnalytics.prototype.onViewedPage = function onViewedPage(event) {
+    var page = event.page;
+    var campaign = this.get('context.campaign') || {};
+    var pageview = {};
+    var pageUrl = page.url;
+    var pagePath = page.path;
+    if (this.getOption('includeSearch') && page.queryString) {
+      pagePath = pagePath + page.queryString;
+    }
+    var pageTitle = page.name || page.title;
+
+    pageview.page = pagePath;
+    pageview.title = pageTitle;
+    pageview.location = pageUrl;
+
+    if (campaign.name) pageview.campaignName = campaign.name;
+    if (campaign.source) pageview.campaignSource = campaign.source;
+    if (campaign.medium) pageview.campaignMedium = campaign.medium;
+    if (campaign.content) pageview.campaignContent = campaign.content;
+    if (campaign.term) pageview.campaignKeyword = campaign.term;
+
+    // set
+    window.ga('set', {
+      page: pagePath,
+      title: pageTitle
+    });
+
+    if (this.pageCalled) {
+      (0, _deleteProperty2['default'])(pageview, 'location');
+    }
+
+    // send
+    window.ga('send', 'pageview', pageview);
+
+    this.pageCalled = true;
+  };
+
+  GoogleAnalytics.prototype.onViewedProduct = function onViewedProduct(event) {
+    var product = event.product;
+    if (!product.id && !product.skuCode && !product.name) {
+      return;
+    }
+    this.loadEnhancedEcommerce(product.currency);
+    window.ga('ec:addImpression', {
+      id: product.id || product.skuCode,
+      name: product.name,
+      list: product.listName,
+      category: product.category,
+      brand: product.brand || product.manufacturer,
+      price: product.unitSalePrice || product.unitPrice,
+      currency: product.currency || this.getOption('defaultCurrency'),
+      variant: product.variant,
+      position: product.position
+    });
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onClickedProduct = function onClickedProduct(event) {
+    var product = event.product;
+    this.loadEnhancedEcommerce(product.currency);
+    enhancedEcommerceProductAction(event, 'click', {
+      list: product.listName
+    });
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
+    var product = event.product;
+    this.loadEnhancedEcommerce(product.currency);
+    enhancedEcommerceProductAction(event, 'detail');
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onAddedProduct = function onAddedProduct(event) {
+    var product = event.product;
+    this.loadEnhancedEcommerce(product.currency);
+    enhancedEcommerceProductAction(event, 'add');
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onRemovedProduct = function onRemovedProduct(event) {
+    var product = event.product;
+    this.loadEnhancedEcommerce(product.currency);
+    enhancedEcommerceProductAction(event, 'remove');
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onCompletedTransaction = function onCompletedTransaction(event) {
+    var transaction = event.transaction;
+    // orderId is required.
+    if (!transaction || !transaction.orderId) return;
+
+    // require ecommerce
+    if (!this.ecommerce) {
+      window.ga('require', 'ecommerce');
+      this.ecommerce = true;
+    }
+
+    // add transaction
+    window.ga('ecommerce:addTransaction', {
+      id: transaction.orderId,
+      affiliation: transaction.affiliation,
+      shipping: transaction.shippingCost,
+      tax: transaction.tax,
+      revenue: transaction.total || transaction.subtotal || 0,
+      currency: transaction.currency
+    });
+
+    // add products
+    (0, _each2['default'])(transaction.lineItems, function addProduct(key, lineItem) {
+      var product = lineItem.product;
+      if (product) {
+        window.ga('ecommerce:addItem', {
+          id: transaction.orderId,
+          category: product.category,
+          quantity: lineItem.quantity,
+          price: product.unitSalePrice || product.unitPrice,
+          name: product.name,
+          sku: product.skuCode,
+          currency: product.currency || transaction.currency
+        });
+      }
+    });
+
+    // send
+    window.ga('ecommerce:send');
+  };
+
+  GoogleAnalytics.prototype.onCompletedTransactionEnhanced = function onCompletedTransactionEnhanced(event) {
+    var transaction = event.transaction;
+
+    // orderId is required.
+    if (!transaction || !transaction.orderId) return;
+
+    this.loadEnhancedEcommerce(transaction.currency);
+
+    (0, _each2['default'])(transaction.lineItems, function addProduct(key, lineItem) {
+      var product = lineItem.product;
+      if (product) {
+        product.currency = product.currency || transaction.currency || this.getOption('defaultCurrency');
+        enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
+      }
+    });
+
+    var voucher = getTransactionVoucher(transaction);
+    window.ga('ec:setAction', 'purchase', {
+      id: transaction.orderId,
+      affiliation: transaction.affiliation,
+      revenue: transaction.total || transaction.subtotal || 0,
+      tax: transaction.tax,
+      shipping: transaction.shippingCost,
+      coupon: voucher
+    });
+
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onRefundedTransaction = function onRefundedTransaction(event) {
+    var transaction = event.transaction;
+
+    // orderId is required.
+    if (!transaction || !transaction.orderId) return;
+
+    this.loadEnhancedEcommerce(transaction.currency);
+
+    (0, _each2['default'])(transaction.lineItems, function addProduct(key, lineItem) {
+      var product = lineItem.product;
+      if (product) {
+        product.currency = product.currency || transaction.currency || this.getOption('defaultCurrency');
+        enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
+      }
+    });
+
+    window.ga('ec:setAction', 'refund', {
+      id: transaction.orderId
+    });
+
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onViewedCampaign = function onViewedCampaign(event) {
+    var campaign = event.campaign;
+
+    if (!campaign || !campaign.id) {
+      return;
+    }
+
+    this.loadEnhancedEcommerce();
+    window.ga('ec:addPromo', {
+      id: campaign.id,
+      name: campaign.name,
+      creative: campaign.design || campaign.creative,
+      position: campaign.position
+    });
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onClickedCampaign = function onClickedCampaign(event) {
+    var campaign = event.campaign;
+
+    if (!campaign || !campaign.id) {
+      return;
+    }
+
+    this.loadEnhancedEcommerce();
+    window.ga('ec:addPromo', {
+      id: campaign.id,
+      name: campaign.name,
+      creative: campaign.design || campaign.creative,
+      position: campaign.position
+    });
+    window.ga('ec:setAction', 'promo_click', {});
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onViewedCheckoutStep = function onViewedCheckoutStep(event) {
+    var cartOrTransaction = this.get('cart') || this.get('transaction');
+
+    this.loadEnhancedEcommerce(cartOrTransaction.currency);
+
+    (0, _each2['default'])(cartOrTransaction.lineItems, function addProduct(key, lineItem) {
+      var product = lineItem.product;
+      if (product) {
+        product.currency = product.currency || cartOrTransaction.currency || this.getOption('defaultCurrency');
+        enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
+      }
+    });
+
+    window.ga('ec:setAction', 'checkout', {
+      step: event.step || 1,
+      option: getCheckoutOptions(event) || undefined
+    });
+
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onCompletedCheckoutStep = function onCompletedCheckoutStep(event) {
+    var cartOrTransaction = this.get('cart') || this.get('transaction');
+    var options = getCheckoutOptions(event);
+
+    if (!event.step || !options) {
+      return;
+    }
+
+    this.loadEnhancedEcommerce(cartOrTransaction.currency);
+
+    window.ga('ec:setAction', 'checkout_option', {
+      step: event.step,
+      option: options
+    });
+
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onCustomEvent = function onCustomEvent(event) {
+    var campaign = this.get('context.campaign') || {};
+
+    // custom dimensions & metrics
+    var source = (0, _componentClone2['default'])(event);
+    (0, _deleteProperty2['default'])(source, 'name');
+    (0, _deleteProperty2['default'])(source, 'category');
+    var custom = this.getCustomDimensions(source);
+    if ((0, _size2['default'])(custom)) window.ga('set', custom);
+
+    var payload = {
+      eventAction: event.name || 'event',
+      eventCategory: event.category || 'All',
+      eventLabel: event.label,
+      eventValue: Math.round(event.value) || 0,
+      nonInteraction: !!event.nonInteraction
+    };
+
+    if (campaign.name) payload.campaignName = campaign.name;
+    if (campaign.source) payload.campaignSource = campaign.source;
+    if (campaign.medium) payload.campaignMedium = campaign.medium;
+    if (campaign.content) payload.campaignContent = campaign.content;
+    if (campaign.term) payload.campaignKeyword = campaign.term;
+
+    window.ga('send', 'event', payload);
+  };
+
+  return GoogleAnalytics;
+})(_Integration3['default']);
+
+exports['default'] = GoogleAnalytics;
+
+},{"./../Integration.js":59,"./../functions/deleteProperty.js":64,"./../functions/each.js":65,"./../functions/getProperty.js":67,"./../functions/size.js":76,"component-clone":4,"component-type":6}],84:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -6645,7 +8199,7 @@ var GoogleTagManager = (function (_Integration) {
 
 exports['default'] = GoogleTagManager;
 
-},{"./../Integration.js":54,"./../functions/deleteProperty.js":58}],74:[function(require,module,exports){
+},{"./../Integration.js":59,"./../functions/deleteProperty.js":64}],85:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -6976,7 +8530,7 @@ var RetailRocket = (function (_Integration) {
 
 exports['default'] = RetailRocket;
 
-},{"./../Integration.js":54,"./../functions/deleteProperty.js":58,"./../functions/format.js":60,"./../functions/getQueryParam.js":61,"./../functions/throwError.js":69,"component-type":6}],75:[function(require,module,exports){
+},{"./../Integration.js":59,"./../functions/deleteProperty.js":64,"./../functions/format.js":66,"./../functions/getQueryParam.js":68,"./../functions/throwError.js":77,"component-type":6}],86:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es5');
@@ -6985,4 +8539,4 @@ require('core-js/modules/es6.object.assign');
 
 require('core-js/modules/es6.string.trim');
 
-},{"core-js/modules/es5":41,"core-js/modules/es6.object.assign":42,"core-js/modules/es6.string.trim":43}]},{},[70]);
+},{"core-js/modules/es5":41,"core-js/modules/es6.object.assign":42,"core-js/modules/es6.string.trim":43}]},{},[80]);

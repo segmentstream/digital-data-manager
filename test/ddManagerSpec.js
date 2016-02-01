@@ -127,6 +127,18 @@ describe('DDManager', () => {
       }
     });
 
+    it('it should enrich digital data', (done) => {
+      ddManager.initialize();
+      if (ddManager.isInitialized()) {
+        ddManager.once('initialize', () => {
+          assert.ok(window.digitalData.user.anonymousId);
+          done();
+        });
+      } else {
+        assert.ok(false);
+      }
+    });
+
   });
 
 });

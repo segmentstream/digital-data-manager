@@ -165,35 +165,4 @@ describe('AutoEvents', () => {
 
   });
 
-  describe('#fireViewedCheckoutStep', () => {
-
-    beforeEach(() => {
-      _digitalData = {
-        page: {
-          type: 'cart'
-        },
-        events: []
-      };
-      _autoEvents.setDigitalData(_digitalData);
-    });
-
-    it('should fire "Viewed Checkout Step" event', () => {
-      _autoEvents.fireViewedCheckoutStep();
-      assert.ok(_digitalData.events[0].name === 'Viewed Checkout Step');
-    });
-
-    it('should fire "Viewed Checkout Step" and "Viewed Page" event for page.type === "cart"', () => {
-      _autoEvents.onInitialize();
-      assert.ok(_digitalData.events[1].name === 'Viewed Checkout Step');
-      assert.ok(_digitalData.events.length === 2);
-    });
-
-    it('should fire "Viewed Checkout Step" and "Viewed Page" event for page.type === "checkout"', () => {
-      _digitalData.page.type = 'checkout';
-      _autoEvents.onInitialize();
-      assert.ok(_digitalData.events[1].name === 'Viewed Checkout Step');
-      assert.ok(_digitalData.events.length === 2);
-    });
-  });
-
 });
