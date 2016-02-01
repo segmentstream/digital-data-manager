@@ -6163,6 +6163,10 @@ var _debug = require('debug');
 
 var _debug2 = _interopRequireDefault(_debug);
 
+var _topDomain = require('./functions/topDomain.js');
+
+var _topDomain2 = _interopRequireDefault(_topDomain);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -6177,16 +6181,8 @@ var Storage = (function () {
   function Storage(options) {
     _classCallCheck(this, Storage);
 
-    var cookieDomain = location.hostname;
-    var domainParts = location.hostname ? cookieDomain.split('.') : [];
-    if (domainParts.length >= 2) {
-      cookieDomain = '.' + cookieDomain.slice(-2).join('.');
-    } else {
-      cookieDomain = null;
-    }
-
     this.options = Object.assign({
-      cookieDomain: cookieDomain,
+      cookieDomain: (0, _topDomain2['default'])(location.href),
       cookieMaxAge: 31536000000, // default to a year
       prefix: 'ddl:'
     }, options);
@@ -6204,7 +6200,7 @@ var Storage = (function () {
       });
       if (!this.get('__tld__')) {
         (0, _debug2['default'])('fallback to domain=null');
-        cookieDomain = null;
+        this.setOption('cookieDomain', null);
       }
       _jsCookie2['default'].remove('__tld__');
     }
@@ -6270,7 +6266,7 @@ var Storage = (function () {
 
 exports['default'] = Storage;
 
-},{"debug":44,"js-cookie":48,"store":51}],61:[function(require,module,exports){
+},{"./functions/topDomain.js":78,"debug":44,"js-cookie":48,"store":51}],61:[function(require,module,exports){
 'use strict';
 
 var _integrations;
@@ -6305,7 +6301,7 @@ var integrations = (_integrations = {}, _integrations[_GoogleAnalytics2['default
 
 exports['default'] = integrations;
 
-},{"./integrations/Driveback.js":79,"./integrations/FacebookPixel.js":80,"./integrations/GoogleAnalytics.js":81,"./integrations/GoogleTagManager.js":82,"./integrations/RetailRocket.js":83}],62:[function(require,module,exports){
+},{"./integrations/Driveback.js":81,"./integrations/FacebookPixel.js":82,"./integrations/GoogleAnalytics.js":83,"./integrations/GoogleTagManager.js":84,"./integrations/RetailRocket.js":85}],62:[function(require,module,exports){
 'use strict';
 
 function _typeof2(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -7063,6 +7059,143 @@ function throwError(code, message) {
 },{"debug":44}],78:[function(require,module,exports){
 'use strict';
 
+exports.__esModule = true;
+exports['default'] = topDomain;
+
+var _url = require('./url.js');
+
+var _jsCookie = require('js-cookie');
+
+var _jsCookie2 = _interopRequireDefault(_jsCookie);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+/**
+ * Levels returns all levels of the given url.
+ *
+ * @param {String} url
+ * @return {Array}
+ * @api public
+ */
+function getLevels(url) {
+  var host = (0, _url.parse)(url).hostname;
+  var parts = host.split('.');
+  var last = parts[parts.length - 1];
+  var levels = [];
+
+  // Ip address.
+  if (parts.length === 4 && parseInt(last, 10) === last) {
+    return levels;
+  }
+
+  // Localhost.
+  if (parts.length <= 1) {
+    return levels;
+  }
+
+  // Create levels.
+  for (var i = parts.length - 2; i >= 0; --i) {
+    levels.push(parts.slice(i).join('.'));
+  }
+
+  return levels;
+}
+
+/**
+ * Get the top domain.
+ *
+ * The function constructs the levels of domain
+ * and attempts to set a global cookie on each one
+ * when it succeeds it returns the top level domain.
+ *
+ * The method returns an empty string when the hostname
+ * is an ip or `localhost`.
+ *
+ * Example levels:
+ *
+ *      domain.levels('http://www.google.co.uk');
+ *      // => ["co.uk", "google.co.uk", "www.google.co.uk"]
+ *
+ * Example:
+ *
+ *      domain('http://localhost:3000/baz');
+ *      // => ''
+ *      domain('http://dev:3000/baz');
+ *      // => ''
+ *      domain('http://127.0.0.1:3000/baz');
+ *      // => ''
+ *      domain('http://example.com/baz');
+ *      // => 'example.com'
+ *
+ * @param {String} url
+ * @return {String}
+ * @api public
+ */
+
+function topDomain(url) {
+  var levels = getLevels(url);
+
+  // Lookup the real top level one.
+  for (var i = 0; i < levels.length; ++i) {
+    var cname = '__tld__';
+    var domain = levels[i];
+    var opts = {
+      domain: '.' + domain
+    };
+    _jsCookie2['default'].set(cname, 1, opts);
+    if (_jsCookie2['default'].get(cname)) {
+      _jsCookie2['default'].set(cname, null, opts);
+      return domain;
+    }
+  }
+
+  return '';
+}
+
+},{"./url.js":79,"js-cookie":48}],79:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+exports.parse = parse;
+/**
+ * Return default port for `protocol`.
+ *
+ * @param  {String} protocol
+ * @return {String}
+ * @api private
+ */
+function port(protocol) {
+  switch (protocol) {
+    case 'http:':
+      return 80;
+    case 'https:':
+      return 443;
+    default:
+      return location.port;
+  }
+}
+
+function parse(url) {
+  var a = document.createElement('a');
+  a.href = url;
+  return {
+    href: a.href,
+    host: a.host || location.host,
+    port: a.port === '0' || a.port === '' ? port(a.protocol) : a.port,
+    hash: a.hash,
+    hostname: a.hostname || location.hostname,
+    pathname: a.pathname.charAt(0) !== '/' ? '/' + a.pathname : a.pathname,
+    protocol: !a.protocol || a.protocol === ':' ? location.protocol : a.protocol,
+    search: a.search,
+    query: a.search.slice(1)
+  };
+}
+
+},{}],80:[function(require,module,exports){
+'use strict';
+
 require('./polyfill.js');
 
 var _ddManager = require('./ddManager.js');
@@ -7082,7 +7215,7 @@ _ddManager2['default'].processEarlyStubCalls();
 
 window.ddManager = _ddManager2['default'];
 
-},{"./availableIntegrations.js":61,"./ddManager.js":62,"./polyfill.js":84}],79:[function(require,module,exports){
+},{"./availableIntegrations.js":61,"./ddManager.js":62,"./polyfill.js":86}],81:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -7179,7 +7312,7 @@ var Driveback = (function (_Integration) {
 
 exports['default'] = Driveback;
 
-},{"./../Integration.js":59,"./../functions/deleteProperty.js":64}],80:[function(require,module,exports){
+},{"./../Integration.js":59,"./../functions/deleteProperty.js":64}],82:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -7370,7 +7503,7 @@ var FacebookPixel = (function (_Integration) {
 
 exports['default'] = FacebookPixel;
 
-},{"./../Integration.js":59,"./../functions/deleteProperty.js":64,"component-type":6}],81:[function(require,module,exports){
+},{"./../Integration.js":59,"./../functions/deleteProperty.js":64,"component-type":6}],83:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -7970,7 +8103,7 @@ var GoogleAnalytics = (function (_Integration) {
 
 exports['default'] = GoogleAnalytics;
 
-},{"./../Integration.js":59,"./../functions/deleteProperty.js":64,"./../functions/each.js":65,"./../functions/getProperty.js":67,"./../functions/size.js":76,"component-clone":4,"component-type":6}],82:[function(require,module,exports){
+},{"./../Integration.js":59,"./../functions/deleteProperty.js":64,"./../functions/each.js":65,"./../functions/getProperty.js":67,"./../functions/size.js":76,"component-clone":4,"component-type":6}],84:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -8066,7 +8199,7 @@ var GoogleTagManager = (function (_Integration) {
 
 exports['default'] = GoogleTagManager;
 
-},{"./../Integration.js":59,"./../functions/deleteProperty.js":64}],83:[function(require,module,exports){
+},{"./../Integration.js":59,"./../functions/deleteProperty.js":64}],85:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -8397,7 +8530,7 @@ var RetailRocket = (function (_Integration) {
 
 exports['default'] = RetailRocket;
 
-},{"./../Integration.js":59,"./../functions/deleteProperty.js":64,"./../functions/format.js":66,"./../functions/getQueryParam.js":68,"./../functions/throwError.js":77,"component-type":6}],84:[function(require,module,exports){
+},{"./../Integration.js":59,"./../functions/deleteProperty.js":64,"./../functions/format.js":66,"./../functions/getQueryParam.js":68,"./../functions/throwError.js":77,"component-type":6}],86:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es5');
@@ -8406,4 +8539,4 @@ require('core-js/modules/es6.object.assign');
 
 require('core-js/modules/es6.string.trim');
 
-},{"core-js/modules/es5":41,"core-js/modules/es6.object.assign":42,"core-js/modules/es6.string.trim":43}]},{},[78]);
+},{"core-js/modules/es5":41,"core-js/modules/es6.object.assign":42,"core-js/modules/es6.string.trim":43}]},{},[80]);
