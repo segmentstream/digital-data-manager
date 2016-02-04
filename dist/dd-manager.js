@@ -5651,6 +5651,10 @@ var _debug = require('debug');
 
 var _debug2 = _interopRequireDefault(_debug);
 
+var _noop = require('./functions/noop.js');
+
+var _noop2 = _interopRequireDefault(_noop);
+
 var _deleteProperty = require('./functions/deleteProperty.js');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
@@ -5691,6 +5695,7 @@ var _previousDigitalData = {};
 var _digitalData = {};
 var _checkForChangesIntervalId = undefined;
 var _autoEvents = undefined;
+var _isInitialized = false;
 
 var _callbackOnComplete = function _callbackOnComplete(error) {
   if (error) {
@@ -5741,6 +5746,8 @@ var EventManager = (function () {
     _checkForChangesIntervalId = setInterval(function () {
       _this.checkForChanges();
     }, 100);
+
+    _isInitialized = true;
   };
 
   EventManager.prototype.setAutoEvents = function setAutoEvents(autoEvents) {
@@ -5760,7 +5767,11 @@ var EventManager = (function () {
     }
   };
 
-  EventManager.prototype.addCallback = function addCallback(callbackInfo) {
+  EventManager.prototype.addCallback = function addCallback(callbackInfo, processPastEvents) {
+    if (processPastEvents !== false) {
+      processPastEvents = true;
+    }
+
     if (!Array.isArray(callbackInfo) || callbackInfo.length < 2) {
       return;
     }
@@ -5770,7 +5781,7 @@ var EventManager = (function () {
         return;
       }
       var asyncHandler = _async2['default'].asyncify(callbackInfo[2]);
-      this.on(callbackInfo[1], asyncHandler);
+      this.on(callbackInfo[1], asyncHandler, processPastEvents);
     }if (callbackInfo[0] === 'off') {
       // TODO
     }
@@ -5841,7 +5852,6 @@ var EventManager = (function () {
           }
 
           var eventCopy = (0, _componentClone2['default'])(event);
-          (0, _deleteProperty2['default'])(eventCopy, 'updateDigitalData');
           (0, _deleteProperty2['default'])(eventCopy, 'callback');
           if (eventCopy.enrichEventData !== false) {
             eventCopy = _this2.enrichEventWithData(eventCopy);
@@ -5858,7 +5868,7 @@ var EventManager = (function () {
     event.hasFired = true;
   };
 
-  EventManager.prototype.on = function on(eventInfo, handler) {
+  EventManager.prototype.on = function on(eventInfo, handler, processPastEvents) {
     var _eventInfo$split = eventInfo.split(':');
 
     var type = _eventInfo$split[0];
@@ -5875,9 +5885,12 @@ var EventManager = (function () {
         handler: handler
       });
     }
+    if (_isInitialized && type === 'event' && processPastEvents) {
+      this.applyCallbackForPastEvents(handler);
+    }
   };
 
-  EventManager.prototype.fireUnfiredEvents = function fireUnfiredEvents() {
+  EventManager.prototype.applyCallbackForPastEvents = function applyCallbackForPastEvents(handler) {
     var events = _digitalData.events;
     var event = undefined;
     for (var _iterator3 = events, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
@@ -5890,6 +5903,30 @@ var EventManager = (function () {
         event = _i3.value;
       }
 
+      if (event.hasFired) {
+        var eventCopy = (0, _componentClone2['default'])(event);
+        (0, _deleteProperty2['default'])(eventCopy, 'callback');
+        if (eventCopy.enrichEventData !== false) {
+          eventCopy = this.enrichEventWithData(eventCopy);
+        }
+        handler(eventCopy, _noop2['default']);
+      }
+    }
+  };
+
+  EventManager.prototype.fireUnfiredEvents = function fireUnfiredEvents() {
+    var events = _digitalData.events;
+    var event = undefined;
+    for (var _iterator4 = events, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
+      if (_isArray4) {
+        if (_i4 >= _iterator4.length) break;
+        event = _iterator4[_i4++];
+      } else {
+        _i4 = _iterator4.next();
+        if (_i4.done) break;
+        event = _i4.value;
+      }
+
       if (!event.hasFired) {
         this.fireEvent(event);
       }
@@ -5898,14 +5935,14 @@ var EventManager = (function () {
 
   EventManager.prototype.addEarlyCallbacks = function addEarlyCallbacks() {
     var callbackInfo = undefined;
-    for (var _iterator4 = _ddListener, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
-      if (_isArray4) {
-        if (_i4 >= _iterator4.length) break;
-        callbackInfo = _iterator4[_i4++];
+    for (var _iterator5 = _ddListener, _isArray5 = Array.isArray(_iterator5), _i5 = 0, _iterator5 = _isArray5 ? _iterator5 : _iterator5[Symbol.iterator]();;) {
+      if (_isArray5) {
+        if (_i5 >= _iterator5.length) break;
+        callbackInfo = _iterator5[_i5++];
       } else {
-        _i4 = _iterator4.next();
-        if (_i4.done) break;
-        callbackInfo = _i4.value;
+        _i5 = _iterator5.next();
+        if (_i5.done) break;
+        callbackInfo = _i5.value;
       }
 
       this.addCallback(callbackInfo);
@@ -5915,16 +5952,16 @@ var EventManager = (function () {
   EventManager.prototype.enrichEventWithData = function enrichEventWithData(event) {
     var enrichableVars = ['product', 'transaction', 'campaign', 'user', 'page'];
 
-    for (var _iterator5 = enrichableVars, _isArray5 = Array.isArray(_iterator5), _i5 = 0, _iterator5 = _isArray5 ? _iterator5 : _iterator5[Symbol.iterator]();;) {
+    for (var _iterator6 = enrichableVars, _isArray6 = Array.isArray(_iterator6), _i6 = 0, _iterator6 = _isArray6 ? _iterator6 : _iterator6[Symbol.iterator]();;) {
       var _ref;
 
-      if (_isArray5) {
-        if (_i5 >= _iterator5.length) break;
-        _ref = _iterator5[_i5++];
+      if (_isArray6) {
+        if (_i6 >= _iterator6.length) break;
+        _ref = _iterator6[_i6++];
       } else {
-        _i5 = _iterator5.next();
-        if (_i5.done) break;
-        _ref = _i5.value;
+        _i6 = _iterator6.next();
+        if (_i6.done) break;
+        _ref = _i6.value;
       }
 
       var enrichableVar = _ref;
@@ -5951,7 +5988,7 @@ var EventManager = (function () {
 
 exports['default'] = EventManager;
 
-},{"./DDHelper.js":55,"./EventDataEnricher.js":57,"./functions/after.js":63,"./functions/deleteProperty.js":64,"./functions/jsonIsEqual.js":70,"./functions/size.js":76,"async":1,"component-clone":4,"debug":44}],59:[function(require,module,exports){
+},{"./DDHelper.js":55,"./EventDataEnricher.js":57,"./functions/after.js":63,"./functions/deleteProperty.js":64,"./functions/jsonIsEqual.js":70,"./functions/noop.js":74,"./functions/size.js":76,"async":1,"component-clone":4,"debug":44}],59:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -6487,6 +6524,7 @@ var ddManager = {
    *
    * {
    *    autoEvents: true,
+   *    domain: 'example.com',
    *    sessionLength: 3600,
    *    integrations: {
    *      'Google Tag Manager': {

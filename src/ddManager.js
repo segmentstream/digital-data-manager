@@ -135,6 +135,7 @@ const ddManager = {
    *
    * {
    *    autoEvents: true,
+   *    domain: 'example.com',
    *    sessionLength: 3600,
    *    integrations: {
    *      'Google Tag Manager': {

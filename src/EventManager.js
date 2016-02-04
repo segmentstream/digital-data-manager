@@ -1,6 +1,7 @@
 import clone from 'component-clone';
 import async from 'async';
 import debug from 'debug';
+import noop from './functions/noop.js';
 import deleteProperty from './functions/deleteProperty.js';
 import size from './functions/size.js';
 import after from './functions/after.js';
@@ -14,6 +15,7 @@ let _previousDigitalData = {};
 let _digitalData = {};
 let _checkForChangesIntervalId;
 let _autoEvents;
+let _isInitialized = false;
 
 const _callbackOnComplete = (error) => {
   if (error) {
@@ -61,6 +63,8 @@ class EventManager {
     _checkForChangesIntervalId = setInterval(() => {
       this.checkForChanges();
     }, 100);
+
+    _isInitialized = true;
   }
 
   setAutoEvents(autoEvents) {
@@ -80,7 +84,11 @@ class EventManager {
     }
   }
 
-  addCallback(callbackInfo) {
+  addCallback(callbackInfo, processPastEvents) {
+    if (processPastEvents !== false) {
+      processPastEvents = true;
+    }
+
     if (!Array.isArray(callbackInfo) || callbackInfo.length < 2) {
       return;
     }
@@ -90,7 +98,7 @@ class EventManager {
         return;
       }
       const asyncHandler = async.asyncify(callbackInfo[2]);
-      this.on(callbackInfo[1], asyncHandler);
+      this.on(callbackInfo[1], asyncHandler, processPastEvents);
     } if (callbackInfo[0] === 'off') {
       // TODO
     }
@@ -140,7 +148,6 @@ class EventManager {
 
       for (eventCallback of _callbacks.event) {
         let eventCopy = clone(event);
-        deleteProperty(eventCopy, 'updateDigitalData');
         deleteProperty(eventCopy, 'callback');
         if (eventCopy.enrichEventData !== false) {
           eventCopy = this.enrichEventWithData(eventCopy);
@@ -156,7 +163,7 @@ class EventManager {
     event.hasFired = true;
   }
 
-  on(eventInfo, handler) {
+  on(eventInfo, handler, processPastEvents) {
     const [type, key] = eventInfo.split(':');
     _callbacks[type] = _callbacks[type] || [];
     if (key) {
@@ -168,6 +175,24 @@ class EventManager {
       _callbacks[type].push({
         handler,
       });
+    }
+    if (_isInitialized && type === 'event' && processPastEvents) {
+      this.applyCallbackForPastEvents(handler);
+    }
+  }
+
+  applyCallbackForPastEvents(handler) {
+    const events = _digitalData.events;
+    let event;
+    for (event of events) {
+      if (event.hasFired) {
+        let eventCopy = clone(event);
+        deleteProperty(eventCopy, 'callback');
+        if (eventCopy.enrichEventData !== false) {
+          eventCopy = this.enrichEventWithData(eventCopy);
+        }
+        handler(eventCopy, noop);
+      }
     }
   }
 

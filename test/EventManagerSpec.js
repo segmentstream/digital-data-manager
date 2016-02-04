@@ -157,6 +157,24 @@ describe('EventManager', () => {
       });
     });
 
+    it('should process past events event if listener was added later', (done) => {
+      _eventManager.initialize();
+
+      window.digitalData.events.push({
+        name: 'Clicked Product',
+        category: 'Ecommerce',
+        product: {
+          id: '123',
+          name: 'Test Product'
+        }
+      });
+
+      window.ddListener.push(['on', 'event', (e) => {
+        assert.ok(true);
+        done();
+      }]);
+    });
+
   });
 
   describe(': listening for digitalData changes', () => {
