@@ -5555,26 +5555,52 @@ var EventDataEnricher = (function () {
     _classCallCheck(this, EventDataEnricher);
   }
 
-  EventDataEnricher.product = function product(_product, digitalData) {
-    _product = _product || {};
+  EventDataEnricher.product = function product(productArr, digitalData) {
+    productArr = productArr || [];
     var productId = undefined;
-    if ((0, _componentType2['default'])(_product) === 'object') {
-      productId = _product.id;
-    } else {
-      productId = _product;
-      _product = {
-        id: productId
-      };
+    var returnArray = true;
+    if (!Array.isArray(productArr)) {
+      returnArray = false;
+      productArr = [productArr];
     }
 
-    if (productId) {
-      var ddlProduct = _DDHelper2['default'].getProduct(productId, digitalData) || {};
-      if (ddlProduct) {
-        _product = Object.assign(ddlProduct, _product);
+    var result = [];
+    for (var _iterator = productArr, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+      var _ref;
+
+      if (_isArray) {
+        if (_i >= _iterator.length) break;
+        _ref = _iterator[_i++];
+      } else {
+        _i = _iterator.next();
+        if (_i.done) break;
+        _ref = _i.value;
       }
+
+      var _product = _ref;
+
+      if ((0, _componentType2['default'])(_product) === 'object') {
+        productId = _product.id;
+      } else {
+        productId = _product;
+        _product = {
+          id: productId
+        };
+      }
+
+      if (productId) {
+        var ddlProduct = _DDHelper2['default'].getProduct(productId, digitalData) || {};
+        if (ddlProduct) {
+          _product = Object.assign(ddlProduct, _product);
+        }
+      }
+      result.push(_product);
     }
 
-    return _product;
+    if (!returnArray) {
+      return result.pop();
+    }
+    return result;
   };
 
   EventDataEnricher.transaction = function transaction(_transaction, digitalData) {
@@ -5587,26 +5613,52 @@ var EventDataEnricher = (function () {
     return _transaction;
   };
 
-  EventDataEnricher.campaign = function campaign(_campaign, digitalData) {
-    _campaign = _campaign || {};
+  EventDataEnricher.campaign = function campaign(campaignArr, digitalData) {
+    campaignArr = campaignArr || [];
     var campaignId = undefined;
-    if ((0, _componentType2['default'])(_campaign) === 'object') {
-      campaignId = _campaign.id;
-    } else {
-      campaignId = _campaign;
-      _campaign = {
-        id: campaignId
-      };
+    var returnArray = true;
+    if (!Array.isArray(campaignArr)) {
+      returnArray = false;
+      campaignArr = [campaignArr];
     }
 
-    if (campaignId) {
-      var ddlCampaign = _DDHelper2['default'].getCampaign(campaignId, digitalData) || {};
-      if (ddlCampaign) {
-        _campaign = Object.assign(ddlCampaign, _campaign);
+    var result = [];
+    for (var _iterator2 = campaignArr, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+      var _ref2;
+
+      if (_isArray2) {
+        if (_i2 >= _iterator2.length) break;
+        _ref2 = _iterator2[_i2++];
+      } else {
+        _i2 = _iterator2.next();
+        if (_i2.done) break;
+        _ref2 = _i2.value;
       }
+
+      var _campaign = _ref2;
+
+      if ((0, _componentType2['default'])(_campaign) === 'object') {
+        campaignId = _campaign.id;
+      } else {
+        campaignId = _campaign;
+        _campaign = {
+          id: campaignId
+        };
+      }
+
+      if (campaignId) {
+        var ddlCampaign = _DDHelper2['default'].getCampaign(campaignId, digitalData) || {};
+        if (ddlCampaign) {
+          _campaign = Object.assign(ddlCampaign, _campaign);
+        }
+      }
+      result.push(_campaign);
     }
 
-    return _campaign;
+    if (!returnArray) {
+      return result.pop();
+    }
+    return result;
   };
 
   EventDataEnricher.user = function user(_user, digitalData) {
@@ -6489,6 +6541,8 @@ function _prepareGlobals() {
 }
 
 var ddManager = {
+
+  VERSION: '1.0.2',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -7669,6 +7723,7 @@ var GoogleAnalytics = (function (_Integration) {
 
     var optionsWithDefaults = Object.assign({
       trackingId: '',
+      trackOnlyCustomEvents: false,
       doubleClick: false,
       enhancedLinkAttribution: false,
       enhancedEcommerce: false,
@@ -7816,41 +7871,45 @@ var GoogleAnalytics = (function (_Integration) {
   };
 
   GoogleAnalytics.prototype.trackEvent = function trackEvent(event) {
-    if (event.name === 'Viewed Page') {
-      this.onViewedPage(event);
-    } else if (this.getOption('enhancedEcommerce')) {
-      if (event.name === 'Viewed Product') {
-        this.onViewedProduct(event);
-      } else if (event.name === 'Clicked Product') {
-        this.onClickedProduct(event);
-      } else if (event.name === 'Viewed Product Detail') {
-        this.onViewedProductDetail(event);
-      } else if (event.name === 'Added Product') {
-        this.onAddedProduct(event);
-      } else if (event.name === 'Removed Product') {
-        this.onRemovedProduct(event);
-      } else if (event.name === 'Completed Transaction') {
-        this.onCompletedTransactionEnhanced(event);
-      } else if (event.name === 'Refunded Transaction') {
-        this.onRefundedTransaction(event);
-      } else if (event.name === 'Viewed Product Category') {
-        this.onViewedProductCategory(event);
-      } else if (event.name === 'Viewed Campaign') {
-        this.onViewedCampaign(event);
-      } else if (event.name === 'Clicked Campaign') {
-        this.onClickedCampaign(event);
-      } else if (event.name === 'Viewed Checkout Step') {
-        this.onViewedCheckoutStep(event);
-      } else if (event.name === 'Completed Checkout Step') {
-        this.onCompletedCheckoutStep(event);
-      } else {
-        this.onCustomEvent(event);
-      }
+    if (this.getOption('trackOnlyCustomEvents')) {
+      this.onCustomEvent(event);
     } else {
-      if (event.name === 'Completed Transaction') {
-        this.onCompletedTransaction(event);
+      if (event.name === 'Viewed Page') {
+        this.onViewedPage(event);
+      } else if (this.getOption('enhancedEcommerce')) {
+        if (event.name === 'Viewed Product') {
+          this.onViewedProduct(event);
+        } else if (event.name === 'Clicked Product') {
+          this.onClickedProduct(event);
+        } else if (event.name === 'Viewed Product Detail') {
+          this.onViewedProductDetail(event);
+        } else if (event.name === 'Added Product') {
+          this.onAddedProduct(event);
+        } else if (event.name === 'Removed Product') {
+          this.onRemovedProduct(event);
+        } else if (event.name === 'Completed Transaction') {
+          this.onCompletedTransactionEnhanced(event);
+        } else if (event.name === 'Refunded Transaction') {
+          this.onRefundedTransaction(event);
+        } else if (event.name === 'Viewed Product Category') {
+          this.onViewedProductCategory(event);
+        } else if (event.name === 'Viewed Campaign') {
+          this.onViewedCampaign(event);
+        } else if (event.name === 'Clicked Campaign') {
+          this.onClickedCampaign(event);
+        } else if (event.name === 'Viewed Checkout Step') {
+          this.onViewedCheckoutStep(event);
+        } else if (event.name === 'Completed Checkout Step') {
+          this.onCompletedCheckoutStep(event);
+        } else {
+          this.onCustomEvent(event);
+        }
       } else {
-        this.onCustomEvent(event);
+        if (event.name === 'Completed Transaction') {
+          this.onCompletedTransaction(event);
+        } else {
+          this.onCustomEvent(event);
+        }
       }
     }
   };
@@ -7893,22 +7952,42 @@ var GoogleAnalytics = (function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onViewedProduct = function onViewedProduct(event) {
-    var product = event.product;
-    if (!product.id && !product.skuCode && !product.name) {
-      return;
+    var products = event.product;
+    if (!Array.isArray(products)) {
+      products = [products];
     }
-    this.loadEnhancedEcommerce(product.currency);
-    window.ga('ec:addImpression', {
-      id: product.id || product.skuCode,
-      name: product.name,
-      list: product.listName,
-      category: product.category,
-      brand: product.brand || product.manufacturer,
-      price: product.unitSalePrice || product.unitPrice,
-      currency: product.currency || this.getOption('defaultCurrency'),
-      variant: product.variant,
-      position: product.position
-    });
+
+    for (var _iterator3 = products, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
+      var _ref3;
+
+      if (_isArray3) {
+        if (_i3 >= _iterator3.length) break;
+        _ref3 = _iterator3[_i3++];
+      } else {
+        _i3 = _iterator3.next();
+        if (_i3.done) break;
+        _ref3 = _i3.value;
+      }
+
+      var product = _ref3;
+
+      if (!product.id && !product.skuCode && !product.name) {
+        continue;
+      }
+      this.loadEnhancedEcommerce(product.currency);
+      window.ga('ec:addImpression', {
+        id: product.id || product.skuCode,
+        name: product.name,
+        list: product.listName,
+        category: product.category,
+        brand: product.brand || product.manufacturer,
+        price: product.unitSalePrice || product.unitPrice,
+        currency: product.currency || this.getOption('defaultCurrency'),
+        variant: product.variant,
+        position: product.position
+      });
+    }
+
     this.pushEnhancedEcommerce(event);
   };
 
@@ -8036,19 +8115,39 @@ var GoogleAnalytics = (function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onViewedCampaign = function onViewedCampaign(event) {
-    var campaign = event.campaign;
-
-    if (!campaign || !campaign.id) {
-      return;
+    var campaigns = event.campaign;
+    if (!Array.isArray(campaigns)) {
+      campaigns = [campaigns];
     }
 
     this.loadEnhancedEcommerce();
-    window.ga('ec:addPromo', {
-      id: campaign.id,
-      name: campaign.name,
-      creative: campaign.design || campaign.creative,
-      position: campaign.position
-    });
+
+    for (var _iterator4 = campaigns, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
+      var _ref4;
+
+      if (_isArray4) {
+        if (_i4 >= _iterator4.length) break;
+        _ref4 = _iterator4[_i4++];
+      } else {
+        _i4 = _iterator4.next();
+        if (_i4.done) break;
+        _ref4 = _i4.value;
+      }
+
+      var campaign = _ref4;
+
+      if (!campaign || !campaign.id) {
+        continue;
+      }
+
+      window.ga('ec:addPromo', {
+        id: campaign.id,
+        name: campaign.name,
+        creative: campaign.design || campaign.creative,
+        position: campaign.position
+      });
+    }
+
     this.pushEnhancedEcommerce(event);
   };
 
@@ -8298,6 +8397,7 @@ var RetailRocket = (function (_Integration) {
 
     var optionsWithDefaults = Object.assign({
       partnerId: '',
+      trackProducts: true,
       trackAllEmails: false
     }, options);
 
@@ -8351,16 +8451,22 @@ var RetailRocket = (function (_Integration) {
   };
 
   RetailRocket.prototype.trackEvent = function trackEvent(event) {
-    if (event.name === 'Viewed Product Category') {
-      this.onViewedProductCategory(event.page);
-    } else if (event.name === 'Added Product') {
-      this.onAddedProduct(event.product);
-    } else if (event.name === 'Viewed Product Detail') {
-      this.onViewedProductDetail(event.product);
-    } else if (event.name === 'Completed Transaction') {
-      this.onCompletedTransaction(event.transaction);
-    } else if (event.name === 'Subscribed') {
-      this.onSubscribed(event.user);
+    if (this.getOption('trackProducts')) {
+      if (event.name === 'Viewed Product Category') {
+        this.onViewedProductCategory(event.page);
+      } else if (event.name === 'Added Product') {
+        this.onAddedProduct(event.product);
+      } else if (event.name === 'Viewed Product Detail') {
+        this.onViewedProductDetail(event.product);
+      } else if (event.name === 'Completed Transaction') {
+        this.onCompletedTransaction(event.transaction);
+      } else if (event.name === 'Subscribed') {
+        this.onSubscribed(event.user);
+      }
+    } else {
+      if (event.name === 'Subscribed') {
+        this.onSubscribed(event.user);
+      }
     }
   };
 

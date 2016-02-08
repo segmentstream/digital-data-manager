@@ -61,6 +61,7 @@ class GoogleAnalytics extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       trackingId: '',
+      trackOnlyCustomEvents: false,
       doubleClick: false,
       enhancedLinkAttribution: false,
       enhancedEcommerce: false,
@@ -207,41 +208,45 @@ class GoogleAnalytics extends Integration {
   }
 
   trackEvent(event) {
-    if (event.name === 'Viewed Page') {
-      this.onViewedPage(event);
-    } else if (this.getOption('enhancedEcommerce')) {
-      if (event.name === 'Viewed Product') {
-        this.onViewedProduct(event);
-      } else if (event.name === 'Clicked Product') {
-        this.onClickedProduct(event);
-      } else if (event.name === 'Viewed Product Detail') {
-        this.onViewedProductDetail(event);
-      } else if (event.name === 'Added Product') {
-        this.onAddedProduct(event);
-      } else if (event.name === 'Removed Product') {
-        this.onRemovedProduct(event);
-      } else if (event.name === 'Completed Transaction') {
-        this.onCompletedTransactionEnhanced(event);
-      } else if (event.name === 'Refunded Transaction') {
-        this.onRefundedTransaction(event);
-      } else if (event.name === 'Viewed Product Category') {
-        this.onViewedProductCategory(event);
-      } else if (event.name === 'Viewed Campaign') {
-        this.onViewedCampaign(event);
-      } else if (event.name === 'Clicked Campaign') {
-        this.onClickedCampaign(event);
-      } else if (event.name === 'Viewed Checkout Step') {
-        this.onViewedCheckoutStep(event);
-      } else if (event.name === 'Completed Checkout Step') {
-        this.onCompletedCheckoutStep(event);
-      } else {
-        this.onCustomEvent(event);
-      }
+    if (this.getOption('trackOnlyCustomEvents')) {
+      this.onCustomEvent(event);
     } else {
-      if (event.name === 'Completed Transaction') {
-        this.onCompletedTransaction(event);
+      if (event.name === 'Viewed Page') {
+        this.onViewedPage(event);
+      } else if (this.getOption('enhancedEcommerce')) {
+        if (event.name === 'Viewed Product') {
+          this.onViewedProduct(event);
+        } else if (event.name === 'Clicked Product') {
+          this.onClickedProduct(event);
+        } else if (event.name === 'Viewed Product Detail') {
+          this.onViewedProductDetail(event);
+        } else if (event.name === 'Added Product') {
+          this.onAddedProduct(event);
+        } else if (event.name === 'Removed Product') {
+          this.onRemovedProduct(event);
+        } else if (event.name === 'Completed Transaction') {
+          this.onCompletedTransactionEnhanced(event);
+        } else if (event.name === 'Refunded Transaction') {
+          this.onRefundedTransaction(event);
+        } else if (event.name === 'Viewed Product Category') {
+          this.onViewedProductCategory(event);
+        } else if (event.name === 'Viewed Campaign') {
+          this.onViewedCampaign(event);
+        } else if (event.name === 'Clicked Campaign') {
+          this.onClickedCampaign(event);
+        } else if (event.name === 'Viewed Checkout Step') {
+          this.onViewedCheckoutStep(event);
+        } else if (event.name === 'Completed Checkout Step') {
+          this.onCompletedCheckoutStep(event);
+        } else {
+          this.onCustomEvent(event);
+        }
       } else {
-        this.onCustomEvent(event);
+        if (event.name === 'Completed Transaction') {
+          this.onCompletedTransaction(event);
+        } else {
+          this.onCustomEvent(event);
+        }
       }
     }
   }
@@ -284,22 +289,29 @@ class GoogleAnalytics extends Integration {
   }
 
   onViewedProduct(event) {
-    const product = event.product;
-    if (!product.id && !product.skuCode && !product.name) {
-      return;
+    let products = event.product;
+    if (!Array.isArray(products)) {
+      products = [products];
     }
-    this.loadEnhancedEcommerce(product.currency);
-    window.ga('ec:addImpression', {
-      id: product.id || product.skuCode,
-      name: product.name,
-      list: product.listName,
-      category: product.category,
-      brand: product.brand || product.manufacturer,
-      price: product.unitSalePrice || product.unitPrice,
-      currency: product.currency || this.getOption('defaultCurrency'),
-      variant: product.variant,
-      position: product.position,
-    });
+
+    for (const product of products) {
+      if (!product.id && !product.skuCode && !product.name) {
+        continue;
+      }
+      this.loadEnhancedEcommerce(product.currency);
+      window.ga('ec:addImpression', {
+        id: product.id || product.skuCode,
+        name: product.name,
+        list: product.listName,
+        category: product.category,
+        brand: product.brand || product.manufacturer,
+        price: product.unitSalePrice || product.unitPrice,
+        currency: product.currency || this.getOption('defaultCurrency'),
+        variant: product.variant,
+        position: product.position,
+      });
+    }
+
     this.pushEnhancedEcommerce(event);
   }
 
@@ -427,19 +439,26 @@ class GoogleAnalytics extends Integration {
   }
 
   onViewedCampaign(event) {
-    const campaign = event.campaign;
-
-    if (!campaign || !campaign.id) {
-      return;
+    let campaigns = event.campaign;
+    if (!Array.isArray(campaigns)) {
+      campaigns = [campaigns];
     }
 
     this.loadEnhancedEcommerce();
-    window.ga('ec:addPromo', {
-      id: campaign.id,
-      name: campaign.name,
-      creative: campaign.design || campaign.creative,
-      position: campaign.position,
-    });
+
+    for (const campaign of campaigns) {
+      if (!campaign || !campaign.id) {
+        continue;
+      }
+
+      window.ga('ec:addPromo', {
+        id: campaign.id,
+        name: campaign.name,
+        creative: campaign.design || campaign.creative,
+        position: campaign.position,
+      });
+    }
+
     this.pushEnhancedEcommerce(event);
   }
 

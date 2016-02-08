@@ -8,7 +8,6 @@ class GoogleTagManager extends Integration {
       containerId: null,
     }, options);
     super(digitalData, optionsWithDefaults);
-
     this.addTag({
       type: 'script',
       attr: {
