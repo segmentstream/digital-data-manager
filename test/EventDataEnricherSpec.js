@@ -83,6 +83,11 @@ describe('EventDataEnricher', () => {
               id: '123',
               name: 'Test Product',
               unitPrice: 10000
+            },
+            {
+              id: '234',
+              name: 'Test Product 2',
+              unitPrice: 10000
             }
           ]
         };
@@ -111,6 +116,26 @@ describe('EventDataEnricher', () => {
         assert.ok(event.product.unitPrice === 10000, 'product.unitPrice is not equal to 10000');
       });
 
+      it('should enrich product array by id', () => {
+        const event = {
+          name: 'Viewed Product',
+          category: 'Ecommerce',
+          product: ['123', '234']
+        };
+
+        event.product = EventDataEnricher.product(event.product, _digitalData);
+
+        assert.ok(event.name);
+        assert.ok(event.category);
+        assert.ok(event.product);
+        assert.ok(event.product[0].id === '123', 'product.id is is not equal to "123"');
+        assert.ok(event.product[0].name === 'Test Product', 'product.name is not equal to "Test Product"');
+        assert.ok(event.product[0].unitPrice === 10000, 'product.unitPrice is not equal to 10000');
+        assert.ok(event.product[1].id === '234', 'product.id is is not equal to "234"');
+        assert.ok(event.product[1].name === 'Test Product 2', 'product.name is not equal to "Test Product 2"');
+        assert.ok(event.product[1].unitPrice === 10000, 'product.unitPrice is not equal to 10000');
+      });
+
       it('should enrich product by product.id', () => {
         const event = {
           name: 'Viewed Product Detail',
@@ -131,6 +156,40 @@ describe('EventDataEnricher', () => {
         assert.ok(event.product.name === 'Test Product', 'product.name is not equal to "Test Product"');
         assert.ok(event.product.unitPrice === 11000, 'product.unitPrice is not equal to 11000');
         assert.ok(event.product.unitSalePrice === 11000, 'product.unitSalePrice is not equal to 11000');
+        assert.ok(_digitalData.listing.items[0].unitPrice === 10000, 'DDL listing.items[0].unitPrice is not equal to 10000');
+      });
+
+      it('should enrich product array by product.id', () => {
+        const event = {
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: [
+            {
+              id: '123',
+              unitPrice: 11000,
+              unitSalePrice: 11000
+            },
+            {
+              id: '234',
+              unitPrice: 11000,
+              unitSalePrice: 11000
+            }
+          ]
+        };
+
+        event.product = EventDataEnricher.product(event.product, _digitalData);
+
+        assert.ok(event.name);
+        assert.ok(event.category);
+        assert.ok(event.product);
+        assert.ok(event.product[0].id === '123', 'product.id is is not equal to "123"');
+        assert.ok(event.product[0].name === 'Test Product', 'product.name is not equal to "Test Product"');
+        assert.ok(event.product[0].unitPrice === 11000, 'product.unitPrice is not equal to 11000');
+        assert.ok(event.product[0].unitSalePrice === 11000, 'product.unitSalePrice is not equal to 11000');
+        assert.ok(event.product[1].id === '234', 'product.id is is not equal to "234"');
+        assert.ok(event.product[1].name === 'Test Product 2', 'product.name is not equal to "Test Product 2"');
+        assert.ok(event.product[1].unitPrice === 11000, 'product.unitPrice is not equal to 11000');
+        assert.ok(event.product[1].unitSalePrice === 11000, 'product.unitSalePrice is not equal to 11000');
         assert.ok(_digitalData.listing.items[0].unitPrice === 10000, 'DDL listing.items[0].unitPrice is not equal to 10000');
       });
     });
@@ -337,6 +396,11 @@ describe('EventDataEnricher', () => {
             id: '123',
             name: 'Campaign 1',
             category: 'Banner'
+          },
+          {
+            id: '234',
+            name: 'Campaign 2',
+            category: 'Banner'
           }
         ],
         events: []
@@ -379,6 +443,58 @@ describe('EventDataEnricher', () => {
       assert.ok(event.campaign.name === 'Campaign 1', 'campaign.name is not equal to "Campaign 1"');
       assert.ok(event.campaign.category === 'Banner 2', 'campaign.category is not equal to "Banner 2"');
       assert.ok(event.campaign.description === 'Lorem ipsum', 'campaign.category is not equal to "Lorem ipsum"');
+      assert.ok(_digitalData.campaigns[0].category === 'Banner', 'digitalData.campaigns[0].category is not equal to "Banner"');
+    });
+
+    it('should enrich campaign array by id', () => {
+      const event = {
+        name: 'Viewed Campaign',
+        category: 'Promo',
+        campaign: ['123', '234']
+      };
+
+      event.campaign = EventDataEnricher.campaign(event.campaign, _digitalData);
+
+      assert.ok(event.name);
+      assert.ok(event.category);
+      assert.ok(event.campaign);
+      assert.ok(event.campaign[0].id === '123', 'campaign.id is not equal to "123"');
+      assert.ok(event.campaign[0].name === 'Campaign 1', 'campaign.name is not equal to "Campaign 1"');
+      assert.ok(event.campaign[1].id === '234', 'campaign.id is not equal to "123"');
+      assert.ok(event.campaign[1].name === 'Campaign 2', 'campaign.name is not equal to "Campaign 1"');
+    });
+
+    it('should enrich campaign array by campaign.id', () => {
+      const event = {
+        name: 'Viewed Campaign',
+        category: 'Promo',
+        campaign: [
+          {
+            id: '123',
+            category: 'Banner 2',
+            description: 'Lorem ipsum'
+          },
+          {
+            id: '234',
+            category: 'Banner 2',
+            description: 'Lorem ipsum'
+          }
+        ]
+      };
+
+      event.campaign = EventDataEnricher.campaign(event.campaign, _digitalData);
+
+      assert.ok(event.name);
+      assert.ok(event.category);
+      assert.ok(event.campaign);
+      assert.ok(event.campaign[0].id === '123', 'campaign.id is is not equal to "123"');
+      assert.ok(event.campaign[0].name === 'Campaign 1', 'campaign.name is not equal to "Campaign 1"');
+      assert.ok(event.campaign[0].category === 'Banner 2', 'campaign.category is not equal to "Banner 2"');
+      assert.ok(event.campaign[0].description === 'Lorem ipsum', 'campaign.category is not equal to "Lorem ipsum"');
+      assert.ok(event.campaign[1].id === '234', 'campaign.id is is not equal to "123"');
+      assert.ok(event.campaign[1].name === 'Campaign 2', 'campaign.name is not equal to "Campaign 1"');
+      assert.ok(event.campaign[1].category === 'Banner 2', 'campaign.category is not equal to "Banner 2"');
+      assert.ok(event.campaign[1].description === 'Lorem ipsum', 'campaign.category is not equal to "Lorem ipsum"');
       assert.ok(_digitalData.campaigns[0].category === 'Banner', 'digitalData.campaigns[0].category is not equal to "Banner"');
     });
 

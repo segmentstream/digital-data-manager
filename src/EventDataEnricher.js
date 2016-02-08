@@ -3,26 +3,39 @@ import DDHelper from './DDHelper.js';
 
 class EventDataEnricher
 {
-  static product(product, digitalData) {
-    product = product || {};
+  static product(productArr, digitalData) {
+    productArr = productArr || [];
     let productId;
-    if (type(product) === 'object') {
-      productId = product.id;
-    } else {
-      productId = product;
-      product = {
-        id: productId,
-      };
+    let returnArray = true;
+    if (!Array.isArray(productArr)) {
+      returnArray = false;
+      productArr = [productArr];
     }
 
-    if (productId) {
-      const ddlProduct = DDHelper.getProduct(productId, digitalData) || {};
-      if (ddlProduct) {
-        product = Object.assign(ddlProduct, product);
+    const result = [];
+    for (let product of productArr) {
+      if (type(product) === 'object') {
+        productId = product.id;
+      } else {
+        productId = product;
+        product = {
+          id: productId,
+        };
       }
+
+      if (productId) {
+        const ddlProduct = DDHelper.getProduct(productId, digitalData) || {};
+        if (ddlProduct) {
+          product = Object.assign(ddlProduct, product);
+        }
+      }
+      result.push(product);
     }
 
-    return product;
+    if (!returnArray) {
+      return result.pop();
+    }
+    return result;
   }
 
   static transaction(transaction, digitalData) {
@@ -35,26 +48,39 @@ class EventDataEnricher
     return transaction;
   }
 
-  static campaign(campaign, digitalData) {
-    campaign = campaign || {};
+  static campaign(campaignArr, digitalData) {
+    campaignArr = campaignArr || [];
     let campaignId;
-    if (type(campaign) === 'object') {
-      campaignId = campaign.id;
-    } else {
-      campaignId = campaign;
-      campaign = {
-        id: campaignId,
-      };
+    let returnArray = true;
+    if (!Array.isArray(campaignArr)) {
+      returnArray = false;
+      campaignArr = [campaignArr];
     }
 
-    if (campaignId) {
-      const ddlCampaign = DDHelper.getCampaign(campaignId, digitalData) || {};
-      if (ddlCampaign) {
-        campaign = Object.assign(ddlCampaign, campaign);
+    const result = [];
+    for (let campaign of campaignArr) {
+      if (type(campaign) === 'object') {
+        campaignId = campaign.id;
+      } else {
+        campaignId = campaign;
+        campaign = {
+          id: campaignId,
+        };
       }
+
+      if (campaignId) {
+        const ddlCampaign = DDHelper.getCampaign(campaignId, digitalData) || {};
+        if (ddlCampaign) {
+          campaign = Object.assign(ddlCampaign, campaign);
+        }
+      }
+      result.push(campaign);
     }
 
-    return campaign;
+    if (!returnArray) {
+      return result.pop();
+    }
+    return result;
   }
 
   static user(user, digitalData) {

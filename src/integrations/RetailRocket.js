@@ -10,6 +10,7 @@ class RetailRocket extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       partnerId: '',
+      trackProducts: true,
       trackAllEmails: false,
     }, options);
 
@@ -63,16 +64,22 @@ class RetailRocket extends Integration {
   }
 
   trackEvent(event) {
-    if (event.name === 'Viewed Product Category') {
-      this.onViewedProductCategory(event.page);
-    } else if (event.name === 'Added Product') {
-      this.onAddedProduct(event.product);
-    } else if (event.name === 'Viewed Product Detail') {
-      this.onViewedProductDetail(event.product);
-    } else if (event.name === 'Completed Transaction') {
-      this.onCompletedTransaction(event.transaction);
-    } else if (event.name === 'Subscribed') {
-      this.onSubscribed(event.user);
+    if (this.getOption('trackProducts')) {
+      if (event.name === 'Viewed Product Category') {
+        this.onViewedProductCategory(event.page);
+      } else if (event.name === 'Added Product') {
+        this.onAddedProduct(event.product);
+      } else if (event.name === 'Viewed Product Detail') {
+        this.onViewedProductDetail(event.product);
+      } else if (event.name === 'Completed Transaction') {
+        this.onCompletedTransaction(event.transaction);
+      } else if (event.name === 'Subscribed') {
+        this.onSubscribed(event.user);
+      }
+    } else {
+      if (event.name === 'Subscribed') {
+        this.onSubscribed(event.user);
+      }
     }
   }
 

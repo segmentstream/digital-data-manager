@@ -982,6 +982,62 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
+        it('should send viewed product data array', function() {
+          window.digitalData.events.push({
+            name: 'Viewed Product',
+            category: 'Ecommerce',
+            product: [
+              {
+                currency: 'CAD',
+                unitPrice: 24.75,
+                name: 'my product',
+                category: 'cat 1',
+                skuCode: 'p-298',
+                listName: 'search results',
+                position: 2
+              },
+              {
+                currency: 'CAD',
+                unitPrice: 24.75,
+                name: 'my product',
+                category: 'cat 1',
+                skuCode: 'p-299',
+                listName: 'search results',
+                position: 2
+              }
+            ],
+            listName: 'search results',
+            callback: () => {
+              assert.equal(window.ga.args.length, 6);
+              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addImpression', {
+                id: 'p-298',
+                name: 'my product',
+                list: 'search results',
+                category: 'cat 1',
+                brand: undefined,
+                price: 24.75,
+                currency: 'CAD',
+                variant: undefined,
+                position: 2,
+              }]);
+              assert.deepEqual(argumentsToArray(window.ga.args[3]), ['set', '&cu', 'CAD']);
+              assert.deepEqual(argumentsToArray(window.ga.args[4]), ['ec:addImpression', {
+                id: 'p-299',
+                name: 'my product',
+                list: 'search results',
+                category: 'cat 1',
+                brand: undefined,
+                price: 24.75,
+                currency: 'CAD',
+                variant: undefined,
+                position: 2,
+              }]);
+              assert.deepEqual(window.ga.args[5], ['send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
         it('should send viewed product data from DDL', function() {
           window.digitalData.listing = {
             listName: 'search results',
@@ -1028,6 +1084,64 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
+        it('should send viewed product data from DDL', function() {
+          window.digitalData.listing = {
+            listName: 'search results',
+            items: [
+              {
+                id: 'p-298',
+                currency: 'CAD',
+                unitPrice: 24.75,
+                name: 'my product',
+                category: 'cat 1',
+                skuCode: 'p-298',
+              },
+              {
+                id: 'p-299',
+                currency: 'CAD',
+                unitPrice: 24.75,
+                name: 'my other product',
+                category: 'cat 1',
+                skuCode: 'p-299',
+              }
+            ]
+          };
+          window.digitalData.events.push({
+            name: 'Viewed Product',
+            category: 'Ecommerce',
+            product: ['p-298', 'p-299'],
+            listName: 'search results',
+            callback: () => {
+              assert.equal(window.ga.args.length, 6);
+              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addImpression', {
+                id: 'p-298',
+                name: 'my product',
+                list: 'search results',
+                category: 'cat 1',
+                brand: undefined,
+                price: 24.75,
+                currency: 'CAD',
+                variant: undefined,
+                position: 1,
+              }]);
+              assert.deepEqual(argumentsToArray(window.ga.args[3]), ['set', '&cu', 'CAD']);
+              assert.deepEqual(argumentsToArray(window.ga.args[4]), ['ec:addImpression', {
+                id: 'p-299',
+                name: 'my other product',
+                list: 'search results',
+                category: 'cat 1',
+                brand: undefined,
+                price: 24.75,
+                currency: 'CAD',
+                variant: undefined,
+                position: 2,
+              }]);
+              assert.deepEqual(window.ga.args[5], ['send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
         it('should send viewed promotion data', function() {
           window.digitalData.events.push({
             name: 'Viewed Campaign',
@@ -1048,6 +1162,44 @@ describe('Integrations: GoogleAnalytics', () => {
                 position: 'banner_slot1'
               }]);
               assert.deepEqual(window.ga.args[3], ['send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send viewed promotion data array', function() {
+          window.digitalData.events.push({
+            name: 'Viewed Campaign',
+            category: 'Promo',
+            campaign: [
+              {
+                id: 'PROMO_1234',
+                name: 'Summer Sale',
+                design: 'summer_banner2',
+                position: 'banner_slot1'
+              },
+              {
+                id: 'PROMO_2345',
+                name: 'Summer Sale',
+                design: 'summer_banner2',
+                position: 'banner_slot1'
+              }
+            ],
+            callback: () => {
+              assert.equal(window.ga.args.length, 5);
+              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'USD']);
+              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addPromo', {
+                id: 'PROMO_1234',
+                name: 'Summer Sale',
+                creative: 'summer_banner2',
+                position: 'banner_slot1'
+              }]);
+              assert.deepEqual(argumentsToArray(window.ga.args[3]), ['ec:addPromo', {
+                id: 'PROMO_2345',
+                name: 'Summer Sale',
+                creative: 'summer_banner2',
+                position: 'banner_slot1'
+              }]);
+              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }]);
             }
           });
         });
@@ -1073,6 +1225,45 @@ describe('Integrations: GoogleAnalytics', () => {
                 position: 'banner_slot1'
               }]);
               assert.deepEqual(window.ga.args[3], ['send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send viewed promotion data from DDL', function() {
+          window.digitalData.campaigns = [
+            {
+              id: 'PROMO_1234',
+              name: 'Summer Sale',
+              design: 'summer_banner2',
+              position: 'banner_slot1'
+            },
+            {
+              id: 'PROMO_2345',
+              name: 'Summer Sale',
+              design: 'summer_banner2',
+              position: 'banner_slot1'
+            }
+          ];
+          window.digitalData.events.push({
+            name: 'Viewed Campaign',
+            category: 'Promo',
+            campaign: ['PROMO_1234', 'PROMO_2345'],
+            callback: () => {
+              assert.equal(window.ga.args.length, 5);
+              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'USD']);
+              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addPromo', {
+                id: 'PROMO_1234',
+                name: 'Summer Sale',
+                creative: 'summer_banner2',
+                position: 'banner_slot1'
+              }]);
+              assert.deepEqual(argumentsToArray(window.ga.args[3]), ['ec:addPromo', {
+                id: 'PROMO_2345',
+                name: 'Summer Sale',
+                creative: 'summer_banner2',
+                position: 'banner_slot1'
+              }]);
+              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }]);
             }
           });
         });
