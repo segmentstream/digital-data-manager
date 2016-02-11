@@ -101,7 +101,7 @@ function _prepareGlobals() {
 
 const ddManager = {
 
-  VERSION: '1.0.2',
+  VERSION: '1.0.3',
 
   setAvailableIntegrations: (availableIntegrations) => {
     _availableIntegrations = availableIntegrations;

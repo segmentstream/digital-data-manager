@@ -6542,7 +6542,7 @@ function _prepareGlobals() {
 
 var ddManager = {
 
-  VERSION: '1.0.2',
+  VERSION: '1.0.3',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -7652,28 +7652,6 @@ function _inherits(subClass, superClass) {
   }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
 }
 
-function enhancedEcommerceTrackProduct(product, quantity) {
-  var gaProduct = {
-    id: product.id || product.skuCode,
-    name: product.name,
-    category: product.category,
-    quantity: quantity,
-    price: product.unitSalePrice || product.unitPrice,
-    brand: product.brand || product.manufacturer,
-    variant: product.variant,
-    currency: product.currency
-  };
-  // append coupon if it set
-  // https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#measuring-transactions
-  if (product.voucher) gaProduct.coupon = product.voucher;
-  window.ga('ec:addProduct', gaProduct);
-}
-
-function enhancedEcommerceProductAction(event, action, data) {
-  enhancedEcommerceTrackProduct(event.product, event.quantity);
-  window.ga('ec:setAction', action, data || {});
-}
-
 function getTransactionVoucher(transaction) {
   var voucher = undefined;
   if (Array.isArray(transaction.vouchers)) {
@@ -7735,7 +7713,8 @@ var GoogleAnalytics = (function (_Integration) {
       defaultCurrency: 'USD',
       metrics: {},
       dimensions: {},
-      contentGroupings: {}
+      contentGroupings: {},
+      namespace: undefined
     }, options);
 
     var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
@@ -7758,12 +7737,14 @@ var GoogleAnalytics = (function (_Integration) {
       this.pageCalled = false;
 
       // setup the tracker globals
-      window.GoogleAnalyticsObject = 'ga';
-      window.ga = window.ga || function ga() {
-        window.ga.q = window.ga.q || [];
-        window.ga.q.push(arguments);
-      };
-      window.ga.l = new Date().getTime();
+      if (!window.ga) {
+        window.GoogleAnalyticsObject = 'ga';
+        window.ga = window.ga || function ga() {
+          window.ga.q = window.ga.q || [];
+          window.ga.q.push(arguments);
+        };
+        window.ga.l = new Date().getTime();
+      }
 
       if (window.location.hostname === 'localhost') {
         this.setOption('domain', 'none');
@@ -7773,35 +7754,47 @@ var GoogleAnalytics = (function (_Integration) {
         // Fall back on default to protect against empty string
         cookieDomain: this.getOption('domain'),
         siteSpeedSampleRate: this.getOption('siteSpeedSampleRate'),
-        allowLinker: true
+        allowLinker: true,
+        name: this.getOption('namespace')
       });
 
       // display advertising
       if (this.getOption('doubleClick')) {
-        window.ga('require', 'displayfeatures');
+        this.ga('require', 'displayfeatures');
       }
       // https://support.google.com/analytics/answer/2558867?hl=en
       if (this.getOption('enhancedLinkAttribution')) {
-        window.ga('require', 'linkid', 'linkid.js');
+        this.ga('require', 'linkid', 'linkid.js');
       }
 
       // send global id
       var userId = this.get('user.id');
       if (this.getOption('sendUserId') && userId) {
-        window.ga('set', 'userId', userId);
+        this.ga('set', 'userId', userId);
       }
 
       // anonymize after initializing, otherwise a warning is shown
       // in google analytics debugger
-      if (this.getOption('anonymizeIp')) window.ga('set', 'anonymizeIp', true);
+      if (this.getOption('anonymizeIp')) this.ga('set', 'anonymizeIp', true);
 
       // custom dimensions & metrics
       var custom = this.getCustomDimensions();
-      if ((0, _size2['default'])(custom)) window.ga('set', custom);
+      if ((0, _size2['default'])(custom)) this.ga('set', custom);
 
       this.load(this.ready);
     } else {
       this.ready();
+    }
+  };
+
+  GoogleAnalytics.prototype.ga = function ga() {
+    if (!this.getOption('namespace')) {
+      window.ga.apply(window, arguments);
+    } else {
+      if (arguments[0]) {
+        arguments[0] = this.getOption('namespace') + '.' + arguments[0];
+      }
+      window.ga.apply(window, arguments);
     }
   };
 
@@ -7832,12 +7825,12 @@ var GoogleAnalytics = (function (_Integration) {
 
   GoogleAnalytics.prototype.loadEnhancedEcommerce = function loadEnhancedEcommerce(currency) {
     if (!this.enhancedEcommerceLoaded) {
-      window.ga('require', 'ec');
+      this.ga('require', 'ec');
       this.enhancedEcommerceLoaded = true;
     }
 
     // Ensure we set currency for every hit
-    window.ga('set', '&cu', currency || this.getOption('defaultCurrency'));
+    this.ga('set', '&cu', currency || this.getOption('defaultCurrency'));
   };
 
   GoogleAnalytics.prototype.pushEnhancedEcommerce = function pushEnhancedEcommerce(event) {
@@ -7867,7 +7860,7 @@ var GoogleAnalytics = (function (_Integration) {
       }
     }
 
-    window.ga.apply(window, cleanedArgs);
+    this.ga.apply(this, cleanedArgs);
   };
 
   GoogleAnalytics.prototype.trackEvent = function trackEvent(event) {
@@ -7936,7 +7929,7 @@ var GoogleAnalytics = (function (_Integration) {
     if (campaign.term) pageview.campaignKeyword = campaign.term;
 
     // set
-    window.ga('set', {
+    this.ga('set', {
       page: pagePath,
       title: pageTitle
     });
@@ -7946,7 +7939,7 @@ var GoogleAnalytics = (function (_Integration) {
     }
 
     // send
-    window.ga('send', 'pageview', pageview);
+    this.ga('send', 'pageview', pageview);
 
     this.pageCalled = true;
   };
@@ -7975,7 +7968,7 @@ var GoogleAnalytics = (function (_Integration) {
         continue;
       }
       this.loadEnhancedEcommerce(product.currency);
-      window.ga('ec:addImpression', {
+      this.ga('ec:addImpression', {
         id: product.id || product.skuCode,
         name: product.name,
         list: product.listName,
@@ -7994,7 +7987,7 @@ var GoogleAnalytics = (function (_Integration) {
   GoogleAnalytics.prototype.onClickedProduct = function onClickedProduct(event) {
     var product = event.product;
     this.loadEnhancedEcommerce(product.currency);
-    enhancedEcommerceProductAction(event, 'click', {
+    this.enhancedEcommerceProductAction(event, 'click', {
       list: product.listName
     });
     this.pushEnhancedEcommerce(event);
@@ -8003,37 +7996,39 @@ var GoogleAnalytics = (function (_Integration) {
   GoogleAnalytics.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
     var product = event.product;
     this.loadEnhancedEcommerce(product.currency);
-    enhancedEcommerceProductAction(event, 'detail');
+    this.enhancedEcommerceProductAction(event, 'detail');
     this.pushEnhancedEcommerce(event);
   };
 
   GoogleAnalytics.prototype.onAddedProduct = function onAddedProduct(event) {
     var product = event.product;
     this.loadEnhancedEcommerce(product.currency);
-    enhancedEcommerceProductAction(event, 'add');
+    this.enhancedEcommerceProductAction(event, 'add');
     this.pushEnhancedEcommerce(event);
   };
 
   GoogleAnalytics.prototype.onRemovedProduct = function onRemovedProduct(event) {
     var product = event.product;
     this.loadEnhancedEcommerce(product.currency);
-    enhancedEcommerceProductAction(event, 'remove');
+    this.enhancedEcommerceProductAction(event, 'remove');
     this.pushEnhancedEcommerce(event);
   };
 
   GoogleAnalytics.prototype.onCompletedTransaction = function onCompletedTransaction(event) {
+    var _this2 = this;
+
     var transaction = event.transaction;
     // orderId is required.
     if (!transaction || !transaction.orderId) return;
 
     // require ecommerce
     if (!this.ecommerce) {
-      window.ga('require', 'ecommerce');
+      this.ga('require', 'ecommerce');
       this.ecommerce = true;
     }
 
     // add transaction
-    window.ga('ecommerce:addTransaction', {
+    this.ga('ecommerce:addTransaction', {
       id: transaction.orderId,
       affiliation: transaction.affiliation,
       shipping: transaction.shippingCost,
@@ -8043,10 +8038,10 @@ var GoogleAnalytics = (function (_Integration) {
     });
 
     // add products
-    (0, _each2['default'])(transaction.lineItems, function addProduct(key, lineItem) {
+    (0, _each2['default'])(transaction.lineItems, function (key, lineItem) {
       var product = lineItem.product;
       if (product) {
-        window.ga('ecommerce:addItem', {
+        _this2.ga('ecommerce:addItem', {
           id: transaction.orderId,
           category: product.category,
           quantity: lineItem.quantity,
@@ -8059,10 +8054,12 @@ var GoogleAnalytics = (function (_Integration) {
     });
 
     // send
-    window.ga('ecommerce:send');
+    this.ga('ecommerce:send');
   };
 
   GoogleAnalytics.prototype.onCompletedTransactionEnhanced = function onCompletedTransactionEnhanced(event) {
+    var _this3 = this;
+
     var transaction = event.transaction;
 
     // orderId is required.
@@ -8070,16 +8067,16 @@ var GoogleAnalytics = (function (_Integration) {
 
     this.loadEnhancedEcommerce(transaction.currency);
 
-    (0, _each2['default'])(transaction.lineItems, function addProduct(key, lineItem) {
+    (0, _each2['default'])(transaction.lineItems, function (key, lineItem) {
       var product = lineItem.product;
       if (product) {
-        product.currency = product.currency || transaction.currency || this.getOption('defaultCurrency');
-        enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
+        product.currency = product.currency || transaction.currency || _this3.getOption('defaultCurrency');
+        _this3.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
       }
     });
 
     var voucher = getTransactionVoucher(transaction);
-    window.ga('ec:setAction', 'purchase', {
+    this.ga('ec:setAction', 'purchase', {
       id: transaction.orderId,
       affiliation: transaction.affiliation,
       revenue: transaction.total || transaction.subtotal || 0,
@@ -8092,22 +8089,23 @@ var GoogleAnalytics = (function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onRefundedTransaction = function onRefundedTransaction(event) {
+    var _this4 = this;
+
     var transaction = event.transaction;
 
     // orderId is required.
     if (!transaction || !transaction.orderId) return;
-
     this.loadEnhancedEcommerce(transaction.currency);
 
-    (0, _each2['default'])(transaction.lineItems, function addProduct(key, lineItem) {
+    (0, _each2['default'])(transaction.lineItems, function (key, lineItem) {
       var product = lineItem.product;
       if (product) {
-        product.currency = product.currency || transaction.currency || this.getOption('defaultCurrency');
-        enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
+        product.currency = product.currency || transaction.currency || _this4.getOption('defaultCurrency');
+        _this4.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
       }
     });
 
-    window.ga('ec:setAction', 'refund', {
+    this.ga('ec:setAction', 'refund', {
       id: transaction.orderId
     });
 
@@ -8140,7 +8138,7 @@ var GoogleAnalytics = (function (_Integration) {
         continue;
       }
 
-      window.ga('ec:addPromo', {
+      this.ga('ec:addPromo', {
         id: campaign.id,
         name: campaign.name,
         creative: campaign.design || campaign.creative,
@@ -8159,30 +8157,32 @@ var GoogleAnalytics = (function (_Integration) {
     }
 
     this.loadEnhancedEcommerce();
-    window.ga('ec:addPromo', {
+    this.ga('ec:addPromo', {
       id: campaign.id,
       name: campaign.name,
       creative: campaign.design || campaign.creative,
       position: campaign.position
     });
-    window.ga('ec:setAction', 'promo_click', {});
+    this.ga('ec:setAction', 'promo_click', {});
     this.pushEnhancedEcommerce(event);
   };
 
   GoogleAnalytics.prototype.onViewedCheckoutStep = function onViewedCheckoutStep(event) {
+    var _this5 = this;
+
     var cartOrTransaction = this.get('cart') || this.get('transaction');
 
     this.loadEnhancedEcommerce(cartOrTransaction.currency);
 
-    (0, _each2['default'])(cartOrTransaction.lineItems, function addProduct(key, lineItem) {
+    (0, _each2['default'])(cartOrTransaction.lineItems, function (key, lineItem) {
       var product = lineItem.product;
       if (product) {
-        product.currency = product.currency || cartOrTransaction.currency || this.getOption('defaultCurrency');
-        enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
+        product.currency = product.currency || cartOrTransaction.currency || _this5.getOption('defaultCurrency');
+        _this5.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
       }
     });
 
-    window.ga('ec:setAction', 'checkout', {
+    this.ga('ec:setAction', 'checkout', {
       step: event.step || 1,
       option: getCheckoutOptions(event) || undefined
     });
@@ -8200,7 +8200,7 @@ var GoogleAnalytics = (function (_Integration) {
 
     this.loadEnhancedEcommerce(cartOrTransaction.currency);
 
-    window.ga('ec:setAction', 'checkout_option', {
+    this.ga('ec:setAction', 'checkout_option', {
       step: event.step,
       option: options
     });
@@ -8216,7 +8216,7 @@ var GoogleAnalytics = (function (_Integration) {
     (0, _deleteProperty2['default'])(source, 'name');
     (0, _deleteProperty2['default'])(source, 'category');
     var custom = this.getCustomDimensions(source);
-    if ((0, _size2['default'])(custom)) window.ga('set', custom);
+    if ((0, _size2['default'])(custom)) this.ga('set', custom);
 
     var payload = {
       eventAction: event.name || 'event',
@@ -8232,7 +8232,29 @@ var GoogleAnalytics = (function (_Integration) {
     if (campaign.content) payload.campaignContent = campaign.content;
     if (campaign.term) payload.campaignKeyword = campaign.term;
 
-    window.ga('send', 'event', payload);
+    this.ga('send', 'event', payload);
+  };
+
+  GoogleAnalytics.prototype.enhancedEcommerceTrackProduct = function enhancedEcommerceTrackProduct(product, quantity) {
+    var gaProduct = {
+      id: product.id || product.skuCode,
+      name: product.name,
+      category: product.category,
+      quantity: quantity,
+      price: product.unitSalePrice || product.unitPrice,
+      brand: product.brand || product.manufacturer,
+      variant: product.variant,
+      currency: product.currency
+    };
+    // append coupon if it set
+    // https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#measuring-transactions
+    if (product.voucher) gaProduct.coupon = product.voucher;
+    this.ga('ec:addProduct', gaProduct);
+  };
+
+  GoogleAnalytics.prototype.enhancedEcommerceProductAction = function enhancedEcommerceProductAction(event, action, data) {
+    this.enhancedEcommerceTrackProduct(event.product, event.quantity);
+    this.ga('ec:setAction', action, data || {});
   };
 
   return GoogleAnalytics;

@@ -76,7 +76,8 @@ describe('Integrations: GoogleAnalytics', () => {
           assert.deepEqual(argumentsToArray(window.ga.q[0]), ['create', options.trackingId, {
             cookieDomain: 'none',
             siteSpeedSampleRate: options.siteSpeedSampleRate,
-            allowLinker: true
+            allowLinker: true,
+            name: undefined
           }]);
         });
 
@@ -1724,6 +1725,63 @@ describe('Integrations: GoogleAnalytics', () => {
                 id: '780bc55'
               }]);
               assert.deepEqual(window.ga.args[5], ['send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: 1 }]);
+            }
+          });
+        });
+      });
+    });
+  });
+
+  describe('Universal with custom namespace', function() {
+    let ga;
+    let options = {
+      enhancedEcommerce: true,
+      trackingId: 'UA-51485228-7',
+      anonymizeIp: true,
+      domain: 'none',
+      defaultCurrency: 'USD',
+      siteSpeedSampleRate: 42,
+      namespace: 'ddl'
+    };
+
+    beforeEach(() => {
+      window.digitalData = {
+        events: []
+      };
+      ga = new GoogleAnalytics(window.digitalData, options);
+      ddManager.addIntegration(ga);
+    });
+
+    afterEach(() => {
+      ga.reset();
+      ddManager.reset();
+      reset();
+    });
+
+    describe('after loading', function () {
+      beforeEach((done) => {
+        ddManager.once('ready', done);
+        ddManager.initialize({
+          autoEvents: false
+        });
+      });
+
+      describe('enhanced ecommerce', function () {
+        beforeEach(function () {
+          sinon.stub(window, 'ga');
+        });
+
+        it('should use custom namespace in requests', (done) => {
+          window.digitalData.events.push({
+            callback: () => {
+              assert.ok(window.ga.calledWith('ddl.send', 'event', {
+                eventCategory: 'All',
+                eventAction: 'event',
+                eventLabel: undefined,
+                eventValue: 0,
+                nonInteraction: false
+              }));
+              done();
             }
           });
         });
