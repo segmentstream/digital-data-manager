@@ -1741,7 +1741,8 @@ describe('Integrations: GoogleAnalytics', () => {
       domain: 'none',
       defaultCurrency: 'USD',
       siteSpeedSampleRate: 42,
-      namespace: 'ddl'
+      namespace: 'ddl',
+      trackOnlyCustomEvents: true
     };
 
     beforeEach(() => {
@@ -1771,12 +1772,52 @@ describe('Integrations: GoogleAnalytics', () => {
           sinon.stub(window, 'ga');
         });
 
+        afterEach(function () {
+          window.ga.restore();
+        });
+
         it('should use custom namespace in requests', (done) => {
           window.digitalData.events.push({
+            name: 'Test',
+            category: 'Test',
             callback: () => {
               assert.ok(window.ga.calledWith('ddl.send', 'event', {
-                eventCategory: 'All',
-                eventAction: 'event',
+                eventCategory: 'Test',
+                eventAction: 'Test',
+                eventLabel: undefined,
+                eventValue: 0,
+                nonInteraction: false
+              }));
+              done();
+            }
+          });
+        });
+
+        it('should not track View Page semantic event', (done) => {
+          window.digitalData.events.push({
+            name: 'Viewed Page',
+            category: 'Content',
+            callback: () => {
+              assert.ok(!window.ga.calledWith('ddl.send', 'event', {
+                eventCategory: 'Content',
+                eventAction: 'Viewed Page',
+                eventLabel: undefined,
+                eventValue: 0,
+                nonInteraction: false
+              }));
+              done();
+            }
+          });
+        });
+
+        it('should not track View Product semantic event', (done) => {
+          window.digitalData.events.push({
+            name: 'Viewed Product',
+            category: 'Ecommerce',
+            callback: () => {
+              assert.ok(!window.ga.calledWith('ddl.send', 'event', {
+                eventCategory: 'Ecommerce',
+                eventAction: 'Viewed Product',
                 eventLabel: undefined,
                 eventValue: 0,
                 nonInteraction: false

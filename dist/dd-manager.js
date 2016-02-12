@@ -7864,7 +7864,7 @@ var GoogleAnalytics = (function (_Integration) {
   };
 
   GoogleAnalytics.prototype.trackEvent = function trackEvent(event) {
-    if (this.getOption('trackOnlyCustomEvents')) {
+    if (this.getOption('trackOnlyCustomEvents') && ['Viewed Page', 'Viewed Product', 'Clicked Product', 'Viewed Product Detail', 'Added Product', 'Removed Product', 'Completed Transaction', 'Refunded Transaction', 'Viewed Product Category', 'Viewed Checkout Step', 'Completed Checkout Step'].indexOf(event.name) < 0) {
       this.onCustomEvent(event);
     } else {
       if (event.name === 'Viewed Page') {

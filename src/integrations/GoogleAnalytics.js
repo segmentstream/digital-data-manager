@@ -92,7 +92,7 @@ class GoogleAnalytics extends Integration {
         cookieDomain: this.getOption('domain'),
         siteSpeedSampleRate: this.getOption('siteSpeedSampleRate'),
         allowLinker: true,
-        name: this.getOption('namespace')
+        name: this.getOption('namespace'),
       });
 
       // display advertising
@@ -201,7 +201,19 @@ class GoogleAnalytics extends Integration {
   }
 
   trackEvent(event) {
-    if (this.getOption('trackOnlyCustomEvents')) {
+    if (this.getOption('trackOnlyCustomEvents') && [
+      'Viewed Page',
+      'Viewed Product',
+      'Clicked Product',
+      'Viewed Product Detail',
+      'Added Product',
+      'Removed Product',
+      'Completed Transaction',
+      'Refunded Transaction',
+      'Viewed Product Category',
+      'Viewed Checkout Step',
+      'Completed Checkout Step',
+    ].indexOf(event.name) < 0) {
       this.onCustomEvent(event);
     } else {
       if (event.name === 'Viewed Page') {
@@ -415,7 +427,7 @@ class GoogleAnalytics extends Integration {
     if (!transaction || !transaction.orderId) return;
     this.loadEnhancedEcommerce(transaction.currency);
 
-    each(transaction.lineItems,  (key, lineItem) => {
+    each(transaction.lineItems, (key, lineItem) => {
       const product = lineItem.product;
       if (product) {
         product.currency = product.currency || transaction.currency || this.getOption('defaultCurrency');
