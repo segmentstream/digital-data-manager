@@ -6542,7 +6542,7 @@ function _prepareGlobals() {
 
 var ddManager = {
 
-  VERSION: '1.0.3',
+  VERSION: '1.0.4',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
