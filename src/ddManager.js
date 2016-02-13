@@ -101,7 +101,7 @@ function _prepareGlobals() {
 
 const ddManager = {
 
-  VERSION: '1.0.3',
+  VERSION: '1.0.4',
 
   setAvailableIntegrations: (availableIntegrations) => {
     _availableIntegrations = availableIntegrations;
@@ -199,7 +199,7 @@ const ddManager = {
 
     if (size(_integrations) > 0) {
       each(_integrations, (name, integration) => {
-        if (!integration.isLoaded()) {
+        if (!integration.isLoaded() || integration.getOption('noConflict')) {
           integration.once('ready', ready);
           integration.initialize();
         } else {
