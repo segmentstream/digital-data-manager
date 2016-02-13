@@ -1732,18 +1732,38 @@ describe('Integrations: GoogleAnalytics', () => {
     });
   });
 
-  describe('Universal with custom namespace', function() {
+  describe('Universal with noConflict', function() {
+
     let ga;
     let options = {
       enhancedEcommerce: true,
       trackingId: 'UA-51485228-7',
-      anonymizeIp: true,
       domain: 'none',
       defaultCurrency: 'USD',
       siteSpeedSampleRate: 42,
       namespace: 'ddl',
-      trackOnlyCustomEvents: true
+      trackOnlyCustomEvents: true,
+      noConflict: true
     };
+
+    function loadGA(callback) {
+      //load GA
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      window.ga('create', 'UA-51485228-7', {
+        // Fall back on default to protect against empty string
+        cookieDomain: 'auto',
+        name: 'gtm.123',
+      });
+      window.ga('send', 'pageview');
+
+      window.ga(() => {
+        callback();
+      });
+    }
 
     beforeEach(() => {
       window.digitalData = {
@@ -1761,18 +1781,21 @@ describe('Integrations: GoogleAnalytics', () => {
 
     describe('after loading', function () {
       beforeEach((done) => {
-        ddManager.once('ready', done);
-        ddManager.initialize({
-          autoEvents: false
+        loadGA(() => {
+          ddManager.once('ready', done);
+          ddManager.initialize({
+            autoEvents: false
+          });
         });
       });
 
       describe('enhanced ecommerce', function () {
-        beforeEach(function () {
-          sinon.stub(window, 'ga');
+
+        beforeEach(() => {
+          sinon.spy(window, 'ga');
         });
 
-        afterEach(function () {
+        afterEach(() => {
           window.ga.restore();
         });
 
@@ -1781,13 +1804,8 @@ describe('Integrations: GoogleAnalytics', () => {
             name: 'Test',
             category: 'Test',
             callback: () => {
-              assert.ok(window.ga.calledWith('ddl.send', 'event', {
-                eventCategory: 'Test',
-                eventAction: 'Test',
-                eventLabel: undefined,
-                eventValue: 0,
-                nonInteraction: false
-              }));
+              assert.equal(2, window.ga.getAll().length);
+              assert.ok(window.ga.calledOnce);
               done();
             }
           });
@@ -1798,13 +1816,7 @@ describe('Integrations: GoogleAnalytics', () => {
             name: 'Viewed Page',
             category: 'Content',
             callback: () => {
-              assert.ok(!window.ga.calledWith('ddl.send', 'event', {
-                eventCategory: 'Content',
-                eventAction: 'Viewed Page',
-                eventLabel: undefined,
-                eventValue: 0,
-                nonInteraction: false
-              }));
+              assert.ok(!window.ga.called);
               done();
             }
           });
@@ -1815,13 +1827,7 @@ describe('Integrations: GoogleAnalytics', () => {
             name: 'Viewed Product',
             category: 'Ecommerce',
             callback: () => {
-              assert.ok(!window.ga.calledWith('ddl.send', 'event', {
-                eventCategory: 'Ecommerce',
-                eventAction: 'Viewed Product',
-                eventLabel: undefined,
-                eventValue: 0,
-                nonInteraction: false
-              }));
+              assert.ok(!window.ga.called);
               done();
             }
           });

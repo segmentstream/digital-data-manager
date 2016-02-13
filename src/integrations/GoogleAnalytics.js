@@ -53,6 +53,7 @@ class GoogleAnalytics extends Integration {
       dimensions: {},
       contentGroupings: {},
       namespace: undefined,
+      noConflict: false,
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -74,54 +75,60 @@ class GoogleAnalytics extends Integration {
       this.pageCalled = false;
 
       // setup the tracker globals
-      if (!window.ga) {
-        window.GoogleAnalyticsObject = 'ga';
-        window.ga = window.ga || function ga() {
-          window.ga.q = window.ga.q || [];
-          window.ga.q.push(arguments);
-        };
-        window.ga.l = new Date().getTime();
-      }
+      window.GoogleAnalyticsObject = 'ga';
+      window.ga = window.ga || function gaPlaceholder() {
+        window.ga.q = window.ga.q || [];
+        window.ga.q.push(arguments);
+      };
+      window.ga.l = new Date().getTime();
 
       if (window.location.hostname === 'localhost') {
         this.setOption('domain', 'none');
       }
 
-      window.ga('create', this.getOption('trackingId'), {
-        // Fall back on default to protect against empty string
-        cookieDomain: this.getOption('domain'),
-        siteSpeedSampleRate: this.getOption('siteSpeedSampleRate'),
-        allowLinker: true,
-        name: this.getOption('namespace'),
-      });
+      this.initializeTracker();
 
-      // display advertising
-      if (this.getOption('doubleClick')) {
-        this.ga('require', 'displayfeatures');
+      if (this.getOption('noConflict')) {
+        this.ready();
+      } else {
+        this.load(this.ready);
       }
-      // https://support.google.com/analytics/answer/2558867?hl=en
-      if (this.getOption('enhancedLinkAttribution')) {
-        this.ga('require', 'linkid', 'linkid.js');
-      }
-
-      // send global id
-      const userId = this.get('user.id');
-      if (this.getOption('sendUserId') && userId) {
-        this.ga('set', 'userId', userId);
-      }
-
-      // anonymize after initializing, otherwise a warning is shown
-      // in google analytics debugger
-      if (this.getOption('anonymizeIp')) this.ga('set', 'anonymizeIp', true);
-
-      // custom dimensions & metrics
-      const custom = this.getCustomDimensions();
-      if (size(custom)) this.ga('set', custom);
-
-      this.load(this.ready);
     } else {
       this.ready();
     }
+  }
+
+  initializeTracker() {
+    window.ga('create', this.getOption('trackingId'), {
+      // Fall back on default to protect against empty string
+      cookieDomain: this.getOption('domain'),
+      siteSpeedSampleRate: this.getOption('siteSpeedSampleRate'),
+      allowLinker: true,
+      name: this.getOption('namespace'),
+    });
+
+    // display advertising
+    if (this.getOption('doubleClick')) {
+      this.ga('require', 'displayfeatures');
+    }
+    // https://support.google.com/analytics/answer/2558867?hl=en
+    if (this.getOption('enhancedLinkAttribution')) {
+      this.ga('require', 'linkid', 'linkid.js');
+    }
+
+    // send global id
+    const userId = this.get('user.id');
+    if (this.getOption('sendUserId') && userId) {
+      this.ga('set', 'userId', userId);
+    }
+
+    // anonymize after initializing, otherwise a warning is shown
+    // in google analytics debugger
+    if (this.getOption('anonymizeIp')) this.ga('set', 'anonymizeIp', true);
+
+    // custom dimensions & metrics
+    const custom = this.getCustomDimensions();
+    if (size(custom)) this.ga('set', custom);
   }
 
   ga() {
@@ -201,20 +208,22 @@ class GoogleAnalytics extends Integration {
   }
 
   trackEvent(event) {
-    if (this.getOption('trackOnlyCustomEvents') && [
-      'Viewed Page',
-      'Viewed Product',
-      'Clicked Product',
-      'Viewed Product Detail',
-      'Added Product',
-      'Removed Product',
-      'Completed Transaction',
-      'Refunded Transaction',
-      'Viewed Product Category',
-      'Viewed Checkout Step',
-      'Completed Checkout Step',
-    ].indexOf(event.name) < 0) {
-      this.onCustomEvent(event);
+    if (this.getOption('trackOnlyCustomEvents')) {
+      if ([
+        'Viewed Page',
+        'Viewed Product',
+        'Clicked Product',
+        'Viewed Product Detail',
+        'Added Product',
+        'Removed Product',
+        'Completed Transaction',
+        'Refunded Transaction',
+        'Viewed Product Category',
+        'Viewed Checkout Step',
+        'Completed Checkout Step',
+      ].indexOf(event.name) < 0) {
+        this.onCustomEvent(event);
+      }
     } else {
       if (event.name === 'Viewed Page') {
         this.onViewedPage(event);
