@@ -136,7 +136,11 @@ const ddManager = {
    * Example:
    *
    * {
-   *    autoEvents: true,
+   *    autoEvents: {
+   *      trackDOMComponents: {
+   *        maxWebsiteWidth: 1024
+   *      }
+   *    },
    *    domain: 'example.com',
    *    sessionLength: 3600,
    *    integrations: {
@@ -152,7 +156,9 @@ const ddManager = {
   initialize: (settings) => {
     settings = Object.assign({
       domain: null,
-      autoEvents: true,
+      autoEvents: {
+        trackDOMComponents: false,
+      },
       sessionLength: 3600,
     }, settings);
 
@@ -175,8 +181,8 @@ const ddManager = {
 
     // initialize event manager
     _eventManager = new EventManager(_digitalData, _ddListener);
-    if (settings.autoEvents) {
-      _eventManager.setAutoEvents(new AutoEvents());
+    if (settings.autoEvents !== false) {
+      _eventManager.setAutoEvents(new AutoEvents(settings.autoEvents));
     }
 
     if (settings && typeof settings === 'object') {

@@ -1,5 +1,14 @@
+import DOMComponentsTracking from './DOMComponentsTracking.js';
+import type from 'component-type';
+
 class AutoEvents
 {
+  constructor(options) {
+    this.options = Object.assign({
+      trackDOMComponents: false,
+    }, options);
+  }
+
   setDigitalData(digitalData) {
     this.digitalData = digitalData;
   }
@@ -27,6 +36,16 @@ class AutoEvents
         this.ddListener.push(['on', 'change:transaction.orderId', (newOrderId, oldOrderId) => {
           this.onTransactionChange(newOrderId, oldOrderId);
         }]);
+      }
+
+      const trackDOMComponents = this.options.trackDOMComponents;
+      if (!!window.jQuery && trackDOMComponents !== false) {
+        const options = {};
+        if (type(trackDOMComponents) === 'object') {
+          options.maxWebsiteWidth = trackDOMComponents.maxWebsiteWidth;
+        }
+        this.domComponentsTracking = new DOMComponentsTracking(options);
+        this.domComponentsTracking.initialize();
       }
     }
   }
