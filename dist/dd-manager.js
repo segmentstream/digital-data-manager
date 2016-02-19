@@ -5186,6 +5186,18 @@ module.exports = uuid;
 
 exports.__esModule = true;
 
+var _DOMComponentsTracking = require('./DOMComponentsTracking.js');
+
+var _DOMComponentsTracking2 = _interopRequireDefault(_DOMComponentsTracking);
+
+var _componentType = require('component-type');
+
+var _componentType2 = _interopRequireDefault(_componentType);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
     throw new TypeError("Cannot call a class as a function");
@@ -5193,8 +5205,12 @@ function _classCallCheck(instance, Constructor) {
 }
 
 var AutoEvents = (function () {
-  function AutoEvents() {
+  function AutoEvents(options) {
     _classCallCheck(this, AutoEvents);
+
+    this.options = Object.assign({
+      trackDOMComponents: false
+    }, options);
   }
 
   AutoEvents.prototype.setDigitalData = function setDigitalData(digitalData) {
@@ -5226,6 +5242,16 @@ var AutoEvents = (function () {
         this.ddListener.push(['on', 'change:transaction.orderId', function (newOrderId, oldOrderId) {
           _this.onTransactionChange(newOrderId, oldOrderId);
         }]);
+      }
+
+      var trackDOMComponents = this.options.trackDOMComponents;
+      if (!!window.jQuery && trackDOMComponents !== false) {
+        var options = {};
+        if ((0, _componentType2['default'])(trackDOMComponents) === 'object') {
+          options.maxWebsiteWidth = trackDOMComponents.maxWebsiteWidth;
+        }
+        this.domComponentsTracking = new _DOMComponentsTracking2['default'](options);
+        this.domComponentsTracking.initialize();
       }
     }
   };
@@ -5303,7 +5329,7 @@ var AutoEvents = (function () {
 
 exports['default'] = AutoEvents;
 
-},{}],55:[function(require,module,exports){
+},{"./DOMComponentsTracking.js":56,"component-type":6}],55:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5427,7 +5453,303 @@ var DDHelper = (function () {
 
 exports['default'] = DDHelper;
 
-},{"./functions/getProperty.js":67,"component-clone":4}],56:[function(require,module,exports){
+},{"./functions/getProperty.js":68,"component-clone":4}],56:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+var _each = require('./functions/each.js');
+
+var _each2 = _interopRequireDefault(_each);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+/**
+ * Automatically tracks DOM components with proper data-attributes
+ *
+ * - data-ddl-viewed-product="<product_id>"
+ * - data-ddl-viewed-campaign="<campaign_id>"
+ * - data-ddl-clicked-product="<product_id>"
+ * - data-ddl-clicked-campaign="<campaign_id>"
+ */
+
+var DOMComponentsTracking = (function () {
+  function DOMComponentsTracking(options) {
+    _classCallCheck(this, DOMComponentsTracking);
+
+    this.options = Object.assign({
+      websiteMaxWidth: undefined
+    }, options);
+
+    this.viewedComponentIds = {
+      product: [],
+      campaign: []
+    };
+
+    this.$digitalDataComponents = {
+      product: {
+        view: undefined,
+        click: undefined
+      },
+      campaign: {
+        view: undefined,
+        click: undefined
+      }
+    };
+  }
+
+  DOMComponentsTracking.prototype.initialize = function initialize() {
+    var _this = this;
+
+    if (!window.jQuery) {
+      return;
+    }
+    // detect max website width
+    if (!this.options.websiteMaxWidth) {
+      var $body = window.jQuery('body');
+      this.options.websiteMaxWidth = $body.children('.container').first().width() || $body.children('div').first().width();
+    }
+
+    // add DDL listeners for dynamic ajax websites
+    window.ddListener.push(['on', 'change:listing', function () {
+      _this.removeClickHandlers(['product']);
+      _this.defineDigitalDataDomComponents(['product']);
+      _this.addClickHandlers(['product']);
+    }]);
+    window.ddListener.push(['on', 'change:recommendation', function () {
+      _this.removeClickHandlers(['product']);
+      _this.defineDigitalDataDomComponents(['product']);
+      _this.addClickHandlers(['product']);
+    }]);
+    window.ddListener.push(['on', 'change:campaigns', function () {
+      _this.defineDigitalDataDomComponents(['campaign']);
+    }]);
+
+    this.defineDocBoundaries();
+    this.defineDigitalDataDomComponents();
+    this.startViewsTracking();
+    this.addClickHandlers();
+  };
+
+  DOMComponentsTracking.prototype.defineDocBoundaries = function defineDocBoundaries() {
+    var _this2 = this;
+
+    var $window = window.jQuery(window);
+
+    var _defineDocBoundaries = function _defineDocBoundaries() {
+      _this2.docViewTop = $window.scrollTop();
+      _this2.docViewBottom = _this2.docViewTop + $window.height();
+      _this2.docViewLeft = 0;
+      _this2.docViewRight = $window.width();
+
+      var maxWebsiteWidth = _this2.options.maxWebsiteWidth;
+      if (maxWebsiteWidth && maxWebsiteWidth < _this2.docViewRight) {
+        _this2.docViewLeft = (_this2.docViewRight - maxWebsiteWidth) / 2;
+        _this2.docViewRight = _this2.docViewLeft + maxWebsiteWidth;
+      }
+    };
+
+    _defineDocBoundaries();
+    $window.resize(function () {
+      _defineDocBoundaries();
+    });
+    $window.scroll(function () {
+      _defineDocBoundaries();
+    });
+  };
+
+  DOMComponentsTracking.prototype.defineDigitalDataDomComponents = function defineDigitalDataDomComponents(types) {
+    if (!types) {
+      types = ['product', 'campaign'];
+    }
+    for (var _iterator = types, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+      var _ref;
+
+      if (_isArray) {
+        if (_i >= _iterator.length) break;
+        _ref = _iterator[_i++];
+      } else {
+        _i = _iterator.next();
+        if (_i.done) break;
+        _ref = _i.value;
+      }
+
+      var type = _ref;
+
+      var viewedSelector = 'ddl-viewed-' + type;
+      var clickedSelector = 'ddl-clicked-' + type;
+      this.$digitalDataComponents[type].view = this.findByDataAttr(viewedSelector);
+      this.$digitalDataComponents[type].click = this.findByDataAttr(clickedSelector);
+    }
+  };
+
+  DOMComponentsTracking.prototype.addClickHandlers = function addClickHandlers(types) {
+    var _this3 = this;
+
+    if (!types) {
+      types = ['product', 'campaign'];
+    }
+
+    var onClick = function onClick(type) {
+      return function (e) {
+        var $el = window.jQuery(e.target);
+        var id = $el.data('ddl-clicked-' + type);
+        if (type === 'product') {
+          _this3.fireClickedProduct(id);
+        } else if (type === 'campaign') {
+          _this3.fireClickedCampaign(id);
+        }
+      };
+    };
+
+    for (var _iterator2 = types, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+      var _ref2;
+
+      if (_isArray2) {
+        if (_i2 >= _iterator2.length) break;
+        _ref2 = _iterator2[_i2++];
+      } else {
+        _i2 = _iterator2.next();
+        if (_i2.done) break;
+        _ref2 = _i2.value;
+      }
+
+      var type = _ref2;
+
+      var eventName = 'click.ddl-viewed-' + type;
+      this.$digitalDataComponents[type].click.bind(eventName, onClick(type));
+    }
+  };
+
+  DOMComponentsTracking.prototype.removeClickHandlers = function removeClickHandlers(types) {
+    if (!types) {
+      types = ['product', 'campaign'];
+    }
+    for (var _iterator3 = types, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
+      var _ref3;
+
+      if (_isArray3) {
+        if (_i3 >= _iterator3.length) break;
+        _ref3 = _iterator3[_i3++];
+      } else {
+        _i3 = _iterator3.next();
+        if (_i3.done) break;
+        _ref3 = _i3.value;
+      }
+
+      var type = _ref3;
+
+      var eventName = 'click.ddl-viewed-' + type;
+      this.$digitalDataComponents[type].click.unbind(eventName);
+    }
+  };
+
+  DOMComponentsTracking.prototype.startViewsTracking = function startViewsTracking() {
+    var _this4 = this;
+
+    var _trackViews = function _trackViews() {
+      (0, _each2['default'])(_this4.$digitalDataComponents, function (type, $components) {
+        var newViewedComponentIds = [];
+
+        $components.view.each(function (index, el) {
+          var $el = window.jQuery(el);
+          var id = $el.data('ddl-viewed-' + type);
+          if (_this4.viewedComponentIds[type].indexOf(id) < 0 && _this4.isVisible($el)) {
+            _this4.viewedComponentIds[type].push(id);
+            newViewedComponentIds.push(id);
+          }
+        });
+
+        if (newViewedComponentIds.length > 0) {
+          if (type === 'product') {
+            _this4.fireViewedProduct(newViewedComponentIds);
+          } else if (type === 'campaign') {
+            _this4.fireViewedCampaign(newViewedComponentIds);
+          }
+        }
+      });
+    };
+
+    _trackViews();
+    setInterval(function () {
+      _trackViews();
+    }, 250);
+  };
+
+  DOMComponentsTracking.prototype.fireViewedProduct = function fireViewedProduct(productIds) {
+    window.digitalData.events.push({
+      name: 'Viewed Product',
+      category: 'Ecommerce',
+      product: productIds
+    });
+  };
+
+  DOMComponentsTracking.prototype.fireViewedCampaign = function fireViewedCampaign(campaignIds) {
+    window.digitalData.events.push({
+      name: 'Viewed Campaign',
+      category: 'Promo',
+      campaign: campaignIds
+    });
+  };
+
+  DOMComponentsTracking.prototype.fireClickedProduct = function fireClickedProduct(productIds) {
+    window.digitalData.events.push({
+      name: 'Clicked Product',
+      category: 'Ecommerce',
+      product: productIds
+    });
+  };
+
+  DOMComponentsTracking.prototype.fireClickedCampaign = function fireClickedCampaign(campaignIds) {
+    window.digitalData.events.push({
+      name: 'Clicked Campaign',
+      category: 'Promo',
+      campaign: campaignIds
+    });
+  };
+
+  /**
+   * Returns true if element is visible by css
+   * and at least 3/4 of the element fit user viewport
+   *
+   * @param $elem JQuery object
+   * @returns boolean
+   */
+
+  DOMComponentsTracking.prototype.isVisible = function isVisible($elem) {
+    var elemWidth = $elem.width();
+    var elemHeight = $elem.height();
+    var elemOffset = $elem.offset();
+    var elemTop = elemOffset.top;
+    var elemBottom = elemTop + elemHeight;
+    var elemLeft = elemOffset.left;
+    var elemRight = elemLeft + elemWidth;
+
+    var fitsVertical = elemBottom - elemHeight / 4 <= this.docViewBottom && elemTop + elemHeight / 4 >= this.docViewTop;
+    var fitsHorizontal = elemLeft + elemWidth / 4 >= this.docViewLeft && elemRight - elemWidth / 4 <= this.docViewRight;
+
+    return $elem.is(':visible') && fitsVertical && fitsHorizontal;
+  };
+
+  DOMComponentsTracking.prototype.findByDataAttr = function findByDataAttr(name, obj) {
+    if (!obj) obj = window.jQuery(document.body);
+    return obj.find('[data-' + name + ']');
+  };
+
+  return DOMComponentsTracking;
+})();
+
+exports['default'] = DOMComponentsTracking;
+
+},{"./functions/each.js":66}],57:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5527,7 +5849,7 @@ var DigitalDataEnricher = (function () {
 
 exports['default'] = DigitalDataEnricher;
 
-},{"./functions/htmlGlobals.js":69,"uuid":53}],57:[function(require,module,exports){
+},{"./functions/htmlGlobals.js":70,"uuid":53}],58:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5686,7 +6008,7 @@ var EventDataEnricher = (function () {
 
 exports['default'] = EventDataEnricher;
 
-},{"./DDHelper.js":55,"component-type":6}],58:[function(require,module,exports){
+},{"./DDHelper.js":55,"component-type":6}],59:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -6040,7 +6362,7 @@ var EventManager = (function () {
 
 exports['default'] = EventManager;
 
-},{"./DDHelper.js":55,"./EventDataEnricher.js":57,"./functions/after.js":63,"./functions/deleteProperty.js":64,"./functions/jsonIsEqual.js":70,"./functions/noop.js":74,"./functions/size.js":76,"async":1,"component-clone":4,"debug":44}],59:[function(require,module,exports){
+},{"./DDHelper.js":55,"./EventDataEnricher.js":58,"./functions/after.js":64,"./functions/deleteProperty.js":65,"./functions/jsonIsEqual.js":71,"./functions/noop.js":75,"./functions/size.js":77,"async":1,"component-clone":4,"debug":44}],60:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -6235,7 +6557,7 @@ var Integration = (function (_EventEmitter) {
 
 exports['default'] = Integration;
 
-},{"./DDHelper.js":55,"./functions/deleteProperty.js":64,"./functions/each.js":65,"./functions/format.js":66,"./functions/loadIframe.js":71,"./functions/loadPixel.js":72,"./functions/loadScript.js":73,"./functions/noop.js":74,"async":1,"component-emitter":5,"debug":44}],60:[function(require,module,exports){
+},{"./DDHelper.js":55,"./functions/deleteProperty.js":65,"./functions/each.js":66,"./functions/format.js":67,"./functions/loadIframe.js":72,"./functions/loadPixel.js":73,"./functions/loadScript.js":74,"./functions/noop.js":75,"async":1,"component-emitter":5,"debug":44}],61:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -6355,7 +6677,7 @@ var Storage = (function () {
 
 exports['default'] = Storage;
 
-},{"./functions/topDomain.js":78,"debug":44,"js-cookie":48,"store":51}],61:[function(require,module,exports){
+},{"./functions/topDomain.js":79,"debug":44,"js-cookie":48,"store":51}],62:[function(require,module,exports){
 'use strict';
 
 var _integrations;
@@ -6390,7 +6712,7 @@ var integrations = (_integrations = {}, _integrations[_GoogleAnalytics2['default
 
 exports['default'] = integrations;
 
-},{"./integrations/Driveback.js":81,"./integrations/FacebookPixel.js":82,"./integrations/GoogleAnalytics.js":83,"./integrations/GoogleTagManager.js":84,"./integrations/RetailRocket.js":85}],62:[function(require,module,exports){
+},{"./integrations/Driveback.js":82,"./integrations/FacebookPixel.js":83,"./integrations/GoogleAnalytics.js":84,"./integrations/GoogleTagManager.js":85,"./integrations/RetailRocket.js":86}],63:[function(require,module,exports){
 'use strict';
 
 function _typeof2(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -6577,7 +6899,11 @@ var ddManager = {
    * Example:
    *
    * {
-   *    autoEvents: true,
+   *    autoEvents: {
+   *      trackDOMComponents: {
+   *        maxWebsiteWidth: 1024
+   *      }
+   *    },
    *    domain: 'example.com',
    *    sessionLength: 3600,
    *    integrations: {
@@ -6593,7 +6919,9 @@ var ddManager = {
   initialize: function initialize(settings) {
     settings = Object.assign({
       domain: null,
-      autoEvents: true,
+      autoEvents: {
+        trackDOMComponents: false
+      },
       sessionLength: 3600
     }, settings);
 
@@ -6616,8 +6944,8 @@ var ddManager = {
 
     // initialize event manager
     _eventManager = new _EventManager2['default'](_digitalData, _ddListener);
-    if (settings.autoEvents) {
-      _eventManager.setAutoEvents(new _AutoEvents2['default']());
+    if (settings.autoEvents !== false) {
+      _eventManager.setAutoEvents(new _AutoEvents2['default'](settings.autoEvents));
     }
 
     if (settings && (typeof settings === 'undefined' ? 'undefined' : _typeof(settings)) === 'object') {
@@ -6735,7 +7063,7 @@ ddManager.on = ddManager.addEventListener = function (event, handler) {
 
 exports['default'] = ddManager;
 
-},{"./AutoEvents.js":54,"./DDHelper.js":55,"./DigitalDataEnricher.js":56,"./EventManager.js":58,"./Integration.js":59,"./Storage.js":60,"./functions/after.js":63,"./functions/each.js":65,"./functions/size.js":76,"async":1,"component-clone":4,"component-emitter":5}],63:[function(require,module,exports){
+},{"./AutoEvents.js":54,"./DDHelper.js":55,"./DigitalDataEnricher.js":57,"./EventManager.js":59,"./Integration.js":60,"./Storage.js":61,"./functions/after.js":64,"./functions/each.js":66,"./functions/size.js":77,"async":1,"component-clone":4,"component-emitter":5}],64:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -6749,7 +7077,7 @@ exports["default"] = function (times, fn) {
   };
 };
 
-},{}],64:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -6762,7 +7090,7 @@ exports["default"] = function (obj, prop) {
   }
 };
 
-},{}],65:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -6775,7 +7103,7 @@ exports["default"] = function (obj, fn) {
   }
 };
 
-},{}],66:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -6814,7 +7142,7 @@ function format(str) {
   });
 }
 
-},{}],67:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -6843,7 +7171,7 @@ function _keyToArray(key) {
   return key.split('.');
 }
 
-},{}],68:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -6858,7 +7186,7 @@ function getQueryParam(name, queryString) {
   return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
 }
 
-},{}],69:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -6876,7 +7204,7 @@ exports["default"] = {
   }
 };
 
-},{}],70:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -6891,7 +7219,7 @@ function jsonIsEqual(json1, json2) {
   return json1 === json2;
 }
 
-},{}],71:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -6951,7 +7279,7 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":75,"async":1}],72:[function(require,module,exports){
+},{"./scriptOnLoad.js":76,"async":1}],73:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -6987,7 +7315,7 @@ function error(fn, message, img) {
   };
 }
 
-},{}],73:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7046,14 +7374,14 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":75,"async":1}],74:[function(require,module,exports){
+},{"./scriptOnLoad.js":76,"async":1}],75:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
 
 exports["default"] = function () {};
 
-},{}],75:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7108,7 +7436,7 @@ function attachEvent(el, fn) {
   });
 }
 
-},{}],76:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -7121,7 +7449,7 @@ exports["default"] = function (obj) {
   return size;
 };
 
-},{}],77:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7148,7 +7476,7 @@ function throwError(code, message) {
   throw error;
 }
 
-},{"debug":44}],78:[function(require,module,exports){
+},{"debug":44}],79:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7246,7 +7574,7 @@ function topDomain(url) {
   return '';
 }
 
-},{"./url.js":79,"js-cookie":48}],79:[function(require,module,exports){
+},{"./url.js":80,"js-cookie":48}],80:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7285,7 +7613,7 @@ function parse(url) {
   };
 }
 
-},{}],80:[function(require,module,exports){
+},{}],81:[function(require,module,exports){
 'use strict';
 
 require('./polyfill.js');
@@ -7307,7 +7635,7 @@ _ddManager2['default'].processEarlyStubCalls();
 
 window.ddManager = _ddManager2['default'];
 
-},{"./availableIntegrations.js":61,"./ddManager.js":62,"./polyfill.js":86}],81:[function(require,module,exports){
+},{"./availableIntegrations.js":62,"./ddManager.js":63,"./polyfill.js":87}],82:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -7404,7 +7732,7 @@ var Driveback = (function (_Integration) {
 
 exports['default'] = Driveback;
 
-},{"./../Integration.js":59,"./../functions/deleteProperty.js":64}],82:[function(require,module,exports){
+},{"./../Integration.js":60,"./../functions/deleteProperty.js":65}],83:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -7595,7 +7923,7 @@ var FacebookPixel = (function (_Integration) {
 
 exports['default'] = FacebookPixel;
 
-},{"./../Integration.js":59,"./../functions/deleteProperty.js":64,"component-type":6}],83:[function(require,module,exports){
+},{"./../Integration.js":60,"./../functions/deleteProperty.js":65,"component-type":6}],84:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -8271,7 +8599,7 @@ var GoogleAnalytics = (function (_Integration) {
 
 exports['default'] = GoogleAnalytics;
 
-},{"./../Integration.js":59,"./../functions/deleteProperty.js":64,"./../functions/each.js":65,"./../functions/getProperty.js":67,"./../functions/size.js":76,"component-clone":4,"component-type":6}],84:[function(require,module,exports){
+},{"./../Integration.js":60,"./../functions/deleteProperty.js":65,"./../functions/each.js":66,"./../functions/getProperty.js":68,"./../functions/size.js":77,"component-clone":4,"component-type":6}],85:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -8367,7 +8695,7 @@ var GoogleTagManager = (function (_Integration) {
 
 exports['default'] = GoogleTagManager;
 
-},{"./../Integration.js":59,"./../functions/deleteProperty.js":64}],85:[function(require,module,exports){
+},{"./../Integration.js":60,"./../functions/deleteProperty.js":65}],86:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -8705,7 +9033,7 @@ var RetailRocket = (function (_Integration) {
 
 exports['default'] = RetailRocket;
 
-},{"./../Integration.js":59,"./../functions/deleteProperty.js":64,"./../functions/format.js":66,"./../functions/getQueryParam.js":68,"./../functions/throwError.js":77,"component-type":6}],86:[function(require,module,exports){
+},{"./../Integration.js":60,"./../functions/deleteProperty.js":65,"./../functions/format.js":67,"./../functions/getQueryParam.js":69,"./../functions/throwError.js":78,"component-type":6}],87:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es5');
@@ -8714,4 +9042,4 @@ require('core-js/modules/es6.object.assign');
 
 require('core-js/modules/es6.string.trim');
 
-},{"core-js/modules/es5":41,"core-js/modules/es6.object.assign":42,"core-js/modules/es6.string.trim":43}]},{},[80]);
+},{"core-js/modules/es5":41,"core-js/modules/es6.object.assign":42,"core-js/modules/es6.string.trim":43}]},{},[81]);
