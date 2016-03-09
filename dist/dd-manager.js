@@ -7650,6 +7650,10 @@ var _deleteProperty = require('./../functions/deleteProperty.js');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
+var _noop = require('./../functions/noop.js');
+
+var _noop2 = _interopRequireDefault(_noop);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -7679,6 +7683,7 @@ var Driveback = (function (_Integration) {
     _classCallCheck(this, Driveback);
 
     var optionsWithDefaults = Object.assign({
+      autoInit: true,
       websiteToken: ''
     }, options);
 
@@ -7705,9 +7710,17 @@ var Driveback = (function (_Integration) {
       window.DrivebackNamespace = 'Driveback';
       window.Driveback = window.Driveback || {};
       window.DrivebackOnLoad = window.DrivebackOnLoad || [];
+      window.Driveback.initStubCalled = false;
+      window.Driveback.init = function () {
+        window.Driveback.initStubCalled = true;
+      };
       window.DrivebackLoaderAsyncInit = function () {
         window.Driveback.Loader.init(_this2.getOption('websiteToken'));
       };
+      // by default Driveback is initialized automatically
+      if (this.getOption('autoInit') === false) {
+        window.DriveBackAsyncInit = _noop2['default'];
+      }
       this.load(this.ready);
     } else {
       this.ready();
@@ -7732,7 +7745,7 @@ var Driveback = (function (_Integration) {
 
 exports['default'] = Driveback;
 
-},{"./../Integration.js":60,"./../functions/deleteProperty.js":65}],83:[function(require,module,exports){
+},{"./../Integration.js":60,"./../functions/deleteProperty.js":65,"./../functions/noop.js":75}],83:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
