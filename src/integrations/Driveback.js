@@ -39,7 +39,7 @@ class Driveback extends Integration {
       };
       // by default Driveback is initialized automatically
       if (this.getOption('autoInit') === false) {
-        window.DriveBackAsyncInit = noop;
+        window.DrivebackAsyncInit = noop;
       }
       this.load(this.ready);
     } else {
