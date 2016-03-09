@@ -7719,7 +7719,7 @@ var Driveback = (function (_Integration) {
       };
       // by default Driveback is initialized automatically
       if (this.getOption('autoInit') === false) {
-        window.DriveBackAsyncInit = _noop2['default'];
+        window.DrivebackAsyncInit = _noop2['default'];
       }
       this.load(this.ready);
     } else {
