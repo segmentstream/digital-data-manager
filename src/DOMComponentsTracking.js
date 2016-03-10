@@ -108,19 +108,20 @@ class DOMComponentsTracking
     }
 
     const onClick = (type) => {
-      return (e) => {
-        const $el = window.jQuery(e.target);
+      const self = this;
+      return function onClickHandler() {
+        const $el = window.jQuery(this);
         const id = $el.data('ddl-clicked-' + type);
         if (type === 'product') {
-          this.fireClickedProduct(id);
+          self.fireClickedProduct(id);
         } else if (type === 'campaign') {
-          this.fireClickedCampaign(id);
+          self.fireClickedCampaign(id);
         }
       };
     };
 
     for (const type of types) {
-      const eventName = 'click.ddl-viewed-' + type;
+      const eventName = 'click.ddl-clicked-' + type;
       this.$digitalDataComponents[type].click.bind(eventName, onClick(type));
     }
   }
@@ -130,7 +131,7 @@ class DOMComponentsTracking
       types = ['product', 'campaign'];
     }
     for (const type of types) {
-      const eventName = 'click.ddl-viewed-' + type;
+      const eventName = 'click.ddl-clicked-' + type;
       this.$digitalDataComponents[type].click.unbind(eventName);
     }
   }
@@ -181,19 +182,19 @@ class DOMComponentsTracking
     });
   }
 
-  fireClickedProduct(productIds) {
+  fireClickedProduct(productId) {
     window.digitalData.events.push({
       name: 'Clicked Product',
       category: 'Ecommerce',
-      product: productIds,
+      product: productId,
     });
   }
 
-  fireClickedCampaign(campaignIds) {
+  fireClickedCampaign(campaignId) {
     window.digitalData.events.push({
       name: 'Clicked Campaign',
       category: 'Promo',
-      campaign: campaignIds,
+      campaign: campaignId,
     });
   }
 

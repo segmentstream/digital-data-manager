@@ -5599,13 +5599,14 @@ var DOMComponentsTracking = (function () {
     }
 
     var onClick = function onClick(type) {
-      return function (e) {
-        var $el = window.jQuery(e.target);
+      var self = _this3;
+      return function onClickHandler() {
+        var $el = window.jQuery(this);
         var id = $el.data('ddl-clicked-' + type);
         if (type === 'product') {
-          _this3.fireClickedProduct(id);
+          self.fireClickedProduct(id);
         } else if (type === 'campaign') {
-          _this3.fireClickedCampaign(id);
+          self.fireClickedCampaign(id);
         }
       };
     };
@@ -5624,7 +5625,7 @@ var DOMComponentsTracking = (function () {
 
       var type = _ref2;
 
-      var eventName = 'click.ddl-viewed-' + type;
+      var eventName = 'click.ddl-clicked-' + type;
       this.$digitalDataComponents[type].click.bind(eventName, onClick(type));
     }
   };
@@ -5647,7 +5648,7 @@ var DOMComponentsTracking = (function () {
 
       var type = _ref3;
 
-      var eventName = 'click.ddl-viewed-' + type;
+      var eventName = 'click.ddl-clicked-' + type;
       this.$digitalDataComponents[type].click.unbind(eventName);
     }
   };
@@ -5700,19 +5701,19 @@ var DOMComponentsTracking = (function () {
     });
   };
 
-  DOMComponentsTracking.prototype.fireClickedProduct = function fireClickedProduct(productIds) {
+  DOMComponentsTracking.prototype.fireClickedProduct = function fireClickedProduct(productId) {
     window.digitalData.events.push({
       name: 'Clicked Product',
       category: 'Ecommerce',
-      product: productIds
+      product: productId
     });
   };
 
-  DOMComponentsTracking.prototype.fireClickedCampaign = function fireClickedCampaign(campaignIds) {
+  DOMComponentsTracking.prototype.fireClickedCampaign = function fireClickedCampaign(campaignId) {
     window.digitalData.events.push({
       name: 'Clicked Campaign',
       category: 'Promo',
-      campaign: campaignIds
+      campaign: campaignId
     });
   };
 
