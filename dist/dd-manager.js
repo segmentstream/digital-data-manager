@@ -5479,6 +5479,10 @@ function _classCallCheck(instance, Constructor) {
  * - data-ddl-viewed-campaign="<campaign_id>"
  * - data-ddl-clicked-product="<product_id>"
  * - data-ddl-clicked-campaign="<campaign_id>"
+ *
+ * If any DOM components are added to the page dynamically
+ * corresponding digitalData variable should be updated:
+ * digitalData.list, digitalData.recommendation or digitalData.campaigns
  */
 
 var DOMComponentsTracking = (function () {
@@ -5530,7 +5534,9 @@ var DOMComponentsTracking = (function () {
       _this.addClickHandlers(['product']);
     }]);
     window.ddListener.push(['on', 'change:campaigns', function () {
+      _this.removeClickHandlers(['campaign']);
       _this.defineDigitalDataDomComponents(['campaign']);
+      _this.addClickHandlers(['campaign']);
     }]);
 
     this.defineDocBoundaries();
@@ -5599,13 +5605,14 @@ var DOMComponentsTracking = (function () {
     }
 
     var onClick = function onClick(type) {
-      return function (e) {
-        var $el = window.jQuery(e.target);
+      var self = _this3;
+      return function onClickHandler() {
+        var $el = window.jQuery(this);
         var id = $el.data('ddl-clicked-' + type);
         if (type === 'product') {
-          _this3.fireClickedProduct(id);
+          self.fireClickedProduct(id);
         } else if (type === 'campaign') {
-          _this3.fireClickedCampaign(id);
+          self.fireClickedCampaign(id);
         }
       };
     };
@@ -5624,7 +5631,7 @@ var DOMComponentsTracking = (function () {
 
       var type = _ref2;
 
-      var eventName = 'click.ddl-viewed-' + type;
+      var eventName = 'click.ddl-clicked-' + type;
       this.$digitalDataComponents[type].click.bind(eventName, onClick(type));
     }
   };
@@ -5647,7 +5654,7 @@ var DOMComponentsTracking = (function () {
 
       var type = _ref3;
 
-      var eventName = 'click.ddl-viewed-' + type;
+      var eventName = 'click.ddl-clicked-' + type;
       this.$digitalDataComponents[type].click.unbind(eventName);
     }
   };
@@ -5658,7 +5665,6 @@ var DOMComponentsTracking = (function () {
     var _trackViews = function _trackViews() {
       (0, _each2['default'])(_this4.$digitalDataComponents, function (type, $components) {
         var newViewedComponentIds = [];
-
         $components.view.each(function (index, el) {
           var $el = window.jQuery(el);
           var id = $el.data('ddl-viewed-' + type);
@@ -5700,19 +5706,19 @@ var DOMComponentsTracking = (function () {
     });
   };
 
-  DOMComponentsTracking.prototype.fireClickedProduct = function fireClickedProduct(productIds) {
+  DOMComponentsTracking.prototype.fireClickedProduct = function fireClickedProduct(productId) {
     window.digitalData.events.push({
       name: 'Clicked Product',
       category: 'Ecommerce',
-      product: productIds
+      product: productId
     });
   };
 
-  DOMComponentsTracking.prototype.fireClickedCampaign = function fireClickedCampaign(campaignIds) {
+  DOMComponentsTracking.prototype.fireClickedCampaign = function fireClickedCampaign(campaignId) {
     window.digitalData.events.push({
       name: 'Clicked Campaign',
       category: 'Promo',
-      campaign: campaignIds
+      campaign: campaignId
     });
   };
 
@@ -5725,19 +5731,43 @@ var DOMComponentsTracking = (function () {
    */
 
   DOMComponentsTracking.prototype.isVisible = function isVisible($elem) {
+    var el = $elem[0];
+
+    var elemOffset = $elem.offset();
     var elemWidth = $elem.width();
     var elemHeight = $elem.height();
-    var elemOffset = $elem.offset();
+
     var elemTop = elemOffset.top;
     var elemBottom = elemTop + elemHeight;
     var elemLeft = elemOffset.left;
     var elemRight = elemLeft + elemWidth;
 
+    var visible = $elem.is(':visible') && $elem.css('opacity') > 0 && $elem.css('visibility') !== 'hidden';
+    if (!visible) {
+      return false;
+    }
+
     var fitsVertical = elemBottom - elemHeight / 4 <= this.docViewBottom && elemTop + elemHeight / 4 >= this.docViewTop;
     var fitsHorizontal = elemLeft + elemWidth / 4 >= this.docViewLeft && elemRight - elemWidth / 4 <= this.docViewRight;
 
-    return $elem.is(':visible') && fitsVertical && fitsHorizontal;
+    if (!fitsVertical || !fitsHorizontal) {
+      return false;
+    }
+
+    var elementFromPoint = document.elementFromPoint(elemLeft - this.docViewLeft + elemWidth / 2, elemTop - this.docViewTop + elemHeight / 2);
+    while (elementFromPoint && elementFromPoint !== el && elementFromPoint.parentNode !== document) {
+      elementFromPoint = elementFromPoint.parentNode;
+    }
+    return !!elementFromPoint && elementFromPoint === el;
   };
+
+  /**
+   * Find elements by data attribute name
+   *
+   * @param name
+   * @param obj
+   * @returns jQuery object
+   */
 
   DOMComponentsTracking.prototype.findByDataAttr = function findByDataAttr(name, obj) {
     if (!obj) obj = window.jQuery(document.body);
@@ -6864,7 +6894,7 @@ function _prepareGlobals() {
 
 var ddManager = {
 
-  VERSION: '1.0.5',
+  VERSION: '1.0.6',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;

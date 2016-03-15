@@ -7,6 +7,10 @@ import each from './functions/each.js';
  * - data-ddl-viewed-campaign="<campaign_id>"
  * - data-ddl-clicked-product="<product_id>"
  * - data-ddl-clicked-campaign="<campaign_id>"
+ *
+ * If any DOM components are added to the page dynamically
+ * corresponding digitalData variable should be updated:
+ * digitalData.list, digitalData.recommendation or digitalData.campaigns
  */
 class DOMComponentsTracking
 {
@@ -56,7 +60,9 @@ class DOMComponentsTracking
       this.addClickHandlers(['product']);
     }]);
     window.ddListener.push(['on', 'change:campaigns', () => {
+      this.removeClickHandlers(['campaign']);
       this.defineDigitalDataDomComponents(['campaign']);
+      this.addClickHandlers(['campaign']);
     }]);
 
     this.defineDocBoundaries();
@@ -108,19 +114,20 @@ class DOMComponentsTracking
     }
 
     const onClick = (type) => {
-      return (e) => {
-        const $el = window.jQuery(e.target);
+      const self = this;
+      return function onClickHandler() {
+        const $el = window.jQuery(this);
         const id = $el.data('ddl-clicked-' + type);
         if (type === 'product') {
-          this.fireClickedProduct(id);
+          self.fireClickedProduct(id);
         } else if (type === 'campaign') {
-          this.fireClickedCampaign(id);
+          self.fireClickedCampaign(id);
         }
       };
     };
 
     for (const type of types) {
-      const eventName = 'click.ddl-viewed-' + type;
+      const eventName = 'click.ddl-clicked-' + type;
       this.$digitalDataComponents[type].click.bind(eventName, onClick(type));
     }
   }
@@ -130,7 +137,7 @@ class DOMComponentsTracking
       types = ['product', 'campaign'];
     }
     for (const type of types) {
-      const eventName = 'click.ddl-viewed-' + type;
+      const eventName = 'click.ddl-clicked-' + type;
       this.$digitalDataComponents[type].click.unbind(eventName);
     }
   }
@@ -139,7 +146,6 @@ class DOMComponentsTracking
     const _trackViews = () => {
       each(this.$digitalDataComponents, (type, $components) => {
         const newViewedComponentIds = [];
-
         $components.view.each((index, el) => {
           const $el = window.jQuery(el);
           const id = $el.data('ddl-viewed-' + type);
@@ -181,19 +187,19 @@ class DOMComponentsTracking
     });
   }
 
-  fireClickedProduct(productIds) {
+  fireClickedProduct(productId) {
     window.digitalData.events.push({
       name: 'Clicked Product',
       category: 'Ecommerce',
-      product: productIds,
+      product: productId,
     });
   }
 
-  fireClickedCampaign(campaignIds) {
+  fireClickedCampaign(campaignId) {
     window.digitalData.events.push({
       name: 'Clicked Campaign',
       category: 'Promo',
-      campaign: campaignIds,
+      campaign: campaignId,
     });
   }
 
@@ -205,13 +211,21 @@ class DOMComponentsTracking
    * @returns boolean
    */
   isVisible($elem) {
+    const el = $elem[0];
+
+    const elemOffset = $elem.offset();
     const elemWidth = $elem.width();
     const elemHeight = $elem.height();
-    const elemOffset = $elem.offset();
+
     const elemTop = elemOffset.top;
     const elemBottom = elemTop + elemHeight;
     const elemLeft = elemOffset.left;
     const elemRight = elemLeft + elemWidth;
+
+    const visible = $elem.is(':visible') && $elem.css('opacity') > 0 && $elem.css('visibility') !== 'hidden';
+    if (!visible) {
+      return false;
+    }
 
     const fitsVertical = (
       ((elemBottom - elemHeight / 4) <= this.docViewBottom) &&
@@ -222,9 +236,27 @@ class DOMComponentsTracking
       (elemRight - elemWidth / 4 <= this.docViewRight)
     );
 
-    return $elem.is(':visible') && fitsVertical && fitsHorizontal;
+    if (!fitsVertical || !fitsHorizontal) {
+      return false;
+    }
+
+    let elementFromPoint = document.elementFromPoint(
+        elemLeft - this.docViewLeft + elemWidth / 2,
+        elemTop - this.docViewTop + elemHeight / 2
+    );
+    while (elementFromPoint && elementFromPoint !== el && elementFromPoint.parentNode !== document) {
+      elementFromPoint = elementFromPoint.parentNode;
+    }
+    return (!!elementFromPoint && elementFromPoint === el);
   }
 
+  /**
+   * Find elements by data attribute name
+   *
+   * @param name
+   * @param obj
+   * @returns jQuery object
+   */
   findByDataAttr(name, obj) {
     if (!obj) obj = window.jQuery(document.body);
     return obj.find('[data-' + name + ']');
