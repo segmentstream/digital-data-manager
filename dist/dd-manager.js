@@ -5498,6 +5498,11 @@ var DOMComponentsTracking = (function () {
       campaign: []
     };
 
+    this.clickEventAttachedComponentIds = {
+      product: [],
+      campaign: []
+    };
+
     this.$digitalDataComponents = {
       product: {
         view: undefined,
@@ -5516,33 +5521,16 @@ var DOMComponentsTracking = (function () {
     if (!window.jQuery) {
       return;
     }
-    // detect max website width
-    if (!this.options.websiteMaxWidth) {
-      var $body = window.jQuery('body');
-      this.options.websiteMaxWidth = $body.children('.container').first().width() || $body.children('div').first().width();
-    }
+    window.jQuery(function () {
+      // detect max website width
+      if (!_this.options.websiteMaxWidth) {
+        var $body = window.jQuery('body');
+        _this.options.websiteMaxWidth = $body.children('.container').first().width() || $body.children('div').first().width();
+      }
 
-    // add DDL listeners for dynamic ajax websites
-    window.ddListener.push(['on', 'change:listing', function () {
-      _this.removeClickHandlers(['product']);
-      _this.defineDigitalDataDomComponents(['product']);
-      _this.addClickHandlers(['product']);
-    }]);
-    window.ddListener.push(['on', 'change:recommendation', function () {
-      _this.removeClickHandlers(['product']);
-      _this.defineDigitalDataDomComponents(['product']);
-      _this.addClickHandlers(['product']);
-    }]);
-    window.ddListener.push(['on', 'change:campaigns', function () {
-      _this.removeClickHandlers(['campaign']);
-      _this.defineDigitalDataDomComponents(['campaign']);
-      _this.addClickHandlers(['campaign']);
-    }]);
-
-    this.defineDocBoundaries();
-    this.defineDigitalDataDomComponents();
-    this.startViewsTracking();
-    this.addClickHandlers();
+      _this.defineDocBoundaries();
+      _this.startTracking();
+    });
   };
 
   DOMComponentsTracking.prototype.defineDocBoundaries = function defineDocBoundaries() {
@@ -5572,24 +5560,11 @@ var DOMComponentsTracking = (function () {
     });
   };
 
-  DOMComponentsTracking.prototype.defineDigitalDataDomComponents = function defineDigitalDataDomComponents(types) {
-    if (!types) {
-      types = ['product', 'campaign'];
-    }
-    for (var _iterator = types, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
-      var _ref;
+  DOMComponentsTracking.prototype.updateDigitalDataDomComponents = function updateDigitalDataDomComponents() {
+    var _arr = ['product', 'campaign'];
 
-      if (_isArray) {
-        if (_i >= _iterator.length) break;
-        _ref = _iterator[_i++];
-      } else {
-        _i = _iterator.next();
-        if (_i.done) break;
-        _ref = _i.value;
-      }
-
-      var type = _ref;
-
+    for (var _i = 0; _i < _arr.length; _i++) {
+      var type = _arr[_i];
       var viewedSelector = 'ddl-viewed-' + type;
       var clickedSelector = 'ddl-clicked-' + type;
       this.$digitalDataComponents[type].view = this.findByDataAttr(viewedSelector);
@@ -5597,12 +5572,8 @@ var DOMComponentsTracking = (function () {
     }
   };
 
-  DOMComponentsTracking.prototype.addClickHandlers = function addClickHandlers(types) {
+  DOMComponentsTracking.prototype.addClickHandlers = function addClickHandlers() {
     var _this3 = this;
-
-    if (!types) {
-      types = ['product', 'campaign'];
-    }
 
     var onClick = function onClick(type) {
       var self = _this3;
@@ -5617,77 +5588,67 @@ var DOMComponentsTracking = (function () {
       };
     };
 
-    for (var _iterator2 = types, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
-      var _ref2;
-
-      if (_isArray2) {
-        if (_i2 >= _iterator2.length) break;
-        _ref2 = _iterator2[_i2++];
-      } else {
-        _i2 = _iterator2.next();
-        if (_i2.done) break;
-        _ref2 = _i2.value;
-      }
-
-      var type = _ref2;
-
+    (0, _each2['default'])(this.$digitalDataComponents, function (type, $components) {
       var eventName = 'click.ddl-clicked-' + type;
-      this.$digitalDataComponents[type].click.bind(eventName, onClick(type));
-    }
-  };
-
-  DOMComponentsTracking.prototype.removeClickHandlers = function removeClickHandlers(types) {
-    if (!types) {
-      types = ['product', 'campaign'];
-    }
-    for (var _iterator3 = types, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
-      var _ref3;
-
-      if (_isArray3) {
-        if (_i3 >= _iterator3.length) break;
-        _ref3 = _iterator3[_i3++];
-      } else {
-        _i3 = _iterator3.next();
-        if (_i3.done) break;
-        _ref3 = _i3.value;
-      }
-
-      var type = _ref3;
-
-      var eventName = 'click.ddl-clicked-' + type;
-      this.$digitalDataComponents[type].click.unbind(eventName);
-    }
-  };
-
-  DOMComponentsTracking.prototype.startViewsTracking = function startViewsTracking() {
-    var _this4 = this;
-
-    var _trackViews = function _trackViews() {
-      (0, _each2['default'])(_this4.$digitalDataComponents, function (type, $components) {
-        var newViewedComponentIds = [];
-        $components.view.each(function (index, el) {
-          var $el = window.jQuery(el);
-          var id = $el.data('ddl-viewed-' + type);
-          if (_this4.viewedComponentIds[type].indexOf(id) < 0 && _this4.isVisible($el)) {
-            _this4.viewedComponentIds[type].push(id);
-            newViewedComponentIds.push(id);
-          }
-        });
-
-        if (newViewedComponentIds.length > 0) {
-          if (type === 'product') {
-            _this4.fireViewedProduct(newViewedComponentIds);
-          } else if (type === 'campaign') {
-            _this4.fireViewedCampaign(newViewedComponentIds);
-          }
+      $components.click.each(function (index, el) {
+        var $el = window.jQuery(el);
+        var id = $el.data('ddl-clicked-' + type);
+        if (_this3.clickEventAttachedComponentIds[type].indexOf(id) < 0) {
+          $el.bind(eventName, onClick(type));
+          _this3.clickEventAttachedComponentIds[type].push(id);
         }
       });
+    });
+  };
+
+  DOMComponentsTracking.prototype.removeClickHandlers = function removeClickHandlers() {
+    var _arr2 = ['product', 'campaign'];
+
+    for (var _i2 = 0; _i2 < _arr2.length; _i2++) {
+      var type = _arr2[_i2];
+      var eventName = 'click.ddl-clicked-' + type;
+      this.$digitalDataComponents[type].click.unbind(eventName);
+      this.clickEventAttachedComponentIds[type] = [];
+    }
+  };
+
+  DOMComponentsTracking.prototype.trackViews = function trackViews() {
+    var _this4 = this;
+
+    (0, _each2['default'])(this.$digitalDataComponents, function (type, $components) {
+      var newViewedComponentIds = [];
+      $components.view.each(function (index, el) {
+        var $el = window.jQuery(el);
+        var id = $el.data('ddl-viewed-' + type);
+        if (_this4.viewedComponentIds[type].indexOf(id) < 0 && _this4.isVisible($el)) {
+          _this4.viewedComponentIds[type].push(id);
+          newViewedComponentIds.push(id);
+        }
+      });
+
+      if (newViewedComponentIds.length > 0) {
+        if (type === 'product') {
+          _this4.fireViewedProduct(newViewedComponentIds);
+        } else if (type === 'campaign') {
+          _this4.fireViewedCampaign(newViewedComponentIds);
+        }
+      }
+    });
+  };
+
+  DOMComponentsTracking.prototype.startTracking = function startTracking() {
+    var _this5 = this;
+
+    var _track = function _track() {
+      _this5.updateDigitalDataDomComponents();
+      _this5.trackViews();
+      _this5.addClickHandlers();
     };
 
-    _trackViews();
+    _track();
     setInterval(function () {
-      _trackViews();
-    }, 250);
+      _track();
+    }, 500);
   };
 
   DOMComponentsTracking.prototype.fireViewedProduct = function fireViewedProduct(productIds) {
@@ -6894,7 +6855,7 @@ function _prepareGlobals() {
 
 var ddManager = {
 
-  VERSION: '1.0.6',
+  VERSION: '1.0.7',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
