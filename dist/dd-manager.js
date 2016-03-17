@@ -5541,11 +5541,11 @@ var DOMComponentsTracking = (function () {
     var _defineDocBoundaries = function _defineDocBoundaries() {
       _this2.docViewTop = $window.scrollTop();
       _this2.docViewBottom = _this2.docViewTop + $window.height();
-      _this2.docViewLeft = 0;
-      _this2.docViewRight = $window.width();
+      _this2.docViewLeft = $window.scrollLeft();
+      _this2.docViewRight = _this2.docViewLeft + $window.width();
 
       var maxWebsiteWidth = _this2.options.maxWebsiteWidth;
-      if (maxWebsiteWidth && maxWebsiteWidth < _this2.docViewRight) {
+      if (maxWebsiteWidth && maxWebsiteWidth < _this2.docViewRight && _this2.docViewLeft === 0) {
         _this2.docViewLeft = (_this2.docViewRight - maxWebsiteWidth) / 2;
         _this2.docViewRight = _this2.docViewLeft + maxWebsiteWidth;
       }
@@ -5693,6 +5693,7 @@ var DOMComponentsTracking = (function () {
 
   DOMComponentsTracking.prototype.isVisible = function isVisible($elem) {
     var el = $elem[0];
+    var $window = window.jQuery(window);
 
     var elemOffset = $elem.offset();
     var elemWidth = $elem.width();
@@ -5715,10 +5716,12 @@ var DOMComponentsTracking = (function () {
       return false;
     }
 
-    var elementFromPoint = document.elementFromPoint(elemLeft - this.docViewLeft + elemWidth / 2, elemTop - this.docViewTop + elemHeight / 2);
+    var elementFromPoint = document.elementFromPoint(elemLeft - $window.scrollLeft() + elemWidth / 2, elemTop - $window.scrollTop() + elemHeight / 2);
+
     while (elementFromPoint && elementFromPoint !== el && elementFromPoint.parentNode !== document) {
       elementFromPoint = elementFromPoint.parentNode;
     }
+
     return !!elementFromPoint && elementFromPoint === el;
   };
 

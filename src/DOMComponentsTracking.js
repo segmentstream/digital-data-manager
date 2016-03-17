@@ -65,11 +65,11 @@ class DOMComponentsTracking
     const _defineDocBoundaries = () => {
       this.docViewTop = $window.scrollTop();
       this.docViewBottom = this.docViewTop + $window.height();
-      this.docViewLeft = 0;
-      this.docViewRight = $window.width();
+      this.docViewLeft = $window.scrollLeft();
+      this.docViewRight = this.docViewLeft + $window.width();
 
       const maxWebsiteWidth = this.options.maxWebsiteWidth;
-      if (maxWebsiteWidth && maxWebsiteWidth < this.docViewRight) {
+      if (maxWebsiteWidth && maxWebsiteWidth < this.docViewRight && this.docViewLeft === 0) {
         this.docViewLeft = (this.docViewRight - maxWebsiteWidth) / 2;
         this.docViewRight = this.docViewLeft + maxWebsiteWidth;
       }
@@ -204,6 +204,7 @@ class DOMComponentsTracking
    */
   isVisible($elem) {
     const el = $elem[0];
+    const $window = window.jQuery(window);
 
     const elemOffset = $elem.offset();
     const elemWidth = $elem.width();
@@ -233,14 +234,17 @@ class DOMComponentsTracking
     }
 
     let elementFromPoint = document.elementFromPoint(
-        elemLeft - this.docViewLeft + elemWidth / 2,
-        elemTop - this.docViewTop + elemHeight / 2
+        elemLeft - $window.scrollLeft() + elemWidth / 2,
+        elemTop - $window.scrollTop() + elemHeight / 2
     );
+
     while (elementFromPoint && elementFromPoint !== el && elementFromPoint.parentNode !== document) {
       elementFromPoint = elementFromPoint.parentNode;
     }
+
     return (!!elementFromPoint && elementFromPoint === el);
   }
+
 
   /**
    * Find elements by data attribute name
