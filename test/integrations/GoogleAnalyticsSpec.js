@@ -14,7 +14,8 @@ describe('Integrations: GoogleAnalytics', () => {
       trackingId: 'UA-51485228-7',
       anonymizeIp: true,
       domain: 'auto',
-      siteSpeedSampleRate: 42
+      siteSpeedSampleRate: 42,
+      namespace: false
     };
 
     beforeEach(() => {
@@ -638,7 +639,8 @@ describe('Integrations: GoogleAnalytics', () => {
       anonymizeIp: true,
       domain: 'none',
       defaultCurrency: 'USD',
-      siteSpeedSampleRate: 42
+      siteSpeedSampleRate: 42,
+      namespace: false
     };
 
     beforeEach(() => {
@@ -1736,13 +1738,11 @@ describe('Integrations: GoogleAnalytics', () => {
 
     let ga;
     let options = {
-      enhancedEcommerce: true,
       trackingId: 'UA-51485228-7',
       domain: 'none',
       defaultCurrency: 'USD',
       siteSpeedSampleRate: 42,
       namespace: 'ddl',
-      trackOnlyCustomEvents: true,
       noConflict: true
     };
 
@@ -1822,16 +1822,95 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should not track View Product semantic event', (done) => {
+        it('should track simple ecommerce data', function () {
           window.digitalData.events.push({
-            name: 'Viewed Product',
+            name: 'Completed Transaction',
             category: 'Ecommerce',
+            transaction: {
+              orderId: '7306cc06'
+            },
+            callback: () => {
+              assert.equal(window.ga.args.length, 3);
+              assert.equal(window.ga.args[1][0], 'ddl.ecommerce:addTransaction');
+              assert.equal(window.ga.args[2][0], 'ddl.ecommerce:send');
+            }
+          });
+        });
+
+      });
+    });
+  });
+
+  describe('Universal with filterEvents', function() {
+
+    let ga;
+    let options = {
+      enhancedEcommerce: true,
+      trackingId: 'UA-51485228-7',
+      domain: 'none',
+      defaultCurrency: 'USD',
+      siteSpeedSampleRate: 42,
+      namespace: 'ddl',
+      filterEvents: ['Completed Transaction']
+    };
+
+    beforeEach(() => {
+      window.digitalData = {
+        events: []
+      };
+      ga = new GoogleAnalytics(window.digitalData, options);
+      ddManager.addIntegration(ga);
+    });
+
+    afterEach(() => {
+      ga.reset();
+      ddManager.reset();
+      reset();
+    });
+
+    describe('after loading', function () {
+      beforeEach((done) => {
+        ddManager.once('ready', done);
+        ddManager.initialize({
+          autoEvents: false
+        });
+      });
+
+      describe('enhanced ecommerce', function () {
+
+        beforeEach(() => {
+          sinon.spy(window, 'ga');
+        });
+
+        afterEach(() => {
+          window.ga.restore();
+        });
+
+        it('should not track View Page semantic event', (done) => {
+          window.digitalData.events.push({
+            name: 'Viewed Page',
+            category: 'Content',
             callback: () => {
               assert.ok(!window.ga.called);
               done();
             }
           });
         });
+
+        it('should not track simple ecommerce data', function (done) {
+          window.digitalData.events.push({
+            name: 'Completed Transaction',
+            category: 'Ecommerce',
+            transaction: {
+              orderId: '7306cc06'
+            },
+            callback: () => {
+              assert.ok(!window.ga.called);
+              done();
+            }
+          });
+        });
+
       });
     });
   });
