@@ -6140,37 +6140,39 @@ function _prepareGlobals() {
 }
 
 function _initializeIntegrations(settings, onReady) {
-  var ready = (0, _after2['default'])((0, _size2['default'])(_integrations), onReady);
-
   if (settings && (typeof settings === 'undefined' ? 'undefined' : _typeof(settings)) === 'object') {
-    var integrationSettings = settings.integrations;
-    if (integrationSettings) {
-      (0, _each2['default'])(integrationSettings, function (name, options) {
-        if (typeof _availableIntegrations[name] === 'function') {
-          var integration = new _availableIntegrations[name](_digitalData, (0, _componentClone2['default'])(options));
-          ddManager.addIntegration(integration);
-        }
-      });
-    }
+    (function () {
+      var integrationSettings = settings.integrations;
+      if (integrationSettings) {
+        (0, _each2['default'])(integrationSettings, function (name, options) {
+          if (typeof _availableIntegrations[name] === 'function') {
+            var integration = new _availableIntegrations[name](_digitalData, (0, _componentClone2['default'])(options));
+            ddManager.addIntegration(integration);
+          }
+        });
+      }
 
-    if ((0, _size2['default'])(_integrations) > 0) {
-      (0, _each2['default'])(_integrations, function (name, integration) {
-        if (!integration.isLoaded() || integration.getOption('noConflict')) {
-          integration.once('ready', function () {
-            integration.enrichDigitalData();
-            _eventManager.addCallback(['on', 'event', function (event) {
-              integration.trackEvent(event);
-            }]);
+      var ready = (0, _after2['default'])((0, _size2['default'])(_integrations), onReady);
+
+      if ((0, _size2['default'])(_integrations) > 0) {
+        (0, _each2['default'])(_integrations, function (name, integration) {
+          if (!integration.isLoaded() || integration.getOption('noConflict')) {
+            integration.once('ready', function () {
+              integration.enrichDigitalData();
+              _eventManager.addCallback(['on', 'event', function (event) {
+                integration.trackEvent(event);
+              }]);
+              ready();
+            });
+            integration.initialize();
+          } else {
             ready();
-          });
-          integration.initialize();
-        } else {
-          ready();
-        }
-      });
-    } else {
-      ready();
-    }
+          }
+        });
+      } else {
+        ready();
+      }
+    })();
   }
 }
 

@@ -95,8 +95,6 @@ function _prepareGlobals() {
 }
 
 function _initializeIntegrations(settings, onReady) {
-  const ready = after(size(_integrations), onReady);
-
   if (settings && typeof settings === 'object') {
     const integrationSettings = settings.integrations;
     if (integrationSettings) {
@@ -107,6 +105,8 @@ function _initializeIntegrations(settings, onReady) {
         }
       });
     }
+
+    const ready = after(size(_integrations), onReady);
 
     if (size(_integrations) > 0) {
       each(_integrations, (name, integration) => {
