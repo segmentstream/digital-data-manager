@@ -81,7 +81,6 @@ describe('SegmentStream', function() {
           category: 'Content',
           callback: () => {
             assert.equal(window.digitalData.user.ssAttributes.lifetimeVisitCount, 1);
-            assert.ok(new Date(window.digitalData.user.ssAttributes.firstVisit) > new Date(Date.now() - 10000));
             done();
           }
         });
@@ -100,7 +99,6 @@ describe('SegmentStream', function() {
             assert.equal(window.digitalData.user.ssAttributes.lifetimeViewedProductsCount, 1);
             assert.equal(window.digitalData.user.ssAttributes.lifetimeAverageViewedProductsPrice, 100);
             assert.equal(window.digitalData.user.ssAttributes.averageViewedProductsPrice, 100);
-            assert.ok(new Date(window.digitalData.user.ssAttributes.firstVisit) > new Date(Date.now() - 10000));
             done();
           }
         });
