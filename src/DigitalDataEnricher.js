@@ -1,31 +1,17 @@
 import htmlGlobals from './functions/htmlGlobals.js';
-import uuid from 'uuid';
 
 class DigitalDataEnricher
 {
-  constructor(digitalData, storage, options) {
+  constructor(digitalData) {
     this.digitalData = digitalData;
-    this.storage = storage;
-    this.options = Object.assign({
-      sessionLength: 3600,
-    }, options);
   }
 
   setDigitalData(digitalData) {
     this.digitalData = digitalData;
   }
 
-  setStorage(storage) {
-    this.storage = storage;
-  }
-
-  getStorage() {
-    return this.storage;
-  }
-
   enrichDigitalData() {
     this.enrichPageData();
-    this.enrichUserData();
     this.enrichContextData();
   }
 
@@ -40,11 +26,6 @@ class DigitalDataEnricher
     page.hash = page.hash || this.getHtmlGlobals().getLocation().hash;
   }
 
-  enrichUserData() {
-    const user = this.digitalData.user;
-    user.anonymousId = this.getUserAnonymousId();
-  }
-
   enrichContextData() {
     const context = this.digitalData.context;
     context.userAgent = this.getHtmlGlobals().getNavigator().userAgent;
@@ -56,19 +37,6 @@ class DigitalDataEnricher
    */
   getHtmlGlobals() {
     return htmlGlobals;
-  }
-
-  getUserAnonymousId() {
-    let anonymousId = this.storage.get('user.anonymousId');
-    if (!anonymousId) {
-      anonymousId = uuid();
-      this.storage.set('user.anonymousId', anonymousId);
-    }
-    return anonymousId;
-  }
-
-  getOption(name) {
-    return this.options[name];
   }
 }
 

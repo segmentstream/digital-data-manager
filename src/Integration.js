@@ -116,6 +116,10 @@ class Integration extends EventEmitter
     // abstract
   }
 
+  enrichDigitalData() {
+    // abstract
+  }
+
   trackEvent() {
     // abstract
   }

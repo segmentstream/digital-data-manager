@@ -52,8 +52,9 @@ class GoogleAnalytics extends Integration {
       metrics: {},
       dimensions: {},
       contentGroupings: {},
-      namespace: undefined,
+      namespace: 'ddl',
       noConflict: false,
+      filterEvents: [],
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -104,7 +105,7 @@ class GoogleAnalytics extends Integration {
       cookieDomain: this.getOption('domain'),
       siteSpeedSampleRate: this.getOption('siteSpeedSampleRate'),
       allowLinker: true,
-      name: this.getOption('namespace'),
+      name: this.getOption('namespace') ? this.getOption('namespace') : undefined,
     });
 
     // display advertising
@@ -208,59 +209,48 @@ class GoogleAnalytics extends Integration {
   }
 
   trackEvent(event) {
-    if (this.getOption('trackOnlyCustomEvents')) {
-      if ([
-        'Viewed Page',
-        'Viewed Product',
-        'Clicked Product',
-        'Viewed Product Detail',
-        'Added Product',
-        'Removed Product',
-        'Completed Transaction',
-        'Refunded Transaction',
-        'Viewed Product Category',
-        'Viewed Checkout Step',
-        'Completed Checkout Step',
-      ].indexOf(event.name) < 0) {
+    const filterEvents = this.getOption('filterEvents') || [];
+    if (filterEvents.indexOf(event.name) >= 0) {
+      return;
+    }
+
+    if (event.name === 'Viewed Page') {
+      if (!this.getOption('noConflict')) {
+        this.onViewedPage(event);
+      }
+    } else if (this.getOption('enhancedEcommerce')) {
+      if (event.name === 'Viewed Product') {
+        this.onViewedProduct(event);
+      } else if (event.name === 'Clicked Product') {
+        this.onClickedProduct(event);
+      } else if (event.name === 'Viewed Product Detail') {
+        this.onViewedProductDetail(event);
+      } else if (event.name === 'Added Product') {
+        this.onAddedProduct(event);
+      } else if (event.name === 'Removed Product') {
+        this.onRemovedProduct(event);
+      } else if (event.name === 'Completed Transaction') {
+        this.onCompletedTransactionEnhanced(event);
+      } else if (event.name === 'Refunded Transaction') {
+        this.onRefundedTransaction(event);
+      } else if (event.name === 'Viewed Product Category') {
+        this.onViewedProductCategory(event);
+      } else if (event.name === 'Viewed Campaign') {
+        this.onViewedCampaign(event);
+      } else if (event.name === 'Clicked Campaign') {
+        this.onClickedCampaign(event);
+      } else if (event.name === 'Viewed Checkout Step') {
+        this.onViewedCheckoutStep(event);
+      } else if (event.name === 'Completed Checkout Step') {
+        this.onCompletedCheckoutStep(event);
+      } else {
         this.onCustomEvent(event);
       }
     } else {
-      if (event.name === 'Viewed Page') {
-        this.onViewedPage(event);
-      } else if (this.getOption('enhancedEcommerce')) {
-        if (event.name === 'Viewed Product') {
-          this.onViewedProduct(event);
-        } else if (event.name === 'Clicked Product') {
-          this.onClickedProduct(event);
-        } else if (event.name === 'Viewed Product Detail') {
-          this.onViewedProductDetail(event);
-        } else if (event.name === 'Added Product') {
-          this.onAddedProduct(event);
-        } else if (event.name === 'Removed Product') {
-          this.onRemovedProduct(event);
-        } else if (event.name === 'Completed Transaction') {
-          this.onCompletedTransactionEnhanced(event);
-        } else if (event.name === 'Refunded Transaction') {
-          this.onRefundedTransaction(event);
-        } else if (event.name === 'Viewed Product Category') {
-          this.onViewedProductCategory(event);
-        } else if (event.name === 'Viewed Campaign') {
-          this.onViewedCampaign(event);
-        } else if (event.name === 'Clicked Campaign') {
-          this.onClickedCampaign(event);
-        } else if (event.name === 'Viewed Checkout Step') {
-          this.onViewedCheckoutStep(event);
-        } else if (event.name === 'Completed Checkout Step') {
-          this.onCompletedCheckoutStep(event);
-        } else {
-          this.onCustomEvent(event);
-        }
+      if (event.name === 'Completed Transaction') {
+        this.onCompletedTransaction(event);
       } else {
-        if (event.name === 'Completed Transaction') {
-          this.onCompletedTransaction(event);
-        } else {
-          this.onCustomEvent(event);
-        }
+        this.onCustomEvent(event);
       }
     }
   }

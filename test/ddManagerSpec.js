@@ -131,7 +131,7 @@ describe('DDManager', () => {
       ddManager.initialize();
       if (ddManager.isInitialized()) {
         ddManager.once('initialize', () => {
-          assert.ok(window.digitalData.user.anonymousId);
+          assert.ok(window.digitalData.context.userAgent);
           done();
         });
       } else {

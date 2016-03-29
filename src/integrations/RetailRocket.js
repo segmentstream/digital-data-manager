@@ -20,7 +20,7 @@ class RetailRocket extends Integration {
       type: 'script',
       attr: {
         id: 'rrApi-jssdk',
-        src: '//cdn.retailrocket.ru/content/javascript/api.js',
+        src: '//cdn.retailrocket.ru/content/javascript/tracking.js',
       },
     });
   }

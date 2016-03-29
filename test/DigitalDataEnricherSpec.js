@@ -1,7 +1,6 @@
 import assert from 'assert';
 import sinon from 'sinon';
 import deleteProperty from './../src/functions/deleteProperty.js';
-import Storage from './../src/Storage.js';
 import DigitalDataEnricher from './../src/DigitalDataEnricher.js';
 
 describe('DigitalDataEnricher', () => {
@@ -24,7 +23,7 @@ describe('DigitalDataEnricher', () => {
   };
 
   before(() => {
-    _digitalDataEnricher = new DigitalDataEnricher(_digitalData, new Storage());
+    _digitalDataEnricher = new DigitalDataEnricher(_digitalData);
     _htmlGlobals = _digitalDataEnricher.getHtmlGlobals();
     sinon.stub(_htmlGlobals, 'getDocument', () => {
       return _document;
@@ -35,10 +34,6 @@ describe('DigitalDataEnricher', () => {
     sinon.stub(_htmlGlobals, 'getNavigator', () => {
       return _navigator;
     });
-  });
-
-  afterEach(() => {
-    _digitalDataEnricher.getStorage().clear();
   });
 
   after(() => {
@@ -88,33 +83,6 @@ describe('DigitalDataEnricher', () => {
       _digitalDataEnricher.setDigitalData(_digitalData);
       _digitalDataEnricher.enrichContextData();
       assert.ok(_digitalData.context.userAgent === _navigator.userAgent);
-    });
-
-  });
-
-
-  describe('#enrichUserData', () => {
-
-    before(() => {
-      _digitalData = {
-        user: {},
-        page: {
-          type: 'home',
-        },
-        context: {},
-        events: []
-      };
-    });
-
-    it('should enrich DDL context variable', () => {
-      _digitalDataEnricher.setDigitalData(_digitalData);
-      _digitalDataEnricher.enrichUserData();
-
-      const anonymousId = _digitalData.user.anonymousId;
-      assert.ok(anonymousId);
-
-      _digitalDataEnricher.enrichUserData();
-      assert.ok(anonymousId === _digitalData.user.anonymousId);
     });
 
   });
