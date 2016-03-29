@@ -9,7 +9,8 @@ import EventManager from './EventManager.js';
 import AutoEvents from './AutoEvents.js';
 import DDHelper from './DDHelper.js';
 import DigitalDataEnricher from './DigitalDataEnricher.js';
-import Storage from './Storage.js';
+
+let ddManager;
 
 /**
  * @type {string}
@@ -40,12 +41,6 @@ let _digitalData = {};
  * @private
  */
 let _ddListener = [];
-
-/**
- * @type {Storage}
- * @private
- */
-let _storage;
 
 /**
  * @type {Object}
@@ -99,9 +94,44 @@ function _prepareGlobals() {
   }
 }
 
-const ddManager = {
+function _initializeIntegrations(settings, onReady) {
+  const ready = after(size(_integrations), onReady);
 
-  VERSION: '1.0.8',
+  if (settings && typeof settings === 'object') {
+    const integrationSettings = settings.integrations;
+    if (integrationSettings) {
+      each(integrationSettings, (name, options) => {
+        if (typeof _availableIntegrations[name] === 'function') {
+          const integration = new _availableIntegrations[name](_digitalData, clone(options));
+          ddManager.addIntegration(integration);
+        }
+      });
+    }
+
+    if (size(_integrations) > 0) {
+      each(_integrations, (name, integration) => {
+        if (!integration.isLoaded() || integration.getOption('noConflict')) {
+          integration.once('ready', () => {
+            integration.enrichDigitalData();
+            _eventManager.addCallback(['on', 'event', (event) => {
+              integration.trackEvent(event);
+            }]);
+            ready();
+          });
+          integration.initialize();
+        } else {
+          ready();
+        }
+      });
+    } else {
+      ready();
+    }
+  }
+}
+
+ddManager = {
+
+  VERSION: '1.0.9',
 
   setAvailableIntegrations: (availableIntegrations) => {
     _availableIntegrations = availableIntegrations;
@@ -168,15 +198,8 @@ const ddManager = {
 
     _prepareGlobals();
 
-    // initialize storage
-    _storage = new Storage({
-      cookieDomain: settings.domain,
-    });
-
     // initialize digital data enricher
-    const digitalDataEnricher = new DigitalDataEnricher(_digitalData, _storage, {
-      sessionLength: settings.sessionLength,
-    });
+    const digitalDataEnricher = new DigitalDataEnricher(_digitalData);
     digitalDataEnricher.enrichDigitalData();
 
     // initialize event manager
@@ -185,40 +208,11 @@ const ddManager = {
       _eventManager.setAutoEvents(new AutoEvents(settings.autoEvents));
     }
 
-    if (settings && typeof settings === 'object') {
-      const integrationSettings = settings.integrations;
-      if (integrationSettings) {
-        each(integrationSettings, (name, options) => {
-          if (typeof _availableIntegrations[name] === 'function') {
-            const integration = new _availableIntegrations[name](_digitalData, clone(options));
-            ddManager.addIntegration(integration);
-          }
-        });
-      }
-    }
-
-    const ready = after(size(_integrations), () => {
+    _initializeIntegrations(settings, () => {
       _eventManager.initialize();
       _isReady = true;
       ddManager.emit('ready');
     });
-
-    if (size(_integrations) > 0) {
-      each(_integrations, (name, integration) => {
-        if (!integration.isLoaded() || integration.getOption('noConflict')) {
-          integration.once('ready', ready);
-          integration.initialize();
-        } else {
-          ready();
-        }
-        // add event listeners for integration
-        _eventManager.addCallback(['on', 'event', (event) => {
-          integration.trackEvent(event);
-        }]);
-      });
-    } else {
-      ready();
-    }
 
     _isInitialized = true;
     ddManager.emit('initialize', settings);

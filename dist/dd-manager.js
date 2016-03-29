@@ -1262,7 +1262,7 @@
 }());
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":50}],2:[function(require,module,exports){
+},{"_process":49}],2:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -4278,7 +4278,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":49}],46:[function(require,module,exports){
+},{"ms":48}],46:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -4400,153 +4400,6 @@ module.exports = isArray || function (val) {
 };
 
 },{}],48:[function(require,module,exports){
-/*!
- * JavaScript Cookie v2.1.0
- * https://github.com/js-cookie/js-cookie
- *
- * Copyright 2006, 2015 Klaus Hartl & Fagner Brack
- * Released under the MIT license
- */
-(function (factory) {
-	if (typeof define === 'function' && define.amd) {
-		define(factory);
-	} else if (typeof exports === 'object') {
-		module.exports = factory();
-	} else {
-		var _OldCookies = window.Cookies;
-		var api = window.Cookies = factory();
-		api.noConflict = function () {
-			window.Cookies = _OldCookies;
-			return api;
-		};
-	}
-}(function () {
-	function extend () {
-		var i = 0;
-		var result = {};
-		for (; i < arguments.length; i++) {
-			var attributes = arguments[ i ];
-			for (var key in attributes) {
-				result[key] = attributes[key];
-			}
-		}
-		return result;
-	}
-
-	function init (converter) {
-		function api (key, value, attributes) {
-			var result;
-
-			// Write
-
-			if (arguments.length > 1) {
-				attributes = extend({
-					path: '/'
-				}, api.defaults, attributes);
-
-				if (typeof attributes.expires === 'number') {
-					var expires = new Date();
-					expires.setMilliseconds(expires.getMilliseconds() + attributes.expires * 864e+5);
-					attributes.expires = expires;
-				}
-
-				try {
-					result = JSON.stringify(value);
-					if (/^[\{\[]/.test(result)) {
-						value = result;
-					}
-				} catch (e) {}
-
-				if (!converter.write) {
-					value = encodeURIComponent(String(value))
-						.replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g, decodeURIComponent);
-				} else {
-					value = converter.write(value, key);
-				}
-
-				key = encodeURIComponent(String(key));
-				key = key.replace(/%(23|24|26|2B|5E|60|7C)/g, decodeURIComponent);
-				key = key.replace(/[\(\)]/g, escape);
-
-				return (document.cookie = [
-					key, '=', value,
-					attributes.expires && '; expires=' + attributes.expires.toUTCString(), // use expires attribute, max-age is not supported by IE
-					attributes.path    && '; path=' + attributes.path,
-					attributes.domain  && '; domain=' + attributes.domain,
-					attributes.secure ? '; secure' : ''
-				].join(''));
-			}
-
-			// Read
-
-			if (!key) {
-				result = {};
-			}
-
-			// To prevent the for loop in the first place assign an empty array
-			// in case there are no cookies at all. Also prevents odd result when
-			// calling "get()"
-			var cookies = document.cookie ? document.cookie.split('; ') : [];
-			var rdecode = /(%[0-9A-Z]{2})+/g;
-			var i = 0;
-
-			for (; i < cookies.length; i++) {
-				var parts = cookies[i].split('=');
-				var name = parts[0].replace(rdecode, decodeURIComponent);
-				var cookie = parts.slice(1).join('=');
-
-				if (cookie.charAt(0) === '"') {
-					cookie = cookie.slice(1, -1);
-				}
-
-				try {
-					cookie = converter.read ?
-						converter.read(cookie, name) : converter(cookie, name) ||
-						cookie.replace(rdecode, decodeURIComponent);
-
-					if (this.json) {
-						try {
-							cookie = JSON.parse(cookie);
-						} catch (e) {}
-					}
-
-					if (key === name) {
-						result = cookie;
-						break;
-					}
-
-					if (!key) {
-						result[name] = cookie;
-					}
-				} catch (e) {}
-			}
-
-			return result;
-		}
-
-		api.get = api.set = api;
-		api.getJSON = function () {
-			return api.apply({
-				json: true
-			}, [].slice.call(arguments));
-		};
-		api.defaults = {};
-
-		api.remove = function (key, attributes) {
-			api(key, '', extend(attributes, {
-				expires: -1
-			}));
-		};
-
-		api.withConverter = init;
-
-		return api;
-	}
-
-	return init(function () {});
-}));
-
-},{}],49:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -4673,7 +4526,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],50:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -4766,422 +4619,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],51:[function(require,module,exports){
-(function (global){
-"use strict"
-// Module export pattern from
-// https://github.com/umdjs/umd/blob/master/returnExports.js
-;(function (root, factory) {
-    if (typeof define === 'function' && define.amd) {
-        // AMD. Register as an anonymous module.
-        define([], factory);
-    } else if (typeof exports === 'object') {
-        // Node. Does not work with strict CommonJS, but
-        // only CommonJS-like environments that support module.exports,
-        // like Node.
-        module.exports = factory();
-    } else {
-        // Browser globals (root is window)
-        root.store = factory();
-  }
-}(this, function () {
-	
-	// Store.js
-	var store = {},
-		win = (typeof window != 'undefined' ? window : global),
-		doc = win.document,
-		localStorageName = 'localStorage',
-		scriptTag = 'script',
-		storage
-
-	store.disabled = false
-	store.version = '1.3.20'
-	store.set = function(key, value) {}
-	store.get = function(key, defaultVal) {}
-	store.has = function(key) { return store.get(key) !== undefined }
-	store.remove = function(key) {}
-	store.clear = function() {}
-	store.transact = function(key, defaultVal, transactionFn) {
-		if (transactionFn == null) {
-			transactionFn = defaultVal
-			defaultVal = null
-		}
-		if (defaultVal == null) {
-			defaultVal = {}
-		}
-		var val = store.get(key, defaultVal)
-		transactionFn(val)
-		store.set(key, val)
-	}
-	store.getAll = function() {}
-	store.forEach = function() {}
-
-	store.serialize = function(value) {
-		return JSON.stringify(value)
-	}
-	store.deserialize = function(value) {
-		if (typeof value != 'string') { return undefined }
-		try { return JSON.parse(value) }
-		catch(e) { return value || undefined }
-	}
-
-	// Functions to encapsulate questionable FireFox 3.6.13 behavior
-	// when about.config::dom.storage.enabled === false
-	// See https://github.com/marcuswestin/store.js/issues#issue/13
-	function isLocalStorageNameSupported() {
-		try { return (localStorageName in win && win[localStorageName]) }
-		catch(err) { return false }
-	}
-
-	if (isLocalStorageNameSupported()) {
-		storage = win[localStorageName]
-		store.set = function(key, val) {
-			if (val === undefined) { return store.remove(key) }
-			storage.setItem(key, store.serialize(val))
-			return val
-		}
-		store.get = function(key, defaultVal) {
-			var val = store.deserialize(storage.getItem(key))
-			return (val === undefined ? defaultVal : val)
-		}
-		store.remove = function(key) { storage.removeItem(key) }
-		store.clear = function() { storage.clear() }
-		store.getAll = function() {
-			var ret = {}
-			store.forEach(function(key, val) {
-				ret[key] = val
-			})
-			return ret
-		}
-		store.forEach = function(callback) {
-			for (var i=0; i<storage.length; i++) {
-				var key = storage.key(i)
-				callback(key, store.get(key))
-			}
-		}
-	} else if (doc && doc.documentElement.addBehavior) {
-		var storageOwner,
-			storageContainer
-		// Since #userData storage applies only to specific paths, we need to
-		// somehow link our data to a specific path.  We choose /favicon.ico
-		// as a pretty safe option, since all browsers already make a request to
-		// this URL anyway and being a 404 will not hurt us here.  We wrap an
-		// iframe pointing to the favicon in an ActiveXObject(htmlfile) object
-		// (see: http://msdn.microsoft.com/en-us/library/aa752574(v=VS.85).aspx)
-		// since the iframe access rules appear to allow direct access and
-		// manipulation of the document element, even for a 404 page.  This
-		// document can be used instead of the current document (which would
-		// have been limited to the current path) to perform #userData storage.
-		try {
-			storageContainer = new ActiveXObject('htmlfile')
-			storageContainer.open()
-			storageContainer.write('<'+scriptTag+'>document.w=window</'+scriptTag+'><iframe src="/favicon.ico"></iframe>')
-			storageContainer.close()
-			storageOwner = storageContainer.w.frames[0].document
-			storage = storageOwner.createElement('div')
-		} catch(e) {
-			// somehow ActiveXObject instantiation failed (perhaps some special
-			// security settings or otherwse), fall back to per-path storage
-			storage = doc.createElement('div')
-			storageOwner = doc.body
-		}
-		var withIEStorage = function(storeFunction) {
-			return function() {
-				var args = Array.prototype.slice.call(arguments, 0)
-				args.unshift(storage)
-				// See http://msdn.microsoft.com/en-us/library/ms531081(v=VS.85).aspx
-				// and http://msdn.microsoft.com/en-us/library/ms531424(v=VS.85).aspx
-				storageOwner.appendChild(storage)
-				storage.addBehavior('#default#userData')
-				storage.load(localStorageName)
-				var result = storeFunction.apply(store, args)
-				storageOwner.removeChild(storage)
-				return result
-			}
-		}
-
-		// In IE7, keys cannot start with a digit or contain certain chars.
-		// See https://github.com/marcuswestin/store.js/issues/40
-		// See https://github.com/marcuswestin/store.js/issues/83
-		var forbiddenCharsRegex = new RegExp("[!\"#$%&'()*+,/\\\\:;<=>?@[\\]^`{|}~]", "g")
-		var ieKeyFix = function(key) {
-			return key.replace(/^d/, '___$&').replace(forbiddenCharsRegex, '___')
-		}
-		store.set = withIEStorage(function(storage, key, val) {
-			key = ieKeyFix(key)
-			if (val === undefined) { return store.remove(key) }
-			storage.setAttribute(key, store.serialize(val))
-			storage.save(localStorageName)
-			return val
-		})
-		store.get = withIEStorage(function(storage, key, defaultVal) {
-			key = ieKeyFix(key)
-			var val = store.deserialize(storage.getAttribute(key))
-			return (val === undefined ? defaultVal : val)
-		})
-		store.remove = withIEStorage(function(storage, key) {
-			key = ieKeyFix(key)
-			storage.removeAttribute(key)
-			storage.save(localStorageName)
-		})
-		store.clear = withIEStorage(function(storage) {
-			var attributes = storage.XMLDocument.documentElement.attributes
-			storage.load(localStorageName)
-			for (var i=attributes.length-1; i>=0; i--) {
-				storage.removeAttribute(attributes[i].name)
-			}
-			storage.save(localStorageName)
-		})
-		store.getAll = function(storage) {
-			var ret = {}
-			store.forEach(function(key, val) {
-				ret[key] = val
-			})
-			return ret
-		}
-		store.forEach = withIEStorage(function(storage, callback) {
-			var attributes = storage.XMLDocument.documentElement.attributes
-			for (var i=0, attr; attr=attributes[i]; ++i) {
-				callback(attr.name, store.deserialize(storage.getAttribute(attr.name)))
-			}
-		})
-	}
-
-	try {
-		var testKey = '__storejs__'
-		store.set(testKey, testKey)
-		if (store.get(testKey) != testKey) { store.disabled = true }
-		store.remove(testKey)
-	} catch(e) {
-		store.disabled = true
-	}
-	store.enabled = !store.disabled
-	
-	return store
-}));
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],52:[function(require,module,exports){
-(function (global){
-
-var rng;
-
-if (global.crypto && crypto.getRandomValues) {
-  // WHATWG crypto-based RNG - http://wiki.whatwg.org/wiki/Crypto
-  // Moderately fast, high quality
-  var _rnds8 = new Uint8Array(16);
-  rng = function whatwgRNG() {
-    crypto.getRandomValues(_rnds8);
-    return _rnds8;
-  };
-}
-
-if (!rng) {
-  // Math.random()-based (RNG)
-  //
-  // If all else fails, use Math.random().  It's fast, but is of unspecified
-  // quality.
-  var  _rnds = new Array(16);
-  rng = function() {
-    for (var i = 0, r; i < 16; i++) {
-      if ((i & 0x03) === 0) r = Math.random() * 0x100000000;
-      _rnds[i] = r >>> ((i & 0x03) << 3) & 0xff;
-    }
-
-    return _rnds;
-  };
-}
-
-module.exports = rng;
-
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],53:[function(require,module,exports){
-//     uuid.js
-//
-//     Copyright (c) 2010-2012 Robert Kieffer
-//     MIT License - http://opensource.org/licenses/mit-license.php
-
-// Unique ID creation requires a high quality random # generator.  We feature
-// detect to determine the best RNG source, normalizing to a function that
-// returns 128-bits of randomness, since that's what's usually required
-var _rng = require('./rng');
-
-// Maps for number <-> hex string conversion
-var _byteToHex = [];
-var _hexToByte = {};
-for (var i = 0; i < 256; i++) {
-  _byteToHex[i] = (i + 0x100).toString(16).substr(1);
-  _hexToByte[_byteToHex[i]] = i;
-}
-
-// **`parse()` - Parse a UUID into it's component bytes**
-function parse(s, buf, offset) {
-  var i = (buf && offset) || 0, ii = 0;
-
-  buf = buf || [];
-  s.toLowerCase().replace(/[0-9a-f]{2}/g, function(oct) {
-    if (ii < 16) { // Don't overflow!
-      buf[i + ii++] = _hexToByte[oct];
-    }
-  });
-
-  // Zero out remaining bytes if string was short
-  while (ii < 16) {
-    buf[i + ii++] = 0;
-  }
-
-  return buf;
-}
-
-// **`unparse()` - Convert UUID byte array (ala parse()) into a string**
-function unparse(buf, offset) {
-  var i = offset || 0, bth = _byteToHex;
-  return  bth[buf[i++]] + bth[buf[i++]] +
-          bth[buf[i++]] + bth[buf[i++]] + '-' +
-          bth[buf[i++]] + bth[buf[i++]] + '-' +
-          bth[buf[i++]] + bth[buf[i++]] + '-' +
-          bth[buf[i++]] + bth[buf[i++]] + '-' +
-          bth[buf[i++]] + bth[buf[i++]] +
-          bth[buf[i++]] + bth[buf[i++]] +
-          bth[buf[i++]] + bth[buf[i++]];
-}
-
-// **`v1()` - Generate time-based UUID**
-//
-// Inspired by https://github.com/LiosK/UUID.js
-// and http://docs.python.org/library/uuid.html
-
-// random #'s we need to init node and clockseq
-var _seedBytes = _rng();
-
-// Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
-var _nodeId = [
-  _seedBytes[0] | 0x01,
-  _seedBytes[1], _seedBytes[2], _seedBytes[3], _seedBytes[4], _seedBytes[5]
-];
-
-// Per 4.2.2, randomize (14 bit) clockseq
-var _clockseq = (_seedBytes[6] << 8 | _seedBytes[7]) & 0x3fff;
-
-// Previous uuid creation time
-var _lastMSecs = 0, _lastNSecs = 0;
-
-// See https://github.com/broofa/node-uuid for API details
-function v1(options, buf, offset) {
-  var i = buf && offset || 0;
-  var b = buf || [];
-
-  options = options || {};
-
-  var clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq;
-
-  // UUID timestamps are 100 nano-second units since the Gregorian epoch,
-  // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
-  // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
-  // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
-  var msecs = options.msecs !== undefined ? options.msecs : new Date().getTime();
-
-  // Per 4.2.1.2, use count of uuid's generated during the current clock
-  // cycle to simulate higher resolution clock
-  var nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1;
-
-  // Time since last uuid creation (in msecs)
-  var dt = (msecs - _lastMSecs) + (nsecs - _lastNSecs)/10000;
-
-  // Per 4.2.1.2, Bump clockseq on clock regression
-  if (dt < 0 && options.clockseq === undefined) {
-    clockseq = clockseq + 1 & 0x3fff;
-  }
-
-  // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
-  // time interval
-  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
-    nsecs = 0;
-  }
-
-  // Per 4.2.1.2 Throw error if too many uuids are requested
-  if (nsecs >= 10000) {
-    throw new Error('uuid.v1(): Can\'t create more than 10M uuids/sec');
-  }
-
-  _lastMSecs = msecs;
-  _lastNSecs = nsecs;
-  _clockseq = clockseq;
-
-  // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
-  msecs += 12219292800000;
-
-  // `time_low`
-  var tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
-  b[i++] = tl >>> 24 & 0xff;
-  b[i++] = tl >>> 16 & 0xff;
-  b[i++] = tl >>> 8 & 0xff;
-  b[i++] = tl & 0xff;
-
-  // `time_mid`
-  var tmh = (msecs / 0x100000000 * 10000) & 0xfffffff;
-  b[i++] = tmh >>> 8 & 0xff;
-  b[i++] = tmh & 0xff;
-
-  // `time_high_and_version`
-  b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
-  b[i++] = tmh >>> 16 & 0xff;
-
-  // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
-  b[i++] = clockseq >>> 8 | 0x80;
-
-  // `clock_seq_low`
-  b[i++] = clockseq & 0xff;
-
-  // `node`
-  var node = options.node || _nodeId;
-  for (var n = 0; n < 6; n++) {
-    b[i + n] = node[n];
-  }
-
-  return buf ? buf : unparse(b);
-}
-
-// **`v4()` - Generate random UUID**
-
-// See https://github.com/broofa/node-uuid for API details
-function v4(options, buf, offset) {
-  // Deprecated - 'format' argument, as supported in v1.2
-  var i = buf && offset || 0;
-
-  if (typeof(options) == 'string') {
-    buf = options == 'binary' ? new Array(16) : null;
-    options = null;
-  }
-  options = options || {};
-
-  var rnds = options.random || (options.rng || _rng)();
-
-  // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
-  rnds[6] = (rnds[6] & 0x0f) | 0x40;
-  rnds[8] = (rnds[8] & 0x3f) | 0x80;
-
-  // Copy bytes to buffer, if provided
-  if (buf) {
-    for (var ii = 0; ii < 16; ii++) {
-      buf[i + ii] = rnds[ii];
-    }
-  }
-
-  return buf || unparse(rnds);
-}
-
-// Export public API
-var uuid = v4;
-uuid.v1 = v1;
-uuid.v4 = v4;
-uuid.parse = parse;
-uuid.unparse = unparse;
-
-module.exports = uuid;
-
-},{"./rng":52}],54:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5329,7 +4767,7 @@ var AutoEvents = (function () {
 
 exports['default'] = AutoEvents;
 
-},{"./DOMComponentsTracking.js":56,"component-type":6}],55:[function(require,module,exports){
+},{"./DOMComponentsTracking.js":52,"component-type":6}],51:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5453,7 +4891,7 @@ var DDHelper = (function () {
 
 exports['default'] = DDHelper;
 
-},{"./functions/getProperty.js":68,"component-clone":4}],56:[function(require,module,exports){
+},{"./functions/getProperty.js":63,"component-clone":4}],52:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5743,7 +5181,7 @@ var DOMComponentsTracking = (function () {
 
 exports['default'] = DOMComponentsTracking;
 
-},{"./functions/each.js":66}],57:[function(require,module,exports){
+},{"./functions/each.js":61}],53:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5751,10 +5189,6 @@ exports.__esModule = true;
 var _htmlGlobals = require('./functions/htmlGlobals.js');
 
 var _htmlGlobals2 = _interopRequireDefault(_htmlGlobals);
-
-var _uuid = require('uuid');
-
-var _uuid2 = _interopRequireDefault(_uuid);
 
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
@@ -5767,31 +5201,18 @@ function _classCallCheck(instance, Constructor) {
 }
 
 var DigitalDataEnricher = (function () {
-  function DigitalDataEnricher(digitalData, storage, options) {
+  function DigitalDataEnricher(digitalData) {
     _classCallCheck(this, DigitalDataEnricher);
 
     this.digitalData = digitalData;
-    this.storage = storage;
-    this.options = Object.assign({
-      sessionLength: 3600
-    }, options);
   }
 
   DigitalDataEnricher.prototype.setDigitalData = function setDigitalData(digitalData) {
     this.digitalData = digitalData;
   };
 
-  DigitalDataEnricher.prototype.setStorage = function setStorage(storage) {
-    this.storage = storage;
-  };
-
-  DigitalDataEnricher.prototype.getStorage = function getStorage() {
-    return this.storage;
-  };
-
   DigitalDataEnricher.prototype.enrichDigitalData = function enrichDigitalData() {
     this.enrichPageData();
-    this.enrichUserData();
     this.enrichContextData();
   };
 
@@ -5804,11 +5225,6 @@ var DigitalDataEnricher = (function () {
     page.title = page.title || this.getHtmlGlobals().getDocument().title;
     page.url = page.url || this.getHtmlGlobals().getLocation().href;
     page.hash = page.hash || this.getHtmlGlobals().getLocation().hash;
-  };
-
-  DigitalDataEnricher.prototype.enrichUserData = function enrichUserData() {
-    var user = this.digitalData.user;
-    user.anonymousId = this.getUserAnonymousId();
   };
 
   DigitalDataEnricher.prototype.enrichContextData = function enrichContextData() {
@@ -5825,25 +5241,12 @@ var DigitalDataEnricher = (function () {
     return _htmlGlobals2['default'];
   };
 
-  DigitalDataEnricher.prototype.getUserAnonymousId = function getUserAnonymousId() {
-    var anonymousId = this.storage.get('user.anonymousId');
-    if (!anonymousId) {
-      anonymousId = (0, _uuid2['default'])();
-      this.storage.set('user.anonymousId', anonymousId);
-    }
-    return anonymousId;
-  };
-
-  DigitalDataEnricher.prototype.getOption = function getOption(name) {
-    return this.options[name];
-  };
-
   return DigitalDataEnricher;
 })();
 
 exports['default'] = DigitalDataEnricher;
 
-},{"./functions/htmlGlobals.js":70,"uuid":53}],58:[function(require,module,exports){
+},{"./functions/htmlGlobals.js":65}],54:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -6002,7 +5405,7 @@ var EventDataEnricher = (function () {
 
 exports['default'] = EventDataEnricher;
 
-},{"./DDHelper.js":55,"component-type":6}],59:[function(require,module,exports){
+},{"./DDHelper.js":51,"component-type":6}],55:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -6356,7 +5759,7 @@ var EventManager = (function () {
 
 exports['default'] = EventManager;
 
-},{"./DDHelper.js":55,"./EventDataEnricher.js":58,"./functions/after.js":64,"./functions/deleteProperty.js":65,"./functions/jsonIsEqual.js":71,"./functions/noop.js":75,"./functions/size.js":77,"async":1,"component-clone":4,"debug":44}],60:[function(require,module,exports){
+},{"./DDHelper.js":51,"./EventDataEnricher.js":54,"./functions/after.js":59,"./functions/deleteProperty.js":60,"./functions/jsonIsEqual.js":66,"./functions/noop.js":70,"./functions/size.js":72,"async":1,"component-clone":4,"debug":44}],56:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -6542,6 +5945,10 @@ var Integration = (function (_EventEmitter) {
     // abstract
   };
 
+  Integration.prototype.enrichDigitalData = function enrichDigitalData() {
+    // abstract
+  };
+
   Integration.prototype.trackEvent = function trackEvent() {
     // abstract
   };
@@ -6551,127 +5958,7 @@ var Integration = (function (_EventEmitter) {
 
 exports['default'] = Integration;
 
-},{"./DDHelper.js":55,"./functions/deleteProperty.js":65,"./functions/each.js":66,"./functions/format.js":67,"./functions/loadIframe.js":72,"./functions/loadPixel.js":73,"./functions/loadScript.js":74,"./functions/noop.js":75,"async":1,"component-emitter":5,"debug":44}],61:[function(require,module,exports){
-'use strict';
-
-exports.__esModule = true;
-
-var _store = require('store');
-
-var _store2 = _interopRequireDefault(_store);
-
-var _jsCookie = require('js-cookie');
-
-var _jsCookie2 = _interopRequireDefault(_jsCookie);
-
-var _debug = require('debug');
-
-var _debug2 = _interopRequireDefault(_debug);
-
-var _topDomain = require('./functions/topDomain.js');
-
-var _topDomain2 = _interopRequireDefault(_topDomain);
-
-function _interopRequireDefault(obj) {
-  return obj && obj.__esModule ? obj : { 'default': obj };
-}
-
-function _classCallCheck(instance, Constructor) {
-  if (!(instance instanceof Constructor)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-}
-
-var Storage = (function () {
-  function Storage(options) {
-    _classCallCheck(this, Storage);
-
-    this.options = Object.assign({
-      cookieDomain: (0, _topDomain2['default'])(location.href),
-      cookieMaxAge: 31536000000, // default to a year
-      prefix: 'ddl:'
-    }, options);
-
-    // http://curl.haxx.se/rfc/cookie_spec.html
-    // https://publicsuffix.org/list/effective_tld_names.dat
-    //
-    // try setting a dummy cookie with the options
-    // if the cookie isn't set, it probably means
-    // that the domain is on the public suffix list
-    // like myapp.herokuapp.com or localhost / ip.
-    if (this.getOption('cookieDomain')) {
-      _jsCookie2['default'].set('__tld__', true, {
-        domain: this.getOption('cookieDomain')
-      });
-      if (!this.get('__tld__')) {
-        (0, _debug2['default'])('fallback to domain=null');
-        this.setOption('cookieDomain', null);
-      }
-      _jsCookie2['default'].remove('__tld__');
-    }
-  }
-
-  Storage.prototype.set = function set(key, val, exp) {
-    key = this.prefix + key;
-    if (_store2['default'].enabled) {
-      _store2['default'].set(key, {
-        val: val,
-        exp: exp,
-        time: new Date().getTime()
-      });
-    } else {
-      exp = exp || this.getOption('cookieMaxAge');
-      var expDays = exp / 86400;
-      _jsCookie2['default'].set(key, val, {
-        expires: expDays,
-        domain: this.getOption('cookieDomain')
-      });
-    }
-  };
-
-  Storage.prototype.get = function get(key) {
-    key = this.prefix + key;
-    if (_store2['default'].enabled) {
-      var info = _store2['default'].get(key);
-      if (!info) {
-        return null;
-      }
-      if (new Date().getTime() - info.time > info.exp) {
-        return null;
-      }
-      return info.val;
-    }
-    return _jsCookie2['default'].get(key);
-  };
-
-  Storage.prototype.remove = function remove(key) {
-    key = this.prefix + key;
-    if (_store2['default'].enabled) {
-      return _store2['default'].remove(key);
-    }
-    _jsCookie2['default'].remove(key);
-  };
-
-  Storage.prototype.clear = function clear() {
-    if (_store2['default'].enabled) {
-      return _store2['default'].clear();
-    }
-  };
-
-  Storage.prototype.isEnabled = function isEnabled() {
-    return _store2['default'].enabled;
-  };
-
-  Storage.prototype.getOption = function getOption(name) {
-    return this.options[name];
-  };
-
-  return Storage;
-})();
-
-exports['default'] = Storage;
-
-},{"./functions/topDomain.js":79,"debug":44,"js-cookie":48,"store":51}],62:[function(require,module,exports){
+},{"./DDHelper.js":51,"./functions/deleteProperty.js":60,"./functions/each.js":61,"./functions/format.js":62,"./functions/loadIframe.js":67,"./functions/loadPixel.js":68,"./functions/loadScript.js":69,"./functions/noop.js":70,"async":1,"component-emitter":5,"debug":44}],57:[function(require,module,exports){
 'use strict';
 
 var _integrations;
@@ -6698,15 +5985,19 @@ var _FacebookPixel = require('./integrations/FacebookPixel.js');
 
 var _FacebookPixel2 = _interopRequireDefault(_FacebookPixel);
 
+var _SegmentStream = require('./integrations/SegmentStream.js');
+
+var _SegmentStream2 = _interopRequireDefault(_SegmentStream);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-var integrations = (_integrations = {}, _integrations[_GoogleAnalytics2['default'].getName()] = _GoogleAnalytics2['default'], _integrations[_GoogleTagManager2['default'].getName()] = _GoogleTagManager2['default'], _integrations[_FacebookPixel2['default'].getName()] = _FacebookPixel2['default'], _integrations[_Driveback2['default'].getName()] = _Driveback2['default'], _integrations[_RetailRocket2['default'].getName()] = _RetailRocket2['default'], _integrations);
+var integrations = (_integrations = {}, _integrations[_GoogleAnalytics2['default'].getName()] = _GoogleAnalytics2['default'], _integrations[_GoogleTagManager2['default'].getName()] = _GoogleTagManager2['default'], _integrations[_FacebookPixel2['default'].getName()] = _FacebookPixel2['default'], _integrations[_Driveback2['default'].getName()] = _Driveback2['default'], _integrations[_RetailRocket2['default'].getName()] = _RetailRocket2['default'], _integrations[_SegmentStream2['default'].getName()] = _SegmentStream2['default'], _integrations);
 
 exports['default'] = integrations;
 
-},{"./integrations/Driveback.js":82,"./integrations/FacebookPixel.js":83,"./integrations/GoogleAnalytics.js":84,"./integrations/GoogleTagManager.js":85,"./integrations/RetailRocket.js":86}],63:[function(require,module,exports){
+},{"./integrations/Driveback.js":75,"./integrations/FacebookPixel.js":76,"./integrations/GoogleAnalytics.js":77,"./integrations/GoogleTagManager.js":78,"./integrations/RetailRocket.js":79,"./integrations/SegmentStream.js":80}],58:[function(require,module,exports){
 'use strict';
 
 function _typeof2(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -6757,10 +6048,6 @@ var _DigitalDataEnricher = require('./DigitalDataEnricher.js');
 
 var _DigitalDataEnricher2 = _interopRequireDefault(_DigitalDataEnricher);
 
-var _Storage = require('./Storage.js');
-
-var _Storage2 = _interopRequireDefault(_Storage);
-
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -6768,6 +6055,8 @@ function _interopRequireDefault(obj) {
 function _typeof(obj) {
   return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj === 'undefined' ? 'undefined' : _typeof2(obj);
 }
+
+var ddManager = undefined;
 
 /**
  * @type {string}
@@ -6798,12 +6087,6 @@ var _digitalData = {};
  * @private
  */
 var _ddListener = [];
-
-/**
- * @type {Storage}
- * @private
- */
-var _storage = undefined;
 
 /**
  * @type {Object}
@@ -6856,9 +6139,44 @@ function _prepareGlobals() {
   }
 }
 
-var ddManager = {
+function _initializeIntegrations(settings, onReady) {
+  var ready = (0, _after2['default'])((0, _size2['default'])(_integrations), onReady);
 
-  VERSION: '1.0.8',
+  if (settings && (typeof settings === 'undefined' ? 'undefined' : _typeof(settings)) === 'object') {
+    var integrationSettings = settings.integrations;
+    if (integrationSettings) {
+      (0, _each2['default'])(integrationSettings, function (name, options) {
+        if (typeof _availableIntegrations[name] === 'function') {
+          var integration = new _availableIntegrations[name](_digitalData, (0, _componentClone2['default'])(options));
+          ddManager.addIntegration(integration);
+        }
+      });
+    }
+
+    if ((0, _size2['default'])(_integrations) > 0) {
+      (0, _each2['default'])(_integrations, function (name, integration) {
+        if (!integration.isLoaded() || integration.getOption('noConflict')) {
+          integration.once('ready', function () {
+            integration.enrichDigitalData();
+            _eventManager.addCallback(['on', 'event', function (event) {
+              integration.trackEvent(event);
+            }]);
+            ready();
+          });
+          integration.initialize();
+        } else {
+          ready();
+        }
+      });
+    } else {
+      ready();
+    }
+  }
+}
+
+ddManager = {
+
+  VERSION: '1.0.9',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -6925,15 +6243,8 @@ var ddManager = {
 
     _prepareGlobals();
 
-    // initialize storage
-    _storage = new _Storage2['default']({
-      cookieDomain: settings.domain
-    });
-
     // initialize digital data enricher
-    var digitalDataEnricher = new _DigitalDataEnricher2['default'](_digitalData, _storage, {
-      sessionLength: settings.sessionLength
-    });
+    var digitalDataEnricher = new _DigitalDataEnricher2['default'](_digitalData);
     digitalDataEnricher.enrichDigitalData();
 
     // initialize event manager
@@ -6942,40 +6253,11 @@ var ddManager = {
       _eventManager.setAutoEvents(new _AutoEvents2['default'](settings.autoEvents));
     }
 
-    if (settings && (typeof settings === 'undefined' ? 'undefined' : _typeof(settings)) === 'object') {
-      var integrationSettings = settings.integrations;
-      if (integrationSettings) {
-        (0, _each2['default'])(integrationSettings, function (name, options) {
-          if (typeof _availableIntegrations[name] === 'function') {
-            var integration = new _availableIntegrations[name](_digitalData, (0, _componentClone2['default'])(options));
-            ddManager.addIntegration(integration);
-          }
-        });
-      }
-    }
-
-    var ready = (0, _after2['default'])((0, _size2['default'])(_integrations), function () {
+    _initializeIntegrations(settings, function () {
       _eventManager.initialize();
       _isReady = true;
       ddManager.emit('ready');
     });
-
-    if ((0, _size2['default'])(_integrations) > 0) {
-      (0, _each2['default'])(_integrations, function (name, integration) {
-        if (!integration.isLoaded() || integration.getOption('noConflict')) {
-          integration.once('ready', ready);
-          integration.initialize();
-        } else {
-          ready();
-        }
-        // add event listeners for integration
-        _eventManager.addCallback(['on', 'event', function (event) {
-          integration.trackEvent(event);
-        }]);
-      });
-    } else {
-      ready();
-    }
 
     _isInitialized = true;
     ddManager.emit('initialize', settings);
@@ -7057,7 +6339,7 @@ ddManager.on = ddManager.addEventListener = function (event, handler) {
 
 exports['default'] = ddManager;
 
-},{"./AutoEvents.js":54,"./DDHelper.js":55,"./DigitalDataEnricher.js":57,"./EventManager.js":59,"./Integration.js":60,"./Storage.js":61,"./functions/after.js":64,"./functions/each.js":66,"./functions/size.js":77,"async":1,"component-clone":4,"component-emitter":5}],64:[function(require,module,exports){
+},{"./AutoEvents.js":50,"./DDHelper.js":51,"./DigitalDataEnricher.js":53,"./EventManager.js":55,"./Integration.js":56,"./functions/after.js":59,"./functions/each.js":61,"./functions/size.js":72,"async":1,"component-clone":4,"component-emitter":5}],59:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -7071,7 +6353,7 @@ exports["default"] = function (times, fn) {
   };
 };
 
-},{}],65:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -7084,7 +6366,7 @@ exports["default"] = function (obj, prop) {
   }
 };
 
-},{}],66:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -7097,7 +6379,7 @@ exports["default"] = function (obj, fn) {
   }
 };
 
-},{}],67:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -7136,7 +6418,7 @@ function format(str) {
   });
 }
 
-},{}],68:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7165,7 +6447,7 @@ function _keyToArray(key) {
   return key.split('.');
 }
 
-},{}],69:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7180,7 +6462,7 @@ function getQueryParam(name, queryString) {
   return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
 }
 
-},{}],70:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -7198,7 +6480,7 @@ exports["default"] = {
   }
 };
 
-},{}],71:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7213,7 +6495,7 @@ function jsonIsEqual(json1, json2) {
   return json1 === json2;
 }
 
-},{}],72:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7273,7 +6555,7 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":76,"async":1}],73:[function(require,module,exports){
+},{"./scriptOnLoad.js":71,"async":1}],68:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7309,7 +6591,7 @@ function error(fn, message, img) {
   };
 }
 
-},{}],74:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7368,14 +6650,14 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":76,"async":1}],75:[function(require,module,exports){
+},{"./scriptOnLoad.js":71,"async":1}],70:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
 
 exports["default"] = function () {};
 
-},{}],76:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7430,7 +6712,7 @@ function attachEvent(el, fn) {
   });
 }
 
-},{}],77:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -7443,7 +6725,7 @@ exports["default"] = function (obj) {
   return size;
 };
 
-},{}],78:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7470,144 +6752,7 @@ function throwError(code, message) {
   throw error;
 }
 
-},{"debug":44}],79:[function(require,module,exports){
-'use strict';
-
-exports.__esModule = true;
-exports['default'] = topDomain;
-
-var _url = require('./url.js');
-
-var _jsCookie = require('js-cookie');
-
-var _jsCookie2 = _interopRequireDefault(_jsCookie);
-
-function _interopRequireDefault(obj) {
-  return obj && obj.__esModule ? obj : { 'default': obj };
-}
-
-/**
- * Levels returns all levels of the given url.
- *
- * @param {String} url
- * @return {Array}
- * @api public
- */
-function getLevels(url) {
-  var host = (0, _url.parse)(url).hostname;
-  var parts = host.split('.');
-  var last = parts[parts.length - 1];
-  var levels = [];
-
-  // Ip address.
-  if (parts.length === 4 && parseInt(last, 10) === last) {
-    return levels;
-  }
-
-  // Localhost.
-  if (parts.length <= 1) {
-    return levels;
-  }
-
-  // Create levels.
-  for (var i = parts.length - 2; i >= 0; --i) {
-    levels.push(parts.slice(i).join('.'));
-  }
-
-  return levels;
-}
-
-/**
- * Get the top domain.
- *
- * The function constructs the levels of domain
- * and attempts to set a global cookie on each one
- * when it succeeds it returns the top level domain.
- *
- * The method returns an empty string when the hostname
- * is an ip or `localhost`.
- *
- * Example levels:
- *
- *      domain.levels('http://www.google.co.uk');
- *      // => ["co.uk", "google.co.uk", "www.google.co.uk"]
- *
- * Example:
- *
- *      domain('http://localhost:3000/baz');
- *      // => ''
- *      domain('http://dev:3000/baz');
- *      // => ''
- *      domain('http://127.0.0.1:3000/baz');
- *      // => ''
- *      domain('http://example.com/baz');
- *      // => 'example.com'
- *
- * @param {String} url
- * @return {String}
- * @api public
- */
-
-function topDomain(url) {
-  var levels = getLevels(url);
-
-  // Lookup the real top level one.
-  for (var i = 0; i < levels.length; ++i) {
-    var cname = '__tld__';
-    var domain = levels[i];
-    var opts = {
-      domain: '.' + domain
-    };
-    _jsCookie2['default'].set(cname, 1, opts);
-    if (_jsCookie2['default'].get(cname)) {
-      _jsCookie2['default'].set(cname, null, opts);
-      return domain;
-    }
-  }
-
-  return '';
-}
-
-},{"./url.js":80,"js-cookie":48}],80:[function(require,module,exports){
-'use strict';
-
-exports.__esModule = true;
-exports.parse = parse;
-/**
- * Return default port for `protocol`.
- *
- * @param  {String} protocol
- * @return {String}
- * @api private
- */
-function port(protocol) {
-  switch (protocol) {
-    case 'http:':
-      return 80;
-    case 'https:':
-      return 443;
-    default:
-      return location.port;
-  }
-}
-
-function parse(url) {
-  var a = document.createElement('a');
-  a.href = url;
-  return {
-    href: a.href,
-    host: a.host || location.host,
-    port: a.port === '0' || a.port === '' ? port(a.protocol) : a.port,
-    hash: a.hash,
-    hostname: a.hostname || location.hostname,
-    pathname: a.pathname.charAt(0) !== '/' ? '/' + a.pathname : a.pathname,
-    protocol: !a.protocol || a.protocol === ':' ? location.protocol : a.protocol,
-    search: a.search,
-    query: a.search.slice(1)
-  };
-}
-
-},{}],81:[function(require,module,exports){
+},{"debug":44}],74:[function(require,module,exports){
 'use strict';
 
 require('./polyfill.js');
@@ -7629,7 +6774,7 @@ _ddManager2['default'].processEarlyStubCalls();
 
 window.ddManager = _ddManager2['default'];
 
-},{"./availableIntegrations.js":62,"./ddManager.js":63,"./polyfill.js":87}],82:[function(require,module,exports){
+},{"./availableIntegrations.js":57,"./ddManager.js":58,"./polyfill.js":81}],75:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -7739,7 +6884,7 @@ var Driveback = (function (_Integration) {
 
 exports['default'] = Driveback;
 
-},{"./../Integration.js":60,"./../functions/deleteProperty.js":65,"./../functions/noop.js":75}],83:[function(require,module,exports){
+},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/noop.js":70}],76:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -7930,7 +7075,7 @@ var FacebookPixel = (function (_Integration) {
 
 exports['default'] = FacebookPixel;
 
-},{"./../Integration.js":60,"./../functions/deleteProperty.js":65,"component-type":6}],84:[function(require,module,exports){
+},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"component-type":6}],77:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -8608,7 +7753,7 @@ var GoogleAnalytics = (function (_Integration) {
 
 exports['default'] = GoogleAnalytics;
 
-},{"./../Integration.js":60,"./../functions/deleteProperty.js":65,"./../functions/each.js":66,"./../functions/getProperty.js":68,"./../functions/size.js":77,"component-clone":4,"component-type":6}],85:[function(require,module,exports){
+},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/each.js":61,"./../functions/getProperty.js":63,"./../functions/size.js":72,"component-clone":4,"component-type":6}],78:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -8704,7 +7849,7 @@ var GoogleTagManager = (function (_Integration) {
 
 exports['default'] = GoogleTagManager;
 
-},{"./../Integration.js":60,"./../functions/deleteProperty.js":65}],86:[function(require,module,exports){
+},{"./../Integration.js":56,"./../functions/deleteProperty.js":60}],79:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -9042,7 +8187,171 @@ var RetailRocket = (function (_Integration) {
 
 exports['default'] = RetailRocket;
 
-},{"./../Integration.js":60,"./../functions/deleteProperty.js":65,"./../functions/format.js":67,"./../functions/getQueryParam.js":69,"./../functions/throwError.js":78,"component-type":6}],87:[function(require,module,exports){
+},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/format.js":62,"./../functions/getQueryParam.js":64,"./../functions/throwError.js":73,"component-type":6}],80:[function(require,module,exports){
+'use strict';
+
+function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+var _deleteProperty = require('./../functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+var _each = require('./../functions/each.js');
+
+var _each2 = _interopRequireDefault(_each);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+var SegmentStream = (function (_Integration) {
+  _inherits(SegmentStream, _Integration);
+
+  function SegmentStream(digitalData, options) {
+    _classCallCheck(this, SegmentStream);
+
+    var optionsWithDefaults = Object.assign({
+      sessionLength: 1800, // 30 min
+      storagePrefix: 'ss:'
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        id: 'segmentstream-sdk',
+        src: '//cdn.driveback.ru/js/segmentstream.js'
+      }
+    });
+    return _this;
+  }
+
+  SegmentStream.getName = function getName() {
+    return 'SegmentStream';
+  };
+
+  SegmentStream.prototype.initialize = function initialize() {
+    var _this2 = this;
+
+    var ssApi = window.ssApi = window.ssApi || [];
+
+    if (ssApi.initialize) return;
+
+    if (ssApi.invoked) {
+      throw new Error('SegmentStream snippet included twice.');
+    }
+
+    ssApi.invoked = true;
+
+    ssApi.methods = ['initialize', 'track', 'getData', 'getAnonymousId', 'pushOnReady'];
+
+    ssApi.factory = function (method) {
+      return function stub() {
+        var args = Array.prototype.slice.call(arguments);
+        args.unshift(method);
+        ssApi.push(args);
+        return ssApi;
+      };
+    };
+
+    for (var i = 0; i < ssApi.methods.length; i++) {
+      var key = ssApi.methods[i];
+      ssApi[key] = ssApi.factory(key);
+    }
+
+    ssApi.initialize(this._options);
+    ssApi.pushOnReady(function () {
+      _this2.ready();
+    });
+    this.load();
+  };
+
+  SegmentStream.prototype.isLoaded = function isLoaded() {
+    return !!(window.ssApi && window.ssApi.initialize);
+  };
+
+  SegmentStream.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, 'ssApi');
+  };
+
+  SegmentStream.prototype.enrichDigitalData = function enrichDigitalData() {
+    var _this3 = this;
+
+    function lowercaseFirstLetter(string) {
+      return string.charAt(0).toLowerCase() + string.slice(1);
+    }
+    var attributes = window.ssApi.getData().attributes;
+    this._digitalData.user.ssAttributes = {};
+    this._digitalData.user.anonymousId = window.ssApi.getAnonymousId();
+    (0, _each2['default'])(attributes, function (name, value) {
+      var key = lowercaseFirstLetter(name);
+      _this3._digitalData.user.ssAttributes[key] = value;
+    });
+  };
+
+  SegmentStream.prototype.trackEvent = function trackEvent(event) {
+    var methods = {
+      'Viewed Page': 'onViewedPage',
+      'Viewed Product Detail': 'onViewedProductDetail',
+      'Added Product': 'onAddedProduct'
+    };
+
+    var method = methods[event.name];
+    if (method) {
+      this[method](event);
+    }
+  };
+
+  SegmentStream.prototype.onViewedPage = function onViewedPage() {
+    window.ssApi.track('Viewed Page');
+    this.enrichDigitalData();
+  };
+
+  SegmentStream.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
+    window.ssApi.track('Viewed Product Detail', {
+      price: event.product.unitSalePrice || event.product.unitPrice || 0
+    });
+    this.enrichDigitalData();
+  };
+
+  SegmentStream.prototype.onAddedProduct = function onAddedProduct(event) {
+    window.ssApi.track('Added Product', {
+      price: event.product.unitSalePrice || event.product.unitPrice || 0
+    });
+    this.enrichDigitalData();
+  };
+
+  return SegmentStream;
+})(_Integration3['default']);
+
+exports['default'] = SegmentStream;
+
+},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/each.js":61}],81:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es5');
@@ -9051,4 +8360,4 @@ require('core-js/modules/es6.object.assign');
 
 require('core-js/modules/es6.string.trim');
 
-},{"core-js/modules/es5":41,"core-js/modules/es6.object.assign":42,"core-js/modules/es6.string.trim":43}]},{},[81]);
+},{"core-js/modules/es5":41,"core-js/modules/es6.object.assign":42,"core-js/modules/es6.string.trim":43}]},{},[74]);
