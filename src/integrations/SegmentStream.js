@@ -71,9 +71,10 @@ class SegmentStream extends Integration {
 
   reset() {
     deleteProperty(window, 'ssApi');
+    localStorage.clear();
   }
 
-  enrichDigitalData() {
+  enrichDigitalData(done) {
     function lowercaseFirstLetter(string) {
       return string.charAt(0).toLowerCase() + string.slice(1);
     }
@@ -84,6 +85,7 @@ class SegmentStream extends Integration {
       const key = lowercaseFirstLetter(name);
       this._digitalData.user.ssAttributes[key] = value;
     });
+    done();
   }
 
   trackEvent(event) {

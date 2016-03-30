@@ -1,9 +1,9 @@
 import assert from 'assert';
 import reset from './reset.js';
 import snippet from './snippet.js';
-import availableIntegrations from '../src/availableIntegrations.js';
 import ddManager from '../src/ddManager.js';
 import Integration from '../src/Integration.js';
+import availableIntegrations from '../src/availableIntegrations.js';
 
 describe('DDManager', () => {
 
@@ -139,6 +139,31 @@ describe('DDManager', () => {
       }
     });
 
+    it('it should send Viewed Page event once', (done) => {
+      ddManager.on('ready', () => {
+        setTimeout(() => {
+          assert.equal(window.digitalData.events.length, 2);
+          done();
+        }, 1000);
+      });
+      window.digitalData = {
+        page: {
+          type: 'product'
+        },
+        product: {
+          id: '123'
+        }
+      };
+      ddManager.setAvailableIntegrations(availableIntegrations);
+      ddManager.initialize({
+        autoEvents: true,
+        integrations: {
+          'Google Tag Manager': true,
+          'SegmentStream': true,
+        }
+      });
+
+    });
   });
 
 });
