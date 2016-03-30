@@ -8376,6 +8376,14 @@ var _deleteProperty = require('./../functions/deleteProperty.js');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
+var _each = require('./../functions/each.js');
+
+var _each2 = _interopRequireDefault(_each);
+
+var _componentType = require('component-type');
+
+var _componentType2 = _interopRequireDefault(_componentType);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -8406,7 +8414,8 @@ var SendPulse = (function (_Integration) {
 
     var optionsWithDefaults = Object.assign({
       protocol: 'http',
-      pushScriptUrl: ''
+      pushScriptUrl: '',
+      pushSubscriptionTriggerEvent: 'Agreed to Receive Push Notifications'
     }, options);
 
     var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
@@ -8426,17 +8435,33 @@ var SendPulse = (function (_Integration) {
   };
 
   SendPulse.prototype.initialize = function initialize() {
-    this.load(this.ready);
+    var _this2 = this;
+
+    window.ddListener.push(['on', 'change:user', function (user) {
+      if (user.pushNotifications.isSubscribed) {
+        _this2.sendUserAttributes(user);
+      }
+    }]);
+    this.load(function () {
+      var original = window.oSpP.storeSubscription;
+      window.oSpP.storeSubscription = function (value) {
+        original(value);
+        if (value !== 'DENY') {
+          _this2.sendUserAttributes(_this2._digitalData.user);
+        }
+      };
+      _this2.ready();
+    });
   };
 
   SendPulse.prototype.enrichDigitalData = function enrichDigitalData(done) {
     var pushNotification = this._digitalData.user.pushNotifications = {};
     try {
       pushNotification.isSupported = this.checkPushNotificationsSupport();
-      this.getPusSubscriptionInfo(function (subscriptionInfo) {
+      this.getPushSubscriptionInfo(function (subscriptionInfo) {
         if (subscriptionInfo === undefined) {
           pushNotification.isSubscribed = false;
-          if (window.safari && window.safari.pushNotification) {
+          if (window.oSpP.isSafariNotificationSupported()) {
             var info = window.safari.pushNotification.permission('web.com.sendpulse.push');
             if (info.persmission === 'denied') {
               pushNotification.isDenied = true;
@@ -8486,10 +8511,18 @@ var SendPulse = (function (_Integration) {
     return true;
   };
 
-  SendPulse.prototype.getPusSubscriptionInfo = function getPusSubscriptionInfo(callback) {
+  SendPulse.prototype.getPushSubscriptionInfo = function getPushSubscriptionInfo(callback) {
     var oSpP = window.oSpP;
     oSpP.getDbValue('SPIDs', 'SubscriptionId', function (event) {
       callback(event.target.result);
+    });
+  };
+
+  SendPulse.prototype.sendUserAttributes = function sendUserAttributes(user) {
+    (0, _each2['default'])(user, function (key, value) {
+      if ((0, _componentType2['default'])(value) !== 'object') {
+        window.oSpP.push(key, value);
+      }
     });
   };
 
@@ -8501,12 +8534,26 @@ var SendPulse = (function (_Integration) {
     (0, _deleteProperty2['default'])(window, 'oSpP');
   };
 
+  SendPulse.prototype.trackEvent = function trackEvent(event) {
+    if (event.name === this.getOption('pushSubscriptionTriggerEvent')) {
+      if (this.checkPushNotificationsSupport()) {
+        var browserInfo = oSpP.detectBrowser();
+        var browserName = browserInfo.name.toLowerCase();
+        if (browserName === 'safari') {
+          window.oSpP.startSubscription();
+        } else if (browserName === 'chrome' || browserName === 'firefox') {
+          window.oSpP.showPopUp();
+        }
+      }
+    }
+  };
+
   return SendPulse;
 })(_Integration3['default']);
 
 exports['default'] = SendPulse;
 
-},{"./../Integration.js":56,"./../functions/deleteProperty.js":60}],82:[function(require,module,exports){
+},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/each.js":61,"component-type":6}],82:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es5');

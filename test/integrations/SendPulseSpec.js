@@ -3,6 +3,8 @@ import ddManager from './../../src/ddManager.js';
 import sinon from 'sinon';
 import assert from 'assert';
 import reset from './../reset.js';
+import after from './../../src/functions/after.js';
+import deleteProperty from './../../src/functions/deleteProperty.js';
 
 describe('SendPulse', function() {
 
@@ -28,7 +30,13 @@ describe('SendPulse', function() {
   describe('after loading', function () {
 
     beforeEach((done) => {
-      window.digitalData.user = {};
+      window.digitalData.user = {
+        test: 'test',
+        obj: {
+          param1: 'test',
+          param2: 'test'
+        }
+      };
 
       sinon.stub(_sp, 'load', function() {
         window.oSpP = {
@@ -55,7 +63,10 @@ describe('SendPulse', function() {
                 }
               });
             }, 0);
-          }
+          },
+          push: (key, value) => {},
+          showPopUp: () => {},
+          startSubscription: () => {},
         };
         _sp.ready();
       });
@@ -70,10 +81,74 @@ describe('SendPulse', function() {
       _sp.load.restore();
     });
 
-    describe('#enrichDigitalData', function () {
+    describe('#enrichDigitalData', () => {
 
       it('should enrich digitalData.user', () => {
         assert.ok(window.digitalData.user.pushNotifications);
+      });
+
+    });
+
+    describe('digitalData changes', () => {
+
+      afterEach(() => {
+        window.oSpP.push.restore();
+      });
+
+      it('should add additional params to SendPulse if user is subscribed', (done) => {
+        const doneAfter = after(1, done);
+        sinon.stub(window.oSpP, 'push', (key) => {
+          assert.ok(['city', 'test'].indexOf(key));
+          doneAfter();
+        });
+        window.digitalData.user.city = 'New York';
+      });
+
+      it('should not add additional params to SendPulse if user is not subscribed', (done) => {
+        window.digitalData.user.pushNotifications.isSubscribed = false;
+        sinon.spy(window.oSpP, 'push');
+        window.digitalData.user.city = 'New York';
+        setTimeout(() => {
+          assert.ok(!window.oSpP.push.called);
+          done();
+        }, 100);
+      });
+
+    });
+
+    describe('#trackEvent', () => {
+
+      it('should call oSpP.showPopUp', (done) => {
+        sinon.spy(window.oSpP, 'showPopUp');
+        window.digitalData.events.push({
+          name: 'Agreed to Receive Push Notifications',
+          callback: () => {
+            assert.ok(window.oSpP.showPopUp.calledOnce);
+            window.oSpP.showPopUp.restore();
+            done();
+          }
+        });
+      });
+
+      it('should call oSpP.startSubscription', (done) => {
+        window.oSpP.detectBrowser = () => {
+          return {
+            name: 'Safari',
+            version: '9.0.3'
+          }
+        };
+        window.oSpP.isSafariNotificationSupported = () => {
+          return true;
+        };
+        sinon.spy(window.oSpP, 'startSubscription');
+        window.digitalData.events.push({
+          name: 'Agreed to Receive Push Notifications',
+          callback: () => {
+            assert.ok(window.oSpP.startSubscription.calledOnce);
+            window.oSpP.startSubscription.restore();
+            done();
+          }
+        });
       });
 
     });

@@ -1,5 +1,7 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
+import each from './../functions/each.js';
+import type from 'component-type';
 
 class SendPulse extends Integration {
 
@@ -7,6 +9,7 @@ class SendPulse extends Integration {
     const optionsWithDefaults = Object.assign({
       protocol: 'http',
       pushScriptUrl: '',
+      pushSubscriptionTriggerEvent: 'Agreed to Receive Push Notifications',
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -25,17 +28,31 @@ class SendPulse extends Integration {
   }
 
   initialize() {
-    this.load(this.ready);
+    window.ddListener.push(['on', 'change:user', (user) => {
+      if (user.pushNotifications.isSubscribed) {
+        this.sendUserAttributes(user);
+      }
+    }]);
+    this.load(() => {
+      const original = window.oSpP.storeSubscription;
+      window.oSpP.storeSubscription = (value) => {
+        original(value);
+        if (value !== 'DENY') {
+          this.sendUserAttributes(this._digitalData.user);
+        }
+      };
+      this.ready();
+    });
   }
 
   enrichDigitalData(done) {
     const pushNotification = this._digitalData.user.pushNotifications = {};
     try {
       pushNotification.isSupported = this.checkPushNotificationsSupport();
-      this.getPusSubscriptionInfo((subscriptionInfo) => {
+      this.getPushSubscriptionInfo((subscriptionInfo) => {
         if (subscriptionInfo === undefined) {
           pushNotification.isSubscribed = false;
-          if (window.safari && window.safari.pushNotification) {
+          if (window.oSpP.isSafariNotificationSupported()) {
             const info = window.safari.pushNotification.permission('web.com.sendpulse.push');
             if (info.persmission === 'denied') {
               pushNotification.isDenied = true;
@@ -85,10 +102,18 @@ class SendPulse extends Integration {
     return true;
   }
 
-  getPusSubscriptionInfo(callback) {
+  getPushSubscriptionInfo(callback) {
     const oSpP = window.oSpP;
     oSpP.getDbValue('SPIDs', 'SubscriptionId', (event) => {
       callback(event.target.result);
+    });
+  }
+
+  sendUserAttributes(user) {
+    each(user, (key, value) => {
+      if (type(value) !== 'object') {
+        window.oSpP.push(key, value);
+      }
     });
   }
 
@@ -98,6 +123,20 @@ class SendPulse extends Integration {
 
   reset() {
     deleteProperty(window, 'oSpP');
+  }
+
+  trackEvent(event) {
+    if (event.name === this.getOption('pushSubscriptionTriggerEvent')) {
+      if (this.checkPushNotificationsSupport()) {
+        const browserInfo = oSpP.detectBrowser();
+        const browserName = browserInfo.name.toLowerCase();
+        if (browserName === 'safari') {
+          window.oSpP.startSubscription();
+        } else if (browserName === 'chrome' || browserName === 'firefox') {
+          window.oSpP.showPopUp();
+        }
+      }
+    }
   }
 }
 
