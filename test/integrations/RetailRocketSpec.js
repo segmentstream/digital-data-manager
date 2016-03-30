@@ -16,6 +16,9 @@ describe('Integrations: RetailRocket', () => {
   };
 
   const prepareStubs = () => {
+    window.rrApiOnReady.push = (fn) => {
+      fn();
+    };
     sinon.stub(window.rrApi, 'addToBasket');
     sinon.stub(window.rrApi, 'view');
     sinon.stub(window.rrApi, 'categoryView');
@@ -61,43 +64,20 @@ describe('Integrations: RetailRocket', () => {
 
   });
 
-  describe('#load', () => {
-
-    it('should load', (done) => {
-      assert.ok(!retailRocket.isLoaded());
-      ddManager.once('ready', () => {
-        assert.ok(retailRocket.isLoaded());
-        window.rrApiOnReady.push(function() {
-          done();
-        });
-      });
-      ddManager.initialize();
-    });
-
-  });
-
   describe('after loading', () => {
 
     before((done) => {
-      if (!ddManager.isInitialized()) {
-       ddManager.once('ready', () => {
-         window.rrApiOnReady.push(() => {
-           done();
-         });
-       });
-       ddManager.initialize();
-      } else {
-        window.rrApiOnReady.push(() => {
-          done();
-        });
-      }
+      sinon.stub(retailRocket, 'load', () => {
+        rrApi._initialize = () => {};
+        retailRocket.ready();
+      });
+
+      ddManager.once('ready', done);
+      ddManager.initialize();
     });
 
-    beforeEach((done) => {
-      window.rrApiOnReady.push(() => {
-        prepareStubs();
-        done();
-      });
+    beforeEach(() => {
+      prepareStubs();
     });
 
     afterEach(() => {

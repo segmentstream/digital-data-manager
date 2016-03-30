@@ -7943,7 +7943,7 @@ var RetailRocket = (function (_Integration) {
       window.rrPartnerId = this.getOption('partnerId');
       window.rrApi = {};
       window.rrApiOnReady = window.rrApiOnReady || [];
-      window.rrApi.addToBasket = window.rrApi.order = window.rrApi.categoryView = window.rrApi.view = window.rrApi.recomMouseDown = window.rrApi.recomAddToCart = function () {};
+      window.rrApi.pageView = window.rrApi.addToBasket = window.rrApi.order = window.rrApi.categoryView = window.rrApi.setEmail = window.rrApi.view = window.rrApi.recomMouseDown = window.rrApi.recomAddToCart = function () {};
 
       this.trackEmail();
 
