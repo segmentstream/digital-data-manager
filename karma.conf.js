@@ -196,6 +196,7 @@ module.exports = function(config) {
     concurrency: Infinity,
 
     browserDisconnectTimeout: 10000,
-    browserDisconnectTolerance: 5,
+    browserDisconnectTolerance: 10,
+    browserNoActivityTimeout: 20000,
   });
 };
