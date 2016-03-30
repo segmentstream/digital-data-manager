@@ -5945,8 +5945,9 @@ var Integration = (function (_EventEmitter) {
     // abstract
   };
 
-  Integration.prototype.enrichDigitalData = function enrichDigitalData() {
+  Integration.prototype.enrichDigitalData = function enrichDigitalData(done) {
     // abstract
+    done();
   };
 
   Integration.prototype.trackEvent = function trackEvent() {
@@ -5989,15 +5990,19 @@ var _SegmentStream = require('./integrations/SegmentStream.js');
 
 var _SegmentStream2 = _interopRequireDefault(_SegmentStream);
 
+var _SendPulse = require('./integrations/SendPulse.js');
+
+var _SendPulse2 = _interopRequireDefault(_SendPulse);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-var integrations = (_integrations = {}, _integrations[_GoogleAnalytics2['default'].getName()] = _GoogleAnalytics2['default'], _integrations[_GoogleTagManager2['default'].getName()] = _GoogleTagManager2['default'], _integrations[_FacebookPixel2['default'].getName()] = _FacebookPixel2['default'], _integrations[_Driveback2['default'].getName()] = _Driveback2['default'], _integrations[_RetailRocket2['default'].getName()] = _RetailRocket2['default'], _integrations[_SegmentStream2['default'].getName()] = _SegmentStream2['default'], _integrations);
+var integrations = (_integrations = {}, _integrations[_GoogleAnalytics2['default'].getName()] = _GoogleAnalytics2['default'], _integrations[_GoogleTagManager2['default'].getName()] = _GoogleTagManager2['default'], _integrations[_FacebookPixel2['default'].getName()] = _FacebookPixel2['default'], _integrations[_Driveback2['default'].getName()] = _Driveback2['default'], _integrations[_RetailRocket2['default'].getName()] = _RetailRocket2['default'], _integrations[_SegmentStream2['default'].getName()] = _SegmentStream2['default'], _integrations[_SendPulse2['default'].getName()] = _SendPulse2['default'], _integrations);
 
 exports['default'] = integrations;
 
-},{"./integrations/Driveback.js":75,"./integrations/FacebookPixel.js":76,"./integrations/GoogleAnalytics.js":77,"./integrations/GoogleTagManager.js":78,"./integrations/RetailRocket.js":79,"./integrations/SegmentStream.js":80}],58:[function(require,module,exports){
+},{"./integrations/Driveback.js":75,"./integrations/FacebookPixel.js":76,"./integrations/GoogleAnalytics.js":77,"./integrations/GoogleTagManager.js":78,"./integrations/RetailRocket.js":79,"./integrations/SegmentStream.js":80,"./integrations/SendPulse.js":81}],58:[function(require,module,exports){
 'use strict';
 
 function _typeof2(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -6158,11 +6163,12 @@ function _initializeIntegrations(settings, onReady) {
         (0, _each2['default'])(_integrations, function (name, integration) {
           if (!integration.isLoaded() || integration.getOption('noConflict')) {
             integration.once('ready', function () {
-              integration.enrichDigitalData();
-              _eventManager.addCallback(['on', 'event', function (event) {
-                integration.trackEvent(event);
-              }]);
-              ready();
+              integration.enrichDigitalData(function () {
+                _eventManager.addCallback(['on', 'event', function (event) {
+                  integration.trackEvent(event);
+                }]);
+                ready();
+              });
             });
             integration.initialize();
           } else {
@@ -6178,7 +6184,7 @@ function _initializeIntegrations(settings, onReady) {
 
 ddManager = {
 
-  VERSION: '1.0.9',
+  VERSION: '1.0.10',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -6776,7 +6782,7 @@ _ddManager2['default'].processEarlyStubCalls();
 
 window.ddManager = _ddManager2['default'];
 
-},{"./availableIntegrations.js":57,"./ddManager.js":58,"./polyfill.js":81}],75:[function(require,module,exports){
+},{"./availableIntegrations.js":57,"./ddManager.js":58,"./polyfill.js":82}],75:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -8299,9 +8305,10 @@ var SegmentStream = (function (_Integration) {
 
   SegmentStream.prototype.reset = function reset() {
     (0, _deleteProperty2['default'])(window, 'ssApi');
+    localStorage.clear();
   };
 
-  SegmentStream.prototype.enrichDigitalData = function enrichDigitalData() {
+  SegmentStream.prototype.enrichDigitalData = function enrichDigitalData(done) {
     var _this3 = this;
 
     function lowercaseFirstLetter(string) {
@@ -8314,6 +8321,7 @@ var SegmentStream = (function (_Integration) {
       var key = lowercaseFirstLetter(name);
       _this3._digitalData.user.ssAttributes[key] = value;
     });
+    done();
   };
 
   SegmentStream.prototype.trackEvent = function trackEvent(event) {
@@ -8354,6 +8362,151 @@ var SegmentStream = (function (_Integration) {
 exports['default'] = SegmentStream;
 
 },{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/each.js":61}],81:[function(require,module,exports){
+'use strict';
+
+function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+var _deleteProperty = require('./../functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+var SendPulse = (function (_Integration) {
+  _inherits(SendPulse, _Integration);
+
+  function SendPulse(digitalData, options) {
+    _classCallCheck(this, SendPulse);
+
+    var optionsWithDefaults = Object.assign({
+      protocol: 'http',
+      pushScriptUrl: ''
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        charset: 'UTF-8',
+        src: _this.getOption('pushScriptUrl')
+      }
+    });
+    return _this;
+  }
+
+  SendPulse.getName = function getName() {
+    return 'SendPulse';
+  };
+
+  SendPulse.prototype.initialize = function initialize() {
+    this.load(this.ready);
+  };
+
+  SendPulse.prototype.enrichDigitalData = function enrichDigitalData(done) {
+    var pushNotification = this._digitalData.user.pushNotifications = {};
+    try {
+      pushNotification.isSupported = this.checkPushNotificationsSupport();
+      this.getPusSubscriptionInfo(function (subscriptionInfo) {
+        if (subscriptionInfo === undefined) {
+          pushNotification.isSubscribed = false;
+          if (window.safari && window.safari.pushNotification) {
+            var info = window.safari.pushNotification.permission('web.com.sendpulse.push');
+            if (info.persmission === 'denied') {
+              pushNotification.isDenied = true;
+            }
+          }
+        } else {
+          if (subscriptionInfo.value === 'DENY') {
+            pushNotification.isSubscribed = false;
+            pushNotification.isDenied = true;
+          } else {
+            pushNotification.isSubscribed = true;
+            pushNotification.subscriptionId = subscriptionInfo.value;
+          }
+        }
+        done();
+      });
+    } catch (e) {
+      pushNotification.isSupported = false;
+      done();
+    }
+  };
+
+  SendPulse.prototype.checkPushNotificationsSupport = function checkPushNotificationsSupport() {
+    var oSpP = window.oSpP;
+
+    if (!oSpP.detectSite()) {
+      return false;
+    }
+    if (oSpP.detectOs() === 'iOS') {
+      return false;
+    }
+    var os = oSpP.detectOs();
+    var browserInfo = oSpP.detectBrowser();
+    var browserName = browserInfo.name.toLowerCase();
+    if (browserName === 'chrome' && parseFloat(browserInfo.version) < 42) {
+      return false;
+    }
+    if (browserName === 'firefox' && parseFloat(browserInfo.version) < 44) {
+      return false;
+    }
+    if (browserName === 'firefox' && os === 'Android') {
+      return false;
+    }
+    if (browserName === 'safari') {
+      return oSpP.isSafariNotificationSupported();
+    }
+    return true;
+  };
+
+  SendPulse.prototype.getPusSubscriptionInfo = function getPusSubscriptionInfo(callback) {
+    var oSpP = window.oSpP;
+    oSpP.getDbValue('SPIDs', 'SubscriptionId', function (event) {
+      callback(event.target.result);
+    });
+  };
+
+  SendPulse.prototype.isLoaded = function isLoaded() {
+    return !!window.oSpP;
+  };
+
+  SendPulse.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, 'oSpP');
+  };
+
+  return SendPulse;
+})(_Integration3['default']);
+
+exports['default'] = SendPulse;
+
+},{"./../Integration.js":56,"./../functions/deleteProperty.js":60}],82:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es5');

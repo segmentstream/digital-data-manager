@@ -139,7 +139,7 @@ describe('DDManager', () => {
       }
     });
 
-    it.only('it should send Viewed Page event once', (done) => {
+    it('it should send Viewed Page event once', (done) => {
       ddManager.on('ready', () => {
         setTimeout(() => {
           assert.equal(window.digitalData.events.length, 2);
