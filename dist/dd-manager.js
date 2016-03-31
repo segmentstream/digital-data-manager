@@ -6153,12 +6153,36 @@ function _initializeIntegrations(settings, onReady) {
     (function () {
       var integrationSettings = settings.integrations;
       if (integrationSettings) {
-        (0, _each2['default'])(integrationSettings, function (name, options) {
-          if (typeof _availableIntegrations[name] === 'function') {
-            var integration = new _availableIntegrations[name](_digitalData, (0, _componentClone2['default'])(options));
-            ddManager.addIntegration(integration);
+        if (Array.isArray(integrationSettings)) {
+          for (var _iterator = integrationSettings, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+            var _ref;
+
+            if (_isArray) {
+              if (_i >= _iterator.length) break;
+              _ref = _iterator[_i++];
+            } else {
+              _i = _iterator.next();
+              if (_i.done) break;
+              _ref = _i.value;
+            }
+
+            var integrationSetting = _ref;
+
+            var name = integrationSetting.name;
+            var options = (0, _componentClone2['default'])(integrationSetting.options);
+            if (typeof _availableIntegrations[name] === 'function') {
+              var integration = new _availableIntegrations[name](_digitalData, options || {});
+              ddManager.addIntegration(integration);
+            }
           }
-        });
+        } else {
+          (0, _each2['default'])(integrationSettings, function (name, options) {
+            if (typeof _availableIntegrations[name] === 'function') {
+              var integration = new _availableIntegrations[name](_digitalData, (0, _componentClone2['default'])(options));
+              ddManager.addIntegration(integration);
+            }
+          });
+        }
       }
 
       var ready = (0, _after2['default'])((0, _size2['default'])(_integrations), onReady);
@@ -6230,14 +6254,20 @@ ddManager = {
    *    },
    *    domain: 'example.com',
    *    sessionLength: 3600,
-   *    integrations: {
-   *      'Google Tag Manager': {
-   *        containerId: 'XXX'
+   *    integrations: [
+   *      {
+   *        'name': 'Google Tag Manager',
+   *        'options': {
+   *          'containerId': 'XXX'
+   *        }
    *      },
-   *      'Google Analytics': {
-   *        trackingId: 'XXX'
+   *      {
+   *        'name': 'Google Analytics',
+   *        'options': {
+   *          'trackingId': 'XXX'
+   *        }
    *      }
-   *    }
+   *    ]
    * }
    */
   initialize: function initialize(settings) {
