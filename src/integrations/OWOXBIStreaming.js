@@ -23,12 +23,12 @@ class OWOXBIStreaming extends Integration {
     f(a,e){var d=new Image;d.onload=function(){};d.src=a+'?'+e}var g=b&&b.domain?b.domain:'google-analytics.bi.owox.com';return{send:function(b){var e=location.protocol+'//'+g+'/collect',d;try{navigator.sendBeacon&&navigator.sendBeacon(d=e+'?tid='+h.get('trackingId'),b)||(2036<b.length?a(d?d:e+'?tid='+h.get('trackingId'),b):f(e,b))}catch(c){}}}}();h.set('sendHitTask',function(a){if(b&&0<b.sessionIdDimension)try{a.set('dimension'+b.sessionIdDimension,a.get('clientId')+'_'+Date.now()),a.get('buildHitTask')(a)}catch(h){}f(a);g.send(a.get('hitPayload'))})}var
         f=window[window.GoogleAnalyticsObject||'ga'];'function'==typeof f&&f('provide','OWOXBIStreaming',g)})();
 
-    this.isLoaded = true;
+    this._loaded = true;
     this.ready();
   }
 
   isLoaded() {
-    return !!this.isLoaded;
+    return !!this._loaded;
   }
 
   reset() {

@@ -6188,7 +6188,7 @@ function _initializeIntegrations(settings, onReady) {
 
 ddManager = {
 
-  VERSION: '1.0.10',
+  VERSION: '1.0.11',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -7941,12 +7941,12 @@ var OWOXBIStreaming = (function (_Integration) {
       }var f = window[window.GoogleAnalyticsObject || 'ga'];'function' == typeof f && f('provide', 'OWOXBIStreaming', g);
     })();
 
-    this.isLoaded = true;
+    this._loaded = true;
     this.ready();
   };
 
   OWOXBIStreaming.prototype.isLoaded = function isLoaded() {
-    return !!this.isLoaded;
+    return !!this._loaded;
   };
 
   OWOXBIStreaming.prototype.reset = function reset() {};
