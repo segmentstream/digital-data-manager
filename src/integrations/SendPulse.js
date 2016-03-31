@@ -54,7 +54,7 @@ class SendPulse extends Integration {
           pushNotification.isSubscribed = false;
           if (window.oSpP.isSafariNotificationSupported()) {
             const info = window.safari.pushNotification.permission('web.com.sendpulse.push');
-            if (info.persmission === 'denied') {
+            if (info.permission === 'denied') {
               pushNotification.isDenied = true;
             }
           }
