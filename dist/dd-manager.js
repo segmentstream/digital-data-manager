@@ -8463,7 +8463,7 @@ var SendPulse = (function (_Integration) {
           pushNotification.isSubscribed = false;
           if (window.oSpP.isSafariNotificationSupported()) {
             var info = window.safari.pushNotification.permission('web.com.sendpulse.push');
-            if (info.persmission === 'denied') {
+            if (info.permission === 'denied') {
               pushNotification.isDenied = true;
             }
           }
