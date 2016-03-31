@@ -5994,15 +5994,19 @@ var _SendPulse = require('./integrations/SendPulse.js');
 
 var _SendPulse2 = _interopRequireDefault(_SendPulse);
 
+var _OWOXBIStreaming = require('./integrations/OWOXBIStreaming.js');
+
+var _OWOXBIStreaming2 = _interopRequireDefault(_OWOXBIStreaming);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-var integrations = (_integrations = {}, _integrations[_GoogleAnalytics2['default'].getName()] = _GoogleAnalytics2['default'], _integrations[_GoogleTagManager2['default'].getName()] = _GoogleTagManager2['default'], _integrations[_FacebookPixel2['default'].getName()] = _FacebookPixel2['default'], _integrations[_Driveback2['default'].getName()] = _Driveback2['default'], _integrations[_RetailRocket2['default'].getName()] = _RetailRocket2['default'], _integrations[_SegmentStream2['default'].getName()] = _SegmentStream2['default'], _integrations[_SendPulse2['default'].getName()] = _SendPulse2['default'], _integrations);
+var integrations = (_integrations = {}, _integrations[_GoogleAnalytics2['default'].getName()] = _GoogleAnalytics2['default'], _integrations[_GoogleTagManager2['default'].getName()] = _GoogleTagManager2['default'], _integrations[_OWOXBIStreaming2['default'].getName()] = _OWOXBIStreaming2['default'], _integrations[_FacebookPixel2['default'].getName()] = _FacebookPixel2['default'], _integrations[_Driveback2['default'].getName()] = _Driveback2['default'], _integrations[_RetailRocket2['default'].getName()] = _RetailRocket2['default'], _integrations[_SegmentStream2['default'].getName()] = _SegmentStream2['default'], _integrations[_SendPulse2['default'].getName()] = _SendPulse2['default'], _integrations);
 
 exports['default'] = integrations;
 
-},{"./integrations/Driveback.js":75,"./integrations/FacebookPixel.js":76,"./integrations/GoogleAnalytics.js":77,"./integrations/GoogleTagManager.js":78,"./integrations/RetailRocket.js":79,"./integrations/SegmentStream.js":80,"./integrations/SendPulse.js":81}],58:[function(require,module,exports){
+},{"./integrations/Driveback.js":75,"./integrations/FacebookPixel.js":76,"./integrations/GoogleAnalytics.js":77,"./integrations/GoogleTagManager.js":78,"./integrations/OWOXBIStreaming.js":79,"./integrations/RetailRocket.js":80,"./integrations/SegmentStream.js":81,"./integrations/SendPulse.js":82}],58:[function(require,module,exports){
 'use strict';
 
 function _typeof2(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -6782,7 +6786,7 @@ _ddManager2['default'].processEarlyStubCalls();
 
 window.ddManager = _ddManager2['default'];
 
-},{"./availableIntegrations.js":57,"./ddManager.js":58,"./polyfill.js":82}],75:[function(require,module,exports){
+},{"./availableIntegrations.js":57,"./ddManager.js":58,"./polyfill.js":83}],75:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -7868,6 +7872,112 @@ var _Integration2 = require('./../Integration.js');
 
 var _Integration3 = _interopRequireDefault(_Integration2);
 
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+var OWOXBIStreaming = (function (_Integration) {
+  _inherits(OWOXBIStreaming, _Integration);
+
+  function OWOXBIStreaming(digitalData, options) {
+    _classCallCheck(this, OWOXBIStreaming);
+
+    var optionsWithDefaults = Object.assign({
+      namespace: 'ddl',
+      sessionIdDimension: ''
+    }, options);
+
+    return _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+  }
+
+  OWOXBIStreaming.getName = function getName() {
+    return 'OWOX BI Streaming';
+  };
+
+  OWOXBIStreaming.prototype.initialize = function initialize() {
+    this.ga('require', 'OWOXBIStreaming', {
+      sessionIdDimension: this.getOption('sessionIdDimension')
+    });
+    (function () {
+      function g(h, b) {
+        var f = h.get('sendHitTask'),
+            g = (function () {
+          function a(a, e) {
+            var d = 'XDomainRequest' in window ? 'XDomainRequest' : 'XMLHttpRequest',
+                c = new window[d]();c.open('POST', a, !0);c.onprogress = function () {};c.ontimeout = function () {};c.onerror = function () {};c.onload = function () {};c.setRequestHeader && c.setRequestHeader('Content-Type', 'text/plain');'XDomainRequest' == d ? setTimeout(function () {
+              c.send(e);
+            }, 0) : c.send(e);
+          }function f(a, e) {
+            var d = new Image();d.onload = function () {};d.src = a + '?' + e;
+          }var g = b && b.domain ? b.domain : 'google-analytics.bi.owox.com';return { send: function send(b) {
+              var e = location.protocol + '//' + g + '/collect',
+                  d;try {
+                navigator.sendBeacon && navigator.sendBeacon(d = e + '?tid=' + h.get('trackingId'), b) || (2036 < b.length ? a(d ? d : e + '?tid=' + h.get('trackingId'), b) : f(e, b));
+              } catch (c) {}
+            } };
+        })();h.set('sendHitTask', function (a) {
+          if (b && 0 < b.sessionIdDimension) try {
+            a.set('dimension' + b.sessionIdDimension, a.get('clientId') + '_' + Date.now()), a.get('buildHitTask')(a);
+          } catch (h) {}f(a);g.send(a.get('hitPayload'));
+        });
+      }var f = window[window.GoogleAnalyticsObject || 'ga'];'function' == typeof f && f('provide', 'OWOXBIStreaming', g);
+    })();
+
+    this.isLoaded = true;
+    this.ready();
+  };
+
+  OWOXBIStreaming.prototype.isLoaded = function isLoaded() {
+    return !!this.isLoaded;
+  };
+
+  OWOXBIStreaming.prototype.reset = function reset() {};
+
+  OWOXBIStreaming.prototype.ga = function ga() {
+    if (!this.getOption('namespace')) {
+      window.ga.apply(window, arguments);
+    } else {
+      if (arguments[0]) {
+        arguments[0] = this.getOption('namespace') + '.' + arguments[0];
+      }
+      window.ga.apply(window, arguments);
+    }
+  };
+
+  return OWOXBIStreaming;
+})(_Integration3['default']);
+
+exports['default'] = OWOXBIStreaming;
+
+},{"./../Integration.js":56}],80:[function(require,module,exports){
+'use strict';
+
+function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
 var _deleteProperty = require('./../functions/deleteProperty.js');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
@@ -8195,7 +8305,7 @@ var RetailRocket = (function (_Integration) {
 
 exports['default'] = RetailRocket;
 
-},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/format.js":62,"./../functions/getQueryParam.js":64,"./../functions/throwError.js":73,"component-type":6}],80:[function(require,module,exports){
+},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/format.js":62,"./../functions/getQueryParam.js":64,"./../functions/throwError.js":73,"component-type":6}],81:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -8361,7 +8471,7 @@ var SegmentStream = (function (_Integration) {
 
 exports['default'] = SegmentStream;
 
-},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/each.js":61}],81:[function(require,module,exports){
+},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/each.js":61}],82:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -8508,6 +8618,9 @@ var SendPulse = (function (_Integration) {
     if (browserName === 'safari') {
       return oSpP.isSafariNotificationSupported();
     }
+    if (['safari', 'firefox', 'chrome'].indexOf(browserName) < 0) {
+      return false;
+    }
     return true;
   };
 
@@ -8537,7 +8650,7 @@ var SendPulse = (function (_Integration) {
   SendPulse.prototype.trackEvent = function trackEvent(event) {
     if (event.name === this.getOption('pushSubscriptionTriggerEvent')) {
       if (this.checkPushNotificationsSupport()) {
-        var browserInfo = oSpP.detectBrowser();
+        var browserInfo = window.oSpP.detectBrowser();
         var browserName = browserInfo.name.toLowerCase();
         if (browserName === 'safari') {
           window.oSpP.startSubscription();
@@ -8553,7 +8666,7 @@ var SendPulse = (function (_Integration) {
 
 exports['default'] = SendPulse;
 
-},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/each.js":61,"component-type":6}],82:[function(require,module,exports){
+},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/each.js":61,"component-type":6}],83:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es5');

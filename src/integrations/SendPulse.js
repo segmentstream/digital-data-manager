@@ -99,6 +99,9 @@ class SendPulse extends Integration {
     if (browserName === 'safari') {
       return oSpP.isSafariNotificationSupported();
     }
+    if (['safari', 'firefox', 'chrome'].indexOf(browserName) < 0) {
+      return false;
+    }
     return true;
   }
 
@@ -128,7 +131,7 @@ class SendPulse extends Integration {
   trackEvent(event) {
     if (event.name === this.getOption('pushSubscriptionTriggerEvent')) {
       if (this.checkPushNotificationsSupport()) {
-        const browserInfo = oSpP.detectBrowser();
+        const browserInfo = window.oSpP.detectBrowser();
         const browserName = browserInfo.name.toLowerCase();
         if (browserName === 'safari') {
           window.oSpP.startSubscription();

@@ -87,6 +87,15 @@ describe('SendPulse', function() {
         assert.ok(window.digitalData.user.pushNotifications);
       });
 
+      it('should not support push notifications for IE and Edge', () => {
+        window.oSpP.detectBrowser = () => {
+          return {
+            name: 'Edge',
+            version: '25.10'
+          }
+        };
+        assert.ok(!_sp.checkPushNotificationsSupport());
+      });
     });
 
     describe('digitalData changes', () => {

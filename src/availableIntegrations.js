@@ -5,10 +5,12 @@ import RetailRocket from './integrations/RetailRocket.js';
 import FacebookPixel from './integrations/FacebookPixel.js';
 import SegmentStream from './integrations/SegmentStream.js';
 import SendPulse from './integrations/SendPulse.js';
+import OWOXBIStreaming from './integrations/OWOXBIStreaming.js';
 
 const integrations = {
   [GoogleAnalytics.getName()]: GoogleAnalytics,
   [GoogleTagManager.getName()]: GoogleTagManager,
+  [OWOXBIStreaming.getName()]: OWOXBIStreaming,
   [FacebookPixel.getName()]: FacebookPixel,
   [Driveback.getName()]: Driveback,
   [RetailRocket.getName()]: RetailRocket,
