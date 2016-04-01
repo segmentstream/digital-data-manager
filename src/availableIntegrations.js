@@ -14,7 +14,7 @@ const integrations = {
   'Facebook Pixel': FacebookPixel,
   'Driveback': Driveback,
   'Retail Rocket': RetailRocket,
-  'Segment Stream': SegmentStream,
+  'SegmentStream': SegmentStream,
   'SendPulse': SendPulse,
 };
 
