@@ -16,7 +16,7 @@ describe('SegmentStream', function() {
       events: []
     };
     _ss = new SegmentStream(window.digitalData, options);
-    ddManager.addIntegration(_ss);
+    ddManager.addIntegration('SegmentStream', _ss);
   });
 
   afterEach(() => {

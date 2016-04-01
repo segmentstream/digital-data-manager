@@ -21,10 +21,6 @@ class Driveback extends Integration {
     });
   }
 
-  static getName() {
-    return 'Driveback';
-  }
-
   initialize() {
     if (this.getOption('websiteToken')) {
       window.DrivebackNamespace = 'Driveback';

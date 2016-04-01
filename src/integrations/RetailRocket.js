@@ -25,16 +25,13 @@ class RetailRocket extends Integration {
     });
   }
 
-  static getName() {
-    return 'Retail Rocket';
-  }
-
   initialize() {
     if (this.getOption('partnerId')) {
       window.rrPartnerId = this.getOption('partnerId');
       window.rrApi = {};
       window.rrApiOnReady = window.rrApiOnReady || [];
-      window.rrApi.addToBasket = window.rrApi.order = window.rrApi.categoryView = window.rrApi.view =
+      window.rrApi.pageView = window.rrApi.addToBasket =
+          window.rrApi.order = window.rrApi.categoryView = window.rrApi.setEmail = window.rrApi.view =
           window.rrApi.recomMouseDown = window.rrApi.recomAddToCart = () => {};
 
       this.trackEmail();

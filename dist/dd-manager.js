@@ -5852,15 +5852,6 @@ var Integration = (function (_EventEmitter) {
     _async2['default'].nextTick(ready);
   };
 
-  Integration.prototype.setName = function setName(name) {
-    this._name = name;
-    return this;
-  };
-
-  Integration.prototype.getName = function getName() {
-    return this._name || this.constructor.getName();
-  };
-
   Integration.prototype.load = function load(tagName, callback) {
     // Argument shuffling
     if (typeof tagName === 'function') {
@@ -5962,8 +5953,6 @@ exports['default'] = Integration;
 },{"./DDHelper.js":51,"./functions/deleteProperty.js":60,"./functions/each.js":61,"./functions/format.js":62,"./functions/loadIframe.js":67,"./functions/loadPixel.js":68,"./functions/loadScript.js":69,"./functions/noop.js":70,"async":1,"component-emitter":5,"debug":44}],57:[function(require,module,exports){
 'use strict';
 
-var _integrations;
-
 exports.__esModule = true;
 
 var _GoogleAnalytics = require('./integrations/GoogleAnalytics.js');
@@ -5994,15 +5983,28 @@ var _SendPulse = require('./integrations/SendPulse.js');
 
 var _SendPulse2 = _interopRequireDefault(_SendPulse);
 
+var _OWOXBIStreaming = require('./integrations/OWOXBIStreaming.js');
+
+var _OWOXBIStreaming2 = _interopRequireDefault(_OWOXBIStreaming);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-var integrations = (_integrations = {}, _integrations[_GoogleAnalytics2['default'].getName()] = _GoogleAnalytics2['default'], _integrations[_GoogleTagManager2['default'].getName()] = _GoogleTagManager2['default'], _integrations[_FacebookPixel2['default'].getName()] = _FacebookPixel2['default'], _integrations[_Driveback2['default'].getName()] = _Driveback2['default'], _integrations[_RetailRocket2['default'].getName()] = _RetailRocket2['default'], _integrations[_SegmentStream2['default'].getName()] = _SegmentStream2['default'], _integrations[_SendPulse2['default'].getName()] = _SendPulse2['default'], _integrations);
+var integrations = {
+  'Google Analytics': _GoogleAnalytics2['default'],
+  'Google Tag Manager': _GoogleTagManager2['default'],
+  'OWOX BI Streaming': _OWOXBIStreaming2['default'],
+  'Facebook Pixel': _FacebookPixel2['default'],
+  'Driveback': _Driveback2['default'],
+  'Retail Rocket': _RetailRocket2['default'],
+  'Segment Stream': _SegmentStream2['default'],
+  'SendPulse': _SendPulse2['default']
+};
 
 exports['default'] = integrations;
 
-},{"./integrations/Driveback.js":75,"./integrations/FacebookPixel.js":76,"./integrations/GoogleAnalytics.js":77,"./integrations/GoogleTagManager.js":78,"./integrations/RetailRocket.js":79,"./integrations/SegmentStream.js":80,"./integrations/SendPulse.js":81}],58:[function(require,module,exports){
+},{"./integrations/Driveback.js":75,"./integrations/FacebookPixel.js":76,"./integrations/GoogleAnalytics.js":77,"./integrations/GoogleTagManager.js":78,"./integrations/OWOXBIStreaming.js":79,"./integrations/RetailRocket.js":80,"./integrations/SegmentStream.js":81,"./integrations/SendPulse.js":82}],58:[function(require,module,exports){
 'use strict';
 
 function _typeof2(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -6149,12 +6151,36 @@ function _initializeIntegrations(settings, onReady) {
     (function () {
       var integrationSettings = settings.integrations;
       if (integrationSettings) {
-        (0, _each2['default'])(integrationSettings, function (name, options) {
-          if (typeof _availableIntegrations[name] === 'function') {
-            var integration = new _availableIntegrations[name](_digitalData, (0, _componentClone2['default'])(options));
-            ddManager.addIntegration(integration);
+        if (Array.isArray(integrationSettings)) {
+          for (var _iterator = integrationSettings, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+            var _ref;
+
+            if (_isArray) {
+              if (_i >= _iterator.length) break;
+              _ref = _iterator[_i++];
+            } else {
+              _i = _iterator.next();
+              if (_i.done) break;
+              _ref = _i.value;
+            }
+
+            var integrationSetting = _ref;
+
+            var name = integrationSetting.name;
+            var options = (0, _componentClone2['default'])(integrationSetting.options);
+            if (typeof _availableIntegrations[name] === 'function') {
+              var integration = new _availableIntegrations[name](_digitalData, options || {});
+              ddManager.addIntegration(name, integration);
+            }
           }
-        });
+        } else {
+          (0, _each2['default'])(integrationSettings, function (name, options) {
+            if (typeof _availableIntegrations[name] === 'function') {
+              var integration = new _availableIntegrations[name](_digitalData, (0, _componentClone2['default'])(options));
+              ddManager.addIntegration(name, integration);
+            }
+          });
+        }
       }
 
       var ready = (0, _after2['default'])((0, _size2['default'])(_integrations), onReady);
@@ -6184,7 +6210,7 @@ function _initializeIntegrations(settings, onReady) {
 
 ddManager = {
 
-  VERSION: '1.0.10',
+  VERSION: '1.0.11',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -6226,14 +6252,20 @@ ddManager = {
    *    },
    *    domain: 'example.com',
    *    sessionLength: 3600,
-   *    integrations: {
-   *      'Google Tag Manager': {
-   *        containerId: 'XXX'
+   *    integrations: [
+   *      {
+   *        'name': 'Google Tag Manager',
+   *        'options': {
+   *          'containerId': 'XXX'
+   *        }
    *      },
-   *      'Google Analytics': {
-   *        trackingId: 'XXX'
+   *      {
+   *        'name': 'Google Analytics',
+   *        'options': {
+   *          'trackingId': 'XXX'
+   *        }
    *      }
-   *    }
+   *    ]
    * }
    */
   initialize: function initialize(settings) {
@@ -6279,15 +6311,14 @@ ddManager = {
     return _isReady;
   },
 
-  addIntegration: function addIntegration(integration) {
+  addIntegration: function addIntegration(name, integration) {
     if (_isInitialized) {
       throw new Error('Adding integrations after ddManager initialization is not allowed');
     }
 
-    if (!integration instanceof _Integration2['default'] || !integration.getName()) {
+    if (!integration instanceof _Integration2['default'] || !name) {
       throw new TypeError('attempted to add an invalid integration');
     }
-    var name = integration.getName();
     _integrations[name] = integration;
   },
 
@@ -6782,7 +6813,7 @@ _ddManager2['default'].processEarlyStubCalls();
 
 window.ddManager = _ddManager2['default'];
 
-},{"./availableIntegrations.js":57,"./ddManager.js":58,"./polyfill.js":82}],75:[function(require,module,exports){
+},{"./availableIntegrations.js":57,"./ddManager.js":58,"./polyfill.js":83}],75:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -6845,10 +6876,6 @@ var Driveback = (function (_Integration) {
     });
     return _this;
   }
-
-  Driveback.getName = function getName() {
-    return 'Driveback';
-  };
 
   Driveback.prototype.initialize = function initialize() {
     var _this2 = this;
@@ -6953,10 +6980,6 @@ var FacebookPixel = (function (_Integration) {
     });
     return _this;
   }
-
-  FacebookPixel.getName = function getName() {
-    return 'Facebook Pixel';
-  };
 
   FacebookPixel.prototype.initialize = function initialize() {
     if (this.getOption('pixelId') && !window.fbq) {
@@ -7217,10 +7240,6 @@ var GoogleAnalytics = (function (_Integration) {
     });
     return _this;
   }
-
-  GoogleAnalytics.getName = function getName() {
-    return 'Google Analytics';
-  };
 
   GoogleAnalytics.prototype.initialize = function initialize() {
     if (this.getOption('trackingId')) {
@@ -7819,10 +7838,6 @@ var GoogleTagManager = (function (_Integration) {
     return _this;
   }
 
-  GoogleTagManager.getName = function getName() {
-    return 'Google Tag Manager';
-  };
-
   GoogleTagManager.prototype.initialize = function initialize() {
     if (this.getOption('containerId')) {
       window.dataLayer = window.dataLayer || [];
@@ -7858,6 +7873,108 @@ var GoogleTagManager = (function (_Integration) {
 exports['default'] = GoogleTagManager;
 
 },{"./../Integration.js":56,"./../functions/deleteProperty.js":60}],79:[function(require,module,exports){
+'use strict';
+
+function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+var OWOXBIStreaming = (function (_Integration) {
+  _inherits(OWOXBIStreaming, _Integration);
+
+  function OWOXBIStreaming(digitalData, options) {
+    _classCallCheck(this, OWOXBIStreaming);
+
+    var optionsWithDefaults = Object.assign({
+      namespace: 'ddl',
+      sessionIdDimension: ''
+    }, options);
+
+    return _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+  }
+
+  OWOXBIStreaming.prototype.initialize = function initialize() {
+    this.ga('require', 'OWOXBIStreaming', {
+      sessionIdDimension: this.getOption('sessionIdDimension')
+    });
+    (function () {
+      function g(h, b) {
+        var f = h.get('sendHitTask'),
+            g = (function () {
+          function a(a, e) {
+            var d = 'XDomainRequest' in window ? 'XDomainRequest' : 'XMLHttpRequest',
+                c = new window[d]();c.open('POST', a, !0);c.onprogress = function () {};c.ontimeout = function () {};c.onerror = function () {};c.onload = function () {};c.setRequestHeader && c.setRequestHeader('Content-Type', 'text/plain');'XDomainRequest' == d ? setTimeout(function () {
+              c.send(e);
+            }, 0) : c.send(e);
+          }function f(a, e) {
+            var d = new Image();d.onload = function () {};d.src = a + '?' + e;
+          }var g = b && b.domain ? b.domain : 'google-analytics.bi.owox.com';return { send: function send(b) {
+              var e = location.protocol + '//' + g + '/collect',
+                  d;try {
+                navigator.sendBeacon && navigator.sendBeacon(d = e + '?tid=' + h.get('trackingId'), b) || (2036 < b.length ? a(d ? d : e + '?tid=' + h.get('trackingId'), b) : f(e, b));
+              } catch (c) {}
+            } };
+        })();h.set('sendHitTask', function (a) {
+          if (b && 0 < b.sessionIdDimension) try {
+            a.set('dimension' + b.sessionIdDimension, a.get('clientId') + '_' + Date.now()), a.get('buildHitTask')(a);
+          } catch (h) {}f(a);g.send(a.get('hitPayload'));
+        });
+      }var f = window[window.GoogleAnalyticsObject || 'ga'];'function' == typeof f && f('provide', 'OWOXBIStreaming', g);
+    })();
+
+    this._loaded = true;
+    this.ready();
+  };
+
+  OWOXBIStreaming.prototype.isLoaded = function isLoaded() {
+    return !!this._loaded;
+  };
+
+  OWOXBIStreaming.prototype.reset = function reset() {};
+
+  OWOXBIStreaming.prototype.ga = function ga() {
+    if (!this.getOption('namespace')) {
+      window.ga.apply(window, arguments);
+    } else {
+      if (arguments[0]) {
+        arguments[0] = this.getOption('namespace') + '.' + arguments[0];
+      }
+      window.ga.apply(window, arguments);
+    }
+  };
+
+  return OWOXBIStreaming;
+})(_Integration3['default']);
+
+exports['default'] = OWOXBIStreaming;
+
+},{"./../Integration.js":56}],80:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -7934,16 +8051,12 @@ var RetailRocket = (function (_Integration) {
     return _this;
   }
 
-  RetailRocket.getName = function getName() {
-    return 'Retail Rocket';
-  };
-
   RetailRocket.prototype.initialize = function initialize() {
     if (this.getOption('partnerId')) {
       window.rrPartnerId = this.getOption('partnerId');
       window.rrApi = {};
       window.rrApiOnReady = window.rrApiOnReady || [];
-      window.rrApi.addToBasket = window.rrApi.order = window.rrApi.categoryView = window.rrApi.view = window.rrApi.recomMouseDown = window.rrApi.recomAddToCart = function () {};
+      window.rrApi.pageView = window.rrApi.addToBasket = window.rrApi.order = window.rrApi.categoryView = window.rrApi.setEmail = window.rrApi.view = window.rrApi.recomMouseDown = window.rrApi.recomAddToCart = function () {};
 
       this.trackEmail();
 
@@ -8195,7 +8308,7 @@ var RetailRocket = (function (_Integration) {
 
 exports['default'] = RetailRocket;
 
-},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/format.js":62,"./../functions/getQueryParam.js":64,"./../functions/throwError.js":73,"component-type":6}],80:[function(require,module,exports){
+},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/format.js":62,"./../functions/getQueryParam.js":64,"./../functions/throwError.js":73,"component-type":6}],81:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -8258,10 +8371,6 @@ var SegmentStream = (function (_Integration) {
     });
     return _this;
   }
-
-  SegmentStream.getName = function getName() {
-    return 'SegmentStream';
-  };
 
   SegmentStream.prototype.initialize = function initialize() {
     var _this2 = this;
@@ -8361,7 +8470,7 @@ var SegmentStream = (function (_Integration) {
 
 exports['default'] = SegmentStream;
 
-},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/each.js":61}],81:[function(require,module,exports){
+},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/each.js":61}],82:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -8430,10 +8539,6 @@ var SendPulse = (function (_Integration) {
     return _this;
   }
 
-  SendPulse.getName = function getName() {
-    return 'SendPulse';
-  };
-
   SendPulse.prototype.initialize = function initialize() {
     var _this2 = this;
 
@@ -8463,7 +8568,7 @@ var SendPulse = (function (_Integration) {
           pushNotification.isSubscribed = false;
           if (window.oSpP.isSafariNotificationSupported()) {
             var info = window.safari.pushNotification.permission('web.com.sendpulse.push');
-            if (info.persmission === 'denied') {
+            if (info.permission === 'denied') {
               pushNotification.isDenied = true;
             }
           }
@@ -8508,6 +8613,9 @@ var SendPulse = (function (_Integration) {
     if (browserName === 'safari') {
       return oSpP.isSafariNotificationSupported();
     }
+    if (['safari', 'firefox', 'chrome'].indexOf(browserName) < 0) {
+      return false;
+    }
     return true;
   };
 
@@ -8537,7 +8645,7 @@ var SendPulse = (function (_Integration) {
   SendPulse.prototype.trackEvent = function trackEvent(event) {
     if (event.name === this.getOption('pushSubscriptionTriggerEvent')) {
       if (this.checkPushNotificationsSupport()) {
-        var browserInfo = oSpP.detectBrowser();
+        var browserInfo = window.oSpP.detectBrowser();
         var browserName = browserInfo.name.toLowerCase();
         if (browserName === 'safari') {
           window.oSpP.startSubscription();
@@ -8553,7 +8661,7 @@ var SendPulse = (function (_Integration) {
 
 exports['default'] = SendPulse;
 
-},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/each.js":61,"component-type":6}],82:[function(require,module,exports){
+},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/each.js":61,"component-type":6}],83:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es5');

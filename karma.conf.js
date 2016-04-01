@@ -193,6 +193,10 @@ module.exports = function(config) {
 
     // Concurrency level
     // how many browser should be started simultanous
-    concurrency: Infinity
+    concurrency: Infinity,
+
+    browserDisconnectTimeout: 10000,
+    browserDisconnectTolerance: 10,
+    browserNoActivityTimeout: 20000,
   });
 };

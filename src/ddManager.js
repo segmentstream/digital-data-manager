@@ -1,5 +1,6 @@
 import clone from 'component-clone';
 import async from 'async';
+
 import size from './functions/size.js';
 import after from './functions/after.js';
 import each from './functions/each.js';
@@ -98,12 +99,23 @@ function _initializeIntegrations(settings, onReady) {
   if (settings && typeof settings === 'object') {
     const integrationSettings = settings.integrations;
     if (integrationSettings) {
-      each(integrationSettings, (name, options) => {
-        if (typeof _availableIntegrations[name] === 'function') {
-          const integration = new _availableIntegrations[name](_digitalData, clone(options));
-          ddManager.addIntegration(integration);
+      if (Array.isArray(integrationSettings)) {
+        for (const integrationSetting of integrationSettings) {
+          const name = integrationSetting.name;
+          const options = clone(integrationSetting.options);
+          if (typeof _availableIntegrations[name] === 'function') {
+            const integration = new _availableIntegrations[name](_digitalData, options || {});
+            ddManager.addIntegration(name, integration);
+          }
         }
-      });
+      } else {
+        each(integrationSettings, (name, options) => {
+          if (typeof _availableIntegrations[name] === 'function') {
+            const integration = new _availableIntegrations[name](_digitalData, clone(options));
+            ddManager.addIntegration(name, integration);
+          }
+        });
+      }
     }
 
     const ready = after(size(_integrations), onReady);
@@ -132,7 +144,7 @@ function _initializeIntegrations(settings, onReady) {
 
 ddManager = {
 
-  VERSION: '1.0.10',
+  VERSION: '1.0.11',
 
   setAvailableIntegrations: (availableIntegrations) => {
     _availableIntegrations = availableIntegrations;
@@ -174,14 +186,20 @@ ddManager = {
    *    },
    *    domain: 'example.com',
    *    sessionLength: 3600,
-   *    integrations: {
-   *      'Google Tag Manager': {
-   *        containerId: 'XXX'
+   *    integrations: [
+   *      {
+   *        'name': 'Google Tag Manager',
+   *        'options': {
+   *          'containerId': 'XXX'
+   *        }
    *      },
-   *      'Google Analytics': {
-   *        trackingId: 'XXX'
+   *      {
+   *        'name': 'Google Analytics',
+   *        'options': {
+   *          'trackingId': 'XXX'
+   *        }
    *      }
-   *    }
+   *    ]
    * }
    */
   initialize: (settings) => {
@@ -227,15 +245,14 @@ ddManager = {
     return _isReady;
   },
 
-  addIntegration: (integration) => {
+  addIntegration: (name, integration) => {
     if (_isInitialized) {
       throw new Error('Adding integrations after ddManager initialization is not allowed');
     }
 
-    if (!integration instanceof Integration || !integration.getName()) {
+    if (!integration instanceof Integration || !name) {
       throw new TypeError('attempted to add an invalid integration');
     }
-    const name = integration.getName();
     _integrations[name] = integration;
   },
 

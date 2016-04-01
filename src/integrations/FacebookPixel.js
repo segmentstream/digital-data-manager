@@ -19,10 +19,6 @@ class FacebookPixel extends Integration {
     });
   }
 
-  static getName() {
-    return 'Facebook Pixel';
-  }
-
   initialize() {
     if (this.getOption('pixelId') && !window.fbq) {
       window.fbq = window._fbq = function fbq() {

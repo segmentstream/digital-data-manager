@@ -23,10 +23,6 @@ class SendPulse extends Integration {
     });
   }
 
-  static getName() {
-    return 'SendPulse';
-  }
-
   initialize() {
     window.ddListener.push(['on', 'change:user', (user) => {
       if (user.pushNotifications.isSubscribed) {
@@ -54,7 +50,7 @@ class SendPulse extends Integration {
           pushNotification.isSubscribed = false;
           if (window.oSpP.isSafariNotificationSupported()) {
             const info = window.safari.pushNotification.permission('web.com.sendpulse.push');
-            if (info.persmission === 'denied') {
+            if (info.permission === 'denied') {
               pushNotification.isDenied = true;
             }
           }
@@ -99,6 +95,9 @@ class SendPulse extends Integration {
     if (browserName === 'safari') {
       return oSpP.isSafariNotificationSupported();
     }
+    if (['safari', 'firefox', 'chrome'].indexOf(browserName) < 0) {
+      return false;
+    }
     return true;
   }
 
@@ -128,7 +127,7 @@ class SendPulse extends Integration {
   trackEvent(event) {
     if (event.name === this.getOption('pushSubscriptionTriggerEvent')) {
       if (this.checkPushNotificationsSupport()) {
-        const browserInfo = oSpP.detectBrowser();
+        const browserInfo = window.oSpP.detectBrowser();
         const browserName = browserInfo.name.toLowerCase();
         if (browserName === 'safari') {
           window.oSpP.startSubscription();

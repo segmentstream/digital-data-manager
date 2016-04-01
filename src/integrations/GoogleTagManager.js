@@ -16,10 +16,6 @@ class GoogleTagManager extends Integration {
     });
   }
 
-  static getName() {
-    return 'Google Tag Manager';
-  }
-
   initialize() {
     if (this.getOption('containerId')) {
       window.dataLayer = window.dataLayer || [];

@@ -23,7 +23,7 @@ describe('Integrations: GoogleAnalytics', () => {
         events: []
       };
       ga = new GoogleAnalytics(window.digitalData, options);
-      ddManager.addIntegration(ga);
+      ddManager.addIntegration('Google Analytics', ga);
     });
 
     afterEach(() => {
@@ -648,7 +648,7 @@ describe('Integrations: GoogleAnalytics', () => {
         events: []
       };
       ga = new GoogleAnalytics(window.digitalData, options);
-      ddManager.addIntegration(ga);
+      ddManager.addIntegration('Google Analytics', ga);
     });
 
     afterEach(() => {
@@ -1770,7 +1770,7 @@ describe('Integrations: GoogleAnalytics', () => {
         events: []
       };
       ga = new GoogleAnalytics(window.digitalData, options);
-      ddManager.addIntegration(ga);
+      ddManager.addIntegration('Google Analytics', ga);
     });
 
     afterEach(() => {
@@ -1859,7 +1859,7 @@ describe('Integrations: GoogleAnalytics', () => {
         events: []
       };
       ga = new GoogleAnalytics(window.digitalData, options);
-      ddManager.addIntegration(ga);
+      ddManager.addIntegration('Google Analytics', ga);
     });
 
     afterEach(() => {

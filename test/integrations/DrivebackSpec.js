@@ -11,7 +11,7 @@ describe('Integrations: Driveback', () => {
 
   beforeEach(() => {
     driveback = new Driveback(window.digitalData, options);
-    ddManager.addIntegration(driveback);
+    ddManager.addIntegration('Driveback', driveback);
   });
 
   afterEach(() => {

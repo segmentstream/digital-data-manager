@@ -12,7 +12,7 @@ describe('Integrations: FacebookPixel', () => {
 
   before(() => {
     fbPixel = new FacebookPixel(window.digitalData, options);
-    ddManager.addIntegration(fbPixel);
+    ddManager.addIntegration('Facebook Pixel', fbPixel);
   });
 
   after(() => {

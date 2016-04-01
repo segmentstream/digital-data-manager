@@ -43,7 +43,7 @@ describe('DDManager', () => {
       assert.ok(ddManager.isInitialized());
     });
 
-    it('should add integration', () => {
+    it('should add integration if old-style object settings', () => {
       ddManager.setAvailableIntegrations(availableIntegrations);
       ddManager.initialize({
         integrations: {
@@ -51,6 +51,35 @@ describe('DDManager', () => {
             componentId: 'XXX'
           }
         }
+      });
+
+      assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration);
+    });
+
+    it('should add integration if new array settings', () => {
+      ddManager.setAvailableIntegrations(availableIntegrations);
+      ddManager.initialize({
+        integrations: [
+          {
+            'name': 'Google Tag Manager',
+            'options': {
+              'componentId': 'XXX'
+            }
+          }
+        ]
+      });
+
+      assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration);
+    });
+
+    it('should add integration if new array settings without options', () => {
+      ddManager.setAvailableIntegrations(availableIntegrations);
+      ddManager.initialize({
+        integrations: [
+          {
+            'name': 'Google Tag Manager'
+          }
+        ]
       });
 
       assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration);
