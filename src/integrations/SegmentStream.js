@@ -21,10 +21,6 @@ class SegmentStream extends Integration {
     });
   }
 
-  static getName() {
-    return 'SegmentStream';
-  }
-
   initialize() {
     const ssApi = window.ssApi = window.ssApi || [];
 

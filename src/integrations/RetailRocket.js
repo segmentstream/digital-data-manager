@@ -25,10 +25,6 @@ class RetailRocket extends Integration {
     });
   }
 
-  static getName() {
-    return 'Retail Rocket';
-  }
-
   initialize() {
     if (this.getOption('partnerId')) {
       window.rrPartnerId = this.getOption('partnerId');

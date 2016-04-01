@@ -40,7 +40,7 @@ describe('Integrations: RetailRocket', () => {
       events: []
     };
     retailRocket = new RetailRocket(window.digitalData, options);
-    ddManager.addIntegration(retailRocket);
+    ddManager.addIntegration('Retail Rocket', retailRocket);
   });
 
   after(() => {

@@ -8,14 +8,14 @@ import SendPulse from './integrations/SendPulse.js';
 import OWOXBIStreaming from './integrations/OWOXBIStreaming.js';
 
 const integrations = {
-  [GoogleAnalytics.getName()]: GoogleAnalytics,
-  [GoogleTagManager.getName()]: GoogleTagManager,
-  [OWOXBIStreaming.getName()]: OWOXBIStreaming,
-  [FacebookPixel.getName()]: FacebookPixel,
-  [Driveback.getName()]: Driveback,
-  [RetailRocket.getName()]: RetailRocket,
-  [SegmentStream.getName()]: SegmentStream,
-  [SendPulse.getName()]: SendPulse,
+  'Google Analytics': GoogleAnalytics,
+  'Google Tag Manager': GoogleTagManager,
+  'OWOX BI Streaming': OWOXBIStreaming,
+  'Facebook Pixel': FacebookPixel,
+  'Driveback': Driveback,
+  'Retail Rocket': RetailRocket,
+  'Segment Stream': SegmentStream,
+  'SendPulse': SendPulse,
 };
 
 export default integrations;

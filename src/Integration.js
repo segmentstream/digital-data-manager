@@ -25,15 +25,6 @@ class Integration extends EventEmitter
     async.nextTick(ready);
   }
 
-  setName(name) {
-    this._name = name;
-    return this;
-  }
-
-  getName() {
-    return this._name || this.constructor.getName();
-  }
-
   load(tagName, callback) {
     // Argument shuffling
     if (typeof tagName === 'function') { callback = tagName; tagName = null; }

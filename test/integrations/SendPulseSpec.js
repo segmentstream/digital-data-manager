@@ -18,7 +18,7 @@ describe('SendPulse', function() {
       events: []
     };
     _sp = new SendPulse(window.digitalData, options);
-    ddManager.addIntegration(_sp);
+    ddManager.addIntegration('SendPulse', _sp);
   });
 
   afterEach(() => {

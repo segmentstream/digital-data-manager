@@ -5852,15 +5852,6 @@ var Integration = (function (_EventEmitter) {
     _async2['default'].nextTick(ready);
   };
 
-  Integration.prototype.setName = function setName(name) {
-    this._name = name;
-    return this;
-  };
-
-  Integration.prototype.getName = function getName() {
-    return this._name || this.constructor.getName();
-  };
-
   Integration.prototype.load = function load(tagName, callback) {
     // Argument shuffling
     if (typeof tagName === 'function') {
@@ -5962,8 +5953,6 @@ exports['default'] = Integration;
 },{"./DDHelper.js":51,"./functions/deleteProperty.js":60,"./functions/each.js":61,"./functions/format.js":62,"./functions/loadIframe.js":67,"./functions/loadPixel.js":68,"./functions/loadScript.js":69,"./functions/noop.js":70,"async":1,"component-emitter":5,"debug":44}],57:[function(require,module,exports){
 'use strict';
 
-var _integrations;
-
 exports.__esModule = true;
 
 var _GoogleAnalytics = require('./integrations/GoogleAnalytics.js');
@@ -6002,7 +5991,16 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-var integrations = (_integrations = {}, _integrations[_GoogleAnalytics2['default'].getName()] = _GoogleAnalytics2['default'], _integrations[_GoogleTagManager2['default'].getName()] = _GoogleTagManager2['default'], _integrations[_OWOXBIStreaming2['default'].getName()] = _OWOXBIStreaming2['default'], _integrations[_FacebookPixel2['default'].getName()] = _FacebookPixel2['default'], _integrations[_Driveback2['default'].getName()] = _Driveback2['default'], _integrations[_RetailRocket2['default'].getName()] = _RetailRocket2['default'], _integrations[_SegmentStream2['default'].getName()] = _SegmentStream2['default'], _integrations[_SendPulse2['default'].getName()] = _SendPulse2['default'], _integrations);
+var integrations = {
+  'Google Analytics': _GoogleAnalytics2['default'],
+  'Google Tag Manager': _GoogleTagManager2['default'],
+  'OWOX BI Streaming': _OWOXBIStreaming2['default'],
+  'Facebook Pixel': _FacebookPixel2['default'],
+  'Driveback': _Driveback2['default'],
+  'Retail Rocket': _RetailRocket2['default'],
+  'Segment Stream': _SegmentStream2['default'],
+  'SendPulse': _SendPulse2['default']
+};
 
 exports['default'] = integrations;
 
@@ -6172,14 +6170,14 @@ function _initializeIntegrations(settings, onReady) {
             var options = (0, _componentClone2['default'])(integrationSetting.options);
             if (typeof _availableIntegrations[name] === 'function') {
               var integration = new _availableIntegrations[name](_digitalData, options || {});
-              ddManager.addIntegration(integration);
+              ddManager.addIntegration(name, integration);
             }
           }
         } else {
           (0, _each2['default'])(integrationSettings, function (name, options) {
             if (typeof _availableIntegrations[name] === 'function') {
               var integration = new _availableIntegrations[name](_digitalData, (0, _componentClone2['default'])(options));
-              ddManager.addIntegration(integration);
+              ddManager.addIntegration(name, integration);
             }
           });
         }
@@ -6313,15 +6311,14 @@ ddManager = {
     return _isReady;
   },
 
-  addIntegration: function addIntegration(integration) {
+  addIntegration: function addIntegration(name, integration) {
     if (_isInitialized) {
       throw new Error('Adding integrations after ddManager initialization is not allowed');
     }
 
-    if (!integration instanceof _Integration2['default'] || !integration.getName()) {
+    if (!integration instanceof _Integration2['default'] || !name) {
       throw new TypeError('attempted to add an invalid integration');
     }
-    var name = integration.getName();
     _integrations[name] = integration;
   },
 
@@ -6880,10 +6877,6 @@ var Driveback = (function (_Integration) {
     return _this;
   }
 
-  Driveback.getName = function getName() {
-    return 'Driveback';
-  };
-
   Driveback.prototype.initialize = function initialize() {
     var _this2 = this;
 
@@ -6987,10 +6980,6 @@ var FacebookPixel = (function (_Integration) {
     });
     return _this;
   }
-
-  FacebookPixel.getName = function getName() {
-    return 'Facebook Pixel';
-  };
 
   FacebookPixel.prototype.initialize = function initialize() {
     if (this.getOption('pixelId') && !window.fbq) {
@@ -7251,10 +7240,6 @@ var GoogleAnalytics = (function (_Integration) {
     });
     return _this;
   }
-
-  GoogleAnalytics.getName = function getName() {
-    return 'Google Analytics';
-  };
 
   GoogleAnalytics.prototype.initialize = function initialize() {
     if (this.getOption('trackingId')) {
@@ -7853,10 +7838,6 @@ var GoogleTagManager = (function (_Integration) {
     return _this;
   }
 
-  GoogleTagManager.getName = function getName() {
-    return 'Google Tag Manager';
-  };
-
   GoogleTagManager.prototype.initialize = function initialize() {
     if (this.getOption('containerId')) {
       window.dataLayer = window.dataLayer || [];
@@ -7937,10 +7918,6 @@ var OWOXBIStreaming = (function (_Integration) {
 
     return _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
   }
-
-  OWOXBIStreaming.getName = function getName() {
-    return 'OWOX BI Streaming';
-  };
 
   OWOXBIStreaming.prototype.initialize = function initialize() {
     this.ga('require', 'OWOXBIStreaming', {
@@ -8073,10 +8050,6 @@ var RetailRocket = (function (_Integration) {
     });
     return _this;
   }
-
-  RetailRocket.getName = function getName() {
-    return 'Retail Rocket';
-  };
 
   RetailRocket.prototype.initialize = function initialize() {
     if (this.getOption('partnerId')) {
@@ -8399,10 +8372,6 @@ var SegmentStream = (function (_Integration) {
     return _this;
   }
 
-  SegmentStream.getName = function getName() {
-    return 'SegmentStream';
-  };
-
   SegmentStream.prototype.initialize = function initialize() {
     var _this2 = this;
 
@@ -8569,10 +8538,6 @@ var SendPulse = (function (_Integration) {
     });
     return _this;
   }
-
-  SendPulse.getName = function getName() {
-    return 'SendPulse';
-  };
 
   SendPulse.prototype.initialize = function initialize() {
     var _this2 = this;

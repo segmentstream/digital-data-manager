@@ -72,6 +72,19 @@ describe('DDManager', () => {
       assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration);
     });
 
+    it('should add integration if new array settings without options', () => {
+      ddManager.setAvailableIntegrations(availableIntegrations);
+      ddManager.initialize({
+        integrations: [
+          {
+            'name': 'Google Tag Manager'
+          }
+        ]
+      });
+
+      assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration);
+    });
+
     it('it should fire on("ready") event even if ddManager was ready before', (done) => {
       ddManager.initialize();
       if (ddManager.isReady()) {

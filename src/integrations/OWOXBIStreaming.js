@@ -11,10 +11,6 @@ class OWOXBIStreaming extends Integration {
     super(digitalData, optionsWithDefaults);
   }
 
-  static getName() {
-    return 'OWOX BI Streaming';
-  }
-
   initialize() {
     this.ga('require', 'OWOXBIStreaming', {
       sessionIdDimension: this.getOption('sessionIdDimension')

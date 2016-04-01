@@ -105,14 +105,14 @@ function _initializeIntegrations(settings, onReady) {
           const options = clone(integrationSetting.options);
           if (typeof _availableIntegrations[name] === 'function') {
             const integration = new _availableIntegrations[name](_digitalData, options || {});
-            ddManager.addIntegration(integration);
+            ddManager.addIntegration(name, integration);
           }
         }
       } else {
         each(integrationSettings, (name, options) => {
           if (typeof _availableIntegrations[name] === 'function') {
             const integration = new _availableIntegrations[name](_digitalData, clone(options));
-            ddManager.addIntegration(integration);
+            ddManager.addIntegration(name, integration);
           }
         });
       }
@@ -245,15 +245,14 @@ ddManager = {
     return _isReady;
   },
 
-  addIntegration: (integration) => {
+  addIntegration: (name, integration) => {
     if (_isInitialized) {
       throw new Error('Adding integrations after ddManager initialization is not allowed');
     }
 
-    if (!integration instanceof Integration || !integration.getName()) {
+    if (!integration instanceof Integration || !name) {
       throw new TypeError('attempted to add an invalid integration');
     }
-    const name = integration.getName();
     _integrations[name] = integration;
   },
 

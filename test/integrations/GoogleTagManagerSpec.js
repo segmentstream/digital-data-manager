@@ -13,7 +13,7 @@ describe('Integrations: GoogleTagManager', () => {
 
     beforeEach(() => {
       gtm = new GoogleTagManager(window.digitalData, options);
-      ddManager.addIntegration(gtm);
+      ddManager.addIntegration('Google Tag Manager', gtm);
     });
 
     afterEach(() => {
@@ -115,7 +115,7 @@ describe('Integrations: GoogleTagManager', () => {
     beforeEach(() => {
       window.dataLayer = [];
       gtm = new GoogleTagManager(window.digitalData, true);
-      ddManager.addIntegration(gtm);
+      ddManager.addIntegration('Google Tag Manager', gtm);
     });
 
     afterEach(() => {

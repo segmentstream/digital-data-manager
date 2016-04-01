@@ -23,10 +23,6 @@ class SendPulse extends Integration {
     });
   }
 
-  static getName() {
-    return 'SendPulse';
-  }
-
   initialize() {
     window.ddListener.push(['on', 'change:user', (user) => {
       if (user.pushNotifications.isSubscribed) {

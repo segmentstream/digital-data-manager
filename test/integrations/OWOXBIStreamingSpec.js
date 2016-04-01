@@ -24,8 +24,8 @@ describe('Integrations: OWOXBIStreaming', () => {
       owox = new OWOXBIStreaming(window.digitalData, {
         'sessionIdDimension': 'sessionId'
       });
-      ddManager.addIntegration(ga);
-      ddManager.addIntegration(owox);
+      ddManager.addIntegration('Google Analytics', ga);
+      ddManager.addIntegration('OWOX BI Streaming', owox);
     });
 
     afterEach(() => {

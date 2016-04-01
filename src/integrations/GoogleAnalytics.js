@@ -67,10 +67,6 @@ class GoogleAnalytics extends Integration {
     });
   }
 
-  static getName() {
-    return 'Google Analytics';
-  }
-
   initialize() {
     if (this.getOption('trackingId')) {
       this.pageCalled = false;
