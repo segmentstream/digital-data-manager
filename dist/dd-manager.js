@@ -5998,7 +5998,7 @@ var integrations = {
   'Facebook Pixel': _FacebookPixel2['default'],
   'Driveback': _Driveback2['default'],
   'Retail Rocket': _RetailRocket2['default'],
-  'Segment Stream': _SegmentStream2['default'],
+  'SegmentStream': _SegmentStream2['default'],
   'SendPulse': _SendPulse2['default']
 };
 
