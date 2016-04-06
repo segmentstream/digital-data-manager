@@ -287,6 +287,7 @@ ddManager = {
     _isReady = false;
   },
 
+  Integration: Integration,
 };
 
 emitter(ddManager);

@@ -5835,7 +5835,7 @@ function _inherits(subClass, superClass) {
 var Integration = (function (_EventEmitter) {
   _inherits(Integration, _EventEmitter);
 
-  function Integration(digitalData, options) {
+  function Integration(digitalData, options, tags) {
     _classCallCheck(this, Integration);
 
     var _this = _possibleConstructorReturn(this, _EventEmitter.call(this));
@@ -6351,8 +6351,9 @@ ddManager = {
     _integrations = {};
     _isInitialized = false;
     _isReady = false;
-  }
+  },
 
+  Integration: _Integration2['default']
 };
 
 (0, _componentEmitter2['default'])(ddManager);

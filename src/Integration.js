@@ -12,7 +12,7 @@ import DDHelper from './DDHelper.js';
 
 class Integration extends EventEmitter
 {
-  constructor(digitalData, options) {
+  constructor(digitalData, options, tags) {
     super();
     this._options = options;
     this._tags = {};
