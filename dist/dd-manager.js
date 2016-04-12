@@ -8055,6 +8055,9 @@ var RetailRocket = (function (_Integration) {
   RetailRocket.prototype.initialize = function initialize() {
     if (this.getOption('partnerId')) {
       window.rrPartnerId = this.getOption('partnerId');
+      if (window.digitalData.user && window.digitalData.user.userId) {
+        window.rrPartnerUserId = window.digitalData.user.userId;
+      }
       window.rrApi = {};
       window.rrApiOnReady = window.rrApiOnReady || [];
       window.rrApi.pageView = window.rrApi.addToBasket = window.rrApi.order = window.rrApi.categoryView = window.rrApi.setEmail = window.rrApi.view = window.rrApi.recomMouseDown = window.rrApi.recomAddToCart = function () {};
