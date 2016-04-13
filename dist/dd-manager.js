@@ -7990,6 +7990,10 @@ var _deleteProperty = require('./../functions/deleteProperty.js');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
+var _getProperty = require('./../../src/functions/getProperty.js');
+
+var _getProperty2 = _interopRequireDefault(_getProperty);
+
 var _throwError = require('./../functions/throwError.js');
 
 var _throwError2 = _interopRequireDefault(_throwError);
@@ -8036,6 +8040,7 @@ var RetailRocket = (function (_Integration) {
 
     var optionsWithDefaults = Object.assign({
       partnerId: '',
+      userIdProperty: 'user.userId',
       trackProducts: true,
       trackAllEmails: false
     }, options);
@@ -8055,8 +8060,9 @@ var RetailRocket = (function (_Integration) {
   RetailRocket.prototype.initialize = function initialize() {
     if (this.getOption('partnerId')) {
       window.rrPartnerId = this.getOption('partnerId');
-      if (window.digitalData.user && window.digitalData.user.userId) {
-        window.rrPartnerUserId = window.digitalData.user.userId;
+      var userId = (0, _getProperty2['default'])(window.digitalData, this.getOption('userIdProperty'));
+      if (userId) {
+        window.rrPartnerUserId = userId;
       }
       window.rrApi = {};
       window.rrApiOnReady = window.rrApiOnReady || [];
@@ -8312,7 +8318,7 @@ var RetailRocket = (function (_Integration) {
 
 exports['default'] = RetailRocket;
 
-},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/format.js":62,"./../functions/getQueryParam.js":64,"./../functions/throwError.js":73,"component-type":6}],81:[function(require,module,exports){
+},{"./../../src/functions/getProperty.js":63,"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/format.js":62,"./../functions/getQueryParam.js":64,"./../functions/throwError.js":73,"component-type":6}],81:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
