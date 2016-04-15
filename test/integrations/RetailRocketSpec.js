@@ -12,7 +12,8 @@ describe('Integrations: RetailRocket', () => {
   let stubsPrepared = false;
 
   const options = {
-    partnerId: '567c343e6c7d3d14101afee5'
+    partnerId: '567c343e6c7d3d14101afee5',
+    userIdProperty: 'user.email'
   };
 
   const prepareStubs = () => {
@@ -37,6 +38,10 @@ describe('Integrations: RetailRocket', () => {
 
   before(() => {
     window.digitalData = {
+      user: {
+        userId: '123',
+        email: 'test@test.com'
+      },
       events: []
     };
     retailRocket = new RetailRocket(window.digitalData, options);
@@ -89,6 +94,7 @@ describe('Integrations: RetailRocket', () => {
 
     it('should initialize all methods', () => {
       assert.ok(window.rrPartnerId, 'window.rrPartnerId is not defined');
+      assert.equal(window.rrPartnerUserId, 'test@test.com');
       assert.ok(window.rrApi, 'window.rrApi is not defined');
       assert.ok(window.rrApiOnReady, 'window.rrApiOnReady is not defined');
       assert.ok(typeof window.rrApi.addToBasket === 'function', 'window.rrApi.addToBasket is not a function');

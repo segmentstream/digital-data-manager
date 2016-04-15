@@ -17,3 +17,4 @@ import './integrations/FacebookPixelSpec.js';
 import './integrations/SegmentStreamSpec.js';
 import './integrations/SendPulseSpec.js';
 import './integrations/OWOXBIStreamingSpec.js'
+import './integrations/CustomIntegrationSpec.js';

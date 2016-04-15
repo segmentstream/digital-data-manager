@@ -5835,7 +5835,7 @@ function _inherits(subClass, superClass) {
 var Integration = (function (_EventEmitter) {
   _inherits(Integration, _EventEmitter);
 
-  function Integration(digitalData, options) {
+  function Integration(digitalData, options, tags) {
     _classCallCheck(this, Integration);
 
     var _this = _possibleConstructorReturn(this, _EventEmitter.call(this));
@@ -5998,7 +5998,7 @@ var integrations = {
   'Facebook Pixel': _FacebookPixel2['default'],
   'Driveback': _Driveback2['default'],
   'Retail Rocket': _RetailRocket2['default'],
-  'Segment Stream': _SegmentStream2['default'],
+  'SegmentStream': _SegmentStream2['default'],
   'SendPulse': _SendPulse2['default']
 };
 
@@ -6351,8 +6351,9 @@ ddManager = {
     _integrations = {};
     _isInitialized = false;
     _isReady = false;
-  }
+  },
 
+  Integration: _Integration2['default']
 };
 
 (0, _componentEmitter2['default'])(ddManager);
@@ -7989,6 +7990,10 @@ var _deleteProperty = require('./../functions/deleteProperty.js');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
+var _getProperty = require('./../../src/functions/getProperty.js');
+
+var _getProperty2 = _interopRequireDefault(_getProperty);
+
 var _throwError = require('./../functions/throwError.js');
 
 var _throwError2 = _interopRequireDefault(_throwError);
@@ -8035,6 +8040,7 @@ var RetailRocket = (function (_Integration) {
 
     var optionsWithDefaults = Object.assign({
       partnerId: '',
+      userIdProperty: 'user.userId',
       trackProducts: true,
       trackAllEmails: false
     }, options);
@@ -8054,6 +8060,10 @@ var RetailRocket = (function (_Integration) {
   RetailRocket.prototype.initialize = function initialize() {
     if (this.getOption('partnerId')) {
       window.rrPartnerId = this.getOption('partnerId');
+      var userId = (0, _getProperty2['default'])(window.digitalData, this.getOption('userIdProperty'));
+      if (userId) {
+        window.rrPartnerUserId = userId;
+      }
       window.rrApi = {};
       window.rrApiOnReady = window.rrApiOnReady || [];
       window.rrApi.pageView = window.rrApi.addToBasket = window.rrApi.order = window.rrApi.categoryView = window.rrApi.setEmail = window.rrApi.view = window.rrApi.recomMouseDown = window.rrApi.recomAddToCart = function () {};
@@ -8308,7 +8318,7 @@ var RetailRocket = (function (_Integration) {
 
 exports['default'] = RetailRocket;
 
-},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/format.js":62,"./../functions/getQueryParam.js":64,"./../functions/throwError.js":73,"component-type":6}],81:[function(require,module,exports){
+},{"./../../src/functions/getProperty.js":63,"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/format.js":62,"./../functions/getQueryParam.js":64,"./../functions/throwError.js":73,"component-type":6}],81:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }

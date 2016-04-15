@@ -1,5 +1,6 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
+import getProperty from './../../src/functions/getProperty.js';
 import throwError from './../functions/throwError.js';
 import type from 'component-type';
 import format from './../functions/format.js';
@@ -10,6 +11,7 @@ class RetailRocket extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       partnerId: '',
+      userIdProperty: 'user.userId',
       trackProducts: true,
       trackAllEmails: false,
     }, options);
@@ -28,6 +30,10 @@ class RetailRocket extends Integration {
   initialize() {
     if (this.getOption('partnerId')) {
       window.rrPartnerId = this.getOption('partnerId');
+      const userId = getProperty(window.digitalData, this.getOption('userIdProperty'));
+      if (userId) {
+        window.rrPartnerUserId = userId;
+      }
       window.rrApi = {};
       window.rrApiOnReady = window.rrApiOnReady || [];
       window.rrApi.pageView = window.rrApi.addToBasket =
