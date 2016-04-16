@@ -14,9 +14,9 @@ class Integration extends EventEmitter
 {
   constructor(digitalData, options, tags) {
     super();
-    this._options = options;
-    this._tags = {};
-    this._digitalData = digitalData;
+    this.options = options;
+    this.tags = tags || {};
+    this.digitalData = digitalData;
     this.ready = this.ready.bind(this);
   }
 
@@ -32,7 +32,7 @@ class Integration extends EventEmitter
     // Default arguments
     tagName = tagName || 'library';
 
-    const tag = this._tags[tagName];
+    const tag = this.tags[tagName];
     if (!tag) throw new Error(format('tag "%s" not defined.', tagName));
     callback = callback || noop;
 
@@ -79,7 +79,7 @@ class Integration extends EventEmitter
       name = 'library';
     }
 
-    this._tags[name] = tag;
+    this.tags[name] = tag;
     return this;
   }
 
@@ -87,20 +87,20 @@ class Integration extends EventEmitter
     if (!name) {
       name = 'library';
     }
-    return this._tags[name];
+    return this.tags[name];
   }
 
   setOption(name, value) {
-    this._options[name] = value;
+    this.options[name] = value;
     return this;
   }
 
   getOption(name) {
-    return this._options[name];
+    return this.options[name];
   }
 
   get(key) {
-    return DDHelper.get(key, this._digitalData);
+    return DDHelper.get(key, this.digitalData);
   }
 
   reset() {

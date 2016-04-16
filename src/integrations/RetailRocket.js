@@ -12,11 +12,17 @@ class RetailRocket extends Integration {
     const optionsWithDefaults = Object.assign({
       partnerId: '',
       userIdProperty: 'user.userId',
-      trackProducts: true,
+      trackProducts: true, // legacy setting, use noConflict instead
+      noConflict: false,
       trackAllEmails: false,
     }, options);
 
     super(digitalData, optionsWithDefaults);
+
+    // legacy setting mapper
+    if (this.getOption('trackProducts') === false) {
+      this.setOption('noConflict', true);
+    }
 
     this.addTag({
       type: 'script',
@@ -30,7 +36,7 @@ class RetailRocket extends Integration {
   initialize() {
     if (this.getOption('partnerId')) {
       window.rrPartnerId = this.getOption('partnerId');
-      const userId = getProperty(window.digitalData, this.getOption('userIdProperty'));
+      const userId = getProperty(this.digitalData, this.getOption('userIdProperty'));
       if (userId) {
         window.rrPartnerUserId = userId;
       }
@@ -67,7 +73,7 @@ class RetailRocket extends Integration {
   }
 
   trackEvent(event) {
-    if (this.getOption('trackProducts')) {
+    if (this.getOption('noConflict') !== true) {
       if (event.name === 'Viewed Product Category') {
         this.onViewedProductCategory(event.page);
       } else if (event.name === 'Added Product') {
@@ -94,7 +100,7 @@ class RetailRocket extends Integration {
     } else {
       const email = getQueryParam('rr_setemail', this.getQueryString());
       if (email) {
-        window.digitalData.user.email = email;
+        this.digitalData.user.email = email;
         // Retail Rocker will track this query param automatically
       } else {
         window.ddListener.push(['on', 'change:user.email', () => {

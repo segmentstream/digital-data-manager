@@ -151,7 +151,7 @@ class GoogleAnalytics extends Integration {
   }
 
   getCustomDimensions(source) {
-    source = source || this._digitalData;
+    source = source || this.digitalData;
     const settings = Object.assign(
         Object.assign(
             this.getOption('metrics'),

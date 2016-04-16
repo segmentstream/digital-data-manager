@@ -235,7 +235,9 @@ class EventManager {
 
   reset() {
     clearInterval(_checkForChangesIntervalId);
-
+    while (_ddListener.length) {
+      _ddListener.pop();
+    }
     _ddListener.push = Array.prototype.push;
     _callbacks = {};
   }
