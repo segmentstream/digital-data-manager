@@ -179,6 +179,21 @@ describe('Integrations: Criteo', () => {
           }
         });
       });
+
+      it('should not send viewHome event if noConflict setting is true', (done) => {
+        criteo.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          category: 'Content',
+          page: {
+            type: 'home'
+          },
+          callback: () => {
+            assert.ok(!window.criteo_q[2]);
+            done();
+          }
+        });
+      });
     });
 
     describe('#onViewedProductListing', () => {
@@ -240,6 +255,25 @@ describe('Integrations: Criteo', () => {
           }
         });
       });
+
+      it('should not send viewList event if noConflict setting is true', (done) => {
+        criteo.setOption('noConflict', true);
+        window.digitalData.listing = {
+          items: [
+            {
+              id: '123'
+            },
+          ]
+        };
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          category: 'Content',
+          callback: () => {
+            assert.ok(!window.criteo_q[2]);
+            done();
+          }
+        });
+      });
     });
 
     describe('#onViewedProductDetail', () => {
@@ -261,6 +295,21 @@ describe('Integrations: Criteo', () => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           category: 'Ecommerce',
+          callback: () => {
+            assert.ok(!window.criteo_q[2]);
+            done();
+          }
+        });
+      });
+
+      it('should not send viewItem event if noConflict option is true', (done) => {
+        criteo.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: {
+            id: '123'
+          },
           callback: () => {
             assert.ok(!window.criteo_q[2]);
             done();
@@ -339,6 +388,32 @@ describe('Integrations: Criteo', () => {
       it('should not send viewBasket event if cart is empty', (done) => {
         window.digitalData.cart = {
           lineItems: []
+        };
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          category: 'Content',
+          page: {
+            type: 'cart'
+          },
+          callback: () => {
+            assert.ok(!window.criteo_q[2]);
+            done();
+          }
+        });
+      });
+
+      it('should not send viewBasket event if noConflict option is true', (done) => {
+        criteo.setOption('noConflict', true);
+        window.digitalData.cart = {
+          lineItems: [
+            {
+              product: {
+                id: '123',
+                unitSalePrice: 100
+              },
+              quantity: 1
+            }
+          ]
         };
         window.digitalData.events.push({
           name: 'Viewed Page',
@@ -554,7 +629,54 @@ describe('Integrations: Criteo', () => {
             done();
           }
         });
-      })
+      });
+
+      it('should not send trackTransaction event if noConflict option is true', (done) => {
+        criteo.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          transaction: {
+            orderId: '123',
+            lineItems: lineItems
+          },
+          callback: () => {
+            assert.ok(!window.criteo_q[2]);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onSubscribed', () => {
+      it('should set email if user email was acquired', (done) => {
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          category: 'Email',
+          user: {
+            email: 'test@driveback.ru'
+          },
+          callback: () => {
+            assert.deepEqual(window.criteo_q[2], { event: 'setEmail', email: 'test@driveback.ru' });
+            done();
+          }
+        });
+      });
+
+      it('should set email if user email was acquired and noConflict option is true', (done) => {
+        criteo.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          category: 'Email',
+          user: {
+            email: 'test@driveback.ru'
+          },
+          callback: () => {
+            assert.deepEqual(window.criteo_q[2], { event: 'setEmail', email: 'test@driveback.ru' });
+            done();
+          }
+        });
+      });
     });
 
   });

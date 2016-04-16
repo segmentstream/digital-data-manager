@@ -26,6 +26,7 @@ class Criteo extends Integration {
     const optionsWithDefaults = Object.assign({
       account: '',
       deduplication: undefined,
+      noConflict: false,
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -92,11 +93,14 @@ class Criteo extends Integration {
       'Viewed Page': 'onViewedPage',
       'Viewed Product Detail': 'onViewedProductDetail',
       'Completed Transaction': 'onCompletedTransaction',
+      'Subscribed': 'onSubscribed',
     };
 
-    const method = methods[event.name];
-    if (method) {
-      this[method](event);
+    if (this.getOption('noConflict') !== true || event.name === 'Subscribed') {
+      const method = methods[event.name];
+      if (method) {
+        this[method](event);
+      }
     }
   }
 
@@ -202,6 +206,18 @@ class Criteo extends Integration {
           }
         );
       }
+    }
+  }
+
+  onSubscribed(event) {
+    const user = event.user;
+    if (user && user.email) {
+      window.criteo_q.push(
+        {
+          event: 'setEmail',
+          email: user.email,
+        }
+      );
     }
   }
 }

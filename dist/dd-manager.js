@@ -5749,7 +5749,9 @@ var EventManager = (function () {
 
   EventManager.prototype.reset = function reset() {
     clearInterval(_checkForChangesIntervalId);
-
+    while (_ddListener.length) {
+      _ddListener.pop();
+    }
     _ddListener.push = Array.prototype.push;
     _callbacks = {};
   };
@@ -6887,7 +6889,8 @@ var Criteo = (function (_Integration) {
 
     var optionsWithDefaults = Object.assign({
       account: '',
-      deduplication: undefined
+      deduplication: undefined,
+      noConflict: false
     }, options);
 
     var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
@@ -6946,12 +6949,15 @@ var Criteo = (function (_Integration) {
     var methods = {
       'Viewed Page': 'onViewedPage',
       'Viewed Product Detail': 'onViewedProductDetail',
-      'Completed Transaction': 'onCompletedTransaction'
+      'Completed Transaction': 'onCompletedTransaction',
+      'Subscribed': 'onSubscribed'
     };
 
-    var method = methods[event.name];
-    if (method) {
-      this[method](event);
+    if (this.getOption('noConflict') !== true || event.name === 'Subscribed') {
+      var method = methods[event.name];
+      if (method) {
+        this[method](event);
+      }
     }
   };
 
@@ -7047,6 +7053,16 @@ var Criteo = (function (_Integration) {
           item: products
         });
       }
+    }
+  };
+
+  Criteo.prototype.onSubscribed = function onSubscribed(event) {
+    var user = event.user;
+    if (user && user.email) {
+      window.criteo_q.push({
+        event: 'setEmail',
+        email: user.email
+      });
     }
   };
 
@@ -8283,11 +8299,18 @@ var RetailRocket = (function (_Integration) {
     var optionsWithDefaults = Object.assign({
       partnerId: '',
       userIdProperty: 'user.userId',
-      trackProducts: true,
+      trackProducts: true, // legacy setting, use noConflict instead
+      noConflict: false,
       trackAllEmails: false
     }, options);
 
+    // legacy setting mapper
+
     var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    if (_this.getOption('trackProducts') === false) {
+      _this.setOption('noConflict', true);
+    }
 
     _this.addTag({
       type: 'script',
@@ -8337,7 +8360,7 @@ var RetailRocket = (function (_Integration) {
   };
 
   RetailRocket.prototype.trackEvent = function trackEvent(event) {
-    if (this.getOption('trackProducts')) {
+    if (this.getOption('noConflict') !== true) {
       if (event.name === 'Viewed Product Category') {
         this.onViewedProductCategory(event.page);
       } else if (event.name === 'Added Product') {

@@ -12,11 +12,17 @@ class RetailRocket extends Integration {
     const optionsWithDefaults = Object.assign({
       partnerId: '',
       userIdProperty: 'user.userId',
-      trackProducts: true,
+      trackProducts: true, // legacy setting, use noConflict instead
+      noConflict: false,
       trackAllEmails: false,
     }, options);
 
     super(digitalData, optionsWithDefaults);
+
+    // legacy setting mapper
+    if (this.getOption('trackProducts') === false) {
+      this.setOption('noConflict', true);
+    }
 
     this.addTag({
       type: 'script',
@@ -67,7 +73,7 @@ class RetailRocket extends Integration {
   }
 
   trackEvent(event) {
-    if (this.getOption('trackProducts')) {
+    if (this.getOption('noConflict') !== true) {
       if (event.name === 'Viewed Product Category') {
         this.onViewedProductCategory(event.page);
       } else if (event.name === 'Added Product') {
