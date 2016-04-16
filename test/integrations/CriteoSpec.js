@@ -102,6 +102,19 @@ describe('Integrations: Criteo', () => {
   });
 
   describe('loading', function () {
+    beforeEach(() => {
+      sinon.stub(criteo, 'load', () => {
+        window.criteo_q = {
+          push: function() {}
+        };
+        criteo.ready();
+      });
+    });
+
+    afterEach(() => {
+      criteo.load.restore();
+    });
+
     it('should load', function (done) {
       assert.ok(!criteo.isLoaded());
       ddManager.once('ready', () => {
