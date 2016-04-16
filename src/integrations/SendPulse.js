@@ -34,7 +34,7 @@ class SendPulse extends Integration {
       window.oSpP.storeSubscription = (value) => {
         original(value);
         if (value !== 'DENY') {
-          this.sendUserAttributes(this._digitalData.user);
+          this.sendUserAttributes(this.digitalData.user);
         }
       };
       this.ready();
@@ -42,7 +42,7 @@ class SendPulse extends Integration {
   }
 
   enrichDigitalData(done) {
-    const pushNotification = this._digitalData.user.pushNotifications = {};
+    const pushNotification = this.digitalData.user.pushNotifications = {};
     try {
       pushNotification.isSupported = this.checkPushNotificationsSupport();
       this.getPushSubscriptionInfo((subscriptionInfo) => {

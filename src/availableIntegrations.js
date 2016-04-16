@@ -6,6 +6,7 @@ import FacebookPixel from './integrations/FacebookPixel.js';
 import SegmentStream from './integrations/SegmentStream.js';
 import SendPulse from './integrations/SendPulse.js';
 import OWOXBIStreaming from './integrations/OWOXBIStreaming.js';
+import Criteo from './integrations/Criteo.js';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -16,6 +17,7 @@ const integrations = {
   'Retail Rocket': RetailRocket,
   'SegmentStream': SegmentStream,
   'SendPulse': SendPulse,
+  'Criteo': Criteo,
 };
 
 export default integrations;

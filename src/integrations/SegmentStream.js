@@ -75,11 +75,11 @@ class SegmentStream extends Integration {
       return string.charAt(0).toLowerCase() + string.slice(1);
     }
     const attributes = window.ssApi.getData().attributes;
-    this._digitalData.user.ssAttributes = {};
-    this._digitalData.user.anonymousId = window.ssApi.getAnonymousId();
+    this.digitalData.user.ssAttributes = {};
+    this.digitalData.user.anonymousId = window.ssApi.getAnonymousId();
     each(attributes, (name, value) => {
       const key = lowercaseFirstLetter(name);
-      this._digitalData.user.ssAttributes[key] = value;
+      this.digitalData.user.ssAttributes[key] = value;
     });
     done();
   }
