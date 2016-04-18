@@ -8798,7 +8798,7 @@ var SendPulse = (function (_Integration) {
     _classCallCheck(this, SendPulse);
 
     var optionsWithDefaults = Object.assign({
-      protocol: 'http',
+      https: false,
       pushScriptUrl: '',
       pushSubscriptionTriggerEvent: 'Agreed to Receive Push Notifications'
     }, options);
@@ -8886,12 +8886,15 @@ var SendPulse = (function (_Integration) {
     if (browserName === 'firefox' && os === 'Android') {
       return false;
     }
-    if (browserName === 'safari') {
-      return oSpP.isSafariNotificationSupported();
-    }
     if (['safari', 'firefox', 'chrome'].indexOf(browserName) < 0) {
       return false;
     }
+    if (browserName === 'safari') {
+      return oSpP.isSafariNotificationSupported();
+    } else if (this.isHttps()) {
+      return oSpP.isServiceWorkerChromeSupported();
+    }
+
     return true;
   };
 
@@ -8918,15 +8921,23 @@ var SendPulse = (function (_Integration) {
     (0, _deleteProperty2['default'])(window, 'oSpP');
   };
 
+  SendPulse.prototype.isHttps = function isHttps() {
+    return window.location.href.indexOf("https://") === 0 && this.getOption('https') === true;
+  };
+
   SendPulse.prototype.trackEvent = function trackEvent(event) {
     if (event.name === this.getOption('pushSubscriptionTriggerEvent')) {
       if (this.checkPushNotificationsSupport()) {
-        var browserInfo = window.oSpP.detectBrowser();
-        var browserName = browserInfo.name.toLowerCase();
-        if (browserName === 'safari') {
+        if (this.isHttps()) {
           window.oSpP.startSubscription();
-        } else if (browserName === 'chrome' || browserName === 'firefox') {
-          window.oSpP.showPopUp();
+        } else {
+          var browserInfo = window.oSpP.detectBrowser();
+          var browserName = browserInfo.name.toLowerCase();
+          if (browserName === 'safari') {
+            window.oSpP.startSubscription();
+          } else if (browserName === 'chrome' || browserName === 'firefox') {
+            window.oSpP.showPopUp();
+          }
         }
       }
     }

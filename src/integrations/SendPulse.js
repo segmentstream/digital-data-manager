@@ -7,7 +7,7 @@ class SendPulse extends Integration {
 
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
-      protocol: 'http',
+      https: false,
       pushScriptUrl: '',
       pushSubscriptionTriggerEvent: 'Agreed to Receive Push Notifications',
     }, options);
@@ -92,12 +92,15 @@ class SendPulse extends Integration {
     if ((browserName === 'firefox') && (os === 'Android')) {
       return false;
     }
-    if (browserName === 'safari') {
-      return oSpP.isSafariNotificationSupported();
-    }
     if (['safari', 'firefox', 'chrome'].indexOf(browserName) < 0) {
       return false;
     }
+    if (browserName === 'safari') {
+      return oSpP.isSafariNotificationSupported();
+    } else if (this.isHttps()) {
+      return oSpP.isServiceWorkerChromeSupported();
+    }
+
     return true;
   }
 
@@ -124,15 +127,23 @@ class SendPulse extends Integration {
     deleteProperty(window, 'oSpP');
   }
 
+  isHttps() {
+    return (window.location.href.indexOf("https://") === 0) && this.getOption('https') === true;
+  }
+
   trackEvent(event) {
     if (event.name === this.getOption('pushSubscriptionTriggerEvent')) {
       if (this.checkPushNotificationsSupport()) {
-        const browserInfo = window.oSpP.detectBrowser();
-        const browserName = browserInfo.name.toLowerCase();
-        if (browserName === 'safari') {
+        if (this.isHttps()) {
           window.oSpP.startSubscription();
-        } else if (browserName === 'chrome' || browserName === 'firefox') {
-          window.oSpP.showPopUp();
+        } else {
+          const browserInfo = window.oSpP.detectBrowser();
+          const browserName = browserInfo.name.toLowerCase();
+          if (browserName === 'safari') {
+            window.oSpP.startSubscription();
+          } else if (browserName === 'chrome' || browserName === 'firefox') {
+            window.oSpP.showPopUp();
+          }
         }
       }
     }

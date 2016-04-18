@@ -38,7 +38,7 @@ describe('SendPulse', function() {
         }
       };
 
-      sinon.stub(_sp, 'load', function() {
+      sinon.stub(_sp, 'load', function(callback) {
         window.oSpP = {
           detectSite: () => {
             return true;
@@ -64,11 +64,13 @@ describe('SendPulse', function() {
               });
             }, 0);
           },
+          storeSubscription: () => {},
           push: (key, value) => {},
           showPopUp: () => {},
           startSubscription: () => {},
+          isServiceWorkerChromeSupported: () => {},
         };
-        _sp.ready();
+        callback();
       });
 
       ddManager.once('ready', done);
@@ -125,6 +127,17 @@ describe('SendPulse', function() {
 
     });
 
+    describe('oSpP.storeSubscription', () => {
+
+      it('should send user attributes if any', () => {
+        window.digitalData.user.test = 'test';
+        sinon.spy(window.oSpP, 'push');
+        window.oSpP.storeSubscription('DUMMY');
+        assert.ok(window.oSpP.push.calledWith('test', 'test'));
+      });
+
+    });
+
     describe('#trackEvent', () => {
 
       it('should call oSpP.showPopUp', (done) => {
@@ -158,6 +171,25 @@ describe('SendPulse', function() {
             done();
           }
         });
+      });
+
+      it('should call oSpP.startSubscription for https website', (done) => {
+        sinon.stub(_sp, 'isHttps', () => {
+          return true;
+        });
+        window.oSpP.isServiceWorkerChromeSupported = () => {
+          return true;
+        };
+        sinon.spy(window.oSpP, 'startSubscription');
+        window.digitalData.events.push({
+          name: 'Agreed to Receive Push Notifications',
+          callback: () => {
+            assert.ok(window.oSpP.startSubscription.calledOnce);
+            window.oSpP.startSubscription.restore();
+            done();
+          }
+        });
+        _sp.isHttps.restore();
       });
 
     });
