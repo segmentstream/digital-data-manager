@@ -6905,11 +6905,12 @@ var Criteo = (function (_Integration) {
   }
 
   Criteo.prototype.initialize = function initialize() {
-    if (this.getOption('account')) {
+    window.criteo_q = window.criteo_q || [];
+
+    if (this.getOption('account') && !this.getOption('noConflict')) {
       var email = this.digitalData.user.email;
       var siteType = ['desktop', 'tablet', 'mobile'].indexOf(this.digitalData.page.siteType) >= 0 ? this.digitalData.page.siteType.toLocaleLowerCase() : 'desktop';
 
-      window.criteo_q = window.criteo_q || [];
       window.criteo_q.push({
         event: 'setAccount',
         account: this.getOption('account')
