@@ -7,6 +7,7 @@ import SegmentStream from './integrations/SegmentStream.js';
 import SendPulse from './integrations/SendPulse.js';
 import OWOXBIStreaming from './integrations/OWOXBIStreaming.js';
 import Criteo from './integrations/Criteo.js';
+import MyTarget from './integrations/MyTarget.js';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -18,6 +19,7 @@ const integrations = {
   'SegmentStream': SegmentStream,
   'SendPulse': SendPulse,
   'Criteo': Criteo,
+  'myTarget': MyTarget,
 };
 
 export default integrations;
