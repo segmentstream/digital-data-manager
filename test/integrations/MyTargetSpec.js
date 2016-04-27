@@ -87,6 +87,19 @@ describe('Integrations: MyTarget', () => {
   });
 
   describe('loading', function () {
+    beforeEach(() => {
+      sinon.stub(myTarget, 'load', () => {
+        window._tmr = {
+          push: function() {},
+          unload: function() {}
+        };
+        myTarget.ready();
+      });
+    });
+
+    afterEach(() => {
+      myTarget.load.restore();
+    });
 
     it('should load', function (done) {
       assert.ok(!myTarget.isLoaded());
