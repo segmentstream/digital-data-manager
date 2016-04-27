@@ -40,12 +40,13 @@ class Criteo extends Integration {
   }
 
   initialize() {
-    if (this.getOption('account')) {
+    window.criteo_q = window.criteo_q || [];
+
+    if (this.getOption('account') && !this.getOption('noConflict')) {
       const email = this.digitalData.user.email;
       const siteType = (['desktop', 'tablet', 'mobile'].indexOf(this.digitalData.page.siteType) >= 0)
               ? this.digitalData.page.siteType.toLocaleLowerCase() : 'desktop';
 
-      window.criteo_q = window.criteo_q || [];
       window.criteo_q.push(
         {
           event: 'setAccount',

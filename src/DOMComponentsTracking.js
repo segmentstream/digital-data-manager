@@ -1,5 +1,3 @@
-import each from './functions/each.js';
-
 /**
  * Automatically tracks DOM components with proper data-attributes
  *
@@ -24,20 +22,9 @@ class DOMComponentsTracking
       campaign: [],
     };
 
-    this.clickEventAttachedComponentIds = {
+    this.$digitalDataComponents = {
       product: [],
       campaign: [],
-    };
-
-    this.$digitalDataComponents = {
-      product: {
-        view: undefined,
-        click: undefined,
-      },
-      campaign: {
-        view: undefined,
-        click: undefined,
-      },
     };
   }
 
@@ -55,6 +42,7 @@ class DOMComponentsTracking
       }
 
       this.defineDocBoundaries();
+      this.addClickHandlers();
       this.startTracking();
     });
   }
@@ -87,16 +75,14 @@ class DOMComponentsTracking
   updateDigitalDataDomComponents() {
     for (const type of ['product', 'campaign']) {
       const viewedSelector = 'ddl-viewed-' + type;
-      const clickedSelector = 'ddl-clicked-' + type;
-      this.$digitalDataComponents[type].view = this.findByDataAttr(viewedSelector);
-      this.$digitalDataComponents[type].click = this.findByDataAttr(clickedSelector);
+      this.$digitalDataComponents[type] = this.findByDataAttr(viewedSelector);
     }
   }
 
   addClickHandlers() {
     const onClick = (type) => {
       const self = this;
-      return function onClickHandler() {
+      return function onClickHandler(e) {
         const $el = window.jQuery(this);
         const id = $el.data('ddl-clicked-' + type);
         if (type === 'product') {
@@ -107,31 +93,18 @@ class DOMComponentsTracking
       };
     };
 
-    each(this.$digitalDataComponents, (type, $components) => {
+    for (const type of ['campaign', 'product']) {
       const eventName = 'click.ddl-clicked-' + type;
-      $components.click.each((index, el) => {
-        const $el = window.jQuery(el);
-        const id = $el.data('ddl-clicked-' + type);
-        if (this.clickEventAttachedComponentIds[type].indexOf(id) < 0) {
-          $el.bind(eventName, onClick(type));
-          this.clickEventAttachedComponentIds[type].push(id);
-        }
-      });
-    });
-  }
-
-  removeClickHandlers() {
-    for (const type of ['product', 'campaign']) {
-      const eventName = 'click.ddl-clicked-' + type;
-      this.$digitalDataComponents[type].click.unbind(eventName);
-      this.clickEventAttachedComponentIds[type] = [];
+      const selector = this.getDataAttrSelector('ddl-clicked-' + type);
+      window.jQuery(document).on(eventName, selector, onClick(type));
     }
   }
 
   trackViews() {
-    each(this.$digitalDataComponents, (type, $components) => {
+    for (const type of ['campaign', 'product']) {
       const newViewedComponentIds = [];
-      $components.view.each((index, el) => {
+      const $components = this.$digitalDataComponents[type];
+      $components.each((index, el) => {
         const $el = window.jQuery(el);
         const id = $el.data('ddl-viewed-' + type);
         if (this.viewedComponentIds[type].indexOf(id) < 0 && this.isVisible($el)) {
@@ -147,14 +120,13 @@ class DOMComponentsTracking
           this.fireViewedCampaign(newViewedComponentIds);
         }
       }
-    });
+    };
   }
 
   startTracking() {
     const _track = () => {
       this.updateDigitalDataDomComponents();
       this.trackViews();
-      this.addClickHandlers();
     };
 
     _track();
@@ -256,6 +228,10 @@ class DOMComponentsTracking
   findByDataAttr(name, obj) {
     if (!obj) obj = window.jQuery(document.body);
     return obj.find('[data-' + name + ']');
+  }
+
+  getDataAttrSelector(name) {
+    return '[data-' + name + ']';
   }
 }
 

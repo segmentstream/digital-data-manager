@@ -4896,14 +4896,6 @@ exports['default'] = DDHelper;
 
 exports.__esModule = true;
 
-var _each = require('./functions/each.js');
-
-var _each2 = _interopRequireDefault(_each);
-
-function _interopRequireDefault(obj) {
-  return obj && obj.__esModule ? obj : { 'default': obj };
-}
-
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
     throw new TypeError("Cannot call a class as a function");
@@ -4936,20 +4928,9 @@ var DOMComponentsTracking = (function () {
       campaign: []
     };
 
-    this.clickEventAttachedComponentIds = {
+    this.$digitalDataComponents = {
       product: [],
       campaign: []
-    };
-
-    this.$digitalDataComponents = {
-      product: {
-        view: undefined,
-        click: undefined
-      },
-      campaign: {
-        view: undefined,
-        click: undefined
-      }
     };
   }
 
@@ -4967,6 +4948,7 @@ var DOMComponentsTracking = (function () {
       }
 
       _this.defineDocBoundaries();
+      _this.addClickHandlers();
       _this.startTracking();
     });
   };
@@ -5004,9 +4986,7 @@ var DOMComponentsTracking = (function () {
     for (var _i = 0; _i < _arr.length; _i++) {
       var type = _arr[_i];
       var viewedSelector = 'ddl-viewed-' + type;
-      var clickedSelector = 'ddl-clicked-' + type;
-      this.$digitalDataComponents[type].view = this.findByDataAttr(viewedSelector);
-      this.$digitalDataComponents[type].click = this.findByDataAttr(clickedSelector);
+      this.$digitalDataComponents[type] = this.findByDataAttr(viewedSelector);
     }
   };
 
@@ -5015,7 +4995,7 @@ var DOMComponentsTracking = (function () {
 
     var onClick = function onClick(type) {
       var self = _this3;
-      return function onClickHandler() {
+      return function onClickHandler(e) {
         var $el = window.jQuery(this);
         var id = $el.data('ddl-clicked-' + type);
         if (type === 'product') {
@@ -5026,36 +5006,22 @@ var DOMComponentsTracking = (function () {
       };
     };
 
-    (0, _each2['default'])(this.$digitalDataComponents, function (type, $components) {
-      var eventName = 'click.ddl-clicked-' + type;
-      $components.click.each(function (index, el) {
-        var $el = window.jQuery(el);
-        var id = $el.data('ddl-clicked-' + type);
-        if (_this3.clickEventAttachedComponentIds[type].indexOf(id) < 0) {
-          $el.bind(eventName, onClick(type));
-          _this3.clickEventAttachedComponentIds[type].push(id);
-        }
-      });
-    });
-  };
-
-  DOMComponentsTracking.prototype.removeClickHandlers = function removeClickHandlers() {
-    var _arr2 = ['product', 'campaign'];
-
+    var _arr2 = ['campaign', 'product'];
     for (var _i2 = 0; _i2 < _arr2.length; _i2++) {
       var type = _arr2[_i2];
       var eventName = 'click.ddl-clicked-' + type;
-      this.$digitalDataComponents[type].click.unbind(eventName);
-      this.clickEventAttachedComponentIds[type] = [];
+      var selector = this.getDataAttrSelector('ddl-clicked-' + type);
+      window.jQuery(document).on(eventName, selector, onClick(type));
     }
   };
 
   DOMComponentsTracking.prototype.trackViews = function trackViews() {
     var _this4 = this;
 
-    (0, _each2['default'])(this.$digitalDataComponents, function (type, $components) {
+    var _loop = function _loop(type) {
       var newViewedComponentIds = [];
-      $components.view.each(function (index, el) {
+      var $components = _this4.$digitalDataComponents[type];
+      $components.each(function (index, el) {
         var $el = window.jQuery(el);
         var id = $el.data('ddl-viewed-' + type);
         if (_this4.viewedComponentIds[type].indexOf(id) < 0 && _this4.isVisible($el)) {
@@ -5071,7 +5037,14 @@ var DOMComponentsTracking = (function () {
           _this4.fireViewedCampaign(newViewedComponentIds);
         }
       }
-    });
+    };
+
+    var _arr3 = ['campaign', 'product'];
+
+    for (var _i3 = 0; _i3 < _arr3.length; _i3++) {
+      var type = _arr3[_i3];
+      _loop(type);
+    };
   };
 
   DOMComponentsTracking.prototype.startTracking = function startTracking() {
@@ -5080,7 +5053,6 @@ var DOMComponentsTracking = (function () {
     var _track = function _track() {
       _this5.updateDigitalDataDomComponents();
       _this5.trackViews();
-      _this5.addClickHandlers();
     };
 
     _track();
@@ -5176,12 +5148,16 @@ var DOMComponentsTracking = (function () {
     return obj.find('[data-' + name + ']');
   };
 
+  DOMComponentsTracking.prototype.getDataAttrSelector = function getDataAttrSelector(name) {
+    return '[data-' + name + ']';
+  };
+
   return DOMComponentsTracking;
 })();
 
 exports['default'] = DOMComponentsTracking;
 
-},{"./functions/each.js":61}],53:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -6905,11 +6881,12 @@ var Criteo = (function (_Integration) {
   }
 
   Criteo.prototype.initialize = function initialize() {
-    if (this.getOption('account')) {
+    window.criteo_q = window.criteo_q || [];
+
+    if (this.getOption('account') && !this.getOption('noConflict')) {
       var email = this.digitalData.user.email;
       var siteType = ['desktop', 'tablet', 'mobile'].indexOf(this.digitalData.page.siteType) >= 0 ? this.digitalData.page.siteType.toLocaleLowerCase() : 'desktop';
 
-      window.criteo_q = window.criteo_q || [];
       window.criteo_q.push({
         event: 'setAccount',
         account: this.getOption('account')
@@ -8797,7 +8774,7 @@ var SendPulse = (function (_Integration) {
     _classCallCheck(this, SendPulse);
 
     var optionsWithDefaults = Object.assign({
-      protocol: 'http',
+      https: false,
       pushScriptUrl: '',
       pushSubscriptionTriggerEvent: 'Agreed to Receive Push Notifications'
     }, options);
@@ -8885,12 +8862,15 @@ var SendPulse = (function (_Integration) {
     if (browserName === 'firefox' && os === 'Android') {
       return false;
     }
-    if (browserName === 'safari') {
-      return oSpP.isSafariNotificationSupported();
-    }
     if (['safari', 'firefox', 'chrome'].indexOf(browserName) < 0) {
       return false;
     }
+    if (browserName === 'safari') {
+      return oSpP.isSafariNotificationSupported();
+    } else if (this.isHttps()) {
+      return oSpP.isServiceWorkerChromeSupported();
+    }
+
     return true;
   };
 
@@ -8917,15 +8897,23 @@ var SendPulse = (function (_Integration) {
     (0, _deleteProperty2['default'])(window, 'oSpP');
   };
 
+  SendPulse.prototype.isHttps = function isHttps() {
+    return window.location.href.indexOf("https://") === 0 && this.getOption('https') === true;
+  };
+
   SendPulse.prototype.trackEvent = function trackEvent(event) {
     if (event.name === this.getOption('pushSubscriptionTriggerEvent')) {
       if (this.checkPushNotificationsSupport()) {
-        var browserInfo = window.oSpP.detectBrowser();
-        var browserName = browserInfo.name.toLowerCase();
-        if (browserName === 'safari') {
+        if (this.isHttps()) {
           window.oSpP.startSubscription();
-        } else if (browserName === 'chrome' || browserName === 'firefox') {
-          window.oSpP.showPopUp();
+        } else {
+          var browserInfo = window.oSpP.detectBrowser();
+          var browserName = browserInfo.name.toLowerCase();
+          if (browserName === 'safari') {
+            window.oSpP.startSubscription();
+          } else if (browserName === 'chrome' || browserName === 'firefox') {
+            window.oSpP.showPopUp();
+          }
         }
       }
     }
