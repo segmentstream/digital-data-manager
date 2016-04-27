@@ -128,7 +128,7 @@ class SendPulse extends Integration {
   }
 
   isHttps() {
-    return (window.location.href.indexOf("https://") === 0) && this.getOption('https') === true;
+    return (window.location.href.indexOf('https://') === 0) && this.getOption('https') === true;
   }
 
   trackEvent(event) {

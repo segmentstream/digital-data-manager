@@ -82,7 +82,7 @@ class DOMComponentsTracking
   addClickHandlers() {
     const onClick = (type) => {
       const self = this;
-      return function onClickHandler(e) {
+      return function onClickHandler() {
         const $el = window.jQuery(this);
         const id = $el.data('ddl-clicked-' + type);
         if (type === 'product') {
@@ -104,7 +104,7 @@ class DOMComponentsTracking
     for (const type of ['campaign', 'product']) {
       const newViewedComponentIds = [];
       const $components = this.$digitalDataComponents[type];
-      $components.each((index, el) => {
+      $components.each((index, el) => { // eslint-disable-line no-loop-func
         const $el = window.jQuery(el);
         const id = $el.data('ddl-viewed-' + type);
         if (this.viewedComponentIds[type].indexOf(id) < 0 && this.isVisible($el)) {
@@ -120,7 +120,7 @@ class DOMComponentsTracking
           this.fireViewedCampaign(newViewedComponentIds);
         }
       }
-    };
+    }
   }
 
   startTracking() {

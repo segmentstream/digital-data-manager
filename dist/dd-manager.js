@@ -4995,7 +4995,7 @@ var DOMComponentsTracking = (function () {
 
     var onClick = function onClick(type) {
       var self = _this3;
-      return function onClickHandler(e) {
+      return function onClickHandler() {
         var $el = window.jQuery(this);
         var id = $el.data('ddl-clicked-' + type);
         if (type === 'product') {
@@ -5022,6 +5022,7 @@ var DOMComponentsTracking = (function () {
       var newViewedComponentIds = [];
       var $components = _this4.$digitalDataComponents[type];
       $components.each(function (index, el) {
+        // eslint-disable-line no-loop-func
         var $el = window.jQuery(el);
         var id = $el.data('ddl-viewed-' + type);
         if (_this4.viewedComponentIds[type].indexOf(id) < 0 && _this4.isVisible($el)) {
@@ -5044,7 +5045,7 @@ var DOMComponentsTracking = (function () {
     for (var _i3 = 0; _i3 < _arr3.length; _i3++) {
       var type = _arr3[_i3];
       _loop(type);
-    };
+    }
   };
 
   DOMComponentsTracking.prototype.startTracking = function startTracking() {
@@ -5969,6 +5970,10 @@ var _Criteo = require('./integrations/Criteo.js');
 
 var _Criteo2 = _interopRequireDefault(_Criteo);
 
+var _MyTarget = require('./integrations/MyTarget.js');
+
+var _MyTarget2 = _interopRequireDefault(_MyTarget);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -5982,12 +5987,13 @@ var integrations = {
   'Retail Rocket': _RetailRocket2['default'],
   'SegmentStream': _SegmentStream2['default'],
   'SendPulse': _SendPulse2['default'],
-  'Criteo': _Criteo2['default']
+  'Criteo': _Criteo2['default'],
+  'myTarget': _MyTarget2['default']
 };
 
 exports['default'] = integrations;
 
-},{"./integrations/Criteo.js":75,"./integrations/Driveback.js":76,"./integrations/FacebookPixel.js":77,"./integrations/GoogleAnalytics.js":78,"./integrations/GoogleTagManager.js":79,"./integrations/OWOXBIStreaming.js":80,"./integrations/RetailRocket.js":81,"./integrations/SegmentStream.js":82,"./integrations/SendPulse.js":83}],58:[function(require,module,exports){
+},{"./integrations/Criteo.js":75,"./integrations/Driveback.js":76,"./integrations/FacebookPixel.js":77,"./integrations/GoogleAnalytics.js":78,"./integrations/GoogleTagManager.js":79,"./integrations/MyTarget.js":80,"./integrations/OWOXBIStreaming.js":81,"./integrations/RetailRocket.js":82,"./integrations/SegmentStream.js":83,"./integrations/SendPulse.js":84}],58:[function(require,module,exports){
 'use strict';
 
 function _typeof2(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -6797,7 +6803,7 @@ _ddManager2['default'].processEarlyStubCalls();
 
 window.ddManager = _ddManager2['default'];
 
-},{"./availableIntegrations.js":57,"./ddManager.js":58,"./polyfill.js":84}],75:[function(require,module,exports){
+},{"./availableIntegrations.js":57,"./ddManager.js":58,"./polyfill.js":85}],75:[function(require,module,exports){
 'use strict';
 
 function _typeof2(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -8118,6 +8124,239 @@ var _Integration2 = require('./../Integration.js');
 
 var _Integration3 = _interopRequireDefault(_Integration2);
 
+var _deleteProperty = require('./../functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+function lineItemsToProductIds(lineItems) {
+  var productIds = lineItems.filter(function (lineItem) {
+    return !!lineItem.product.id;
+  }).map(function (lineItem) {
+    return lineItem.product.id;
+  });
+  return productIds;
+}
+
+var MyTarget = (function (_Integration) {
+  _inherits(MyTarget, _Integration);
+
+  function MyTarget(digitalData, options) {
+    _classCallCheck(this, MyTarget);
+
+    var optionsWithDefaults = Object.assign({
+      counterId: '',
+      list: '1',
+      listProperty: undefined,
+      listPropertyMapping: undefined,
+      noConflict: false
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        id: 'topmailru-code',
+        src: '//top-fwz1.mail.ru/js/code.js'
+      }
+    });
+    return _this;
+  }
+
+  MyTarget.prototype.initialize = function initialize() {
+    window._tmr = window._tmr || [];
+    if (!this.getOption('noConflict')) {
+      this.load(this.ready);
+    } else {
+      this.ready();
+    }
+  };
+
+  MyTarget.prototype.isLoaded = function isLoaded() {
+    return !!(window._tmr && window._tmr.unload);
+  };
+
+  MyTarget.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, '_tmr');
+  };
+
+  MyTarget.prototype.getList = function getList() {
+    var list = this.getOption('list');
+    var listProperty = this.getOption('listProperty');
+    if (listProperty) {
+      var listPropertyValue = this.get(listProperty);
+      if (listPropertyValue) {
+        var listPropertyMapping = this.getOption('listPropertyMapping');
+        if (listPropertyMapping && listPropertyMapping[listPropertyValue]) {
+          list = listPropertyMapping[listPropertyValue];
+        } else {
+          if (parseInt(listPropertyValue, 10)) {
+            list = listPropertyValue;
+          }
+        }
+      }
+    }
+    return list;
+  };
+
+  MyTarget.prototype.trackEvent = function trackEvent(event) {
+    var methods = {
+      'Viewed Page': 'onViewedPage',
+      'Viewed Product Category': 'onViewedProductCategory',
+      'Viewed Product Detail': 'onViewedProductDetail',
+      'Completed Transaction': 'onCompletedTransaction'
+    };
+
+    var method = methods[event.name];
+    if (this.getOption('counterId')) {
+      if (method && !this.getOption('noConflict')) {
+        this[method](event);
+      } else if (!method) {
+        this.trackCustomEvent(event);
+      }
+    }
+  };
+
+  MyTarget.prototype.onViewedPage = function onViewedPage(event) {
+    window._tmr.push({
+      id: this.getOption('counterId'),
+      type: 'pageView',
+      start: Date.now()
+    });
+
+    var page = event.page;
+    if (page) {
+      if (page.type === 'home') {
+        this.onViewedHome();
+      } else if (page.type === 'cart') {
+        this.onViewedCart();
+      } else if (['product', 'category', 'checkout', 'confirmation'].indexOf(page.type) < 0) {
+        this.onViewedOtherPage();
+      }
+    }
+  };
+
+  MyTarget.prototype.onViewedHome = function onViewedHome() {
+    window._tmr.push({
+      type: 'itemView',
+      productid: '',
+      pagetype: 'home',
+      totalvalue: '',
+      list: this.getList()
+    });
+  };
+
+  MyTarget.prototype.onViewedProductCategory = function onViewedProductCategory() {
+    window._tmr.push({
+      type: 'itemView',
+      productid: '',
+      pagetype: 'category',
+      totalvalue: '',
+      list: this.getList()
+    });
+  };
+
+  MyTarget.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
+    var product = event.product;
+    window._tmr.push({
+      type: 'itemView',
+      productid: product.id || product.skuCode || '',
+      pagetype: 'product',
+      totalvalue: product.unitSalePrice || product.unitPrice || '',
+      list: this.getList()
+    });
+  };
+
+  MyTarget.prototype.onViewedCart = function onViewedCart() {
+    var cart = this.digitalData.cart;
+    var productIds = undefined;
+
+    if (cart.lineItems || cart.lineItems.length > 0) {
+      productIds = lineItemsToProductIds(cart.lineItems);
+    }
+
+    window._tmr.push({
+      type: 'itemView',
+      productid: productIds || '',
+      pagetype: 'cart',
+      totalvalue: cart.total || cart.subtotal || '',
+      list: this.getList()
+    });
+  };
+
+  MyTarget.prototype.onViewedOtherPage = function onViewedOtherPage() {
+    window._tmr.push({
+      type: 'itemView',
+      productid: '',
+      pagetype: 'other',
+      totalvalue: '',
+      list: this.getList()
+    });
+  };
+
+  MyTarget.prototype.onCompletedTransaction = function onCompletedTransaction(event) {
+    var transaction = event.transaction;
+    var productIds = undefined;
+
+    if (transaction.lineItems || transaction.lineItems.length > 0) {
+      productIds = lineItemsToProductIds(transaction.lineItems);
+    }
+
+    window._tmr.push({
+      type: 'itemView',
+      productid: productIds || '',
+      pagetype: 'purchase',
+      totalvalue: transaction.total || transaction.subtotal || '',
+      list: this.getList()
+    });
+  };
+
+  MyTarget.prototype.trackCustomEvent = function trackCustomEvent(event) {
+    window._tmr.push({
+      id: this.getOption('counterId'),
+      type: 'reachGoal',
+      goal: event.name
+    });
+  };
+
+  return MyTarget;
+})(_Integration3['default']);
+
+exports['default'] = MyTarget;
+
+},{"./../Integration.js":56,"./../functions/deleteProperty.js":60}],81:[function(require,module,exports){
+'use strict';
+
+function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -8210,7 +8449,7 @@ var OWOXBIStreaming = (function (_Integration) {
 
 exports['default'] = OWOXBIStreaming;
 
-},{"./../Integration.js":56}],81:[function(require,module,exports){
+},{"./../Integration.js":56}],82:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -8560,7 +8799,7 @@ var RetailRocket = (function (_Integration) {
 
 exports['default'] = RetailRocket;
 
-},{"./../../src/functions/getProperty.js":63,"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/format.js":62,"./../functions/getQueryParam.js":64,"./../functions/throwError.js":73,"component-type":6}],82:[function(require,module,exports){
+},{"./../../src/functions/getProperty.js":63,"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/format.js":62,"./../functions/getQueryParam.js":64,"./../functions/throwError.js":73,"component-type":6}],83:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -8722,7 +8961,7 @@ var SegmentStream = (function (_Integration) {
 
 exports['default'] = SegmentStream;
 
-},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/each.js":61}],83:[function(require,module,exports){
+},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/each.js":61}],84:[function(require,module,exports){
 'use strict';
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -8898,7 +9137,7 @@ var SendPulse = (function (_Integration) {
   };
 
   SendPulse.prototype.isHttps = function isHttps() {
-    return window.location.href.indexOf("https://") === 0 && this.getOption('https') === true;
+    return window.location.href.indexOf('https://') === 0 && this.getOption('https') === true;
   };
 
   SendPulse.prototype.trackEvent = function trackEvent(event) {
@@ -8924,7 +9163,7 @@ var SendPulse = (function (_Integration) {
 
 exports['default'] = SendPulse;
 
-},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/each.js":61,"component-type":6}],84:[function(require,module,exports){
+},{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/each.js":61,"component-type":6}],85:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es5');

@@ -1,11 +1,10 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
-import type from 'component-type';
 
 function lineItemsToProductIds(lineItems) {
-  const productIds = lineItems.filter(function(lineItem) {
+  const productIds = lineItems.filter((lineItem) => {
     return !!(lineItem.product.id);
-  }).map(function(lineItem) {
+  }).map((lineItem) => {
     return lineItem.product.id;
   });
   return productIds;
@@ -60,7 +59,7 @@ class MyTarget extends Integration {
         if (listPropertyMapping && listPropertyMapping[listPropertyValue]) {
           list = listPropertyMapping[listPropertyValue];
         } else {
-          if (parseInt(listPropertyValue)) {
+          if (parseInt(listPropertyValue, 10)) {
             list = listPropertyValue;
           }
         }
@@ -90,8 +89,8 @@ class MyTarget extends Integration {
   onViewedPage(event) {
     window._tmr.push({
       id: this.getOption('counterId'),
-      type: "pageView",
-      start: Date.now()
+      type: 'pageView',
+      start: Date.now(),
     });
 
     const page = event.page;
@@ -117,7 +116,7 @@ class MyTarget extends Integration {
   }
 
   onViewedProductCategory() {
-    _tmr.push({
+    window._tmr.push({
       type: 'itemView',
       productid: '',
       pagetype: 'category',
@@ -155,7 +154,7 @@ class MyTarget extends Integration {
   }
 
   onViewedOtherPage() {
-    _tmr.push({
+    window._tmr.push({
       type: 'itemView',
       productid: '',
       pagetype: 'other',
@@ -182,10 +181,10 @@ class MyTarget extends Integration {
   }
 
   trackCustomEvent(event) {
-    _tmr.push({
+    window._tmr.push({
       id: this.getOption('counterId'),
       type: 'reachGoal',
-      goal: event.name
+      goal: event.name,
     });
   }
 }
