@@ -6199,7 +6199,7 @@ function _initializeIntegrations(settings, onReady) {
 
 ddManager = {
 
-  VERSION: '1.0.13',
+  VERSION: '1.0.14',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -7658,7 +7658,7 @@ var GoogleAnalytics = (function (_Integration) {
         this.onCustomEvent(event);
       }
     } else {
-      if (event.name === 'Completed Transaction') {
+      if (event.name === 'Completed Transaction' && !this.getOption('noConflict')) {
         this.onCompletedTransaction(event);
       } else {
         this.onCustomEvent(event);
