@@ -4719,7 +4719,8 @@ var AutoEvents = (function () {
       enrichEventData: false,
       name: 'Viewed Page',
       category: 'Content',
-      page: page
+      page: page,
+      nonInteraction: true
     });
   };
 
@@ -4732,7 +4733,8 @@ var AutoEvents = (function () {
       enrichEventData: false,
       name: 'Viewed Product Category',
       category: 'Ecommerce',
-      page: page
+      page: page,
+      nonInteraction: true
     });
   };
 
@@ -4745,7 +4747,8 @@ var AutoEvents = (function () {
       enrichEventData: false,
       name: 'Viewed Product Detail',
       category: 'Ecommerce',
-      product: product
+      product: product,
+      nonInteraction: true
     });
   };
 
