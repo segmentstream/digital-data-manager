@@ -1822,7 +1822,7 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should track simple ecommerce data', function () {
+        it('should not track simple ecommerce data', function () {
           window.digitalData.events.push({
             name: 'Completed Transaction',
             category: 'Ecommerce',
@@ -1830,9 +1830,7 @@ describe('Integrations: GoogleAnalytics', () => {
               orderId: '7306cc06'
             },
             callback: () => {
-              assert.equal(window.ga.args.length, 3);
-              assert.equal(window.ga.args[1][0], 'ddl.ecommerce:addTransaction');
-              assert.equal(window.ga.args[2][0], 'ddl.ecommerce:send');
+              assert.equal(window.ga.args.length, 1);
             }
           });
         });

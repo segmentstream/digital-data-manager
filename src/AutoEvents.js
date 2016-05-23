@@ -79,6 +79,7 @@ class AutoEvents
       name: 'Viewed Page',
       category: 'Content',
       page: page,
+      nonInteraction: true,
     });
   }
 
@@ -92,6 +93,7 @@ class AutoEvents
       name: 'Viewed Product Category',
       category: 'Ecommerce',
       page: page,
+      nonInteraction: true,
     });
   }
 
@@ -105,6 +107,7 @@ class AutoEvents
       name: 'Viewed Product Detail',
       category: 'Ecommerce',
       product: product,
+      nonInteraction: true,
     });
   }
 

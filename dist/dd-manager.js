@@ -4719,7 +4719,8 @@ var AutoEvents = (function () {
       enrichEventData: false,
       name: 'Viewed Page',
       category: 'Content',
-      page: page
+      page: page,
+      nonInteraction: true
     });
   };
 
@@ -4732,7 +4733,8 @@ var AutoEvents = (function () {
       enrichEventData: false,
       name: 'Viewed Product Category',
       category: 'Ecommerce',
-      page: page
+      page: page,
+      nonInteraction: true
     });
   };
 
@@ -4745,7 +4747,8 @@ var AutoEvents = (function () {
       enrichEventData: false,
       name: 'Viewed Product Detail',
       category: 'Ecommerce',
-      product: product
+      product: product,
+      nonInteraction: true
     });
   };
 
@@ -6199,7 +6202,7 @@ function _initializeIntegrations(settings, onReady) {
 
 ddManager = {
 
-  VERSION: '1.0.13',
+  VERSION: '1.0.14',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -7658,7 +7661,7 @@ var GoogleAnalytics = (function (_Integration) {
         this.onCustomEvent(event);
       }
     } else {
-      if (event.name === 'Completed Transaction') {
+      if (event.name === 'Completed Transaction' && !this.getOption('noConflict')) {
         this.onCompletedTransaction(event);
       } else {
         this.onCustomEvent(event);
