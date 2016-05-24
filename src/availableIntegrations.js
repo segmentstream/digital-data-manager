@@ -8,6 +8,7 @@ import SendPulse from './integrations/SendPulse.js';
 import OWOXBIStreaming from './integrations/OWOXBIStreaming.js';
 import Criteo from './integrations/Criteo.js';
 import MyTarget from './integrations/MyTarget.js';
+import YandexMetrica from './integrations/YandexMetrica.js';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -20,6 +21,7 @@ const integrations = {
   'SendPulse': SendPulse,
   'Criteo': Criteo,
   'myTarget': MyTarget,
+  'Yandex Metrica': YandexMetrica,
 };
 
 export default integrations;
