@@ -7269,6 +7269,8 @@ var FacebookPixel = (function (_Integration) {
       this.onAddedProduct(event.product, event.quantity);
     } else if (event.name === 'Completed Transaction') {
       this.onCompletedTransaction(event.transaction);
+    } else if (['Viewed Product', 'Clicked Product', 'Viewed Campaign', 'Clicked Campaign', 'Removed Product', 'Viewed Checkout Step', 'Completed Checkout Step', 'Refunded Transaction'].indexOf(event.name) < 0) {
+      this.onCustomEvent(event);
     }
   };
 
@@ -7348,6 +7350,10 @@ var FacebookPixel = (function (_Integration) {
         value: transaction.total || revenue1 || revenue2 || 0
       });
     }
+  };
+
+  FacebookPixel.prototype.onCustomEvent = function onCustomEvent(event) {
+    window.fbq('trackCustom', event.name);
   };
 
   return FacebookPixel;
@@ -9248,7 +9254,6 @@ var YandexMetrica = (function (_Integration) {
       webvisor: false,
       trackLinks: true,
       trackHash: false,
-      ecommerce: 'dataLayer',
       purchaseGoalId: undefined,
       goals: {},
       noConflict: false
@@ -9269,10 +9274,9 @@ var YandexMetrica = (function (_Integration) {
     var _this2 = this;
 
     var id = this.getOption('counterId');
-    var ecommerce = this.getOption('ecommerce');
 
     window.yandex_metrika_callbacks = window.yandex_metrika_callbacks || [];
-    this.dataLayer = window[ecommerce] = window[ecommerce] || [];
+    this.dataLayer = window.dataLayer = window.dataLayer || [];
     if (!this.getOption('noConflict') && id) {
       window.yandex_metrika_callbacks.push(function () {
         _this2.yaCounter = window['yaCounter' + id] = new window.Ya.Metrika({
@@ -9281,7 +9285,7 @@ var YandexMetrica = (function (_Integration) {
           webvisor: _this2.getOption('webvisor'),
           trackLinks: _this2.getOption('trackLinks'),
           trackHash: _this2.getOption('trackHash'),
-          ecommerce: ecommerce
+          ecommerce: true
         });
       });
       this.load(this.ready);
@@ -9297,7 +9301,7 @@ var YandexMetrica = (function (_Integration) {
   YandexMetrica.prototype.reset = function reset() {
     (0, _deleteProperty2['default'])(window, 'Ya');
     (0, _deleteProperty2['default'])(window, 'yandex_metrika_callbacks');
-    (0, _deleteProperty2['default'])(window, this.getOption('ecommerce'));
+    (0, _deleteProperty2['default'])(window, 'dataLayer');
   };
 
   YandexMetrica.prototype.trackEvent = function trackEvent(event) {

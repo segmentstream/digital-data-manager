@@ -38,7 +38,6 @@ class YandexMetrica extends Integration {
       webvisor: false,
       trackLinks: true,
       trackHash: false,
-      ecommerce: 'dataLayer',
       purchaseGoalId: undefined,
       goals: {},
       noConflict: false,
@@ -56,10 +55,9 @@ class YandexMetrica extends Integration {
 
   initialize() {
     const id = this.getOption('counterId');
-    const ecommerce = this.getOption('ecommerce');
 
     window.yandex_metrika_callbacks = window.yandex_metrika_callbacks || [];
-    this.dataLayer = window[ecommerce] = window[ecommerce] || [];
+    this.dataLayer = window.dataLayer = window.dataLayer || [];
     if (!this.getOption('noConflict') && id) {
       window.yandex_metrika_callbacks.push(() => {
         this.yaCounter = window['yaCounter' + id] = new window.Ya.Metrika({
@@ -68,7 +66,7 @@ class YandexMetrica extends Integration {
           webvisor: this.getOption('webvisor'),
           trackLinks: this.getOption('trackLinks'),
           trackHash: this.getOption('trackHash'),
-          ecommerce,
+          ecommerce: true,
         });
       });
       this.load(this.ready);
@@ -84,7 +82,7 @@ class YandexMetrica extends Integration {
   reset() {
     deleteProperty(window, 'Ya');
     deleteProperty(window, 'yandex_metrika_callbacks');
-    deleteProperty(window, this.getOption('ecommerce'));
+    deleteProperty(window, 'dataLayer');
   }
 
   trackEvent(event) {

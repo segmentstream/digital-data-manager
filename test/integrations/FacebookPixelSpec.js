@@ -393,6 +393,19 @@ describe('Integrations: FacebookPixel', () => {
 
     });
 
+
+    describe('#onCustomEvent', () => {
+      it('should call fbq track for custom event', (done) => {
+        window.digitalData.events.push({
+          name: 'Downloaded Tutorial',
+          callback: () => {
+            assert.ok(window.fbq.calledWith('trackCustom', 'Downloaded Tutorial'), 'fbq("track", "Downloaded Tutorial") was not called');
+            done();
+          }
+        });
+      });
+    });
+
   });
 
 });

@@ -13,7 +13,6 @@ describe('Integrations: Yandex Metrica', () => {
     webvisor: true,
     trackLinks: false,
     trackHash: true,
-    ecommerce: 'dataLayer',
     purchaseGoalId: '20185850',
     goals: {
       'Test Event': 'GOAL1'
@@ -53,7 +52,6 @@ describe('Integrations: Yandex Metrica', () => {
         assert.equal(options.webvisor, ym.getOption('webvisor'));
         assert.equal(options.trackLinks, ym.getOption('trackLinks'));
         assert.equal(options.trackHash, ym.getOption('trackHash'));
-        assert.equal(options.ecommerce, ym.getOption('ecommerce'));
         assert.equal(options.purchaseGoalId, ym.getOption('purchaseGoalId'));
         assert.deepEqual(options.goals, ym.getOption('goals'));
         assert.equal('script', ym.getTag().type);
@@ -86,7 +84,6 @@ describe('Integrations: Yandex Metrica', () => {
           assert.equal(options.webvisor, ym.getOption('webvisor'));
           assert.equal(options.trackLinks, ym.getOption('trackLinks'));
           assert.equal(options.trackHash, ym.getOption('trackHash'));
-          assert.equal(options.ecommerce, ym.getOption('ecommerce'));
         };
         window.yandex_metrika_callbacks.pop()();
         ym.ready();
