@@ -212,14 +212,13 @@ class RetailRocket extends Integration {
       this.onValidationError('query');
       return;
     }
-    window.rrApiOnReady.push(function() {
+    window.rrApiOnReady.push(() => {
       try {
         window.rrApi.search(query);
-      }
-      catch(e) {
+      } catch (e) {
         this.onError(e);
       }
-    })
+    });
   }
 
   validateTransaction(transaction) {

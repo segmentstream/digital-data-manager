@@ -4667,6 +4667,7 @@ var AutoEvents = (function () {
       this.fireViewedProductCategory();
       this.fireViewedProductDetail();
       this.fireCompletedTransaction();
+      this.fireSearched();
 
       if (this.ddListener) {
         this.ddListener.push(['on', 'change:page', function (newPage, oldPage) {
@@ -4698,6 +4699,7 @@ var AutoEvents = (function () {
     if (String(newPage.pageId) !== String(oldPage.pageId) || newPage.url !== oldPage.url || newPage.type !== oldPage.type || newPage.breadcrumb !== oldPage.breadcrumb || String(newPage.categoryId) !== String(oldPage.categoryId)) {
       this.fireViewedPage();
       this.fireViewedProductCategory();
+      this.fireSearched();
     }
   };
 
@@ -4763,6 +4765,21 @@ var AutoEvents = (function () {
       category: 'Ecommerce',
       transaction: transaction
     });
+  };
+
+  AutoEvents.prototype.fireSearched = function fireSearched(listing) {
+    listing = listing || this.digitalData.listing;
+    if (!listing || !listing.query) {
+      return;
+    }
+    var event = {
+      enrichEventData: false,
+      name: 'Searched',
+      category: 'Content',
+      query: listing.query
+    };
+    if (listing.resultCount) event.resultCount = listing.resultCount;
+    this.digitalData.events.push(event);
   };
 
   return AutoEvents;
@@ -8561,7 +8578,7 @@ var RetailRocket = (function (_Integration) {
       }
       window.rrApi = {};
       window.rrApiOnReady = window.rrApiOnReady || [];
-      window.rrApi.pageView = window.rrApi.addToBasket = window.rrApi.order = window.rrApi.categoryView = window.rrApi.setEmail = window.rrApi.view = window.rrApi.recomMouseDown = window.rrApi.recomAddToCart = function () {};
+      window.rrApi.pageView = window.rrApi.addToBasket = window.rrApi.order = window.rrApi.categoryView = window.rrApi.setEmail = window.rrApi.view = window.rrApi.recomMouseDown = window.rrApi.recomAddToCart = window.rrApi.search = function () {};
 
       this.trackEmail();
 
@@ -8601,6 +8618,8 @@ var RetailRocket = (function (_Integration) {
         this.onCompletedTransaction(event.transaction);
       } else if (event.name === 'Subscribed') {
         this.onSubscribed(event.user);
+      } else if (event.name === 'Searched') {
+        this.onSearched(event.query);
       }
     } else {
       if (event.name === 'Subscribed') {
@@ -8730,6 +8749,22 @@ var RetailRocket = (function (_Integration) {
         window.rrApi.setEmail(user.email);
       } catch (e) {
         _this7.onError(e);
+      }
+    });
+  };
+
+  RetailRocket.prototype.onSearched = function onSearched(query) {
+    var _this8 = this;
+
+    if (!query) {
+      this.onValidationError('query');
+      return;
+    }
+    window.rrApiOnReady.push(function () {
+      try {
+        window.rrApi.search(query);
+      } catch (e) {
+        _this8.onError(e);
       }
     });
   };
