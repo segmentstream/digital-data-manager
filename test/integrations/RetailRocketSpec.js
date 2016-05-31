@@ -88,6 +88,7 @@ describe('Integrations: RetailRocket', () => {
       sinon.stub(window.rrApi, 'categoryView');
       sinon.stub(window.rrApi, 'order');
       sinon.stub(window.rrApi, 'pageView');
+      sinon.stub(window.rrApi, 'search');
       window.rrApi.setEmail = () => {};
       stubsPrepared = true;
     };
@@ -98,6 +99,7 @@ describe('Integrations: RetailRocket', () => {
       window.rrApi.categoryView.restore();
       window.rrApi.order.restore();
       window.rrApi.pageView.restore();
+      window.rrApi.search.restore();
     };
 
     beforeEach((done) => {
@@ -612,6 +614,47 @@ describe('Integrations: RetailRocket', () => {
           assert.ok(!window.rrApi.setEmail.called);
           done();
         }, 101);
+      });
+
+    });
+
+    describe('#onSearched', () => {
+
+      it('should track "Searched" with query param', (done) => {
+        window.digitalData.events.push({
+          name: 'Searched',
+          category: 'Content',
+          query: 'Test query',
+          callback: () => {
+            assert.ok(window.rrApi.search.calledWith('Test query'));
+            done();
+          }
+        });
+      });
+
+      it('should throw validation error for "Searched" event', (done) => {
+        window.digitalData.events.push({
+          name: 'Searched',
+          category: 'Content',
+          callback: (results, errors) => {
+            assert.ok(errors.length > 0);
+            assert.ok(errors[0].code === 'validation_error');
+            done();
+          }
+        });
+      });
+
+      it('should not track "Searched" if noConflict option is true', (done) => {
+        retailRocket.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Searched',
+          category: 'Content',
+          query: 'Test query',
+          callback: () => {
+            assert.ok(!window.rrApi.search.called);
+            done();
+          }
+        });
       });
 
     });

@@ -67,8 +67,7 @@ class FacebookPixel extends Integration {
       'Viewed Checkout Step',
       'Completed Checkout Step',
       'Refunded Transaction',
-      ].indexOf(event.name) < 0)
-    {
+    ].indexOf(event.name) < 0) {
       this.onCustomEvent(event);
     }
   }

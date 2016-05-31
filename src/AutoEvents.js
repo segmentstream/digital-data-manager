@@ -23,6 +23,7 @@ class AutoEvents
       this.fireViewedProductCategory();
       this.fireViewedProductDetail();
       this.fireCompletedTransaction();
+      this.fireSearched();
 
       if (this.ddListener) {
         this.ddListener.push(['on', 'change:page', (newPage, oldPage) => {
@@ -57,6 +58,7 @@ class AutoEvents
     ) {
       this.fireViewedPage();
       this.fireViewedProductCategory();
+      this.fireSearched();
     }
   }
 
@@ -122,6 +124,21 @@ class AutoEvents
       category: 'Ecommerce',
       transaction: transaction,
     });
+  }
+
+  fireSearched(listing) {
+    listing = listing || this.digitalData.listing;
+    if (!listing || !listing.query) {
+      return;
+    }
+    const event = {
+      enrichEventData: false,
+      name: 'Searched',
+      category: 'Content',
+      query: listing.query,
+    };
+    if (listing.resultCount) event.resultCount = listing.resultCount;
+    this.digitalData.events.push(event);
   }
 }
 

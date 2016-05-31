@@ -44,7 +44,7 @@ class RetailRocket extends Integration {
       window.rrApiOnReady = window.rrApiOnReady || [];
       window.rrApi.pageView = window.rrApi.addToBasket =
           window.rrApi.order = window.rrApi.categoryView = window.rrApi.setEmail = window.rrApi.view =
-          window.rrApi.recomMouseDown = window.rrApi.recomAddToCart = () => {};
+          window.rrApi.recomMouseDown = window.rrApi.recomAddToCart = window.rrApi.search = () => {};
 
       this.trackEmail();
 
@@ -84,6 +84,8 @@ class RetailRocket extends Integration {
         this.onCompletedTransaction(event.transaction);
       } else if (event.name === 'Subscribed') {
         this.onSubscribed(event.user);
+      } else if (event.name === 'Searched') {
+        this.onSearched(event.query);
       }
     } else {
       if (event.name === 'Subscribed') {
@@ -203,6 +205,21 @@ class RetailRocket extends Integration {
         this.onError(e);
       }
     });
+  }
+
+  onSearched(query) {
+    if (!query) {
+      this.onValidationError('query');
+      return;
+    }
+    window.rrApiOnReady.push(function() {
+      try {
+        window.rrApi.search(query);
+      }
+      catch(e) {
+        this.onError(e);
+      }
+    })
   }
 
   validateTransaction(transaction) {
