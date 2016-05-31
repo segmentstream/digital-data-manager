@@ -193,7 +193,7 @@ class Criteo extends Integration {
           deduplication = this.getOption('deduplication') ? 1 : 0;
         } else {
           const context = this.digitalData.context;
-          if (context.campaign && context.campaign.name && context.campaign.name.toLocaleLowerCase() === 'criteo') {
+          if (context.campaign && context.campaign.source && context.campaign.source.toLocaleLowerCase() === 'criteo') {
             deduplication = 1;
           }
         }

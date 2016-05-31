@@ -19,4 +19,5 @@ import './integrations/SendPulseSpec.js';
 import './integrations/OWOXBIStreamingSpec.js'
 import './integrations/CriteoSpec.js';
 import './integrations/MyTargetSpec.js';
+import './integrations/YandexMetricaSpec.js';
 import './integrations/CustomIntegrationSpec.js';

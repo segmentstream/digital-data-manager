@@ -4667,6 +4667,7 @@ var AutoEvents = (function () {
       this.fireViewedProductCategory();
       this.fireViewedProductDetail();
       this.fireCompletedTransaction();
+      this.fireSearched();
 
       if (this.ddListener) {
         this.ddListener.push(['on', 'change:page', function (newPage, oldPage) {
@@ -4698,6 +4699,7 @@ var AutoEvents = (function () {
     if (String(newPage.pageId) !== String(oldPage.pageId) || newPage.url !== oldPage.url || newPage.type !== oldPage.type || newPage.breadcrumb !== oldPage.breadcrumb || String(newPage.categoryId) !== String(oldPage.categoryId)) {
       this.fireViewedPage();
       this.fireViewedProductCategory();
+      this.fireSearched();
     }
   };
 
@@ -4763,6 +4765,21 @@ var AutoEvents = (function () {
       category: 'Ecommerce',
       transaction: transaction
     });
+  };
+
+  AutoEvents.prototype.fireSearched = function fireSearched(listing) {
+    listing = listing || this.digitalData.listing;
+    if (!listing || !listing.query) {
+      return;
+    }
+    var event = {
+      enrichEventData: false,
+      name: 'Searched',
+      category: 'Content',
+      query: listing.query
+    };
+    if (listing.resultCount) event.resultCount = listing.resultCount;
+    this.digitalData.events.push(event);
   };
 
   return AutoEvents;
@@ -5977,6 +5994,10 @@ var _MyTarget = require('./integrations/MyTarget.js');
 
 var _MyTarget2 = _interopRequireDefault(_MyTarget);
 
+var _YandexMetrica = require('./integrations/YandexMetrica.js');
+
+var _YandexMetrica2 = _interopRequireDefault(_YandexMetrica);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -5991,12 +6012,13 @@ var integrations = {
   'SegmentStream': _SegmentStream2['default'],
   'SendPulse': _SendPulse2['default'],
   'Criteo': _Criteo2['default'],
-  'myTarget': _MyTarget2['default']
+  'myTarget': _MyTarget2['default'],
+  'Yandex Metrica': _YandexMetrica2['default']
 };
 
 exports['default'] = integrations;
 
-},{"./integrations/Criteo.js":75,"./integrations/Driveback.js":76,"./integrations/FacebookPixel.js":77,"./integrations/GoogleAnalytics.js":78,"./integrations/GoogleTagManager.js":79,"./integrations/MyTarget.js":80,"./integrations/OWOXBIStreaming.js":81,"./integrations/RetailRocket.js":82,"./integrations/SegmentStream.js":83,"./integrations/SendPulse.js":84}],58:[function(require,module,exports){
+},{"./integrations/Criteo.js":75,"./integrations/Driveback.js":76,"./integrations/FacebookPixel.js":77,"./integrations/GoogleAnalytics.js":78,"./integrations/GoogleTagManager.js":79,"./integrations/MyTarget.js":80,"./integrations/OWOXBIStreaming.js":81,"./integrations/RetailRocket.js":82,"./integrations/SegmentStream.js":83,"./integrations/SendPulse.js":84,"./integrations/YandexMetrica.js":85}],58:[function(require,module,exports){
 'use strict';
 
 function _typeof2(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -6202,7 +6224,7 @@ function _initializeIntegrations(settings, onReady) {
 
 ddManager = {
 
-  VERSION: '1.0.14',
+  VERSION: '1.0.15',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -6806,7 +6828,7 @@ _ddManager2['default'].processEarlyStubCalls();
 
 window.ddManager = _ddManager2['default'];
 
-},{"./availableIntegrations.js":57,"./ddManager.js":58,"./polyfill.js":85}],75:[function(require,module,exports){
+},{"./availableIntegrations.js":57,"./ddManager.js":58,"./polyfill.js":86}],75:[function(require,module,exports){
 'use strict';
 
 function _typeof2(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -7027,7 +7049,7 @@ var Criteo = (function (_Integration) {
           deduplication = this.getOption('deduplication') ? 1 : 0;
         } else {
           var context = this.digitalData.context;
-          if (context.campaign && context.campaign.name && context.campaign.name.toLocaleLowerCase() === 'criteo') {
+          if (context.campaign && context.campaign.source && context.campaign.source.toLocaleLowerCase() === 'criteo') {
             deduplication = 1;
           }
         }
@@ -7264,6 +7286,8 @@ var FacebookPixel = (function (_Integration) {
       this.onAddedProduct(event.product, event.quantity);
     } else if (event.name === 'Completed Transaction') {
       this.onCompletedTransaction(event.transaction);
+    } else if (['Viewed Product', 'Clicked Product', 'Viewed Campaign', 'Clicked Campaign', 'Removed Product', 'Viewed Checkout Step', 'Completed Checkout Step', 'Refunded Transaction'].indexOf(event.name) < 0) {
+      this.onCustomEvent(event);
     }
   };
 
@@ -7343,6 +7367,10 @@ var FacebookPixel = (function (_Integration) {
         value: transaction.total || revenue1 || revenue2 || 0
       });
     }
+  };
+
+  FacebookPixel.prototype.onCustomEvent = function onCustomEvent(event) {
+    window.fbq('trackCustom', event.name);
   };
 
   return FacebookPixel;
@@ -8550,7 +8578,7 @@ var RetailRocket = (function (_Integration) {
       }
       window.rrApi = {};
       window.rrApiOnReady = window.rrApiOnReady || [];
-      window.rrApi.pageView = window.rrApi.addToBasket = window.rrApi.order = window.rrApi.categoryView = window.rrApi.setEmail = window.rrApi.view = window.rrApi.recomMouseDown = window.rrApi.recomAddToCart = function () {};
+      window.rrApi.pageView = window.rrApi.addToBasket = window.rrApi.order = window.rrApi.categoryView = window.rrApi.setEmail = window.rrApi.view = window.rrApi.recomMouseDown = window.rrApi.recomAddToCart = window.rrApi.search = function () {};
 
       this.trackEmail();
 
@@ -8590,6 +8618,8 @@ var RetailRocket = (function (_Integration) {
         this.onCompletedTransaction(event.transaction);
       } else if (event.name === 'Subscribed') {
         this.onSubscribed(event.user);
+      } else if (event.name === 'Searched') {
+        this.onSearched(event.query);
       }
     } else {
       if (event.name === 'Subscribed') {
@@ -8719,6 +8749,22 @@ var RetailRocket = (function (_Integration) {
         window.rrApi.setEmail(user.email);
       } catch (e) {
         _this7.onError(e);
+      }
+    });
+  };
+
+  RetailRocket.prototype.onSearched = function onSearched(query) {
+    var _this8 = this;
+
+    if (!query) {
+      this.onValidationError('query');
+      return;
+    }
+    window.rrApiOnReady.push(function () {
+      try {
+        window.rrApi.search(query);
+      } catch (e) {
+        _this8.onError(e);
       }
     });
   };
@@ -9167,6 +9213,238 @@ var SendPulse = (function (_Integration) {
 exports['default'] = SendPulse;
 
 },{"./../Integration.js":56,"./../functions/deleteProperty.js":60,"./../functions/each.js":61,"component-type":6}],85:[function(require,module,exports){
+'use strict';
+
+function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+var _deleteProperty = require('./../functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+function getProductCategory(product) {
+  var categories = [];
+  if (product.category) categories.push(product.category);
+  if (product.subcategory) categories.push(product.subcategory);
+  return categories.length ? categories.join('/') : undefined;
+}
+
+function getProductId(product) {
+  return product.id || product.skuCode || undefined;
+}
+
+function getProduct(product, quantity) {
+  var yaProduct = {};
+  var id = getProductId(product);
+  var brand = product.brand || product.manufacturer;
+  var price = product.unitSalePrice || product.unitPrice;
+  var category = getProductCategory(product);
+  if (id) yaProduct.id = id;
+  if (product.name) yaProduct.name = product.name;
+  if (brand) yaProduct.brand = brand;
+  if (price) yaProduct.price = price;
+  if (category) yaProduct.category = category;
+  if (product.variant) yaProduct.variant = product.variant;
+  if (product.voucher) yaProduct.coupon = product.voucher;
+  if (quantity) yaProduct.quantity = quantity;
+  return yaProduct;
+}
+
+var YandexMetrica = (function (_Integration) {
+  _inherits(YandexMetrica, _Integration);
+
+  function YandexMetrica(digitalData, options) {
+    _classCallCheck(this, YandexMetrica);
+
+    var optionsWithDefaults = Object.assign({
+      counterId: '',
+      clickmap: false,
+      webvisor: false,
+      trackLinks: true,
+      trackHash: false,
+      purchaseGoalId: undefined,
+      goals: {},
+      noConflict: false
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        src: '//mc.yandex.ru/metrika/watch.js'
+      }
+    });
+    return _this;
+  }
+
+  YandexMetrica.prototype.initialize = function initialize() {
+    var _this2 = this;
+
+    var id = this.getOption('counterId');
+
+    window.yandex_metrika_callbacks = window.yandex_metrika_callbacks || [];
+    this.dataLayer = window.dataLayer = window.dataLayer || [];
+    if (!this.getOption('noConflict') && id) {
+      window.yandex_metrika_callbacks.push(function () {
+        _this2.yaCounter = window['yaCounter' + id] = new window.Ya.Metrika({
+          id: id,
+          clickmap: _this2.getOption('clickmap'),
+          webvisor: _this2.getOption('webvisor'),
+          trackLinks: _this2.getOption('trackLinks'),
+          trackHash: _this2.getOption('trackHash'),
+          ecommerce: true
+        });
+      });
+      this.load(this.ready);
+    } else {
+      this.ready();
+    }
+  };
+
+  YandexMetrica.prototype.isLoaded = function isLoaded() {
+    return !!(window.Ya && window.Ya.Metrika);
+  };
+
+  YandexMetrica.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, 'Ya');
+    (0, _deleteProperty2['default'])(window, 'yandex_metrika_callbacks');
+    (0, _deleteProperty2['default'])(window, 'dataLayer');
+  };
+
+  YandexMetrica.prototype.trackEvent = function trackEvent(event) {
+    var methods = {
+      'Viewed Product Detail': 'onViewedProductDetail',
+      'Added Product': 'onAddedProduct',
+      'Removed Product': 'onRemovedProduct',
+      'Completed Transaction': 'onCompletedTransaction'
+    };
+
+    if (this.getOption('counterId')) {
+      var method = methods[event.name];
+      if (method && !this.getOption('noConflict')) {
+        this[method](event);
+      }
+
+      var goals = this.getOption('goals');
+      var goalIdentificator = goals[event.name];
+      if (goalIdentificator) {
+        this.yaCounter.reachGoal(goalIdentificator);
+      }
+    }
+  };
+
+  YandexMetrica.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
+    var product = event.product;
+    if (!getProductId(product) && !product.name) return;
+    this.dataLayer.push({
+      ecommerce: {
+        detail: {
+          products: [getProduct(product)]
+        }
+      }
+    });
+  };
+
+  YandexMetrica.prototype.onAddedProduct = function onAddedProduct(event) {
+    var product = event.product;
+    if (!getProductId(product) && !product.name) return;
+    var quantity = event.quantity || 1;
+    this.dataLayer.push({
+      ecommerce: {
+        add: {
+          products: [getProduct(product, quantity)]
+        }
+      }
+    });
+  };
+
+  YandexMetrica.prototype.onRemovedProduct = function onRemovedProduct(event) {
+    var product = event.product;
+    if (!getProductId(product) && !product.name) return;
+    var quantity = event.quantity;
+    this.dataLayer.push({
+      ecommerce: {
+        remove: {
+          products: [{
+            id: getProductId(product),
+            name: product.name,
+            category: getProductCategory(product),
+            quantity: quantity
+          }]
+        }
+      }
+    });
+  };
+
+  YandexMetrica.prototype.onCompletedTransaction = function onCompletedTransaction(event) {
+    var transaction = event.transaction;
+    if (!transaction.orderId) return;
+
+    var products = transaction.lineItems.filter(function (lineItem) {
+      var product = lineItem.product;
+      return getProductId(product) || product.name;
+    }).map(function (lineItem) {
+      var product = lineItem.product;
+      var quantity = lineItem.quantity || 1;
+      return getProduct(product, quantity);
+    });
+    var purchase = {
+      actionField: {
+        id: transaction.orderId,
+        goal_id: this.getOption('purchaseGoalId')
+      },
+      products: products
+    };
+
+    if (transaction.vouchers && transaction.vouchers.length) {
+      purchase.actionField.coupon = transaction.vouchers[0];
+    }
+
+    if (transaction.total) {
+      purchase.actionField.revenue = transaction.total;
+    } else if (transaction.subtotal) {
+      purchase.actionField.revenue = transaction.subtotal;
+    }
+
+    this.dataLayer.push({
+      ecommerce: { purchase: purchase }
+    });
+  };
+
+  return YandexMetrica;
+})(_Integration3['default']);
+
+exports['default'] = YandexMetrica;
+
+},{"./../Integration.js":56,"./../functions/deleteProperty.js":60}],86:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es5');

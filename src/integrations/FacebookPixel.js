@@ -58,6 +58,17 @@ class FacebookPixel extends Integration {
       this.onAddedProduct(event.product, event.quantity);
     } else if (event.name === 'Completed Transaction') {
       this.onCompletedTransaction(event.transaction);
+    } else if ([
+      'Viewed Product',
+      'Clicked Product',
+      'Viewed Campaign',
+      'Clicked Campaign',
+      'Removed Product',
+      'Viewed Checkout Step',
+      'Completed Checkout Step',
+      'Refunded Transaction',
+    ].indexOf(event.name) < 0) {
+      this.onCustomEvent(event);
     }
   }
 
@@ -124,6 +135,10 @@ class FacebookPixel extends Integration {
         value: transaction.total || revenue1 || revenue2 || 0,
       });
     }
+  }
+
+  onCustomEvent(event) {
+    window.fbq('trackCustom', event.name);
   }
 }
 

@@ -546,7 +546,7 @@ describe('Integrations: Criteo', () => {
       it('should send trackTransaction event if transaction is completed (deduplication = 1)', (done) => {
         window.digitalData.context = {
           campaign: {
-            name: 'CriTeO'
+            source: 'CriTeO'
           }
         };
         window.digitalData.events.push({

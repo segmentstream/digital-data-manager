@@ -165,4 +165,49 @@ describe('AutoEvents', () => {
 
   });
 
+  describe('#fireSearched', () => {
+
+    beforeEach(() => {
+      _digitalData = {
+        page: {
+          type: 'search'
+        },
+        listing: {
+          query: 'some query',
+          resultCount: 10
+        },
+        events: []
+      };
+      _autoEvents.setDigitalData(_digitalData);
+    });
+
+    it('should fire "Searched" event', () => {
+      _autoEvents.fireSearched();
+      assert.ok(_digitalData.events[0].name === 'Searched');
+      assert.ok(_digitalData.events[0].query === 'some query');
+      assert.ok(_digitalData.events[0].resultCount === 10);
+    });
+
+    it('should not fire "Searched" if there is no listing object', () => {
+      deleteProperty(_digitalData, 'listing');
+      _autoEvents.onInitialize();
+      assert.ok(_digitalData.events.length === 1);
+    });
+
+    it('should not fire "Searched" if there is no query in listing object', () => {
+      deleteProperty(_digitalData.listing, 'query');
+      _autoEvents.onInitialize();
+      assert.ok(_digitalData.events.length === 1);
+    });
+
+    it('should fire "Searched" and "Viewed Page" event', () => {
+      _autoEvents.onInitialize();
+      assert.ok(_digitalData.events[1].name === 'Searched');
+      assert.ok(_digitalData.events[1].query === 'some query');
+      assert.ok(_digitalData.events[1].resultCount === 10);
+      assert.ok(_digitalData.events.length === 2);
+    });
+
+  });
+
 });
