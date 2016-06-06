@@ -24,7 +24,7 @@ describe('DDHelper', () => {
               id: '2'
             }
           ]
-        }
+        },
       };
     });
 
@@ -66,10 +66,14 @@ describe('DDHelper', () => {
             },
             {
               id: '3'
+            },
+            {
+              id: '5'
             }
           ]
         },
         recommendation: {
+          listName: 'recom',
           items: [
             {
               id: '4'
@@ -102,6 +106,11 @@ describe('DDHelper', () => {
 
     it('should get product from recommendation key', () => {
       assert.ok(DDHelper.getProduct('4', _digitalData).id === '4');
+    });
+
+    it('should get product from recommendation key from list "recom"', () => {
+      assert.ok(DDHelper.getProduct('5', _digitalData, 'recom').id === '5');
+      assert.ok(DDHelper.getProduct('5', _digitalData, 'recom').listName === 'recom');
     });
 
     it('should get product from cart key', () => {

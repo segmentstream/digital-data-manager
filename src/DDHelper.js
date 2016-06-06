@@ -8,8 +8,8 @@ class DDHelper {
     return clone(value);
   }
 
-  static getProduct(id, digitalData) {
-    if (digitalData.product && String(digitalData.product.id) === String(id)) {
+  static getProduct(id, digitalData, listName = undefined) {
+    if (!listName && digitalData.product && String(digitalData.product.id) === String(id)) {
       return clone(digitalData.product);
     }
     // search in listings
@@ -20,7 +20,7 @@ class DDHelper {
           listings = [listings];
         }
         for (const listing of listings) {
-          if (listing.items && listing.items.length) {
+          if (listing.items && listing.items.length && (!listName || listName === listing.listName)) {
             for (let i = 0, length = listing.items.length; i < length; i++) {
               if (listing.items[i].id && String(listing.items[i].id) === String(id)) {
                 const product = clone(listing.items[i]);
@@ -34,7 +34,7 @@ class DDHelper {
       }
     }
     // search in cart
-    if (digitalData.cart && digitalData.cart.lineItems && digitalData.cart.lineItems.length) {
+    if (!listName && digitalData.cart && digitalData.cart.lineItems && digitalData.cart.lineItems.length) {
       for (const lineItem of digitalData.cart.lineItems) {
         if (lineItem.product && String(lineItem.product.id) === String(id)) {
           return clone(lineItem.product);

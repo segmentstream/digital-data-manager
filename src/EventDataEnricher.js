@@ -24,7 +24,7 @@ class EventDataEnricher
       }
 
       if (productId) {
-        const ddlProduct = DDHelper.getProduct(productId, digitalData) || {};
+        const ddlProduct = DDHelper.getProduct(productId, digitalData, product.listName) || {};
         if (ddlProduct) {
           product = Object.assign(ddlProduct, product);
         }

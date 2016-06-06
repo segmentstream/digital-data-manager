@@ -89,6 +89,7 @@ describe('Integrations: RetailRocket', () => {
       sinon.stub(window.rrApi, 'order');
       sinon.stub(window.rrApi, 'pageView');
       sinon.stub(window.rrApi, 'search');
+      sinon.stub(window.rrApi, 'recomMouseDown');
       window.rrApi.setEmail = () => {};
       stubsPrepared = true;
     };
@@ -100,6 +101,7 @@ describe('Integrations: RetailRocket', () => {
       window.rrApi.order.restore();
       window.rrApi.pageView.restore();
       window.rrApi.search.restore();
+      window.rrApi.recomMouseDown.restore();
     };
 
     beforeEach((done) => {
@@ -289,6 +291,127 @@ describe('Integrations: RetailRocket', () => {
       });
 
     });
+
+
+    describe('#onClickedProduct', () => {
+
+      it('should track "Clicked Product" with product.id param', (done) => {
+        retailRocket.setOption('listMethods', {
+          recom1: 'Related'
+        });
+        window.digitalData.events.push({
+          name: 'Clicked Product',
+          category: 'Ecommerce',
+          product: {
+            id: '327',
+            listName: 'recom1'
+          },
+          quantity: 1,
+          callback: () => {
+            assert.ok(window.rrApi.recomMouseDown.calledWith('327', 'Related'));
+            done();
+          }
+        });
+      });
+
+      it('should track "Clicked Product" event by product id', (done) => {
+        retailRocket.setOption('listMethods', {
+          recom1: 'Related'
+        });
+        window.digitalData.page = {
+          type: 'product'
+        };
+        window.digitalData.recommendation = [
+          {
+            listName: 'recom1',
+            items: [
+              {
+                id: '327'
+              }
+            ]
+          }
+        ];
+        window.digitalData.events.push({
+          name: 'Clicked Product',
+          category: 'Ecommerce',
+          product: '327',
+          quantity: 1,
+          callback: () => {
+            assert.ok(window.rrApi.recomMouseDown.calledWith('327', 'Related'));
+            done();
+          }
+        });
+      });
+
+      it('should throw validation error for "Clicked Product" event', (done) => {
+        window.digitalData.page = {};
+        window.digitalData.product = {};
+        window.digitalData.events.push({
+          name: 'Clicked Product',
+          category: 'Ecommerce',
+          callback: (results, errors) => {
+            assert.ok(errors.length > 0);
+            assert.ok(errors[0].code === 'validation_error');
+            done();
+          }
+        });
+      });
+
+      it('should not track "Clicked Product" event if listName is not defined for product', (done) => {
+        window.digitalData.page = {};
+        window.digitalData.product = {};
+        window.digitalData.events.push({
+          name: 'Clicked Product',
+          category: 'Ecommerce',
+          product: {
+            id: '327'
+          },
+          callback: (results, errors) => {
+            assert.ok(!window.rrApi.recomMouseDown.called);
+            done();
+          }
+        });
+      });
+
+      it('should not track "Clicked Product" event if list recommendation method is not defined for product', (done) => {
+        window.digitalData.page = {};
+        window.digitalData.product = {};
+        window.digitalData.events.push({
+          name: 'Clicked Product',
+          category: 'Ecommerce',
+          product: {
+            id: '327',
+            listName: 'recom1'
+          },
+          callback: (results, errors) => {
+            assert.ok(!window.rrApi.recomMouseDown.called);
+            done();
+          }
+        });
+      });
+
+      it('should not track "Clicked Product" if noConflict option is true', (done) => {
+        retailRocket.setOption('noConflict', true);
+        retailRocket.setOption('listMethods', {
+          recom1: 'Related'
+        });
+        window.digitalData.events.push({
+          name: 'Added Product',
+          category: 'Ecommerce',
+          product: {
+            id: '327',
+            listName: 'recom1'
+          },
+          quantity: 1,
+          callback: () => {
+            assert.ok(!window.rrApi.recomMouseDown.called);
+            done();
+          }
+        });
+      });
+
+    });
+
 
     describe('#onCompletedTransaction', () => {
 

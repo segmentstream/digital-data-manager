@@ -15,6 +15,7 @@ class RetailRocket extends Integration {
       trackProducts: true, // legacy setting, use noConflict instead
       noConflict: false,
       trackAllEmails: false,
+      listMethods: {},
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -80,6 +81,8 @@ class RetailRocket extends Integration {
         this.onAddedProduct(event.product);
       } else if (event.name === 'Viewed Product Detail') {
         this.onViewedProductDetail(event.product);
+      } else if (event.name === 'Clicked Product') {
+        this.onClickedProduct(event.product);
       } else if (event.name === 'Completed Transaction') {
         this.onCompletedTransaction(event.transaction);
       } else if (event.name === 'Subscribed') {
@@ -154,6 +157,29 @@ class RetailRocket extends Integration {
     window.rrApiOnReady.push(() => {
       try {
         window.rrApi.addToBasket(productId);
+      } catch (e) {
+        this.onError(e);
+      }
+    });
+  }
+
+  onClickedProduct(product) {
+    const productId = this.getProductId(product);
+    if (!productId) {
+      this.onValidationError('product.id');
+      return;
+    }
+    const listName = product.listName;
+    if (!listName) {
+      return;
+    }
+    const methodName = this.getOption('listMethods')[listName];
+    if (!methodName) {
+      return;
+    }
+    window.rrApiOnReady.push(() => {
+      try {
+        window.rrApi.recomMouseDown(productId, methodName);
       } catch (e) {
         this.onError(e);
       }
