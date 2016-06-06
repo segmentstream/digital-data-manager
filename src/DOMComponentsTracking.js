@@ -1,10 +1,11 @@
 /**
  * Automatically tracks DOM components with proper data-attributes
  *
- * - data-ddl-viewed-product="<product_id>"
- * - data-ddl-viewed-campaign="<campaign_id>"
- * - data-ddl-clicked-product="<product_id>"
- * - data-ddl-clicked-campaign="<campaign_id>"
+ * - data-ddl-viewed-product="<product.id>"
+ * - data-ddl-viewed-campaign="<campaign.id>"
+ * - data-ddl-clicked-product="<product.id>"
+ * - data-ddl-clicked-campaign="<campaign.id>"
+ * - data-ddl-product-list-name="<listName>"
  *
  * If any DOM components are added to the page dynamically
  * corresponding digitalData variable should be updated:
@@ -86,7 +87,8 @@ class DOMComponentsTracking
         const $el = window.jQuery(this);
         const id = $el.data('ddl-clicked-' + type);
         if (type === 'product') {
-          self.fireClickedProduct(id);
+          const listName = self.findParentByDataAttr('ddl-product-list-name', $el).data('ddl-product-list-name');
+          self.fireClickedProduct(id, listName);
         } else if (type === 'campaign') {
           self.fireClickedCampaign(id);
         }
@@ -102,22 +104,29 @@ class DOMComponentsTracking
 
   trackViews() {
     for (const type of ['campaign', 'product']) {
-      const newViewedComponentIds = [];
+      const newViewedComponents = [];
       const $components = this.$digitalDataComponents[type];
       $components.each((index, el) => { // eslint-disable-line no-loop-func
         const $el = window.jQuery(el);
         const id = $el.data('ddl-viewed-' + type);
         if (this.viewedComponentIds[type].indexOf(id) < 0 && this.isVisible($el)) {
           this.viewedComponentIds[type].push(id);
-          newViewedComponentIds.push(id);
+          if (type === 'product') {
+            const product = { id };
+            const listName = this.findParentByDataAttr('ddl-product-list-name', $el).data('ddl-product-list-name');
+            if (listName) product.listName = listName;
+            newViewedComponents.push(product);
+          } else {
+            newViewedComponents.push(id);
+          }
         }
       });
 
-      if (newViewedComponentIds.length > 0) {
+      if (newViewedComponents.length > 0) {
         if (type === 'product') {
-          this.fireViewedProduct(newViewedComponentIds);
+          this.fireViewedProduct(newViewedComponents);
         } else if (type === 'campaign') {
-          this.fireViewedCampaign(newViewedComponentIds);
+          this.fireViewedCampaign(newViewedComponents);
         }
       }
     }
@@ -135,11 +144,11 @@ class DOMComponentsTracking
     }, 500);
   }
 
-  fireViewedProduct(productIds) {
+  fireViewedProduct(products) {
     window.digitalData.events.push({
       name: 'Viewed Product',
       category: 'Ecommerce',
-      product: productIds,
+      product: products,
     });
   }
 
@@ -151,11 +160,14 @@ class DOMComponentsTracking
     });
   }
 
-  fireClickedProduct(productId) {
+  fireClickedProduct(productId, listName) {
     window.digitalData.events.push({
       name: 'Clicked Product',
       category: 'Ecommerce',
-      product: productId,
+      product: {
+        id: productId,
+        listName: listName,
+      },
     });
   }
 
@@ -227,7 +239,18 @@ class DOMComponentsTracking
    */
   findByDataAttr(name, obj) {
     if (!obj) obj = window.jQuery(document.body);
-    return obj.find('[data-' + name + ']');
+    return obj.find(this.getDataAttrSelector(name));
+  }
+
+  /**
+   * Find parent element by data attribute name
+   *
+   * @param name
+   * @param obj
+   * @returns jQuery object
+   */
+  findParentByDataAttr(name, obj) {
+    return obj.closest(this.getDataAttrSelector(name));
   }
 
   getDataAttrSelector(name) {

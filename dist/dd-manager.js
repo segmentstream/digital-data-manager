@@ -4821,7 +4821,9 @@ var DDHelper = (function () {
   };
 
   DDHelper.getProduct = function getProduct(id, digitalData) {
-    if (digitalData.product && String(digitalData.product.id) === String(id)) {
+    var listName = arguments.length <= 2 || arguments[2] === undefined ? undefined : arguments[2];
+
+    if (!listName && digitalData.product && String(digitalData.product.id) === String(id)) {
       return (0, _componentClone2['default'])(digitalData.product);
     }
     // search in listings
@@ -4847,7 +4849,7 @@ var DDHelper = (function () {
 
           var listing = _ref2;
 
-          if (listing.items && listing.items.length) {
+          if (listing.items && listing.items.length && (!listName || listName === listing.listName)) {
             for (var i = 0, length = listing.items.length; i < length; i++) {
               if (listing.items[i].id && String(listing.items[i].id) === String(id)) {
                 var product = (0, _componentClone2['default'])(listing.items[i]);
@@ -4861,7 +4863,7 @@ var DDHelper = (function () {
       }
     }
     // search in cart
-    if (digitalData.cart && digitalData.cart.lineItems && digitalData.cart.lineItems.length) {
+    if (!listName && digitalData.cart && digitalData.cart.lineItems && digitalData.cart.lineItems.length) {
       for (var _iterator = digitalData.cart.lineItems, _isArray = Array.isArray(_iterator), _i2 = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
         var _ref;
 
@@ -4925,10 +4927,11 @@ function _classCallCheck(instance, Constructor) {
 /**
  * Automatically tracks DOM components with proper data-attributes
  *
- * - data-ddl-viewed-product="<product_id>"
- * - data-ddl-viewed-campaign="<campaign_id>"
- * - data-ddl-clicked-product="<product_id>"
- * - data-ddl-clicked-campaign="<campaign_id>"
+ * - data-ddl-viewed-product="<product.id>"
+ * - data-ddl-viewed-campaign="<campaign.id>"
+ * - data-ddl-clicked-product="<product.id>"
+ * - data-ddl-clicked-campaign="<campaign.id>"
+ * - data-ddl-product-list-name="<listName>"
  *
  * If any DOM components are added to the page dynamically
  * corresponding digitalData variable should be updated:
@@ -5019,7 +5022,8 @@ var DOMComponentsTracking = (function () {
         var $el = window.jQuery(this);
         var id = $el.data('ddl-clicked-' + type);
         if (type === 'product') {
-          self.fireClickedProduct(id);
+          var listName = self.findParentByDataAttr('ddl-product-list-name', $el).data('ddl-product-list-name');
+          self.fireClickedProduct(id, listName);
         } else if (type === 'campaign') {
           self.fireClickedCampaign(id);
         }
@@ -5039,7 +5043,7 @@ var DOMComponentsTracking = (function () {
     var _this4 = this;
 
     var _loop = function _loop(type) {
-      var newViewedComponentIds = [];
+      var newViewedComponents = [];
       var $components = _this4.$digitalDataComponents[type];
       $components.each(function (index, el) {
         // eslint-disable-line no-loop-func
@@ -5047,15 +5051,22 @@ var DOMComponentsTracking = (function () {
         var id = $el.data('ddl-viewed-' + type);
         if (_this4.viewedComponentIds[type].indexOf(id) < 0 && _this4.isVisible($el)) {
           _this4.viewedComponentIds[type].push(id);
-          newViewedComponentIds.push(id);
+          if (type === 'product') {
+            var product = { id: id };
+            var listName = _this4.findParentByDataAttr('ddl-product-list-name', $el).data('ddl-product-list-name');
+            if (listName) product.listName = listName;
+            newViewedComponents.push(product);
+          } else {
+            newViewedComponents.push(id);
+          }
         }
       });
 
-      if (newViewedComponentIds.length > 0) {
+      if (newViewedComponents.length > 0) {
         if (type === 'product') {
-          _this4.fireViewedProduct(newViewedComponentIds);
+          _this4.fireViewedProduct(newViewedComponents);
         } else if (type === 'campaign') {
-          _this4.fireViewedCampaign(newViewedComponentIds);
+          _this4.fireViewedCampaign(newViewedComponents);
         }
       }
     };
@@ -5082,11 +5093,11 @@ var DOMComponentsTracking = (function () {
     }, 500);
   };
 
-  DOMComponentsTracking.prototype.fireViewedProduct = function fireViewedProduct(productIds) {
+  DOMComponentsTracking.prototype.fireViewedProduct = function fireViewedProduct(products) {
     window.digitalData.events.push({
       name: 'Viewed Product',
       category: 'Ecommerce',
-      product: productIds
+      product: products
     });
   };
 
@@ -5098,11 +5109,14 @@ var DOMComponentsTracking = (function () {
     });
   };
 
-  DOMComponentsTracking.prototype.fireClickedProduct = function fireClickedProduct(productId) {
+  DOMComponentsTracking.prototype.fireClickedProduct = function fireClickedProduct(productId, listName) {
     window.digitalData.events.push({
       name: 'Clicked Product',
       category: 'Ecommerce',
-      product: productId
+      product: {
+        id: productId,
+        listName: listName
+      }
     });
   };
 
@@ -5166,7 +5180,19 @@ var DOMComponentsTracking = (function () {
 
   DOMComponentsTracking.prototype.findByDataAttr = function findByDataAttr(name, obj) {
     if (!obj) obj = window.jQuery(document.body);
-    return obj.find('[data-' + name + ']');
+    return obj.find(this.getDataAttrSelector(name));
+  };
+
+  /**
+   * Find parent element by data attribute name
+   *
+   * @param name
+   * @param obj
+   * @returns jQuery object
+   */
+
+  DOMComponentsTracking.prototype.findParentByDataAttr = function findParentByDataAttr(name, obj) {
+    return obj.closest(this.getDataAttrSelector(name));
   };
 
   DOMComponentsTracking.prototype.getDataAttrSelector = function getDataAttrSelector(name) {
@@ -5305,7 +5331,7 @@ var EventDataEnricher = (function () {
       }
 
       if (productId) {
-        var ddlProduct = _DDHelper2['default'].getProduct(productId, digitalData) || {};
+        var ddlProduct = _DDHelper2['default'].getProduct(productId, digitalData, _product.listName) || {};
         if (ddlProduct) {
           _product = Object.assign(ddlProduct, _product);
         }
@@ -6224,7 +6250,7 @@ function _initializeIntegrations(settings, onReady) {
 
 ddManager = {
 
-  VERSION: '1.0.15',
+  VERSION: '1.0.16',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -8548,7 +8574,8 @@ var RetailRocket = (function (_Integration) {
       userIdProperty: 'user.userId',
       trackProducts: true, // legacy setting, use noConflict instead
       noConflict: false,
-      trackAllEmails: false
+      trackAllEmails: false,
+      listMethods: {}
     }, options);
 
     // legacy setting mapper
@@ -8614,6 +8641,8 @@ var RetailRocket = (function (_Integration) {
         this.onAddedProduct(event.product);
       } else if (event.name === 'Viewed Product Detail') {
         this.onViewedProductDetail(event.product);
+      } else if (event.name === 'Clicked Product') {
+        this.onClickedProduct(event.product);
       } else if (event.name === 'Completed Transaction') {
         this.onCompletedTransaction(event.transaction);
       } else if (event.name === 'Subscribed') {
@@ -8702,8 +8731,33 @@ var RetailRocket = (function (_Integration) {
     });
   };
 
-  RetailRocket.prototype.onCompletedTransaction = function onCompletedTransaction(transaction) {
+  RetailRocket.prototype.onClickedProduct = function onClickedProduct(product) {
     var _this6 = this;
+
+    var productId = this.getProductId(product);
+    if (!productId) {
+      this.onValidationError('product.id');
+      return;
+    }
+    var listName = product.listName;
+    if (!listName) {
+      return;
+    }
+    var methodName = this.getOption('listMethods')[listName];
+    if (!methodName) {
+      return;
+    }
+    window.rrApiOnReady.push(function () {
+      try {
+        window.rrApi.recomMouseDown(productId, methodName);
+      } catch (e) {
+        _this6.onError(e);
+      }
+    });
+  };
+
+  RetailRocket.prototype.onCompletedTransaction = function onCompletedTransaction(transaction) {
+    var _this7 = this;
 
     transaction = transaction || {};
     if (!this.validateTransaction(transaction)) {
@@ -8731,13 +8785,13 @@ var RetailRocket = (function (_Integration) {
           items: items
         });
       } catch (e) {
-        _this6.onError(e);
+        _this7.onError(e);
       }
     });
   };
 
   RetailRocket.prototype.onSubscribed = function onSubscribed(user) {
-    var _this7 = this;
+    var _this8 = this;
 
     user = user || {};
     if (!user.email) {
@@ -8748,13 +8802,13 @@ var RetailRocket = (function (_Integration) {
       try {
         window.rrApi.setEmail(user.email);
       } catch (e) {
-        _this7.onError(e);
+        _this8.onError(e);
       }
     });
   };
 
   RetailRocket.prototype.onSearched = function onSearched(query) {
-    var _this8 = this;
+    var _this9 = this;
 
     if (!query) {
       this.onValidationError('query');
@@ -8764,7 +8818,7 @@ var RetailRocket = (function (_Integration) {
       try {
         window.rrApi.search(query);
       } catch (e) {
-        _this8.onError(e);
+        _this9.onError(e);
       }
     });
   };
