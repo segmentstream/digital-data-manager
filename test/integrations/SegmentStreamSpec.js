@@ -37,7 +37,9 @@ describe('SegmentStream', function() {
     describe('#initialize', function () {
 
       it('it should initialize all stub functions`', function () {
-        ddManager.initialize();
+        ddManager.initialize({
+          autoEvents: false
+        });
 
         assert.ok(window.ssApi.initialize);
         assert.ok(window.ssApi.getData);

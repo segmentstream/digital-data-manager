@@ -5521,6 +5521,7 @@ var EventManager = (function () {
     var events = _digitalData.events;
     // process callbacks
     this.addEarlyCallbacks();
+    this.fireDefine();
     _ddListener.push = function (callbackInfo) {
       _this.addCallback(callbackInfo);
       _ddListener[_ddListener.length] = callbackInfo;
@@ -5536,8 +5537,8 @@ var EventManager = (function () {
     if (_autoEvents) {
       _autoEvents.onInitialize();
     }
-
     _checkForChangesIntervalId = setInterval(function () {
+      _this.fireDefine();
       _this.checkForChanges();
     }, 100);
 
@@ -5551,11 +5552,12 @@ var EventManager = (function () {
   };
 
   EventManager.prototype.checkForChanges = function checkForChanges() {
-    if (_callbacks.change && _callbacks.change.length > 0) {
+    if (_callbacks.change && _callbacks.change.length > 0 || _callbacks.define && _callbacks.define.length > 0) {
       var digitalDataWithoutEvents = _getCopyWithoutEvents(_digitalData);
       if (!(0, _jsonIsEqual2['default'])(_previousDigitalData, digitalDataWithoutEvents)) {
         var previousDigitalDataWithoutEvents = _getCopyWithoutEvents(_previousDigitalData);
         _previousDigitalData = (0, _componentClone2['default'])(digitalDataWithoutEvents);
+        this.fireDefine();
         this.fireChange(digitalDataWithoutEvents, previousDigitalDataWithoutEvents);
       }
     }
@@ -5581,28 +5583,56 @@ var EventManager = (function () {
     }
   };
 
-  EventManager.prototype.fireChange = function fireChange(newValue, previousValue) {
-    var changeCallback = undefined;
-    if (_callbacks.change) {
-      for (var _iterator = _callbacks.change, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+  EventManager.prototype.fireDefine = function fireDefine() {
+    var callback = undefined;
+    if (_callbacks.define && _callbacks.define.length > 0) {
+      for (var _iterator = _callbacks.define, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
         if (_isArray) {
           if (_i >= _iterator.length) break;
-          changeCallback = _iterator[_i++];
+          callback = _iterator[_i++];
         } else {
           _i = _iterator.next();
           if (_i.done) break;
-          changeCallback = _i.value;
+          callback = _i.value;
         }
 
-        if (changeCallback.key) {
-          var key = changeCallback.key;
+        var value = undefined;
+        if (callback.key) {
+          var key = callback.key;
+          value = _DDHelper2['default'].get(key, _digitalData);
+        } else {
+          value = _digitalData;
+        }
+        if (value !== undefined) {
+          callback.handler(value, _callbackOnComplete);
+          _callbacks.define.splice(_callbacks.define.indexOf(callback), 1);
+        }
+      }
+    }
+  };
+
+  EventManager.prototype.fireChange = function fireChange(newValue, previousValue) {
+    var callback = undefined;
+    if (_callbacks.change && _callbacks.change.length > 0) {
+      for (var _iterator2 = _callbacks.change, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+        if (_isArray2) {
+          if (_i2 >= _iterator2.length) break;
+          callback = _iterator2[_i2++];
+        } else {
+          _i2 = _iterator2.next();
+          if (_i2.done) break;
+          callback = _i2.value;
+        }
+
+        if (callback.key) {
+          var key = callback.key;
           var newKeyValue = _DDHelper2['default'].get(key, newValue);
           var previousKeyValue = _DDHelper2['default'].get(key, previousValue);
           if (!(0, _jsonIsEqual2['default'])(newKeyValue, previousKeyValue)) {
-            changeCallback.handler(newKeyValue, previousKeyValue, _callbackOnComplete);
+            callback.handler(newKeyValue, previousKeyValue, _callbackOnComplete);
           }
         } else {
-          changeCallback.handler(newValue, previousValue, _callbackOnComplete);
+          callback.handler(newValue, previousValue, _callbackOnComplete);
         }
       }
     }
@@ -5635,14 +5665,14 @@ var EventManager = (function () {
           ready();
         };
 
-        for (var _iterator2 = _callbacks.event, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
-          if (_isArray2) {
-            if (_i2 >= _iterator2.length) break;
-            eventCallback = _iterator2[_i2++];
+        for (var _iterator3 = _callbacks.event, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
+          if (_isArray3) {
+            if (_i3 >= _iterator3.length) break;
+            eventCallback = _iterator3[_i3++];
           } else {
-            _i2 = _iterator2.next();
-            if (_i2.done) break;
-            eventCallback = _i2.value;
+            _i3 = _iterator3.next();
+            if (_i3.done) break;
+            eventCallback = _i3.value;
           }
 
           var eventCopy = (0, _componentClone2['default'])(event);
@@ -5687,14 +5717,14 @@ var EventManager = (function () {
   EventManager.prototype.applyCallbackForPastEvents = function applyCallbackForPastEvents(handler) {
     var events = _digitalData.events;
     var event = undefined;
-    for (var _iterator3 = events, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
-      if (_isArray3) {
-        if (_i3 >= _iterator3.length) break;
-        event = _iterator3[_i3++];
+    for (var _iterator4 = events, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
+      if (_isArray4) {
+        if (_i4 >= _iterator4.length) break;
+        event = _iterator4[_i4++];
       } else {
-        _i3 = _iterator3.next();
-        if (_i3.done) break;
-        event = _i3.value;
+        _i4 = _iterator4.next();
+        if (_i4.done) break;
+        event = _i4.value;
       }
 
       if (event.hasFired) {
@@ -5711,14 +5741,14 @@ var EventManager = (function () {
   EventManager.prototype.fireUnfiredEvents = function fireUnfiredEvents() {
     var events = _digitalData.events;
     var event = undefined;
-    for (var _iterator4 = events, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
-      if (_isArray4) {
-        if (_i4 >= _iterator4.length) break;
-        event = _iterator4[_i4++];
+    for (var _iterator5 = events, _isArray5 = Array.isArray(_iterator5), _i5 = 0, _iterator5 = _isArray5 ? _iterator5 : _iterator5[Symbol.iterator]();;) {
+      if (_isArray5) {
+        if (_i5 >= _iterator5.length) break;
+        event = _iterator5[_i5++];
       } else {
-        _i4 = _iterator4.next();
-        if (_i4.done) break;
-        event = _i4.value;
+        _i5 = _iterator5.next();
+        if (_i5.done) break;
+        event = _i5.value;
       }
 
       if (!event.hasFired) {
@@ -5729,14 +5759,14 @@ var EventManager = (function () {
 
   EventManager.prototype.addEarlyCallbacks = function addEarlyCallbacks() {
     var callbackInfo = undefined;
-    for (var _iterator5 = _ddListener, _isArray5 = Array.isArray(_iterator5), _i5 = 0, _iterator5 = _isArray5 ? _iterator5 : _iterator5[Symbol.iterator]();;) {
-      if (_isArray5) {
-        if (_i5 >= _iterator5.length) break;
-        callbackInfo = _iterator5[_i5++];
+    for (var _iterator6 = _ddListener, _isArray6 = Array.isArray(_iterator6), _i6 = 0, _iterator6 = _isArray6 ? _iterator6 : _iterator6[Symbol.iterator]();;) {
+      if (_isArray6) {
+        if (_i6 >= _iterator6.length) break;
+        callbackInfo = _iterator6[_i6++];
       } else {
-        _i5 = _iterator5.next();
-        if (_i5.done) break;
-        callbackInfo = _i5.value;
+        _i6 = _iterator6.next();
+        if (_i6.done) break;
+        callbackInfo = _i6.value;
       }
 
       this.addCallback(callbackInfo);
@@ -5746,16 +5776,16 @@ var EventManager = (function () {
   EventManager.prototype.enrichEventWithData = function enrichEventWithData(event) {
     var enrichableVars = ['product', 'transaction', 'campaign', 'user', 'page'];
 
-    for (var _iterator6 = enrichableVars, _isArray6 = Array.isArray(_iterator6), _i6 = 0, _iterator6 = _isArray6 ? _iterator6 : _iterator6[Symbol.iterator]();;) {
+    for (var _iterator7 = enrichableVars, _isArray7 = Array.isArray(_iterator7), _i7 = 0, _iterator7 = _isArray7 ? _iterator7 : _iterator7[Symbol.iterator]();;) {
       var _ref;
 
-      if (_isArray6) {
-        if (_i6 >= _iterator6.length) break;
-        _ref = _iterator6[_i6++];
+      if (_isArray7) {
+        if (_i7 >= _iterator7.length) break;
+        _ref = _iterator7[_i7++];
       } else {
-        _i6 = _iterator6.next();
-        if (_i6.done) break;
-        _ref = _i6.value;
+        _i7 = _iterator7.next();
+        if (_i7.done) break;
+        _ref = _i7.value;
       }
 
       var enrichableVar = _ref;
@@ -5777,6 +5807,7 @@ var EventManager = (function () {
     }
     _ddListener.push = Array.prototype.push;
     _callbacks = {};
+    _autoEvents = null;
   };
 
   return EventManager;
@@ -6231,8 +6262,8 @@ function _initializeIntegrations(settings, onReady) {
             integration.once('ready', function () {
               integration.enrichDigitalData(function () {
                 _eventManager.addCallback(['on', 'event', function (event) {
-                  integration.trackEvent(event);
-                }]);
+                  return integration.trackEvent(event);
+                }], true);
                 ready();
               });
             });
@@ -6250,7 +6281,7 @@ function _initializeIntegrations(settings, onReady) {
 
 ddManager = {
 
-  VERSION: '1.0.16',
+  VERSION: '1.0.17',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -6334,10 +6365,11 @@ ddManager = {
     }
 
     _initializeIntegrations(settings, function () {
-      _eventManager.initialize();
       _isReady = true;
       ddManager.emit('ready');
     });
+
+    _eventManager.initialize();
 
     _isInitialized = true;
     ddManager.emit('initialize', settings);
@@ -9136,16 +9168,12 @@ var SendPulse = (function (_Integration) {
   SendPulse.prototype.initialize = function initialize() {
     var _this2 = this;
 
-    window.ddListener.push(['on', 'change:user', function (user) {
-      if (user.pushNotifications.isSubscribed) {
-        _this2.sendUserAttributes(user);
-      }
-    }]);
     this.load(function () {
       var original = window.oSpP.storeSubscription;
       window.oSpP.storeSubscription = function (value) {
         original(value);
         if (value !== 'DENY') {
+          _this2.digitalData.user.pushNotifications.isSubscribed = true;
           _this2.sendUserAttributes(_this2.digitalData.user);
         }
       };
@@ -9154,6 +9182,8 @@ var SendPulse = (function (_Integration) {
   };
 
   SendPulse.prototype.enrichDigitalData = function enrichDigitalData(done) {
+    var _this3 = this;
+
     var pushNotification = this.digitalData.user.pushNotifications = {};
     try {
       pushNotification.isSupported = this.checkPushNotificationsSupport();
@@ -9175,12 +9205,26 @@ var SendPulse = (function (_Integration) {
             pushNotification.subscriptionId = subscriptionInfo.value;
           }
         }
+        _this3.onSubscriptionStatusReceived();
         done();
       });
     } catch (e) {
       pushNotification.isSupported = false;
       done();
     }
+  };
+
+  SendPulse.prototype.onSubscriptionStatusReceived = function onSubscriptionStatusReceived() {
+    var _this4 = this;
+
+    if (this.digitalData.user.pushNotifications.isSubscribed) {
+      this.sendUserAttributes(this.digitalData.user);
+    }
+    window.ddListener.push(['on', 'change:user', function (newUser, oldUser) {
+      if (newUser.pushNotifications.isSubscribed && oldUser !== undefined) {
+        _this4.sendUserAttributes(newUser, oldUser);
+      }
+    }]);
   };
 
   SendPulse.prototype.checkPushNotificationsSupport = function checkPushNotificationsSupport() {
@@ -9223,9 +9267,9 @@ var SendPulse = (function (_Integration) {
     });
   };
 
-  SendPulse.prototype.sendUserAttributes = function sendUserAttributes(user) {
-    (0, _each2['default'])(user, function (key, value) {
-      if ((0, _componentType2['default'])(value) !== 'object') {
+  SendPulse.prototype.sendUserAttributes = function sendUserAttributes(newUser, oldUser) {
+    (0, _each2['default'])(newUser, function (key, value) {
+      if ((0, _componentType2['default'])(value) !== 'object' && (!oldUser || value !== oldUser[key])) {
         window.oSpP.push(key, value);
       }
     });
