@@ -148,7 +148,7 @@ describe('Integrations: Criteo', () => {
       setTimeout(() => {
         assert.deepEqual(window.criteo_q[2], {event: 'setEmail', email: window.digitalData.user.email});
         done();
-      }, 101);
+      }, 111);
     });
 
     describe('#onViewedHome', () => {
