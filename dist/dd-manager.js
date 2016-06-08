@@ -6055,6 +6055,10 @@ var _YandexMetrica = require('./integrations/YandexMetrica.js');
 
 var _YandexMetrica2 = _interopRequireDefault(_YandexMetrica);
 
+var _Vkontakte = require('./integrations/Vkontakte.js');
+
+var _Vkontakte2 = _interopRequireDefault(_Vkontakte);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -6070,12 +6074,13 @@ var integrations = {
   'SendPulse': _SendPulse2['default'],
   'Criteo': _Criteo2['default'],
   'myTarget': _MyTarget2['default'],
-  'Yandex Metrica': _YandexMetrica2['default']
+  'Yandex Metrica': _YandexMetrica2['default'],
+  'Vkontakte': _Vkontakte2['default']
 };
 
 exports['default'] = integrations;
 
-},{"./integrations/Criteo.js":75,"./integrations/Driveback.js":76,"./integrations/FacebookPixel.js":77,"./integrations/GoogleAnalytics.js":78,"./integrations/GoogleTagManager.js":79,"./integrations/MyTarget.js":80,"./integrations/OWOXBIStreaming.js":81,"./integrations/RetailRocket.js":82,"./integrations/SegmentStream.js":83,"./integrations/SendPulse.js":84,"./integrations/YandexMetrica.js":85}],58:[function(require,module,exports){
+},{"./integrations/Criteo.js":75,"./integrations/Driveback.js":76,"./integrations/FacebookPixel.js":77,"./integrations/GoogleAnalytics.js":78,"./integrations/GoogleTagManager.js":79,"./integrations/MyTarget.js":80,"./integrations/OWOXBIStreaming.js":81,"./integrations/RetailRocket.js":82,"./integrations/SegmentStream.js":83,"./integrations/SendPulse.js":84,"./integrations/Vkontakte.js":85,"./integrations/YandexMetrica.js":86}],58:[function(require,module,exports){
 'use strict';
 
 function _typeof2(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -6281,7 +6286,7 @@ function _initializeIntegrations(settings, onReady) {
 
 ddManager = {
 
-  VERSION: '1.0.17',
+  VERSION: '1.0.18',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -6886,7 +6891,7 @@ _ddManager2['default'].processEarlyStubCalls();
 
 window.ddManager = _ddManager2['default'];
 
-},{"./availableIntegrations.js":57,"./ddManager.js":58,"./polyfill.js":86}],75:[function(require,module,exports){
+},{"./availableIntegrations.js":57,"./ddManager.js":58,"./polyfill.js":87}],75:[function(require,module,exports){
 'use strict';
 
 function _typeof2(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
@@ -9321,6 +9326,85 @@ var _Integration2 = require('./../Integration.js');
 
 var _Integration3 = _interopRequireDefault(_Integration2);
 
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+var Vkontakte = (function (_Integration) {
+  _inherits(Vkontakte, _Integration);
+
+  function Vkontakte(digitalData, options) {
+    _classCallCheck(this, Vkontakte);
+
+    var optionsWithDefaults = Object.assign({
+      eventPixels: {}
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this._isLoaded = false;
+    return _this;
+  }
+
+  Vkontakte.prototype.initialize = function initialize() {
+    this._isLoaded = true;
+    this.ready();
+  };
+
+  Vkontakte.prototype.isLoaded = function isLoaded() {
+    return this._isLoaded;
+  };
+
+  Vkontakte.prototype.reset = function reset() {
+    // nothing to reset
+  };
+
+  Vkontakte.prototype.trackEvent = function trackEvent(event) {
+    var eventPixels = this.getOption('eventPixels');
+    if (eventPixels[event.name]) {
+      var pixelUrl = eventPixels[event.name];
+      this.addPixel(pixelUrl);
+    }
+  };
+
+  Vkontakte.prototype.addPixel = function addPixel(pixelUrl) {
+    (window.Image ? new Image() : window.document.createElement('img')).src = window.location.protocol + pixelUrl;
+  };
+
+  return Vkontakte;
+})(_Integration3['default']);
+
+exports['default'] = Vkontakte;
+
+},{"./../Integration.js":56}],86:[function(require,module,exports){
+'use strict';
+
+function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
 var _deleteProperty = require('./../functions/deleteProperty.js');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
@@ -9542,7 +9626,7 @@ var YandexMetrica = (function (_Integration) {
 
 exports['default'] = YandexMetrica;
 
-},{"./../Integration.js":56,"./../functions/deleteProperty.js":60}],86:[function(require,module,exports){
+},{"./../Integration.js":56,"./../functions/deleteProperty.js":60}],87:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es5');

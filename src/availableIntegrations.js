@@ -9,6 +9,7 @@ import OWOXBIStreaming from './integrations/OWOXBIStreaming.js';
 import Criteo from './integrations/Criteo.js';
 import MyTarget from './integrations/MyTarget.js';
 import YandexMetrica from './integrations/YandexMetrica.js';
+import Vkontakte from './integrations/Vkontakte.js';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -22,6 +23,7 @@ const integrations = {
   'Criteo': Criteo,
   'myTarget': MyTarget,
   'Yandex Metrica': YandexMetrica,
+  'Vkontakte': Vkontakte,
 };
 
 export default integrations;
