@@ -24,16 +24,12 @@ class SendPulse extends Integration {
   }
 
   initialize() {
-    window.ddListener.push(['on', 'change:user', (user) => {
-      if (user.pushNotifications.isSubscribed) {
-        this.sendUserAttributes(user);
-      }
-    }]);
     this.load(() => {
       const original = window.oSpP.storeSubscription;
       window.oSpP.storeSubscription = (value) => {
         original(value);
         if (value !== 'DENY') {
+          this.digitalData.user.pushNotifications.isSubscribed = true;
           this.sendUserAttributes(this.digitalData.user);
         }
       };
@@ -63,12 +59,24 @@ class SendPulse extends Integration {
             pushNotification.subscriptionId = subscriptionInfo.value;
           }
         }
+        this.onSubscriptionStatusReceived();
         done();
       });
     } catch (e) {
       pushNotification.isSupported = false;
       done();
     }
+  }
+
+  onSubscriptionStatusReceived() {
+    if (this.digitalData.user.pushNotifications.isSubscribed) {
+      this.sendUserAttributes(this.digitalData.user);
+    }
+    window.ddListener.push(['on', 'change:user', (newUser, oldUser) => {
+      if (newUser.pushNotifications.isSubscribed && oldUser !== undefined) {
+        this.sendUserAttributes(newUser, oldUser);
+      }
+    }]);
   }
 
   checkPushNotificationsSupport() {
@@ -111,9 +119,9 @@ class SendPulse extends Integration {
     });
   }
 
-  sendUserAttributes(user) {
-    each(user, (key, value) => {
-      if (type(value) !== 'object') {
+  sendUserAttributes(newUser, oldUser) {
+    each(newUser, (key, value) => {
+      if (type(value) !== 'object' && (!oldUser || value !== oldUser[key])) {
         window.oSpP.push(key, value);
       }
     });

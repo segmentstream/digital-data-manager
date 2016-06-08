@@ -6,6 +6,8 @@ import AutoEvents from './../src/AutoEvents.js';
 describe('EventManager', () => {
 
   let _eventManager;
+  let _digitalData;
+  let _ddListener;
 
   afterEach(() => {
     if (_eventManager) {
@@ -23,11 +25,11 @@ describe('EventManager', () => {
     };
 
     beforeEach(() => {
-      window.digitalData = {
+      _digitalData = {
         events: []
       };
-      window.ddListener = [];
-      _eventManager = new EventManager(window.digitalData, window.ddListener);
+      _ddListener = [];
+      _eventManager = new EventManager(_digitalData, _ddListener);
     });
 
     it('should add time and hasFired fields to event', () => {
@@ -35,11 +37,11 @@ describe('EventManager', () => {
 
       _eventManager.initialize();
 
-      window.digitalData.events.push(event);
+      _digitalData.events.push(event);
 
-      assert.ok(window.digitalData.events.length == 1);
-      assert.ok(window.digitalData.events[0].time > 100000);
-      assert.ok(window.digitalData.events[0].hasFired);
+      assert.ok(_digitalData.events.length == 1);
+      assert.ok(_digitalData.events[0].time > 100000);
+      assert.ok(_digitalData.events[0].hasFired);
     });
 
     it('should process callback for event', () => {
@@ -49,11 +51,11 @@ describe('EventManager', () => {
 
       _eventManager.initialize();
 
-      window.ddListener.push(['on', 'event', (e) => {
+      _ddListener.push(['on', 'event', (e) => {
         callbackFired = true;
         receivedEvent = e;
       }]);
-      window.digitalData.events.push(event);
+      _digitalData.events.push(event);
 
       assert.ok(callbackFired);
       assert.equal(receivedEvent.action, event.action);
@@ -64,7 +66,7 @@ describe('EventManager', () => {
     it('should process early callback for event', () => {
       let event = Object.assign({}, eventTemplate);
 
-      window.ddListener.push(['on', 'event', (e) => {
+      _ddListener.push(['on', 'event', (e) => {
         assert.ok(true);
         assert.equal(e.action, event.action);
         assert.equal(e.category, event.category);
@@ -72,25 +74,25 @@ describe('EventManager', () => {
 
       _eventManager.initialize();
 
-      window.digitalData.events.push(event);
+      _digitalData.events.push(event);
     });
 
     it('should process early callback for early event', () => {
       let event = Object.assign({}, eventTemplate);
 
-      window.ddListener.push(['on', 'event', (e) => {
+      _ddListener.push(['on', 'event', (e) => {
         assert.ok(true);
         assert.equal(e.action, event.action);
         assert.equal(e.category, event.category);
       }]);
-      window.digitalData.events.push(event);
+      _digitalData.events.push(event);
 
       _eventManager.initialize();
     });
 
     it('should fire event with callback inside when no listeners', (done) => {
       _eventManager.initialize();
-      window.digitalData.events.push({
+      _digitalData.events.push({
         name: 'Test',
         category: 'Test',
         callback: function(result) {
@@ -102,11 +104,11 @@ describe('EventManager', () => {
     it('should fire event with callback inside after listeners completed', (done) => {
       _eventManager.initialize();
 
-      window.ddListener.push(['on', 'event', (e) => {
+      _ddListener.push(['on', 'event', (e) => {
         return 'test result';
       }]);
 
-      window.digitalData.events.push({
+      _digitalData.events.push({
         name: 'Test',
         category: 'Test',
         callback: (results) => {
@@ -117,19 +119,19 @@ describe('EventManager', () => {
     });
 
     it('should enrich product data from DDL', (done) => {
-      window.digitalData.product = {
+      _digitalData.product = {
         id: '123',
         name: 'Test Product'
       };
 
       _eventManager.initialize();
 
-      window.ddListener.push(['on', 'event', (e) => {
+      _ddListener.push(['on', 'event', (e) => {
         assert(e.product.name === 'Test Product');
         done();
       }]);
 
-      window.digitalData.events.push({
+      _digitalData.events.push({
         name: 'Clicked Product',
         category: 'Ecommerce',
         product: '123'
@@ -137,19 +139,19 @@ describe('EventManager', () => {
     });
 
     it('should not enrich product data from DDL', (done) => {
-      window.digitalData.product = {
+      _digitalData.product = {
         id: '123',
         name: 'Test Product'
       };
 
       _eventManager.initialize();
 
-      window.ddListener.push(['on', 'event', (e) => {
+      _ddListener.push(['on', 'event', (e) => {
         assert(!e.product.name);
         done();
       }]);
 
-      window.digitalData.events.push({
+      _digitalData.events.push({
         name: 'Clicked Product',
         enrichEventData: false,
         category: 'Ecommerce',
@@ -160,7 +162,7 @@ describe('EventManager', () => {
     it('should process past events event if listener was added later', (done) => {
       _eventManager.initialize();
 
-      window.digitalData.events.push({
+      _digitalData.events.push({
         name: 'Clicked Product',
         category: 'Ecommerce',
         product: {
@@ -169,7 +171,7 @@ describe('EventManager', () => {
         }
       });
 
-      window.ddListener.push(['on', 'event', (e) => {
+      _ddListener.push(['on', 'event', (e) => {
         assert.ok(true);
         done();
       }]);
@@ -180,7 +182,7 @@ describe('EventManager', () => {
   describe(': listening for digitalData changes', () => {
 
     beforeEach(() => {
-      window.digitalData = {
+      _digitalData = {
         user: {
           returning: false
         },
@@ -192,65 +194,65 @@ describe('EventManager', () => {
         },
         test: 'test'
       };
-      window.ddListener = [];
-      _eventManager = new EventManager(window.digitalData, window.ddListener);
+      _ddListener = [];
+      _eventManager = new EventManager(_digitalData, _ddListener);
       _eventManager.initialize();
     });
 
     it('should fire change callback', (done) => {
-      window.ddListener.push(['on', 'change', () => {
+      _ddListener.push(['on', 'change', () => {
         done();
       }]);
-      window.digitalData.test2 = 'test2';
+      _digitalData.test2 = 'test2';
     });
 
     it('should fire change key callback', (done) => {
-      window.ddListener.push(['on', 'change:user.returning', (newValue, previousValue) => {
+      _ddListener.push(['on', 'change:user.returning', (newValue, previousValue) => {
         assert.ok(newValue === true);
         assert.ok(previousValue === false);
         done();
       }]);
-      window.digitalData.user.returning = true;
+      _digitalData.user.returning = true;
     });
 
     it('should fire change callback for array', (done) => {
-      window.ddListener.push(['on', 'change:listing.items', (newValue, previousValue) => {
+      _ddListener.push(['on', 'change:listing.items', (newValue, previousValue) => {
         assert.ok(newValue.length === 3);
         assert.ok(previousValue.length === 2);
         done();
       }]);
-      window.digitalData.listing.items.push({id: 3});
+      _digitalData.listing.items.push({id: 3});
     });
 
     it('should fire length change callback for array', (done) => {
-      window.ddListener.push(['on', 'change:listing.items.length', (newValue, previousValue) => {
+      _ddListener.push(['on', 'change:listing.items.length', (newValue, previousValue) => {
         assert.ok(newValue === 3);
         assert.ok(previousValue === 2);
         done();
       }]);
-      window.digitalData.listing.items.push({id: 3});
+      _digitalData.listing.items.push({id: 3});
     });
 
     it('should fire change callbacks asynchronously, ignoring possible exceptions', (done) => {
-      window.ddListener.push(['on', 'change', (newValue, previousValue) => {
+      _ddListener.push(['on', 'change', (newValue, previousValue) => {
         throw new Error('test error');
       }]);
-      window.ddListener.push(['on', 'change', (newValue, previousValue) => {
+      _ddListener.push(['on', 'change', (newValue, previousValue) => {
         done();
       }]);
-      window.digitalData.test2 = 'test2';
+      _digitalData.test2 = 'test2';
     });
 
     it('should handle change callback exception', (done) => {
-      window.ddListener.push(['on', 'change', (newValue, previousValue) => {
+      _ddListener.push(['on', 'change', (newValue, previousValue) => {
         throw new Error('test error');
       }]);
-      window.digitalData.test2 = 'test2';
+      _digitalData.test2 = 'test2';
       setTimeout(done, 1000);
     });
 
     it('should NOT fire change callback', (done) => {
-      window.ddListener.push(['on', 'change', () => {
+      _ddListener.push(['on', 'change', () => {
         assert.ok(false);
         done();
       }]);
@@ -259,11 +261,11 @@ describe('EventManager', () => {
         done();
       }, 101); //check interval is 100, so 101 will work
 
-      window.digitalData.test = 'test';
+      _digitalData.test = 'test';
     });
 
     it('should NOT fire change key callback', (done) => {
-      window.ddListener.push(['on', 'change:user.returning', () => {
+      _ddListener.push(['on', 'change:user.returning', () => {
         assert.ok(false);
         done();
       }]);
@@ -272,11 +274,11 @@ describe('EventManager', () => {
         done();
       }, 101); //check interval is 100, so 101 will work
 
-      window.digitalData.user.returning = false;
+      _digitalData.user.returning = false;
     });
 
     it('should NOT fire change callback for array', (done) => {
-      window.ddListener.push(['on', 'change:listing.items', () => {
+      _ddListener.push(['on', 'change:listing.items', () => {
         assert.ok(false);
         done();
       }]);
@@ -285,12 +287,12 @@ describe('EventManager', () => {
         done();
       }, 101); //check interval is 100, so 101 will work
 
-      window.digitalData.listing.items.pop();
-      window.digitalData.listing.items.push({id: 2});
+      _digitalData.listing.items.pop();
+      _digitalData.listing.items.push({id: 2});
     });
 
     it('should NOT fire length change callback for array', (done) => {
-      window.ddListener.push(['on', 'change:listing.items.length', () => {
+      _ddListener.push(['on', 'change:listing.items.length', () => {
         assert.ok(false);
         done();
       }]);
@@ -299,12 +301,12 @@ describe('EventManager', () => {
         done();
       }, 101); //check interval is 100, so 101 will work
 
-      window.digitalData.listing.items.pop();
-      window.digitalData.listing.items.push({id: 3});
+      _digitalData.listing.items.pop();
+      _digitalData.listing.items.push({id: 3});
     });
 
     it('should NOT fire change callback if event was added', (done) => {
-      window.ddListener.push(['on', 'change', () => {
+      _ddListener.push(['on', 'change', () => {
         assert.ok(false);
         done();
       }]);
@@ -313,9 +315,156 @@ describe('EventManager', () => {
         done();
       }, 101); //check interval is 100, so 101 will work
 
-      window.digitalData.events.push({
+      _digitalData.events.push({
         name: 'Test Event'
       });
+    });
+
+  });
+
+  describe(': listening for digitalData define events', () => {
+
+    beforeEach(() => {
+      _digitalData = {
+        user: {
+          returning: false
+        },
+        listing: {
+          items: [
+            {id: 1},
+            {id: 2}
+          ]
+        },
+        test: 'test'
+      };
+      _ddListener = [];
+      _eventManager = new EventManager(_digitalData, _ddListener);
+      _eventManager.initialize();
+    });
+
+    it('should fire define callback', (done) => {
+      _ddListener.push(['on', 'define', () => {
+        done();
+      }]);
+    });
+
+    it('should fire define key callback', (done) => {
+      _ddListener.push(['on', 'define:user.returning', (value) => {
+        assert.ok(value === true);
+        done();
+      }]);
+      _digitalData.user.returning = true;
+    });
+
+    it('should fire define callback for array', (done) => {
+      _ddListener.push(['on', 'define:listing.items', (value) => {
+        assert.ok(value.length === 3);
+        done();
+      }]);
+      _digitalData.listing.items.push({id: 3});
+    });
+
+    it('should fire length define callback for array', (done) => {
+      _ddListener.push(['on', 'define:listing.items.length', (value) => {
+        assert.ok(value === 3);
+        done();
+      }]);
+      _digitalData.listing.items.push({id: 3});
+    });
+
+    it('should fire define callbacks asynchronously, ignoring possible exceptions', (done) => {
+      _ddListener.push(['on', 'define', (value) => {
+        throw new Error('test error');
+      }]);
+      _ddListener.push(['on', 'define', (value) => {
+        done();
+      }]);
+      _digitalData.test2 = 'test2';
+    });
+
+    it('should handle define callback exception', (done) => {
+      _ddListener.push(['on', 'define', (value) => {
+        throw new Error('test error');
+      }]);
+      _digitalData.test2 = 'test2';
+      setTimeout(done, 1000);
+    });
+
+    it('should fire define callback only once', (done) => {
+      _ddListener.push(['on', 'define', () => {
+        assert.ok(true);
+        done();
+      }]);
+      _ddListener.push(['on', 'define', () => {
+        assert.ok(false);
+        done();
+      }]);
+      setTimeout(() => {
+        assert.ok(true);
+        done();
+      }, 101); //check interval is 100, so 101 will work
+
+      _digitalData.test = 'test';
+    });
+
+    it('should fire define key callback only once', (done) => {
+      _ddListener.push(['on', 'define:user.returning', () => {
+        assert.ok(true);
+        done();
+      }]);
+      _ddListener.push(['on', 'define:user.returning', () => {
+        assert.ok(false);
+        done();
+      }]);
+      setTimeout(() => {
+        assert.ok(true);
+        done();
+      }, 101); //check interval is 100, so 101 will work
+
+      _digitalData.user.returning = false;
+    });
+
+    it('should fire define callback for array only once', (done) => {
+      _ddListener.push(['on', 'define:listing.items', () => {
+        assert.ok(true);
+        done();
+      }]);
+      _ddListener.push(['on', 'define:listing.items', () => {
+        assert.ok(false);
+        done();
+      }]);
+      setTimeout(() => {
+        assert.ok(true);
+        done();
+      }, 101); //check interval is 100, so 101 will work
+
+      _digitalData.listing.items.pop();
+      _digitalData.listing.items.push({id: 2});
+    });
+
+    it('should fire length define callback for array only once', (done) => {
+      _ddListener.push(['on', 'define:listing.items.length', () => {
+        assert.ok(true);
+        done();
+      }]);
+      _ddListener.push(['on', 'define:listing.items.length', () => {
+        assert.ok(false);
+        done();
+      }]);
+      setTimeout(() => {
+        assert.ok(true);
+        done();
+      }, 101); //check interval is 100, so 101 will work
+
+      _digitalData.listing.items.pop();
+      _digitalData.listing.items.push({id: 3});
+    });
+
+    it('should fire define callback event if key was already defined', (done) => {
+      _ddListener.push(['on', 'define:user.returning', () => {
+        assert.ok(true);
+        done();
+      }]);
     });
 
   });
@@ -324,64 +473,64 @@ describe('EventManager', () => {
   describe(': listening for autoEvents based on DDL changes', () => {
 
     beforeEach(() => {
-      window.digitalData = {
+      _digitalData = {
         page: {
           type: 'home'
         }
       };
-      window.ddListener = [];
-      _eventManager = new EventManager(window.digitalData, window.ddListener);
+      _ddListener = [];
+      _eventManager = new EventManager(_digitalData, _ddListener);
       _eventManager.setAutoEvents(new AutoEvents());
       _eventManager.initialize();
     });
 
     it('should fire Viewed Page event', (done) => {
-      window.digitalData.page = {
+      _digitalData.page = {
         type: 'content'
       };
       setTimeout(() => {
-        assert.ok(window.digitalData.events.length === 2);
-        assert.ok(window.digitalData.events[1].name === 'Viewed Page');
-        assert.ok(window.digitalData.events[1].page.type === 'content');
+        assert.ok(_digitalData.events.length === 2);
+        assert.ok(_digitalData.events[1].name === 'Viewed Page');
+        assert.ok(_digitalData.events[1].page.type === 'content');
         done();
       }, 101)
     });
 
     it('should fire Viewed Page and Viewed Product Category events', (done) => {
-      window.digitalData.page = {
+      _digitalData.page = {
         type: 'category'
       };
       setTimeout(() => {
-        assert.ok(window.digitalData.events.length === 3);
-        assert.ok(window.digitalData.events[1].name === 'Viewed Page');
-        assert.ok(window.digitalData.events[1].page.type === 'category');
-        assert.ok(window.digitalData.events[2].name === 'Viewed Product Category');
-        assert.ok(window.digitalData.events[2].page.type === 'category');
+        assert.ok(_digitalData.events.length === 3);
+        assert.ok(_digitalData.events[1].name === 'Viewed Page');
+        assert.ok(_digitalData.events[1].page.type === 'category');
+        assert.ok(_digitalData.events[2].name === 'Viewed Product Category');
+        assert.ok(_digitalData.events[2].page.type === 'category');
         done();
       }, 101);
     });
 
     it('should fire Viewed Product Detail event', (done) => {
-      window.digitalData.product = {
+      _digitalData.product = {
         id: '123',
         name: 'Test Product'
       };
       setTimeout(() => {
-        assert.ok(window.digitalData.events.length === 2);
-        assert.ok(window.digitalData.events[1].name === 'Viewed Product Detail');
-        assert.ok(window.digitalData.events[1].product.id === '123');
+        assert.ok(_digitalData.events.length === 2);
+        assert.ok(_digitalData.events[1].name === 'Viewed Product Detail');
+        assert.ok(_digitalData.events[1].product.id === '123');
         done();
       }, 101);
     });
 
     it('should fire Completed Transaction event', (done) => {
-      window.digitalData.transaction = {
+      _digitalData.transaction = {
         orderId: '123',
       };
       setTimeout(() => {
-        assert.ok(window.digitalData.events.length === 2);
-        assert.ok(window.digitalData.events[1].name === 'Completed Transaction');
-        assert.ok(window.digitalData.events[1].transaction.orderId === '123');
+        assert.ok(_digitalData.events.length === 2);
+        assert.ok(_digitalData.events[1].name === 'Completed Transaction');
+        assert.ok(_digitalData.events[1].transaction.orderId === '123');
         done();
       }, 101);
     });

@@ -44,36 +44,48 @@ describe('Integrations: GoogleAnalytics', () => {
       describe('#initialize', function () {
         it('should require \'displayfeatures\' if .doubleClick option is `true`', function () {
           ga.setOption('doubleClick', true);
-          ddManager.initialize();
+          ddManager.initialize({
+            autoEvents: false
+          });
           assert.deepEqual(argumentsToArray(window.ga.q[1]), ['require', 'displayfeatures']);
         });
 
         it('should require "linkid.js" if enhanced link attribution is `true`', function () {
           ga.setOption('enhancedLinkAttribution', true);
-          ddManager.initialize();
+          ddManager.initialize({
+            autoEvents: false
+          });
           assert.deepEqual(argumentsToArray(window.ga.q[1]), ['require', 'linkid', 'linkid.js']);
         });
 
         it('should create window.GoogleAnalyticsObject', function () {
           assert.ok(!window.GoogleAnalyticsObject);
-          ddManager.initialize();
+          ddManager.initialize({
+            autoEvents: false
+          });
           assert.equal(window.GoogleAnalyticsObject, 'ga');
         });
 
         it('should create window.ga', function () {
           assert.ok(!window.ga);
-          ddManager.initialize();
+          ddManager.initialize({
+            autoEvents: false
+          });
           assert.equal(typeof window.ga, 'function');
         });
 
         it('should create window.ga.l', function () {
           assert.ok(!window.ga);
-          ddManager.initialize();
+          ddManager.initialize({
+            autoEvents: false
+          });
           assert.equal(typeof window.ga.l, 'number');
         });
 
         it('should call window.ga.create with options', function () {
-          ddManager.initialize();
+          ddManager.initialize({
+            autoEvents: false
+          });
           assert.deepEqual(argumentsToArray(window.ga.q[0]), ['create', options.trackingId, {
             cookieDomain: 'none',
             siteSpeedSampleRate: options.siteSpeedSampleRate,
@@ -83,12 +95,16 @@ describe('Integrations: GoogleAnalytics', () => {
         });
 
         it('should anonymize the ip', function () {
-          ddManager.initialize();
+          ddManager.initialize({
+            autoEvents: false
+          });
           assert.deepEqual(argumentsToArray(window.ga.q[1]), ['set', 'anonymizeIp', true]);
         });
 
         it('should call #load', function () {
-          ddManager.initialize();
+          ddManager.initialize({
+            autoEvents: false
+          });
           assert.ok(ga.load.calledOnce);
         });
 
@@ -96,7 +112,9 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.user = {
             id: 'baz'
           };
-          ddManager.initialize();
+          ddManager.initialize({
+            autoEvents: false
+          });
           assert.notDeepEqual(argumentsToArray(window.ga.q[1]), ['set', 'userId', 'baz']);
         });
 
@@ -105,7 +123,9 @@ describe('Integrations: GoogleAnalytics', () => {
             id: 'baz'
           };
           ga.setOption('sendUserId', true);
-          ddManager.initialize();
+          ddManager.initialize({
+            autoEvents: false
+          });
           assert.deepEqual(argumentsToArray(window.ga.q[1]), ['set', 'userId', 'baz']);
         });
 
@@ -126,7 +146,9 @@ describe('Integrations: GoogleAnalytics', () => {
             isSubscribed: true,
             hasTransacted: false
           };
-          ddManager.initialize();
+          ddManager.initialize({
+            autoEvents: false
+          });
 
           assert.deepEqual(argumentsToArray(window.ga.q[2]), ['set', {
             metric1: 'John',
@@ -147,7 +169,9 @@ describe('Integrations: GoogleAnalytics', () => {
           ga.setOption('contentGroupings', {
             contentGrouping1: 'foo'
           });
-          ddManager.initialize();
+          ddManager.initialize({
+            autoEvents: false
+          });
           assert.deepEqual(window.ga.q[2], undefined);
         });
       });

@@ -70,6 +70,7 @@ describe('SendPulse', function() {
           startSubscription: () => {},
           isServiceWorkerChromeSupported: () => {},
         };
+        sinon.stub(window.oSpP, 'push');
         callback();
       });
 
@@ -106,17 +107,28 @@ describe('SendPulse', function() {
         window.oSpP.push.restore();
       });
 
+      it('should add additional params to SendPulse once integration is initialized', (done) => {
+        setTimeout(() => {
+          assert.ok(window.oSpP.push.calledWith('test', 'test'));
+          done();
+        }, 101);
+      });
+
       it('should add additional params to SendPulse if user is subscribed', (done) => {
-        const doneAfter = after(1, done);
-        sinon.stub(window.oSpP, 'push', (key) => {
-          assert.ok(['city', 'test'].indexOf(key));
-          doneAfter();
-        });
         window.digitalData.user.city = 'New York';
+        window.digitalData.user.test = 'test';
+        window.oSpP.push.restore();
+        sinon.spy(window.oSpP, 'push');
+        setTimeout(() => {
+          assert.ok(window.oSpP.push.calledWith('city', 'New York'));
+          assert.ok(!window.oSpP.push.calledWith('test', 'test'));
+          done();
+        }, 101);
       });
 
       it('should not add additional params to SendPulse if user is not subscribed', (done) => {
         window.digitalData.user.pushNotifications.isSubscribed = false;
+        window.oSpP.push.restore();
         sinon.spy(window.oSpP, 'push');
         window.digitalData.user.city = 'New York';
         setTimeout(() => {
@@ -131,7 +143,7 @@ describe('SendPulse', function() {
 
       it('should send user attributes if any', () => {
         window.digitalData.user.test = 'test';
-        sinon.spy(window.oSpP, 'push');
+        //sinon.spy(window.oSpP, 'push');
         window.oSpP.storeSubscription('DUMMY');
         assert.ok(window.oSpP.push.calledWith('test', 'test'));
       });

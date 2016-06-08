@@ -44,6 +44,7 @@ class EventManager {
     const events = _digitalData.events;
     // process callbacks
     this.addEarlyCallbacks();
+    this.fireDefine();
     _ddListener.push = (callbackInfo) => {
       this.addCallback(callbackInfo);
       _ddListener[_ddListener.length] = callbackInfo;
@@ -59,8 +60,8 @@ class EventManager {
     if (_autoEvents) {
       _autoEvents.onInitialize();
     }
-
     _checkForChangesIntervalId = setInterval(() => {
+      this.fireDefine();
       this.checkForChanges();
     }, 100);
 
@@ -74,11 +75,12 @@ class EventManager {
   }
 
   checkForChanges() {
-    if (_callbacks.change && _callbacks.change.length > 0) {
+    if (_callbacks.change && _callbacks.change.length > 0 || _callbacks.define && _callbacks.define.length > 0 ) {
       const digitalDataWithoutEvents = _getCopyWithoutEvents(_digitalData);
       if (!jsonIsEqual(_previousDigitalData, digitalDataWithoutEvents)) {
         const previousDigitalDataWithoutEvents = _getCopyWithoutEvents(_previousDigitalData);
         _previousDigitalData = clone(digitalDataWithoutEvents);
+        this.fireDefine();
         this.fireChange(digitalDataWithoutEvents, previousDigitalDataWithoutEvents);
       }
     }
@@ -104,19 +106,38 @@ class EventManager {
     }
   }
 
+  fireDefine() {
+    let callback;
+    if (_callbacks.define && _callbacks.define.length > 0) {
+      for (callback of _callbacks.define) {
+        let value;
+        if (callback.key) {
+          const key = callback.key;
+          value = DDHelper.get(key, _digitalData);
+        } else {
+          value = _digitalData;
+        }
+        if (value !== undefined) {
+          callback.handler(value, _callbackOnComplete);
+          _callbacks.define.splice(_callbacks.define.indexOf(callback), 1);
+        }
+      }
+    }
+  }
+
   fireChange(newValue, previousValue) {
-    let changeCallback;
-    if (_callbacks.change) {
-      for (changeCallback of _callbacks.change) {
-        if (changeCallback.key) {
-          const key = changeCallback.key;
+    let callback;
+    if (_callbacks.change && _callbacks.change.length > 0) {
+      for (callback of _callbacks.change) {
+        if (callback.key) {
+          const key = callback.key;
           const newKeyValue = DDHelper.get(key, newValue);
           const previousKeyValue = DDHelper.get(key, previousValue);
           if (!jsonIsEqual(newKeyValue, previousKeyValue)) {
-            changeCallback.handler(newKeyValue, previousKeyValue, _callbackOnComplete);
+            callback.handler(newKeyValue, previousKeyValue, _callbackOnComplete);
           }
         } else {
-          changeCallback.handler(newValue, previousValue, _callbackOnComplete);
+          callback.handler(newValue, previousValue, _callbackOnComplete);
         }
       }
     }
@@ -240,6 +261,7 @@ class EventManager {
     }
     _ddListener.push = Array.prototype.push;
     _callbacks = {};
+    _autoEvents = null;
   }
 }
 

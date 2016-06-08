@@ -125,9 +125,7 @@ function _initializeIntegrations(settings, onReady) {
         if (!integration.isLoaded() || integration.getOption('noConflict')) {
           integration.once('ready', () => {
             integration.enrichDigitalData(() => {
-              _eventManager.addCallback(['on', 'event', (event) => {
-                integration.trackEvent(event);
-              }]);
+              _eventManager.addCallback(['on', 'event', event => integration.trackEvent(event)], true);
               ready();
             });
           });
@@ -144,7 +142,7 @@ function _initializeIntegrations(settings, onReady) {
 
 ddManager = {
 
-  VERSION: '1.0.16',
+  VERSION: '1.0.17',
 
   setAvailableIntegrations: (availableIntegrations) => {
     _availableIntegrations = availableIntegrations;
@@ -228,10 +226,11 @@ ddManager = {
     }
 
     _initializeIntegrations(settings, () => {
-      _eventManager.initialize();
       _isReady = true;
       ddManager.emit('ready');
     });
+
+    _eventManager.initialize();
 
     _isInitialized = true;
     ddManager.emit('initialize', settings);
