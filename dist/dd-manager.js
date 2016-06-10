@@ -9275,7 +9275,7 @@ var SendPulse = (function (_Integration) {
   SendPulse.prototype.sendUserAttributes = function sendUserAttributes(newUser, oldUser) {
     (0, _each2['default'])(newUser, function (key, value) {
       if ((0, _componentType2['default'])(value) !== 'object' && (!oldUser || value !== oldUser[key])) {
-        window.oSpP.push(key, value);
+        window.oSpP.push(key, String(value));
       }
     });
   };
