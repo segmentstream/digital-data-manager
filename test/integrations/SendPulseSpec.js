@@ -116,11 +116,13 @@ describe('SendPulse', function() {
 
       it('should add additional params to SendPulse if user is subscribed', (done) => {
         window.digitalData.user.city = 'New York';
+        window.digitalData.user.isBoolean = true;
         window.digitalData.user.test = 'test';
         window.oSpP.push.restore();
         sinon.spy(window.oSpP, 'push');
         setTimeout(() => {
           assert.ok(window.oSpP.push.calledWith('city', 'New York'));
+          assert.ok(window.oSpP.push.calledWith('isBoolean', 'true'));
           assert.ok(!window.oSpP.push.calledWith('test', 'test'));
           done();
         }, 101);

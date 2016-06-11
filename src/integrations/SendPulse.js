@@ -122,7 +122,7 @@ class SendPulse extends Integration {
   sendUserAttributes(newUser, oldUser) {
     each(newUser, (key, value) => {
       if (type(value) !== 'object' && (!oldUser || value !== oldUser[key])) {
-        window.oSpP.push(key, value);
+        window.oSpP.push(key, String(value));
       }
     });
   }
