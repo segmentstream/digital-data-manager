@@ -161,13 +161,14 @@ class DOMComponentsTracking
   }
 
   fireClickedProduct(productId, listName) {
+    const product = {
+      id: productId,
+    };
+    if (listName) product.listName = listName;
     window.digitalData.events.push({
       name: 'Clicked Product',
       category: 'Ecommerce',
-      product: {
-        id: productId,
-        listName: listName,
-      },
+      product: product,
     });
   }
 

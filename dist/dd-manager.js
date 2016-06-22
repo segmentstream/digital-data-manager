@@ -4954,13 +4954,14 @@ var DOMComponentsTracking = (function () {
   };
 
   DOMComponentsTracking.prototype.fireClickedProduct = function fireClickedProduct(productId, listName) {
+    var product = {
+      id: productId
+    };
+    if (listName) product.listName = listName;
     window.digitalData.events.push({
       name: 'Clicked Product',
       category: 'Ecommerce',
-      product: {
-        id: productId,
-        listName: listName
-      }
+      product: product
     });
   };
 
@@ -6130,7 +6131,7 @@ function _initializeIntegrations(settings, onReady) {
 
 ddManager = {
 
-  VERSION: '1.0.18',
+  VERSION: '1.0.19',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -8003,7 +8004,8 @@ var GoogleTagManager = (function (_Integration) {
     _classCallCheck(this, GoogleTagManager);
 
     var optionsWithDefaults = Object.assign({
-      containerId: null
+      containerId: null,
+      noConflict: false
     }, options);
 
     var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
@@ -8018,7 +8020,7 @@ var GoogleTagManager = (function (_Integration) {
   }
 
   GoogleTagManager.prototype.initialize = function initialize() {
-    if (this.getOption('containerId')) {
+    if (this.getOption('containerId') && this.getOption('noConflict') === false) {
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({ 'gtm.start': Number(new Date()), event: 'gtm.js' });
       this.load(this.ready);

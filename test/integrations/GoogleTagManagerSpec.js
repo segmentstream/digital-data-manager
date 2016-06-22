@@ -114,7 +114,12 @@ describe('Integrations: GoogleTagManager', () => {
 
     beforeEach(() => {
       window.dataLayer = [];
-      gtm = new GoogleTagManager(window.digitalData, true);
+      window.dataLayer.push = function() {
+        window.dataLayer.prototype.apply(this,arguments);
+      };
+      gtm = new GoogleTagManager(window.digitalData, {
+        noConflict: true
+      });
       ddManager.addIntegration('Google Tag Manager', gtm);
     });
 
