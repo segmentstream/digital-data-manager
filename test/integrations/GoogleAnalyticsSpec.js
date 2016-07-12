@@ -336,7 +336,7 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should map custom dimensions, metrics & cuntent groupings using event properties', (done) => {
+        it('should map custom dimensions, metrics & content groupings using event properties', (done) => {
           ga.setOption('metrics', {
             metric1: 'page.score'
           });
@@ -875,7 +875,7 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should send viewed product data', function() {
+        it('should send viewed product detail data', function() {
           window.digitalData.events.push({
             name: 'Viewed Product Detail',
             product: {
@@ -986,10 +986,9 @@ describe('Integrations: GoogleAnalytics', () => {
               name: 'my product',
               category: 'cat 1',
               skuCode: 'p-298',
-              listName: 'search results',
-              position: 2
             },
             listName: 'search results',
+            position: 2,
             callback: () => {
               assert.equal(window.ga.args.length, 4);
               assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
@@ -1013,22 +1012,26 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.events.push({
             name: 'Viewed Product',
             category: 'Ecommerce',
-            product: [
+            listItems: [
               {
-                currency: 'CAD',
-                unitPrice: 24.75,
-                name: 'my product',
-                category: 'cat 1',
-                skuCode: 'p-298',
+                product: {
+                  currency: 'CAD',
+                  unitPrice: 24.75,
+                  name: 'my product',
+                  category: 'cat 1',
+                  skuCode: 'p-298',
+                },
                 listName: 'search results',
                 position: 2
               },
               {
-                currency: 'CAD',
-                unitPrice: 24.75,
-                name: 'my product',
-                category: 'cat 1',
-                skuCode: 'p-299',
+                product: {
+                  currency: 'CAD',
+                  unitPrice: 24.75,
+                  name: 'my product',
+                  category: 'cat 1',
+                  skuCode: 'p-299',
+                },
                 listName: 'search results',
                 position: 2
               }
@@ -1065,7 +1068,7 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should send viewed product data from DDL', function() {
+        it.only('should send viewed product data from DDL', function() {
           window.digitalData.listing = {
             listName: 'search results',
             items: [
@@ -1136,8 +1139,16 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.events.push({
             name: 'Viewed Product',
             category: 'Ecommerce',
-            product: ['p-298', 'p-299'],
-            listName: 'search results',
+            listItems: [
+              {
+                product: 'p-298',
+                listName: 'search results',
+              },
+              {
+                product: 'p-299',
+                listName: 'search results',
+              }
+            ],
             callback: () => {
               assert.equal(window.ga.args.length, 6);
               assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
@@ -1197,7 +1208,7 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.events.push({
             name: 'Viewed Campaign',
             category: 'Promo',
-            campaign: [
+            campaigns: [
               {
                 id: 'PROMO_1234',
                 name: 'Summer Sale',
@@ -1274,7 +1285,7 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.events.push({
             name: 'Viewed Campaign',
             category: 'Promo',
-            campaign: ['PROMO_1234', 'PROMO_2345'],
+            campaigns: ['PROMO_1234', 'PROMO_2345'],
             callback: () => {
               assert.equal(window.ga.args.length, 5);
               assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'USD']);

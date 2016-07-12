@@ -349,11 +349,20 @@ describe('EventManager', () => {
     });
 
     it('should fire define key callback', (done) => {
-      _ddListener.push(['on', 'define:user.returning', (value) => {
+      _ddListener.push(['on', 'define:user.test', (value) => {
         assert.ok(value === true);
         done();
       }]);
-      _digitalData.user.returning = true;
+      _digitalData.user.test = true;
+    });
+
+    it('should fire define key callback', (done) => {
+      _digitalData.user.test = true;
+      let ddListener = _ddListener || [];
+      ddListener.push(['on', 'define:user.test', (value) => {
+        assert.ok(value === true);
+        done();
+      }]);
     });
 
     it('should fire define callback for array', (done) => {

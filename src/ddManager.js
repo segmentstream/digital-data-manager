@@ -81,6 +81,7 @@ function _prepareGlobals() {
     window[_digitalDataNamespace] = _digitalData;
   }
 
+  _digitalData.website = _digitalData.website || {};
   _digitalData.page = _digitalData.page || {};
   _digitalData.user = _digitalData.user || {};
   _digitalData.context = _digitalData.context || {};
@@ -142,7 +143,7 @@ function _initializeIntegrations(settings, onReady) {
 
 ddManager = {
 
-  VERSION: '1.0.19',
+  VERSION: '1.1.0',
 
   setAvailableIntegrations: (availableIntegrations) => {
     _availableIntegrations = availableIntegrations;

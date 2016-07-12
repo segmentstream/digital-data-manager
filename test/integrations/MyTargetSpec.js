@@ -13,6 +13,7 @@ describe('Integrations: MyTarget', () => {
 
   beforeEach(() => {
     window.digitalData = {
+      website: {},
       page: {},
       user: {},
       events: []
@@ -63,8 +64,8 @@ describe('Integrations: MyTarget', () => {
       });
 
       it('should return list defined in DDL using mapping', () => {
-        window.digitalData.page.region = 'New York';
-        myTarget.setOption('listProperty', 'page.region');
+        window.digitalData.website.region = 'New York';
+        myTarget.setOption('listProperty', 'website.region');
         myTarget.setOption('listPropertyMapping', {
           'New York': '5'
         });

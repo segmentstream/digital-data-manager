@@ -13,6 +13,7 @@ describe('Integrations: Criteo', () => {
 
   beforeEach(() => {
     window.digitalData = {
+      website: {},
       page: {},
       user: {},
       events: []
@@ -67,26 +68,26 @@ describe('Integrations: Criteo', () => {
         assert.deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "d" });
       });
 
-      it('should define "d" site type if digitalData.page.siteType is not one of: "desktop", "tablet" or "mobile"', () => {
-        window.digitalData.page.siteType = "test";
+      it('should define "d" site type if digitalData.website.type is not one of: "desktop", "tablet" or "mobile"', () => {
+        window.digitalData.website.type = "test";
         ddManager.initialize();
         assert.deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "d" });
       });
 
-      it('should define "d" site type if digitalData.page.siteType is "desktop"', () => {
-        window.digitalData.page.siteType = "desktop";
+      it('should define "d" site type if digitalData.website.type is "desktop"', () => {
+        window.digitalData.website.type = "desktop";
         ddManager.initialize();
         assert.deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "d" });
       });
 
-      it('should define "t" site type if digitalData.page.siteType is "tablet"', () => {
-        window.digitalData.page.siteType = "tablet";
+      it('should define "t" site type if digitalData.website.type is "tablet"', () => {
+        window.digitalData.website.type = "tablet";
         ddManager.initialize();
         assert.deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "t" });
       });
 
-      it('should define "m" site type if digitalData.page.siteType is "mobile"', () => {
-        window.digitalData.page.siteType = "mobile";
+      it('should define "m" site type if digitalData.website.type is "mobile"', () => {
+        window.digitalData.website.type = "mobile";
         ddManager.initialize();
         assert.deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "m" });
       });
@@ -96,9 +97,39 @@ describe('Integrations: Criteo', () => {
         ddManager.initialize();
         assert.deepEqual(window.criteo_q[2], { event: 'setEmail', email: window.digitalData.user.email });
       });
-
-
     });
+
+
+    describe('#initialize version <1.1.0', () => {
+      it('should define "d" site type if digitalData.page.siteType is not one of: "desktop", "tablet" or "mobile"', () => {
+        window.digitalData.version = '1.0.11';
+        window.digitalData.page.siteType = "test";
+        ddManager.initialize();
+        assert.deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "d" });
+      });
+
+      it('should define "d" site type if digitalData.page.siteType is "desktop"', () => {
+        window.digitalData.version = '1.0.11';
+        window.digitalData.page.siteType = "desktop";
+        ddManager.initialize();
+        assert.deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "d" });
+      });
+
+      it('should define "t" site type if digitalData.page.siteType is "tablet"', () => {
+        window.digitalData.version = '1.0.11';
+        window.digitalData.page.siteType = "tablet";
+        ddManager.initialize();
+        assert.deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "t" });
+      });
+
+      it('should define "m" site type if digitalData.page.siteType is "mobile"', () => {
+        window.digitalData.version = '1.0.11';
+        window.digitalData.page.siteType = "mobile";
+        ddManager.initialize();
+        assert.deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "m" });
+      });
+    });
+
   });
 
   describe('loading', function () {

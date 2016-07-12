@@ -1,5 +1,6 @@
 import Integration from './../Integration.js';
-import deleteProperty from './../functions/deleteProperty.js';
+import deleteProperty from './../functions/deleteProperty';
+import semver from './../functions/semver';
 
 function lineItemsToCriteoItems(lineItems) {
   const products = [];
@@ -44,8 +45,20 @@ class Criteo extends Integration {
 
     if (this.getOption('account') && !this.getOption('noConflict')) {
       const email = this.digitalData.user.email;
-      const siteType = (['desktop', 'tablet', 'mobile'].indexOf(this.digitalData.page.siteType) >= 0)
-              ? this.digitalData.page.siteType.toLocaleLowerCase() : 'desktop';
+      let siteType;
+      if (this.digitalData.version && semver.cmp(this.digitalData.version, '1.1.0') < 0) {
+        siteType = this.digitalData.page.siteType;
+      } else {
+        siteType = this.digitalData.website.type;
+      }
+
+      if (siteType) {
+        siteType = siteType.toLocaleLowerCase();
+      }
+
+      if (['desktop', 'tablet', 'mobile'].indexOf(siteType) < 0) {
+        siteType = 'desktop';
+      }
 
       window.criteo_q.push(
         {

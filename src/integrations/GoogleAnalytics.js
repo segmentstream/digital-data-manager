@@ -253,7 +253,6 @@ class GoogleAnalytics extends Integration {
 
   onViewedPage(event) {
     const page = event.page;
-    const campaign = this.get('context.campaign') || {};
     const pageview = {};
     const pageUrl = page.url;
     let pagePath = page.path;
@@ -265,12 +264,6 @@ class GoogleAnalytics extends Integration {
     pageview.page = pagePath;
     pageview.title = pageTitle;
     pageview.location = pageUrl;
-
-    if (campaign.name) pageview.campaignName = campaign.name;
-    if (campaign.source) pageview.campaignSource = campaign.source;
-    if (campaign.medium) pageview.campaignMedium = campaign.medium;
-    if (campaign.content) pageview.campaignContent = campaign.content;
-    if (campaign.term) pageview.campaignKeyword = campaign.term;
 
     // set
     this.ga('set', {
@@ -289,12 +282,19 @@ class GoogleAnalytics extends Integration {
   }
 
   onViewedProduct(event) {
-    let products = event.product;
-    if (!Array.isArray(products)) {
-      products = [products];
+    let listItems = event.listItems;
+    if ((!listItems || !Array.isArray(listItems)) && event.product) {
+      listItems = [
+        {
+          product: event.product,
+          listName: event.listName,
+          position: event.position,
+        }
+      ]
     }
 
-    for (const product of products) {
+    for (const listItem of listItems) {
+      const product = listItem.product;
       if (!product.id && !product.skuCode && !product.name) {
         continue;
       }
@@ -302,13 +302,13 @@ class GoogleAnalytics extends Integration {
       this.ga('ec:addImpression', {
         id: product.id || product.skuCode,
         name: product.name,
-        list: product.listName,
+        list: listItem.listName,
         category: product.category,
         brand: product.brand || product.manufacturer,
         price: product.unitSalePrice || product.unitPrice,
         currency: product.currency || this.getOption('defaultCurrency'),
         variant: product.variant,
-        position: product.position,
+        position: listItem.position,
       });
     }
 
@@ -438,9 +438,9 @@ class GoogleAnalytics extends Integration {
   }
 
   onViewedCampaign(event) {
-    let campaigns = event.campaign;
-    if (!Array.isArray(campaigns)) {
-      campaigns = [campaigns];
+    let campaigns = event.campaigns;
+    if ((!campaigns || !Array.isArray(campaigns)) && event.campaign) {
+      campaigns = [campaign];
     }
 
     this.loadEnhancedEcommerce();
@@ -519,8 +519,6 @@ class GoogleAnalytics extends Integration {
   }
 
   onCustomEvent(event) {
-    const campaign = this.get('context.campaign') || {};
-
     // custom dimensions & metrics
     const source = clone(event);
     deleteProperty(source, 'name');
@@ -535,12 +533,6 @@ class GoogleAnalytics extends Integration {
       eventValue: Math.round(event.value) || 0,
       nonInteraction: !!event.nonInteraction,
     };
-
-    if (campaign.name) payload.campaignName = campaign.name;
-    if (campaign.source) payload.campaignSource = campaign.source;
-    if (campaign.medium) payload.campaignMedium = campaign.medium;
-    if (campaign.content) payload.campaignContent = campaign.content;
-    if (campaign.term) payload.campaignKeyword = campaign.term;
 
     this.ga('send', 'event', payload);
   }
