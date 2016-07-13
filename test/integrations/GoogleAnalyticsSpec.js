@@ -303,39 +303,6 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should send the campaign info if it is included', (done) => {
-          window.digitalData.context.campaign = {
-            name: 'test',
-            source: 'test',
-            medium: 'test',
-            term: 'test',
-            content: 'test'
-          };
-          ga.setOption('includeSearch', true);
-          digitalData.events.push({
-            name: 'Viewed Page',
-            page: {
-              name: 'page name',
-              path: '/path',
-              queryString: '?q=1',
-              url: 'url'
-            },
-            callback: () => {
-              assert.ok(window.ga.calledWith('send', 'pageview', {
-                page: '/path?q=1',
-                title: 'page name',
-                location: 'url',
-                campaignName: 'test',
-                campaignSource: 'test',
-                campaignMedium: 'test',
-                campaignKeyword: 'test',
-                campaignContent: 'test'
-              }));
-              done();
-            }
-          });
-        });
-
         it('should map custom dimensions, metrics & cuntent groupings using event properties', (done) => {
           ga.setOption('metrics', {
             metric1: 'page.score'
@@ -383,33 +350,6 @@ describe('Integrations: GoogleAnalytics', () => {
                 eventLabel: undefined,
                 eventValue: 0,
                 nonInteraction: false
-              }));
-            }
-          });
-        });
-
-        it('should send an event with context', function () {
-          window.digitalData.context.campaign = {
-            name: 'test',
-            source: 'test',
-            medium: 'test',
-            term: 'test',
-            content: 'test'
-          };
-
-          window.digitalData.events.push({
-            callback: () => {
-              assert.ok(window.ga.calledWith('send', 'event', {
-                eventCategory: 'All',
-                eventAction: 'event',
-                eventLabel: undefined,
-                eventValue: 0,
-                nonInteraction: false,
-                campaignName: 'test',
-                campaignSource: 'test',
-                campaignMedium: 'test',
-                campaignKeyword: 'test',
-                campaignContent: 'test'
               }));
             }
           });

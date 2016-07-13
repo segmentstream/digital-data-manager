@@ -6130,7 +6130,7 @@ function _initializeIntegrations(settings, onReady) {
 
 ddManager = {
 
-  VERSION: '1.0.18',
+  VERSION: '1.0.19',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -7606,7 +7606,6 @@ var GoogleAnalytics = (function (_Integration) {
 
   GoogleAnalytics.prototype.onViewedPage = function onViewedPage(event) {
     var page = event.page;
-    var campaign = this.get('context.campaign') || {};
     var pageview = {};
     var pageUrl = page.url;
     var pagePath = page.path;
@@ -7618,12 +7617,6 @@ var GoogleAnalytics = (function (_Integration) {
     pageview.page = pagePath;
     pageview.title = pageTitle;
     pageview.location = pageUrl;
-
-    if (campaign.name) pageview.campaignName = campaign.name;
-    if (campaign.source) pageview.campaignSource = campaign.source;
-    if (campaign.medium) pageview.campaignMedium = campaign.medium;
-    if (campaign.content) pageview.campaignContent = campaign.content;
-    if (campaign.term) pageview.campaignKeyword = campaign.term;
 
     // set
     this.ga('set', {
@@ -7906,8 +7899,6 @@ var GoogleAnalytics = (function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onCustomEvent = function onCustomEvent(event) {
-    var campaign = this.get('context.campaign') || {};
-
     // custom dimensions & metrics
     var source = (0, _componentClone2['default'])(event);
     (0, _deleteProperty2['default'])(source, 'name');
@@ -7922,12 +7913,6 @@ var GoogleAnalytics = (function (_Integration) {
       eventValue: Math.round(event.value) || 0,
       nonInteraction: !!event.nonInteraction
     };
-
-    if (campaign.name) payload.campaignName = campaign.name;
-    if (campaign.source) payload.campaignSource = campaign.source;
-    if (campaign.medium) payload.campaignMedium = campaign.medium;
-    if (campaign.content) payload.campaignContent = campaign.content;
-    if (campaign.term) payload.campaignKeyword = campaign.term;
 
     this.ga('send', 'event', payload);
   };

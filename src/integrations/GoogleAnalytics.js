@@ -253,7 +253,6 @@ class GoogleAnalytics extends Integration {
 
   onViewedPage(event) {
     const page = event.page;
-    const campaign = this.get('context.campaign') || {};
     const pageview = {};
     const pageUrl = page.url;
     let pagePath = page.path;
@@ -265,12 +264,6 @@ class GoogleAnalytics extends Integration {
     pageview.page = pagePath;
     pageview.title = pageTitle;
     pageview.location = pageUrl;
-
-    if (campaign.name) pageview.campaignName = campaign.name;
-    if (campaign.source) pageview.campaignSource = campaign.source;
-    if (campaign.medium) pageview.campaignMedium = campaign.medium;
-    if (campaign.content) pageview.campaignContent = campaign.content;
-    if (campaign.term) pageview.campaignKeyword = campaign.term;
 
     // set
     this.ga('set', {
@@ -519,8 +512,6 @@ class GoogleAnalytics extends Integration {
   }
 
   onCustomEvent(event) {
-    const campaign = this.get('context.campaign') || {};
-
     // custom dimensions & metrics
     const source = clone(event);
     deleteProperty(source, 'name');
@@ -535,12 +526,6 @@ class GoogleAnalytics extends Integration {
       eventValue: Math.round(event.value) || 0,
       nonInteraction: !!event.nonInteraction,
     };
-
-    if (campaign.name) payload.campaignName = campaign.name;
-    if (campaign.source) payload.campaignSource = campaign.source;
-    if (campaign.medium) payload.campaignMedium = campaign.medium;
-    if (campaign.content) payload.campaignContent = campaign.content;
-    if (campaign.term) payload.campaignKeyword = campaign.term;
 
     this.ga('send', 'event', payload);
   }
