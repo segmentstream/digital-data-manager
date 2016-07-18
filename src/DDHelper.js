@@ -41,9 +41,9 @@ class DDHelper {
     }
   }
 
-  static getListItem(id, listName, digitalData) {
+  static getListItem(id, digitalData, listName) {
     // search in listings
-    let listingItem = {};
+    const listingItem = {};
     for (const listingKey of ['listing', 'recommendation']) {
       let listings = digitalData[listingKey];
       if (listings) {
@@ -57,7 +57,7 @@ class DDHelper {
                 const product = clone(listing.items[i]);
                 listingItem.product = product;
                 listingItem.position = (i + 1);
-                listingItem.listName = listName;
+                listingItem.listName = listName || listing.listName;
                 return listingItem;
               }
             }

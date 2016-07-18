@@ -507,14 +507,17 @@ describe('EventManager', () => {
 
     it('should fire Viewed Page and Viewed Product Category events', (done) => {
       _digitalData.page = {
-        type: 'category'
+        type: 'category',
+      };
+      _digitalData.listing = {
+        categoryId: '123',
       };
       setTimeout(() => {
         assert.ok(_digitalData.events.length === 3);
         assert.ok(_digitalData.events[1].name === 'Viewed Page');
         assert.ok(_digitalData.events[1].page.type === 'category');
         assert.ok(_digitalData.events[2].name === 'Viewed Product Category');
-        assert.ok(_digitalData.events[2].page.type === 'category');
+        assert.ok(_digitalData.events[2].listing.categoryId === '123');
         done();
       }, 101);
     });

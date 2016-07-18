@@ -283,14 +283,8 @@ class GoogleAnalytics extends Integration {
 
   onViewedProduct(event) {
     let listItems = event.listItems;
-    if ((!listItems || !Array.isArray(listItems)) && event.product) {
-      listItems = [
-        {
-          product: event.product,
-          listName: event.listName,
-          position: event.position,
-        }
-      ]
+    if ((!listItems || !Array.isArray(listItems)) && event.listItem) {
+      listItems = [event.listItem];
     }
 
     for (const listItem of listItems) {
@@ -316,10 +310,13 @@ class GoogleAnalytics extends Integration {
   }
 
   onClickedProduct(event) {
-    const product = event.product;
+    if (!event.listItem) {
+      return;
+    }
+    const product = event.listItem.product;
     this.loadEnhancedEcommerce(product.currency);
     this.enhancedEcommerceProductAction(event, 'click', {
-      list: product.listName,
+      list: event.listItem.listName,
     });
     this.pushEnhancedEcommerce(event);
   }
@@ -440,7 +437,7 @@ class GoogleAnalytics extends Integration {
   onViewedCampaign(event) {
     let campaigns = event.campaigns;
     if ((!campaigns || !Array.isArray(campaigns)) && event.campaign) {
-      campaigns = [campaign];
+      campaigns = [event.campaign];
     }
 
     this.loadEnhancedEcommerce();
@@ -537,17 +534,18 @@ class GoogleAnalytics extends Integration {
     this.ga('send', 'event', payload);
   }
 
-  enhancedEcommerceTrackProduct(product, quantity) {
+  enhancedEcommerceTrackProduct(product, quantity, position) {
     const gaProduct = {
       id: product.id || product.skuCode,
       name: product.name,
       category: product.category,
-      quantity: quantity,
       price: product.unitSalePrice || product.unitPrice,
       brand: product.brand || product.manufacturer,
       variant: product.variant,
       currency: product.currency,
     };
+    if (quantity) gaProduct.quantity = quantity;
+    if (position) gaProduct.position = position;
     // append coupon if it set
     // https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#measuring-transactions
     if (product.voucher) gaProduct.coupon = product.voucher;
@@ -555,7 +553,15 @@ class GoogleAnalytics extends Integration {
   }
 
   enhancedEcommerceProductAction(event, action, data) {
-    this.enhancedEcommerceTrackProduct(event.product, event.quantity);
+    let position;
+    let product;
+    if (event.listItem) {
+      position = event.listItem.position;
+      product = event.listItem.product;
+    } else {
+      product = event.product;
+    }
+    this.enhancedEcommerceTrackProduct(product, event.quantity, position);
     this.ga('ec:setAction', action, data || {});
   }
 }

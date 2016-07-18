@@ -303,39 +303,6 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should send the campaign info if it is included', (done) => {
-          window.digitalData.context.campaign = {
-            name: 'test',
-            source: 'test',
-            medium: 'test',
-            term: 'test',
-            content: 'test'
-          };
-          ga.setOption('includeSearch', true);
-          digitalData.events.push({
-            name: 'Viewed Page',
-            page: {
-              name: 'page name',
-              path: '/path',
-              queryString: '?q=1',
-              url: 'url'
-            },
-            callback: () => {
-              assert.ok(window.ga.calledWith('send', 'pageview', {
-                page: '/path?q=1',
-                title: 'page name',
-                location: 'url',
-                campaignName: 'test',
-                campaignSource: 'test',
-                campaignMedium: 'test',
-                campaignKeyword: 'test',
-                campaignContent: 'test'
-              }));
-              done();
-            }
-          });
-        });
-
         it('should map custom dimensions, metrics & content groupings using event properties', (done) => {
           ga.setOption('metrics', {
             metric1: 'page.score'
@@ -383,33 +350,6 @@ describe('Integrations: GoogleAnalytics', () => {
                 eventLabel: undefined,
                 eventValue: 0,
                 nonInteraction: false
-              }));
-            }
-          });
-        });
-
-        it('should send an event with context', function () {
-          window.digitalData.context.campaign = {
-            name: 'test',
-            source: 'test',
-            medium: 'test',
-            term: 'test',
-            content: 'test'
-          };
-
-          window.digitalData.events.push({
-            callback: () => {
-              assert.ok(window.ga.calledWith('send', 'event', {
-                eventCategory: 'All',
-                eventAction: 'event',
-                eventLabel: undefined,
-                eventValue: 0,
-                nonInteraction: false,
-                campaignName: 'test',
-                campaignSource: 'test',
-                campaignMedium: 'test',
-                campaignKeyword: 'test',
-                campaignContent: 'test'
               }));
             }
           });
@@ -893,7 +833,6 @@ describe('Integrations: GoogleAnalytics', () => {
                 name: 'my product',
                 category: 'cat 1',
                 price: 24.75,
-                quantity: undefined,
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD',
@@ -907,15 +846,17 @@ describe('Integrations: GoogleAnalytics', () => {
         it('should send clicked product data', function() {
           window.digitalData.events.push({
             name: 'Clicked Product',
-            product: {
-              currency: 'CAD',
-              unitPrice: 24.75,
-              name: 'my product',
-              category: 'cat 1',
-              skuCode: 'p-298',
-              listName: 'search results'
+            listItem: {
+              product: {
+                currency: 'CAD',
+                unitPrice: 24.75,
+                name: 'my product',
+                category: 'cat 1',
+                skuCode: 'p-298',
+                listName: 'search results'
+              },
+              listName: 'search results',
             },
-            listName: 'search results',
             callback: () => {
               assert.equal(window.ga.args.length, 5);
               assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
@@ -924,7 +865,6 @@ describe('Integrations: GoogleAnalytics', () => {
                 name: 'my product',
                 category: 'cat 1',
                 price: 24.75,
-                quantity: undefined,
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD',
@@ -953,8 +893,10 @@ describe('Integrations: GoogleAnalytics', () => {
           };
           window.digitalData.events.push({
             name: 'Clicked Product',
-            product: 'p-298',
-            listName: 'search results',
+            listItem: {
+              product: 'p-298',
+              listName: 'search results',
+            },
             callback: () => {
               assert.equal(window.ga.args.length, 5);
               assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
@@ -963,10 +905,10 @@ describe('Integrations: GoogleAnalytics', () => {
                 name: 'my product',
                 category: 'cat 1',
                 price: 24.75,
-                quantity: undefined,
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD',
+                position: 1
               }]);
               assert.deepEqual(window.ga.args[3], ['ec:setAction', 'click', {
                 list: 'search results'
@@ -980,15 +922,17 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.events.push({
             name: 'Viewed Product',
             category: 'Ecommerce',
-            product: {
-              currency: 'CAD',
-              unitPrice: 24.75,
-              name: 'my product',
-              category: 'cat 1',
-              skuCode: 'p-298',
+            listItem: {
+              product: {
+                currency: 'CAD',
+                unitPrice: 24.75,
+                name: 'my product',
+                category: 'cat 1',
+                skuCode: 'p-298',
+              },
+              listName: 'search results',
+              position: 2,
             },
-            listName: 'search results',
-            position: 2,
             callback: () => {
               assert.equal(window.ga.args.length, 4);
               assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
@@ -1068,7 +1012,7 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it.only('should send viewed product data from DDL', function() {
+        it('should send viewed product data from DDL', function() {
           window.digitalData.listing = {
             listName: 'search results',
             items: [
@@ -1093,8 +1037,10 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.events.push({
             name: 'Viewed Product',
             category: 'Ecommerce',
-            product: 'p-299',
-            listName: 'search results',
+            listItem: {
+              product: 'p-299',
+              listName: 'search results',
+            },
             callback: () => {
               assert.equal(window.ga.args.length, 4);
               assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
@@ -1742,7 +1688,6 @@ describe('Integrations: GoogleAnalytics', () => {
                 id: 'p-298',
                 name: undefined,
                 category: undefined,
-                quantity: undefined,
                 price: undefined,
                 brand: undefined,
                 variant: undefined,

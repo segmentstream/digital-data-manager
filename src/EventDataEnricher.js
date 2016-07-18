@@ -16,7 +16,7 @@ class EventDataEnricher
     }
 
     if (productId) {
-      const ddlProduct = DDHelper.getProduct(productId, digitalData, product.listName) || {};
+      const ddlProduct = DDHelper.getProduct(productId, digitalData) || {};
       if (ddlProduct) {
         product = Object.assign(ddlProduct, product);
       }
@@ -38,7 +38,7 @@ class EventDataEnricher
     }
 
     if (productId) {
-      const ddlListItem = DDHelper.getListItem(productId, listItem.listName, digitalData) || {};
+      const ddlListItem = DDHelper.getListItem(productId, digitalData, listItem.listName);
       if (ddlListItem) {
         listItem.product = Object.assign(ddlListItem.product, listItem.product);
         listItem = Object.assign(ddlListItem, listItem);
@@ -50,7 +50,7 @@ class EventDataEnricher
 
   static listItems(listItems, digitalData) {
     const result = [];
-    for (let listItem of listItems) {
+    for (const listItem of listItems) {
       const enrichedListItem = EventDataEnricher.listItem(listItem, digitalData);
       result.push(enrichedListItem);
     }
@@ -90,7 +90,7 @@ class EventDataEnricher
 
   static campaigns(campaigns, digitalData) {
     const result = [];
-    for (let campaign of campaigns) {
+    for (const campaign of campaigns) {
       result.push(EventDataEnricher.campaign(campaign, digitalData));
     }
     return result;

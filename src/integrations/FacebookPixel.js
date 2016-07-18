@@ -51,7 +51,7 @@ class FacebookPixel extends Integration {
     if (event.name === 'Viewed Page') {
       this.onViewedPage();
     } else if (event.name === 'Viewed Product Category') {
-      this.onViewedProductCategory(event.page);
+      this.onViewedProductCategory(event.listing);
     } else if (event.name === 'Viewed Product Detail') {
       this.onViewedProductDetail(event.product);
     } else if (event.name === 'Added Product') {
@@ -76,9 +76,9 @@ class FacebookPixel extends Integration {
     window.fbq('track', 'PageView');
   }
 
-  onViewedProductCategory(page) {
+  onViewedProductCategory(listing) {
     window.fbq('track', 'ViewContent', {
-      content_ids: [page.categoryId || ''],
+      content_ids: [listing.categoryId || ''],
       content_type: 'product_group',
     });
   }

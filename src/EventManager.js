@@ -237,6 +237,7 @@ class EventManager {
   enrichEventWithData(event) {
     const enrichableVars = [
       'product',
+      'listItem',
       'listItems',
       'transaction',
       'campaign',

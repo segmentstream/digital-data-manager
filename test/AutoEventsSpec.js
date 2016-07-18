@@ -63,13 +63,15 @@ describe('AutoEvents', () => {
 
   });
 
-
   describe('#fireViewedProductCategory', () => {
 
     beforeEach(() => {
       _digitalData = {
         page: {
           type: 'category'
+        },
+        listing: {
+          categoryId: '123'
         },
         events: []
       };
@@ -79,13 +81,46 @@ describe('AutoEvents', () => {
     it('should fire "Viewed Product Category" event', () => {
       _autoEvents.fireViewedProductCategory();
       assert.ok(_digitalData.events[0].name === 'Viewed Product Category');
-      assert.ok(_digitalData.events[0].page.type === 'category');
+      assert.ok(_digitalData.events[0].listing.categoryId === '123');
+      assert.ok(_digitalData.page.type === 'category');
     });
 
     it('should fire "Viewed Product Category" and "Viewed Page" event', () => {
       _autoEvents.onInitialize();
       assert.ok(_digitalData.events[1].name === 'Viewed Product Category');
-      assert.ok(_digitalData.events[1].page.type === 'category');
+      assert.ok(_digitalData.events[1].listing.categoryId === '123');
+      assert.ok(_digitalData.page.type === 'category');
+      assert.ok(_digitalData.events.length === 2);
+    });
+
+  });
+
+  describe('#fireViewedProductCategory DDL version <1.1.0', () => {
+
+    beforeEach(() => {
+      _digitalData = {
+        version: '1.0.0',
+        page: {
+          type: 'category',
+          categoryId: '123'
+        },
+        events: []
+      };
+      _autoEvents.setDigitalData(_digitalData);
+    });
+
+    it('should fire "Viewed Product Category" event', () => {
+      _autoEvents.fireViewedProductCategory();
+      assert.ok(_digitalData.events[0].name === 'Viewed Product Category');
+      assert.ok(_digitalData.events[0].listing.categoryId === '123');
+      assert.ok(_digitalData.page.type === 'category');
+    });
+
+    it('should fire "Viewed Product Category" and "Viewed Page" event', () => {
+      _autoEvents.onInitialize();
+      assert.ok(_digitalData.events[1].name === 'Viewed Product Category');
+      assert.ok(_digitalData.events[1].listing.categoryId === '123');
+      assert.ok(_digitalData.page.type === 'category');
       assert.ok(_digitalData.events.length === 2);
     });
 
@@ -184,8 +219,8 @@ describe('AutoEvents', () => {
     it('should fire "Searched" event', () => {
       _autoEvents.fireSearched();
       assert.ok(_digitalData.events[0].name === 'Searched');
-      assert.ok(_digitalData.events[0].query === 'some query');
-      assert.ok(_digitalData.events[0].resultCount === 10);
+      assert.ok(_digitalData.events[0].listing.query === 'some query');
+      assert.ok(_digitalData.events[0].listing.resultCount === 10);
     });
 
     it('should not fire "Searched" if there is no listing object', () => {
@@ -203,8 +238,8 @@ describe('AutoEvents', () => {
     it('should fire "Searched" and "Viewed Page" event', () => {
       _autoEvents.onInitialize();
       assert.ok(_digitalData.events[1].name === 'Searched');
-      assert.ok(_digitalData.events[1].query === 'some query');
-      assert.ok(_digitalData.events[1].resultCount === 10);
+      assert.ok(_digitalData.events[1].listing.query === 'some query');
+      assert.ok(_digitalData.events[1].listing.resultCount === 10);
       assert.ok(_digitalData.events.length === 2);
     });
 
