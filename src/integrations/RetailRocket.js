@@ -1,10 +1,19 @@
 import Integration from './../Integration.js';
-import deleteProperty from './../functions/deleteProperty.js';
-import getProperty from './../../src/functions/getProperty.js';
-import throwError from './../functions/throwError.js';
+import deleteProperty from './../functions/deleteProperty';
+import getProperty from './../../src/functions/getProperty';
+import throwError from './../functions/throwError';
+import each from './../functions/each';
+import clone from 'component-clone';
 import type from 'component-type';
-import format from './../functions/format.js';
-import getQueryParam from './../functions/getQueryParam.js';
+import format from './../functions/format';
+import getQueryParam from './../functions/getQueryParam';
+
+function getEventVars(event) {
+  const eventVars = clone(event);
+  deleteProperty(event, 'name');
+  deleteProperty(event, 'category');
+  return eventVars;
+}
 
 class RetailRocket extends Integration {
 
@@ -16,6 +25,7 @@ class RetailRocket extends Integration {
       noConflict: false,
       trackAllEmails: false,
       listMethods: {},
+      customVariables: {},
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -63,7 +73,7 @@ class RetailRocket extends Integration {
     deleteProperty(window, 'rrPartnerId');
     deleteProperty(window, 'rrApi');
     deleteProperty(window, 'rrApiOnReady');
-    deleteProperty(window, 'rcApi');
+    deleteProperty(window, 'rrApi');
     deleteProperty(window, 'retailrocket');
     deleteProperty(window, 'retailrocket_products');
     deleteProperty(window, 'rrLibrary');
@@ -86,13 +96,13 @@ class RetailRocket extends Integration {
       } else if (event.name === 'Completed Transaction') {
         this.onCompletedTransaction(event.transaction);
       } else if (event.name === 'Subscribed') {
-        this.onSubscribed(event.user);
+        this.onSubscribed(event.user, getEventVars(event));
       } else if (event.name === 'Searched') {
         this.onSearched(event.listing);
       }
     } else {
       if (event.name === 'Subscribed') {
-        this.onSubscribed(event.user);
+        this.onSubscribed(event.user, getEventVars(event));
       }
     }
   }
@@ -222,15 +232,28 @@ class RetailRocket extends Integration {
     });
   }
 
-  onSubscribed(user) {
+  onSubscribed(user, customs) {
     user = user || {};
     if (!user.email) {
       this.onValidationError('user.email');
       return;
     }
+
+    const rrCustoms = {};
+    if (customs) {
+      const settings = this.getOption('customVariables');
+      each(settings, (key, value) => {
+        let dimensionVal = getProperty(customs, value);
+        if (dimensionVal !== undefined) {
+          if (type(dimensionVal) === 'boolean') dimensionVal = dimensionVal.toString();
+          rrCustoms[key] = dimensionVal;
+        }
+      });
+    }
+
     window.rrApiOnReady.push(() => {
       try {
-        window.rrApi.setEmail(user.email);
+        window.rrApi.setEmail(user.email, rrCustoms);
       } catch (e) {
         this.onError(e);
       }

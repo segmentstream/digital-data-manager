@@ -4469,7 +4469,7 @@ function _initializeIntegrations(settings, onReady) {
 
 ddManager = {
 
-  VERSION: '1.1.0',
+  VERSION: '1.1.1',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -6778,27 +6778,35 @@ var _Integration2 = require('./../Integration.js');
 
 var _Integration3 = _interopRequireDefault(_Integration2);
 
-var _deleteProperty = require('./../functions/deleteProperty.js');
+var _deleteProperty = require('./../functions/deleteProperty');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
-var _getProperty = require('./../../src/functions/getProperty.js');
+var _getProperty = require('./../../src/functions/getProperty');
 
 var _getProperty2 = _interopRequireDefault(_getProperty);
 
-var _throwError = require('./../functions/throwError.js');
+var _throwError = require('./../functions/throwError');
 
 var _throwError2 = _interopRequireDefault(_throwError);
+
+var _each = require('./../functions/each');
+
+var _each2 = _interopRequireDefault(_each);
+
+var _componentClone = require('component-clone');
+
+var _componentClone2 = _interopRequireDefault(_componentClone);
 
 var _componentType = require('component-type');
 
 var _componentType2 = _interopRequireDefault(_componentType);
 
-var _format = require('./../functions/format.js');
+var _format = require('./../functions/format');
 
 var _format2 = _interopRequireDefault(_format);
 
-var _getQueryParam = require('./../functions/getQueryParam.js');
+var _getQueryParam = require('./../functions/getQueryParam');
 
 var _getQueryParam2 = _interopRequireDefault(_getQueryParam);
 
@@ -6824,6 +6832,13 @@ function _inherits(subClass, superClass) {
   }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
 }
 
+function getEventVars(event) {
+  var eventVars = (0, _componentClone2['default'])(event);
+  (0, _deleteProperty2['default'])(event, 'name');
+  (0, _deleteProperty2['default'])(event, 'category');
+  return eventVars;
+}
+
 var RetailRocket = function (_Integration) {
   _inherits(RetailRocket, _Integration);
 
@@ -6836,7 +6851,8 @@ var RetailRocket = function (_Integration) {
       trackProducts: true, // legacy setting, use noConflict instead
       noConflict: false,
       trackAllEmails: false,
-      listMethods: {}
+      listMethods: {},
+      customVariables: {}
     }, options);
 
     // legacy setting mapper
@@ -6884,7 +6900,7 @@ var RetailRocket = function (_Integration) {
     (0, _deleteProperty2['default'])(window, 'rrPartnerId');
     (0, _deleteProperty2['default'])(window, 'rrApi');
     (0, _deleteProperty2['default'])(window, 'rrApiOnReady');
-    (0, _deleteProperty2['default'])(window, 'rcApi');
+    (0, _deleteProperty2['default'])(window, 'rrApi');
     (0, _deleteProperty2['default'])(window, 'retailrocket');
     (0, _deleteProperty2['default'])(window, 'retailrocket_products');
     (0, _deleteProperty2['default'])(window, 'rrLibrary');
@@ -6907,13 +6923,13 @@ var RetailRocket = function (_Integration) {
       } else if (event.name === 'Completed Transaction') {
         this.onCompletedTransaction(event.transaction);
       } else if (event.name === 'Subscribed') {
-        this.onSubscribed(event.user);
+        this.onSubscribed(event.user, getEventVars(event));
       } else if (event.name === 'Searched') {
         this.onSearched(event.listing);
       }
     } else {
       if (event.name === 'Subscribed') {
-        this.onSubscribed(event.user);
+        this.onSubscribed(event.user, getEventVars(event));
       }
     }
   };
@@ -7055,7 +7071,7 @@ var RetailRocket = function (_Integration) {
     });
   };
 
-  RetailRocket.prototype.onSubscribed = function onSubscribed(user) {
+  RetailRocket.prototype.onSubscribed = function onSubscribed(user, customs) {
     var _this8 = this;
 
     user = user || {};
@@ -7063,9 +7079,22 @@ var RetailRocket = function (_Integration) {
       this.onValidationError('user.email');
       return;
     }
+
+    var rrCustoms = {};
+    if (customs) {
+      var settings = this.getOption('customVariables');
+      (0, _each2['default'])(settings, function (key, value) {
+        var dimensionVal = (0, _getProperty2['default'])(customs, value);
+        if (dimensionVal !== undefined) {
+          if ((0, _componentType2['default'])(dimensionVal) === 'boolean') dimensionVal = dimensionVal.toString();
+          rrCustoms[key] = dimensionVal;
+        }
+      });
+    }
+
     window.rrApiOnReady.push(function () {
       try {
-        window.rrApi.setEmail(user.email);
+        window.rrApi.setEmail(user.email, rrCustoms);
       } catch (e) {
         _this8.onError(e);
       }
@@ -7168,7 +7197,7 @@ var RetailRocket = function (_Integration) {
 
 exports['default'] = RetailRocket;
 
-},{"./../../src/functions/getProperty.js":72,"./../Integration.js":65,"./../functions/deleteProperty.js":69,"./../functions/format.js":71,"./../functions/getQueryParam.js":73,"./../functions/throwError.js":83,"component-type":4}],93:[function(require,module,exports){
+},{"./../../src/functions/getProperty":72,"./../Integration.js":65,"./../functions/deleteProperty":69,"./../functions/each":70,"./../functions/format":71,"./../functions/getQueryParam":73,"./../functions/throwError":83,"component-clone":2,"component-type":4}],93:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
