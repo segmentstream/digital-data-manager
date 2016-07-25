@@ -272,6 +272,10 @@ ddManager = {
     return DDHelper.getCampaign(id, _digitalData);
   },
 
+  getEventManager: () => {
+    return _eventManager;
+  },
+
   reset: () => {
     if (_eventManager instanceof EventManager) {
       _eventManager.reset();

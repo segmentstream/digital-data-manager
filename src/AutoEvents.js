@@ -23,6 +23,7 @@ class AutoEvents
       this.fireViewedPage();
       this.fireViewedProductCategory();
       this.fireViewedProductDetail();
+      this.fireViewedCart();
       this.fireCompletedTransaction();
       this.fireSearched();
 
@@ -52,12 +53,17 @@ class AutoEvents
     }
   }
 
+  getDOMComponentsTracking() {
+    return this.domComponentsTracking;
+  }
+
   onPageChange(newPage, oldPage) {
     if (String(newPage.pageId) !== String(oldPage.pageId) || newPage.url !== oldPage.url ||
         newPage.type !== oldPage.type || newPage.breadcrumb !== oldPage.breadcrumb
     ) {
       this.fireViewedPage();
       this.fireViewedProductCategory();
+      this.fireViewedCart();
       this.fireSearched();
     }
   }
@@ -114,6 +120,21 @@ class AutoEvents
       name: 'Viewed Product Detail',
       category: 'Ecommerce',
       product: product,
+      nonInteraction: true,
+    });
+  }
+
+  fireViewedCart() {
+    const page = this.digitalData.page || {};
+    const cart = this.digitalData.cart || {};
+    if (page.type !== 'cart') {
+      return;
+    }
+    this.digitalData.events.push({
+      enrichEventData: false,
+      name: 'Viewed Cart',
+      category: 'Ecommerce',
+      cart: cart,
       nonInteraction: true,
     });
   }
