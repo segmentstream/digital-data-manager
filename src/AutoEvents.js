@@ -1,5 +1,6 @@
 import DOMComponentsTracking from './DOMComponentsTracking.js';
 import type from 'component-type';
+import semver from './functions/semver';
 
 class AutoEvents
 {
@@ -22,6 +23,7 @@ class AutoEvents
       this.fireViewedPage();
       this.fireViewedProductCategory();
       this.fireViewedProductDetail();
+      this.fireViewedCart();
       this.fireCompletedTransaction();
       this.fireSearched();
 
@@ -51,13 +53,17 @@ class AutoEvents
     }
   }
 
+  getDOMComponentsTracking() {
+    return this.domComponentsTracking;
+  }
+
   onPageChange(newPage, oldPage) {
     if (String(newPage.pageId) !== String(oldPage.pageId) || newPage.url !== oldPage.url ||
-        newPage.type !== oldPage.type || newPage.breadcrumb !== oldPage.breadcrumb ||
-        String(newPage.categoryId) !== String(oldPage.categoryId)
+        newPage.type !== oldPage.type || newPage.breadcrumb !== oldPage.breadcrumb
     ) {
       this.fireViewedPage();
       this.fireViewedProductCategory();
+      this.fireViewedCart();
       this.fireSearched();
     }
   }
@@ -85,16 +91,21 @@ class AutoEvents
     });
   }
 
-  fireViewedProductCategory(page) {
-    page = page || this.digitalData.page || {};
+  fireViewedProductCategory() {
+    const page = this.digitalData.page || {};
+    const listing = this.digitalData.listing || {};
     if (page.type !== 'category') {
       return;
+    }
+    // compatibility with version <1.1.0
+    if (this.digitalData.version && semver.cmp(this.digitalData.version, '1.1.0') < 0) {
+      if (page.categoryId) listing.categoryId = page.categoryId;
     }
     this.digitalData.events.push({
       enrichEventData: false,
       name: 'Viewed Product Category',
       category: 'Ecommerce',
-      page: page,
+      listing: listing,
       nonInteraction: true,
     });
   }
@@ -109,6 +120,21 @@ class AutoEvents
       name: 'Viewed Product Detail',
       category: 'Ecommerce',
       product: product,
+      nonInteraction: true,
+    });
+  }
+
+  fireViewedCart() {
+    const page = this.digitalData.page || {};
+    const cart = this.digitalData.cart || {};
+    if (page.type !== 'cart') {
+      return;
+    }
+    this.digitalData.events.push({
+      enrichEventData: false,
+      name: 'Viewed Cart',
+      category: 'Ecommerce',
+      cart: cart,
       nonInteraction: true,
     });
   }
@@ -135,9 +161,8 @@ class AutoEvents
       enrichEventData: false,
       name: 'Searched',
       category: 'Content',
-      query: listing.query,
+      listing: listing,
     };
-    if (listing.resultCount) event.resultCount = listing.resultCount;
     this.digitalData.events.push(event);
   }
 }

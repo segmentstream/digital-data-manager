@@ -349,11 +349,20 @@ describe('EventManager', () => {
     });
 
     it('should fire define key callback', (done) => {
-      _ddListener.push(['on', 'define:user.returning', (value) => {
+      _ddListener.push(['on', 'define:user.test', (value) => {
         assert.ok(value === true);
         done();
       }]);
-      _digitalData.user.returning = true;
+      _digitalData.user.test = true;
+    });
+
+    it('should fire define key callback', (done) => {
+      _digitalData.user.test = true;
+      let ddListener = _ddListener || [];
+      ddListener.push(['on', 'define:user.test', (value) => {
+        assert.ok(value === true);
+        done();
+      }]);
     });
 
     it('should fire define callback for array', (done) => {
@@ -498,14 +507,17 @@ describe('EventManager', () => {
 
     it('should fire Viewed Page and Viewed Product Category events', (done) => {
       _digitalData.page = {
-        type: 'category'
+        type: 'category',
+      };
+      _digitalData.listing = {
+        categoryId: '123',
       };
       setTimeout(() => {
         assert.ok(_digitalData.events.length === 3);
         assert.ok(_digitalData.events[1].name === 'Viewed Page');
         assert.ok(_digitalData.events[1].page.type === 'category');
         assert.ok(_digitalData.events[2].name === 'Viewed Product Category');
-        assert.ok(_digitalData.events[2].page.type === 'category');
+        assert.ok(_digitalData.events[2].listing.categoryId === '123');
         done();
       }, 101);
     });

@@ -19,6 +19,14 @@ describe('DDManager', () => {
       assert.ok(Array.isArray(window.ddListener));
     });
 
+    it('should initialize website, page, user and cart objects', () => {
+      ddManager.initialize();
+      assert.ok(window.digitalData.website);
+      assert.ok(window.digitalData.page);
+      assert.ok(window.digitalData.user);
+      assert.ok(window.digitalData.cart); // if page !== 'confirmation'
+    });
+
     it('should work well with async load using stubs from the snippet', () => {
       snippet();
       window.ddManager.initialize();

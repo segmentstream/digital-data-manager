@@ -108,13 +108,85 @@ describe('DDHelper', () => {
       assert.ok(DDHelper.getProduct('4', _digitalData).id === '4');
     });
 
-    it('should get product from recommendation key from list "recom"', () => {
+    it('should get product from list key without any listName properties', () => {
       assert.ok(DDHelper.getProduct('5', _digitalData, 'recom').id === '5');
-      assert.ok(DDHelper.getProduct('5', _digitalData, 'recom').listName === 'recom');
+      assert.ok(!DDHelper.getProduct('5', _digitalData, 'recom').listName);
     });
 
     it('should get product from cart key', () => {
       assert.ok(DDHelper.getProduct('6', _digitalData).id === '6');
+    });
+  });
+
+  describe('#getListItem', () => {
+    before(() => {
+      _digitalData = {
+        page: {
+          type: 'category'
+        },
+        user: {
+          email: 'text@email.com',
+          userId: '123'
+        },
+        product: {
+          id: '1'
+        },
+        listing: {
+          items: [
+            {
+              id: '2'
+            },
+            {
+              id: '3'
+            },
+            {
+              id: '5'
+            }
+          ]
+        },
+        recommendation: {
+          listName: 'recom',
+          items: [
+            {
+              id: '4'
+            },
+            {
+              id: '5'
+            }
+          ]
+        },
+        cart: {
+          lineItems: [
+            {
+              product: {
+                id: '6'
+              },
+              quantity: 2
+            }
+          ]
+        }
+      };
+    });
+
+    it('should not get product from product key', () => {
+      assert.ok(!DDHelper.getListItem('1', _digitalData));
+    });
+
+    it('should get product from listing key', () => {
+      assert.ok(DDHelper.getListItem('2', _digitalData).product.id === '2');
+    });
+
+    it('should get product from recommendation key', () => {
+      assert.ok(DDHelper.getListItem('4', _digitalData).product.id === '4');
+    });
+
+    it('should get product from recommendation key from list "recom"', () => {
+      assert.ok(DDHelper.getListItem('5', _digitalData, 'recom').product.id === '5');
+      assert.ok(DDHelper.getListItem('5', _digitalData, 'recom').listName === 'recom');
+    });
+
+    it('should not get product from cart key', () => {
+      assert.ok(!DDHelper.getListItem('6', _digitalData));
     });
   });
 

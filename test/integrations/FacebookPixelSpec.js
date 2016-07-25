@@ -102,8 +102,7 @@ describe('Integrations: FacebookPixel', () => {
         window.digitalData.events.push({
           name: 'Viewed Product Category',
           category: 'Ecommerce',
-          page: {
-            type: 'category',
+          listing: {
             categoryId: '123',
           },
           callback: () => {

@@ -74,6 +74,10 @@ class EventManager {
     _autoEvents.setDDListener(_ddListener);
   }
 
+  getAutoEvents() {
+    return _autoEvents;
+  }
+
   checkForChanges() {
     if (_callbacks.change && _callbacks.change.length > 0 || _callbacks.define && _callbacks.define.length > 0 ) {
       const digitalDataWithoutEvents = _getCopyWithoutEvents(_digitalData);
@@ -237,8 +241,11 @@ class EventManager {
   enrichEventWithData(event) {
     const enrichableVars = [
       'product',
+      'listItem',
+      'listItems',
       'transaction',
       'campaign',
+      'campaigns',
       'user',
       'page',
     ];

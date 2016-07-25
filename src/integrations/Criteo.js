@@ -1,5 +1,6 @@
 import Integration from './../Integration.js';
-import deleteProperty from './../functions/deleteProperty.js';
+import deleteProperty from './../functions/deleteProperty';
+import semver from './../functions/semver';
 
 function lineItemsToCriteoItems(lineItems) {
   const products = [];
@@ -44,8 +45,20 @@ class Criteo extends Integration {
 
     if (this.getOption('account') && !this.getOption('noConflict')) {
       const email = this.digitalData.user.email;
-      const siteType = (['desktop', 'tablet', 'mobile'].indexOf(this.digitalData.page.siteType) >= 0)
-              ? this.digitalData.page.siteType.toLocaleLowerCase() : 'desktop';
+      let siteType;
+      if (this.digitalData.version && semver.cmp(this.digitalData.version, '1.1.0') < 0) {
+        siteType = this.digitalData.page.siteType;
+      } else {
+        siteType = this.digitalData.website.type;
+      }
+
+      if (siteType) {
+        siteType = siteType.toLocaleLowerCase();
+      }
+
+      if (['desktop', 'tablet', 'mobile'].indexOf(siteType) < 0) {
+        siteType = 'desktop';
+      }
 
       window.criteo_q.push(
         {
@@ -94,6 +107,9 @@ class Criteo extends Integration {
       'Viewed Page': 'onViewedPage',
       'Viewed Product Detail': 'onViewedProductDetail',
       'Completed Transaction': 'onCompletedTransaction',
+      'Viewed Product Category': 'onViewedProductListing',
+      'Viewed Cart': 'onViewedCart',
+      'Searched': 'onViewedProductListing',
       'Subscribed': 'onSubscribed',
     };
 
@@ -110,14 +126,7 @@ class Criteo extends Integration {
     if (page) {
       if (page.type === 'home') {
         this.onViewedHome();
-      } else if (page.type === 'cart') {
-        this.onViewedCart();
       }
-    }
-
-    const listing = this.digitalData.listing;
-    if (listing && listing.items && listing.items.length) {
-      this.onViewedProductListing();
     }
   }
 
@@ -129,8 +138,11 @@ class Criteo extends Integration {
     );
   }
 
-  onViewedProductListing() {
-    const items = this.digitalData.listing.items;
+  onViewedProductListing(event) {
+    const listing = event.listing;
+    if (!listing || !listing.items || !listing.items.length) return;
+
+    const items = listing.items;
     const productIds = [];
     let length = 3;
     if (items.length < 3) {
@@ -168,8 +180,8 @@ class Criteo extends Integration {
     }
   }
 
-  onViewedCart() {
-    const cart = this.digitalData.cart;
+  onViewedCart(event) {
+    const cart = event.cart;
     if (cart && cart.lineItems && cart.lineItems.length > 0) {
       const products = lineItemsToCriteoItems(cart.lineItems);
       if (products.length > 0) {

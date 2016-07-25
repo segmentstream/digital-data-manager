@@ -6,6 +6,7 @@ class GoogleTagManager extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       containerId: null,
+      noConflict: false,
     }, options);
     super(digitalData, optionsWithDefaults);
     this.addTag({
@@ -17,7 +18,7 @@ class GoogleTagManager extends Integration {
   }
 
   initialize() {
-    if (this.getOption('containerId')) {
+    if (this.getOption('containerId') && this.getOption('noConflict') === false) {
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({ 'gtm.start': Number(new Date()), event: 'gtm.js' });
       this.load(this.ready);

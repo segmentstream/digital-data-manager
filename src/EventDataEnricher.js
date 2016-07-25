@@ -3,37 +3,56 @@ import DDHelper from './DDHelper.js';
 
 class EventDataEnricher
 {
-  static product(productArr, digitalData) {
-    productArr = productArr || [];
+  static product(product, digitalData) {
     let productId;
-    let returnArray = true;
-    if (!Array.isArray(productArr)) {
-      returnArray = false;
-      productArr = [productArr];
+
+    if (type(product) === 'object') {
+      productId = product.id;
+    } else {
+      productId = product;
+      product = {
+        id: productId,
+      };
     }
 
+    if (productId) {
+      const ddlProduct = DDHelper.getProduct(productId, digitalData) || {};
+      if (ddlProduct) {
+        product = Object.assign(ddlProduct, product);
+      }
+    }
+
+    return product;
+  }
+
+  static listItem(listItem, digitalData) {
+    let productId;
+
+    if (type(listItem.product) === 'object') {
+      productId = listItem.product.id;
+    } else {
+      productId = listItem.product;
+      listItem.product = {
+        id: productId,
+      };
+    }
+
+    if (productId) {
+      const ddlListItem = DDHelper.getListItem(productId, digitalData, listItem.listName);
+      if (ddlListItem) {
+        listItem.product = Object.assign(ddlListItem.product, listItem.product);
+        listItem = Object.assign(ddlListItem, listItem);
+      }
+    }
+
+    return listItem;
+  }
+
+  static listItems(listItems, digitalData) {
     const result = [];
-    for (let product of productArr) {
-      if (type(product) === 'object') {
-        productId = product.id;
-      } else {
-        productId = product;
-        product = {
-          id: productId,
-        };
-      }
-
-      if (productId) {
-        const ddlProduct = DDHelper.getProduct(productId, digitalData, product.listName) || {};
-        if (ddlProduct) {
-          product = Object.assign(ddlProduct, product);
-        }
-      }
-      result.push(product);
-    }
-
-    if (!returnArray) {
-      return result.pop();
+    for (const listItem of listItems) {
+      const enrichedListItem = EventDataEnricher.listItem(listItem, digitalData);
+      result.push(enrichedListItem);
     }
     return result;
   }
@@ -48,37 +67,31 @@ class EventDataEnricher
     return transaction;
   }
 
-  static campaign(campaignArr, digitalData) {
-    campaignArr = campaignArr || [];
+  static campaign(campaign, digitalData) {
     let campaignId;
-    let returnArray = true;
-    if (!Array.isArray(campaignArr)) {
-      returnArray = false;
-      campaignArr = [campaignArr];
+    if (type(campaign) === 'object') {
+      campaignId = campaign.id;
+    } else {
+      campaignId = campaign;
+      campaign = {
+        id: campaignId,
+      };
     }
 
+    if (campaignId) {
+      const ddlCampaign = DDHelper.getCampaign(campaignId, digitalData) || {};
+      if (ddlCampaign) {
+        campaign = Object.assign(ddlCampaign, campaign);
+      }
+    }
+
+    return campaign;
+  }
+
+  static campaigns(campaigns, digitalData) {
     const result = [];
-    for (let campaign of campaignArr) {
-      if (type(campaign) === 'object') {
-        campaignId = campaign.id;
-      } else {
-        campaignId = campaign;
-        campaign = {
-          id: campaignId,
-        };
-      }
-
-      if (campaignId) {
-        const ddlCampaign = DDHelper.getCampaign(campaignId, digitalData) || {};
-        if (ddlCampaign) {
-          campaign = Object.assign(ddlCampaign, campaign);
-        }
-      }
-      result.push(campaign);
-    }
-
-    if (!returnArray) {
-      return result.pop();
+    for (const campaign of campaigns) {
+      result.push(EventDataEnricher.campaign(campaign, digitalData));
     }
     return result;
   }

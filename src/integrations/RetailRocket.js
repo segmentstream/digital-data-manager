@@ -76,19 +76,19 @@ class RetailRocket extends Integration {
   trackEvent(event) {
     if (this.getOption('noConflict') !== true) {
       if (event.name === 'Viewed Product Category') {
-        this.onViewedProductCategory(event.page);
+        this.onViewedProductCategory(event.listing);
       } else if (event.name === 'Added Product') {
         this.onAddedProduct(event.product);
       } else if (event.name === 'Viewed Product Detail') {
         this.onViewedProductDetail(event.product);
       } else if (event.name === 'Clicked Product') {
-        this.onClickedProduct(event.product);
+        this.onClickedProduct(event.listItem);
       } else if (event.name === 'Completed Transaction') {
         this.onCompletedTransaction(event.transaction);
       } else if (event.name === 'Subscribed') {
         this.onSubscribed(event.user);
       } else if (event.name === 'Searched') {
-        this.onSearched(event.query);
+        this.onSearched(event.listing);
       }
     } else {
       if (event.name === 'Subscribed') {
@@ -117,11 +117,11 @@ class RetailRocket extends Integration {
     }
   }
 
-  onViewedProductCategory(page) {
-    page = page || {};
-    const categoryId = page.categoryId;
+  onViewedProductCategory(listing) {
+    listing = listing || {};
+    const categoryId = listing.categoryId;
     if (!categoryId) {
-      this.onValidationError('page.categoryId');
+      this.onValidationError('listing.categoryId');
       return;
     }
     window.rrApiOnReady.push(() => {
@@ -163,13 +163,17 @@ class RetailRocket extends Integration {
     });
   }
 
-  onClickedProduct(product) {
-    const productId = this.getProductId(product);
-    if (!productId) {
-      this.onValidationError('product.id');
+  onClickedProduct(listItem) {
+    if (!listItem) {
+      this.onValidationError('listItem.product.id');
       return;
     }
-    const listName = product.listName;
+    const productId = this.getProductId(listItem.product);
+    if (!productId) {
+      this.onValidationError('listItem.product.id');
+      return;
+    }
+    const listName = listItem.listName;
     if (!listName) {
       return;
     }
@@ -233,14 +237,15 @@ class RetailRocket extends Integration {
     });
   }
 
-  onSearched(query) {
-    if (!query) {
-      this.onValidationError('query');
+  onSearched(listing) {
+    listing = listing || {};
+    if (!listing.query) {
+      this.onValidationError('listing.query');
       return;
     }
     window.rrApiOnReady.push(() => {
       try {
-        window.rrApi.search(query);
+        window.rrApi.search(listing.query);
       } catch (e) {
         this.onError(e);
       }

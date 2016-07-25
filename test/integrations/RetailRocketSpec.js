@@ -125,7 +125,7 @@ describe('Integrations: RetailRocket', () => {
         window.digitalData.events.push({
           name: 'Viewed Product Category',
           category: 'Ecommerce',
-          page: {
+          listing: {
             categoryId: '28'
           },
           callback: () => {
@@ -153,7 +153,7 @@ describe('Integrations: RetailRocket', () => {
         window.digitalData.events.push({
           name: 'Viewed Product Category',
           category: 'Ecommerce',
-          page: {
+          listing: {
             categoryId: '28'
           },
           callback: () => {
@@ -302,11 +302,12 @@ describe('Integrations: RetailRocket', () => {
         window.digitalData.events.push({
           name: 'Clicked Product',
           category: 'Ecommerce',
-          product: {
-            id: '327',
+          listItem: {
+            product: {
+              id: '327',
+            },
             listName: 'recom1'
           },
-          quantity: 1,
           callback: () => {
             assert.ok(window.rrApi.recomMouseDown.calledWith('327', 'Related'));
             done();
@@ -334,8 +335,9 @@ describe('Integrations: RetailRocket', () => {
         window.digitalData.events.push({
           name: 'Clicked Product',
           category: 'Ecommerce',
-          product: '327',
-          quantity: 1,
+          listItem: {
+            product: '327',
+          },
           callback: () => {
             assert.ok(window.rrApi.recomMouseDown.calledWith('327', 'Related'));
             done();
@@ -363,8 +365,10 @@ describe('Integrations: RetailRocket', () => {
         window.digitalData.events.push({
           name: 'Clicked Product',
           category: 'Ecommerce',
-          product: {
-            id: '327'
+          listItem: {
+            product: {
+              id: '327'
+            },
           },
           callback: (results, errors) => {
             assert.ok(!window.rrApi.recomMouseDown.called);
@@ -379,8 +383,10 @@ describe('Integrations: RetailRocket', () => {
         window.digitalData.events.push({
           name: 'Clicked Product',
           category: 'Ecommerce',
-          product: {
-            id: '327',
+          listItem: {
+            product: {
+              id: '327',
+            },
             listName: 'recom1'
           },
           callback: (results, errors) => {
@@ -747,7 +753,9 @@ describe('Integrations: RetailRocket', () => {
         window.digitalData.events.push({
           name: 'Searched',
           category: 'Content',
-          query: 'Test query',
+          listing: {
+            query: 'Test query',
+          },
           callback: () => {
             assert.ok(window.rrApi.search.calledWith('Test query'));
             done();
@@ -772,7 +780,9 @@ describe('Integrations: RetailRocket', () => {
         window.digitalData.events.push({
           name: 'Searched',
           category: 'Content',
-          query: 'Test query',
+          listing: {
+            query: 'Test query',
+          },
           callback: () => {
             assert.ok(!window.rrApi.search.called);
             done();

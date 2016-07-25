@@ -112,10 +112,12 @@ class DOMComponentsTracking
         if (this.viewedComponentIds[type].indexOf(id) < 0 && this.isVisible($el)) {
           this.viewedComponentIds[type].push(id);
           if (type === 'product') {
-            const product = { id };
+            const listItem = {
+              product: { id },
+            };
             const listName = this.findParentByDataAttr('ddl-product-list-name', $el).data('ddl-product-list-name');
-            if (listName) product.listName = listName;
-            newViewedComponents.push(product);
+            if (listName) listItem.listName = listName;
+            newViewedComponents.push(listItem);
           } else {
             newViewedComponents.push(id);
           }
@@ -144,38 +146,41 @@ class DOMComponentsTracking
     }, 500);
   }
 
-  fireViewedProduct(products) {
+  fireViewedProduct(listItems) {
     window.digitalData.events.push({
       name: 'Viewed Product',
       category: 'Ecommerce',
-      product: products,
+      listItems,
     });
   }
 
-  fireViewedCampaign(campaignIds) {
+  fireViewedCampaign(campaigns) {
     window.digitalData.events.push({
       name: 'Viewed Campaign',
       category: 'Promo',
-      campaign: campaignIds,
+      campaigns,
     });
   }
 
   fireClickedProduct(productId, listName) {
+    const listItem = {
+      product: {
+        id: productId,
+      },
+    };
+    if (listName) listItem.listName = listName;
     window.digitalData.events.push({
       name: 'Clicked Product',
       category: 'Ecommerce',
-      product: {
-        id: productId,
-        listName: listName,
-      },
+      listItem,
     });
   }
 
-  fireClickedCampaign(campaignId) {
+  fireClickedCampaign(campaign) {
     window.digitalData.events.push({
       name: 'Clicked Campaign',
       category: 'Promo',
-      campaign: campaignId,
+      campaign,
     });
   }
 
