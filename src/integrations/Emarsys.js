@@ -5,23 +5,23 @@ function go() {
   window.ScarabQueue.push(['go']);
 }
 
-function mapLineItems(lineItems) {
-  return lineItems.map(function(lineItem) {
-    const product = lineItem.product;
-    const lineItemSubtotal = lineItem.subtotal || calculateLineItemSubtotal(lineItem);
-    return {
-      item: product.id || product.skuCode,
-      price: lineItemSubtotal,
-      quantity: lineItem.quantity || 1
-    }
-  });
-}
-
 function calculateLineItemSubtotal(lineItem) {
   const product = lineItem.product;
   const price = product.unitSalePrice || product.unitPrice || 0;
   const quantity = lineItem.quantity || 1;
   return price * quantity;
+}
+
+function mapLineItems(lineItems) {
+  return lineItems.map(function mapLineItem(lineItem) {
+    const product = lineItem.product;
+    const lineItemSubtotal = lineItem.subtotal || calculateLineItemSubtotal(lineItem);
+    return {
+      item: product.id || product.skuCode,
+      price: lineItemSubtotal,
+      quantity: lineItem.quantity || 1,
+    };
+  });
 }
 
 class Emarsys extends Integration {
@@ -63,18 +63,20 @@ class Emarsys extends Integration {
 
   enrichDigitalData(done) {
     // TODO
-    //ScarabQueue.push(['recommend', {
-    //  logic: 'TOPICAL',
-    //  limit: 2,
-    //  containerId: 'personal-recs',
-    //  success: function(SC) {
-    //    var container = SC.recommender.container;
-    //    delete SC.recommender.container;
-    //    container.innerHTML = JSON.stringify(SC, null, '  ');
-    //    done();
-    //  }
-    //}]);
-    //ScarabQueue.push(['go']);
+    /*
+    ScarabQueue.push(['recommend', {
+      logic: 'TOPICAL',
+      limit: 2,
+      containerId: 'personal-recs',
+      success: function(SC) {
+        var container = SC.recommender.container;
+        delete SC.recommender.container;
+        container.innerHTML = JSON.stringify(SC, null, '  ');
+        done();
+      }
+    }]);
+    ScarabQueue.push(['go']);
+    */
     done();
   }
 
@@ -119,7 +121,6 @@ class Emarsys extends Integration {
     if (['product', 'category', 'search', 'confirmation'].indexOf(page.type) < 0) {
       go();
     }
-
   }
 
   onViewedProductCategory(event) {
@@ -148,7 +149,7 @@ class Emarsys extends Integration {
     const transaction = event.transaction;
     window.ScarabQueue.push(['purchase', {
       orderId: transaction.orderId,
-      items: mapLineItems(transaction.lineItems)
+      items: mapLineItems(transaction.lineItems),
     }]);
     go();
   }

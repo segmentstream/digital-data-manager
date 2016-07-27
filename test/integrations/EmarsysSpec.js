@@ -1,14 +1,65 @@
 import assert from 'assert';
 import sinon from 'sinon';
-import reset from './../reset.js';
-import MyTarget from './../../src/integrations/MyTarget.js';
-import ddManager from './../../src/ddManager.js';
+import reset from './../reset';
+import Emarsys from './../../src/integrations/Emarsys';
+import ddManager from './../../src/ddManager';
+
+function viewedPage(callback, page = {}) {
+  window.digitalData.events.push({
+    name: 'Viewed Page',
+    category: 'Content',
+    page,
+    callback,
+  });
+}
+
+function viewedPageOfType(type, callback) {
+  viewedPage(callback, { type });
+}
+
+function viewedProductCategory(category, callback) {
+  window.digitalData.events.push({
+    name: 'Viewed Product Category',
+    category: 'Ecommerce',
+    listing: { category },
+    callback,
+  });
+}
+
+function searched(query, callback) {
+  window.digitalData.events.push({
+    name: 'Searched',
+    category: 'Content',
+    listing: { query },
+    callback,
+  })
+}
+
+function viewedProductDetail(productId, callback) {
+  window.digitalData.events.push({
+    name: 'Viewed Product Detail',
+    category: 'Ecommerce',
+    product: {
+      id: productId
+    },
+    callback,
+  });
+}
+
+function completedTransaction(transaction, callback) {
+  window.digitalData.events.push({
+    name: 'Completed Transaction',
+    category: 'Ecommerce',
+    transaction,
+    callback,
+  })
+}
 
 describe('Integrations: Emarsys', () => {
 
-  let myTarget;
+  let emarsys;
   const options = {
-    counterId: '123',
+    merchantId: '123',
   };
 
   beforeEach(() => {
@@ -18,94 +69,65 @@ describe('Integrations: Emarsys', () => {
       user: {},
       events: []
     };
-    myTarget = new MyTarget(window.digitalData, options);
-    ddManager.addIntegration('MyTarget', myTarget);
+    emarsys = new Emarsys(window.digitalData, options);
+    ddManager.addIntegration('Emarsys', emarsys);
   });
 
   afterEach(() => {
-    myTarget.reset();
+    emarsys.reset();
     ddManager.reset();
     reset();
   });
 
   describe('before loading', () => {
     beforeEach(function () {
-      sinon.stub(myTarget, 'load');
+      sinon.stub(emarsys, 'load');
     });
 
     afterEach(function () {
-      myTarget.load.restore();
+      emarsys.load.restore();
     });
 
     describe('#constructor', () => {
       it('should add proper tags and options', () => {
-        assert.equal(options.counterId, myTarget.getOption('counterId'));
-        assert.equal(options.listProperty, myTarget.getOption('listProperty'));
-        assert.deepEqual(options.listPropertyMapping, myTarget.getOption('listPropertyMapping'));
-        assert.equal('script', myTarget.getTag().type);
-        assert.equal(myTarget.getTag().attr.src, '//top-fwz1.mail.ru/js/code.js');
-      });
-    });
-
-    describe('#getList', () => {
-      it('should return default list', () => {
-        assert.equal(myTarget.getList(), '1');
-      });
-
-      it('should return defined list', () => {
-        myTarget.setOption('list', '5');
-        assert.equal(myTarget.getList(), '5');
-      });
-
-      it('should return list defined in DDL', () => {
-        window.digitalData.page.list = '5';
-        myTarget.setOption('listProperty', 'page.list');
-        assert.equal(myTarget.getList(), '5');
-      });
-
-      it('should return list defined in DDL using mapping', () => {
-        window.digitalData.website.region = 'New York';
-        myTarget.setOption('listProperty', 'website.region');
-        myTarget.setOption('listPropertyMapping', {
-          'New York': '5'
-        });
-        assert.equal(myTarget.getList(), '5');
+        assert.equal(options.merchantId, emarsys.getOption('merchantId'));
+        assert.equal('script', emarsys.getTag().type);
+        assert.equal(emarsys.getTag().attr.src, `//recommender.scarabresearch.com/js/${options.merchantId}/scarab-v2.js`);
       });
     });
 
     describe('#initialize', () => {
-      it('should initialize mytarget queue object', () => {
+      it('should initialize emarsys queue object', () => {
         ddManager.initialize();
-        assert.ok(window._tmr);
-        assert.ok(window._tmr.push);
+        assert.ok(window.ScarabQueue);
+        assert.ok(window.ScarabQueue.push);
       });
 
       it('should call tags load after initialization', () => {
         ddManager.initialize();
-        assert.ok(myTarget.load.calledOnce);
+        assert.ok(emarsys.load.calledOnce);
       });
     });
   });
 
   describe('loading', function () {
     beforeEach(() => {
-      sinon.stub(myTarget, 'load', () => {
+      sinon.stub(emarsys, 'load', () => {
         window._tmr = {
           push: function() {},
-          unload: function() {}
         };
-        myTarget.ready();
+        emarsys.ready();
       });
     });
 
     afterEach(() => {
-      myTarget.load.restore();
+      emarsys.load.restore();
     });
 
     it('should load', function (done) {
-      assert.ok(!myTarget.isLoaded());
+      assert.ok(!emarsys.isLoaded());
       ddManager.once('ready', () => {
-        assert.ok(myTarget.isLoaded());
+        assert.ok(emarsys.isLoaded());
         done();
       });
       ddManager.initialize({
@@ -116,8 +138,9 @@ describe('Integrations: Emarsys', () => {
 
   describe('after loading', () => {
     beforeEach((done) => {
-      sinon.stub(myTarget, 'load', () => {
-        myTarget.ready();
+      sinon.stub(emarsys, 'load', () => {
+        sinon.spy(window.ScarabQueue, 'push')
+        emarsys.ready();
       });
       ddManager.once('ready', done);
       ddManager.initialize({
@@ -126,325 +149,235 @@ describe('Integrations: Emarsys', () => {
     });
 
     afterEach(function () {
-      myTarget.load.restore();
+      emarsys.load.restore();
+      window.ScarabQueue.push.restore();
     });
 
     describe('#onViewedPage', () => {
-      it('should send pageView for every "Viewed Page" event', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          category: 'Content',
-          page: {},
-          callback: () => {
-            assert.equal(window._tmr[0].id, myTarget.getOption('counterId'));
-            assert.equal(window._tmr[0].type, 'pageView');
-            done();
-          }
+      it('should send email if user.email is defined', (done) => {
+        window.digitalData.user = {
+          email: 'test@driveback.ru'
+        };
+        viewedPage(() => {
+          assert.ok(window.ScarabQueue.push.calledWith(['setEmail', 'test@driveback.ru']));
+          done();
         });
       });
 
-      it('should not send pageView event if noConflict setting is true', (done) => {
-        myTarget.setOption('noConflict', true);
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          category: 'Content',
-          page: {
-            type: 'home'
-          },
-          callback: () => {
-            assert.equal(window._tmr.length, 0);
-            done();
-          }
+      it('should not send email if user.email is not defined', (done) => {
+        viewedPage(() => {
+          assert.ok(!window.ScarabQueue.push.calledWith(['setEmail', sinon.match.any]));
+          done();
         });
       });
-    });
 
-    describe('#onViewedHome', () => {
-      it('should send viewHome event if user visits home page', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          category: 'Content',
-          page: {
-            type: 'home'
-          },
-          callback: () => {
-            assert.equal(window._tmr.length, 2);
-            assert.deepEqual(window._tmr[1], {
-              type: 'itemView',
-              productid: '',
-              pagetype: 'home',
-              totalvalue: '',
-              list: myTarget.getList(),
-            });
-            done();
-          }
+      it('should send customerId if user.userId is defined', (done) => {
+        window.digitalData.user = {
+          userId: '123'
+        };
+        viewedPage(() => {
+          assert.ok(window.ScarabQueue.push.calledWith(['setCustomerId', '123']));
+          done();
+        });
+      });
+
+      it('should not send customerId if user.email is defined', (done) => {
+        window.digitalData.user = {
+          userId: '123',
+          email: 'test@driveback.ru',
+        };
+        viewedPage(() => {
+          assert.ok(!window.ScarabQueue.push.calledWith(['setCustomerId', sinon.match.any]));
+          assert.ok(window.ScarabQueue.push.calledWith(['setEmail', 'test@driveback.ru']));
+          done();
+        });
+      });
+
+      it('should always send cart even if cart is empty', (done) => {
+        viewedPage(() => {
+          assert.ok(window.ScarabQueue.push.calledWith(['cart', []]));
+          done();
+        });
+      });
+
+      it('should send cart info', (done) => {
+        window.digitalData.cart = {
+          lineItems: [
+            {
+              product: {
+                id: '123',
+                unitSalePrice: 100
+              },
+              quantity: 2,
+              subtotal: 180
+            },
+            {
+              product: {
+                id: '234',
+                unitSalePrice: 100
+              },
+              quantity: 2
+            }
+          ]
+        };
+        viewedPage(() => {
+          assert.ok(window.ScarabQueue.push.calledWith(['cart', [
+            {
+              item: '123',
+              price: 180,
+              quantity: 2
+            },
+            {
+              item: '234',
+              price: 200,
+              quantity: 2
+            }
+          ]]));
+          done();
+        });
+      });
+
+      it('should not send "go" for page.type = product', (done) => {
+        viewedPageOfType('product', () => {
+          assert.ok(!window.ScarabQueue.push.calledWith(['go']));
+          done();
+        });
+      });
+
+      it('should not send "go" for page.type = category', (done) => {
+        viewedPageOfType('category', () => {
+          assert.ok(!window.ScarabQueue.push.calledWith(['go']));
+          done();
+        });
+      });
+
+      it('should not send "go" for page.type = search', (done) => {
+        viewedPageOfType('search', () => {
+          assert.ok(!window.ScarabQueue.push.calledWith(['go']));
+          done();
+        });
+      });
+
+      it('should not send "go" for page.type = confirmation', (done) => {
+        viewedPageOfType('confirmation', () => {
+          assert.ok(!window.ScarabQueue.push.calledWith(['go']));
+          done();
+        });
+      });
+
+      it('should send "go" for any other page', (done) => {
+        viewedPageOfType('home', () => {
+          assert.ok(window.ScarabQueue.push.calledWith(['go']));
+          done();
         });
       });
     });
 
     describe('#onViewedProductCategory', () => {
-      it('should send itemView event for every "Viewed Product Category" event', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Product Category',
-          category: 'Content',
-          callback: () => {
-            assert.deepEqual(window._tmr[0], {
-              type: 'itemView',
-              productid: '',
-              pagetype: 'category',
-              totalvalue: '',
-              list: myTarget.getList(),
-            });
-            done();
-          }
+      it('should send category with default separator', (done) => {
+        viewedProductCategory(['Category', 'Subcategory 1', 'Subcategory 2'], () => {
+          assert.ok(window.ScarabQueue.push.calledWith(['category', 'Category > Subcategory 1 > Subcategory 2']));
+          done();
         });
       });
 
-      it('should not send itemView event if noConflict setting is true', (done) => {
-        myTarget.setOption('noConflict', true);
-        window.digitalData.events.push({
-          name: 'Viewed Product Category',
-          category: 'Content',
-          callback: () => {
-            assert.equal(window._tmr.length, 0);
-            done();
-          }
+      it('should send "category" with custom separator', (done) => {
+        emarsys.setOption('categorySeparator', ' / ');
+        viewedProductCategory(['Category', 'Subcategory 1', 'Subcategory 2'], () => {
+          assert.ok(window.ScarabQueue.push.calledWith(['category', 'Category / Subcategory 1 / Subcategory 2']));
+          done();
+        });
+      });
+
+      it('should send "category" without separator', (done) => {
+        emarsys.setOption('categorySeparator', ' / ');
+        viewedProductCategory('Category 1', () => {
+          assert.ok(window.ScarabQueue.push.calledWith(['category', 'Category 1']));
+          done();
+        });
+      });
+
+      it('should send "go"', (done) => {
+        viewedProductCategory(['Category', 'Subcategory 1', 'Subcategory 2'], () => {
+          assert.ok(window.ScarabQueue.push.calledWith(['go']));
+          done();
         });
       });
     });
 
     describe('#onViewedProductDetail', () => {
-      it('should send itemView event for every "Viewed Product Detail" event', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Product Detail',
-          category: 'Ecommerce',
-          product: {
-            id: '123',
-            unitSalePrice: 150
-          },
-          callback: () => {
-            assert.deepEqual(window._tmr[0], {
-              type: 'itemView',
-              productid: '123',
-              pagetype: 'product',
-              totalvalue: 150,
-              list: myTarget.getList(),
-            });
-            done();
-          }
+      it('should send "view"', (done) => {
+        viewedProductDetail('123', () => {
+          assert.ok(window.ScarabQueue.push.calledWith(['view', '123']));
+          done();
         });
       });
 
-
-      it('should not send itemView event if noConflict option is true', (done) => {
-        myTarget.setOption('noConflict', true);
-        window.digitalData.events.push({
-          name: 'Viewed Product Detail',
-          category: 'Ecommerce',
-          product: {
-            id: '123'
-          },
-          callback: () => {
-            assert.equal(window._tmr.length, 0);
-            done();
-          }
+      it('should send "go"', (done) => {
+        viewedProductDetail('123', () => {
+          assert.ok(window.ScarabQueue.push.calledWith(['view', '123']));
+          done();
         });
       });
     });
 
-    describe('#onViewedCart', () => {
-      it('should send itemView event if user visits cart page', (done) => {
-        window.digitalData.cart = {
-          lineItems: [
-            {
-              product: {
-                id: '123',
-                unitSalePrice: 100
-              },
-              quantity: 1
-            },
-            {
-              product: {
-                id: '234',
-                unitPrice: 100,
-                unitSalePrice: 50
-              },
-              quantity: 2
-            },
-            {
-              product: {
-                id: '345',
-                unitPrice: 30
-              }
-            },
-            {
-              product: {
-                id: '456',
-              }
-            },
-            {
-              product: {}
-            }
-          ],
-          total: 230
-        };
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          category: 'Content',
-          page: {
-            type: 'cart'
-          },
-          callback: () => {
-            assert.deepEqual(window._tmr[1], {
-              type: 'itemView',
-              productid: ['123', '234', '345', '456'],
-              pagetype: 'cart',
-              totalvalue: 230,
-              list: myTarget.getList(),
-            });
-            done();
-          }
-        });
+    describe('#onSearched', () => {
+      it('should send "searchTerm"', (done) => {
+        searched('test query', () => {
+          assert.ok(window.ScarabQueue.push.calledWith(['searchTerm', 'test query']));
+          done();
+        })
       });
 
-      it('should not send itemView event if noConflict option is true', (done) => {
-        myTarget.setOption('noConflict', true);
-        window.digitalData.cart = {
-          lineItems: [
-            {
-              product: {
-                id: '123',
-                unitSalePrice: 100
-              },
-              quantity: 1
-            }
-          ]
-        };
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          category: 'Content',
-          page: {
-            type: 'cart'
-          },
-          callback: () => {
-            assert.equal(window._tmr.length, 0);
-            done();
-          }
+      it('should send "go"', (done) => {
+        searched('test query', () => {
+          assert.ok(window.ScarabQueue.push.calledWith(['go']));
+          done();
         });
       });
     });
 
     describe('#onCompletedTransaction', () => {
-      const lineItems = [
-        {
-          product: {
-            id: '123',
-            unitSalePrice: 100
-          },
-          quantity: 1
-        },
-        {
-          product: {
-            id: '234',
-            unitPrice: 100,
-            unitSalePrice: 50
-          },
-          quantity: 2
-        },
-        {
-          product: {
-            id: '345',
-            unitPrice: 30
-          }
-        },
-        {
-          product: {
-            id: '456',
-          }
-        },
-        {
-          product: {}
-        }
-      ];
-
-      it('should send itemView event if transaction is completed', (done) => {
-        window.digitalData.events.push({
-          name: 'Completed Transaction',
-          category: 'Ecommerce',
-          transaction: {
+      it('should send "purchase" and "go"', (done) => {
+        completedTransaction({
+          orderId: '123',
+          lineItems: [
+            {
+              product: {
+                id: '123',
+                unitSalePrice: 100
+              },
+              quantity: 2,
+              subtotal: 180
+            },
+            {
+              product: {
+                id: '234',
+                unitSalePrice: 100
+              },
+              quantity: 2
+            }
+          ]
+        }, () => {
+          assert.ok(window.ScarabQueue.push.calledWith(['purchase', {
             orderId: '123',
-            isFirst: true,
-            lineItems: lineItems,
-            total: 230,
-          },
-          callback: () => {
-            assert.deepEqual(window._tmr[0], {
-              type: 'itemView',
-              productid: ['123', '234', '345', '456'],
-              pagetype: 'purchase',
-              totalvalue: 230,
-              list: myTarget.getList(),
-            });
-            done();
-          }
-        });
-      });
-
-      it('should not send trackTransaction event if noConflict option is true', (done) => {
-        myTarget.setOption('noConflict', true);
-        window.digitalData.events.push({
-          name: 'Completed Transaction',
-          category: 'Ecommerce',
-          transaction: {
-            orderId: '123',
-            lineItems: lineItems
-          },
-          callback: () => {
-            assert.equal(window._tmr.length, 0);
-            done();
-          }
-        });
+            items: [
+              {
+                item: '123',
+                price: 180,
+                quantity: 2
+              },
+              {
+                item: '234',
+                price: 200,
+                quantity: 2
+              }
+            ]
+          }]));
+          assert.ok(window.ScarabQueue.push.calledWith(['go']));
+          done();
+        })
       });
     });
-
-    describe('#onCustomEvent', () => {
-      it('should send reachGoal event for any other DDL event', (done) => {
-        window.digitalData.events.push({
-          name: 'Subscribed',
-          category: 'Email',
-          user: {
-            email: 'test@driveback.ru'
-          },
-          callback: () => {
-            assert.deepEqual(window._tmr[0], {
-              id: myTarget.getOption('counterId'),
-              type: 'reachGoal',
-              goal: 'Subscribed'
-            });
-            done();
-          }
-        });
-      });
-
-      it('should send reachGoal event for any other DDL event event if noConflict option is true', (done) => {
-        myTarget.setOption('noConflict', true);
-        window.digitalData.events.push({
-          name: 'Subscribed',
-          category: 'Email',
-          user: {
-            email: 'test@driveback.ru'
-          },
-          callback: () => {
-            assert.deepEqual(window._tmr[0], {
-              id: myTarget.getOption('counterId'),
-              type: 'reachGoal',
-              goal: 'Subscribed'
-            });
-            done();
-          }
-        });
-      });
-    });
-
   });
 });
