@@ -51,6 +51,7 @@
     "eslint-config-airbnb": "^1.0.0",
     "eslint-plugin-react": "^3.10.0",
     "exorcist": "^0.4.0",
+    "faucet": "0.0.1",
     "js-cookie": "^2.1.0",
     "karma": "^1.1.1",
     "karma-babel-preprocessor": "^6.0.1",
