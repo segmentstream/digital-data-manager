@@ -53,7 +53,7 @@
     "exorcist": "^0.4.0",
     "faucet": "0.0.1",
     "js-cookie": "^2.1.0",
-    "karma": "^1.1.1",
+    "karma": "1.1.1",
     "karma-babel-preprocessor": "^6.0.1",
     "karma-browserify": "^5.1.0",
     "karma-chrome-launcher": "^0.2.3",

@@ -1297,7 +1297,7 @@ function clone(obj){
     case 'object':
       var copy = {};
       for (var key in obj) {
-        if (obj.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
           copy[key] = clone(obj[key]);
         }
       }
