@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "babel": "^6.1.18",
-    "babel-cli": "^6.2.0",
+    "babel-cli": "6.2.0",
     "babel-plugin-transform-es3-member-expression-literals": "^6.1.18",
     "babel-plugin-transform-es3-property-literals": "^6.1.18",
     "babel-plugin-transform-object-set-prototype-of-to-assign": "^6.1.18",
