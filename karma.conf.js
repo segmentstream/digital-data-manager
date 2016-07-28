@@ -110,7 +110,7 @@ module.exports = function(config) {
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: [/*'browserify',*/'mocha'],
+    frameworks: ['browserify','mocha'],
 
     client: {
       mocha: {
@@ -130,7 +130,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'build/dd-manager-test.js'
+      'test/index.test.js'
     ],
 
 
@@ -141,20 +141,15 @@ module.exports = function(config) {
 
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
-    //preprocessors: {
-    //  'src/**/*.js': ['browserify'],
-    //  'test/**/*.js': ['browserify']
-    //},
-    //
-    //browserify: {
-    //  debug: true,
-    //  transform: ['babelify', ['polyify', { 'browsers': 'IE >= 7' }]],
-    //  configure: function(bundle) {
-    //    bundle.on('bundled', function(err, content) {
-    //      console.log(content);
-    //    });
-    //  }
-    //},
+    preprocessors: {
+      'src/**/*.js': ['browserify'],
+      'test/**/*.js': ['browserify']
+    },
+
+    browserify: {
+      debug: true,
+      transform: ['babelify'],
+    },
 
     // test results reporter to use
     // possible values: 'dots', 'progress'

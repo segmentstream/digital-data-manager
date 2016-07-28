@@ -311,6 +311,7 @@ ddManager.on = ddManager.addEventListener = (event, handler) => {
       return;
     }
   }
+
   originalOn.call(ddManager, event, handler);
 };
 
