@@ -5,6 +5,9 @@
   "version": "1.1.1",
   "license": "MIT",
   "main": "dist/dd-manager.js",
+  "engines" : {
+    "npm" : "^3.10.5"
+  },
   "directories": {
     "src": "src",
     "dist": "dist",
