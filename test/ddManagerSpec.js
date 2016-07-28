@@ -39,15 +39,11 @@ describe('DDManager', () => {
 
     it.only('should initialize after all other stubs', (done) => {
       snippet();
-      console.log('CONSOLE LOG 1');
       window.ddManager.initialize();
-      console.log('CONSOLE LOG 2');
       window.ddManager.on('initialize', () => {
         done();
       });
-      console.log('CONSOLE LOG 3');
       ddManager.processEarlyStubCalls();
-      console.log('CONSOLE LOG 4');
     });
 
     it('should initialize DDManager instance', () => {

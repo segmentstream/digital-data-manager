@@ -150,17 +150,22 @@ ddManager = {
   },
 
   processEarlyStubCalls: () => {
+    console.log('111');
     const earlyStubCalls = window[_ddManagerNamespace] || [];
     const methodCallPromise = (method, args) => {
+      console.log('444');
       return () => {
+        console.log('555');
         ddManager[method].apply(ddManager, args);
+        console.log('666');
       };
     };
-
+    console.log('222');
     while (earlyStubCalls.length > 0) {
       const args = earlyStubCalls.shift();
       const method = args.shift();
       if (ddManager[method]) {
+        console.log('333');
         if (method === 'initialize' && earlyStubCalls.length > 0) {
           // run initialize stub after all other stubs
           async.nextTick(methodCallPromise(method, args));
@@ -311,9 +316,7 @@ ddManager.on = ddManager.addEventListener = (event, handler) => {
       return;
     }
   }
-  console.log('CONSOLE LOG 5');
   originalOn.call(ddManager, event, handler);
-  console.log('CONSOLE LOG 6');
 };
 
 export default ddManager;
