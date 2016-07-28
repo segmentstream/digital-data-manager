@@ -311,7 +311,7 @@ ddManager.on = ddManager.addEventListener = (event, handler) => {
       return;
     }
   }
-  console.log('ON INITIALIZE');
+  console.log('CONSOLE LOG 5');
   originalOn.call(ddManager, event, handler);
 };
 
