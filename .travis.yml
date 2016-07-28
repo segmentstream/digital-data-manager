@@ -1,8 +1,5 @@
 language: node_js
 node_js:
-  - "5.1"
+  - "6"
 addons:
   sauce_connect: true
-before_script:
-  - npm install -g npm
-  - npm --version
