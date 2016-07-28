@@ -37,7 +37,7 @@ describe('DDManager', () => {
       assert.ok(Array.isArray(window.ddListener));
     });
 
-    it('should initialize after all other stubs', (done) => {
+    it.only('should initialize after all other stubs', (done) => {
       snippet();
       window.ddManager.initialize();
       window.ddManager.on('initialize', () => {
