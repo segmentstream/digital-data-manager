@@ -27,7 +27,7 @@ describe('DDManager', () => {
       assert.ok(window.digitalData.cart); // if page !== 'confirmation'
     });
 
-    it('should work well with async load using stubs from the snippet', () => {
+    it.only('should work well with async load using stubs from the snippet', () => {
       snippet();
       window.ddManager.initialize();
       ddManager.processEarlyStubCalls();
@@ -37,7 +37,7 @@ describe('DDManager', () => {
       assert.ok(Array.isArray(window.ddListener));
     });
 
-    it.only('should initialize after all other stubs', (done) => {
+    it('should initialize after all other stubs', (done) => {
       snippet();
       window.ddManager.initialize();
       window.ddManager.on('initialize', () => {
