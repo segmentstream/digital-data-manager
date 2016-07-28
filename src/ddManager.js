@@ -313,6 +313,7 @@ ddManager.on = ddManager.addEventListener = (event, handler) => {
   }
   console.log('CONSOLE LOG 5');
   originalOn.call(ddManager, event, handler);
+  console.log('CONSOLE LOG 6');
 };
 
 export default ddManager;
