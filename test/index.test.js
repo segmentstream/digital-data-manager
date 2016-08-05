@@ -23,3 +23,4 @@ import './integrations/YandexMetricaSpec.js';
 import './integrations/CustomIntegrationSpec.js';
 import './integrations/VkontakteSpec.js';
 import './integrations/EmarsysSpec.js';
+import './integrations/OneSignalSpec.js';
