@@ -5,7 +5,6 @@ import Criteo from './../../src/integrations/Criteo.js';
 import ddManager from './../../src/ddManager.js';
 
 describe('Integrations: Criteo', () => {
-
   let criteo;
   const options = {
     account: '123',
@@ -138,7 +137,7 @@ describe('Integrations: Criteo', () => {
         window.criteo_q = {
           push: function() {}
         };
-        criteo.ready();
+        criteo.onLoad();
       });
     });
 
@@ -148,7 +147,7 @@ describe('Integrations: Criteo', () => {
 
     it('should load', function (done) {
       assert.ok(!criteo.isLoaded());
-      ddManager.once('ready', () => {
+      ddManager.once('load', () => {
         assert.ok(criteo.isLoaded());
         done();
       });
@@ -161,9 +160,11 @@ describe('Integrations: Criteo', () => {
   describe('after loading', () => {
     beforeEach((done) => {
       sinon.stub(criteo, 'load', () => {
-        criteo.ready();
+        setTimeout(criteo.onLoad, 0);
       });
-      ddManager.once('ready', done);
+      ddManager.once('ready', () => {
+        done();
+      });
       ddManager.initialize({
         autoEvents: false
       });

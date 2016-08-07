@@ -20,6 +20,5 @@ import './integrations/OWOXBIStreamingSpec.js'
 import './integrations/CriteoSpec.js';
 import './integrations/MyTargetSpec.js';
 import './integrations/YandexMetricaSpec.js';
-import './integrations/CustomIntegrationSpec.js';
 import './integrations/VkontakteSpec.js';
 import './integrations/EmarsysSpec.js';

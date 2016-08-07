@@ -32,10 +32,10 @@ class FacebookPixel extends Integration {
       window.fbq.loaded = true;
       window.fbq.version = '2.0';
       window.fbq.queue = [];
-      this.load(this.ready);
+      this.load(this.onLoad);
       window.fbq('init', this.getOption('pixelId'));
     } else {
-      this.ready();
+      this.onLoad();
     }
   }
 

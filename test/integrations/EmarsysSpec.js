@@ -113,10 +113,10 @@ describe('Integrations: Emarsys', () => {
   describe('loading', function () {
     beforeEach(() => {
       sinon.stub(emarsys, 'load', () => {
-        window._tmr = {
+        window.ScarabQueue = {
           push: function() {},
         };
-        emarsys.ready();
+        emarsys.onLoad();
       });
     });
 
@@ -126,7 +126,7 @@ describe('Integrations: Emarsys', () => {
 
     it('should load', function (done) {
       assert.ok(!emarsys.isLoaded());
-      ddManager.once('ready', () => {
+      ddManager.once('load', () => {
         assert.ok(emarsys.isLoaded());
         done();
       });
@@ -140,7 +140,7 @@ describe('Integrations: Emarsys', () => {
     beforeEach((done) => {
       sinon.stub(emarsys, 'load', () => {
         sinon.spy(window.ScarabQueue, 'push')
-        emarsys.ready();
+        emarsys.onLoad();
       });
       ddManager.once('ready', done);
       ddManager.initialize({

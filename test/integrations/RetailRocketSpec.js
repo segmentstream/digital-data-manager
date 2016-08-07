@@ -107,7 +107,7 @@ describe('Integrations: RetailRocket', () => {
     beforeEach((done) => {
       sinon.stub(retailRocket, 'load', () => {
         rrApi._initialize = () => {};
-        retailRocket.ready();
+        retailRocket.onLoad();
       });
 
       ddManager.once('ready', done);

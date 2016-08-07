@@ -56,9 +56,9 @@ class SegmentStream extends Integration {
 
     ssApi.initialize(this._options);
     ssApi.pushOnReady(() => {
-      this.ready();
+      this.enrichDigitalData();
     });
-    this.load();
+    this.load(this.onLoad);
   }
 
   isLoaded() {
@@ -70,7 +70,7 @@ class SegmentStream extends Integration {
     localStorage.clear();
   }
 
-  enrichDigitalData(done) {
+  enrichDigitalData() {
     function lowercaseFirstLetter(string) {
       return string.charAt(0).toLowerCase() + string.slice(1);
     }
@@ -81,7 +81,7 @@ class SegmentStream extends Integration {
       const key = lowercaseFirstLetter(name);
       this.digitalData.user.ssAttributes[key] = value;
     });
-    done();
+    this.completeEnrichment();
   }
 
   trackEvent(event) {

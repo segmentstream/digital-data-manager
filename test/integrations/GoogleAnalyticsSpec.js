@@ -172,7 +172,7 @@ describe('Integrations: GoogleAnalytics', () => {
           ddManager.initialize({
             autoEvents: false
           });
-          assert.deepEqual(window.ga.q[2], undefined);
+          assert.deepEqual(window.ga.q[3], undefined);
         });
       });
 
@@ -181,7 +181,7 @@ describe('Integrations: GoogleAnalytics', () => {
     describe('loading', function () {
       it('should load', function (done) {
         assert.ok(!ga.isLoaded());
-        ddManager.once('ready', () => {
+        ddManager.once('load', () => {
           assert.ok(ga.isLoaded());
           done();
         });

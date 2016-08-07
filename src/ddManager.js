@@ -66,7 +66,7 @@ let _integrations = {};
  * @type {boolean}
  * @private
  */
-let _isInitialized = false;
+let _isLoaded = false;
 
 /**
  * @type {boolean}
@@ -85,6 +85,7 @@ function _prepareGlobals() {
   _digitalData.page = _digitalData.page || {};
   _digitalData.user = _digitalData.user || {};
   _digitalData.context = _digitalData.context || {};
+  _digitalData.integrations = _digitalData.integrations || {};
   if (!_digitalData.page.type || _digitalData.page.type !== 'confirmation') {
     _digitalData.cart = _digitalData.cart || {};
   }
@@ -96,7 +97,12 @@ function _prepareGlobals() {
   }
 }
 
-function _initializeIntegrations(settings, onReady) {
+function _initializeIntegrations(settings) {
+  const onLoad = () => {
+    _isLoaded = true;
+    ddManager.emit('load');
+  };
+
   if (settings && typeof settings === 'object') {
     const integrationSettings = settings.integrations;
     if (integrationSettings) {
@@ -119,24 +125,20 @@ function _initializeIntegrations(settings, onReady) {
       }
     }
 
-    const ready = after(size(_integrations), onReady);
+    const loaded = after(size(_integrations), onLoad);
 
     if (size(_integrations) > 0) {
       each(_integrations, (name, integration) => {
         if (!integration.isLoaded() || integration.getOption('noConflict')) {
-          integration.once('ready', () => {
-            integration.enrichDigitalData(() => {
-              _eventManager.addCallback(['on', 'event', event => integration.trackEvent(event)], true);
-              ready();
-            });
-          });
+          integration.once('load', loaded);
           integration.initialize();
+          _eventManager.addCallback(['on', 'event', event => integration.trackEvent(event)], true);
         } else {
-          ready();
+          loaded();
         }
       });
     } else {
-      ready();
+      loaded();
     }
   }
 }
@@ -210,7 +212,7 @@ ddManager = {
       sessionLength: 3600,
     }, settings);
 
-    if (_isInitialized) {
+    if (_isReady) {
       throw new Error('ddManager is already initialized');
     }
 
@@ -226,19 +228,18 @@ ddManager = {
       _eventManager.setAutoEvents(new AutoEvents(settings.autoEvents));
     }
 
-    _initializeIntegrations(settings, () => {
-      _isReady = true;
-      ddManager.emit('ready');
-    });
+    _initializeIntegrations(settings);
 
+    // should be initialized after integrations, otherwise
+    // autoEvents will be fired immediately
     _eventManager.initialize();
 
-    _isInitialized = true;
-    ddManager.emit('initialize', settings);
+    _isReady = true;
+    ddManager.emit('ready');
   },
 
-  isInitialized: () => {
-    return _isInitialized;
+  isLoaded: () => {
+    return _isLoaded;
   },
 
   isReady: () => {
@@ -246,7 +247,7 @@ ddManager = {
   },
 
   addIntegration: (name, integration) => {
-    if (_isInitialized) {
+    if (_isReady) {
       throw new Error('Adding integrations after ddManager initialization is not allowed');
     }
 
@@ -287,7 +288,7 @@ ddManager = {
     ddManager.removeAllListeners();
     _eventManager = null;
     _integrations = {};
-    _isInitialized = false;
+    _isLoaded = false;
     _isReady = false;
   },
 
@@ -305,8 +306,8 @@ ddManager.on = ddManager.addEventListener = (event, handler) => {
       handler();
       return;
     }
-  } else if (event === 'initialize') {
-    if (_isInitialized) {
+  } else if (event === 'load') {
+    if (_isLoaded) {
       handler();
       return;
     }

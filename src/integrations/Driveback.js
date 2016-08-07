@@ -37,9 +37,9 @@ class Driveback extends Integration {
       if (this.getOption('autoInit') === false) {
         window.DrivebackAsyncInit = noop;
       }
-      this.load(this.ready);
+      this.load(this.onLoad);
     } else {
-      this.ready();
+      this.onLoad();
     }
   }
 

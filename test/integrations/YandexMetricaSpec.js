@@ -86,7 +86,7 @@ describe('Integrations: Yandex Metrica', () => {
           assert.equal(options.trackHash, ym.getOption('trackHash'));
         };
         window.yandex_metrika_callbacks.pop()();
-        ym.ready();
+        ym.onLoad();
       });
     });
 
@@ -96,7 +96,7 @@ describe('Integrations: Yandex Metrica', () => {
 
     it('should load', function (done) {
       assert.ok(!ym.isLoaded());
-      ddManager.once('ready', () => {
+      ddManager.once('load', () => {
         assert.ok(ym.isLoaded());
         done();
       });
@@ -114,7 +114,7 @@ describe('Integrations: Yandex Metrica', () => {
           this.reachGoal = function() {};
         };
         window.yandex_metrika_callbacks.pop()();
-        ym.ready();
+        ym.onLoad();
       });
       ddManager.once('ready', done);
       ddManager.initialize({

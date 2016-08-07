@@ -136,13 +136,16 @@ class EventManager {
         if (callback.key) {
           const key = callback.key;
           const newKeyValue = DDHelper.get(key, newValue);
-          const previousKeyValue = DDHelper.get(key, previousValue);
+          const previousKeyValue = callback.snapshot || DDHelper.get(key, previousValue);
           if (!jsonIsEqual(newKeyValue, previousKeyValue)) {
             callback.handler(newKeyValue, previousKeyValue, _callbackOnComplete);
           }
         } else {
-          callback.handler(newValue, previousValue, _callbackOnComplete);
+          callback.handler(newValue, callback.snapshot || previousValue, _callbackOnComplete);
         }
+      }
+      if (callback.snapshot) {
+        deleteProperty(callback, 'snapshot');
       }
     }
   }
@@ -190,17 +193,22 @@ class EventManager {
 
   on(eventInfo, handler, processPastEvents) {
     const [type, key] = eventInfo.split(':');
-    _callbacks[type] = _callbacks[type] || [];
-    if (key) {
-      _callbacks[type].push({
-        key,
-        handler,
-      });
-    } else {
-      _callbacks[type].push({
-        handler,
-      });
+    let snapshot;
+
+    if (type === 'change') {
+      if (key) {
+        snapshot = clone(DDHelper.get(key, _digitalData));
+      } else {
+        snapshot = clone(_getCopyWithoutEvents(_digitalData));
+      }
     }
+
+    _callbacks[type] = _callbacks[type] || [];
+    _callbacks[type].push({
+      key,
+      handler,
+      snapshot,
+    });
     if (_isInitialized && type === 'event' && processPastEvents) {
       this.applyCallbackForPastEvents(handler);
     }

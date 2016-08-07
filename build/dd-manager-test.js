@@ -6121,6 +6121,7 @@ var createDict = function(){
   // Thrash, waste and sodomy: IE GC bug
   var iframe = require('./_dom-create')('iframe')
     , i      = enumBugKeys.length
+    , lt     = '<'
     , gt     = '>'
     , iframeDocument;
   iframe.style.display = 'none';
@@ -6130,7 +6131,7 @@ var createDict = function(){
   // html.removeChild(iframe);
   iframeDocument = iframe.contentWindow.document;
   iframeDocument.open();
-  iframeDocument.write('<script>document.F=Object</script' + gt);
+  iframeDocument.write(lt + 'script' + gt + 'document.F=Object' + lt + '/script' + gt);
   iframeDocument.close();
   createDict = iframeDocument.F;
   while(i--)delete createDict[PROTOTYPE][enumBugKeys[i]];
@@ -6148,6 +6149,7 @@ module.exports = Object.create || function create(O, Properties){
   } else result = createDict();
   return Properties === undefined ? result : dPs(result, Properties);
 };
+
 },{"./_an-object":7,"./_dom-create":15,"./_enum-bug-keys":16,"./_html":22,"./_object-dps":31,"./_shared-key":38}],30:[function(require,module,exports){
 var anObject       = require('./_an-object')
   , IE8_DOM_DEFINE = require('./_ie8-dom-define')
@@ -8286,6 +8288,24 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
             }
         }
 
+        function verifyIsValidAssertion(assertionMethod, assertionArgs) {
+            switch (assertionMethod) {
+                case "notCalled":
+                case "called":
+                case "calledOnce":
+                case "calledTwice":
+                case "calledThrice":
+                    if (assertionArgs.length !== 0) {
+                        assert.fail(assertionMethod +
+                                    " takes 1 argument but was called with " +
+                                    (assertionArgs.length + 1) + " arguments");
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
         function failAssertion(object, msg) {
             object = object || global;
             var failMethod = object.fail || assert.fail;
@@ -8302,6 +8322,8 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
                 verifyIsStub(fake);
 
                 var args = slice.call(arguments, 1);
+                verifyIsValidAssertion(name, args);
+
                 var failed = false;
 
                 if (typeof method === "function") {
@@ -9002,8 +9024,12 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
             },
 
             toString: function () {
-                var callStr = this.proxy.toString() + "(";
+                var callStr = this.proxy ? this.proxy.toString() + "(" : "";
                 var args = [];
+
+                if (!this.args) {
+                    return ":(";
+                }
 
                 for (var i = 0, l = this.args.length; i < l; ++i) {
                     args.push(sinon.format(this.args[i]));
@@ -11197,13 +11223,11 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
                     exception = e;
                 }
 
-                if (typeof oldDone !== "function") {
-                    if (typeof exception !== "undefined") {
-                        sandbox.restore();
-                        throw exception;
-                    } else {
-                        sandbox.verifyAndRestore();
-                    }
+                if (typeof exception !== "undefined") {
+                    sandbox.restore();
+                    throw exception;
+                } else if (typeof oldDone !== "function") {
+                    sandbox.verifyAndRestore();
                 }
 
                 return result;
@@ -11685,7 +11709,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
             }
 
             for (prop in a) {
-                if (a.hasOwnProperty(prop)) {
+                if (hasOwn.call(a, prop)) {
                     aLength += 1;
 
                     if (!(prop in b)) {
@@ -11699,7 +11723,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
             }
 
             for (prop in b) {
-                if (b.hasOwnProperty(prop)) {
+                if (hasOwn.call(b, prop)) {
                     bLength += 1;
                 }
             }
@@ -11909,8 +11933,8 @@ if (typeof sinon === "undefined") {
 
         sinon.ProgressEvent = function ProgressEvent(type, progressEventRaw, target) {
             this.initEvent(type, false, false, target);
-            this.loaded = progressEventRaw.loaded || null;
-            this.total = progressEventRaw.total || null;
+            this.loaded = typeof progressEventRaw.loaded === "number" ? progressEventRaw.loaded : null;
+            this.total = typeof progressEventRaw.total === "number" ? progressEventRaw.total : null;
             this.lengthComputable = !!progressEventRaw.total;
         };
 
@@ -12416,8 +12440,24 @@ if (typeof sinon === "undefined") {
 /**
  * Fake XDomainRequest object
  */
+
+/**
+ * Returns the global to prevent assigning values to 'this' when this is undefined.
+ * This can occur when files are interpreted by node in strict mode.
+ * @private
+ */
+function getGlobal() {
+    "use strict";
+
+    return typeof window !== "undefined" ? window : global;
+}
+
 if (typeof sinon === "undefined") {
-    this.sinon = {};
+    if (typeof this === "undefined") {
+        getGlobal().sinon = {};
+    } else {
+        this.sinon = {};
+    }
 }
 
 // wrapper for global
@@ -12672,7 +12712,13 @@ if (typeof sinon === "undefined") {
     var supportsCustomEvent = typeof CustomEvent !== "undefined";
     var supportsFormData = typeof FormData !== "undefined";
     var supportsArrayBuffer = typeof ArrayBuffer !== "undefined";
-    var supportsBlob = typeof Blob === "function";
+    var supportsBlob = (function () {
+        try {
+            return !!new Blob();
+        } catch (e) {
+            return false;
+        }
+    })();
     var sinonXhr = { XMLHttpRequest: global.XMLHttpRequest };
     sinonXhr.GlobalXMLHttpRequest = global.XMLHttpRequest;
     sinonXhr.GlobalActiveXObject = global.ActiveXObject;
@@ -12708,10 +12754,11 @@ if (typeof sinon === "undefined") {
     // and uploadError.
     function UploadProgress() {
         this.eventListeners = {
-            progress: [],
-            load: [],
             abort: [],
-            error: []
+            error: [],
+            load: [],
+            loadend: [],
+            progress: []
         };
     }
 
@@ -12755,7 +12802,7 @@ if (typeof sinon === "undefined") {
         }
 
         var xhr = this;
-        var events = ["loadstart", "load", "abort", "loadend"];
+        var events = ["loadstart", "load", "abort", "error", "loadend"];
 
         function addEventListener(eventName) {
             xhr.addEventListener(eventName, function (event) {
@@ -13078,6 +13125,7 @@ if (typeof sinon === "undefined") {
                 this.readyState = state;
 
                 var readyStateChangeEvent = new sinon.Event("readystatechange", false, false, this);
+                var event, progress;
 
                 if (typeof this.onreadystatechange === "function") {
                     try {
@@ -13087,16 +13135,29 @@ if (typeof sinon === "undefined") {
                     }
                 }
 
-                switch (this.readyState) {
-                    case FakeXMLHttpRequest.DONE:
-                        if (supportsProgress) {
-                            this.upload.dispatchEvent(new sinon.ProgressEvent("progress", {loaded: 100, total: 100}));
-                            this.dispatchEvent(new sinon.ProgressEvent("progress", {loaded: 100, total: 100}));
-                        }
-                        this.upload.dispatchEvent(new sinon.Event("load", false, false, this));
-                        this.dispatchEvent(new sinon.Event("load", false, false, this));
-                        this.dispatchEvent(new sinon.Event("loadend", false, false, this));
-                        break;
+                if (this.readyState === FakeXMLHttpRequest.DONE) {
+                    // ensure loaded and total are numbers
+                    progress = {
+                      loaded: this.progress || 0,
+                      total: this.progress || 0
+                    };
+
+                    if (this.status === 0) {
+                        event = this.aborted ? "abort" : "error";
+                    }
+                    else {
+                        event = "load";
+                    }
+
+                    if (supportsProgress) {
+                        this.upload.dispatchEvent(new sinon.ProgressEvent("progress", progress, this));
+                        this.upload.dispatchEvent(new sinon.ProgressEvent(event, progress, this));
+                        this.upload.dispatchEvent(new sinon.ProgressEvent("loadend", progress, this));
+                    }
+
+                    this.dispatchEvent(new sinon.ProgressEvent("progress", progress, this));
+                    this.dispatchEvent(new sinon.ProgressEvent(event, progress, this));
+                    this.dispatchEvent(new sinon.ProgressEvent("loadend", progress, this));
                 }
 
                 this.dispatchEvent(readyStateChangeEvent);
@@ -13175,14 +13236,15 @@ if (typeof sinon === "undefined") {
                 }
 
                 this.readyState = FakeXMLHttpRequest.UNSENT;
+            },
 
-                this.dispatchEvent(new sinon.Event("abort", false, false, this));
+            error: function error() {
+                clearResponse(this);
+                this.errorFlag = true;
+                this.requestHeaders = {};
+                this.responseHeaders = {};
 
-                this.upload.dispatchEvent(new sinon.Event("abort", false, false, this));
-
-                if (typeof this.onerror === "function") {
-                    this.onerror();
-                }
+                this.readyStateChange(FakeXMLHttpRequest.DONE);
             },
 
             getResponseHeader: function getResponseHeader(header) {
@@ -13248,6 +13310,7 @@ if (typeof sinon === "undefined") {
                 } else if (this.responseType === "" && isXmlContentType(contentType)) {
                     this.responseXML = FakeXMLHttpRequest.parseXML(this.responseText);
                 }
+                this.progress = body.length;
                 this.readyStateChange(FakeXMLHttpRequest.DONE);
             },
 
@@ -15129,13 +15192,16 @@ var EventManager = function () {
         if (callback.key) {
           var key = callback.key;
           var newKeyValue = _DDHelper2['default'].get(key, newValue);
-          var previousKeyValue = _DDHelper2['default'].get(key, previousValue);
+          var previousKeyValue = callback.snapshot || _DDHelper2['default'].get(key, previousValue);
           if (!(0, _jsonIsEqual2['default'])(newKeyValue, previousKeyValue)) {
             callback.handler(newKeyValue, previousKeyValue, _callbackOnComplete);
           }
         } else {
-          callback.handler(newValue, previousValue, _callbackOnComplete);
+          callback.handler(newValue, callback.snapshot || previousValue, _callbackOnComplete);
         }
+      }
+      if (callback.snapshot) {
+        (0, _deleteProperty2['default'])(callback, 'snapshot');
       }
     }
   };
@@ -15200,17 +15266,22 @@ var EventManager = function () {
     var type = _eventInfo$split[0];
     var key = _eventInfo$split[1];
 
-    _callbacks[type] = _callbacks[type] || [];
-    if (key) {
-      _callbacks[type].push({
-        key: key,
-        handler: handler
-      });
-    } else {
-      _callbacks[type].push({
-        handler: handler
-      });
+    var snapshot = void 0;
+
+    if (type === 'change') {
+      if (key) {
+        snapshot = (0, _componentClone2['default'])(_DDHelper2['default'].get(key, _digitalData));
+      } else {
+        snapshot = (0, _componentClone2['default'])(_getCopyWithoutEvents(_digitalData));
+      }
     }
+
+    _callbacks[type] = _callbacks[type] || [];
+    _callbacks[type].push({
+      key: key,
+      handler: handler,
+      snapshot: snapshot
+    });
     if (_isInitialized && type === 'event' && processPastEvents) {
       this.applyCallbackForPastEvents(handler);
     }
@@ -15401,63 +15472,83 @@ var Integration = function (_EventEmitter) {
     _this.options = options;
     _this.tags = tags || {};
     _this.digitalData = digitalData;
-    _this.ready = _this.ready.bind(_this);
+    _this.onLoad = _this.onLoad.bind(_this);
+    _this._isEnriched = false;
     return _this;
   }
 
   Integration.prototype.initialize = function initialize() {
-    var ready = this.ready;
-    _async2['default'].nextTick(ready);
+    var onLoad = this.onLoad;
+    _async2['default'].nextTick(onLoad);
   };
 
   Integration.prototype.load = function load(tagName, callback) {
-    // Argument shuffling
-    if (typeof tagName === 'function') {
-      callback = tagName;tagName = null;
-    }
+    var _this2 = this;
 
-    // Default arguments
-    tagName = tagName || 'library';
+    setTimeout(function () {
+      var callbackCalled = false;
+      var safeCallback = function safeCallback() {
+        if (!callbackCalled) {
+          callback();
+        }
+      };
 
-    var tag = this.tags[tagName];
-    if (!tag) throw new Error((0, _format2['default'])('tag "%s" not defined.', tagName));
-    callback = callback || _noop2['default'];
+      // sometimes loadScript callback doesn't fire
+      // for https scripts in IE8, IE9 and opera
+      // in this case we check is script was loaded every 500ms
+      var intervalId = setInterval(function () {
+        if (_this2.isLoaded()) {
+          safeCallback();
+          clearInterval(intervalId);
+        }
+      }, 500);
 
-    var el = void 0;
-    var attr = tag.attr;
-    switch (tag.type) {
-      case 'img':
-        attr.width = 1;
-        attr.height = 1;
-        el = (0, _loadPixel2['default'])(attr, callback);
-        break;
-      case 'script':
-        el = (0, _loadScript2['default'])(attr, function (err) {
-          if (!err) return callback();
-          (0, _debug2['default'])('error loading "%s" error="%s"', tagName, err);
-        });
-        // TODO: hack until refactoring load-script
-        (0, _deleteProperty2['default'])(attr, 'src');
-        (0, _each2['default'])(attr, function (key, value) {
-          el.setAttribute(key, value);
-        });
-        break;
-      case 'iframe':
-        el = (0, _loadIframe2['default'])(attr, callback);
-        break;
-      default:
-      // No default case
-    }
+      // Argument shuffling
+      if (typeof tagName === 'function') {
+        callback = tagName;tagName = null;
+      }
 
-    return el;
+      // Default arguments
+      tagName = tagName || 'library';
+
+      var tag = _this2.tags[tagName];
+      if (!tag) throw new Error((0, _format2['default'])('tag "%s" not defined.', tagName));
+      callback = callback || _noop2['default'];
+
+      var el = void 0;
+      var attr = tag.attr;
+      switch (tag.type) {
+        case 'img':
+          attr.width = 1;
+          attr.height = 1;
+          el = (0, _loadPixel2['default'])(attr, safeCallback);
+          break;
+        case 'script':
+          el = (0, _loadScript2['default'])(attr, function (err) {
+            if (!err) return safeCallback();
+            (0, _debug2['default'])('error loading "%s" error="%s"', tagName, err);
+          });
+          // TODO: hack until refactoring load-script
+          (0, _deleteProperty2['default'])(attr, 'src');
+          (0, _each2['default'])(attr, function (key, value) {
+            el.setAttribute(key, value);
+          });
+          break;
+        case 'iframe':
+          el = (0, _loadIframe2['default'])(attr, safeCallback);
+          break;
+        default:
+        // No default case
+      }
+    }, 0);
   };
 
   Integration.prototype.isLoaded = function isLoaded() {
     return false;
   };
 
-  Integration.prototype.ready = function ready() {
-    this.emit('ready');
+  Integration.prototype.onLoad = function onLoad() {
+    this.emit('load');
   };
 
   Integration.prototype.addTag = function addTag(name, tag) {
@@ -15494,9 +15585,13 @@ var Integration = function (_EventEmitter) {
     // abstract
   };
 
-  Integration.prototype.enrichDigitalData = function enrichDigitalData(done) {
-    // abstract
-    done();
+  Integration.prototype.completeEnrichment = function completeEnrichment() {
+    this._isEnriched = true;
+    this.emit('enrich');
+  };
+
+  Integration.prototype.isEnriched = function isEnriched() {
+    return this._isEnriched;
   };
 
   Integration.prototype.trackEvent = function trackEvent() {
@@ -15702,7 +15797,7 @@ var _integrations = {};
  * @type {boolean}
  * @private
  */
-var _isInitialized = false;
+var _isLoaded = false;
 
 /**
  * @type {boolean}
@@ -15721,6 +15816,7 @@ function _prepareGlobals() {
   _digitalData.page = _digitalData.page || {};
   _digitalData.user = _digitalData.user || {};
   _digitalData.context = _digitalData.context || {};
+  _digitalData.integrations = _digitalData.integrations || {};
   if (!_digitalData.page.type || _digitalData.page.type !== 'confirmation') {
     _digitalData.cart = _digitalData.cart || {};
   }
@@ -15732,7 +15828,12 @@ function _prepareGlobals() {
   }
 }
 
-function _initializeIntegrations(settings, onReady) {
+function _initializeIntegrations(settings) {
+  var onLoad = function onLoad() {
+    _isLoaded = true;
+    ddManager.emit('load');
+  };
+
   if (settings && (typeof settings === 'undefined' ? 'undefined' : _typeof(settings)) === 'object') {
     (function () {
       var integrationSettings = settings.integrations;
@@ -15769,26 +15870,22 @@ function _initializeIntegrations(settings, onReady) {
         }
       }
 
-      var ready = (0, _after2['default'])((0, _size2['default'])(_integrations), onReady);
+      var loaded = (0, _after2['default'])((0, _size2['default'])(_integrations), onLoad);
 
       if ((0, _size2['default'])(_integrations) > 0) {
         (0, _each2['default'])(_integrations, function (name, integration) {
           if (!integration.isLoaded() || integration.getOption('noConflict')) {
-            integration.once('ready', function () {
-              integration.enrichDigitalData(function () {
-                _eventManager.addCallback(['on', 'event', function (event) {
-                  return integration.trackEvent(event);
-                }], true);
-                ready();
-              });
-            });
+            integration.once('load', loaded);
             integration.initialize();
+            _eventManager.addCallback(['on', 'event', function (event) {
+              return integration.trackEvent(event);
+            }], true);
           } else {
-            ready();
+            loaded();
           }
         });
       } else {
-        ready();
+        loaded();
       }
     })();
   }
@@ -15863,7 +15960,7 @@ ddManager = {
       sessionLength: 3600
     }, settings);
 
-    if (_isInitialized) {
+    if (_isReady) {
       throw new Error('ddManager is already initialized');
     }
 
@@ -15879,19 +15976,18 @@ ddManager = {
       _eventManager.setAutoEvents(new _AutoEvents2['default'](settings.autoEvents));
     }
 
-    _initializeIntegrations(settings, function () {
-      _isReady = true;
-      ddManager.emit('ready');
-    });
+    _initializeIntegrations(settings);
 
+    // should be initialized after integrations, otherwise
+    // autoEvents will be fired immediately
     _eventManager.initialize();
 
-    _isInitialized = true;
-    ddManager.emit('initialize', settings);
+    _isReady = true;
+    ddManager.emit('ready');
   },
 
-  isInitialized: function isInitialized() {
-    return _isInitialized;
+  isLoaded: function isLoaded() {
+    return _isLoaded;
   },
 
   isReady: function isReady() {
@@ -15899,7 +15995,7 @@ ddManager = {
   },
 
   addIntegration: function addIntegration(name, integration) {
-    if (_isInitialized) {
+    if (_isReady) {
       throw new Error('Adding integrations after ddManager initialization is not allowed');
     }
 
@@ -15940,7 +16036,7 @@ ddManager = {
     ddManager.removeAllListeners();
     _eventManager = null;
     _integrations = {};
-    _isInitialized = false;
+    _isLoaded = false;
     _isReady = false;
   },
 
@@ -15958,8 +16054,8 @@ ddManager.on = ddManager.addEventListener = function (event, handler) {
       handler();
       return;
     }
-  } else if (event === 'initialize') {
-    if (_isInitialized) {
+  } else if (event === 'load') {
+    if (_isLoaded) {
       handler();
       return;
     }
@@ -16533,9 +16629,9 @@ var Criteo = function (_Integration) {
           });
         }]);
       }
-      this.load(this.ready);
+      this.load(this.onLoad);
     } else {
-      this.ready();
+      this.onLoad();
     }
   };
 
@@ -16754,9 +16850,9 @@ var Driveback = function (_Integration) {
       if (this.getOption('autoInit') === false) {
         window.DrivebackAsyncInit = _noop2['default'];
       }
-      this.load(this.ready);
+      this.load(this.onLoad);
     } else {
-      this.ready();
+      this.onLoad();
     }
   };
 
@@ -16871,9 +16967,9 @@ var Emarsys = function (_Integration) {
   Emarsys.prototype.initialize = function initialize() {
     window.ScarabQueue = window.ScarabQueue || [];
     if (!this.getOption('noConflict')) {
-      this.load(this.ready);
+      this.load(this.onLoad);
     } else {
-      this.ready();
+      this.onLoad();
     }
   };
 
@@ -17058,10 +17154,10 @@ var FacebookPixel = function (_Integration) {
       window.fbq.loaded = true;
       window.fbq.version = '2.0';
       window.fbq.queue = [];
-      this.load(this.ready);
+      this.load(this.onLoad);
       window.fbq('init', this.getOption('pixelId'));
     } else {
-      this.ready();
+      this.onLoad();
     }
   };
 
@@ -17203,10 +17299,6 @@ var _size = require('./../functions/size.js');
 
 var _size2 = _interopRequireDefault(_size);
 
-var _componentType = require('component-type');
-
-var _componentType2 = _interopRequireDefault(_componentType);
-
 var _componentClone = require('component-clone');
 
 var _componentClone2 = _interopRequireDefault(_componentClone);
@@ -17240,18 +17332,12 @@ function getTransactionVoucher(transaction) {
   } else {
     voucher = transaction.voucher;
   }
-  if (!voucher) {
-    if (Array.isArray(transaction.promotions)) {
-      voucher = transaction.promotions[0];
-    } else {
-      voucher = transaction.promotion;
-    }
-  }
+
   return voucher;
 }
 
-function getCheckoutOptions(event) {
-  var optionNames = ['paymentMethod', 'shippingMethod'];
+function getCheckoutOptions(event, checkoutOptions) {
+  var optionNames = checkoutOptions;
   var options = [];
   for (var _iterator = optionNames, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
     var _ref;
@@ -17267,8 +17353,9 @@ function getCheckoutOptions(event) {
 
     var optionName = _ref;
 
-    if (event[optionName]) {
-      options.push(event[optionName]);
+    var optionValue = (0, _getProperty2['default'])(event, optionName);
+    if (optionValue) {
+      options.push(optionValue);
     }
   }
   return options.join(', ');
@@ -17295,8 +17382,11 @@ var GoogleAnalytics = function (_Integration) {
       metrics: {},
       dimensions: {},
       contentGroupings: {},
+      productDimensions: {},
+      productMetrics: {},
       namespace: 'ddl',
       noConflict: false,
+      checkoutOptions: ['paymentMethod', 'shippingMethod'],
       filterEvents: []
     }, options);
 
@@ -17330,12 +17420,12 @@ var GoogleAnalytics = function (_Integration) {
       this.initializeTracker();
 
       if (this.getOption('noConflict')) {
-        this.ready();
+        this.onLoad();
       } else {
-        this.load(this.ready);
+        this.load(this.onLoad);
       }
     } else {
-      this.ready();
+      this.onLoad();
     }
   };
 
@@ -17347,7 +17437,6 @@ var GoogleAnalytics = function (_Integration) {
       allowLinker: true,
       name: this.getOption('namespace') ? this.getOption('namespace') : undefined
     });
-
     // display advertising
     if (this.getOption('doubleClick')) {
       this.ga('require', 'displayfeatures');
@@ -17395,13 +17484,20 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.getCustomDimensions = function getCustomDimensions(source) {
+    var productScope = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+
     source = source || this.digitalData;
-    var settings = Object.assign(Object.assign(this.getOption('metrics'), this.getOption('dimensions')), this.getOption('contentGroupings'));
+    var settings = void 0;
+    if (!productScope) {
+      settings = Object.assign(this.getOption('metrics'), this.getOption('dimensions'), this.getOption('contentGroupings'));
+    } else {
+      settings = Object.assign(this.getOption('productMetrics'), this.getOption('productDimensions'));
+    }
     var custom = {};
     (0, _each2['default'])(settings, function (key, value) {
       var dimensionVal = (0, _getProperty2['default'])(source, value);
       if (dimensionVal !== undefined) {
-        if ((0, _componentType2['default'])(dimensionVal) === 'boolean') dimensionVal = dimensionVal.toString();
+        if (typeof dimensionVal === 'boolean') dimensionVal = dimensionVal.toString();
         custom[key] = dimensionVal;
       }
     });
@@ -17448,6 +17544,20 @@ var GoogleAnalytics = function (_Integration) {
     this.ga.apply(this, cleanedArgs);
   };
 
+  GoogleAnalytics.prototype.enrichDigitalData = function enrichDigitalData(done) {
+    var _this2 = this;
+
+    window.ga(function (tracker) {
+      var trackerName = _this2.getOption('namespace');
+      tracker = tracker || window.ga.getByName(trackerName);
+      if (tracker) {
+        var clientId = tracker.get('clientId');
+        _this2.digitalData.integrations.googleAnalytics = { clientId: clientId };
+      }
+      done();
+    });
+  };
+
   GoogleAnalytics.prototype.trackEvent = function trackEvent(event) {
     var filterEvents = this.getOption('filterEvents') || [];
     if (filterEvents.indexOf(event.name) >= 0) {
@@ -17459,32 +17569,24 @@ var GoogleAnalytics = function (_Integration) {
         this.onViewedPage(event);
       }
     } else if (this.getOption('enhancedEcommerce')) {
-      if (event.name === 'Viewed Product') {
-        this.onViewedProduct(event);
-      } else if (event.name === 'Clicked Product') {
-        this.onClickedProduct(event);
-      } else if (event.name === 'Viewed Product Detail') {
-        this.onViewedProductDetail(event);
-      } else if (event.name === 'Added Product') {
-        this.onAddedProduct(event);
-      } else if (event.name === 'Removed Product') {
-        this.onRemovedProduct(event);
-      } else if (event.name === 'Completed Transaction') {
-        this.onCompletedTransactionEnhanced(event);
-      } else if (event.name === 'Refunded Transaction') {
-        this.onRefundedTransaction(event);
-      } else if (event.name === 'Viewed Product Category') {
-        this.onViewedProductCategory(event);
-      } else if (event.name === 'Viewed Campaign') {
-        this.onViewedCampaign(event);
-      } else if (event.name === 'Clicked Campaign') {
-        this.onClickedCampaign(event);
-      } else if (event.name === 'Viewed Checkout Step') {
-        this.onViewedCheckoutStep(event);
-      } else if (event.name === 'Completed Checkout Step') {
-        this.onCompletedCheckoutStep(event);
+      var methods = {
+        'Viewed Product': this.onViewedProduct,
+        'Clicked Product': this.onClickedProduct,
+        'Viewed Product Detail': this.onViewedProductDetail,
+        'Added Product': this.onAddedProduct,
+        'Removed Product': this.onRemovedProduct,
+        'Completed Transaction': this.onCompletedTransactionEnhanced,
+        'Refunded Transaction': this.onRefundedTransaction,
+        'Viewed Campaign': this.onViewedCampaign,
+        'Clicked Campaign': this.onClickedCampaign,
+        'Viewed Checkout Step': this.onViewedCheckoutStep,
+        'Completed Checkout Step': this.onCompletedCheckoutStep
+      };
+      var method = methods[event.name];
+      if (method) {
+        method.bind(this)(event);
       } else {
-        this.onCustomEvent(event);
+        this.trackCustomEvent(event);
       }
     } else {
       if (event.name === 'Completed Transaction' && !this.getOption('noConflict')) {
@@ -17520,6 +17622,7 @@ var GoogleAnalytics = function (_Integration) {
     }
 
     // send
+    this.setEventCustomDimensions(event);
     this.ga('send', 'pageview', pageview);
 
     this.pageCalled = true;
@@ -17600,7 +17703,7 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onCompletedTransaction = function onCompletedTransaction(event) {
-    var _this2 = this;
+    var _this3 = this;
 
     var transaction = event.transaction;
     // orderId is required.
@@ -17626,7 +17729,7 @@ var GoogleAnalytics = function (_Integration) {
     (0, _each2['default'])(transaction.lineItems, function (key, lineItem) {
       var product = lineItem.product;
       if (product) {
-        _this2.ga('ecommerce:addItem', {
+        _this3.ga('ecommerce:addItem', {
           id: transaction.orderId,
           category: product.category,
           quantity: lineItem.quantity,
@@ -17643,7 +17746,7 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onCompletedTransactionEnhanced = function onCompletedTransactionEnhanced(event) {
-    var _this3 = this;
+    var _this4 = this;
 
     var transaction = event.transaction;
 
@@ -17655,8 +17758,8 @@ var GoogleAnalytics = function (_Integration) {
     (0, _each2['default'])(transaction.lineItems, function (key, lineItem) {
       var product = lineItem.product;
       if (product) {
-        product.currency = product.currency || transaction.currency || _this3.getOption('defaultCurrency');
-        _this3.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
+        product.currency = product.currency || transaction.currency || _this4.getOption('defaultCurrency');
+        _this4.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
       }
     });
 
@@ -17674,7 +17777,7 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onRefundedTransaction = function onRefundedTransaction(event) {
-    var _this4 = this;
+    var _this5 = this;
 
     var transaction = event.transaction;
 
@@ -17685,8 +17788,8 @@ var GoogleAnalytics = function (_Integration) {
     (0, _each2['default'])(transaction.lineItems, function (key, lineItem) {
       var product = lineItem.product;
       if (product) {
-        product.currency = product.currency || transaction.currency || _this4.getOption('defaultCurrency');
-        _this4.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
+        product.currency = product.currency || transaction.currency || _this5.getOption('defaultCurrency');
+        _this5.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
       }
     });
 
@@ -17753,7 +17856,7 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onViewedCheckoutStep = function onViewedCheckoutStep(event) {
-    var _this5 = this;
+    var _this6 = this;
 
     var cartOrTransaction = this.get('cart') || this.get('transaction');
 
@@ -17762,14 +17865,14 @@ var GoogleAnalytics = function (_Integration) {
     (0, _each2['default'])(cartOrTransaction.lineItems, function (key, lineItem) {
       var product = lineItem.product;
       if (product) {
-        product.currency = product.currency || cartOrTransaction.currency || _this5.getOption('defaultCurrency');
-        _this5.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
+        product.currency = product.currency || cartOrTransaction.currency || _this6.getOption('defaultCurrency');
+        _this6.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
       }
     });
 
     this.ga('ec:setAction', 'checkout', {
       step: event.step || 1,
-      option: getCheckoutOptions(event) || undefined
+      option: getCheckoutOptions(event, this.getOption('checkoutOptions')) || undefined
     });
 
     this.pushEnhancedEcommerce(event);
@@ -17777,8 +17880,7 @@ var GoogleAnalytics = function (_Integration) {
 
   GoogleAnalytics.prototype.onCompletedCheckoutStep = function onCompletedCheckoutStep(event) {
     var cartOrTransaction = this.get('cart') || this.get('transaction');
-    var options = getCheckoutOptions(event);
-
+    var options = getCheckoutOptions(event, this.getOption('checkoutOptions'));
     if (!event.step || !options) {
       return;
     }
@@ -17794,13 +17896,6 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onCustomEvent = function onCustomEvent(event) {
-    // custom dimensions & metrics
-    var source = (0, _componentClone2['default'])(event);
-    (0, _deleteProperty2['default'])(source, 'name');
-    (0, _deleteProperty2['default'])(source, 'category');
-    var custom = this.getCustomDimensions(source);
-    if ((0, _size2['default'])(custom)) this.ga('set', custom);
-
     var payload = {
       eventAction: event.name || 'event',
       eventCategory: event.category || 'All',
@@ -17809,7 +17904,20 @@ var GoogleAnalytics = function (_Integration) {
       nonInteraction: !!event.nonInteraction
     };
 
+    this.setEventCustomDimensions(event);
     this.ga('send', 'event', payload);
+  };
+
+  GoogleAnalytics.prototype.setEventCustomDimensions = function setEventCustomDimensions(event) {
+    // custom dimensions & metrics
+    var source = (0, _componentClone2['default'])(event);
+    var _arr = ['name', 'category', 'label', 'nonInteraction', 'value'];
+    for (var _i5 = 0; _i5 < _arr.length; _i5++) {
+      var prop = _arr[_i5];
+      (0, _deleteProperty2['default'])(source, prop);
+    }
+    var custom = this.getCustomDimensions(source);
+    if ((0, _size2['default'])(custom)) this.ga('set', custom);
   };
 
   GoogleAnalytics.prototype.enhancedEcommerceTrackProduct = function enhancedEcommerceTrackProduct(product, quantity, position) {
@@ -17848,7 +17956,7 @@ var GoogleAnalytics = function (_Integration) {
 
 exports['default'] = GoogleAnalytics;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":101,"./../functions/each.js":102,"./../functions/getProperty.js":104,"./../functions/size.js":114,"component-clone":3,"component-type":5}],121:[function(require,module,exports){
+},{"./../Integration.js":97,"./../functions/deleteProperty.js":101,"./../functions/each.js":102,"./../functions/getProperty.js":104,"./../functions/size.js":114,"component-clone":3}],121:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -17911,9 +18019,9 @@ var GoogleTagManager = function (_Integration) {
     if (this.getOption('containerId') && this.getOption('noConflict') === false) {
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({ 'gtm.start': Number(new Date()), event: 'gtm.js' });
-      this.load(this.ready);
+      this.load(this.onLoad);
     } else {
-      this.ready();
+      this.onLoad();
     }
   };
 
@@ -18016,9 +18124,9 @@ var MyTarget = function (_Integration) {
   MyTarget.prototype.initialize = function initialize() {
     window._tmr = window._tmr || [];
     if (!this.getOption('noConflict')) {
-      this.load(this.ready);
+      this.load(this.onLoad);
     } else {
-      this.ready();
+      this.onLoad();
     }
   };
 
@@ -18252,7 +18360,7 @@ var OWOXBIStreaming = function (_Integration) {
     })();
     /* eslint-enable */
     this._loaded = true;
-    this.ready();
+    this.onLoad();
   };
 
   OWOXBIStreaming.prototype.isLoaded = function isLoaded() {
@@ -18396,9 +18504,9 @@ var RetailRocket = function (_Integration) {
 
       this.trackEmail();
 
-      this.load(this.ready);
+      this.load(this.onLoad);
     } else {
-      this.ready();
+      this.onLoad();
     }
   };
 
@@ -18802,9 +18910,9 @@ var SegmentStream = function (_Integration) {
 
     ssApi.initialize(this._options);
     ssApi.pushOnReady(function () {
-      _this2.ready();
+      _this2.enrichDigitalData();
     });
-    this.load();
+    this.load(this.onLoad);
   };
 
   SegmentStream.prototype.isLoaded = function isLoaded() {
@@ -18816,7 +18924,7 @@ var SegmentStream = function (_Integration) {
     localStorage.clear();
   };
 
-  SegmentStream.prototype.enrichDigitalData = function enrichDigitalData(done) {
+  SegmentStream.prototype.enrichDigitalData = function enrichDigitalData() {
     var _this3 = this;
 
     function lowercaseFirstLetter(string) {
@@ -18829,7 +18937,7 @@ var SegmentStream = function (_Integration) {
       var key = lowercaseFirstLetter(name);
       _this3.digitalData.user.ssAttributes[key] = value;
     });
-    done();
+    this.completeEnrichment();
   };
 
   SegmentStream.prototype.trackEvent = function trackEvent(event) {
@@ -18950,17 +19058,22 @@ var SendPulse = function (_Integration) {
           _this2.sendUserAttributes(_this2.digitalData.user);
         }
       };
-      _this2.ready();
+      _this2.enrichDigitalData();
+      _this2.onLoad();
     });
   };
 
-  SendPulse.prototype.enrichDigitalData = function enrichDigitalData(done) {
+  SendPulse.prototype.enrichDigitalData = function enrichDigitalData() {
     var _this3 = this;
 
     var pushNotification = this.digitalData.user.pushNotifications = {};
     try {
       pushNotification.isSupported = this.checkPushNotificationsSupport();
       this.getPushSubscriptionInfo(function (subscriptionInfo) {
+        if (!_this3.isLoaded()) {
+          // to avoid problems in unit tests because of asyncoronous delay
+          return;
+        }
         if (subscriptionInfo === undefined) {
           pushNotification.isSubscribed = false;
           if (window.oSpP.isSafariNotificationSupported()) {
@@ -18979,11 +19092,11 @@ var SendPulse = function (_Integration) {
           }
         }
         _this3.onSubscriptionStatusReceived();
-        done();
+        _this3.completeEnrichment();
       });
     } catch (e) {
       pushNotification.isSupported = false;
-      done();
+      this.completeEnrichment();
     }
   };
 
@@ -19134,7 +19247,7 @@ var Vkontakte = function (_Integration) {
 
   Vkontakte.prototype.initialize = function initialize() {
     this._isLoaded = true;
-    this.ready();
+    this.onLoad();
   };
 
   Vkontakte.prototype.isLoaded = function isLoaded() {
@@ -19273,9 +19386,9 @@ var YandexMetrica = function (_Integration) {
           ecommerce: true
         });
       });
-      this.load(this.ready);
+      this.load(this.onLoad);
     } else {
-      this.ready();
+      this.onLoad();
     }
   };
 
@@ -21139,7 +21252,7 @@ describe('EventManager', function () {
   });
 });
 
-},{"./../src/AutoEvents.js":91,"./../src/EventManager.js":96,"./reset.js":152,"assert":1}],135:[function(require,module,exports){
+},{"./../src/AutoEvents.js":91,"./../src/EventManager.js":96,"./reset.js":151,"assert":1}],135:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -21197,7 +21310,7 @@ describe('DDManager', function () {
       window.ddManager.initialize();
       _ddManager2['default'].processEarlyStubCalls();
 
-      _assert2['default'].ok(_ddManager2['default'].isInitialized());
+      _assert2['default'].ok(_ddManager2['default'].isReady());
       _assert2['default'].ok(Array.isArray(window.digitalData.events));
       _assert2['default'].ok(Array.isArray(window.ddListener));
     });
@@ -21205,7 +21318,7 @@ describe('DDManager', function () {
     it('should initialize after all other stubs', function (done) {
       (0, _snippet2['default'])();
       window.ddManager.initialize();
-      window.ddManager.on('initialize', function () {
+      window.ddManager.on('ready', function () {
         done();
       });
       _ddManager2['default'].processEarlyStubCalls();
@@ -21213,7 +21326,7 @@ describe('DDManager', function () {
 
     it('should initialize DDManager instance', function () {
       _ddManager2['default'].initialize();
-      _assert2['default'].ok(_ddManager2['default'].isInitialized());
+      _assert2['default'].ok(_ddManager2['default'].isReady());
     });
 
     it('should add integration if old-style object settings', function () {
@@ -21289,8 +21402,8 @@ describe('DDManager', function () {
 
     it('it should fire on("initialize") event even if ddManager was initialized before', function (done) {
       _ddManager2['default'].initialize();
-      if (_ddManager2['default'].isInitialized()) {
-        _ddManager2['default'].on('initialize', function () {
+      if (_ddManager2['default'].isReady()) {
+        _ddManager2['default'].on('ready', function () {
           done();
         });
       } else {
@@ -21300,8 +21413,8 @@ describe('DDManager', function () {
 
     it('it should fire once("initialize") event even if ddManager was initialized before', function (done) {
       _ddManager2['default'].initialize();
-      if (_ddManager2['default'].isInitialized()) {
-        _ddManager2['default'].once('initialize', function () {
+      if (_ddManager2['default'].isReady()) {
+        _ddManager2['default'].once('ready', function () {
           done();
         });
       } else {
@@ -21311,8 +21424,8 @@ describe('DDManager', function () {
 
     it('it should fire fire "Viewed Page" event if autoEvents == true', function (done) {
       _ddManager2['default'].initialize();
-      if (_ddManager2['default'].isInitialized()) {
-        _ddManager2['default'].once('initialize', function () {
+      if (_ddManager2['default'].isReady()) {
+        _ddManager2['default'].once('ready', function () {
           _assert2['default'].ok(window.digitalData.events[0].name === 'Viewed Page');
           _assert2['default'].ok(window.digitalData.events.length === 1);
           done();
@@ -21326,8 +21439,8 @@ describe('DDManager', function () {
       _ddManager2['default'].initialize({
         autoEvents: false
       });
-      if (_ddManager2['default'].isInitialized()) {
-        _ddManager2['default'].once('initialize', function () {
+      if (_ddManager2['default'].isReady()) {
+        _ddManager2['default'].once('ready', function () {
           _assert2['default'].ok(window.digitalData.events.length === 0);
           done();
         });
@@ -21338,8 +21451,8 @@ describe('DDManager', function () {
 
     it('it should enrich digital data', function (done) {
       _ddManager2['default'].initialize();
-      if (_ddManager2['default'].isInitialized()) {
-        _ddManager2['default'].once('initialize', function () {
+      if (_ddManager2['default'].isReady()) {
+        _ddManager2['default'].once('ready', function () {
           _assert2['default'].ok(window.digitalData.context.userAgent);
           done();
         });
@@ -21375,7 +21488,7 @@ describe('DDManager', function () {
   });
 });
 
-},{"../src/Integration.js":97,"../src/availableIntegrations.js":98,"../src/ddManager.js":99,"./reset.js":152,"./snippet.js":153,"assert":1}],136:[function(require,module,exports){
+},{"../src/Integration.js":97,"../src/availableIntegrations.js":98,"../src/ddManager.js":99,"./reset.js":151,"./snippet.js":152,"assert":1}],136:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -21426,13 +21539,11 @@ require('./integrations/MyTargetSpec.js');
 
 require('./integrations/YandexMetricaSpec.js');
 
-require('./integrations/CustomIntegrationSpec.js');
-
 require('./integrations/VkontakteSpec.js');
 
 require('./integrations/EmarsysSpec.js');
 
-},{"./../src/polyfill.js":129,"./AutoEventsSpec.js":130,"./DDHelperSpec.js":131,"./DigitalDataEnricherSpec.js":132,"./EventDataEnricherSpec.js":133,"./EventManagerSpec.js":134,"./ddManagerSpec.js":135,"./integrations/CriteoSpec.js":138,"./integrations/CustomIntegrationSpec.js":139,"./integrations/DrivebackSpec.js":140,"./integrations/EmarsysSpec.js":141,"./integrations/FacebookPixelSpec.js":142,"./integrations/GoogleAnalyticsSpec.js":143,"./integrations/GoogleTagManagerSpec.js":144,"./integrations/MyTargetSpec.js":145,"./integrations/OWOXBIStreamingSpec.js":146,"./integrations/RetailRocketSpec.js":147,"./integrations/SegmentStreamSpec.js":148,"./integrations/SendPulseSpec.js":149,"./integrations/VkontakteSpec.js":150,"./integrations/YandexMetricaSpec.js":151}],138:[function(require,module,exports){
+},{"./../src/polyfill.js":129,"./AutoEventsSpec.js":130,"./DDHelperSpec.js":131,"./DigitalDataEnricherSpec.js":132,"./EventDataEnricherSpec.js":133,"./EventManagerSpec.js":134,"./ddManagerSpec.js":135,"./integrations/CriteoSpec.js":138,"./integrations/DrivebackSpec.js":139,"./integrations/EmarsysSpec.js":140,"./integrations/FacebookPixelSpec.js":141,"./integrations/GoogleAnalyticsSpec.js":142,"./integrations/GoogleTagManagerSpec.js":143,"./integrations/MyTargetSpec.js":144,"./integrations/OWOXBIStreamingSpec.js":145,"./integrations/RetailRocketSpec.js":146,"./integrations/SegmentStreamSpec.js":147,"./integrations/SendPulseSpec.js":148,"./integrations/VkontakteSpec.js":149,"./integrations/YandexMetricaSpec.js":150}],138:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -21460,7 +21571,6 @@ function _interopRequireDefault(obj) {
 }
 
 describe('Integrations: Criteo', function () {
-
   var criteo = void 0;
   var options = {
     account: '123'
@@ -21591,7 +21701,7 @@ describe('Integrations: Criteo', function () {
         window.criteo_q = {
           push: function push() {}
         };
-        criteo.ready();
+        criteo.onLoad();
       });
     });
 
@@ -21601,7 +21711,7 @@ describe('Integrations: Criteo', function () {
 
     it('should load', function (done) {
       _assert2['default'].ok(!criteo.isLoaded());
-      _ddManager2['default'].once('ready', function () {
+      _ddManager2['default'].once('load', function () {
         _assert2['default'].ok(criteo.isLoaded());
         done();
       });
@@ -21614,9 +21724,11 @@ describe('Integrations: Criteo', function () {
   describe('after loading', function () {
     beforeEach(function (done) {
       _sinon2['default'].stub(criteo, 'load', function () {
-        criteo.ready();
+        setTimeout(criteo.onLoad, 0);
       });
-      _ddManager2['default'].once('ready', done);
+      _ddManager2['default'].once('ready', function () {
+        done();
+      });
       _ddManager2['default'].initialize({
         autoEvents: false
       });
@@ -22169,89 +22281,7 @@ describe('Integrations: Criteo', function () {
   });
 });
 
-},{"./../../src/ddManager.js":99,"./../../src/integrations/Criteo.js":116,"./../reset.js":152,"assert":1,"sinon":64}],139:[function(require,module,exports){
-'use strict';
-
-var _assert = require('assert');
-
-var _assert2 = _interopRequireDefault(_assert);
-
-var _reset = require('./../reset.js');
-
-var _reset2 = _interopRequireDefault(_reset);
-
-var _Driveback = require('./../../src/integrations/Driveback.js');
-
-var _Driveback2 = _interopRequireDefault(_Driveback);
-
-var _ddManager = require('./../../src/ddManager.js');
-
-var _ddManager2 = _interopRequireDefault(_ddManager);
-
-function _interopRequireDefault(obj) {
-  return obj && obj.__esModule ? obj : { 'default': obj };
-}
-
-describe('Integrations: Custom', function () {
-  var customIntegration = void 0;
-  var options = {
-    websiteToken: 'aba543e1-1413-5f77-a8c7-aaf6979208a3'
-  };
-
-  beforeEach(function () {
-    window.digitalData = {
-      user: {},
-      version: '1.0.1'
-    };
-    customIntegration = new _ddManager2['default'].Integration(window.digitalData, {
-      option1: 'test'
-    });
-    customIntegration.enrichDigitalData = function (done) {
-      window.digitalData.user.isSubscribed = true;
-      done();
-    };
-    customIntegration.trackEvent = function (event) {
-      window.digitalData.user.trackedEvent = event.name;
-    };
-    _ddManager2['default'].addIntegration('Custom Mapper', customIntegration);
-  });
-
-  afterEach(function () {
-    customIntegration.reset();
-    _ddManager2['default'].reset();
-    (0, _reset2['default'])();
-  });
-
-  describe('#constructor', function () {
-
-    it('should create Custom Mapper integrations with proper options', function () {
-      _assert2['default'].equal(customIntegration.getOption('option1'), 'test');
-    });
-  });
-
-  describe('after loading', function () {
-    beforeEach(function (done) {
-      _ddManager2['default'].once('ready', done);
-      _ddManager2['default'].initialize();
-    });
-
-    it('should enrich digital data', function () {
-      _assert2['default'].ok(window.digitalData.user.isSubscribed);
-    });
-
-    it('should track event', function (done) {
-      window.digitalData.events.push({
-        name: 'Test',
-        callback: function callback() {
-          _assert2['default'].equal(window.digitalData.user.trackedEvent, 'Test');
-          done();
-        }
-      });
-    });
-  });
-});
-
-},{"./../../src/ddManager.js":99,"./../../src/integrations/Driveback.js":117,"./../reset.js":152,"assert":1}],140:[function(require,module,exports){
+},{"./../../src/ddManager.js":99,"./../../src/integrations/Criteo.js":116,"./../reset.js":151,"assert":1,"sinon":64}],139:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -22304,7 +22334,7 @@ describe('Integrations: Driveback', function () {
 
     it('should load', function (done) {
       _assert2['default'].ok(!driveback.isLoaded());
-      _ddManager2['default'].once('ready', function () {
+      _ddManager2['default'].once('load', function () {
         _assert2['default'].ok(driveback.isLoaded());
         done();
       });
@@ -22327,7 +22357,7 @@ describe('Integrations: Driveback', function () {
 
   describe('after loading', function () {
     beforeEach(function (done) {
-      _ddManager2['default'].once('ready', done);
+      _ddManager2['default'].once('load', done);
       _ddManager2['default'].initialize();
     });
 
@@ -22341,7 +22371,7 @@ describe('Integrations: Driveback', function () {
   });
 });
 
-},{"./../../src/ddManager.js":99,"./../../src/integrations/Driveback.js":117,"./../reset.js":152,"assert":1}],141:[function(require,module,exports){
+},{"./../../src/ddManager.js":99,"./../../src/integrations/Driveback.js":117,"./../reset.js":151,"assert":1}],140:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -22479,10 +22509,10 @@ describe('Integrations: Emarsys', function () {
   describe('loading', function () {
     beforeEach(function () {
       _sinon2['default'].stub(emarsys, 'load', function () {
-        window._tmr = {
+        window.ScarabQueue = {
           push: function push() {}
         };
-        emarsys.ready();
+        emarsys.onLoad();
       });
     });
 
@@ -22492,7 +22522,7 @@ describe('Integrations: Emarsys', function () {
 
     it('should load', function (done) {
       _assert2['default'].ok(!emarsys.isLoaded());
-      _ddManager2['default'].once('ready', function () {
+      _ddManager2['default'].once('load', function () {
         _assert2['default'].ok(emarsys.isLoaded());
         done();
       });
@@ -22506,7 +22536,7 @@ describe('Integrations: Emarsys', function () {
     beforeEach(function (done) {
       _sinon2['default'].stub(emarsys, 'load', function () {
         _sinon2['default'].spy(window.ScarabQueue, 'push');
-        emarsys.ready();
+        emarsys.onLoad();
       });
       _ddManager2['default'].once('ready', done);
       _ddManager2['default'].initialize({
@@ -22736,7 +22766,7 @@ describe('Integrations: Emarsys', function () {
   });
 });
 
-},{"./../../src/ddManager":99,"./../../src/integrations/Emarsys":118,"./../reset":152,"assert":1,"sinon":64}],142:[function(require,module,exports){
+},{"./../../src/ddManager":99,"./../../src/integrations/Emarsys":118,"./../reset":151,"assert":1,"sinon":64}],141:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -22792,7 +22822,7 @@ describe('Integrations: FacebookPixel', function () {
 
     it('should load', function (done) {
       _assert2['default'].ok(!fbPixel.isLoaded());
-      _ddManager2['default'].once('ready', function () {
+      _ddManager2['default'].once('load', function () {
         _assert2['default'].ok(fbPixel.isLoaded());
         done();
       });
@@ -22803,7 +22833,7 @@ describe('Integrations: FacebookPixel', function () {
   describe('after loading', function () {
 
     before(function (done) {
-      if (!_ddManager2['default'].isInitialized()) {
+      if (!_ddManager2['default'].isReady()) {
         _ddManager2['default'].once('ready', done);
         _ddManager2['default'].initialize();
       } else {
@@ -23146,7 +23176,7 @@ describe('Integrations: FacebookPixel', function () {
   });
 });
 
-},{"./../../src/ddManager.js":99,"./../../src/integrations/FacebookPixel.js":119,"./../reset.js":152,"assert":1,"sinon":64}],143:[function(require,module,exports){
+},{"./../../src/ddManager.js":99,"./../../src/integrations/FacebookPixel.js":119,"./../reset.js":151,"assert":1,"sinon":64}],142:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -23355,7 +23385,7 @@ describe('Integrations: GoogleAnalytics', function () {
           _ddManager2['default'].initialize({
             autoEvents: false
           });
-          _assert2['default'].deepEqual(window.ga.q[2], undefined);
+          _assert2['default'].deepEqual(window.ga.q[3], undefined);
         });
       });
     });
@@ -23363,7 +23393,7 @@ describe('Integrations: GoogleAnalytics', function () {
     describe('loading', function () {
       it('should load', function (done) {
         _assert2['default'].ok(!ga.isLoaded());
-        _ddManager2['default'].once('ready', function () {
+        _ddManager2['default'].once('load', function () {
           _assert2['default'].ok(ga.isLoaded());
           done();
         });
@@ -25032,7 +25062,7 @@ describe('Integrations: GoogleAnalytics', function () {
   });
 });
 
-},{"./../../src/ddManager.js":99,"./../../src/functions/after.js":100,"./../../src/integrations/GoogleAnalytics.js":120,"./../functions/argumentsToArray.js":136,"./../reset.js":152,"assert":1,"sinon":64}],144:[function(require,module,exports){
+},{"./../../src/ddManager.js":99,"./../../src/functions/after.js":100,"./../../src/integrations/GoogleAnalytics.js":120,"./../functions/argumentsToArray.js":136,"./../reset.js":151,"assert":1,"sinon":64}],143:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -25087,7 +25117,7 @@ describe('Integrations: GoogleTagManager', function () {
 
       it('should load', function (done) {
         _assert2['default'].ok(!gtm.isLoaded());
-        _ddManager2['default'].once('ready', function () {
+        _ddManager2['default'].once('load', function () {
           _assert2['default'].ok(gtm.isLoaded());
           done();
         });
@@ -25206,7 +25236,7 @@ describe('Integrations: GoogleTagManager', function () {
   });
 });
 
-},{"./../../src/ddManager.js":99,"./../../src/integrations/GoogleTagManager.js":121,"./../reset.js":152,"assert":1}],145:[function(require,module,exports){
+},{"./../../src/ddManager.js":99,"./../../src/integrations/GoogleTagManager.js":121,"./../reset.js":151,"assert":1}],144:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -25323,7 +25353,7 @@ describe('Integrations: MyTarget', function () {
           push: function push() {},
           unload: function unload() {}
         };
-        myTarget.ready();
+        myTarget.onLoad();
       });
     });
 
@@ -25333,7 +25363,7 @@ describe('Integrations: MyTarget', function () {
 
     it('should load', function (done) {
       _assert2['default'].ok(!myTarget.isLoaded());
-      _ddManager2['default'].once('ready', function () {
+      _ddManager2['default'].once('load', function () {
         _assert2['default'].ok(myTarget.isLoaded());
         done();
       });
@@ -25346,7 +25376,7 @@ describe('Integrations: MyTarget', function () {
   describe('after loading', function () {
     beforeEach(function (done) {
       _sinon2['default'].stub(myTarget, 'load', function () {
-        myTarget.ready();
+        myTarget.onLoad();
       });
       _ddManager2['default'].once('ready', done);
       _ddManager2['default'].initialize({
@@ -25662,7 +25692,7 @@ describe('Integrations: MyTarget', function () {
   });
 });
 
-},{"./../../src/ddManager.js":99,"./../../src/integrations/MyTarget.js":122,"./../reset.js":152,"assert":1,"sinon":64}],146:[function(require,module,exports){
+},{"./../../src/ddManager.js":99,"./../../src/integrations/MyTarget.js":122,"./../reset.js":151,"assert":1,"sinon":64}],145:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -25715,6 +25745,15 @@ describe('Integrations: OWOXBIStreaming', function () {
       owox = new _OWOXBIStreaming2['default'](window.digitalData, {
         'sessionIdDimension': 'sessionId'
       });
+
+      // reset in case GA was loaded
+      // from previous tests asyncronously
+      ga.reset();
+      owox.reset();
+
+      // OWOX should depend on Google Analtics, so this order is for reason
+      // to test that everything works well even if OWOX BI is added before GA
+      // TODO: change order and make sure everything works
       _ddManager2['default'].addIntegration('Google Analytics', ga);
       _ddManager2['default'].addIntegration('OWOX BI Streaming', owox);
     });
@@ -25742,17 +25781,19 @@ describe('Integrations: OWOXBIStreaming', function () {
         it('should require Google Analytics OWOXBIStreaming plugin', function () {
           ga.setOption('sessionIdDimension', 'SessionId');
           _ddManager2['default'].initialize();
-          _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.q[1]), ['ddl.require', 'OWOXBIStreaming', {
-            'sessionIdDimension': 'sessionId'
-          }]);
-          _assert2['default'].deepEqual([window.ga.q[2][0], window.ga.q[2][1]], ['provide', 'OWOXBIStreaming']);
+          _ddManager2['default'].on('ready', function () {
+            _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.q[1]), ['ddl.require', 'OWOXBIStreaming', {
+              'sessionIdDimension': 'sessionId'
+            }]);
+            _assert2['default'].deepEqual([window.ga.q[2][0], window.ga.q[2][1]], ['provide', 'OWOXBIStreaming']);
+          });
         });
       });
     });
   });
 });
 
-},{"./../../src/ddManager.js":99,"./../../src/integrations/GoogleAnalytics.js":120,"./../../src/integrations/OWOXBIStreaming.js":123,"./../functions/argumentsToArray.js":136,"./../reset.js":152,"assert":1,"sinon":64}],147:[function(require,module,exports){
+},{"./../../src/ddManager.js":99,"./../../src/integrations/GoogleAnalytics.js":120,"./../../src/integrations/OWOXBIStreaming.js":123,"./../functions/argumentsToArray.js":136,"./../reset.js":151,"assert":1,"sinon":64}],146:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -25884,7 +25925,7 @@ describe('Integrations: RetailRocket', function () {
     beforeEach(function (done) {
       _sinon2['default'].stub(retailRocket, 'load', function () {
         rrApi._initialize = function () {};
-        retailRocket.ready();
+        retailRocket.onLoad();
       });
 
       _ddManager2['default'].once('ready', done);
@@ -26593,7 +26634,7 @@ describe('Integrations: RetailRocket', function () {
   });
 });
 
-},{"./../../src/ddManager.js":99,"./../../src/functions/deleteProperty.js":101,"./../../src/integrations/RetailRocket.js":124,"./../reset.js":152,"assert":1,"sinon":64}],148:[function(require,module,exports){
+},{"./../../src/ddManager.js":99,"./../../src/functions/deleteProperty.js":101,"./../../src/integrations/RetailRocket.js":124,"./../reset.js":151,"assert":1,"sinon":64}],147:[function(require,module,exports){
 'use strict';
 
 var _SegmentStream = require('./../../src/integrations/SegmentStream.js');
@@ -26656,15 +26697,15 @@ describe('SegmentStream', function () {
         _ddManager2['default'].initialize({
           autoEvents: false
         });
-
-        _assert2['default'].ok(window.ssApi.initialize);
-        _assert2['default'].ok(window.ssApi.getData);
-        _assert2['default'].ok(window.ssApi.getAnonymousId);
-        _assert2['default'].ok(window.ssApi.track);
-        _assert2['default'].ok(window.ssApi.pushOnReady);
-        _assert2['default'].equal(window.ssApi.length, 2);
-        _assert2['default'].equal(window.ssApi[0][0], 'initialize');
-        _assert2['default'].equal(window.ssApi[1][0], 'pushOnReady');
+        _ddManager2['default'].on('ready', function () {
+          _assert2['default'].ok(window.ssApi.initialize);
+          _assert2['default'].ok(window.ssApi.getData);
+          _assert2['default'].ok(window.ssApi.getAnonymousId);
+          _assert2['default'].ok(window.ssApi.track);
+          _assert2['default'].ok(window.ssApi.pushOnReady);
+          _assert2['default'].equal(window.ssApi[0][0], 'initialize');
+          _assert2['default'].equal(window.ssApi[1][0], 'pushOnReady');
+        });
       });
     });
   });
@@ -26675,7 +26716,7 @@ describe('SegmentStream', function () {
         test: 'test',
         lifetimeVisitCount: 5
       };
-      _ddManager2['default'].once('ready', done);
+      _ddManager2['default'].once('load', done);
       _ddManager2['default'].initialize({
         autoEvents: false
       });
@@ -26739,7 +26780,7 @@ describe('SegmentStream', function () {
   });
 });
 
-},{"./../../src/ddManager.js":99,"./../../src/integrations/SegmentStream.js":125,"./../reset.js":152,"assert":1,"sinon":64}],149:[function(require,module,exports){
+},{"./../../src/ddManager.js":99,"./../../src/integrations/SegmentStream.js":125,"./../reset.js":151,"assert":1,"sinon":64}],148:[function(require,module,exports){
 'use strict';
 
 var _SendPulse = require('./../../src/integrations/SendPulse.js');
@@ -26855,17 +26896,21 @@ describe('SendPulse', function () {
     describe('#enrichDigitalData', function () {
 
       it('should enrich digitalData.user', function () {
-        _assert2['default'].ok(window.digitalData.user.pushNotifications);
+        _sp.on('enrich', function () {
+          _assert2['default'].ok(window.digitalData.user.pushNotifications);
+        });
       });
 
       it('should not support push notifications for IE and Edge', function () {
-        window.oSpP.detectBrowser = function () {
-          return {
-            name: 'Edge',
-            version: '25.10'
+        _sp.on('enrich', function () {
+          window.oSpP.detectBrowser = function () {
+            return {
+              name: 'Edge',
+              version: '25.10'
+            };
           };
-        };
-        _assert2['default'].ok(!_sp.checkPushNotificationsSupport());
+          _assert2['default'].ok(!_sp.checkPushNotificationsSupport());
+        });
       });
     });
 
@@ -26875,46 +26920,52 @@ describe('SendPulse', function () {
         window.oSpP.push.restore();
       });
 
-      it('should add additional params to SendPulse once integration is initialized', function (done) {
-        setTimeout(function () {
+      it('should add additional params to SendPulse once integration is initialized', function () {
+        _sp.once('enrich', function () {
           _assert2['default'].ok(window.oSpP.push.calledWith('test', 'test'));
-          done();
-        }, 101);
+        });
       });
 
       it('should add additional params to SendPulse if user is subscribed', function (done) {
-        window.digitalData.user.city = 'New York';
-        window.digitalData.user.isBoolean = true;
-        window.digitalData.user.test = 'test';
-        window.oSpP.push.restore();
-        _sinon2['default'].spy(window.oSpP, 'push');
-        setTimeout(function () {
-          _assert2['default'].ok(window.oSpP.push.calledWith('city', 'New York'));
-          _assert2['default'].ok(window.oSpP.push.calledWith('isBoolean', 'true'));
-          _assert2['default'].ok(!window.oSpP.push.calledWith('test', 'test'));
-          done();
-        }, 101);
+        _sp.once('enrich', function () {
+          window.digitalData.user.city = 'New York';
+          window.digitalData.user.isBoolean = true;
+          window.digitalData.user.test = 'test';
+
+          window.oSpP.push.restore();
+          _sinon2['default'].spy(window.oSpP, 'push');
+          setTimeout(function () {
+            _assert2['default'].ok(window.oSpP.push.calledWith('city', 'New York'));
+            _assert2['default'].ok(window.oSpP.push.calledWith('isBoolean', 'true'));
+            _assert2['default'].ok(!window.oSpP.push.calledWith('test', 'test'));
+            done();
+          }, 101);
+        });
       });
 
       it('should not add additional params to SendPulse if user is not subscribed', function (done) {
-        window.digitalData.user.pushNotifications.isSubscribed = false;
-        window.oSpP.push.restore();
-        _sinon2['default'].spy(window.oSpP, 'push');
-        window.digitalData.user.city = 'New York';
-        setTimeout(function () {
-          _assert2['default'].ok(!window.oSpP.push.called);
-          done();
-        }, 100);
+        _sp.once('enrich', function () {
+          window.digitalData.user.pushNotifications.isSubscribed = false;
+          window.oSpP.push.restore();
+          _sinon2['default'].spy(window.oSpP, 'push');
+          window.digitalData.user.city = 'New York';
+          setTimeout(function () {
+            _assert2['default'].ok(!window.oSpP.push.called);
+            done();
+          }, 100);
+        });
       });
     });
 
     describe('oSpP.storeSubscription', function () {
 
       it('should send user attributes if any', function () {
-        window.digitalData.user.test = 'test';
-        //sinon.spy(window.oSpP, 'push');
-        window.oSpP.storeSubscription('DUMMY');
-        _assert2['default'].ok(window.oSpP.push.calledWith('test', 'test'));
+        _sp.once('enrich', function () {
+          window.digitalData.user.test = 'test';
+          //sinon.spy(window.oSpP, 'push');
+          window.oSpP.storeSubscription('DUMMY');
+          _assert2['default'].ok(window.oSpP.push.calledWith('test', 'test'));
+        });
       });
     });
 
@@ -26975,7 +27026,7 @@ describe('SendPulse', function () {
   });
 });
 
-},{"./../../src/ddManager.js":99,"./../../src/functions/after.js":100,"./../../src/functions/deleteProperty.js":101,"./../../src/integrations/SendPulse.js":126,"./../reset.js":152,"assert":1,"sinon":64}],150:[function(require,module,exports){
+},{"./../../src/ddManager.js":99,"./../../src/functions/after.js":100,"./../../src/functions/deleteProperty.js":101,"./../../src/integrations/SendPulse.js":126,"./../reset.js":151,"assert":1,"sinon":64}],149:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -27037,10 +27088,10 @@ describe('Integrations: Vkontakte', function () {
 
     describe('#initialize', function () {
       it('should call ready after initialization', function () {
-        _sinon2['default'].stub(vk, 'ready');
+        _sinon2['default'].stub(vk, 'onLoad');
         _ddManager2['default'].initialize();
-        _assert2['default'].ok(vk.ready.calledOnce);
-        vk.ready.restore();
+        _assert2['default'].ok(vk.onLoad.calledOnce);
+        vk.onLoad.restore();
       });
     });
   });
@@ -27048,7 +27099,7 @@ describe('Integrations: Vkontakte', function () {
   describe('loading', function () {
     it('should load', function (done) {
       _assert2['default'].ok(!vk.isLoaded());
-      _ddManager2['default'].once('ready', function () {
+      _ddManager2['default'].once('load', function () {
         _assert2['default'].ok(vk.isLoaded());
         done();
       });
@@ -27099,7 +27150,7 @@ describe('Integrations: Vkontakte', function () {
   });
 });
 
-},{"./../../src/ddManager.js":99,"./../../src/integrations/Vkontakte.js":127,"./../reset.js":152,"assert":1,"sinon":64}],151:[function(require,module,exports){
+},{"./../../src/ddManager.js":99,"./../../src/integrations/Vkontakte.js":127,"./../reset.js":151,"assert":1,"sinon":64}],150:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -27208,7 +27259,7 @@ describe('Integrations: Yandex Metrica', function () {
           _assert2['default'].equal(options.trackHash, ym.getOption('trackHash'));
         };
         window.yandex_metrika_callbacks.pop()();
-        ym.ready();
+        ym.onLoad();
       });
     });
 
@@ -27218,7 +27269,7 @@ describe('Integrations: Yandex Metrica', function () {
 
     it('should load', function (done) {
       _assert2['default'].ok(!ym.isLoaded());
-      _ddManager2['default'].once('ready', function () {
+      _ddManager2['default'].once('load', function () {
         _assert2['default'].ok(ym.isLoaded());
         done();
       });
@@ -27236,7 +27287,7 @@ describe('Integrations: Yandex Metrica', function () {
           this.reachGoal = function () {};
         };
         window.yandex_metrika_callbacks.pop()();
-        ym.ready();
+        ym.onLoad();
       });
       _ddManager2['default'].once('ready', done);
       _ddManager2['default'].initialize({
@@ -27588,7 +27639,7 @@ describe('Integrations: Yandex Metrica', function () {
   });
 });
 
-},{"./../../src/ddManager.js":99,"./../../src/integrations/YandexMetrica.js":128,"./../reset.js":152,"assert":1,"sinon":64}],152:[function(require,module,exports){
+},{"./../../src/ddManager.js":99,"./../../src/integrations/YandexMetrica.js":128,"./../reset.js":151,"assert":1,"sinon":64}],151:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -27599,7 +27650,7 @@ function reset() {
   window.ddManager = undefined;
 }
 
-},{}],153:[function(require,module,exports){
+},{}],152:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;

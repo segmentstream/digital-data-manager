@@ -40,15 +40,15 @@ describe('SegmentStream', function() {
         ddManager.initialize({
           autoEvents: false
         });
-
-        assert.ok(window.ssApi.initialize);
-        assert.ok(window.ssApi.getData);
-        assert.ok(window.ssApi.getAnonymousId);
-        assert.ok(window.ssApi.track);
-        assert.ok(window.ssApi.pushOnReady);
-        assert.equal(window.ssApi.length, 2);
-        assert.equal(window.ssApi[0][0], 'initialize');
-        assert.equal(window.ssApi[1][0], 'pushOnReady');
+        ddManager.on('ready', () => {
+          assert.ok(window.ssApi.initialize);
+          assert.ok(window.ssApi.getData);
+          assert.ok(window.ssApi.getAnonymousId);
+          assert.ok(window.ssApi.track);
+          assert.ok(window.ssApi.pushOnReady);
+          assert.equal(window.ssApi[0][0], 'initialize');
+          assert.equal(window.ssApi[1][0], 'pushOnReady');
+        })
       });
 
     });
@@ -61,7 +61,7 @@ describe('SegmentStream', function() {
         test: 'test',
         lifetimeVisitCount: 5,
       };
-      ddManager.once('ready', done);
+      ddManager.once('load', done);
       ddManager.initialize({
         autoEvents: false
       });

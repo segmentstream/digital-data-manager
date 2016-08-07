@@ -47,9 +47,9 @@ class Emarsys extends Integration {
   initialize() {
     window.ScarabQueue = window.ScarabQueue || [];
     if (!this.getOption('noConflict')) {
-      this.load(this.ready);
+      this.load(this.onLoad);
     } else {
-      this.ready();
+      this.onLoad();
     }
   }
 

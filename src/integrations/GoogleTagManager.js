@@ -21,9 +21,9 @@ class GoogleTagManager extends Integration {
     if (this.getOption('containerId') && this.getOption('noConflict') === false) {
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({ 'gtm.start': Number(new Date()), event: 'gtm.js' });
-      this.load(this.ready);
+      this.load(this.onLoad);
     } else {
-      this.ready();
+      this.onLoad();
     }
   }
 
