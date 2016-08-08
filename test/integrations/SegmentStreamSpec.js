@@ -17,6 +17,7 @@ describe('SegmentStream', function() {
     };
     window.localStorage.clear(); // just to be sure
     _ss = new SegmentStream(window.digitalData, options);
+    _ss.reset(); // in case it was initialized somewhere before
     ddManager.addIntegration('SegmentStream', _ss);
   });
 

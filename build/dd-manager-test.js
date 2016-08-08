@@ -14293,7 +14293,7 @@ var AutoEvents = function () {
 
 exports['default'] = AutoEvents;
 
-},{"./DOMComponentsTracking.js":93,"./functions/semver":112,"component-type":5}],92:[function(require,module,exports){
+},{"./DOMComponentsTracking.js":93,"./functions/semver":114,"component-type":5}],92:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -14456,7 +14456,7 @@ var DDHelper = function () {
 
 exports['default'] = DDHelper;
 
-},{"./functions/getProperty.js":104,"component-clone":3}],93:[function(require,module,exports){
+},{"./functions/getProperty.js":105,"component-clone":3}],93:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -14817,7 +14817,7 @@ var DigitalDataEnricher = function () {
 
 exports['default'] = DigitalDataEnricher;
 
-},{"./functions/htmlGlobals.js":105}],95:[function(require,module,exports){
+},{"./functions/htmlGlobals.js":107}],95:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -15403,7 +15403,7 @@ var EventManager = function () {
 
 exports['default'] = EventManager;
 
-},{"./DDHelper.js":92,"./EventDataEnricher.js":95,"./functions/after.js":100,"./functions/deleteProperty.js":101,"./functions/jsonIsEqual.js":106,"./functions/noop.js":110,"./functions/size.js":113,"async":2,"component-clone":3,"debug":56}],97:[function(require,module,exports){
+},{"./DDHelper.js":92,"./EventDataEnricher.js":95,"./functions/after.js":101,"./functions/deleteProperty.js":102,"./functions/jsonIsEqual.js":108,"./functions/noop.js":112,"./functions/size.js":115,"async":2,"component-clone":3,"debug":56}],97:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -15618,7 +15618,7 @@ var Integration = function (_EventEmitter) {
 
 exports['default'] = Integration;
 
-},{"./DDHelper.js":92,"./functions/deleteProperty.js":101,"./functions/each.js":102,"./functions/format.js":103,"./functions/loadIframe.js":107,"./functions/loadPixel.js":108,"./functions/loadScript.js":109,"./functions/noop.js":110,"async":2,"component-emitter":4,"debug":56}],98:[function(require,module,exports){
+},{"./DDHelper.js":92,"./functions/deleteProperty.js":102,"./functions/each.js":103,"./functions/format.js":104,"./functions/loadIframe.js":109,"./functions/loadPixel.js":110,"./functions/loadScript.js":111,"./functions/noop.js":112,"async":2,"component-emitter":4,"debug":56}],98:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -15855,7 +15855,86 @@ var ViewabilityTracker = function () {
 
 exports['default'] = ViewabilityTracker;
 
-},{"./functions/noop.js":110}],99:[function(require,module,exports){
+},{"./functions/noop.js":112}],99:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+var _GoogleAnalytics = require('./integrations/GoogleAnalytics.js');
+
+var _GoogleAnalytics2 = _interopRequireDefault(_GoogleAnalytics);
+
+var _GoogleTagManager = require('./integrations/GoogleTagManager.js');
+
+var _GoogleTagManager2 = _interopRequireDefault(_GoogleTagManager);
+
+var _Driveback = require('./integrations/Driveback.js');
+
+var _Driveback2 = _interopRequireDefault(_Driveback);
+
+var _RetailRocket = require('./integrations/RetailRocket.js');
+
+var _RetailRocket2 = _interopRequireDefault(_RetailRocket);
+
+var _FacebookPixel = require('./integrations/FacebookPixel.js');
+
+var _FacebookPixel2 = _interopRequireDefault(_FacebookPixel);
+
+var _SegmentStream = require('./integrations/SegmentStream.js');
+
+var _SegmentStream2 = _interopRequireDefault(_SegmentStream);
+
+var _SendPulse = require('./integrations/SendPulse.js');
+
+var _SendPulse2 = _interopRequireDefault(_SendPulse);
+
+var _OWOXBIStreaming = require('./integrations/OWOXBIStreaming.js');
+
+var _OWOXBIStreaming2 = _interopRequireDefault(_OWOXBIStreaming);
+
+var _Criteo = require('./integrations/Criteo.js');
+
+var _Criteo2 = _interopRequireDefault(_Criteo);
+
+var _MyTarget = require('./integrations/MyTarget.js');
+
+var _MyTarget2 = _interopRequireDefault(_MyTarget);
+
+var _YandexMetrica = require('./integrations/YandexMetrica.js');
+
+var _YandexMetrica2 = _interopRequireDefault(_YandexMetrica);
+
+var _Vkontakte = require('./integrations/Vkontakte.js');
+
+var _Vkontakte2 = _interopRequireDefault(_Vkontakte);
+
+var _Emarsys = require('./integrations/Emarsys.js');
+
+var _Emarsys2 = _interopRequireDefault(_Emarsys);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+var integrations = {
+  'Google Analytics': _GoogleAnalytics2['default'],
+  'Google Tag Manager': _GoogleTagManager2['default'],
+  'OWOX BI Streaming': _OWOXBIStreaming2['default'],
+  'Facebook Pixel': _FacebookPixel2['default'],
+  'Driveback': _Driveback2['default'],
+  'Retail Rocket': _RetailRocket2['default'],
+  'SegmentStream': _SegmentStream2['default'],
+  'SendPulse': _SendPulse2['default'],
+  'Criteo': _Criteo2['default'],
+  'myTarget': _MyTarget2['default'],
+  'Yandex Metrica': _YandexMetrica2['default'],
+  'Vkontakte': _Vkontakte2['default'],
+  'Emarsys': _Emarsys2['default']
+};
+
+exports['default'] = integrations;
+
+},{"./integrations/Criteo.js":117,"./integrations/Driveback.js":118,"./integrations/Emarsys.js":119,"./integrations/FacebookPixel.js":120,"./integrations/GoogleAnalytics.js":121,"./integrations/GoogleTagManager.js":122,"./integrations/MyTarget.js":123,"./integrations/OWOXBIStreaming.js":124,"./integrations/RetailRocket.js":125,"./integrations/SegmentStream.js":126,"./integrations/SendPulse.js":127,"./integrations/Vkontakte.js":128,"./integrations/YandexMetrica.js":129}],100:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -16247,7 +16326,7 @@ ddManager.on = ddManager.addEventListener = function (event, handler) {
 
 exports['default'] = ddManager;
 
-},{"./AutoEvents.js":91,"./DDHelper.js":92,"./DigitalDataEnricher.js":94,"./EventManager.js":96,"./Integration.js":97,"./ViewabilityTracker.js":98,"./functions/after.js":100,"./functions/each.js":102,"./functions/size.js":113,"async":2,"component-clone":3,"component-emitter":4}],100:[function(require,module,exports){
+},{"./AutoEvents.js":91,"./DDHelper.js":92,"./DigitalDataEnricher.js":94,"./EventManager.js":96,"./Integration.js":97,"./ViewabilityTracker.js":98,"./functions/after.js":101,"./functions/each.js":103,"./functions/size.js":115,"async":2,"component-clone":3,"component-emitter":4}],101:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -16261,7 +16340,7 @@ exports["default"] = function (times, fn) {
   };
 };
 
-},{}],101:[function(require,module,exports){
+},{}],102:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -16274,7 +16353,7 @@ exports["default"] = function (obj, prop) {
   }
 };
 
-},{}],102:[function(require,module,exports){
+},{}],103:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -16287,7 +16366,7 @@ exports["default"] = function (obj, fn) {
   }
 };
 
-},{}],103:[function(require,module,exports){
+},{}],104:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -16326,7 +16405,7 @@ function format(str) {
   });
 }
 
-},{}],104:[function(require,module,exports){
+},{}],105:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16355,7 +16434,22 @@ function _keyToArray(key) {
   return key.split('.');
 }
 
-},{}],105:[function(require,module,exports){
+},{}],106:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+exports['default'] = getQueryParam;
+function getQueryParam(name, queryString) {
+  if (!queryString) {
+    queryString = location.search;
+  }
+  name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+  var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+  var results = regex.exec(queryString);
+  return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+}
+
+},{}],107:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -16373,7 +16467,7 @@ exports["default"] = {
   }
 };
 
-},{}],106:[function(require,module,exports){
+},{}],108:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16388,7 +16482,7 @@ function jsonIsEqual(json1, json2) {
   return json1 === json2;
 }
 
-},{}],107:[function(require,module,exports){
+},{}],109:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16448,7 +16542,7 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":111,"async":2}],108:[function(require,module,exports){
+},{"./scriptOnLoad.js":113,"async":2}],110:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16484,7 +16578,7 @@ function error(fn, message, img) {
   };
 }
 
-},{}],109:[function(require,module,exports){
+},{}],111:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16543,14 +16637,14 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":111,"async":2}],110:[function(require,module,exports){
+},{"./scriptOnLoad.js":113,"async":2}],112:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
 
 exports["default"] = function () {};
 
-},{}],111:[function(require,module,exports){
+},{}],113:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16605,7 +16699,7 @@ function attachEvent(el, fn) {
   });
 }
 
-},{}],112:[function(require,module,exports){
+},{}],114:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16626,7 +16720,7 @@ function cmp(a, b) {
 
 exports['default'] = { cmp: cmp };
 
-},{}],113:[function(require,module,exports){
+},{}],115:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -16639,7 +16733,2355 @@ exports["default"] = function (obj) {
   return size;
 };
 
-},{}],114:[function(require,module,exports){
+},{}],116:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+exports['default'] = throwError;
+
+var _debug = require('debug');
+
+var _debug2 = _interopRequireDefault(_debug);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function throwError(code, message) {
+  if (arguments.length === 1) {
+    message = code;
+    code = 'error';
+  }
+  var error = {
+    code: code,
+    message: message
+  };
+  (0, _debug2['default'])(message);
+  throw error;
+}
+
+},{"debug":56}],117:[function(require,module,exports){
+'use strict';
+
+var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+exports.__esModule = true;
+
+var _typeof = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
+  return typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+} : function (obj) {
+  return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+};
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+var _deleteProperty = require('./../functions/deleteProperty');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+var _semver = require('./../functions/semver');
+
+var _semver2 = _interopRequireDefault(_semver);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === "undefined" ? "undefined" : _typeof2(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof2(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+function lineItemsToCriteoItems(lineItems) {
+  var products = [];
+  for (var i = 0, length = lineItems.length; i < length; i++) {
+    var lineItem = lineItems[i];
+    if (lineItem.product) {
+      var productId = lineItem.product.id || lineItem.product.skuCode;
+      if (productId) {
+        var product = {
+          id: productId,
+          price: lineItem.product.unitSalePrice || lineItem.product.unitPrice || 0,
+          quantity: lineItem.quantity || 1
+        };
+        products.push(product);
+      }
+    }
+  }
+  return products;
+}
+
+var Criteo = function (_Integration) {
+  _inherits(Criteo, _Integration);
+
+  function Criteo(digitalData, options) {
+    _classCallCheck(this, Criteo);
+
+    var optionsWithDefaults = Object.assign({
+      account: '',
+      deduplication: undefined,
+      noConflict: false
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        src: '//static.criteo.net/js/ld/ld.js'
+      }
+    });
+    return _this;
+  }
+
+  Criteo.prototype.initialize = function initialize() {
+    window.criteo_q = window.criteo_q || [];
+
+    if (this.getOption('account') && !this.getOption('noConflict')) {
+      var email = this.digitalData.user.email;
+      var siteType = void 0;
+      if (this.digitalData.version && _semver2['default'].cmp(this.digitalData.version, '1.1.0') < 0) {
+        siteType = this.digitalData.page.siteType;
+      } else {
+        siteType = this.digitalData.website.type;
+      }
+
+      if (siteType) {
+        siteType = siteType.toLocaleLowerCase();
+      }
+
+      if (['desktop', 'tablet', 'mobile'].indexOf(siteType) < 0) {
+        siteType = 'desktop';
+      }
+
+      window.criteo_q.push({
+        event: 'setAccount',
+        account: this.getOption('account')
+      }, {
+        event: 'setSiteType',
+        type: siteType.charAt(0) });
+
+      if (email) {
+        window.criteo_q.push({
+          event: 'setEmail',
+          email: email
+        });
+      } else {
+        window.ddListener.push(['on', 'change:user.email', function (newValue) {
+          window.criteo_q.push({
+            event: 'setEmail',
+            email: newValue
+          });
+        }]);
+      }
+      this.load(this.onLoad);
+    } else {
+      this.onLoad();
+    }
+  };
+
+  Criteo.prototype.isLoaded = function isLoaded() {
+    return !!window.criteo_q && _typeof(window.criteo_q) === 'object';
+  };
+
+  Criteo.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, 'criteo_q');
+  };
+
+  Criteo.prototype.trackEvent = function trackEvent(event) {
+    var methods = {
+      'Viewed Page': 'onViewedPage',
+      'Viewed Product Detail': 'onViewedProductDetail',
+      'Completed Transaction': 'onCompletedTransaction',
+      'Viewed Product Category': 'onViewedProductListing',
+      'Viewed Cart': 'onViewedCart',
+      'Searched': 'onViewedProductListing',
+      'Subscribed': 'onSubscribed'
+    };
+
+    if (this.getOption('noConflict') !== true || event.name === 'Subscribed') {
+      var method = methods[event.name];
+      if (method) {
+        this[method](event);
+      }
+    }
+  };
+
+  Criteo.prototype.onViewedPage = function onViewedPage(event) {
+    var page = event.page;
+    if (page) {
+      if (page.type === 'home') {
+        this.onViewedHome();
+      }
+    }
+  };
+
+  Criteo.prototype.onViewedHome = function onViewedHome() {
+    window.criteo_q.push({
+      event: 'viewHome'
+    });
+  };
+
+  Criteo.prototype.onViewedProductListing = function onViewedProductListing(event) {
+    var listing = event.listing;
+    if (!listing || !listing.items || !listing.items.length) return;
+
+    var items = listing.items;
+    var productIds = [];
+    var length = 3;
+    if (items.length < 3) {
+      length = items.length;
+    }
+    for (var i = 0; i < length; i++) {
+      var productId = items[i].id || items[i].skuCode;
+      if (productId) {
+        productIds.push(productId);
+      }
+    }
+    if (productIds.length > 0) {
+      window.criteo_q.push({
+        event: 'viewList',
+        item: productIds
+      });
+    }
+  };
+
+  Criteo.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
+    var product = event.product;
+    var productId = void 0;
+    if (product) {
+      productId = product.id || product.skuCode;
+    }
+    if (productId) {
+      window.criteo_q.push({
+        event: 'viewItem',
+        item: productId
+      });
+    }
+  };
+
+  Criteo.prototype.onViewedCart = function onViewedCart(event) {
+    var cart = event.cart;
+    if (cart && cart.lineItems && cart.lineItems.length > 0) {
+      var products = lineItemsToCriteoItems(cart.lineItems);
+      if (products.length > 0) {
+        window.criteo_q.push({
+          event: 'viewBasket',
+          item: products
+        });
+      }
+    }
+  };
+
+  Criteo.prototype.onCompletedTransaction = function onCompletedTransaction(event) {
+    var transaction = event.transaction;
+    if (transaction && transaction.lineItems && transaction.lineItems.length > 0) {
+      var products = lineItemsToCriteoItems(transaction.lineItems);
+      if (products.length > 0) {
+        var deduplication = 0;
+        if (this.getOption('deduplication') !== undefined) {
+          deduplication = this.getOption('deduplication') ? 1 : 0;
+        } else {
+          var context = this.digitalData.context;
+          if (context.campaign && context.campaign.source && context.campaign.source.toLocaleLowerCase() === 'criteo') {
+            deduplication = 1;
+          }
+        }
+        window.criteo_q.push({
+          event: 'trackTransaction',
+          id: transaction.orderId,
+          new_customer: transaction.isFirst ? 1 : 0,
+          deduplication: deduplication,
+          item: products
+        });
+      }
+    }
+  };
+
+  Criteo.prototype.onSubscribed = function onSubscribed(event) {
+    var user = event.user;
+    if (user && user.email) {
+      window.criteo_q.push({
+        event: 'setEmail',
+        email: user.email
+      });
+    }
+  };
+
+  return Criteo;
+}(_Integration3['default']);
+
+exports['default'] = Criteo;
+
+},{"./../Integration.js":97,"./../functions/deleteProperty":102,"./../functions/semver":114}],118:[function(require,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+var _deleteProperty = require('./../functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+var _noop = require('./../functions/noop.js');
+
+var _noop2 = _interopRequireDefault(_noop);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+var Driveback = function (_Integration) {
+  _inherits(Driveback, _Integration);
+
+  function Driveback(digitalData, options) {
+    _classCallCheck(this, Driveback);
+
+    var optionsWithDefaults = Object.assign({
+      autoInit: true,
+      websiteToken: ''
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        id: 'driveback-sdk',
+        src: '//cdn.driveback.ru/js/loader.js'
+      }
+    });
+    return _this;
+  }
+
+  Driveback.prototype.initialize = function initialize() {
+    var _this2 = this;
+
+    if (this.getOption('websiteToken')) {
+      window.DrivebackNamespace = 'Driveback';
+      window.Driveback = window.Driveback || {};
+      window.DrivebackOnLoad = window.DrivebackOnLoad || [];
+      window.Driveback.initStubCalled = false;
+      window.Driveback.init = function () {
+        window.Driveback.initStubCalled = true;
+      };
+      window.DrivebackLoaderAsyncInit = function () {
+        window.Driveback.Loader.init(_this2.getOption('websiteToken'));
+      };
+      // by default Driveback is initialized automatically
+      if (this.getOption('autoInit') === false) {
+        window.DrivebackAsyncInit = _noop2['default'];
+      }
+      this.load(this.onLoad);
+    } else {
+      this.onLoad();
+    }
+  };
+
+  Driveback.prototype.isLoaded = function isLoaded() {
+    return !!(window.Driveback && window.Driveback.Loader);
+  };
+
+  Driveback.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, 'Driveback');
+    (0, _deleteProperty2['default'])(window, 'DriveBack');
+    (0, _deleteProperty2['default'])(window, 'DrivebackNamespace');
+    (0, _deleteProperty2['default'])(window, 'DrivebackOnLoad');
+    (0, _deleteProperty2['default'])(window, 'DrivebackLoaderAsyncInit');
+    (0, _deleteProperty2['default'])(window, 'DrivebackAsyncInit');
+  };
+
+  return Driveback;
+}(_Integration3['default']);
+
+exports['default'] = Driveback;
+
+},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"./../functions/noop.js":112}],119:[function(require,module,exports){
+'use strict';
+
+var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+exports.__esModule = true;
+
+var _typeof = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
+  return typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+} : function (obj) {
+  return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+};
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+var _deleteProperty = require('./../functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === "undefined" ? "undefined" : _typeof2(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof2(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+function go() {
+  window.ScarabQueue.push(['go']);
+}
+
+function calculateLineItemSubtotal(lineItem) {
+  var product = lineItem.product;
+  var price = product.unitSalePrice || product.unitPrice || 0;
+  var quantity = lineItem.quantity || 1;
+  return price * quantity;
+}
+
+function mapLineItems(lineItems) {
+  return lineItems.map(function mapLineItem(lineItem) {
+    var product = lineItem.product;
+    var lineItemSubtotal = lineItem.subtotal || calculateLineItemSubtotal(lineItem);
+    return {
+      item: product.id || product.skuCode,
+      price: lineItemSubtotal,
+      quantity: lineItem.quantity || 1
+    };
+  });
+}
+
+var Emarsys = function (_Integration) {
+  _inherits(Emarsys, _Integration);
+
+  function Emarsys(digitalData, options) {
+    _classCallCheck(this, Emarsys);
+
+    var optionsWithDefaults = Object.assign({
+      merchantId: '',
+      categorySeparator: ' > ',
+      noConflict: false
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        id: 'scarab-js-api',
+        src: '//recommender.scarabresearch.com/js/' + options.merchantId + '/scarab-v2.js'
+      }
+    });
+    return _this;
+  }
+
+  Emarsys.prototype.initialize = function initialize() {
+    window.ScarabQueue = window.ScarabQueue || [];
+    if (!this.getOption('noConflict')) {
+      this.load(this.onLoad);
+    } else {
+      this.onLoad();
+    }
+  };
+
+  Emarsys.prototype.isLoaded = function isLoaded() {
+    return (typeof ScarabQueue === 'undefined' ? 'undefined' : _typeof(ScarabQueue)) === 'object';
+  };
+
+  Emarsys.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, 'ScarabQueue');
+  };
+
+  Emarsys.prototype.enrichDigitalData = function enrichDigitalData(done) {
+    // TODO
+    /*
+    ScarabQueue.push(['recommend', {
+      logic: 'TOPICAL',
+      limit: 2,
+      containerId: 'personal-recs',
+      success: function(SC) {
+        var container = SC.recommender.container;
+        delete SC.recommender.container;
+        container.innerHTML = JSON.stringify(SC, null, '  ');
+        done();
+      }
+    }]);
+    ScarabQueue.push(['go']);
+    */
+    done();
+  };
+
+  Emarsys.prototype.trackEvent = function trackEvent(event) {
+    var methods = {
+      'Viewed Page': 'onViewedPage',
+      'Searched': 'onSearched',
+      'Viewed Product Category': 'onViewedProductCategory',
+      'Viewed Product Detail': 'onViewedProductDetail',
+      'Completed Transaction': 'onCompletedTransaction'
+    };
+
+    var method = methods[event.name];
+    if (this.getOption('merchantId')) {
+      if (method && !this.getOption('noConflict')) {
+        this[method](event);
+      } else if (!method) {
+        this.trackCustomEvent(event);
+      }
+    }
+  };
+
+  Emarsys.prototype.sendCommonData = function sendCommonData() {
+    var user = this.digitalData.user || {};
+    var cart = this.digitalData.cart || {};
+    if (user.email) {
+      window.ScarabQueue.push(['setEmail', user.email]);
+    } else if (user.userId) {
+      window.ScarabQueue.push(['setCustomerId', user.userId]);
+    }
+    if (cart.lineItems && cart.lineItems.length > 0) {
+      window.ScarabQueue.push(['cart', mapLineItems(cart.lineItems)]);
+    } else {
+      window.ScarabQueue.push(['cart', []]);
+    }
+  };
+
+  Emarsys.prototype.onViewedPage = function onViewedPage(event) {
+    var page = event.page;
+    this.sendCommonData();
+    // product, category, search and confirmation pages are tracked separately
+    if (['product', 'category', 'search', 'confirmation'].indexOf(page.type) < 0) {
+      go();
+    }
+  };
+
+  Emarsys.prototype.onViewedProductCategory = function onViewedProductCategory(event) {
+    var listing = event.listing || {};
+    var category = listing.category;
+    if (Array.isArray(listing.category)) {
+      category = category.join(this.getOption('categorySeparator'));
+    }
+    window.ScarabQueue.push(['category', category]);
+    go();
+  };
+
+  Emarsys.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
+    var product = event.product;
+    window.ScarabQueue.push(['view', product.id || product.skuCode]);
+    go();
+  };
+
+  Emarsys.prototype.onSearched = function onSearched(event) {
+    var listing = event.listing || {};
+    window.ScarabQueue.push(['searchTerm', listing.query]);
+    go();
+  };
+
+  Emarsys.prototype.onCompletedTransaction = function onCompletedTransaction(event) {
+    var transaction = event.transaction;
+    window.ScarabQueue.push(['purchase', {
+      orderId: transaction.orderId,
+      items: mapLineItems(transaction.lineItems)
+    }]);
+    go();
+  };
+
+  return Emarsys;
+}(_Integration3['default']);
+
+exports['default'] = Emarsys;
+
+},{"./../Integration.js":97,"./../functions/deleteProperty.js":102}],120:[function(require,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+var _deleteProperty = require('./../functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+var _componentType = require('component-type');
+
+var _componentType2 = _interopRequireDefault(_componentType);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+var FacebookPixel = function (_Integration) {
+  _inherits(FacebookPixel, _Integration);
+
+  function FacebookPixel(digitalData, options) {
+    _classCallCheck(this, FacebookPixel);
+
+    var optionsWithDefaults = Object.assign({
+      pixelId: ''
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        src: '//connect.facebook.net/en_US/fbevents.js'
+      }
+    });
+    return _this;
+  }
+
+  FacebookPixel.prototype.initialize = function initialize() {
+    if (this.getOption('pixelId') && !window.fbq) {
+      window.fbq = window._fbq = function fbq() {
+        if (window.fbq.callMethod) {
+          window.fbq.callMethod.apply(window.fbq, arguments);
+        } else {
+          window.fbq.queue.push(arguments);
+        }
+      };
+      window.fbq.push = window.fbq;
+      window.fbq.loaded = true;
+      window.fbq.version = '2.0';
+      window.fbq.queue = [];
+      this.load(this.onLoad);
+      window.fbq('init', this.getOption('pixelId'));
+    } else {
+      this.onLoad();
+    }
+  };
+
+  FacebookPixel.prototype.isLoaded = function isLoaded() {
+    return !!(window.fbq && window.fbq.callMethod);
+  };
+
+  FacebookPixel.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, 'fbq');
+  };
+
+  FacebookPixel.prototype.trackEvent = function trackEvent(event) {
+    if (event.name === 'Viewed Page') {
+      this.onViewedPage();
+    } else if (event.name === 'Viewed Product Category') {
+      this.onViewedProductCategory(event.listing);
+    } else if (event.name === 'Viewed Product Detail') {
+      this.onViewedProductDetail(event.product);
+    } else if (event.name === 'Added Product') {
+      this.onAddedProduct(event.product, event.quantity);
+    } else if (event.name === 'Completed Transaction') {
+      this.onCompletedTransaction(event.transaction);
+    } else if (['Viewed Product', 'Clicked Product', 'Viewed Campaign', 'Clicked Campaign', 'Removed Product', 'Viewed Checkout Step', 'Completed Checkout Step', 'Refunded Transaction'].indexOf(event.name) < 0) {
+      this.onCustomEvent(event);
+    }
+  };
+
+  FacebookPixel.prototype.onViewedPage = function onViewedPage() {
+    window.fbq('track', 'PageView');
+  };
+
+  FacebookPixel.prototype.onViewedProductCategory = function onViewedProductCategory(listing) {
+    window.fbq('track', 'ViewContent', {
+      content_ids: [listing.categoryId || ''],
+      content_type: 'product_group'
+    });
+  };
+
+  FacebookPixel.prototype.onViewedProductDetail = function onViewedProductDetail(product) {
+    window.fbq('track', 'ViewContent', {
+      content_ids: [product.id || product.skuCode || ''],
+      content_type: 'product',
+      content_name: product.name || '',
+      content_category: product.category || '',
+      currency: product.currency || '',
+      value: product.unitSalePrice || product.unitPrice || 0
+    });
+  };
+
+  FacebookPixel.prototype.onAddedProduct = function onAddedProduct(product, quantity) {
+    if (product && (0, _componentType2['default'])(product) === 'object') {
+      quantity = quantity || 1;
+      window.fbq('track', 'AddToCart', {
+        content_ids: [product.id || product.skuCode || ''],
+        content_type: 'product',
+        content_name: product.name || '',
+        content_category: product.category || '',
+        currency: product.currency || '',
+        value: quantity * (product.unitSalePrice || product.unitPrice || 0)
+      });
+    }
+  };
+
+  FacebookPixel.prototype.onCompletedTransaction = function onCompletedTransaction(transaction) {
+    if (transaction.lineItems && transaction.lineItems.length) {
+      var contentIds = [];
+      var revenue1 = 0;
+      var revenue2 = 0;
+      var currency1 = null;
+      var currency2 = null;
+      for (var _iterator = transaction.lineItems, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+        var _ref;
+
+        if (_isArray) {
+          if (_i >= _iterator.length) break;
+          _ref = _iterator[_i++];
+        } else {
+          _i = _iterator.next();
+          if (_i.done) break;
+          _ref = _i.value;
+        }
+
+        var lineItem = _ref;
+
+        if (lineItem.product) {
+          var product = lineItem.product;
+          if (product.id) {
+            contentIds.push(product.id);
+          }
+          revenue2 += (lineItem.quantity || 1) * (product.unitSalePrice || product.unitPrice || 0);
+          currency2 = currency2 || product.currency;
+        }
+        revenue1 += lineItem.subtotal;
+        currency1 = currency1 || lineItem.currency;
+      }
+
+      window.fbq('track', 'Purchase', {
+        content_ids: contentIds,
+        content_type: 'product',
+        currency: transaction.currency || currency1 || currency2 || '',
+        value: transaction.total || revenue1 || revenue2 || 0
+      });
+    }
+  };
+
+  FacebookPixel.prototype.onCustomEvent = function onCustomEvent(event) {
+    window.fbq('trackCustom', event.name);
+  };
+
+  return FacebookPixel;
+}(_Integration3['default']);
+
+exports['default'] = FacebookPixel;
+
+},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"component-type":5}],121:[function(require,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+var _deleteProperty = require('./../functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+var _getProperty = require('./../functions/getProperty.js');
+
+var _getProperty2 = _interopRequireDefault(_getProperty);
+
+var _each = require('./../functions/each.js');
+
+var _each2 = _interopRequireDefault(_each);
+
+var _size = require('./../functions/size.js');
+
+var _size2 = _interopRequireDefault(_size);
+
+var _componentClone = require('component-clone');
+
+var _componentClone2 = _interopRequireDefault(_componentClone);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+function getTransactionVoucher(transaction) {
+  var voucher = void 0;
+  if (Array.isArray(transaction.vouchers)) {
+    voucher = transaction.vouchers[0];
+  } else {
+    voucher = transaction.voucher;
+  }
+
+  return voucher;
+}
+
+function getCheckoutOptions(event, checkoutOptions) {
+  var optionNames = checkoutOptions;
+  var options = [];
+  for (var _iterator = optionNames, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+    var _ref;
+
+    if (_isArray) {
+      if (_i >= _iterator.length) break;
+      _ref = _iterator[_i++];
+    } else {
+      _i = _iterator.next();
+      if (_i.done) break;
+      _ref = _i.value;
+    }
+
+    var optionName = _ref;
+
+    var optionValue = (0, _getProperty2['default'])(event, optionName);
+    if (optionValue) {
+      options.push(optionValue);
+    }
+  }
+  return options.join(', ');
+}
+
+var GoogleAnalytics = function (_Integration) {
+  _inherits(GoogleAnalytics, _Integration);
+
+  function GoogleAnalytics(digitalData, options) {
+    _classCallCheck(this, GoogleAnalytics);
+
+    var optionsWithDefaults = Object.assign({
+      trackingId: '',
+      trackOnlyCustomEvents: false,
+      doubleClick: false,
+      enhancedLinkAttribution: false,
+      enhancedEcommerce: false,
+      sendUserId: false,
+      anonymizeIp: false,
+      domain: 'auto',
+      includeSearch: false,
+      siteSpeedSampleRate: 1,
+      defaultCurrency: 'USD',
+      metrics: {},
+      dimensions: {},
+      contentGroupings: {},
+      productDimensions: {},
+      productMetrics: {},
+      namespace: 'ddl',
+      noConflict: false,
+      checkoutOptions: ['paymentMethod', 'shippingMethod'],
+      filterEvents: []
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        src: '//www.google-analytics.com/analytics.js'
+      }
+    });
+    return _this;
+  }
+
+  GoogleAnalytics.prototype.initialize = function initialize() {
+    if (this.getOption('trackingId')) {
+      this.pageCalled = false;
+
+      // setup the tracker globals
+      window.GoogleAnalyticsObject = 'ga';
+      window.ga = window.ga || function gaPlaceholder() {
+        window.ga.q = window.ga.q || [];
+        window.ga.q.push(arguments);
+      };
+      window.ga.l = new Date().getTime();
+
+      if (window.location.hostname === 'localhost') {
+        this.setOption('domain', 'none');
+      }
+
+      this.initializeTracker();
+
+      if (this.getOption('noConflict')) {
+        this.onLoad();
+      } else {
+        this.load(this.onLoad);
+      }
+    } else {
+      this.onLoad();
+    }
+    this.enrichDigitalData();
+  };
+
+  GoogleAnalytics.prototype.initializeTracker = function initializeTracker() {
+    window.ga('create', this.getOption('trackingId'), {
+      // Fall back on default to protect against empty string
+      cookieDomain: this.getOption('domain'),
+      siteSpeedSampleRate: this.getOption('siteSpeedSampleRate'),
+      allowLinker: true,
+      name: this.getOption('namespace') ? this.getOption('namespace') : undefined
+    });
+    // display advertising
+    if (this.getOption('doubleClick')) {
+      this.ga('require', 'displayfeatures');
+    }
+    // https://support.google.com/analytics/answer/2558867?hl=en
+    if (this.getOption('enhancedLinkAttribution')) {
+      this.ga('require', 'linkid', 'linkid.js');
+    }
+
+    // send global id
+    var userId = this.get('user.id');
+    if (this.getOption('sendUserId') && userId) {
+      this.ga('set', 'userId', userId);
+    }
+
+    // anonymize after initializing, otherwise a warning is shown
+    // in google analytics debugger
+    if (this.getOption('anonymizeIp')) this.ga('set', 'anonymizeIp', true);
+
+    // custom dimensions & metrics
+    var custom = this.getCustomDimensions();
+    if ((0, _size2['default'])(custom)) this.ga('set', custom);
+  };
+
+  GoogleAnalytics.prototype.ga = function ga() {
+    if (!this.getOption('namespace')) {
+      window.ga.apply(window, arguments);
+    } else {
+      if (arguments[0]) {
+        arguments[0] = this.getOption('namespace') + '.' + arguments[0];
+      }
+      window.ga.apply(window, arguments);
+    }
+  };
+
+  GoogleAnalytics.prototype.isLoaded = function isLoaded() {
+    return !!window.gaplugins;
+  };
+
+  GoogleAnalytics.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, 'GoogleAnalyticsObject');
+    (0, _deleteProperty2['default'])(window, 'ga');
+    (0, _deleteProperty2['default'])(window, 'gaplugins');
+    this.pageCalled = false;
+  };
+
+  GoogleAnalytics.prototype.getCustomDimensions = function getCustomDimensions(source) {
+    var productScope = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+
+    source = source || this.digitalData;
+    var settings = void 0;
+    if (!productScope) {
+      settings = Object.assign(this.getOption('metrics'), this.getOption('dimensions'), this.getOption('contentGroupings'));
+    } else {
+      settings = Object.assign(this.getOption('productMetrics'), this.getOption('productDimensions'));
+    }
+    var custom = {};
+    (0, _each2['default'])(settings, function (key, value) {
+      var dimensionVal = (0, _getProperty2['default'])(source, value);
+      if (dimensionVal !== undefined) {
+        if (typeof dimensionVal === 'boolean') dimensionVal = dimensionVal.toString();
+        custom[key] = dimensionVal;
+      }
+    });
+    return custom;
+  };
+
+  GoogleAnalytics.prototype.loadEnhancedEcommerce = function loadEnhancedEcommerce(currency) {
+    if (!this.enhancedEcommerceLoaded) {
+      this.ga('require', 'ec');
+      this.enhancedEcommerceLoaded = true;
+    }
+
+    // Ensure we set currency for every hit
+    this.ga('set', '&cu', currency || this.getOption('defaultCurrency'));
+  };
+
+  GoogleAnalytics.prototype.pushEnhancedEcommerce = function pushEnhancedEcommerce(event) {
+    // Send a custom non-interaction event to ensure all EE data is pushed.
+    // Without doing this we'd need to require page display after setting EE data.
+    var cleanedArgs = [];
+    var args = ['send', 'event', event.category || 'Ecommerce', event.name || 'not defined', event.label, {
+      nonInteraction: 1
+    }];
+
+    for (var _iterator2 = args, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+      var _ref2;
+
+      if (_isArray2) {
+        if (_i2 >= _iterator2.length) break;
+        _ref2 = _iterator2[_i2++];
+      } else {
+        _i2 = _iterator2.next();
+        if (_i2.done) break;
+        _ref2 = _i2.value;
+      }
+
+      var arg = _ref2;
+
+      if (arg !== undefined) {
+        cleanedArgs.push(arg);
+      }
+    }
+
+    this.setEventCustomDimensions(event);
+    this.ga.apply(this, cleanedArgs);
+  };
+
+  GoogleAnalytics.prototype.enrichDigitalData = function enrichDigitalData() {
+    var _this2 = this;
+
+    window.ga(function (tracker) {
+      var trackerName = _this2.getOption('namespace');
+      tracker = tracker || window.ga.getByName(trackerName);
+      if (tracker) {
+        var clientId = tracker.get('clientId');
+        _this2.digitalData.integrations.googleAnalytics = { clientId: clientId };
+      }
+      _this2.onEnrich();
+    });
+  };
+
+  GoogleAnalytics.prototype.trackEvent = function trackEvent(event) {
+    var filterEvents = this.getOption('filterEvents') || [];
+    if (filterEvents.indexOf(event.name) >= 0) {
+      return;
+    }
+
+    if (event.name === 'Viewed Page') {
+      if (!this.getOption('noConflict')) {
+        this.onViewedPage(event);
+      }
+    } else if (this.getOption('enhancedEcommerce')) {
+      var methods = {
+        'Viewed Product': this.onViewedProduct,
+        'Clicked Product': this.onClickedProduct,
+        'Viewed Product Detail': this.onViewedProductDetail,
+        'Added Product': this.onAddedProduct,
+        'Removed Product': this.onRemovedProduct,
+        'Completed Transaction': this.onCompletedTransactionEnhanced,
+        'Refunded Transaction': this.onRefundedTransaction,
+        'Viewed Campaign': this.onViewedCampaign,
+        'Clicked Campaign': this.onClickedCampaign,
+        'Viewed Checkout Step': this.onViewedCheckoutStep,
+        'Completed Checkout Step': this.onCompletedCheckoutStep
+      };
+      var method = methods[event.name];
+      if (method) {
+        method.bind(this)(event);
+      } else {
+        this.trackCustomEvent(event);
+      }
+    } else {
+      if (event.name === 'Completed Transaction' && !this.getOption('noConflict')) {
+        this.onCompletedTransaction(event);
+      } else {
+        this.onCustomEvent(event);
+      }
+    }
+  };
+
+  GoogleAnalytics.prototype.onViewedPage = function onViewedPage(event) {
+    var page = event.page;
+    var pageview = {};
+    var pageUrl = page.url;
+    var pagePath = page.path;
+    if (this.getOption('includeSearch') && page.queryString) {
+      pagePath = pagePath + page.queryString;
+    }
+    var pageTitle = page.name || page.title;
+
+    pageview.page = pagePath;
+    pageview.title = pageTitle;
+    pageview.location = pageUrl;
+
+    // set
+    this.ga('set', {
+      page: pagePath,
+      title: pageTitle
+    });
+
+    if (this.pageCalled) {
+      (0, _deleteProperty2['default'])(pageview, 'location');
+    }
+
+    // send
+    this.setEventCustomDimensions(event);
+    this.ga('send', 'pageview', pageview);
+
+    this.pageCalled = true;
+  };
+
+  GoogleAnalytics.prototype.onViewedProduct = function onViewedProduct(event) {
+    var listItems = event.listItems;
+    if ((!listItems || !Array.isArray(listItems)) && event.listItem) {
+      listItems = [event.listItem];
+    }
+
+    for (var _iterator3 = listItems, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
+      var _ref3;
+
+      if (_isArray3) {
+        if (_i3 >= _iterator3.length) break;
+        _ref3 = _iterator3[_i3++];
+      } else {
+        _i3 = _iterator3.next();
+        if (_i3.done) break;
+        _ref3 = _i3.value;
+      }
+
+      var listItem = _ref3;
+
+      var product = listItem.product;
+      if (!product.id && !product.skuCode && !product.name) {
+        continue;
+      }
+      this.loadEnhancedEcommerce(product.currency);
+
+      var custom = this.getCustomDimensions(product, true);
+      var gaProduct = Object.assign({
+        id: product.id || product.skuCode,
+        name: product.name,
+        list: listItem.listName,
+        category: product.category,
+        brand: product.brand || product.manufacturer,
+        price: product.unitSalePrice || product.unitPrice,
+        currency: product.currency || this.getOption('defaultCurrency'),
+        variant: product.variant,
+        position: listItem.position
+      }, custom);
+      this.ga('ec:addImpression', gaProduct);
+    }
+
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onClickedProduct = function onClickedProduct(event) {
+    if (!event.listItem) {
+      return;
+    }
+    var product = event.listItem.product;
+    this.loadEnhancedEcommerce(product.currency);
+    this.enhancedEcommerceProductAction(event, 'click', {
+      list: event.listItem.listName
+    });
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
+    var product = event.product;
+    this.loadEnhancedEcommerce(product.currency);
+    this.enhancedEcommerceProductAction(event, 'detail');
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onAddedProduct = function onAddedProduct(event) {
+    var product = event.product;
+    this.loadEnhancedEcommerce(product.currency);
+    this.enhancedEcommerceProductAction(event, 'add');
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onRemovedProduct = function onRemovedProduct(event) {
+    var product = event.product;
+    this.loadEnhancedEcommerce(product.currency);
+    this.enhancedEcommerceProductAction(event, 'remove');
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onCompletedTransaction = function onCompletedTransaction(event) {
+    var _this3 = this;
+
+    var transaction = event.transaction;
+    // orderId is required.
+    if (!transaction || !transaction.orderId) return;
+
+    // require ecommerce
+    if (!this.ecommerce) {
+      this.ga('require', 'ecommerce');
+      this.ecommerce = true;
+    }
+
+    // add transaction
+    this.ga('ecommerce:addTransaction', {
+      id: transaction.orderId,
+      affiliation: transaction.affiliation,
+      shipping: transaction.shippingCost,
+      tax: transaction.tax,
+      revenue: transaction.total || transaction.subtotal || 0,
+      currency: transaction.currency
+    });
+
+    // add products
+    (0, _each2['default'])(transaction.lineItems, function (key, lineItem) {
+      var product = lineItem.product;
+      if (product) {
+        _this3.ga('ecommerce:addItem', {
+          id: transaction.orderId,
+          category: product.category,
+          quantity: lineItem.quantity,
+          price: product.unitSalePrice || product.unitPrice,
+          name: product.name,
+          sku: product.skuCode,
+          currency: product.currency || transaction.currency
+        });
+      }
+    });
+
+    // send
+    this.ga('ecommerce:send');
+  };
+
+  GoogleAnalytics.prototype.onCompletedTransactionEnhanced = function onCompletedTransactionEnhanced(event) {
+    var _this4 = this;
+
+    var transaction = event.transaction;
+
+    // orderId is required.
+    if (!transaction || !transaction.orderId) return;
+
+    this.loadEnhancedEcommerce(transaction.currency);
+
+    (0, _each2['default'])(transaction.lineItems, function (key, lineItem) {
+      var product = lineItem.product;
+      if (product) {
+        product.currency = product.currency || transaction.currency || _this4.getOption('defaultCurrency');
+        _this4.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
+      }
+    });
+
+    var voucher = getTransactionVoucher(transaction);
+    this.ga('ec:setAction', 'purchase', {
+      id: transaction.orderId,
+      affiliation: transaction.affiliation,
+      revenue: transaction.total || transaction.subtotal || 0,
+      tax: transaction.tax,
+      shipping: transaction.shippingCost,
+      coupon: voucher
+    });
+
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onRefundedTransaction = function onRefundedTransaction(event) {
+    var _this5 = this;
+
+    var transaction = event.transaction;
+
+    // orderId is required.
+    if (!transaction || !transaction.orderId) return;
+    this.loadEnhancedEcommerce(transaction.currency);
+
+    (0, _each2['default'])(transaction.lineItems, function (key, lineItem) {
+      var product = lineItem.product;
+      if (product) {
+        product.currency = product.currency || transaction.currency || _this5.getOption('defaultCurrency');
+        _this5.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
+      }
+    });
+
+    this.ga('ec:setAction', 'refund', {
+      id: transaction.orderId
+    });
+
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onViewedCampaign = function onViewedCampaign(event) {
+    var campaigns = event.campaigns;
+    if ((!campaigns || !Array.isArray(campaigns)) && event.campaign) {
+      campaigns = [event.campaign];
+    }
+
+    this.loadEnhancedEcommerce();
+
+    for (var _iterator4 = campaigns, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
+      var _ref4;
+
+      if (_isArray4) {
+        if (_i4 >= _iterator4.length) break;
+        _ref4 = _iterator4[_i4++];
+      } else {
+        _i4 = _iterator4.next();
+        if (_i4.done) break;
+        _ref4 = _i4.value;
+      }
+
+      var campaign = _ref4;
+
+      if (!campaign || !campaign.id) {
+        continue;
+      }
+
+      this.ga('ec:addPromo', {
+        id: campaign.id,
+        name: campaign.name,
+        creative: campaign.design || campaign.creative,
+        position: campaign.position
+      });
+    }
+
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onClickedCampaign = function onClickedCampaign(event) {
+    var campaign = event.campaign;
+
+    if (!campaign || !campaign.id) {
+      return;
+    }
+
+    this.loadEnhancedEcommerce();
+    this.ga('ec:addPromo', {
+      id: campaign.id,
+      name: campaign.name,
+      creative: campaign.design || campaign.creative,
+      position: campaign.position
+    });
+    this.ga('ec:setAction', 'promo_click', {});
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onViewedCheckoutStep = function onViewedCheckoutStep(event) {
+    var _this6 = this;
+
+    var cartOrTransaction = this.get('cart') || this.get('transaction');
+
+    this.loadEnhancedEcommerce(cartOrTransaction.currency);
+
+    (0, _each2['default'])(cartOrTransaction.lineItems, function (key, lineItem) {
+      var product = lineItem.product;
+      if (product) {
+        product.currency = product.currency || cartOrTransaction.currency || _this6.getOption('defaultCurrency');
+        _this6.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
+      }
+    });
+
+    this.ga('ec:setAction', 'checkout', {
+      step: event.step || 1,
+      option: getCheckoutOptions(event, this.getOption('checkoutOptions')) || undefined
+    });
+
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onCompletedCheckoutStep = function onCompletedCheckoutStep(event) {
+    var cartOrTransaction = this.get('cart') || this.get('transaction');
+    var options = getCheckoutOptions(event, this.getOption('checkoutOptions'));
+    if (!event.step || !options) {
+      return;
+    }
+
+    this.loadEnhancedEcommerce(cartOrTransaction.currency);
+
+    this.ga('ec:setAction', 'checkout_option', {
+      step: event.step,
+      option: options
+    });
+
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onCustomEvent = function onCustomEvent(event) {
+    var payload = {
+      eventAction: event.name || 'event',
+      eventCategory: event.category || 'All',
+      eventLabel: event.label,
+      eventValue: Math.round(event.value) || 0,
+      nonInteraction: !!event.nonInteraction
+    };
+
+    this.setEventCustomDimensions(event);
+    this.ga('send', 'event', payload);
+  };
+
+  GoogleAnalytics.prototype.setEventCustomDimensions = function setEventCustomDimensions(event) {
+    // custom dimensions & metrics
+    var source = (0, _componentClone2['default'])(event);
+    var _arr = ['name', 'category', 'label', 'nonInteraction', 'value'];
+    for (var _i5 = 0; _i5 < _arr.length; _i5++) {
+      var prop = _arr[_i5];
+      (0, _deleteProperty2['default'])(source, prop);
+    }
+    var custom = this.getCustomDimensions(source);
+    if ((0, _size2['default'])(custom)) this.ga('set', custom);
+  };
+
+  GoogleAnalytics.prototype.enhancedEcommerceTrackProduct = function enhancedEcommerceTrackProduct(product, quantity, position) {
+    var custom = this.getCustomDimensions(product, true);
+    var gaProduct = Object.assign({
+      id: product.id || product.skuCode,
+      name: product.name,
+      category: product.category,
+      price: product.unitSalePrice || product.unitPrice,
+      brand: product.brand || product.manufacturer,
+      variant: product.variant,
+      currency: product.currency
+    }, custom);;
+    if (quantity) gaProduct.quantity = quantity;
+    if (position) gaProduct.position = position;
+    // append coupon if it set
+    // https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#measuring-transactions
+    if (product.voucher) gaProduct.coupon = product.voucher;
+    this.ga('ec:addProduct', gaProduct);
+  };
+
+  GoogleAnalytics.prototype.enhancedEcommerceProductAction = function enhancedEcommerceProductAction(event, action, data) {
+    var position = void 0;
+    var product = void 0;
+    if (event.listItem) {
+      position = event.listItem.position;
+      product = event.listItem.product;
+    } else {
+      product = event.product;
+    }
+    this.enhancedEcommerceTrackProduct(product, event.quantity, position);
+    this.ga('ec:setAction', action, data || {});
+  };
+
+  return GoogleAnalytics;
+}(_Integration3['default']);
+
+exports['default'] = GoogleAnalytics;
+
+},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"./../functions/each.js":103,"./../functions/getProperty.js":105,"./../functions/size.js":115,"component-clone":3}],122:[function(require,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+var _deleteProperty = require('./../functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+var GoogleTagManager = function (_Integration) {
+  _inherits(GoogleTagManager, _Integration);
+
+  function GoogleTagManager(digitalData, options) {
+    _classCallCheck(this, GoogleTagManager);
+
+    var optionsWithDefaults = Object.assign({
+      containerId: null,
+      noConflict: false
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        src: '//www.googletagmanager.com/gtm.js?id=' + options.containerId + '&l=dataLayer'
+      }
+    });
+    return _this;
+  }
+
+  GoogleTagManager.prototype.initialize = function initialize() {
+    if (this.getOption('containerId') && this.getOption('noConflict') === false) {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ 'gtm.start': Number(new Date()), event: 'gtm.js' });
+      this.load(this.onLoad);
+    } else {
+      this.onLoad();
+    }
+  };
+
+  GoogleTagManager.prototype.isLoaded = function isLoaded() {
+    return !!(window.dataLayer && Array.prototype.push !== window.dataLayer.push);
+  };
+
+  GoogleTagManager.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, 'dataLayer');
+    (0, _deleteProperty2['default'])(window, 'google_tag_manager');
+  };
+
+  GoogleTagManager.prototype.trackEvent = function trackEvent(event) {
+    var name = event.name;
+    var category = event.category;
+    (0, _deleteProperty2['default'])(event, 'name');
+    (0, _deleteProperty2['default'])(event, 'category');
+    event.event = name;
+    event.eventCategory = category;
+    window.dataLayer.push(event);
+  };
+
+  return GoogleTagManager;
+}(_Integration3['default']);
+
+exports['default'] = GoogleTagManager;
+
+},{"./../Integration.js":97,"./../functions/deleteProperty.js":102}],123:[function(require,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+var _deleteProperty = require('./../functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+function lineItemsToProductIds(lineItems) {
+  var productIds = lineItems.filter(function (lineItem) {
+    return !!lineItem.product.id;
+  }).map(function (lineItem) {
+    return lineItem.product.id;
+  });
+  return productIds;
+}
+
+var MyTarget = function (_Integration) {
+  _inherits(MyTarget, _Integration);
+
+  function MyTarget(digitalData, options) {
+    _classCallCheck(this, MyTarget);
+
+    var optionsWithDefaults = Object.assign({
+      counterId: '',
+      list: '1',
+      listProperty: undefined,
+      listPropertyMapping: undefined,
+      noConflict: false
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        id: 'topmailru-code',
+        src: '//top-fwz1.mail.ru/js/code.js'
+      }
+    });
+    return _this;
+  }
+
+  MyTarget.prototype.initialize = function initialize() {
+    window._tmr = window._tmr || [];
+    if (!this.getOption('noConflict')) {
+      this.load(this.onLoad);
+    } else {
+      this.onLoad();
+    }
+  };
+
+  MyTarget.prototype.isLoaded = function isLoaded() {
+    return !!(window._tmr && window._tmr.unload);
+  };
+
+  MyTarget.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, '_tmr');
+  };
+
+  MyTarget.prototype.getList = function getList() {
+    var list = this.getOption('list');
+    var listProperty = this.getOption('listProperty');
+    if (listProperty) {
+      var listPropertyValue = this.get(listProperty);
+      if (listPropertyValue) {
+        var listPropertyMapping = this.getOption('listPropertyMapping');
+        if (listPropertyMapping && listPropertyMapping[listPropertyValue]) {
+          list = listPropertyMapping[listPropertyValue];
+        } else {
+          if (parseInt(listPropertyValue, 10)) {
+            list = listPropertyValue;
+          }
+        }
+      }
+    }
+    return list;
+  };
+
+  MyTarget.prototype.trackEvent = function trackEvent(event) {
+    var methods = {
+      'Viewed Page': 'onViewedPage',
+      'Viewed Product Category': 'onViewedProductCategory',
+      'Viewed Product Detail': 'onViewedProductDetail',
+      'Completed Transaction': 'onCompletedTransaction'
+    };
+
+    var method = methods[event.name];
+    if (this.getOption('counterId')) {
+      if (method && !this.getOption('noConflict')) {
+        this[method](event);
+      } else if (!method) {
+        this.trackCustomEvent(event);
+      }
+    }
+  };
+
+  MyTarget.prototype.onViewedPage = function onViewedPage(event) {
+    window._tmr.push({
+      id: this.getOption('counterId'),
+      type: 'pageView',
+      start: Date.now()
+    });
+
+    var page = event.page;
+    if (page) {
+      if (page.type === 'home') {
+        this.onViewedHome();
+      } else if (page.type === 'cart') {
+        this.onViewedCart();
+      } else if (['product', 'category', 'checkout', 'confirmation'].indexOf(page.type) < 0) {
+        this.onViewedOtherPage();
+      }
+    }
+  };
+
+  MyTarget.prototype.onViewedHome = function onViewedHome() {
+    window._tmr.push({
+      type: 'itemView',
+      productid: '',
+      pagetype: 'home',
+      totalvalue: '',
+      list: this.getList()
+    });
+  };
+
+  MyTarget.prototype.onViewedProductCategory = function onViewedProductCategory() {
+    window._tmr.push({
+      type: 'itemView',
+      productid: '',
+      pagetype: 'category',
+      totalvalue: '',
+      list: this.getList()
+    });
+  };
+
+  MyTarget.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
+    var product = event.product;
+    window._tmr.push({
+      type: 'itemView',
+      productid: product.id || product.skuCode || '',
+      pagetype: 'product',
+      totalvalue: product.unitSalePrice || product.unitPrice || '',
+      list: this.getList()
+    });
+  };
+
+  MyTarget.prototype.onViewedCart = function onViewedCart() {
+    var cart = this.digitalData.cart;
+    var productIds = void 0;
+
+    if (cart.lineItems || cart.lineItems.length > 0) {
+      productIds = lineItemsToProductIds(cart.lineItems);
+    }
+
+    window._tmr.push({
+      type: 'itemView',
+      productid: productIds || '',
+      pagetype: 'cart',
+      totalvalue: cart.total || cart.subtotal || '',
+      list: this.getList()
+    });
+  };
+
+  MyTarget.prototype.onViewedOtherPage = function onViewedOtherPage() {
+    window._tmr.push({
+      type: 'itemView',
+      productid: '',
+      pagetype: 'other',
+      totalvalue: '',
+      list: this.getList()
+    });
+  };
+
+  MyTarget.prototype.onCompletedTransaction = function onCompletedTransaction(event) {
+    var transaction = event.transaction;
+    var productIds = void 0;
+
+    if (transaction.lineItems || transaction.lineItems.length > 0) {
+      productIds = lineItemsToProductIds(transaction.lineItems);
+    }
+
+    window._tmr.push({
+      type: 'itemView',
+      productid: productIds || '',
+      pagetype: 'purchase',
+      totalvalue: transaction.total || transaction.subtotal || '',
+      list: this.getList()
+    });
+  };
+
+  MyTarget.prototype.trackCustomEvent = function trackCustomEvent(event) {
+    window._tmr.push({
+      id: this.getOption('counterId'),
+      type: 'reachGoal',
+      goal: event.name
+    });
+  };
+
+  return MyTarget;
+}(_Integration3['default']);
+
+exports['default'] = MyTarget;
+
+},{"./../Integration.js":97,"./../functions/deleteProperty.js":102}],124:[function(require,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+var OWOXBIStreaming = function (_Integration) {
+  _inherits(OWOXBIStreaming, _Integration);
+
+  function OWOXBIStreaming(digitalData, options) {
+    _classCallCheck(this, OWOXBIStreaming);
+
+    var optionsWithDefaults = Object.assign({
+      namespace: 'ddl',
+      sessionIdDimension: ''
+    }, options);
+
+    return _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+  }
+
+  OWOXBIStreaming.prototype.initialize = function initialize() {
+    this.ga('require', 'OWOXBIStreaming', {
+      sessionIdDimension: this.getOption('sessionIdDimension')
+    });
+    /* eslint-disable */
+    (function () {
+      function g(h, b) {
+        var f = h.get('sendHitTask'),
+            g = function () {
+          function a(a, e) {
+            var d = 'XDomainRequest' in window ? 'XDomainRequest' : 'XMLHttpRequest',
+                c = new window[d]();c.open('POST', a, !0);c.onprogress = function () {};c.ontimeout = function () {};c.onerror = function () {};c.onload = function () {};c.setRequestHeader && c.setRequestHeader('Content-Type', 'text/plain');'XDomainRequest' == d ? setTimeout(function () {
+              c.send(e);
+            }, 0) : c.send(e);
+          }function f(a, e) {
+            var d = new Image();d.onload = function () {};d.src = a + '?' + e;
+          }var g = b && b.domain ? b.domain : 'google-analytics.bi.owox.com';return { send: function send(b) {
+              var e = location.protocol + '//' + g + '/collect',
+                  d;try {
+                navigator.sendBeacon && navigator.sendBeacon(d = e + '?tid=' + h.get('trackingId'), b) || (2036 < b.length ? a(d ? d : e + '?tid=' + h.get('trackingId'), b) : f(e, b));
+              } catch (c) {}
+            } };
+        }();h.set('sendHitTask', function (a) {
+          if (b && 0 < b.sessionIdDimension) try {
+            a.set('dimension' + b.sessionIdDimension, a.get('clientId') + '_' + Date.now()), a.get('buildHitTask')(a);
+          } catch (h) {}f(a);g.send(a.get('hitPayload'));
+        });
+      }var f = window[window.GoogleAnalyticsObject || 'ga'];'function' == typeof f && f('provide', 'OWOXBIStreaming', g);
+    })();
+    /* eslint-enable */
+    this._loaded = true;
+    this.onLoad();
+  };
+
+  OWOXBIStreaming.prototype.isLoaded = function isLoaded() {
+    return !!this._loaded;
+  };
+
+  OWOXBIStreaming.prototype.reset = function reset() {};
+
+  OWOXBIStreaming.prototype.ga = function ga() {
+    if (!this.getOption('namespace')) {
+      window.ga.apply(window, arguments);
+    } else {
+      if (arguments[0]) {
+        arguments[0] = this.getOption('namespace') + '.' + arguments[0];
+      }
+      window.ga.apply(window, arguments);
+    }
+  };
+
+  return OWOXBIStreaming;
+}(_Integration3['default']);
+
+exports['default'] = OWOXBIStreaming;
+
+},{"./../Integration.js":97}],125:[function(require,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+var _deleteProperty = require('./../functions/deleteProperty');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+var _getProperty = require('./../../src/functions/getProperty');
+
+var _getProperty2 = _interopRequireDefault(_getProperty);
+
+var _throwError = require('./../functions/throwError');
+
+var _throwError2 = _interopRequireDefault(_throwError);
+
+var _each = require('./../functions/each');
+
+var _each2 = _interopRequireDefault(_each);
+
+var _componentClone = require('component-clone');
+
+var _componentClone2 = _interopRequireDefault(_componentClone);
+
+var _componentType = require('component-type');
+
+var _componentType2 = _interopRequireDefault(_componentType);
+
+var _format = require('./../functions/format');
+
+var _format2 = _interopRequireDefault(_format);
+
+var _getQueryParam = require('./../functions/getQueryParam');
+
+var _getQueryParam2 = _interopRequireDefault(_getQueryParam);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+function getEventVars(event) {
+  var eventVars = (0, _componentClone2['default'])(event);
+  (0, _deleteProperty2['default'])(event, 'name');
+  (0, _deleteProperty2['default'])(event, 'category');
+  return eventVars;
+}
+
+var RetailRocket = function (_Integration) {
+  _inherits(RetailRocket, _Integration);
+
+  function RetailRocket(digitalData, options) {
+    _classCallCheck(this, RetailRocket);
+
+    var optionsWithDefaults = Object.assign({
+      partnerId: '',
+      userIdProperty: 'user.userId',
+      trackProducts: true, // legacy setting, use noConflict instead
+      noConflict: false,
+      trackAllEmails: false,
+      listMethods: {},
+      customVariables: {}
+    }, options);
+
+    // legacy setting mapper
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    if (_this.getOption('trackProducts') === false) {
+      _this.setOption('noConflict', true);
+    }
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        id: 'rrApi-jssdk',
+        src: '//cdn.retailrocket.ru/content/javascript/tracking.js'
+      }
+    });
+    return _this;
+  }
+
+  RetailRocket.prototype.initialize = function initialize() {
+    if (this.getOption('partnerId')) {
+      window.rrPartnerId = this.getOption('partnerId');
+      var userId = (0, _getProperty2['default'])(this.digitalData, this.getOption('userIdProperty'));
+      if (userId) {
+        window.rrPartnerUserId = userId;
+      }
+      window.rrApi = {};
+      window.rrApiOnReady = window.rrApiOnReady || [];
+      window.rrApi.pageView = window.rrApi.addToBasket = window.rrApi.order = window.rrApi.categoryView = window.rrApi.setEmail = window.rrApi.view = window.rrApi.recomMouseDown = window.rrApi.recomAddToCart = window.rrApi.search = function () {};
+
+      this.trackEmail();
+
+      this.load(this.onLoad);
+    } else {
+      this.onLoad();
+    }
+  };
+
+  RetailRocket.prototype.isLoaded = function isLoaded() {
+    return !!(window.rrApi && typeof window.rrApi._initialize === 'function');
+  };
+
+  RetailRocket.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, 'rrPartnerId');
+    (0, _deleteProperty2['default'])(window, 'rrApi');
+    (0, _deleteProperty2['default'])(window, 'rrApiOnReady');
+    (0, _deleteProperty2['default'])(window, 'rrApi');
+    (0, _deleteProperty2['default'])(window, 'retailrocket');
+    (0, _deleteProperty2['default'])(window, 'retailrocket_products');
+    (0, _deleteProperty2['default'])(window, 'rrLibrary');
+    var script = document.getElementById('rrApi-jssdk');
+    if (script && script.parentNode) {
+      script.parentNode.removeChild(script);
+    }
+  };
+
+  RetailRocket.prototype.trackEvent = function trackEvent(event) {
+    if (this.getOption('noConflict') !== true) {
+      if (event.name === 'Viewed Product Category') {
+        this.onViewedProductCategory(event.listing);
+      } else if (event.name === 'Added Product') {
+        this.onAddedProduct(event.product);
+      } else if (event.name === 'Viewed Product Detail') {
+        this.onViewedProductDetail(event.product);
+      } else if (event.name === 'Clicked Product') {
+        this.onClickedProduct(event.listItem);
+      } else if (event.name === 'Completed Transaction') {
+        this.onCompletedTransaction(event.transaction);
+      } else if (event.name === 'Subscribed') {
+        this.onSubscribed(event.user, getEventVars(event));
+      } else if (event.name === 'Searched') {
+        this.onSearched(event.listing);
+      }
+    } else {
+      if (event.name === 'Subscribed') {
+        this.onSubscribed(event.user, getEventVars(event));
+      }
+    }
+  };
+
+  RetailRocket.prototype.trackEmail = function trackEmail() {
+    var _this2 = this;
+
+    if (this.get('user.email')) {
+      if (this.getOption('trackAllEmails') === true || this.get('user.isSubscribed') === true) {
+        this.onSubscribed(this.get('user'));
+      }
+    } else {
+      var email = (0, _getQueryParam2['default'])('rr_setemail', this.getQueryString());
+      if (email) {
+        this.digitalData.user.email = email;
+        // Retail Rocker will track this query param automatically
+      } else {
+        window.ddListener.push(['on', 'change:user.email', function () {
+          if (_this2.getOption('trackAllEmails') === true || _this2.get('user.isSubscribed') === true) {
+            _this2.onSubscribed(_this2.get('user'));
+          }
+        }]);
+      }
+    }
+  };
+
+  RetailRocket.prototype.onViewedProductCategory = function onViewedProductCategory(listing) {
+    var _this3 = this;
+
+    listing = listing || {};
+    var categoryId = listing.categoryId;
+    if (!categoryId) {
+      this.onValidationError('listing.categoryId');
+      return;
+    }
+    window.rrApiOnReady.push(function () {
+      try {
+        window.rrApi.categoryView(categoryId);
+      } catch (e) {
+        _this3.onError(e);
+      }
+    });
+  };
+
+  RetailRocket.prototype.onViewedProductDetail = function onViewedProductDetail(product) {
+    var _this4 = this;
+
+    var productId = this.getProductId(product);
+    if (!productId) {
+      this.onValidationError('product.id');
+      return;
+    }
+    window.rrApiOnReady.push(function () {
+      try {
+        window.rrApi.view(productId);
+      } catch (e) {
+        _this4.onError(e);
+      }
+    });
+  };
+
+  RetailRocket.prototype.onAddedProduct = function onAddedProduct(product) {
+    var _this5 = this;
+
+    var productId = this.getProductId(product);
+    if (!productId) {
+      this.onValidationError('product.id');
+      return;
+    }
+    window.rrApiOnReady.push(function () {
+      try {
+        window.rrApi.addToBasket(productId);
+      } catch (e) {
+        _this5.onError(e);
+      }
+    });
+  };
+
+  RetailRocket.prototype.onClickedProduct = function onClickedProduct(listItem) {
+    var _this6 = this;
+
+    if (!listItem) {
+      this.onValidationError('listItem.product.id');
+      return;
+    }
+    var productId = this.getProductId(listItem.product);
+    if (!productId) {
+      this.onValidationError('listItem.product.id');
+      return;
+    }
+    var listName = listItem.listName;
+    if (!listName) {
+      return;
+    }
+    var methodName = this.getOption('listMethods')[listName];
+    if (!methodName) {
+      return;
+    }
+    window.rrApiOnReady.push(function () {
+      try {
+        window.rrApi.recomMouseDown(productId, methodName);
+      } catch (e) {
+        _this6.onError(e);
+      }
+    });
+  };
+
+  RetailRocket.prototype.onCompletedTransaction = function onCompletedTransaction(transaction) {
+    var _this7 = this;
+
+    transaction = transaction || {};
+    if (!this.validateTransaction(transaction)) {
+      return;
+    }
+
+    var items = [];
+    var lineItems = transaction.lineItems;
+    for (var i = 0, length = lineItems.length; i < length; i++) {
+      if (!this.validateTransactionLineItem(lineItems[i], i)) {
+        continue;
+      }
+      var product = lineItems[i].product;
+      items.push({
+        id: product.id,
+        qnt: lineItems[i].quantity,
+        price: product.unitSalePrice || product.unitPrice
+      });
+    }
+
+    window.rrApiOnReady.push(function () {
+      try {
+        window.rrApi.order({
+          transaction: transaction.orderId,
+          items: items
+        });
+      } catch (e) {
+        _this7.onError(e);
+      }
+    });
+  };
+
+  RetailRocket.prototype.onSubscribed = function onSubscribed(user, customs) {
+    var _this8 = this;
+
+    user = user || {};
+    if (!user.email) {
+      this.onValidationError('user.email');
+      return;
+    }
+
+    var rrCustoms = {};
+    if (customs) {
+      var settings = this.getOption('customVariables');
+      (0, _each2['default'])(settings, function (key, value) {
+        var dimensionVal = (0, _getProperty2['default'])(customs, value);
+        if (dimensionVal !== undefined) {
+          if ((0, _componentType2['default'])(dimensionVal) === 'boolean') dimensionVal = dimensionVal.toString();
+          rrCustoms[key] = dimensionVal;
+        }
+      });
+    }
+
+    window.rrApiOnReady.push(function () {
+      try {
+        window.rrApi.setEmail(user.email, rrCustoms);
+      } catch (e) {
+        _this8.onError(e);
+      }
+    });
+  };
+
+  RetailRocket.prototype.onSearched = function onSearched(listing) {
+    var _this9 = this;
+
+    listing = listing || {};
+    if (!listing.query) {
+      this.onValidationError('listing.query');
+      return;
+    }
+    window.rrApiOnReady.push(function () {
+      try {
+        window.rrApi.search(listing.query);
+      } catch (e) {
+        _this9.onError(e);
+      }
+    });
+  };
+
+  RetailRocket.prototype.validateTransaction = function validateTransaction(transaction) {
+    var isValid = true;
+    if (!transaction.orderId) {
+      this.onValidationError('transaction.orderId');
+      isValid = false;
+    }
+
+    var lineItems = transaction.lineItems;
+    if (!lineItems || !Array.isArray(lineItems) || lineItems.length === 0) {
+      this.onValidationError('transaction.lineItems');
+      isValid = false;
+    }
+
+    return isValid;
+  };
+
+  RetailRocket.prototype.validateLineItem = function validateLineItem(lineItem, index) {
+    var isValid = true;
+    if (!lineItem.product) {
+      this.onValidationError((0, _format2['default'])('lineItems[%d].product', index));
+      isValid = false;
+    }
+
+    return isValid;
+  };
+
+  RetailRocket.prototype.validateTransactionLineItem = function validateTransactionLineItem(lineItem, index) {
+    var isValid = this.validateLineItem(lineItem, index);
+
+    var product = lineItem.product;
+    if (!product.id) {
+      this.onValidationError((0, _format2['default'])('lineItems[%d].product.id', index));
+      isValid = false;
+    }
+    if (!product.unitSalePrice && !product.unitPrice) {
+      this.onValidationError((0, _format2['default'])('lineItems[%d].product.unitSalePrice', index));
+      isValid = false;
+    }
+    if (!lineItem.quantity) {
+      this.onValidationError((0, _format2['default'])('lineItems[%d].quantity', index));
+      isValid = false;
+    }
+
+    return isValid;
+  };
+
+  RetailRocket.prototype.getProductId = function getProductId(product) {
+    product = product || {};
+    var productId = void 0;
+    if ((0, _componentType2['default'])(product) === 'object') {
+      productId = product.id;
+    } else {
+      productId = product;
+    }
+    return productId;
+  };
+
+  RetailRocket.prototype.onError = function onError(err) {
+    (0, _throwError2['default'])('external_error', (0, _format2['default'])('Retail Rocket integration error: "%s"', err));
+  };
+
+  RetailRocket.prototype.onValidationError = function onValidationError(variableName) {
+    (0, _throwError2['default'])('validation_error', (0, _format2['default'])('Retail Rocket integration error: DDL or event variable "%s" is not defined or empty', variableName));
+  };
+
+  /**
+   * Can be stubbed in unit tests
+   * @returns string
+   */
+
+  RetailRocket.prototype.getQueryString = function getQueryString() {
+    return window.location.search;
+  };
+
+  return RetailRocket;
+}(_Integration3['default']);
+
+exports['default'] = RetailRocket;
+
+},{"./../../src/functions/getProperty":105,"./../Integration.js":97,"./../functions/deleteProperty":102,"./../functions/each":103,"./../functions/format":104,"./../functions/getQueryParam":106,"./../functions/throwError":116,"component-clone":3,"component-type":5}],126:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -16813,7 +19255,537 @@ var SegmentStream = function (_Integration) {
 
 exports['default'] = SegmentStream;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":101,"./../functions/each.js":102}],115:[function(require,module,exports){
+},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"./../functions/each.js":103}],127:[function(require,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+var _deleteProperty = require('./../functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+var _each = require('./../functions/each.js');
+
+var _each2 = _interopRequireDefault(_each);
+
+var _componentType = require('component-type');
+
+var _componentType2 = _interopRequireDefault(_componentType);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+var SendPulse = function (_Integration) {
+  _inherits(SendPulse, _Integration);
+
+  function SendPulse(digitalData, options) {
+    _classCallCheck(this, SendPulse);
+
+    var optionsWithDefaults = Object.assign({
+      https: false,
+      pushScriptUrl: '',
+      pushSubscriptionTriggerEvent: 'Agreed to Receive Push Notifications'
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        charset: 'UTF-8',
+        src: _this.getOption('pushScriptUrl')
+      }
+    });
+    return _this;
+  }
+
+  SendPulse.prototype.initialize = function initialize() {
+    var _this2 = this;
+
+    this.load(function () {
+      var original = window.oSpP.storeSubscription;
+      window.oSpP.storeSubscription = function (value) {
+        original(value);
+        if (value !== 'DENY') {
+          _this2.digitalData.user.pushNotifications.isSubscribed = true;
+          _this2.sendUserAttributes(_this2.digitalData.user);
+        }
+      };
+      _this2.enrichDigitalData();
+      _this2.onLoad();
+    });
+  };
+
+  SendPulse.prototype.enrichDigitalData = function enrichDigitalData() {
+    var _this3 = this;
+
+    var pushNotification = this.digitalData.user.pushNotifications = {};
+    try {
+      pushNotification.isSupported = this.checkPushNotificationsSupport();
+      this.getPushSubscriptionInfo(function (subscriptionInfo) {
+        if (!_this3.isLoaded()) {
+          // to avoid problems in unit tests because of asyncoronous delay
+          return;
+        }
+        if (subscriptionInfo === undefined) {
+          pushNotification.isSubscribed = false;
+          if (window.oSpP.isSafariNotificationSupported()) {
+            var info = window.safari.pushNotification.permission('web.com.sendpulse.push');
+            if (info.permission === 'denied') {
+              pushNotification.isDenied = true;
+            }
+          }
+        } else {
+          if (subscriptionInfo.value === 'DENY') {
+            pushNotification.isSubscribed = false;
+            pushNotification.isDenied = true;
+          } else {
+            pushNotification.isSubscribed = true;
+            pushNotification.subscriptionId = subscriptionInfo.value;
+          }
+        }
+        _this3.onSubscriptionStatusReceived();
+        _this3.onEnrich();
+      });
+    } catch (e) {
+      pushNotification.isSupported = false;
+      this.onEnrich();
+    }
+  };
+
+  SendPulse.prototype.onSubscriptionStatusReceived = function onSubscriptionStatusReceived() {
+    var _this4 = this;
+
+    if (this.digitalData.user.pushNotifications.isSubscribed) {
+      this.sendUserAttributes(this.digitalData.user);
+    }
+    window.ddListener.push(['on', 'change:user', function (newUser, oldUser) {
+      if (newUser.pushNotifications.isSubscribed && oldUser !== undefined) {
+        _this4.sendUserAttributes(newUser, oldUser);
+      }
+    }]);
+  };
+
+  SendPulse.prototype.checkPushNotificationsSupport = function checkPushNotificationsSupport() {
+    var oSpP = window.oSpP;
+
+    if (!oSpP.detectSite()) {
+      return false;
+    }
+    if (oSpP.detectOs() === 'iOS') {
+      return false;
+    }
+    var os = oSpP.detectOs();
+    var browserInfo = oSpP.detectBrowser();
+    var browserName = browserInfo.name.toLowerCase();
+    if (browserName === 'chrome' && parseFloat(browserInfo.version) < 42) {
+      return false;
+    }
+    if (browserName === 'firefox' && parseFloat(browserInfo.version) < 44) {
+      return false;
+    }
+    if (browserName === 'firefox' && os === 'Android') {
+      return false;
+    }
+    if (['safari', 'firefox', 'chrome'].indexOf(browserName) < 0) {
+      return false;
+    }
+    if (browserName === 'safari') {
+      return oSpP.isSafariNotificationSupported();
+    } else if (this.isHttps()) {
+      return oSpP.isServiceWorkerChromeSupported();
+    }
+
+    return true;
+  };
+
+  SendPulse.prototype.getPushSubscriptionInfo = function getPushSubscriptionInfo(callback) {
+    var oSpP = window.oSpP;
+    oSpP.getDbValue('SPIDs', 'SubscriptionId', function (event) {
+      callback(event.target.result);
+    });
+  };
+
+  SendPulse.prototype.sendUserAttributes = function sendUserAttributes(newUser, oldUser) {
+    (0, _each2['default'])(newUser, function (key, value) {
+      if ((0, _componentType2['default'])(value) !== 'object' && (!oldUser || value !== oldUser[key])) {
+        window.oSpP.push(key, String(value));
+      }
+    });
+  };
+
+  SendPulse.prototype.isLoaded = function isLoaded() {
+    return !!window.oSpP;
+  };
+
+  SendPulse.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, 'oSpP');
+  };
+
+  SendPulse.prototype.isHttps = function isHttps() {
+    return window.location.href.indexOf('https://') === 0 && this.getOption('https') === true;
+  };
+
+  SendPulse.prototype.trackEvent = function trackEvent(event) {
+    if (event.name === this.getOption('pushSubscriptionTriggerEvent')) {
+      if (this.checkPushNotificationsSupport()) {
+        if (this.isHttps()) {
+          window.oSpP.startSubscription();
+        } else {
+          var browserInfo = window.oSpP.detectBrowser();
+          var browserName = browserInfo.name.toLowerCase();
+          if (browserName === 'safari') {
+            window.oSpP.startSubscription();
+          } else if (browserName === 'chrome' || browserName === 'firefox') {
+            window.oSpP.showPopUp();
+          }
+        }
+      }
+    }
+  };
+
+  return SendPulse;
+}(_Integration3['default']);
+
+exports['default'] = SendPulse;
+
+},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"./../functions/each.js":103,"component-type":5}],128:[function(require,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+var Vkontakte = function (_Integration) {
+  _inherits(Vkontakte, _Integration);
+
+  function Vkontakte(digitalData, options) {
+    _classCallCheck(this, Vkontakte);
+
+    var optionsWithDefaults = Object.assign({
+      eventPixels: {}
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this._isLoaded = false;
+    return _this;
+  }
+
+  Vkontakte.prototype.initialize = function initialize() {
+    this._isLoaded = true;
+    this.onLoad();
+  };
+
+  Vkontakte.prototype.isLoaded = function isLoaded() {
+    return this._isLoaded;
+  };
+
+  Vkontakte.prototype.reset = function reset() {
+    // nothing to reset
+  };
+
+  Vkontakte.prototype.trackEvent = function trackEvent(event) {
+    var eventPixels = this.getOption('eventPixels');
+    if (eventPixels[event.name]) {
+      var pixelUrl = eventPixels[event.name];
+      this.addPixel(pixelUrl);
+    }
+  };
+
+  Vkontakte.prototype.addPixel = function addPixel(pixelUrl) {
+    (window.Image ? new Image() : window.document.createElement('img')).src = window.location.protocol + pixelUrl;
+  };
+
+  return Vkontakte;
+}(_Integration3['default']);
+
+exports['default'] = Vkontakte;
+
+},{"./../Integration.js":97}],129:[function(require,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+var _deleteProperty = require('./../functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+function getProductCategory(product) {
+  var categories = [];
+  if (product.category) categories.push(product.category);
+  if (product.subcategory) categories.push(product.subcategory);
+  return categories.length ? categories.join('/') : undefined;
+}
+
+function getProductId(product) {
+  return product.id || product.skuCode || undefined;
+}
+
+function getProduct(product, quantity) {
+  var yaProduct = {};
+  var id = getProductId(product);
+  var brand = product.brand || product.manufacturer;
+  var price = product.unitSalePrice || product.unitPrice;
+  var category = getProductCategory(product);
+  if (id) yaProduct.id = id;
+  if (product.name) yaProduct.name = product.name;
+  if (brand) yaProduct.brand = brand;
+  if (price) yaProduct.price = price;
+  if (category) yaProduct.category = category;
+  if (product.variant) yaProduct.variant = product.variant;
+  if (product.voucher) yaProduct.coupon = product.voucher;
+  if (quantity) yaProduct.quantity = quantity;
+  return yaProduct;
+}
+
+var YandexMetrica = function (_Integration) {
+  _inherits(YandexMetrica, _Integration);
+
+  function YandexMetrica(digitalData, options) {
+    _classCallCheck(this, YandexMetrica);
+
+    var optionsWithDefaults = Object.assign({
+      counterId: '',
+      clickmap: false,
+      webvisor: false,
+      trackLinks: true,
+      trackHash: false,
+      purchaseGoalId: undefined,
+      goals: {},
+      noConflict: false
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        src: '//mc.yandex.ru/metrika/watch.js'
+      }
+    });
+    return _this;
+  }
+
+  YandexMetrica.prototype.initialize = function initialize() {
+    var _this2 = this;
+
+    var id = this.getOption('counterId');
+
+    window.yandex_metrika_callbacks = window.yandex_metrika_callbacks || [];
+    this.dataLayer = window.dataLayer = window.dataLayer || [];
+    if (!this.getOption('noConflict') && id) {
+      window.yandex_metrika_callbacks.push(function () {
+        _this2.yaCounter = window['yaCounter' + id] = new window.Ya.Metrika({
+          id: id,
+          clickmap: _this2.getOption('clickmap'),
+          webvisor: _this2.getOption('webvisor'),
+          trackLinks: _this2.getOption('trackLinks'),
+          trackHash: _this2.getOption('trackHash'),
+          ecommerce: true
+        });
+      });
+      this.load(this.onLoad);
+    } else {
+      this.onLoad();
+    }
+  };
+
+  YandexMetrica.prototype.isLoaded = function isLoaded() {
+    return !!(window.Ya && window.Ya.Metrika);
+  };
+
+  YandexMetrica.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, 'Ya');
+    (0, _deleteProperty2['default'])(window, 'yandex_metrika_callbacks');
+    (0, _deleteProperty2['default'])(window, 'dataLayer');
+  };
+
+  YandexMetrica.prototype.trackEvent = function trackEvent(event) {
+    var methods = {
+      'Viewed Product Detail': 'onViewedProductDetail',
+      'Added Product': 'onAddedProduct',
+      'Removed Product': 'onRemovedProduct',
+      'Completed Transaction': 'onCompletedTransaction'
+    };
+
+    if (this.getOption('counterId')) {
+      var method = methods[event.name];
+      if (method && !this.getOption('noConflict')) {
+        this[method](event);
+      }
+
+      var goals = this.getOption('goals');
+      var goalIdentificator = goals[event.name];
+      if (goalIdentificator) {
+        this.yaCounter.reachGoal(goalIdentificator);
+      }
+    }
+  };
+
+  YandexMetrica.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
+    var product = event.product;
+    if (!getProductId(product) && !product.name) return;
+    this.dataLayer.push({
+      ecommerce: {
+        detail: {
+          products: [getProduct(product)]
+        }
+      }
+    });
+  };
+
+  YandexMetrica.prototype.onAddedProduct = function onAddedProduct(event) {
+    var product = event.product;
+    if (!getProductId(product) && !product.name) return;
+    var quantity = event.quantity || 1;
+    this.dataLayer.push({
+      ecommerce: {
+        add: {
+          products: [getProduct(product, quantity)]
+        }
+      }
+    });
+  };
+
+  YandexMetrica.prototype.onRemovedProduct = function onRemovedProduct(event) {
+    var product = event.product;
+    if (!getProductId(product) && !product.name) return;
+    var quantity = event.quantity;
+    this.dataLayer.push({
+      ecommerce: {
+        remove: {
+          products: [{
+            id: getProductId(product),
+            name: product.name,
+            category: getProductCategory(product),
+            quantity: quantity
+          }]
+        }
+      }
+    });
+  };
+
+  YandexMetrica.prototype.onCompletedTransaction = function onCompletedTransaction(event) {
+    var transaction = event.transaction;
+    if (!transaction.orderId) return;
+
+    var products = transaction.lineItems.filter(function (lineItem) {
+      var product = lineItem.product;
+      return getProductId(product) || product.name;
+    }).map(function (lineItem) {
+      var product = lineItem.product;
+      var quantity = lineItem.quantity || 1;
+      return getProduct(product, quantity);
+    });
+    var purchase = {
+      actionField: {
+        id: transaction.orderId,
+        goal_id: this.getOption('purchaseGoalId')
+      },
+      products: products
+    };
+
+    if (transaction.vouchers && transaction.vouchers.length) {
+      purchase.actionField.coupon = transaction.vouchers[0];
+    }
+
+    if (transaction.total) {
+      purchase.actionField.revenue = transaction.total;
+    } else if (transaction.subtotal) {
+      purchase.actionField.revenue = transaction.subtotal;
+    }
+
+    this.dataLayer.push({
+      ecommerce: { purchase: purchase }
+    });
+  };
+
+  return YandexMetrica;
+}(_Integration3['default']);
+
+exports['default'] = YandexMetrica;
+
+},{"./../Integration.js":97,"./../functions/deleteProperty.js":102}],130:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es6.object.create');
@@ -16830,14 +19802,7264 @@ require('core-js/modules/es6.string.trim');
 
 require('core-js/modules/_has');
 
-},{"core-js/modules/_has":20,"core-js/modules/es6.array.index-of":50,"core-js/modules/es6.array.is-array":51,"core-js/modules/es6.function.bind":52,"core-js/modules/es6.object.assign":53,"core-js/modules/es6.object.create":54,"core-js/modules/es6.string.trim":55}],116:[function(require,module,exports){
+},{"core-js/modules/_has":20,"core-js/modules/es6.array.index-of":50,"core-js/modules/es6.array.is-array":51,"core-js/modules/es6.function.bind":52,"core-js/modules/es6.object.assign":53,"core-js/modules/es6.object.create":54,"core-js/modules/es6.string.trim":55}],131:[function(require,module,exports){
+'use strict';
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _deleteProperty = require('./../src/functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+var _AutoEvents = require('./../src/AutoEvents.js');
+
+var _AutoEvents2 = _interopRequireDefault(_AutoEvents);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+describe('AutoEvents', function () {
+
+  var _digitalData = void 0;
+  var _ddListener = void 0;
+  var _autoEvents = void 0;
+
+  before(function () {
+    _autoEvents = new _AutoEvents2['default']();
+  });
+
+  describe('#onInitialize', function () {
+
+    beforeEach(function () {
+      _digitalData = {
+        page: {
+          type: 'home'
+        },
+        events: []
+      };
+      _ddListener = [];
+      _autoEvents.setDigitalData(_digitalData);
+      _autoEvents.setDDListener(_ddListener);
+    });
+
+    it('should add DDL change listeners', function () {
+      _autoEvents.onInitialize();
+      _assert2['default'].ok(_ddListener.length == 3);
+      _assert2['default'].ok(_ddListener[0][1] === 'change:page');
+      _assert2['default'].ok(_ddListener[1][1] === 'change:product.id');
+      _assert2['default'].ok(_ddListener[2][1] === 'change:transaction.orderId');
+    });
+  });
+
+  describe('#fireViewedPage', function () {
+
+    beforeEach(function () {
+      _digitalData = {
+        page: {
+          type: 'home'
+        },
+        events: []
+      };
+      _autoEvents.setDigitalData(_digitalData);
+    });
+
+    it('should fire "Viewed Page" event', function () {
+      _autoEvents.fireViewedPage();
+      _assert2['default'].ok(_digitalData.events[0].name === 'Viewed Page');
+      _assert2['default'].ok(_digitalData.events[0].page.type === 'home');
+    });
+
+    it('should fire only "Viewed Page" event', function () {
+      _autoEvents.onInitialize();
+      _assert2['default'].ok(_digitalData.events[0].name === 'Viewed Page');
+      _assert2['default'].ok(_digitalData.events[0].page.type === 'home');
+      _assert2['default'].ok(_digitalData.events.length === 1);
+    });
+  });
+
+  describe('#fireViewedProductCategory', function () {
+
+    beforeEach(function () {
+      _digitalData = {
+        page: {
+          type: 'category'
+        },
+        listing: {
+          categoryId: '123'
+        },
+        events: []
+      };
+      _autoEvents.setDigitalData(_digitalData);
+    });
+
+    it('should fire "Viewed Product Category" event', function () {
+      _autoEvents.fireViewedProductCategory();
+      _assert2['default'].ok(_digitalData.events[0].name === 'Viewed Product Category');
+      _assert2['default'].ok(_digitalData.events[0].listing.categoryId === '123');
+      _assert2['default'].ok(_digitalData.page.type === 'category');
+    });
+
+    it('should fire "Viewed Product Category" and "Viewed Page" event', function () {
+      _autoEvents.onInitialize();
+      _assert2['default'].ok(_digitalData.events[1].name === 'Viewed Product Category');
+      _assert2['default'].ok(_digitalData.events[1].listing.categoryId === '123');
+      _assert2['default'].ok(_digitalData.page.type === 'category');
+      _assert2['default'].ok(_digitalData.events.length === 2);
+    });
+  });
+
+  describe('#fireViewedProductCategory DDL version <1.1.0', function () {
+
+    beforeEach(function () {
+      _digitalData = {
+        version: '1.0.0',
+        page: {
+          type: 'category',
+          categoryId: '123'
+        },
+        events: []
+      };
+      _autoEvents.setDigitalData(_digitalData);
+    });
+
+    it('should fire "Viewed Product Category" event', function () {
+      _autoEvents.fireViewedProductCategory();
+      _assert2['default'].ok(_digitalData.events[0].name === 'Viewed Product Category');
+      _assert2['default'].ok(_digitalData.events[0].listing.categoryId === '123');
+      _assert2['default'].ok(_digitalData.page.type === 'category');
+    });
+
+    it('should fire "Viewed Product Category" and "Viewed Page" event', function () {
+      _autoEvents.onInitialize();
+      _assert2['default'].ok(_digitalData.events[1].name === 'Viewed Product Category');
+      _assert2['default'].ok(_digitalData.events[1].listing.categoryId === '123');
+      _assert2['default'].ok(_digitalData.page.type === 'category');
+      _assert2['default'].ok(_digitalData.events.length === 2);
+    });
+  });
+
+  describe('#fireViewedProductDetail', function () {
+
+    beforeEach(function () {
+      _digitalData = {
+        page: {
+          type: 'product'
+        },
+        product: {
+          id: '123'
+        },
+        events: []
+      };
+      _autoEvents.setDigitalData(_digitalData);
+    });
+
+    it('should fire "Viewed Product Detail" event', function () {
+      _autoEvents.fireViewedProductDetail();
+      _assert2['default'].ok(_digitalData.events[0].name === 'Viewed Product Detail');
+      _assert2['default'].ok(_digitalData.events[0].product.id === '123');
+    });
+
+    it('should fire "Viewed Product Detail" and "Viewed Page" event', function () {
+      _autoEvents.onInitialize();
+      _assert2['default'].ok(_digitalData.events[1].name === 'Viewed Product Detail');
+      _assert2['default'].ok(_digitalData.events[1].product.id === '123');
+      _assert2['default'].ok(_digitalData.events.length === 2);
+    });
+  });
+
+  describe('#fireCompletedTransaction', function () {
+
+    beforeEach(function () {
+      _digitalData = {
+        page: {
+          type: 'confirmation'
+        },
+        transaction: {
+          orderId: '123',
+          total: 100
+        },
+        events: []
+      };
+      _autoEvents.setDigitalData(_digitalData);
+    });
+
+    it('should fire "Completed Transaction" event', function () {
+      _autoEvents.fireCompletedTransaction();
+      _assert2['default'].ok(_digitalData.events[0].name === 'Completed Transaction');
+      _assert2['default'].ok(_digitalData.events[0].transaction.orderId === '123');
+    });
+
+    it('should not fire "Completed Transaction" for returning transactions', function () {
+      _digitalData.transaction.isReturning = true;
+      _autoEvents.onInitialize();
+      _assert2['default'].ok(_digitalData.events.length === 1);
+    });
+
+    it('should not fire "Completed Transaction" if transaction object doesn\'t present', function () {
+      (0, _deleteProperty2['default'])(_digitalData, 'transaction');
+      _autoEvents.onInitialize();
+      _assert2['default'].ok(_digitalData.events.length === 1);
+    });
+
+    it('should fire "Completed Transaction" and "Viewed Page" event', function () {
+      _autoEvents.onInitialize();
+      _assert2['default'].ok(_digitalData.events[1].name === 'Completed Transaction');
+      _assert2['default'].ok(_digitalData.events[1].transaction.orderId === '123');
+      _assert2['default'].ok(_digitalData.events.length === 2);
+    });
+  });
+
+  describe('#fireSearched', function () {
+
+    beforeEach(function () {
+      _digitalData = {
+        page: {
+          type: 'search'
+        },
+        listing: {
+          query: 'some query',
+          resultCount: 10
+        },
+        events: []
+      };
+      _autoEvents.setDigitalData(_digitalData);
+    });
+
+    it('should fire "Searched" event', function () {
+      _autoEvents.fireSearched();
+      _assert2['default'].ok(_digitalData.events[0].name === 'Searched');
+      _assert2['default'].ok(_digitalData.events[0].listing.query === 'some query');
+      _assert2['default'].ok(_digitalData.events[0].listing.resultCount === 10);
+    });
+
+    it('should not fire "Searched" if there is no listing object', function () {
+      (0, _deleteProperty2['default'])(_digitalData, 'listing');
+      _autoEvents.onInitialize();
+      _assert2['default'].ok(_digitalData.events.length === 1);
+    });
+
+    it('should not fire "Searched" if there is no query in listing object', function () {
+      (0, _deleteProperty2['default'])(_digitalData.listing, 'query');
+      _autoEvents.onInitialize();
+      _assert2['default'].ok(_digitalData.events.length === 1);
+    });
+
+    it('should fire "Searched" and "Viewed Page" event', function () {
+      _autoEvents.onInitialize();
+      _assert2['default'].ok(_digitalData.events[1].name === 'Searched');
+      _assert2['default'].ok(_digitalData.events[1].listing.query === 'some query');
+      _assert2['default'].ok(_digitalData.events[1].listing.resultCount === 10);
+      _assert2['default'].ok(_digitalData.events.length === 2);
+    });
+  });
+});
+
+},{"./../src/AutoEvents.js":91,"./../src/functions/deleteProperty.js":102,"assert":1}],132:[function(require,module,exports){
+'use strict';
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _DDHelper = require('./../src/DDHelper.js');
+
+var _DDHelper2 = _interopRequireDefault(_DDHelper);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+describe('DDHelper', function () {
+
+  var _digitalData = void 0;
+
+  describe('#get', function () {
+    before(function () {
+      _digitalData = {
+        page: {
+          type: 'category'
+        },
+        user: {
+          email: 'text@email.com',
+          userId: '123'
+        },
+        listing: {
+          items: [{
+            id: '1'
+          }, {
+            id: '2'
+          }]
+        }
+      };
+    });
+
+    it('should get nested object', function () {
+      _assert2['default'].ok(_DDHelper2['default'].get('page.type', _digitalData) === 'category');
+    });
+
+    it('should get nested object using array notation', function () {
+      _assert2['default'].ok(_DDHelper2['default'].get('listing.items[1].id', _digitalData) === '2');
+    });
+
+    it('should get nested object using object notation', function () {
+      _assert2['default'].ok(_DDHelper2['default'].get('listing.items.1.id', _digitalData) === '2');
+    });
+
+    it('should get nested object property', function () {
+      _assert2['default'].ok(_DDHelper2['default'].get('listing.items.length', _digitalData) === 2);
+    });
+  });
+
+  describe('#getProduct', function () {
+    before(function () {
+      _digitalData = {
+        page: {
+          type: 'category'
+        },
+        user: {
+          email: 'text@email.com',
+          userId: '123'
+        },
+        product: {
+          id: '1'
+        },
+        listing: {
+          items: [{
+            id: '2'
+          }, {
+            id: '3'
+          }, {
+            id: '5'
+          }]
+        },
+        recommendation: {
+          listName: 'recom',
+          items: [{
+            id: '4'
+          }, {
+            id: '5'
+          }]
+        },
+        cart: {
+          lineItems: [{
+            product: {
+              id: '6'
+            },
+            quantity: 2
+          }]
+        }
+      };
+    });
+
+    it('should get product from product key', function () {
+      _assert2['default'].ok(_DDHelper2['default'].getProduct('1', _digitalData).id === '1');
+    });
+
+    it('should get product from listing key', function () {
+      _assert2['default'].ok(_DDHelper2['default'].getProduct('2', _digitalData).id === '2');
+    });
+
+    it('should get product from recommendation key', function () {
+      _assert2['default'].ok(_DDHelper2['default'].getProduct('4', _digitalData).id === '4');
+    });
+
+    it('should get product from list key without any listName properties', function () {
+      _assert2['default'].ok(_DDHelper2['default'].getProduct('5', _digitalData, 'recom').id === '5');
+      _assert2['default'].ok(!_DDHelper2['default'].getProduct('5', _digitalData, 'recom').listName);
+    });
+
+    it('should get product from cart key', function () {
+      _assert2['default'].ok(_DDHelper2['default'].getProduct('6', _digitalData).id === '6');
+    });
+  });
+
+  describe('#getListItem', function () {
+    before(function () {
+      _digitalData = {
+        page: {
+          type: 'category'
+        },
+        user: {
+          email: 'text@email.com',
+          userId: '123'
+        },
+        product: {
+          id: '1'
+        },
+        listing: {
+          items: [{
+            id: '2'
+          }, {
+            id: '3'
+          }, {
+            id: '5'
+          }]
+        },
+        recommendation: {
+          listName: 'recom',
+          items: [{
+            id: '4'
+          }, {
+            id: '5'
+          }]
+        },
+        cart: {
+          lineItems: [{
+            product: {
+              id: '6'
+            },
+            quantity: 2
+          }]
+        }
+      };
+    });
+
+    it('should not get product from product key', function () {
+      _assert2['default'].ok(!_DDHelper2['default'].getListItem('1', _digitalData));
+    });
+
+    it('should get product from listing key', function () {
+      _assert2['default'].ok(_DDHelper2['default'].getListItem('2', _digitalData).product.id === '2');
+    });
+
+    it('should get product from recommendation key', function () {
+      _assert2['default'].ok(_DDHelper2['default'].getListItem('4', _digitalData).product.id === '4');
+    });
+
+    it('should get product from recommendation key from list "recom"', function () {
+      _assert2['default'].ok(_DDHelper2['default'].getListItem('5', _digitalData, 'recom').product.id === '5');
+      _assert2['default'].ok(_DDHelper2['default'].getListItem('5', _digitalData, 'recom').listName === 'recom');
+    });
+
+    it('should not get product from cart key', function () {
+      _assert2['default'].ok(!_DDHelper2['default'].getListItem('6', _digitalData));
+    });
+  });
+
+  describe('#getCampaign', function () {
+    before(function () {
+      _digitalData = {
+        page: {
+          type: 'category'
+        },
+        user: {
+          email: 'text@email.com',
+          userId: '123'
+        },
+        campaigns: [{
+          id: '1'
+        }, {
+          id: '2'
+        }]
+      };
+    });
+
+    it('should get campaign from campaigns key', function () {
+      _assert2['default'].ok(_DDHelper2['default'].getCampaign('1', _digitalData).id === '1');
+    });
+  });
+});
+
+},{"./../src/DDHelper.js":92,"assert":1}],133:[function(require,module,exports){
+'use strict';
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _sinon = require('sinon');
+
+var _sinon2 = _interopRequireDefault(_sinon);
+
+var _deleteProperty = require('./../src/functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+var _DigitalDataEnricher = require('./../src/DigitalDataEnricher.js');
+
+var _DigitalDataEnricher2 = _interopRequireDefault(_DigitalDataEnricher);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+describe('DigitalDataEnricher', function () {
+
+  var _digitalData = void 0;
+  var _htmlGlobals = void 0;
+  var _digitalDataEnricher = void 0;
+  var _document = {
+    referrer: 'http://google.com',
+    title: 'Website Home Page'
+  };
+  var _location = {
+    pathname: '/home',
+    href: 'Website Home Page',
+    search: '?utm_source=newsletter&utm_medium=email&utm_campaign=test_campaign',
+    hash: '#title1'
+  };
+  var _navigator = {
+    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1'
+  };
+
+  before(function () {
+    _digitalDataEnricher = new _DigitalDataEnricher2['default'](_digitalData);
+    _htmlGlobals = _digitalDataEnricher.getHtmlGlobals();
+    _sinon2['default'].stub(_htmlGlobals, 'getDocument', function () {
+      return _document;
+    });
+    _sinon2['default'].stub(_htmlGlobals, 'getLocation', function () {
+      return _location;
+    });
+    _sinon2['default'].stub(_htmlGlobals, 'getNavigator', function () {
+      return _navigator;
+    });
+  });
+
+  after(function () {
+    _htmlGlobals.getLocation.restore();
+    _htmlGlobals.getDocument.restore();
+    _htmlGlobals.getNavigator.restore();
+  });
+
+  describe('#enrichPageData', function () {
+
+    before(function () {
+      _digitalData = {
+        page: {
+          type: 'home'
+        },
+        events: []
+      };
+    });
+
+    it('should enrich DDL page variable', function () {
+      _digitalDataEnricher.setDigitalData(_digitalData);
+      _digitalDataEnricher.enrichPageData();
+      _assert2['default'].ok(_digitalData.page.url === _location.href);
+      _assert2['default'].ok(_digitalData.page.path === _location.pathname);
+      _assert2['default'].ok(_digitalData.page.queryString === _location.search);
+      _assert2['default'].ok(_digitalData.page.hash === _location.hash);
+      _assert2['default'].ok(_digitalData.page.referrer === _document.referrer);
+      _assert2['default'].ok(_digitalData.page.title === _document.title);
+    });
+  });
+
+  describe('#enrichContextData', function () {
+
+    before(function () {
+      _digitalData = {
+        page: {
+          type: 'home',
+          url: 'http://example.com/home'
+        },
+        context: {},
+        events: []
+      };
+    });
+
+    it('should enrich DDL context variable', function () {
+      _digitalDataEnricher.setDigitalData(_digitalData);
+      _digitalDataEnricher.enrichContextData();
+      _assert2['default'].ok(_digitalData.context.userAgent === _navigator.userAgent);
+    });
+  });
+});
+
+},{"./../src/DigitalDataEnricher.js":94,"./../src/functions/deleteProperty.js":102,"assert":1,"sinon":64}],134:[function(require,module,exports){
+'use strict';
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _deleteProperty = require('./../src/functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+var _EventDataEnricher = require('./../src/EventDataEnricher.js');
+
+var _EventDataEnricher2 = _interopRequireDefault(_EventDataEnricher);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+describe('EventDataEnricher', function () {
+
+  var _digitalData = void 0;
+
+  describe('#product', function () {
+
+    before(function () {
+      _digitalData = {
+        page: {
+          type: 'home'
+        },
+        events: []
+      };
+    });
+
+    describe('using "product" DDL var', function () {
+
+      beforeEach(function () {
+        _digitalData.product = {
+          id: '123',
+          name: 'Test Product',
+          unitPrice: 10000
+        };
+      });
+
+      afterEach(function () {
+        (0, _deleteProperty2['default'])(_digitalData, 'product');
+        (0, _deleteProperty2['default'])(_digitalData, 'listing');
+        (0, _deleteProperty2['default'])(_digitalData, 'recommendation');
+      });
+
+      it('should enrich product by id', function () {
+        var event = {
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: '123'
+        };
+
+        event.product = _EventDataEnricher2['default'].product(event.product, _digitalData);
+
+        _assert2['default'].ok(event.name);
+        _assert2['default'].ok(event.category);
+        _assert2['default'].ok(event.product);
+        _assert2['default'].ok(event.product.id === '123', 'product.id is is not equal to "123"');
+        _assert2['default'].ok(event.product.name === 'Test Product', 'product.name is not equal to "Test Product"');
+        _assert2['default'].ok(event.product.unitPrice === 10000, 'product.unitPrice is not equal to 10000');
+      });
+
+      it('should enrich product by product.id', function () {
+        var event = {
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            unitPrice: 11000,
+            unitSalePrice: 11000
+          }
+        };
+
+        event.product = _EventDataEnricher2['default'].product(event.product, _digitalData);
+
+        _assert2['default'].ok(event.name);
+        _assert2['default'].ok(event.category);
+        _assert2['default'].ok(event.product);
+        _assert2['default'].ok(event.product.id === '123', 'product.id is is not equal to "123"');
+        _assert2['default'].ok(event.product.name === 'Test Product', 'product.name is not equal to "Test Product"');
+        _assert2['default'].ok(event.product.unitPrice === 11000, 'product.unitPrice is not equal to 11000');
+        _assert2['default'].ok(event.product.unitSalePrice === 11000, 'product.unitSalePrice is not equal to 11000');
+        _assert2['default'].ok(_digitalData.product.unitPrice === 10000, 'DDL product.unitPrice is not equal to 10000');
+      });
+    });
+
+    describe('using "listing" DDL var', function () {
+
+      beforeEach(function () {
+        _digitalData.listing = {
+          items: [{
+            id: '123',
+            name: 'Test Product',
+            unitPrice: 10000
+          }, {
+            id: '234',
+            name: 'Test Product 2',
+            unitPrice: 10000
+          }]
+        };
+      });
+
+      afterEach(function () {
+        (0, _deleteProperty2['default'])(_digitalData, 'product');
+        (0, _deleteProperty2['default'])(_digitalData, 'listing');
+        (0, _deleteProperty2['default'])(_digitalData, 'recommendation');
+      });
+
+      it('should enrich product by id', function () {
+        var event = {
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: '123'
+        };
+
+        event.product = _EventDataEnricher2['default'].product(event.product, _digitalData);
+
+        _assert2['default'].ok(event.name);
+        _assert2['default'].ok(event.category);
+        _assert2['default'].ok(event.product);
+        _assert2['default'].ok(event.product.id === '123', 'product.id is is not equal to "123"');
+        _assert2['default'].ok(event.product.name === 'Test Product', 'product.name is not equal to "Test Product"');
+        _assert2['default'].ok(event.product.unitPrice === 10000, 'product.unitPrice is not equal to 10000');
+      });
+
+      it('should enrich products array by id', function () {
+        var event = {
+          name: 'Viewed Product',
+          category: 'Ecommerce',
+          listItems: [{
+            product: '123'
+          }, {
+            product: '234'
+          }]
+        };
+
+        event.listItems = _EventDataEnricher2['default'].listItems(event.listItems, _digitalData);
+
+        _assert2['default'].ok(event.name);
+        _assert2['default'].ok(event.category);
+        _assert2['default'].ok(event.listItems);
+        _assert2['default'].ok(event.listItems[0].product.id === '123', 'product.id is is not equal to "123"');
+        _assert2['default'].ok(event.listItems[0].product.name === 'Test Product', 'product.name is not equal to "Test Product"');
+        _assert2['default'].ok(event.listItems[0].product.unitPrice === 10000, 'product.unitPrice is not equal to 10000');
+        _assert2['default'].ok(event.listItems[1].product.id === '234', 'product.id is is not equal to "234"');
+        _assert2['default'].ok(event.listItems[1].product.name === 'Test Product 2', 'product.name is not equal to "Test Product 2"');
+        _assert2['default'].ok(event.listItems[1].product.unitPrice === 10000, 'product.unitPrice is not equal to 10000');
+      });
+
+      it('should enrich product by product.id', function () {
+        var event = {
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            unitPrice: 11000,
+            unitSalePrice: 11000
+          }
+        };
+
+        event.product = _EventDataEnricher2['default'].product(event.product, _digitalData);
+
+        _assert2['default'].ok(event.name);
+        _assert2['default'].ok(event.category);
+        _assert2['default'].ok(event.product);
+        _assert2['default'].ok(event.product.id === '123', 'product.id is is not equal to "123"');
+        _assert2['default'].ok(event.product.name === 'Test Product', 'product.name is not equal to "Test Product"');
+        _assert2['default'].ok(event.product.unitPrice === 11000, 'product.unitPrice is not equal to 11000');
+        _assert2['default'].ok(event.product.unitSalePrice === 11000, 'product.unitSalePrice is not equal to 11000');
+        _assert2['default'].ok(_digitalData.listing.items[0].unitPrice === 10000, 'DDL listing.items[0].unitPrice is not equal to 10000');
+      });
+
+      it('should enrich listItems array by product.id', function () {
+        var event = {
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          listItems: [{
+            product: {
+              id: '123',
+              unitPrice: 11000,
+              unitSalePrice: 11000
+            }
+          }, {
+            product: {
+              id: '234',
+              unitPrice: 11000,
+              unitSalePrice: 11000
+            }
+          }]
+        };
+
+        event.listItems = _EventDataEnricher2['default'].listItems(event.listItems, _digitalData);
+
+        _assert2['default'].ok(event.name);
+        _assert2['default'].ok(event.category);
+        _assert2['default'].ok(event.listItems);
+        _assert2['default'].ok(event.listItems[0].product.id === '123', 'product.id is is not equal to "123"');
+        _assert2['default'].ok(event.listItems[0].product.name === 'Test Product', 'product.name is not equal to "Test Product"');
+        _assert2['default'].ok(event.listItems[0].product.unitPrice === 11000, 'product.unitPrice is not equal to 11000');
+        _assert2['default'].ok(event.listItems[0].product.unitSalePrice === 11000, 'product.unitSalePrice is not equal to 11000');
+        _assert2['default'].ok(event.listItems[1].product.id === '234', 'product.id is is not equal to "234"');
+        _assert2['default'].ok(event.listItems[1].product.name === 'Test Product 2', 'product.name is not equal to "Test Product 2"');
+        _assert2['default'].ok(event.listItems[1].product.unitPrice === 11000, 'product.unitPrice is not equal to 11000');
+        _assert2['default'].ok(event.listItems[1].product.unitSalePrice === 11000, 'product.unitSalePrice is not equal to 11000');
+        _assert2['default'].ok(_digitalData.listing.items[0].unitPrice === 10000, 'DDL listing.items[0].unitPrice is not equal to 10000');
+      });
+    });
+
+    describe('using "recommendation" DDL var', function () {
+
+      beforeEach(function () {
+        _digitalData.recommendation = {
+          items: [{
+            id: '123',
+            name: 'Test Product',
+            unitPrice: 10000
+          }]
+        };
+      });
+
+      afterEach(function () {
+        (0, _deleteProperty2['default'])(_digitalData, 'product');
+        (0, _deleteProperty2['default'])(_digitalData, 'listing');
+        (0, _deleteProperty2['default'])(_digitalData, 'recommendation');
+      });
+
+      it('should enrich product by id', function () {
+        var event = {
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: '123'
+        };
+
+        event.product = _EventDataEnricher2['default'].product(event.product, _digitalData);
+
+        _assert2['default'].ok(event.name);
+        _assert2['default'].ok(event.category);
+        _assert2['default'].ok(event.product);
+        _assert2['default'].ok(event.product.id === '123', 'product.id is is not equal to "123"');
+        _assert2['default'].ok(event.product.name === 'Test Product', 'product.name is not equal to "Test Product"');
+        _assert2['default'].ok(event.product.unitPrice === 10000, 'product.unitPrice is not equal to 10000');
+      });
+
+      it('should enrich product by product.id', function () {
+        var event = {
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            unitPrice: 11000,
+            unitSalePrice: 11000
+          }
+        };
+
+        event.product = _EventDataEnricher2['default'].product(event.product, _digitalData);
+
+        _assert2['default'].ok(event.name);
+        _assert2['default'].ok(event.category);
+        _assert2['default'].ok(event.product);
+        _assert2['default'].ok(event.product.id === '123', 'product.id is is not equal to "123"');
+        _assert2['default'].ok(event.product.name === 'Test Product', 'product.name is not equal to "Test Product"');
+        _assert2['default'].ok(event.product.unitPrice === 11000, 'product.unitPrice is not equal to 11000');
+        _assert2['default'].ok(event.product.unitSalePrice === 11000, 'product.unitSalePrice is not equal to 11000');
+        _assert2['default'].ok(_digitalData.recommendation.items[0].unitPrice === 10000, 'DDL recommendation.items[0].unitPrice is not equal to 10000');
+      });
+    });
+
+    describe('using "listing" DDL var which is an array of listings', function () {
+
+      beforeEach(function () {
+        _digitalData.listing = [{
+          items: [{
+            id: '123',
+            name: 'Test Product',
+            unitPrice: 10000
+          }]
+        }];
+      });
+
+      afterEach(function () {
+        (0, _deleteProperty2['default'])(_digitalData, 'product');
+        (0, _deleteProperty2['default'])(_digitalData, 'listing');
+        (0, _deleteProperty2['default'])(_digitalData, 'recommendation');
+      });
+
+      it('should enrich product by id', function () {
+        var event = {
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: '123'
+        };
+
+        event.product = _EventDataEnricher2['default'].product(event.product, _digitalData);
+
+        _assert2['default'].ok(event.name);
+        _assert2['default'].ok(event.category);
+        _assert2['default'].ok(event.product);
+        _assert2['default'].ok(event.product.id === '123', 'product.id is is not equal to "123"');
+        _assert2['default'].ok(event.product.name === 'Test Product', 'product.name is not equal to "Test Product"');
+        _assert2['default'].ok(event.product.unitPrice === 10000, 'product.unitPrice is not equal to 10000');
+      });
+
+      it('should enrich product by product.id', function () {
+        var event = {
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            unitPrice: 11000,
+            unitSalePrice: 11000
+          }
+        };
+
+        event.product = _EventDataEnricher2['default'].product(event.product, _digitalData);
+
+        _assert2['default'].ok(event.name);
+        _assert2['default'].ok(event.category);
+        _assert2['default'].ok(event.product);
+        _assert2['default'].ok(event.product.id === '123', 'product.id is is not equal to "123"');
+        _assert2['default'].ok(event.product.name === 'Test Product', 'product.name is not equal to "Test Product"');
+        _assert2['default'].ok(event.product.unitPrice === 11000, 'product.unitPrice is not equal to 11000');
+        _assert2['default'].ok(event.product.unitSalePrice === 11000, 'product.unitSalePrice is not equal to 11000');
+        _assert2['default'].ok(_digitalData.listing[0].items[0].unitPrice === 10000, 'DDL listing[0].items[0].unitPrice is not equal to 10000');
+      });
+    });
+  });
+
+  describe('#transaction', function () {
+
+    before(function () {
+      _digitalData = {
+        page: {
+          type: 'home'
+        },
+        transaction: {
+          orderId: '123',
+          lineItems: [{
+            product: {
+              id: '123'
+            },
+            quantity: 2
+          }],
+          total: 10000,
+          subtotal: 10000
+        },
+        events: []
+      };
+    });
+
+    it('should enrich transaction when transaction is empty', function () {
+      var event = {
+        name: 'Completed Transaction',
+        category: 'Ecommerce'
+      };
+
+      event.transaction = _EventDataEnricher2['default'].transaction(event.transaction, _digitalData);
+
+      _assert2['default'].ok(event.name);
+      _assert2['default'].ok(event.category);
+      _assert2['default'].ok(event.transaction);
+      _assert2['default'].ok(event.transaction.orderId === '123', 'transaction.orderId is is not equal to "123"');
+      _assert2['default'].ok(event.transaction.lineItems.length === 1, 'transaction.lineItemsLength is is not equal to 1');
+    });
+
+    it('should enrich transaction when transaction is not empty', function () {
+      var event = {
+        name: 'Completed Transaction',
+        category: 'Ecommerce',
+        transaction: {
+          oderId: '123',
+          subtotal: 11000
+        }
+      };
+
+      event.transaction = _EventDataEnricher2['default'].transaction(event.transaction, _digitalData);
+
+      _assert2['default'].ok(event.name);
+      _assert2['default'].ok(event.category);
+      _assert2['default'].ok(event.transaction);
+      _assert2['default'].ok(event.transaction.orderId === '123', 'transaction.orderId is is not equal to "123"');
+      _assert2['default'].ok(event.transaction.subtotal === 11000, 'transaction.subtital is is not equal to 11000');
+      _assert2['default'].ok(event.transaction.lineItems.length === 1, 'transaction.lineItemsLength is is not equal to 1');
+    });
+  });
+
+  describe('#campaign', function () {
+
+    before(function () {
+      _digitalData = {
+        page: {
+          type: 'home'
+        },
+        campaigns: [{
+          id: '123',
+          name: 'Campaign 1',
+          category: 'Banner'
+        }, {
+          id: '234',
+          name: 'Campaign 2',
+          category: 'Banner'
+        }],
+        events: []
+      };
+    });
+
+    it('should enrich campaign by id', function () {
+      var event = {
+        name: 'Clicked Campaign',
+        category: 'Promo',
+        campaign: '123'
+      };
+
+      event.campaign = _EventDataEnricher2['default'].campaign(event.campaign, _digitalData);
+
+      _assert2['default'].ok(event.name);
+      _assert2['default'].ok(event.category);
+      _assert2['default'].ok(event.campaign);
+      _assert2['default'].ok(event.campaign.id === '123', 'campaign.id is not equal to "123"');
+      _assert2['default'].ok(event.campaign.name === 'Campaign 1', 'campaign.name is not equal to "Campaign 1"');
+    });
+
+    it('should enrich campaign by campaign.id', function () {
+      var event = {
+        name: 'Clicked Campaign',
+        category: 'Promo',
+        campaign: {
+          id: '123',
+          category: 'Banner 2',
+          description: 'Lorem ipsum'
+        }
+      };
+
+      event.campaign = _EventDataEnricher2['default'].campaign(event.campaign, _digitalData);
+
+      _assert2['default'].ok(event.name);
+      _assert2['default'].ok(event.category);
+      _assert2['default'].ok(event.campaign);
+      _assert2['default'].ok(event.campaign.id === '123', 'campaign.id is is not equal to "123"');
+      _assert2['default'].ok(event.campaign.name === 'Campaign 1', 'campaign.name is not equal to "Campaign 1"');
+      _assert2['default'].ok(event.campaign.category === 'Banner 2', 'campaign.category is not equal to "Banner 2"');
+      _assert2['default'].ok(event.campaign.description === 'Lorem ipsum', 'campaign.category is not equal to "Lorem ipsum"');
+      _assert2['default'].ok(_digitalData.campaigns[0].category === 'Banner', 'digitalData.campaigns[0].category is not equal to "Banner"');
+    });
+
+    it('should enrich campaigns array by id', function () {
+      var event = {
+        name: 'Viewed Campaign',
+        category: 'Promo',
+        campaigns: ['123', '234']
+      };
+
+      event.campaigns = _EventDataEnricher2['default'].campaigns(event.campaigns, _digitalData);
+
+      _assert2['default'].ok(event.name);
+      _assert2['default'].ok(event.category);
+      _assert2['default'].ok(event.campaigns);
+      _assert2['default'].ok(event.campaigns[0].id === '123', 'campaign.id is not equal to "123"');
+      _assert2['default'].ok(event.campaigns[0].name === 'Campaign 1', 'campaign.name is not equal to "Campaign 1"');
+      _assert2['default'].ok(event.campaigns[1].id === '234', 'campaign.id is not equal to "123"');
+      _assert2['default'].ok(event.campaigns[1].name === 'Campaign 2', 'campaign.name is not equal to "Campaign 1"');
+    });
+
+    it('should enrich campaigns array by campaign.id', function () {
+      var event = {
+        name: 'Viewed Campaign',
+        category: 'Promo',
+        campaigns: [{
+          id: '123',
+          category: 'Banner 2',
+          description: 'Lorem ipsum'
+        }, {
+          id: '234',
+          category: 'Banner 2',
+          description: 'Lorem ipsum'
+        }]
+      };
+
+      event.campaigns = _EventDataEnricher2['default'].campaigns(event.campaigns, _digitalData);
+
+      _assert2['default'].ok(event.name);
+      _assert2['default'].ok(event.category);
+      _assert2['default'].ok(event.campaigns);
+      _assert2['default'].ok(event.campaigns[0].id === '123', 'campaign.id is is not equal to "123"');
+      _assert2['default'].ok(event.campaigns[0].name === 'Campaign 1', 'campaign.name is not equal to "Campaign 1"');
+      _assert2['default'].ok(event.campaigns[0].category === 'Banner 2', 'campaign.category is not equal to "Banner 2"');
+      _assert2['default'].ok(event.campaigns[0].description === 'Lorem ipsum', 'campaign.category is not equal to "Lorem ipsum"');
+      _assert2['default'].ok(event.campaigns[1].id === '234', 'campaign.id is is not equal to "123"');
+      _assert2['default'].ok(event.campaigns[1].name === 'Campaign 2', 'campaign.name is not equal to "Campaign 1"');
+      _assert2['default'].ok(event.campaigns[1].category === 'Banner 2', 'campaign.category is not equal to "Banner 2"');
+      _assert2['default'].ok(event.campaigns[1].description === 'Lorem ipsum', 'campaign.category is not equal to "Lorem ipsum"');
+      _assert2['default'].ok(_digitalData.campaigns[0].category === 'Banner', 'digitalData.campaigns[0].category is not equal to "Banner"');
+    });
+  });
+
+  describe('#user', function () {
+
+    before(function () {
+      _digitalData = {
+        page: {
+          type: 'home'
+        },
+        user: {
+          firstName: 'John',
+          lastName: 'Dow',
+          isLoggedIn: true,
+          email: 'example@driveback.ru'
+        },
+        events: []
+      };
+    });
+
+    it('should enrich user when user is empty', function () {
+      var event = {
+        name: 'Subscribed',
+        category: 'Email'
+      };
+
+      event.user = _EventDataEnricher2['default'].user(event.user, _digitalData);
+
+      _assert2['default'].ok(event.name);
+      _assert2['default'].ok(event.category);
+      _assert2['default'].ok(event.user);
+      _assert2['default'].ok(event.user.isLoggedIn === true, 'user.isLoggedIn is not equal to TRUE');
+      _assert2['default'].ok(event.user.firstName === 'John', 'user.firstName is not equal to "John"');
+      _assert2['default'].ok(event.user.lastName === 'Dow', 'user.lastName is not equal to "Dow"');
+      _assert2['default'].ok(event.user.email === 'example@driveback.ru', 'user.email is is not equal to "example@driveback.ru"');
+    });
+
+    it('should enrich user when user is not empty', function () {
+      var event = {
+        name: 'Subscribed',
+        category: 'Email',
+        user: {
+          email: 'example2@driveback.ru'
+        }
+      };
+
+      event.user = _EventDataEnricher2['default'].user(event.user, _digitalData);
+
+      _assert2['default'].ok(event.name);
+      _assert2['default'].ok(event.category);
+      _assert2['default'].ok(event.user);
+      _assert2['default'].ok(event.user.isLoggedIn === true, 'user.isLoggedIn is not equal to TRUE');
+      _assert2['default'].ok(event.user.firstName === 'John', 'user.firstName is not equal to "John"');
+      _assert2['default'].ok(event.user.lastName === 'Dow', 'user.lastName is not equal to "Dow"');
+      _assert2['default'].ok(event.user.email === 'example2@driveback.ru', 'user.email is is not equal to "example2@driveback.ru"');
+    });
+  });
+
+  describe('#page', function () {
+
+    before(function () {
+      _digitalData = {
+        page: {
+          type: 'category',
+          categoryId: '123'
+        },
+        events: []
+      };
+    });
+
+    it('should enrich user when user is empty', function () {
+      var event = {
+        name: 'Viewed Page',
+        category: 'Content'
+      };
+
+      event.page = _EventDataEnricher2['default'].page(event.page, _digitalData);
+
+      _assert2['default'].ok(event.name);
+      _assert2['default'].ok(event.category);
+      _assert2['default'].ok(event.page);
+      _assert2['default'].ok(event.page.type === 'category', 'page.type is not equal to "category"');
+      _assert2['default'].ok(event.page.categoryId === '123', 'page.categoryId is not equal to "123"');
+    });
+
+    it('should enrich user when user is not empty', function () {
+      var event = {
+        name: 'Subscribed',
+        category: 'Email',
+        page: {
+          categoryId: '234',
+          url: 'http://example.com'
+        }
+      };
+
+      event.page = _EventDataEnricher2['default'].page(event.page, _digitalData);
+
+      _assert2['default'].ok(event.name);
+      _assert2['default'].ok(event.category);
+      _assert2['default'].ok(event.page);
+      _assert2['default'].ok(event.page.type === 'category', 'page.type is not equal to "category"');
+      _assert2['default'].ok(event.page.categoryId === '234', 'page.categoryId is not equal to "234"');
+      _assert2['default'].ok(event.page.url === 'http://example.com', 'page.categoryId is not equal to "http://example.com"');
+    });
+  });
+});
+
+},{"./../src/EventDataEnricher.js":95,"./../src/functions/deleteProperty.js":102,"assert":1}],135:[function(require,module,exports){
+'use strict';
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _reset = require('./reset.js');
+
+var _reset2 = _interopRequireDefault(_reset);
+
+var _EventManager = require('./../src/EventManager.js');
+
+var _EventManager2 = _interopRequireDefault(_EventManager);
+
+var _AutoEvents = require('./../src/AutoEvents.js');
+
+var _AutoEvents2 = _interopRequireDefault(_AutoEvents);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+describe('EventManager', function () {
+
+  var _eventManager = void 0;
+  var _digitalData = void 0;
+  var _ddListener = void 0;
+
+  afterEach(function () {
+    if (_eventManager) {
+      _eventManager.reset();
+      _eventManager = undefined;
+    }
+    (0, _reset2['default'])();
+  });
+
+  describe('working with events:', function () {
+
+    var eventTemplate = {
+      action: 'Added Product',
+      category: 'Ecommerce'
+    };
+
+    beforeEach(function () {
+      _digitalData = {
+        events: []
+      };
+      _ddListener = [];
+      _eventManager = new _EventManager2['default'](_digitalData, _ddListener);
+    });
+
+    it('should add time and hasFired fields to event', function () {
+      var event = Object.assign({}, eventTemplate);
+
+      _eventManager.initialize();
+
+      _digitalData.events.push(event);
+
+      _assert2['default'].ok(_digitalData.events.length == 1);
+      _assert2['default'].ok(_digitalData.events[0].timestamp > 100000);
+      _assert2['default'].ok(_digitalData.events[0].hasFired);
+    });
+
+    it('should process callback for event', function () {
+      var event = Object.assign({}, eventTemplate);
+      var callbackFired = false;
+      var receivedEvent = void 0;
+
+      _eventManager.initialize();
+
+      _ddListener.push(['on', 'event', function (e) {
+        callbackFired = true;
+        receivedEvent = e;
+      }]);
+      _digitalData.events.push(event);
+
+      _assert2['default'].ok(callbackFired);
+      _assert2['default'].equal(receivedEvent.action, event.action);
+      _assert2['default'].equal(receivedEvent.category, event.category);
+    });
+
+    it('should process early callback for event', function () {
+      var event = Object.assign({}, eventTemplate);
+
+      _ddListener.push(['on', 'event', function (e) {
+        _assert2['default'].ok(true);
+        _assert2['default'].equal(e.action, event.action);
+        _assert2['default'].equal(e.category, event.category);
+      }]);
+
+      _eventManager.initialize();
+
+      _digitalData.events.push(event);
+    });
+
+    it('should process early callback for early event', function () {
+      var event = Object.assign({}, eventTemplate);
+
+      _ddListener.push(['on', 'event', function (e) {
+        _assert2['default'].ok(true);
+        _assert2['default'].equal(e.action, event.action);
+        _assert2['default'].equal(e.category, event.category);
+      }]);
+      _digitalData.events.push(event);
+
+      _eventManager.initialize();
+    });
+
+    it('should fire event with callback inside when no listeners', function (done) {
+      _eventManager.initialize();
+      _digitalData.events.push({
+        name: 'Test',
+        category: 'Test',
+        callback: function callback(result) {
+          done();
+        }
+      });
+    });
+
+    it('should fire event with callback inside after listeners completed', function (done) {
+      _eventManager.initialize();
+
+      _ddListener.push(['on', 'event', function (e) {
+        return 'test result';
+      }]);
+
+      _digitalData.events.push({
+        name: 'Test',
+        category: 'Test',
+        callback: function callback(results) {
+          _assert2['default'].ok(results[0] == 'test result');
+          done();
+        }
+      });
+    });
+
+    it('should enrich product data from DDL', function (done) {
+      _digitalData.product = {
+        id: '123',
+        name: 'Test Product'
+      };
+
+      _eventManager.initialize();
+
+      _ddListener.push(['on', 'event', function (e) {
+        (0, _assert2['default'])(e.product.name === 'Test Product');
+        done();
+      }]);
+
+      _digitalData.events.push({
+        name: 'Clicked Product',
+        category: 'Ecommerce',
+        product: '123'
+      });
+    });
+
+    it('should not enrich product data from DDL', function (done) {
+      _digitalData.product = {
+        id: '123',
+        name: 'Test Product'
+      };
+
+      _eventManager.initialize();
+
+      _ddListener.push(['on', 'event', function (e) {
+        (0, _assert2['default'])(!e.product.name);
+        done();
+      }]);
+
+      _digitalData.events.push({
+        name: 'Clicked Product',
+        enrichEventData: false,
+        category: 'Ecommerce',
+        product: '123'
+      });
+    });
+
+    it('should process past events event if listener was added later', function (done) {
+      _eventManager.initialize();
+
+      _digitalData.events.push({
+        name: 'Clicked Product',
+        category: 'Ecommerce',
+        product: {
+          id: '123',
+          name: 'Test Product'
+        }
+      });
+
+      _ddListener.push(['on', 'event', function (e) {
+        _assert2['default'].ok(true);
+        done();
+      }]);
+    });
+  });
+
+  describe(': listening for digitalData changes', function () {
+
+    beforeEach(function () {
+      _digitalData = {
+        user: {
+          returning: false
+        },
+        listing: {
+          items: [{ id: 1 }, { id: 2 }]
+        },
+        test: 'test'
+      };
+      _ddListener = [];
+      _eventManager = new _EventManager2['default'](_digitalData, _ddListener);
+      _eventManager.initialize();
+    });
+
+    it('should fire change callback', function (done) {
+      _ddListener.push(['on', 'change', function () {
+        done();
+      }]);
+      _digitalData.test2 = 'test2';
+    });
+
+    it('should fire change key callback', function (done) {
+      _ddListener.push(['on', 'change:user.returning', function (newValue, previousValue) {
+        _assert2['default'].ok(newValue === true);
+        _assert2['default'].ok(previousValue === false);
+        done();
+      }]);
+      _digitalData.user.returning = true;
+    });
+
+    it('should fire change callback for array', function (done) {
+      _ddListener.push(['on', 'change:listing.items', function (newValue, previousValue) {
+        _assert2['default'].ok(newValue.length === 3);
+        _assert2['default'].ok(previousValue.length === 2);
+        done();
+      }]);
+      _digitalData.listing.items.push({ id: 3 });
+    });
+
+    it('should fire length change callback for array', function (done) {
+      _ddListener.push(['on', 'change:listing.items.length', function (newValue, previousValue) {
+        _assert2['default'].ok(newValue === 3);
+        _assert2['default'].ok(previousValue === 2);
+        done();
+      }]);
+      _digitalData.listing.items.push({ id: 3 });
+    });
+
+    it('should fire change callbacks asynchronously, ignoring possible exceptions', function (done) {
+      _ddListener.push(['on', 'change', function (newValue, previousValue) {
+        throw new Error('test error');
+      }]);
+      _ddListener.push(['on', 'change', function (newValue, previousValue) {
+        done();
+      }]);
+      _digitalData.test2 = 'test2';
+    });
+
+    it('should handle change callback exception', function (done) {
+      _ddListener.push(['on', 'change', function (newValue, previousValue) {
+        throw new Error('test error');
+      }]);
+      _digitalData.test2 = 'test2';
+      setTimeout(done, 1000);
+    });
+
+    it('should NOT fire change callback', function (done) {
+      _ddListener.push(['on', 'change', function () {
+        _assert2['default'].ok(false);
+        done();
+      }]);
+      setTimeout(function () {
+        _assert2['default'].ok(true);
+        done();
+      }, 101); //check interval is 100, so 101 will work
+
+      _digitalData.test = 'test';
+    });
+
+    it('should NOT fire change key callback', function (done) {
+      _ddListener.push(['on', 'change:user.returning', function () {
+        _assert2['default'].ok(false);
+        done();
+      }]);
+      setTimeout(function () {
+        _assert2['default'].ok(true);
+        done();
+      }, 101); //check interval is 100, so 101 will work
+
+      _digitalData.user.returning = false;
+    });
+
+    it('should NOT fire change callback for array', function (done) {
+      _ddListener.push(['on', 'change:listing.items', function () {
+        _assert2['default'].ok(false);
+        done();
+      }]);
+      setTimeout(function () {
+        _assert2['default'].ok(true);
+        done();
+      }, 101); //check interval is 100, so 101 will work
+
+      _digitalData.listing.items.pop();
+      _digitalData.listing.items.push({ id: 2 });
+    });
+
+    it('should NOT fire length change callback for array', function (done) {
+      _ddListener.push(['on', 'change:listing.items.length', function () {
+        _assert2['default'].ok(false);
+        done();
+      }]);
+      setTimeout(function () {
+        _assert2['default'].ok(true);
+        done();
+      }, 101); //check interval is 100, so 101 will work
+
+      _digitalData.listing.items.pop();
+      _digitalData.listing.items.push({ id: 3 });
+    });
+
+    it('should NOT fire change callback if event was added', function (done) {
+      _ddListener.push(['on', 'change', function () {
+        _assert2['default'].ok(false);
+        done();
+      }]);
+      setTimeout(function () {
+        _assert2['default'].ok(true);
+        done();
+      }, 101); //check interval is 100, so 101 will work
+
+      _digitalData.events.push({
+        name: 'Test Event'
+      });
+    });
+  });
+
+  describe(': listening for digitalData define events', function () {
+
+    beforeEach(function () {
+      _digitalData = {
+        user: {
+          returning: false
+        },
+        listing: {
+          items: [{ id: 1 }, { id: 2 }]
+        },
+        test: 'test'
+      };
+      _ddListener = [];
+      _eventManager = new _EventManager2['default'](_digitalData, _ddListener);
+      _eventManager.initialize();
+    });
+
+    it('should fire define callback', function (done) {
+      _ddListener.push(['on', 'define', function () {
+        done();
+      }]);
+    });
+
+    it('should fire define key callback', function (done) {
+      _ddListener.push(['on', 'define:user.test', function (value) {
+        _assert2['default'].ok(value === true);
+        done();
+      }]);
+      _digitalData.user.test = true;
+    });
+
+    it('should fire define key callback', function (done) {
+      _digitalData.user.test = true;
+      var ddListener = _ddListener || [];
+      ddListener.push(['on', 'define:user.test', function (value) {
+        _assert2['default'].ok(value === true);
+        done();
+      }]);
+    });
+
+    it('should fire define callback for array', function (done) {
+      _ddListener.push(['on', 'define:listing.items', function (value) {
+        _assert2['default'].ok(value.length === 3);
+        done();
+      }]);
+      _digitalData.listing.items.push({ id: 3 });
+    });
+
+    it('should fire length define callback for array', function (done) {
+      _ddListener.push(['on', 'define:listing.items.length', function (value) {
+        _assert2['default'].ok(value === 3);
+        done();
+      }]);
+      _digitalData.listing.items.push({ id: 3 });
+    });
+
+    it('should fire define callbacks asynchronously, ignoring possible exceptions', function (done) {
+      _ddListener.push(['on', 'define', function (value) {
+        throw new Error('test error');
+      }]);
+      _ddListener.push(['on', 'define', function (value) {
+        done();
+      }]);
+      _digitalData.test2 = 'test2';
+    });
+
+    it('should handle define callback exception', function (done) {
+      _ddListener.push(['on', 'define', function (value) {
+        throw new Error('test error');
+      }]);
+      _digitalData.test2 = 'test2';
+      setTimeout(done, 1000);
+    });
+
+    it('should fire define callback only once', function (done) {
+      _ddListener.push(['on', 'define', function () {
+        _assert2['default'].ok(true);
+        done();
+      }]);
+      _ddListener.push(['on', 'define', function () {
+        _assert2['default'].ok(false);
+        done();
+      }]);
+      setTimeout(function () {
+        _assert2['default'].ok(true);
+        done();
+      }, 101); //check interval is 100, so 101 will work
+
+      _digitalData.test = 'test';
+    });
+
+    it('should fire define key callback only once', function (done) {
+      _ddListener.push(['on', 'define:user.returning', function () {
+        _assert2['default'].ok(true);
+        done();
+      }]);
+      _ddListener.push(['on', 'define:user.returning', function () {
+        _assert2['default'].ok(false);
+        done();
+      }]);
+      setTimeout(function () {
+        _assert2['default'].ok(true);
+        done();
+      }, 101); //check interval is 100, so 101 will work
+
+      _digitalData.user.returning = false;
+    });
+
+    it('should fire define callback for array only once', function (done) {
+      _ddListener.push(['on', 'define:listing.items', function () {
+        _assert2['default'].ok(true);
+        done();
+      }]);
+      _ddListener.push(['on', 'define:listing.items', function () {
+        _assert2['default'].ok(false);
+        done();
+      }]);
+      setTimeout(function () {
+        _assert2['default'].ok(true);
+        done();
+      }, 101); //check interval is 100, so 101 will work
+
+      _digitalData.listing.items.pop();
+      _digitalData.listing.items.push({ id: 2 });
+    });
+
+    it('should fire length define callback for array only once', function (done) {
+      _ddListener.push(['on', 'define:listing.items.length', function () {
+        _assert2['default'].ok(true);
+        done();
+      }]);
+      _ddListener.push(['on', 'define:listing.items.length', function () {
+        _assert2['default'].ok(false);
+        done();
+      }]);
+      setTimeout(function () {
+        _assert2['default'].ok(true);
+        done();
+      }, 101); //check interval is 100, so 101 will work
+
+      _digitalData.listing.items.pop();
+      _digitalData.listing.items.push({ id: 3 });
+    });
+
+    it('should fire define callback event if key was already defined', function (done) {
+      _ddListener.push(['on', 'define:user.returning', function () {
+        _assert2['default'].ok(true);
+        done();
+      }]);
+    });
+  });
+
+  describe(': listening for autoEvents based on DDL changes', function () {
+
+    beforeEach(function () {
+      _digitalData = {
+        page: {
+          type: 'home'
+        }
+      };
+      _ddListener = [];
+      _eventManager = new _EventManager2['default'](_digitalData, _ddListener);
+      _eventManager.setAutoEvents(new _AutoEvents2['default']());
+      _eventManager.initialize();
+    });
+
+    it('should fire Viewed Page event', function (done) {
+      _digitalData.page = {
+        type: 'content'
+      };
+      setTimeout(function () {
+        _assert2['default'].ok(_digitalData.events.length === 2);
+        _assert2['default'].ok(_digitalData.events[1].name === 'Viewed Page');
+        _assert2['default'].ok(_digitalData.events[1].page.type === 'content');
+        done();
+      }, 101);
+    });
+
+    it('should fire Viewed Page and Viewed Product Category events', function (done) {
+      _digitalData.page = {
+        type: 'category'
+      };
+      _digitalData.listing = {
+        categoryId: '123'
+      };
+      setTimeout(function () {
+        _assert2['default'].ok(_digitalData.events.length === 3);
+        _assert2['default'].ok(_digitalData.events[1].name === 'Viewed Page');
+        _assert2['default'].ok(_digitalData.events[1].page.type === 'category');
+        _assert2['default'].ok(_digitalData.events[2].name === 'Viewed Product Category');
+        _assert2['default'].ok(_digitalData.events[2].listing.categoryId === '123');
+        done();
+      }, 101);
+    });
+
+    it('should fire Viewed Product Detail event', function (done) {
+      _digitalData.product = {
+        id: '123',
+        name: 'Test Product'
+      };
+      setTimeout(function () {
+        _assert2['default'].ok(_digitalData.events.length === 2);
+        _assert2['default'].ok(_digitalData.events[1].name === 'Viewed Product Detail');
+        _assert2['default'].ok(_digitalData.events[1].product.id === '123');
+        done();
+      }, 101);
+    });
+
+    it('should fire Completed Transaction event', function (done) {
+      _digitalData.transaction = {
+        orderId: '123'
+      };
+      setTimeout(function () {
+        _assert2['default'].ok(_digitalData.events.length === 2);
+        _assert2['default'].ok(_digitalData.events[1].name === 'Completed Transaction');
+        _assert2['default'].ok(_digitalData.events[1].transaction.orderId === '123');
+        done();
+      }, 101);
+    });
+  });
+});
+
+},{"./../src/AutoEvents.js":91,"./../src/EventManager.js":96,"./reset.js":152,"assert":1}],136:[function(require,module,exports){
+'use strict';
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _reset = require('./reset.js');
+
+var _reset2 = _interopRequireDefault(_reset);
+
+var _snippet = require('./snippet.js');
+
+var _snippet2 = _interopRequireDefault(_snippet);
+
+var _ddManager = require('../src/ddManager.js');
+
+var _ddManager2 = _interopRequireDefault(_ddManager);
+
+var _Integration = require('../src/Integration.js');
+
+var _Integration2 = _interopRequireDefault(_Integration);
+
+var _availableIntegrations = require('../src/availableIntegrations.js');
+
+var _availableIntegrations2 = _interopRequireDefault(_availableIntegrations);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+describe('DDManager', function () {
+
+  afterEach(function () {
+    _ddManager2['default'].reset();
+    (0, _reset2['default'])();
+  });
+
+  describe('#initialize', function () {
+    it('should initialize Array objects for window.digitalData.events and window.ddListener', function () {
+      _ddManager2['default'].initialize();
+      _assert2['default'].ok(Array.isArray(window.digitalData.events));
+      _assert2['default'].ok(Array.isArray(window.ddListener));
+    });
+
+    it('should initialize website, page, user and cart objects', function () {
+      _ddManager2['default'].initialize();
+      _assert2['default'].ok(window.digitalData.website);
+      _assert2['default'].ok(window.digitalData.page);
+      _assert2['default'].ok(window.digitalData.user);
+      _assert2['default'].ok(window.digitalData.cart); // if page !== 'confirmation'
+    });
+
+    it('should work well with async load using stubs from the snippet', function () {
+      (0, _snippet2['default'])();
+      window.ddManager.initialize();
+      _ddManager2['default'].processEarlyStubCalls();
+
+      _assert2['default'].ok(_ddManager2['default'].isReady());
+      _assert2['default'].ok(Array.isArray(window.digitalData.events));
+      _assert2['default'].ok(Array.isArray(window.ddListener));
+    });
+
+    it('should initialize after all other stubs', function (done) {
+      (0, _snippet2['default'])();
+      window.ddManager.initialize();
+      window.ddManager.on('ready', function () {
+        done();
+      });
+      _ddManager2['default'].processEarlyStubCalls();
+    });
+
+    it('should initialize DDManager instance', function () {
+      _ddManager2['default'].initialize();
+      _assert2['default'].ok(_ddManager2['default'].isReady());
+    });
+
+    it('should add integration if old-style object settings', function () {
+      _ddManager2['default'].setAvailableIntegrations(_availableIntegrations2['default']);
+      _ddManager2['default'].initialize({
+        integrations: {
+          'Google Tag Manager': {
+            componentId: 'XXX'
+          }
+        }
+      });
+
+      _assert2['default'].ok(_ddManager2['default'].getIntegration('Google Tag Manager') instanceof _Integration2['default']);
+    });
+
+    it('should add integration if old-style object settings without options', function () {
+      _ddManager2['default'].setAvailableIntegrations(_availableIntegrations2['default']);
+      _ddManager2['default'].initialize({
+        integrations: {
+          'Google Tag Manager': true
+        }
+      });
+
+      _assert2['default'].ok(_ddManager2['default'].getIntegration('Google Tag Manager') instanceof _Integration2['default']);
+    });
+
+    it('should add integration if new array settings', function () {
+      _ddManager2['default'].setAvailableIntegrations(_availableIntegrations2['default']);
+      _ddManager2['default'].initialize({
+        integrations: [{
+          'name': 'Google Tag Manager',
+          'options': {
+            'componentId': 'XXX'
+          }
+        }]
+      });
+
+      _assert2['default'].ok(_ddManager2['default'].getIntegration('Google Tag Manager') instanceof _Integration2['default']);
+    });
+
+    it('should add integration if new array settings without options', function () {
+      _ddManager2['default'].setAvailableIntegrations(_availableIntegrations2['default']);
+      _ddManager2['default'].initialize({
+        integrations: [{
+          'name': 'Google Tag Manager'
+        }]
+      });
+
+      _assert2['default'].ok(_ddManager2['default'].getIntegration('Google Tag Manager') instanceof _Integration2['default']);
+    });
+
+    it('it should fire on("ready") event even if ddManager was ready before', function (done) {
+      _ddManager2['default'].initialize();
+      if (_ddManager2['default'].isReady()) {
+        _ddManager2['default'].on('ready', function () {
+          done();
+        });
+      } else {
+        _assert2['default'].ok(false);
+      }
+    });
+
+    it('it should fire once("ready") event even if ddManager was ready before', function (done) {
+      _ddManager2['default'].initialize();
+      if (_ddManager2['default'].isReady()) {
+        _ddManager2['default'].once('ready', function () {
+          done();
+        });
+      } else {
+        _assert2['default'].ok(false);
+      }
+    });
+
+    it('it should fire on("initialize") event even if ddManager was initialized before', function (done) {
+      _ddManager2['default'].initialize();
+      if (_ddManager2['default'].isReady()) {
+        _ddManager2['default'].on('ready', function () {
+          done();
+        });
+      } else {
+        _assert2['default'].ok(false);
+      }
+    });
+
+    it('it should fire once("initialize") event even if ddManager was initialized before', function (done) {
+      _ddManager2['default'].initialize();
+      if (_ddManager2['default'].isReady()) {
+        _ddManager2['default'].once('ready', function () {
+          done();
+        });
+      } else {
+        _assert2['default'].ok(false);
+      }
+    });
+
+    it('it should fire fire "Viewed Page" event if autoEvents == true', function (done) {
+      _ddManager2['default'].initialize();
+      if (_ddManager2['default'].isReady()) {
+        _ddManager2['default'].once('ready', function () {
+          _assert2['default'].ok(window.digitalData.events[0].name === 'Viewed Page');
+          _assert2['default'].ok(window.digitalData.events.length === 1);
+          done();
+        });
+      } else {
+        _assert2['default'].ok(false);
+      }
+    });
+
+    it('it should fire fire "Viewed Page" event if autoEvents == true', function (done) {
+      _ddManager2['default'].initialize({
+        autoEvents: false
+      });
+      if (_ddManager2['default'].isReady()) {
+        _ddManager2['default'].once('ready', function () {
+          _assert2['default'].ok(window.digitalData.events.length === 0);
+          done();
+        });
+      } else {
+        _assert2['default'].ok(false);
+      }
+    });
+
+    it('it should enrich digital data', function (done) {
+      _ddManager2['default'].initialize();
+      if (_ddManager2['default'].isReady()) {
+        _ddManager2['default'].once('ready', function () {
+          _assert2['default'].ok(window.digitalData.context.userAgent);
+          done();
+        });
+      } else {
+        _assert2['default'].ok(false);
+      }
+    });
+
+    it('it should send Viewed Page event once', function (done) {
+      _ddManager2['default'].on('ready', function () {
+        setTimeout(function () {
+          _assert2['default'].equal(window.digitalData.events.length, 2);
+          done();
+        }, 1000);
+      });
+      window.digitalData = {
+        page: {
+          type: 'product'
+        },
+        product: {
+          id: '123'
+        }
+      };
+      _ddManager2['default'].setAvailableIntegrations(_availableIntegrations2['default']);
+      _ddManager2['default'].initialize({
+        autoEvents: true,
+        integrations: {
+          'Google Tag Manager': true,
+          'SegmentStream': true
+        }
+      });
+    });
+  });
+});
+
+},{"../src/Integration.js":97,"../src/availableIntegrations.js":99,"../src/ddManager.js":100,"./reset.js":152,"./snippet.js":153,"assert":1}],137:[function(require,module,exports){
+"use strict";
+
+exports.__esModule = true;
+exports["default"] = argumentsToArray;
+function argumentsToArray(args) {
+  if (args && args[1] === undefined) {
+    return undefined;
+  }
+  return Array.prototype.slice.call(args);
+}
+
+},{}],138:[function(require,module,exports){
 'use strict';
 
 require('./../src/polyfill.js');
 
+require('./ddManagerSpec.js');
+
+require('./AutoEventsSpec.js');
+
+require('./DDHelperSpec.js');
+
+require('./EventManagerSpec.js');
+
+require('./EventDataEnricherSpec.js');
+
+require('./DigitalDataEnricherSpec.js');
+
+require('./integrations/GoogleAnalyticsSpec.js');
+
+require('./integrations/GoogleTagManagerSpec.js');
+
+require('./integrations/DrivebackSpec.js');
+
+require('./integrations/RetailRocketSpec.js');
+
+require('./integrations/FacebookPixelSpec.js');
+
 require('./integrations/SegmentStreamSpec.js');
 
-},{"./../src/polyfill.js":115,"./integrations/SegmentStreamSpec.js":117}],117:[function(require,module,exports){
+require('./integrations/SendPulseSpec.js');
+
+require('./integrations/OWOXBIStreamingSpec.js');
+
+require('./integrations/CriteoSpec.js');
+
+require('./integrations/MyTargetSpec.js');
+
+require('./integrations/YandexMetricaSpec.js');
+
+require('./integrations/VkontakteSpec.js');
+
+require('./integrations/EmarsysSpec.js');
+
+},{"./../src/polyfill.js":130,"./AutoEventsSpec.js":131,"./DDHelperSpec.js":132,"./DigitalDataEnricherSpec.js":133,"./EventDataEnricherSpec.js":134,"./EventManagerSpec.js":135,"./ddManagerSpec.js":136,"./integrations/CriteoSpec.js":139,"./integrations/DrivebackSpec.js":140,"./integrations/EmarsysSpec.js":141,"./integrations/FacebookPixelSpec.js":142,"./integrations/GoogleAnalyticsSpec.js":143,"./integrations/GoogleTagManagerSpec.js":144,"./integrations/MyTargetSpec.js":145,"./integrations/OWOXBIStreamingSpec.js":146,"./integrations/RetailRocketSpec.js":147,"./integrations/SegmentStreamSpec.js":148,"./integrations/SendPulseSpec.js":149,"./integrations/VkontakteSpec.js":150,"./integrations/YandexMetricaSpec.js":151}],139:[function(require,module,exports){
+'use strict';
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _sinon = require('sinon');
+
+var _sinon2 = _interopRequireDefault(_sinon);
+
+var _reset = require('./../reset.js');
+
+var _reset2 = _interopRequireDefault(_reset);
+
+var _Criteo = require('./../../src/integrations/Criteo.js');
+
+var _Criteo2 = _interopRequireDefault(_Criteo);
+
+var _ddManager = require('./../../src/ddManager.js');
+
+var _ddManager2 = _interopRequireDefault(_ddManager);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+describe('Integrations: Criteo', function () {
+  var criteo = void 0;
+  var options = {
+    account: '123'
+  };
+
+  beforeEach(function () {
+    window.digitalData = {
+      website: {},
+      page: {},
+      user: {},
+      events: []
+    };
+    criteo = new _Criteo2['default'](window.digitalData, options);
+    _ddManager2['default'].addIntegration('Criteo', criteo);
+  });
+
+  afterEach(function () {
+    criteo.reset();
+    _ddManager2['default'].reset();
+    (0, _reset2['default'])();
+  });
+
+  describe('before loading', function () {
+    beforeEach(function () {
+      _sinon2['default'].stub(criteo, 'load');
+    });
+
+    afterEach(function () {
+      criteo.load.restore();
+    });
+
+    describe('#constructor', function () {
+      it('should add proper tags and options', function () {
+        _assert2['default'].equal(options.account, criteo.getOption('account'));
+        _assert2['default'].equal(undefined, criteo.getOption('deduplication'));
+        _assert2['default'].equal('script', criteo.getTag().type);
+        _assert2['default'].equal(criteo.getTag().attr.src, '//static.criteo.net/js/ld/ld.js');
+      });
+    });
+
+    describe('#initialize', function () {
+      it('should initialize criteo queue object', function () {
+        _ddManager2['default'].initialize();
+        _assert2['default'].ok(window.criteo_q);
+        _assert2['default'].ok(window.criteo_q.push);
+      });
+
+      it('should call tags load after initialization', function () {
+        _ddManager2['default'].initialize();
+        _assert2['default'].ok(criteo.load.calledOnce);
+      });
+
+      it('should define account id', function () {
+        _ddManager2['default'].initialize();
+        _assert2['default'].deepEqual(window.criteo_q[0], { event: 'setAccount', account: options.account });
+      });
+
+      it('should define "d" site type if other option is not specified', function () {
+        _ddManager2['default'].initialize();
+        _assert2['default'].deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "d" });
+      });
+
+      it('should define "d" site type if digitalData.website.type is not one of: "desktop", "tablet" or "mobile"', function () {
+        window.digitalData.website.type = "test";
+        _ddManager2['default'].initialize();
+        _assert2['default'].deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "d" });
+      });
+
+      it('should define "d" site type if digitalData.website.type is "desktop"', function () {
+        window.digitalData.website.type = "desktop";
+        _ddManager2['default'].initialize();
+        _assert2['default'].deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "d" });
+      });
+
+      it('should define "t" site type if digitalData.website.type is "tablet"', function () {
+        window.digitalData.website.type = "tablet";
+        _ddManager2['default'].initialize();
+        _assert2['default'].deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "t" });
+      });
+
+      it('should define "m" site type if digitalData.website.type is "mobile"', function () {
+        window.digitalData.website.type = "mobile";
+        _ddManager2['default'].initialize();
+        _assert2['default'].deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "m" });
+      });
+
+      it('should set email if digitalData.user.email is defined', function () {
+        window.digitalData.user.email = 'test@driveback.ru';
+        _ddManager2['default'].initialize();
+        _assert2['default'].deepEqual(window.criteo_q[2], { event: 'setEmail', email: window.digitalData.user.email });
+      });
+    });
+
+    describe('#initialize version <1.1.0', function () {
+      it('should define "d" site type if digitalData.page.siteType is not one of: "desktop", "tablet" or "mobile"', function () {
+        window.digitalData.version = '1.0.11';
+        window.digitalData.page.siteType = "test";
+        _ddManager2['default'].initialize();
+        _assert2['default'].deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "d" });
+      });
+
+      it('should define "d" site type if digitalData.page.siteType is "desktop"', function () {
+        window.digitalData.version = '1.0.11';
+        window.digitalData.page.siteType = "desktop";
+        _ddManager2['default'].initialize();
+        _assert2['default'].deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "d" });
+      });
+
+      it('should define "t" site type if digitalData.page.siteType is "tablet"', function () {
+        window.digitalData.version = '1.0.11';
+        window.digitalData.page.siteType = "tablet";
+        _ddManager2['default'].initialize();
+        _assert2['default'].deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "t" });
+      });
+
+      it('should define "m" site type if digitalData.page.siteType is "mobile"', function () {
+        window.digitalData.version = '1.0.11';
+        window.digitalData.page.siteType = "mobile";
+        _ddManager2['default'].initialize();
+        _assert2['default'].deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "m" });
+      });
+    });
+  });
+
+  describe('loading', function () {
+    beforeEach(function () {
+      _sinon2['default'].stub(criteo, 'load', function () {
+        window.criteo_q = {
+          push: function push() {}
+        };
+        criteo.onLoad();
+      });
+    });
+
+    afterEach(function () {
+      criteo.load.restore();
+    });
+
+    it('should load', function (done) {
+      _assert2['default'].ok(!criteo.isLoaded());
+      _ddManager2['default'].once('load', function () {
+        _assert2['default'].ok(criteo.isLoaded());
+        done();
+      });
+      _ddManager2['default'].initialize({
+        autoEvents: false
+      });
+    });
+  });
+
+  describe('after loading', function () {
+    beforeEach(function (done) {
+      _sinon2['default'].stub(criteo, 'load', function () {
+        setTimeout(criteo.onLoad, 0);
+      });
+      _ddManager2['default'].once('ready', function () {
+        done();
+      });
+      _ddManager2['default'].initialize({
+        autoEvents: false
+      });
+    });
+
+    afterEach(function () {
+      criteo.load.restore();
+    });
+
+    it('should set email if digitalData.user.email is changed at any time', function (done) {
+      _assert2['default'].ok(!window.criteo_q[2]);
+      window.digitalData.user.email = 'test@driveback.ru';
+      setTimeout(function () {
+        _assert2['default'].deepEqual(window.criteo_q[2], { event: 'setEmail', email: window.digitalData.user.email });
+        done();
+      }, 111);
+    });
+
+    describe('#onViewedHome', function () {
+      it('should send viewHome event if user visits home page', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          category: 'Content',
+          page: {
+            type: 'home'
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window.criteo_q[2], { event: 'viewHome' });
+            done();
+          }
+        });
+      });
+
+      it('should not send viewHome event if user visits other pages', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          category: 'Content',
+          page: {
+            type: 'product'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window.criteo_q[2]);
+            done();
+          }
+        });
+      });
+
+      it('should not send viewHome event if noConflict setting is true', function (done) {
+        criteo.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          category: 'Content',
+          page: {
+            type: 'home'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window.criteo_q[2]);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onViewedProductCategory', function () {
+      it('should send viewList event if user visits listing page with more than 3 items', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          category: 'Ecommerce',
+          listing: {
+            items: [{
+              id: '123'
+            }, {
+              id: '234'
+            }, {
+              id: '345'
+            }, {
+              id: '456'
+            }]
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window.criteo_q[2], { event: 'viewList', item: ['123', '234', '345'] });
+            done();
+          }
+        });
+      });
+
+      it('should send viewList event if user visits listing page with less than 3 items', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          category: 'Ecommerce',
+          listing: {
+            items: [{
+              id: '123'
+            }, {
+              id: '234'
+            }]
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window.criteo_q[2], { event: 'viewList', item: ['123', '234'] });
+            done();
+          }
+        });
+      });
+
+      it('should not send viewList event if digitalData.listing obejct is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          category: 'Ecommerce',
+          callback: function callback() {
+            _assert2['default'].ok(!window.criteo_q[2]);
+            done();
+          }
+        });
+      });
+
+      it('should not send viewList event if noConflict setting is true', function (done) {
+        criteo.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          category: 'Ecommerce',
+          listing: {
+            items: [{
+              id: '123'
+            }]
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window.criteo_q[2]);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onSearched', function () {
+      it('should send viewList event if user visits listing page with more than 3 items', function (done) {
+        window.digitalData.events.push({
+          name: 'Searched',
+          category: 'Content',
+          listing: {
+            items: [{
+              id: '123'
+            }, {
+              id: '234'
+            }, {
+              id: '345'
+            }, {
+              id: '456'
+            }]
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window.criteo_q[2], { event: 'viewList', item: ['123', '234', '345'] });
+            done();
+          }
+        });
+      });
+
+      it('should send viewList event if user visits listing page with less than 3 items', function (done) {
+        window.digitalData.events.push({
+          name: 'Searched',
+          category: 'Ecommerce',
+          listing: {
+            items: [{
+              id: '123'
+            }, {
+              id: '234'
+            }]
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window.criteo_q[2], { event: 'viewList', item: ['123', '234'] });
+            done();
+          }
+        });
+      });
+
+      it('should not send viewList event if digitalData.listing obejct is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Searched',
+          category: 'Ecommerce',
+          callback: function callback() {
+            _assert2['default'].ok(!window.criteo_q[2]);
+            done();
+          }
+        });
+      });
+
+      it('should not send viewList event if noConflict setting is true', function (done) {
+        criteo.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Searched',
+          category: 'Ecommerce',
+          listing: {
+            items: [{
+              id: '123'
+            }]
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window.criteo_q[2]);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onViewedProductDetail', function () {
+      it('should send viewItem event if user visits product detail page', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: {
+            id: '123'
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window.criteo_q[2], { event: 'viewItem', item: '123' });
+            done();
+          }
+        });
+      });
+
+      it('should not send viewItem event if product ID is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          callback: function callback() {
+            _assert2['default'].ok(!window.criteo_q[2]);
+            done();
+          }
+        });
+      });
+
+      it('should not send viewItem event if noConflict option is true', function (done) {
+        criteo.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: {
+            id: '123'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window.criteo_q[2]);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onViewedCart', function () {
+      it('should send viewBasket event if user visits cart page', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Cart',
+          category: 'Ecommerce',
+          cart: {
+            lineItems: [{
+              product: {
+                id: '123',
+                unitSalePrice: 100
+              },
+              quantity: 1
+            }, {
+              product: {
+                id: '234',
+                unitPrice: 100,
+                unitSalePrice: 50
+              },
+              quantity: 2
+            }, {
+              product: {
+                id: '345',
+                unitPrice: 30
+              }
+            }, {
+              product: {
+                id: '456'
+              }
+            }, {
+              product: {}
+            }]
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window.criteo_q[2], { event: 'viewBasket', item: [{ id: '123', price: 100, quantity: 1 }, { id: '234', price: 50, quantity: 2 }, { id: '345', price: 30, quantity: 1 }, { id: '456', price: 0, quantity: 1 }] });
+            done();
+          }
+        });
+      });
+
+      it('should not send viewBasket event if cart object is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Cart',
+          category: 'Ecommerce',
+          callback: function callback() {
+            _assert2['default'].ok(!window.criteo_q[2]);
+            done();
+          }
+        });
+      });
+
+      it('should not send viewBasket event if cart is empty', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Cart',
+          category: 'Ecommerce',
+          cart: {
+            lineItems: []
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window.criteo_q[2]);
+            done();
+          }
+        });
+      });
+
+      it('should not send viewBasket event if noConflict option is true', function (done) {
+        criteo.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Viewed Cart',
+          category: 'Ecommerce',
+          cart: {
+            lineItems: [{
+              product: {
+                id: '123',
+                unitSalePrice: 100
+              },
+              quantity: 1
+            }]
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window.criteo_q[2]);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onCompletedTransaction', function () {
+      var lineItems = [{
+        product: {
+          id: '123',
+          unitSalePrice: 100
+        },
+        quantity: 1
+      }, {
+        product: {
+          id: '234',
+          unitPrice: 100,
+          unitSalePrice: 50
+        },
+        quantity: 2
+      }, {
+        product: {
+          id: '345',
+          unitPrice: 30
+        }
+      }, {
+        product: {
+          id: '456'
+        }
+      }, {
+        product: {}
+      }];
+
+      it('should send trackTransaction event if transaction is completed (new_customer = 1)', function (done) {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          transaction: {
+            orderId: '123',
+            isFirst: true,
+            lineItems: lineItems
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window.criteo_q[2], {
+              event: 'trackTransaction',
+              id: '123',
+              new_customer: 1,
+              deduplication: 0,
+              item: [{ id: '123', price: 100, quantity: 1 }, { id: '234', price: 50, quantity: 2 }, { id: '345', price: 30, quantity: 1 }, { id: '456', price: 0, quantity: 1 }]
+            });
+            done();
+          }
+        });
+      });
+
+      it('should send trackTransaction event if transaction is completed (new_customer = 0)', function (done) {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          transaction: {
+            orderId: '123',
+            isFirst: false,
+            lineItems: lineItems
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window.criteo_q[2], {
+              event: 'trackTransaction',
+              id: '123',
+              new_customer: 0,
+              deduplication: 0,
+              item: [{ id: '123', price: 100, quantity: 1 }, { id: '234', price: 50, quantity: 2 }, { id: '345', price: 30, quantity: 1 }, { id: '456', price: 0, quantity: 1 }]
+            });
+            done();
+          }
+        });
+      });
+
+      it('should send trackTransaction event if transaction is completed (deduplication = 1)', function (done) {
+        criteo.setOption('deduplication', true);
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          transaction: {
+            orderId: '123',
+            lineItems: lineItems
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window.criteo_q[2], {
+              event: 'trackTransaction',
+              id: '123',
+              new_customer: 0,
+              deduplication: 1,
+              item: [{ id: '123', price: 100, quantity: 1 }, { id: '234', price: 50, quantity: 2 }, { id: '345', price: 30, quantity: 1 }, { id: '456', price: 0, quantity: 1 }]
+            });
+            done();
+          }
+        });
+      });
+
+      it('should send trackTransaction event if transaction is completed (deduplication = 1)', function (done) {
+        window.digitalData.context = {
+          campaign: {
+            source: 'CriTeO'
+          }
+        };
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          transaction: {
+            orderId: '123',
+            lineItems: lineItems
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window.criteo_q[2], {
+              event: 'trackTransaction',
+              id: '123',
+              new_customer: 0,
+              deduplication: 1,
+              item: [{ id: '123', price: 100, quantity: 1 }, { id: '234', price: 50, quantity: 2 }, { id: '345', price: 30, quantity: 1 }, { id: '456', price: 0, quantity: 1 }]
+            });
+            done();
+          }
+        });
+      });
+
+      it('should send trackTransaction event if transaction is completed (deduplication = 0)', function (done) {
+        criteo.setOption('deduplication', false);
+        window.digitalData.context = {
+          campaign: {
+            name: 'CriTeO'
+          }
+        };
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          transaction: {
+            orderId: '123',
+            lineItems: lineItems
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window.criteo_q[2], {
+              event: 'trackTransaction',
+              id: '123',
+              new_customer: 0,
+              deduplication: 0,
+              item: [{ id: '123', price: 100, quantity: 1 }, { id: '234', price: 50, quantity: 2 }, { id: '345', price: 30, quantity: 1 }, { id: '456', price: 0, quantity: 1 }]
+            });
+            done();
+          }
+        });
+      });
+
+      it('should not send trackTransaction event if transaction object is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          callback: function callback() {
+            _assert2['default'].ok(!window.criteo_q[2]);
+            done();
+          }
+        });
+      });
+
+      it('should not send trackTransaction event if transaction object has no LineItems', function (done) {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          transaction: {
+            lineItems: []
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window.criteo_q[2]);
+            done();
+          }
+        });
+      });
+
+      it('should not send trackTransaction event if noConflict option is true', function (done) {
+        criteo.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          transaction: {
+            orderId: '123',
+            lineItems: lineItems
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window.criteo_q[2]);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onSubscribed', function () {
+      it('should set email if user email was acquired', function (done) {
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          category: 'Email',
+          user: {
+            email: 'test@driveback.ru'
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window.criteo_q[2], { event: 'setEmail', email: 'test@driveback.ru' });
+            done();
+          }
+        });
+      });
+
+      it('should set email if user email was acquired and noConflict option is true', function (done) {
+        criteo.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          category: 'Email',
+          user: {
+            email: 'test@driveback.ru'
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window.criteo_q[2], { event: 'setEmail', email: 'test@driveback.ru' });
+            done();
+          }
+        });
+      });
+    });
+  });
+});
+
+},{"./../../src/ddManager.js":100,"./../../src/integrations/Criteo.js":117,"./../reset.js":152,"assert":1,"sinon":64}],140:[function(require,module,exports){
+'use strict';
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _reset = require('./../reset.js');
+
+var _reset2 = _interopRequireDefault(_reset);
+
+var _Driveback = require('./../../src/integrations/Driveback.js');
+
+var _Driveback2 = _interopRequireDefault(_Driveback);
+
+var _ddManager = require('./../../src/ddManager.js');
+
+var _ddManager2 = _interopRequireDefault(_ddManager);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+describe('Integrations: Driveback', function () {
+  var driveback = void 0;
+  var options = {
+    websiteToken: 'aba543e1-1413-5f77-a8c7-aaf6979208a3'
+  };
+
+  beforeEach(function () {
+    driveback = new _Driveback2['default'](window.digitalData, options);
+    _ddManager2['default'].addIntegration('Driveback', driveback);
+  });
+
+  afterEach(function () {
+    driveback.reset();
+    _ddManager2['default'].reset();
+    (0, _reset2['default'])();
+  });
+
+  describe('#constructor', function () {
+
+    it('should create Driveback integrations with proper options and tags', function () {
+      _assert2['default'].equal(options.websiteToken, driveback.getOption('websiteToken'));
+      _assert2['default'].equal('script', driveback.getTag().type);
+      _assert2['default'].ok(driveback.getTag().attr.src.indexOf('driveback.ru') > 0);
+    });
+  });
+
+  describe('#load', function () {
+
+    it('should load', function (done) {
+      _assert2['default'].ok(!driveback.isLoaded());
+      _ddManager2['default'].once('load', function () {
+        _assert2['default'].ok(driveback.isLoaded());
+        done();
+      });
+      _ddManager2['default'].initialize();
+    });
+
+    it('should not load if Driveback is already loaded', function (done) {
+      var originalIsLoaded = driveback.isLoaded;
+      driveback.isLoaded = function () {
+        return true;
+      };
+      _assert2['default'].ok(driveback.isLoaded());
+      _ddManager2['default'].once('ready', function () {
+        _assert2['default'].ok(!originalIsLoaded());
+        done();
+      });
+      _ddManager2['default'].initialize();
+    });
+  });
+
+  describe('after loading', function () {
+    beforeEach(function (done) {
+      _ddManager2['default'].once('load', done);
+      _ddManager2['default'].initialize();
+    });
+
+    it('should initialize all global variables', function () {
+      _assert2['default'].ok(window.DrivebackNamespace);
+      _assert2['default'].ok(window.DriveBack);
+      _assert2['default'].ok(window.Driveback);
+      _assert2['default'].ok(Array.isArray(DrivebackOnLoad));
+      _assert2['default'].ok(typeof window.DrivebackLoaderAsyncInit === 'function');
+    });
+  });
+});
+
+},{"./../../src/ddManager.js":100,"./../../src/integrations/Driveback.js":118,"./../reset.js":152,"assert":1}],141:[function(require,module,exports){
+'use strict';
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _sinon = require('sinon');
+
+var _sinon2 = _interopRequireDefault(_sinon);
+
+var _reset = require('./../reset');
+
+var _reset2 = _interopRequireDefault(_reset);
+
+var _Emarsys = require('./../../src/integrations/Emarsys');
+
+var _Emarsys2 = _interopRequireDefault(_Emarsys);
+
+var _ddManager = require('./../../src/ddManager');
+
+var _ddManager2 = _interopRequireDefault(_ddManager);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function viewedPage(callback) {
+  var page = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+  window.digitalData.events.push({
+    name: 'Viewed Page',
+    category: 'Content',
+    page: page,
+    callback: callback
+  });
+}
+
+function viewedPageOfType(type, callback) {
+  viewedPage(callback, { type: type });
+}
+
+function viewedProductCategory(category, callback) {
+  window.digitalData.events.push({
+    name: 'Viewed Product Category',
+    category: 'Ecommerce',
+    listing: { category: category },
+    callback: callback
+  });
+}
+
+function searched(query, callback) {
+  window.digitalData.events.push({
+    name: 'Searched',
+    category: 'Content',
+    listing: { query: query },
+    callback: callback
+  });
+}
+
+function viewedProductDetail(productId, callback) {
+  window.digitalData.events.push({
+    name: 'Viewed Product Detail',
+    category: 'Ecommerce',
+    product: {
+      id: productId
+    },
+    callback: callback
+  });
+}
+
+function completedTransaction(transaction, callback) {
+  window.digitalData.events.push({
+    name: 'Completed Transaction',
+    category: 'Ecommerce',
+    transaction: transaction,
+    callback: callback
+  });
+}
+
+describe('Integrations: Emarsys', function () {
+
+  var emarsys = void 0;
+  var options = {
+    merchantId: '123'
+  };
+
+  beforeEach(function () {
+    window.digitalData = {
+      website: {},
+      page: {},
+      user: {},
+      events: []
+    };
+    emarsys = new _Emarsys2['default'](window.digitalData, options);
+    _ddManager2['default'].addIntegration('Emarsys', emarsys);
+  });
+
+  afterEach(function () {
+    emarsys.reset();
+    _ddManager2['default'].reset();
+    (0, _reset2['default'])();
+  });
+
+  describe('before loading', function () {
+    beforeEach(function () {
+      _sinon2['default'].stub(emarsys, 'load');
+    });
+
+    afterEach(function () {
+      emarsys.load.restore();
+    });
+
+    describe('#constructor', function () {
+      it('should add proper tags and options', function () {
+        _assert2['default'].equal(options.merchantId, emarsys.getOption('merchantId'));
+        _assert2['default'].equal('script', emarsys.getTag().type);
+        _assert2['default'].equal(emarsys.getTag().attr.src, '//recommender.scarabresearch.com/js/' + options.merchantId + '/scarab-v2.js');
+      });
+    });
+
+    describe('#initialize', function () {
+      it('should initialize emarsys queue object', function () {
+        _ddManager2['default'].initialize();
+        _assert2['default'].ok(window.ScarabQueue);
+        _assert2['default'].ok(window.ScarabQueue.push);
+      });
+
+      it('should call tags load after initialization', function () {
+        _ddManager2['default'].initialize();
+        _assert2['default'].ok(emarsys.load.calledOnce);
+      });
+    });
+  });
+
+  describe('loading', function () {
+    beforeEach(function () {
+      _sinon2['default'].stub(emarsys, 'load', function () {
+        window.ScarabQueue = {
+          push: function push() {}
+        };
+        emarsys.onLoad();
+      });
+    });
+
+    afterEach(function () {
+      emarsys.load.restore();
+    });
+
+    it('should load', function (done) {
+      _assert2['default'].ok(!emarsys.isLoaded());
+      _ddManager2['default'].once('load', function () {
+        _assert2['default'].ok(emarsys.isLoaded());
+        done();
+      });
+      _ddManager2['default'].initialize({
+        autoEvents: false
+      });
+    });
+  });
+
+  describe('after loading', function () {
+    beforeEach(function (done) {
+      _sinon2['default'].stub(emarsys, 'load', function () {
+        _sinon2['default'].spy(window.ScarabQueue, 'push');
+        emarsys.onLoad();
+      });
+      _ddManager2['default'].once('ready', done);
+      _ddManager2['default'].initialize({
+        autoEvents: false
+      });
+    });
+
+    afterEach(function () {
+      emarsys.load.restore();
+      window.ScarabQueue.push.restore();
+    });
+
+    describe('#onViewedPage', function () {
+      it('should send email if user.email is defined', function (done) {
+        window.digitalData.user = {
+          email: 'test@driveback.ru'
+        };
+        viewedPage(function () {
+          _assert2['default'].ok(window.ScarabQueue.push.calledWith(['setEmail', 'test@driveback.ru']));
+          done();
+        });
+      });
+
+      it('should not send email if user.email is not defined', function (done) {
+        viewedPage(function () {
+          _assert2['default'].ok(!window.ScarabQueue.push.calledWith(['setEmail', _sinon2['default'].match.any]));
+          done();
+        });
+      });
+
+      it('should send customerId if user.userId is defined', function (done) {
+        window.digitalData.user = {
+          userId: '123'
+        };
+        viewedPage(function () {
+          _assert2['default'].ok(window.ScarabQueue.push.calledWith(['setCustomerId', '123']));
+          done();
+        });
+      });
+
+      it('should not send customerId if user.email is defined', function (done) {
+        window.digitalData.user = {
+          userId: '123',
+          email: 'test@driveback.ru'
+        };
+        viewedPage(function () {
+          _assert2['default'].ok(!window.ScarabQueue.push.calledWith(['setCustomerId', _sinon2['default'].match.any]));
+          _assert2['default'].ok(window.ScarabQueue.push.calledWith(['setEmail', 'test@driveback.ru']));
+          done();
+        });
+      });
+
+      it('should always send cart even if cart is empty', function (done) {
+        viewedPage(function () {
+          _assert2['default'].ok(window.ScarabQueue.push.calledWith(['cart', []]));
+          done();
+        });
+      });
+
+      it('should send cart info', function (done) {
+        window.digitalData.cart = {
+          lineItems: [{
+            product: {
+              id: '123',
+              unitSalePrice: 100
+            },
+            quantity: 2,
+            subtotal: 180
+          }, {
+            product: {
+              id: '234',
+              unitSalePrice: 100
+            },
+            quantity: 2
+          }]
+        };
+        viewedPage(function () {
+          _assert2['default'].ok(window.ScarabQueue.push.calledWith(['cart', [{
+            item: '123',
+            price: 180,
+            quantity: 2
+          }, {
+            item: '234',
+            price: 200,
+            quantity: 2
+          }]]));
+          done();
+        });
+      });
+
+      it('should not send "go" for page.type = product', function (done) {
+        viewedPageOfType('product', function () {
+          _assert2['default'].ok(!window.ScarabQueue.push.calledWith(['go']));
+          done();
+        });
+      });
+
+      it('should not send "go" for page.type = category', function (done) {
+        viewedPageOfType('category', function () {
+          _assert2['default'].ok(!window.ScarabQueue.push.calledWith(['go']));
+          done();
+        });
+      });
+
+      it('should not send "go" for page.type = search', function (done) {
+        viewedPageOfType('search', function () {
+          _assert2['default'].ok(!window.ScarabQueue.push.calledWith(['go']));
+          done();
+        });
+      });
+
+      it('should not send "go" for page.type = confirmation', function (done) {
+        viewedPageOfType('confirmation', function () {
+          _assert2['default'].ok(!window.ScarabQueue.push.calledWith(['go']));
+          done();
+        });
+      });
+
+      it('should send "go" for any other page', function (done) {
+        viewedPageOfType('home', function () {
+          _assert2['default'].ok(window.ScarabQueue.push.calledWith(['go']));
+          done();
+        });
+      });
+    });
+
+    describe('#onViewedProductCategory', function () {
+      it('should send category with default separator', function (done) {
+        viewedProductCategory(['Category', 'Subcategory 1', 'Subcategory 2'], function () {
+          _assert2['default'].ok(window.ScarabQueue.push.calledWith(['category', 'Category > Subcategory 1 > Subcategory 2']));
+          done();
+        });
+      });
+
+      it('should send "category" with custom separator', function (done) {
+        emarsys.setOption('categorySeparator', ' / ');
+        viewedProductCategory(['Category', 'Subcategory 1', 'Subcategory 2'], function () {
+          _assert2['default'].ok(window.ScarabQueue.push.calledWith(['category', 'Category / Subcategory 1 / Subcategory 2']));
+          done();
+        });
+      });
+
+      it('should send "category" without separator', function (done) {
+        emarsys.setOption('categorySeparator', ' / ');
+        viewedProductCategory('Category 1', function () {
+          _assert2['default'].ok(window.ScarabQueue.push.calledWith(['category', 'Category 1']));
+          done();
+        });
+      });
+
+      it('should send "go"', function (done) {
+        viewedProductCategory(['Category', 'Subcategory 1', 'Subcategory 2'], function () {
+          _assert2['default'].ok(window.ScarabQueue.push.calledWith(['go']));
+          done();
+        });
+      });
+    });
+
+    describe('#onViewedProductDetail', function () {
+      it('should send "view"', function (done) {
+        viewedProductDetail('123', function () {
+          _assert2['default'].ok(window.ScarabQueue.push.calledWith(['view', '123']));
+          done();
+        });
+      });
+
+      it('should send "go"', function (done) {
+        viewedProductDetail('123', function () {
+          _assert2['default'].ok(window.ScarabQueue.push.calledWith(['view', '123']));
+          done();
+        });
+      });
+    });
+
+    describe('#onSearched', function () {
+      it('should send "searchTerm"', function (done) {
+        searched('test query', function () {
+          _assert2['default'].ok(window.ScarabQueue.push.calledWith(['searchTerm', 'test query']));
+          done();
+        });
+      });
+
+      it('should send "go"', function (done) {
+        searched('test query', function () {
+          _assert2['default'].ok(window.ScarabQueue.push.calledWith(['go']));
+          done();
+        });
+      });
+    });
+
+    describe('#onCompletedTransaction', function () {
+      it('should send "purchase" and "go"', function (done) {
+        completedTransaction({
+          orderId: '123',
+          lineItems: [{
+            product: {
+              id: '123',
+              unitSalePrice: 100
+            },
+            quantity: 2,
+            subtotal: 180
+          }, {
+            product: {
+              id: '234',
+              unitSalePrice: 100
+            },
+            quantity: 2
+          }]
+        }, function () {
+          _assert2['default'].ok(window.ScarabQueue.push.calledWith(['purchase', {
+            orderId: '123',
+            items: [{
+              item: '123',
+              price: 180,
+              quantity: 2
+            }, {
+              item: '234',
+              price: 200,
+              quantity: 2
+            }]
+          }]));
+          _assert2['default'].ok(window.ScarabQueue.push.calledWith(['go']));
+          done();
+        });
+      });
+    });
+  });
+});
+
+},{"./../../src/ddManager":100,"./../../src/integrations/Emarsys":119,"./../reset":152,"assert":1,"sinon":64}],142:[function(require,module,exports){
+'use strict';
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _sinon = require('sinon');
+
+var _sinon2 = _interopRequireDefault(_sinon);
+
+var _reset = require('./../reset.js');
+
+var _reset2 = _interopRequireDefault(_reset);
+
+var _FacebookPixel = require('./../../src/integrations/FacebookPixel.js');
+
+var _FacebookPixel2 = _interopRequireDefault(_FacebookPixel);
+
+var _ddManager = require('./../../src/ddManager.js');
+
+var _ddManager2 = _interopRequireDefault(_ddManager);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+describe('Integrations: FacebookPixel', function () {
+  var fbPixel = void 0;
+  var options = {
+    pixelId: '946986105422948'
+  };
+
+  before(function () {
+    fbPixel = new _FacebookPixel2['default'](window.digitalData, options);
+    _ddManager2['default'].addIntegration('Facebook Pixel', fbPixel);
+  });
+
+  after(function () {
+    fbPixel.reset();
+    _ddManager2['default'].reset();
+    (0, _reset2['default'])();
+  });
+
+  describe('#constructor', function () {
+
+    it('should create Facebook Pixel integrations with proper options and tags', function () {
+      _assert2['default'].equal(options.pixelId, fbPixel.getOption('pixelId'));
+      _assert2['default'].equal('script', fbPixel.getTag().type);
+    });
+  });
+
+  describe('#load', function () {
+
+    it('should load', function (done) {
+      _assert2['default'].ok(!fbPixel.isLoaded());
+      _ddManager2['default'].once('load', function () {
+        _assert2['default'].ok(fbPixel.isLoaded());
+        done();
+      });
+      _ddManager2['default'].initialize();
+    });
+  });
+
+  describe('after loading', function () {
+
+    before(function (done) {
+      if (!_ddManager2['default'].isReady()) {
+        _ddManager2['default'].once('ready', done);
+        _ddManager2['default'].initialize();
+      } else {
+        done();
+      }
+    });
+
+    beforeEach(function () {
+      _sinon2['default'].spy(window, 'fbq');
+    });
+
+    afterEach(function () {
+      window.fbq.restore();
+    });
+
+    it('should initialize fbq object', function () {
+      var fbq = window.fbq;
+
+      _assert2['default'].ok(fbq);
+      _assert2['default'].ok(typeof fbq === 'function');
+    });
+
+    describe('#onViewedPage', function () {
+
+      it('should call fbq track PageView', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          category: 'Content',
+          page: {
+            type: 'home'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(window.fbq.calledWith('track', 'PageView'));
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onViewedProductCategory', function () {
+
+      beforeEach(function () {
+        _sinon2['default'].spy(fbPixel, 'onViewedProductCategory');
+      });
+
+      afterEach(function () {
+        fbPixel.onViewedProductCategory.restore();
+      });
+
+      it('should call fbq track ViewContent', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          category: 'Ecommerce',
+          listing: {
+            categoryId: '123'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(window.fbq.calledWith('track', 'ViewContent', {
+              content_ids: ['123'],
+              content_type: 'product_group'
+            }), 'fbq("track", "ViewContent") was not called');
+            var pageArg = fbPixel.onViewedProductCategory.getCall(0).args[0];
+            _assert2['default'].ok(pageArg.categoryId, 'page.categoryId is not defined');
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onViewedProductDetail', function () {
+
+      beforeEach(function () {
+        _sinon2['default'].spy(fbPixel, 'onViewedProductDetail');
+      });
+
+      afterEach(function () {
+        fbPixel.onViewedProductDetail.restore();
+      });
+
+      it('should call fbq track ViewContent', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            category: 'Category 1',
+            currency: 'USD',
+            unitSalePrice: 10000
+          },
+          callback: function callback() {
+            _assert2['default'].ok(window.fbq.calledWith('track', 'ViewContent', {
+              content_ids: ['123'],
+              content_type: 'product',
+              content_name: 'Test Product',
+              content_category: 'Category 1',
+              currency: 'USD',
+              value: 10000
+            }), 'fbq("track", "ViewContent") was not called');
+            var productArg = fbPixel.onViewedProductDetail.getCall(0).args[0];
+            _assert2['default'].ok(productArg.id, 'product.id is not defined');
+            _assert2['default'].ok(productArg.name, 'product.name is not defined');
+            _assert2['default'].ok(productArg.category, 'product.category is not defined');
+            _assert2['default'].ok(productArg.unitSalePrice, 'product.unitSalePrice is not defined');
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onAddedProduct', function () {
+
+      beforeEach(function () {
+        _sinon2['default'].spy(fbPixel, 'onAddedProduct');
+      });
+
+      afterEach(function () {
+        fbPixel.onAddedProduct.restore();
+      });
+
+      it('should call fbq track AddToCart', function (done) {
+        window.digitalData.events.push({
+          name: 'Added Product',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            category: 'Category 1',
+            currency: 'USD',
+            unitSalePrice: 10000
+          },
+          quantity: 2,
+          callback: function callback() {
+            _assert2['default'].ok(window.fbq.calledWith('track', 'AddToCart', {
+              content_ids: ['123'],
+              content_type: 'product',
+              content_name: 'Test Product',
+              content_category: 'Category 1',
+              currency: 'USD',
+              value: 20000
+            }), 'fbq("track", "AddToCart") was not called');
+            var productArg = fbPixel.onAddedProduct.getCall(0).args[0];
+            var quantityArg = fbPixel.onAddedProduct.getCall(0).args[1];
+            _assert2['default'].ok(productArg.id, 'product.id is not defined');
+            _assert2['default'].ok(productArg.name, 'product.name is not defined');
+            _assert2['default'].ok(productArg.category, 'product.category is not defined');
+            _assert2['default'].ok(productArg.currency, 'product.currency is not defined');
+            _assert2['default'].ok(productArg.unitSalePrice, 'product.unitSalePrice is not defined');
+            _assert2['default'].ok(quantityArg === 2);
+            done();
+          }
+        });
+
+        it('should call fbq track ViewContent even without quantity param', function (done) {
+          window.digitalData.events.push({
+            name: 'Added Product',
+            category: 'Ecommerce',
+            product: {
+              id: '123',
+              name: 'Test Product',
+              category: 'Category 1',
+              currency: 'USD',
+              unitSalePrice: 10000
+            },
+            callback: function callback() {
+              _assert2['default'].ok(window.fbq.calledWith('track', 'AddToCart', {
+                content_ids: ['123'],
+                content_type: 'product',
+                content_name: 'Test Product',
+                content_category: 'Category 1',
+                currency: 'USD',
+                value: 10000
+              }), 'fbq("track", "AddToCart") was not called');
+              var productArg = fbPixel.onAddedProduct.getCall(0).args[0];
+              var quantityArg = fbPixel.onAddedProduct.getCall(0).args[1];
+              _assert2['default'].ok(productArg.id, 'product.id is not defined');
+              _assert2['default'].ok(productArg.name, 'product.name is not defined');
+              _assert2['default'].ok(productArg.category, 'product.category is not defined');
+              _assert2['default'].ok(productArg.currency, 'product.currency is not defined');
+              _assert2['default'].ok(productArg.unitSalePrice, 'product.unitSalePrice is not defined');
+              _assert2['default'].ok(!quantityArg);
+              done();
+            }
+          });
+        });
+      });
+    });
+
+    describe('#onCompletedTransaction', function () {
+
+      beforeEach(function () {
+        _sinon2['default'].spy(fbPixel, 'onCompletedTransaction');
+      });
+
+      afterEach(function () {
+        fbPixel.onCompletedTransaction.restore();
+      });
+
+      it('should call fbq track Purchase', function (done) {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          transaction: {
+            orderId: '123',
+            total: 20000,
+            currency: 'USD',
+            lineItems: [{
+              product: {
+                id: '123',
+                name: 'Test Product',
+                category: 'Category 1',
+                currency: 'USD',
+                unitSalePrice: 10000
+              },
+              quantity: 1,
+              subtotal: 10000
+            }, {
+              product: {
+                id: '234',
+                name: 'Test Product 2',
+                category: 'Category 1',
+                currency: 'USD',
+                unitSalePrice: 5000
+              },
+              quantity: 2,
+              subtotal: 10000
+            }]
+          },
+          callback: function callback() {
+            _assert2['default'].ok(window.fbq.calledWith('track', 'Purchase', {
+              content_ids: ['123', '234'],
+              content_type: 'product',
+              currency: 'USD',
+              value: 20000
+            }), 'fbq("track", "Purchase") was not called');
+            var transactionArg = fbPixel.onCompletedTransaction.getCall(0).args[0];
+            _assert2['default'].ok(transactionArg.orderId, 'transaction.orderId is not defined');
+            done();
+          }
+        });
+      });
+
+      it('should call fbq track Purchase even if transaction.total and transaction.currency is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          transaction: {
+            orderId: '123',
+            lineItems: [{
+              product: {
+                id: '123',
+                name: 'Test Product',
+                category: 'Category 1',
+                currency: 'USD',
+                unitSalePrice: 10000
+              },
+              quantity: 1,
+              subtotal: 10000,
+              currency: 'USD'
+            }, {
+              product: {
+                id: '234',
+                name: 'Test Product 2',
+                category: 'Category 1',
+                currency: 'USD',
+                unitSalePrice: 5000
+              },
+              quantity: 2,
+              subtotal: 10000,
+              currency: 'USD'
+            }]
+          },
+          callback: function callback() {
+            _assert2['default'].ok(window.fbq.calledWith('track', 'Purchase', {
+              content_ids: ['123', '234'],
+              content_type: 'product',
+              currency: 'USD',
+              value: 20000
+            }), 'fbq("track", "Purchase") was not called');
+            var transactionArg = fbPixel.onCompletedTransaction.getCall(0).args[0];
+            _assert2['default'].ok(transactionArg.orderId, 'transaction.orderId is not defined');
+            done();
+          }
+        });
+      });
+
+      it('should call fbq track Purchase even if lineItem.subtotal and lineItem.currency is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          transaction: {
+            orderId: '123',
+            currency: 'USD',
+            lineItems: [{
+              product: {
+                id: '123',
+                name: 'Test Product',
+                category: 'Category 1',
+                currency: 'USD',
+                unitSalePrice: 10000
+              },
+              quantity: 1
+            }, {
+              product: {
+                id: '234',
+                name: 'Test Product 2',
+                category: 'Category 1',
+                currency: 'USD',
+                unitSalePrice: 5000
+              },
+              quantity: 2
+            }]
+          },
+          callback: function callback() {
+            _assert2['default'].ok(window.fbq.calledWith('track', 'Purchase', {
+              content_ids: ['123', '234'],
+              content_type: 'product',
+              currency: 'USD',
+              value: 20000
+            }), 'fbq("track", "Purchase") was not called');
+            var transactionArg = fbPixel.onCompletedTransaction.getCall(0).args[0];
+            _assert2['default'].ok(transactionArg.orderId, 'transaction.orderId is not defined');
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onCustomEvent', function () {
+      it('should call fbq track for custom event', function (done) {
+        window.digitalData.events.push({
+          name: 'Downloaded Tutorial',
+          callback: function callback() {
+            _assert2['default'].ok(window.fbq.calledWith('trackCustom', 'Downloaded Tutorial'), 'fbq("track", "Downloaded Tutorial") was not called');
+            done();
+          }
+        });
+      });
+    });
+  });
+});
+
+},{"./../../src/ddManager.js":100,"./../../src/integrations/FacebookPixel.js":120,"./../reset.js":152,"assert":1,"sinon":64}],143:[function(require,module,exports){
+'use strict';
+
+var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+var _typeof = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
+  return typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+} : function (obj) {
+  return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+};
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _sinon = require('sinon');
+
+var _sinon2 = _interopRequireDefault(_sinon);
+
+var _reset = require('./../reset.js');
+
+var _reset2 = _interopRequireDefault(_reset);
+
+var _after = require('./../../src/functions/after.js');
+
+var _after2 = _interopRequireDefault(_after);
+
+var _argumentsToArray = require('./../functions/argumentsToArray.js');
+
+var _argumentsToArray2 = _interopRequireDefault(_argumentsToArray);
+
+var _GoogleAnalytics = require('./../../src/integrations/GoogleAnalytics.js');
+
+var _GoogleAnalytics2 = _interopRequireDefault(_GoogleAnalytics);
+
+var _ddManager = require('./../../src/ddManager.js');
+
+var _ddManager2 = _interopRequireDefault(_ddManager);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+describe('Integrations: GoogleAnalytics', function () {
+
+  describe('Universal', function () {
+    var ga = void 0;
+    var options = {
+      trackingId: 'UA-51485228-7',
+      anonymizeIp: true,
+      domain: 'auto',
+      siteSpeedSampleRate: 42,
+      namespace: false
+    };
+
+    beforeEach(function () {
+      window.digitalData = {
+        events: []
+      };
+      ga = new _GoogleAnalytics2['default'](window.digitalData, options);
+      _ddManager2['default'].addIntegration('Google Analytics', ga);
+    });
+
+    afterEach(function () {
+      ga.reset();
+      _ddManager2['default'].reset();
+      (0, _reset2['default'])();
+    });
+
+    describe('before loading', function () {
+      beforeEach(function () {
+        _sinon2['default'].stub(ga, 'load');
+      });
+
+      afterEach(function () {
+        ga.load.restore();
+      });
+
+      describe('#initialize', function () {
+        it('should require \'displayfeatures\' if .doubleClick option is `true`', function () {
+          ga.setOption('doubleClick', true);
+          _ddManager2['default'].initialize({
+            autoEvents: false
+          });
+          _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.q[1]), ['require', 'displayfeatures']);
+        });
+
+        it('should require "linkid.js" if enhanced link attribution is `true`', function () {
+          ga.setOption('enhancedLinkAttribution', true);
+          _ddManager2['default'].initialize({
+            autoEvents: false
+          });
+          _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.q[1]), ['require', 'linkid', 'linkid.js']);
+        });
+
+        it('should create window.GoogleAnalyticsObject', function () {
+          _assert2['default'].ok(!window.GoogleAnalyticsObject);
+          _ddManager2['default'].initialize({
+            autoEvents: false
+          });
+          _assert2['default'].equal(window.GoogleAnalyticsObject, 'ga');
+        });
+
+        it('should create window.ga', function () {
+          _assert2['default'].ok(!window.ga);
+          _ddManager2['default'].initialize({
+            autoEvents: false
+          });
+          _assert2['default'].equal(_typeof(window.ga), 'function');
+        });
+
+        it('should create window.ga.l', function () {
+          _assert2['default'].ok(!window.ga);
+          _ddManager2['default'].initialize({
+            autoEvents: false
+          });
+          _assert2['default'].equal(_typeof(window.ga.l), 'number');
+        });
+
+        it('should call window.ga.create with options', function () {
+          _ddManager2['default'].initialize({
+            autoEvents: false
+          });
+          _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.q[0]), ['create', options.trackingId, {
+            cookieDomain: 'none',
+            siteSpeedSampleRate: options.siteSpeedSampleRate,
+            allowLinker: true,
+            name: undefined
+          }]);
+        });
+
+        it('should anonymize the ip', function () {
+          _ddManager2['default'].initialize({
+            autoEvents: false
+          });
+          _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.q[1]), ['set', 'anonymizeIp', true]);
+        });
+
+        it('should call #load', function () {
+          _ddManager2['default'].initialize({
+            autoEvents: false
+          });
+          _assert2['default'].ok(ga.load.calledOnce);
+        });
+
+        it('should not send universal user id by default', function () {
+          window.digitalData.user = {
+            id: 'baz'
+          };
+          _ddManager2['default'].initialize({
+            autoEvents: false
+          });
+          _assert2['default'].notDeepEqual((0, _argumentsToArray2['default'])(window.ga.q[1]), ['set', 'userId', 'baz']);
+        });
+
+        it('should send universal user id if sendUserId option is true and user.id is truthy', function () {
+          window.digitalData.user = {
+            id: 'baz'
+          };
+          ga.setOption('sendUserId', true);
+          _ddManager2['default'].initialize({
+            autoEvents: false
+          });
+          _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.q[1]), ['set', 'userId', 'baz']);
+        });
+
+        it('should map custom dimensions & metrics using DDL data', function () {
+          ga.setOption('metrics', {
+            metric1: 'user.firstName',
+            metric2: 'user.lastName',
+            metric3: 'user.isSubscribed'
+          });
+          ga.setOption('dimensions', {
+            dimension2: 'user.age',
+            dimension3: 'user.hasTransacted'
+          });
+          window.digitalData.user = {
+            firstName: 'John',
+            lastName: 'Doe',
+            age: 20,
+            isSubscribed: true,
+            hasTransacted: false
+          };
+          _ddManager2['default'].initialize({
+            autoEvents: false
+          });
+
+          _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.q[2]), ['set', {
+            metric1: 'John',
+            metric2: 'Doe',
+            metric3: 'true',
+            dimension2: 20,
+            dimension3: 'false'
+          }]);
+        });
+
+        it('should not set metrics, dimensions & content groupings if there is no data in DDL', function () {
+          ga.setOption('metrics', {
+            metric1: 'something'
+          });
+          ga.setOption('dimensions', {
+            dimension3: 'industry'
+          });
+          ga.setOption('contentGroupings', {
+            contentGrouping1: 'foo'
+          });
+          _ddManager2['default'].initialize({
+            autoEvents: false
+          });
+          _assert2['default'].deepEqual(window.ga.q[3], undefined);
+        });
+      });
+    });
+
+    describe('loading', function () {
+      it('should load', function (done) {
+        _assert2['default'].ok(!ga.isLoaded());
+        _ddManager2['default'].once('load', function () {
+          _assert2['default'].ok(ga.isLoaded());
+          done();
+        });
+        _ddManager2['default'].initialize({
+          autoEvents: false
+        });
+      });
+    });
+
+    describe('after loading', function () {
+      beforeEach(function (done) {
+        _ddManager2['default'].once('ready', done);
+        _ddManager2['default'].initialize({
+          autoEvents: false
+        });
+      });
+
+      describe('#enrichDigitalData', function () {
+        it('should add clientId', function (done) {
+          ga.on('enrich', function () {
+            _assert2['default'].ok(window.digitalData.integrations.googleAnalytics);
+            _assert2['default'].ok(window.digitalData.integrations.googleAnalytics.clientId);
+            done();
+          });
+        });
+      });
+
+      describe('#page', function () {
+        beforeEach(function () {
+          _sinon2['default'].stub(window, 'ga');
+        });
+
+        afterEach(function () {
+          window.ga.restore();
+        });
+
+        it('should send a page view', function (done) {
+          window.digitalData.events.push({
+            name: 'Viewed Page',
+            page: {},
+            callback: function callback() {
+              _assert2['default'].ok(window.ga.calledWith('send', 'pageview', {
+                page: window.location.pathname,
+                title: document.title,
+                location: window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '') + window.location.pathname + window.location.search
+              }));
+              done();
+            }
+          });
+        });
+
+        it('should omit location on subsequent page views', function (done) {
+          window.digitalData.events.push({
+            name: 'Viewed Page',
+            page: {},
+            callback: function callback() {
+              _assert2['default'].ok(window.ga.calledWith('send', 'pageview', {
+                page: window.location.pathname,
+                title: document.title,
+                location: window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '') + window.location.pathname + window.location.search
+              }));
+
+              window.digitalData.events.push({
+                name: 'Viewed Page',
+                page: {},
+                callback: function callback() {
+                  _assert2['default'].ok(window.ga.calledWith('send', 'pageview', {
+                    page: window.location.pathname,
+                    title: document.title
+                  }));
+                  done();
+                }
+              });
+            }
+          });
+        });
+
+        it('should set the tracker\'s page object', function (done) {
+          window.digitalData.events.push({
+            name: 'Viewed Page',
+            page: {},
+            callback: function callback() {
+              window.ga.calledWith('set', {
+                page: window.location.pathname,
+                title: document.title
+              });
+              done();
+            }
+          });
+        });
+
+        it('should send a page view with properties', function (done) {
+          digitalData.events.push({
+            name: 'Viewed Page',
+            page: {
+              path: '/path',
+              name: 'page name',
+              url: 'url'
+            },
+            callback: function callback() {
+              window.ga.calledWith('send', 'pageview', {
+                page: '/path',
+                title: 'page name',
+                location: 'url'
+              });
+              done();
+            }
+          });
+        });
+
+        it('should send the query if its included', function (done) {
+          ga.setOption('includeSearch', true);
+          digitalData.events.push({
+            name: 'Viewed Page',
+            page: {
+              name: 'page name',
+              path: '/path',
+              queryString: '?q=1',
+              url: 'url'
+            },
+            callback: function callback() {
+              window.ga.calledWith('send', 'pageview', {
+                page: '/path?q=1',
+                title: 'page name',
+                location: 'url'
+              });
+              done();
+            }
+          });
+        });
+
+        it('should map custom dimensions, metrics & content groupings using event properties', function (done) {
+          ga.setOption('metrics', {
+            metric1: 'page.score',
+            metric2: 'timestamp' // timestamp is added for every event inside EventManager
+          });
+          ga.setOption('dimensions', {
+            dimension1: 'page.author',
+            dimension2: 'page.postType'
+          });
+          ga.setOption('contentGroupings', {
+            contentGrouping1: 'page.section'
+          });
+          window.digitalData.events.push({
+            name: 'Custom Event',
+            page: {
+              score: 21,
+              author: 'Author',
+              postType: 'blog',
+              section: 'News'
+            },
+            callback: function callback() {
+              _assert2['default'].ok(window.ga.calledWith('set', {
+                metric1: 21,
+                metric2: _sinon2['default'].match.any, // timestamp is added for every event inside EventManager
+                dimension1: 'Author',
+                dimension2: 'blog',
+                contentGrouping1: 'News'
+              }));
+              done();
+            }
+          });
+        });
+      });
+
+      describe('#track', function () {
+        beforeEach(function () {
+          _sinon2['default'].stub(window, 'ga');
+        });
+
+        it('should send an event', function () {
+          window.digitalData.events.push({
+            callback: function callback() {
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', {
+                eventCategory: 'All',
+                eventAction: 'event',
+                eventLabel: undefined,
+                eventValue: 0,
+                nonInteraction: false
+              }));
+            }
+          });
+        });
+
+        it('should send a category property', function () {
+          window.digitalData.events.push({
+            category: 'category',
+            callback: function callback() {
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', {
+                eventCategory: 'category',
+                eventAction: 'event',
+                eventLabel: undefined,
+                eventValue: 0,
+                nonInteraction: false
+              }));
+            }
+          });
+        });
+
+        it('should send a label property', function () {
+          window.digitalData.events.push({
+            name: "event",
+            label: 'label',
+            callback: function callback() {
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', {
+                eventCategory: 'All',
+                eventAction: 'event',
+                eventLabel: 'label',
+                eventValue: 0,
+                nonInteraction: false
+              }));
+            }
+          });
+        });
+
+        it('should send a rounded value property', function () {
+          window.digitalData.events.push({
+            value: 1.1,
+            callback: function callback() {
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', {
+                eventCategory: 'All',
+                eventAction: 'event',
+                eventLabel: undefined,
+                eventValue: 1,
+                nonInteraction: false
+              }));
+            }
+          });
+        });
+
+        it('should send a non-interaction property', function () {
+          window.digitalData.events.push({
+            nonInteraction: 1,
+            callback: function callback() {
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', {
+                eventCategory: 'All',
+                eventAction: 'event',
+                eventLabel: undefined,
+                eventValue: 0,
+                nonInteraction: true
+              }));
+            }
+          });
+        });
+
+        it('should map custom dimensions & metrics', function () {
+          ga.setOption('metrics', {
+            metric1: 'loadTime',
+            metric2: 'levelAchieved'
+          });
+          ga.setOption('dimensions', {
+            dimension2: 'referrer'
+          });
+
+          window.digitalData.events.push({
+            name: 'Level Unlocked',
+            loadTime: '100',
+            levelAchieved: '5',
+            referrer: 'Google',
+            callback: function callback() {
+              _assert2['default'].ok(window.ga.calledWith('set', {
+                metric1: '100',
+                metric2: '5',
+                dimension2: 'Google'
+              }));
+            }
+          });
+        });
+      });
+
+      describe('ecommerce', function () {
+
+        beforeEach(function () {
+          _sinon2['default'].stub(window, 'ga');
+        });
+
+        it('should require ecommerce.js', function () {
+          window.digitalData.events.push({
+            name: 'Completed Transaction',
+            category: 'Ecommerce',
+            transaction: {
+              orderId: 'e213e4da'
+            },
+            callback: function callback() {
+              _assert2['default'].ok(window.ga.calledWith('require', 'ecommerce'));
+            }
+          });
+        });
+
+        it('should send simple ecommerce data', function () {
+          window.digitalData.events.push({
+            name: 'Completed Transaction',
+            category: 'Ecommerce',
+            transaction: {
+              orderId: '7306cc06'
+            },
+            callback: function callback() {
+              _assert2['default'].ok(window.ga.args.length === 3);
+              _assert2['default'].ok(window.ga.args[1][0] === 'ecommerce:addTransaction');
+              _assert2['default'].ok(window.ga.args[2][0] === 'ecommerce:send');
+            }
+          });
+        });
+
+        it('should send ecommerce data', function () {
+          window.digitalData.events.push({
+            name: 'Completed Transaction',
+            category: 'Ecommerce',
+            transaction: {
+              orderId: '780bc55',
+              total: 99.99,
+              shippingCost: 13.99,
+              tax: 20.99,
+              currency: 'USD',
+              lineItems: [{
+                product: {
+                  unitPrice: 24.75,
+                  unitSalePrice: 24.75,
+                  name: 'my product',
+                  skuCode: 'p-298'
+                },
+                quantity: 1
+              }, {
+                product: {
+                  unitPrice: 24.75,
+                  unitSalePrice: 24.75,
+                  name: 'other product',
+                  skuCode: 'p-299'
+                },
+                quantity: 3
+              }]
+            },
+            callback: function callback() {
+              _assert2['default'].deepEqual(window.ga.args[1], ['ecommerce:addTransaction', {
+                id: '780bc55',
+                affiliation: undefined,
+                shipping: 13.99,
+                tax: 20.99,
+                revenue: 99.99,
+                currency: 'USD'
+              }]);
+
+              _assert2['default'].deepEqual(window.ga.args[2], ['ecommerce:addItem', {
+                id: '780bc55',
+                category: undefined,
+                name: 'my product',
+                price: 24.75,
+                quantity: 1,
+                sku: 'p-298',
+                currency: 'USD'
+              }]);
+
+              _assert2['default'].deepEqual(window.ga.args[3], ['ecommerce:addItem', {
+                id: '780bc55',
+                category: undefined,
+                name: 'other product',
+                price: 24.75,
+                sku: 'p-299',
+                quantity: 3,
+                currency: 'USD'
+              }]);
+
+              _assert2['default'].deepEqual(window.ga.args[4], ['ecommerce:send']);
+            }
+          });
+        });
+
+        it('should fallback to revenue', function () {
+          window.digitalData.events.push({
+            name: 'Completed Transaction',
+            category: 'Ecommerce',
+            transaction: {
+              orderId: '5d4c7cb5',
+              shippingCost: 13.99,
+              tax: 20.99,
+              total: 99.9,
+              currency: 'USD',
+              lineItems: []
+            },
+            callback: function callback() {
+              _assert2['default'].deepEqual(window.ga.args[1], ['ecommerce:addTransaction', {
+                id: '5d4c7cb5',
+                affiliation: undefined,
+                shipping: 13.99,
+                tax: 20.99,
+                revenue: 99.9,
+                currency: 'USD'
+              }]);
+            }
+          });
+        });
+
+        it('should pass custom currency', function () {
+          window.digitalData.events.push({
+            name: 'Completed Transaction',
+            category: 'Ecommerce',
+            transaction: {
+              orderId: '5d4c7cb5',
+              total: 99.9,
+              shippingCost: 13.99,
+              tax: 20.99,
+              currency: 'EUR',
+              lineItems: [],
+              callback: function callback() {
+                _assert2['default'].deepEqual(window.ga.args[1], ['ecommerce:addTransaction', {
+                  id: '5d4c7cb5',
+                  revenue: 99.9,
+                  shipping: 13.99,
+                  affiliation: undefined,
+                  tax: 20.99,
+                  currency: 'EUR'
+                }]);
+              }
+            }
+          });
+        });
+      });
+    });
+  });
+
+  describe('Universal Enhanced Ecommerce', function () {
+    var ga = void 0;
+    var options = {
+      enhancedEcommerce: true,
+      trackingId: 'UA-51485228-7',
+      anonymizeIp: true,
+      domain: 'none',
+      defaultCurrency: 'USD',
+      siteSpeedSampleRate: 42,
+      namespace: false,
+      productDimensions: {
+        'dimension10': 'stock'
+      },
+      productMetrics: {
+        'metric10': 'weight'
+      }
+    };
+
+    beforeEach(function () {
+      window.digitalData = {
+        events: []
+      };
+      ga = new _GoogleAnalytics2['default'](window.digitalData, options);
+      _ddManager2['default'].addIntegration('Google Analytics', ga);
+    });
+
+    afterEach(function () {
+      ga.reset();
+      _ddManager2['default'].reset();
+      (0, _reset2['default'])();
+    });
+
+    describe('after loading', function () {
+      beforeEach(function (done) {
+        _ddManager2['default'].once('ready', done);
+        _ddManager2['default'].initialize({
+          autoEvents: false
+        });
+      });
+
+      describe('enhanced ecommerce', function () {
+        beforeEach(function () {
+          _sinon2['default'].stub(window, 'ga');
+        });
+
+        it('should require ec.js', function () {
+          window.digitalData.events.push({
+            name: 'Completed Transaction',
+            category: 'Ecommerce',
+            transaction: {
+              orderId: 'ee099bf7'
+            },
+            callback: function callback() {
+              _assert2['default'].ok(window.ga.args.length > 0);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[0]), ['require', 'ec']);
+            }
+          });
+        });
+
+        it('should not require ec if .enhancedEcommerceLoaded is true', function () {
+          ga.enhancedEcommerceLoaded = true;
+          window.digitalData.events.push({
+            name: 'Completed Transaction',
+            category: 'Ecommerce',
+            transaction: {
+              orderId: 'ee099bf7'
+            },
+            callback: function callback() {
+              _assert2['default'].ok(window.ga.args.length > 0);
+              _assert2['default'].notDeepEqual((0, _argumentsToArray2['default'])(window.ga.args[0]), ['require', 'ec']);
+            }
+          });
+        });
+
+        it('should set currency for ec.js to default', function () {
+          window.digitalData.events.push({
+            name: 'Completed Transaction',
+            category: 'Ecommerce',
+            transaction: {
+              orderId: 'ee099bf7'
+            },
+            callback: function callback() {
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'USD']);
+            }
+          });
+        });
+
+        it('should set currency for ec.js to custom currency', function () {
+          window.digitalData.events.push({
+            name: 'Completed Transaction',
+            category: 'Ecommerce',
+            transaction: {
+              orderId: 'ee099bf7',
+              currency: 'EUR'
+            },
+            callback: function callback() {
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'EUR']);
+            }
+          });
+        });
+
+        it('should send added product data', function () {
+          window.digitalData.events.push({
+            name: 'Added Product',
+            category: 'Ecommerce',
+            product: {
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298'
+            },
+            quantity: 1,
+            callback: function callback() {
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1',
+                quantity: 1,
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD'
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'add', {}]);
+              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send added product data with custom dimensions and metrics', function () {
+          window.digitalData.events.push({
+            name: 'Added Product',
+            category: 'Ecommerce',
+            product: {
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298',
+              stock: 25,
+              weight: 100
+            },
+            quantity: 1,
+            callback: function callback() {
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1',
+                quantity: 1,
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+                dimension10: 25,
+                metric10: 100
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'add', {}]);
+              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send added product data from digital data layer', function () {
+          window.digitalData.product = {
+            id: 'p-298',
+            currency: 'CAD',
+            unitPrice: 24.75,
+            name: 'my product',
+            category: 'cat 1',
+            skuCode: 'p-298'
+          };
+          window.digitalData.events.push({
+            name: 'Added Product',
+            category: 'Ecommerce',
+            product: 'p-298',
+            quantity: 1,
+            callback: function callback() {
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1',
+                quantity: 1,
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD'
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'add', {}]);
+              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send send label tracking enhanced ecommerce events with Univeral Analytics', function () {
+          window.digitalData.events.push({
+            name: 'Added Product',
+            category: 'Ecommerce',
+            label: 'sample label',
+            product: {
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298'
+            },
+            quantity: 1,
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 5);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1',
+                quantity: 1,
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD'
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'add', {}]);
+              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Added Product', 'sample label', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send removed product data', function () {
+          window.digitalData.events.push({
+            name: 'Removed Product',
+            category: 'Ecommerce',
+            product: {
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298'
+            },
+            quantity: 1,
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 5);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1',
+                quantity: 1,
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD'
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'remove', {}]);
+              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send removed product data with custom dimensions and metrics', function () {
+          window.digitalData.events.push({
+            name: 'Removed Product',
+            category: 'Ecommerce',
+            product: {
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298',
+              stock: 25,
+              weight: 100
+            },
+            quantity: 1,
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 5);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1',
+                quantity: 1,
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+                dimension10: 25,
+                metric10: 100
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'remove', {}]);
+              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send viewed product detail data', function () {
+          window.digitalData.events.push({
+            name: 'Viewed Product Detail',
+            product: {
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298'
+            },
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 5);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1',
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD'
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'detail', {}]);
+              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send viewed product detail data with custom dimensions and metrics', function () {
+          window.digitalData.events.push({
+            name: 'Viewed Product Detail',
+            product: {
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298',
+              stock: 25,
+              weight: 100
+            },
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 5);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1',
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+                dimension10: 25,
+                metric10: 100
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'detail', {}]);
+              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send clicked product data with custom dimensions and metrics', function () {
+          window.digitalData.events.push({
+            name: 'Clicked Product',
+            listItem: {
+              product: {
+                currency: 'CAD',
+                unitPrice: 24.75,
+                name: 'my product',
+                category: 'cat 1',
+                skuCode: 'p-298',
+                listName: 'search results',
+                stock: 25,
+                weight: 100
+              },
+              listName: 'search results'
+            },
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 5);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1',
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+                dimension10: 25,
+                metric10: 100
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'click', {
+                list: 'search results'
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send clicked product data with data from DDL', function () {
+          window.digitalData.listing = {
+            listName: 'search results',
+            items: [{
+              id: 'p-298',
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298'
+            }]
+          };
+          window.digitalData.events.push({
+            name: 'Clicked Product',
+            listItem: {
+              product: 'p-298',
+              listName: 'search results'
+            },
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 5);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1',
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+                position: 1
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'click', {
+                list: 'search results'
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send viewed product data with custom dimensions and metrics', function () {
+          window.digitalData.events.push({
+            name: 'Viewed Product',
+            category: 'Ecommerce',
+            listItem: {
+              product: {
+                currency: 'CAD',
+                unitPrice: 24.75,
+                name: 'my product',
+                category: 'cat 1',
+                skuCode: 'p-298',
+                stock: 25,
+                weight: 100
+              },
+              listName: 'search results',
+              position: 2
+            },
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 4);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addImpression', {
+                id: 'p-298',
+                name: 'my product',
+                list: 'search results',
+                category: 'cat 1',
+                brand: undefined,
+                price: 24.75,
+                currency: 'CAD',
+                variant: undefined,
+                position: 2,
+                dimension10: 25,
+                metric10: 100
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[3], ['send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send viewed product data array', function () {
+          window.digitalData.events.push({
+            name: 'Viewed Product',
+            category: 'Ecommerce',
+            listItems: [{
+              product: {
+                currency: 'CAD',
+                unitPrice: 24.75,
+                name: 'my product',
+                category: 'cat 1',
+                skuCode: 'p-298'
+              },
+              listName: 'search results',
+              position: 2
+            }, {
+              product: {
+                currency: 'CAD',
+                unitPrice: 24.75,
+                name: 'my product',
+                category: 'cat 1',
+                skuCode: 'p-299'
+              },
+              listName: 'search results',
+              position: 2
+            }],
+            listName: 'search results',
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 6);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addImpression', {
+                id: 'p-298',
+                name: 'my product',
+                list: 'search results',
+                category: 'cat 1',
+                brand: undefined,
+                price: 24.75,
+                currency: 'CAD',
+                variant: undefined,
+                position: 2
+              }]);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['set', '&cu', 'CAD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[4]), ['ec:addImpression', {
+                id: 'p-299',
+                name: 'my product',
+                list: 'search results',
+                category: 'cat 1',
+                brand: undefined,
+                price: 24.75,
+                currency: 'CAD',
+                variant: undefined,
+                position: 2
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[5], ['send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send viewed product data from DDL', function () {
+          window.digitalData.listing = {
+            listName: 'search results',
+            items: [{
+              id: 'p-298',
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298'
+            }, {
+              id: 'p-299',
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my other product',
+              category: 'cat 1',
+              skuCode: 'p-298'
+            }]
+          };
+          window.digitalData.events.push({
+            name: 'Viewed Product',
+            category: 'Ecommerce',
+            listItem: {
+              product: 'p-299',
+              listName: 'search results'
+            },
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 4);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addImpression', {
+                id: 'p-299',
+                name: 'my other product',
+                list: 'search results',
+                category: 'cat 1',
+                brand: undefined,
+                price: 24.75,
+                currency: 'CAD',
+                variant: undefined,
+                position: 2
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[3], ['send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send viewed product data from DDL', function () {
+          window.digitalData.listing = {
+            listName: 'search results',
+            items: [{
+              id: 'p-298',
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298'
+            }, {
+              id: 'p-299',
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my other product',
+              category: 'cat 1',
+              skuCode: 'p-299'
+            }]
+          };
+          window.digitalData.events.push({
+            name: 'Viewed Product',
+            category: 'Ecommerce',
+            listItems: [{
+              product: 'p-298',
+              listName: 'search results'
+            }, {
+              product: 'p-299',
+              listName: 'search results'
+            }],
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 6);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addImpression', {
+                id: 'p-298',
+                name: 'my product',
+                list: 'search results',
+                category: 'cat 1',
+                brand: undefined,
+                price: 24.75,
+                currency: 'CAD',
+                variant: undefined,
+                position: 1
+              }]);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['set', '&cu', 'CAD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[4]), ['ec:addImpression', {
+                id: 'p-299',
+                name: 'my other product',
+                list: 'search results',
+                category: 'cat 1',
+                brand: undefined,
+                price: 24.75,
+                currency: 'CAD',
+                variant: undefined,
+                position: 2
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[5], ['send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send viewed promotion data', function () {
+          window.digitalData.events.push({
+            name: 'Viewed Campaign',
+            category: 'Promo',
+            campaign: {
+              id: 'PROMO_1234',
+              name: 'Summer Sale',
+              design: 'summer_banner2',
+              position: 'banner_slot1'
+            },
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 4);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'USD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addPromo', {
+                id: 'PROMO_1234',
+                name: 'Summer Sale',
+                creative: 'summer_banner2',
+                position: 'banner_slot1'
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[3], ['send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send viewed promotion data array', function () {
+          window.digitalData.events.push({
+            name: 'Viewed Campaign',
+            category: 'Promo',
+            campaigns: [{
+              id: 'PROMO_1234',
+              name: 'Summer Sale',
+              design: 'summer_banner2',
+              position: 'banner_slot1'
+            }, {
+              id: 'PROMO_2345',
+              name: 'Summer Sale',
+              design: 'summer_banner2',
+              position: 'banner_slot1'
+            }],
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 5);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'USD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addPromo', {
+                id: 'PROMO_1234',
+                name: 'Summer Sale',
+                creative: 'summer_banner2',
+                position: 'banner_slot1'
+              }]);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['ec:addPromo', {
+                id: 'PROMO_2345',
+                name: 'Summer Sale',
+                creative: 'summer_banner2',
+                position: 'banner_slot1'
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send viewed promotion data from DDL', function () {
+          window.digitalData.campaigns = [{
+            id: 'PROMO_1234',
+            name: 'Summer Sale',
+            design: 'summer_banner2',
+            position: 'banner_slot1'
+          }];
+          window.digitalData.events.push({
+            name: 'Viewed Campaign',
+            category: 'Promo',
+            campaign: 'PROMO_1234',
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 4);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'USD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addPromo', {
+                id: 'PROMO_1234',
+                name: 'Summer Sale',
+                creative: 'summer_banner2',
+                position: 'banner_slot1'
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[3], ['send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send viewed promotion data from DDL', function () {
+          window.digitalData.campaigns = [{
+            id: 'PROMO_1234',
+            name: 'Summer Sale',
+            design: 'summer_banner2',
+            position: 'banner_slot1'
+          }, {
+            id: 'PROMO_2345',
+            name: 'Summer Sale',
+            design: 'summer_banner2',
+            position: 'banner_slot1'
+          }];
+          window.digitalData.events.push({
+            name: 'Viewed Campaign',
+            category: 'Promo',
+            campaigns: ['PROMO_1234', 'PROMO_2345'],
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 5);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'USD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addPromo', {
+                id: 'PROMO_1234',
+                name: 'Summer Sale',
+                creative: 'summer_banner2',
+                position: 'banner_slot1'
+              }]);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['ec:addPromo', {
+                id: 'PROMO_2345',
+                name: 'Summer Sale',
+                creative: 'summer_banner2',
+                position: 'banner_slot1'
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send clicked promotion data', function () {
+          window.digitalData.events.push({
+            name: 'Clicked Campaign',
+            category: 'Promo',
+            campaign: {
+              id: 'PROMO_1234',
+              name: 'Summer Sale',
+              design: 'summer_banner2',
+              position: 'banner_slot1'
+            },
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 5);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'USD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addPromo', {
+                id: 'PROMO_1234',
+                name: 'Summer Sale',
+                creative: 'summer_banner2',
+                position: 'banner_slot1'
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'promo_click', {}]);
+              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Promo', 'Clicked Campaign', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send started order data with custom dimensions and metrics', function () {
+          window.digitalData.cart = {
+            currency: 'CAD',
+            lineItems: [{
+              product: {
+                id: 'p-298',
+                unitPrice: 24.75,
+                name: 'my product',
+                skuCode: 'p-298',
+                stock: 25,
+                weight: 100
+              },
+              quantity: 1
+            }, {
+              product: {
+                id: 'p-299',
+                unitPrice: 24.75,
+                name: 'other product',
+                skuCode: 'p-299',
+                stock: 30,
+                weight: 200
+              },
+              quantity: 3
+            }]
+          };
+          window.digitalData.events.push({
+            name: 'Viewed Checkout Step',
+            step: 1,
+            paymentMethod: 'Visa',
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 6);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: undefined,
+                quantity: 1,
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+                dimension10: 25,
+                metric10: 100
+              }]);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['ec:addProduct', {
+                id: 'p-299',
+                name: 'other product',
+                category: undefined,
+                quantity: 3,
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+                dimension10: 30,
+                metric10: 200
+              }]);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[4]), ['ec:setAction', 'checkout', {
+                step: 1,
+                option: 'Visa'
+              }]);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[5]), ['send', 'event', 'Ecommerce', 'Viewed Checkout Step', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send completed checkout step data', function () {
+          window.digitalData.cart = {
+            currency: 'CAD',
+            lineItems: [{
+              product: {
+                id: 'p-298',
+                unitPrice: 24.75,
+                name: 'my product',
+                skuCode: 'p-298',
+                stock: 25,
+                weight: 100
+              },
+              quantity: 1
+            }, {
+              product: {
+                id: 'p-299',
+                unitPrice: 24.75,
+                name: 'other product',
+                skuCode: 'p-299',
+                stock: 30,
+                weight: 200
+              },
+              quantity: 3
+            }]
+          };
+          window.digitalData.events.push({
+            name: 'Completed Checkout Step',
+            category: 'Ecommerce',
+            step: 2,
+            shippingMethod: 'FedEx',
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 4);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:setAction', 'checkout_option', {
+                step: 2,
+                option: 'FedEx'
+              }]);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send completed checkout step data with all options', function () {
+          window.digitalData.cart = {
+            currency: 'CAD',
+            lineItems: [{
+              product: {
+                id: 'p-298',
+                unitPrice: 24.75,
+                name: 'my product',
+                skuCode: 'p-298'
+              },
+              quantity: 1
+            }, {
+              product: {
+                id: 'p-299',
+                unitPrice: 24.75,
+                name: 'other product',
+                skuCode: 'p-299'
+              },
+              quantity: 3
+            }]
+          };
+          window.digitalData.events.push({
+            name: 'Completed Checkout Step',
+            category: 'Ecommerce',
+            step: 2,
+            paymentMethod: 'Visa',
+            shippingMethod: 'FedEx',
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 4);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:setAction', 'checkout_option', {
+                step: 2,
+                option: 'Visa, FedEx'
+              }]);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should not send completed checkout step data without a step', function () {
+          window.digitalData.events.push({
+            name: 'Completed Checkout Step',
+            category: 'Ecommerce',
+            paymentMethod: 'Visa',
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 0);
+            }
+          });
+        });
+
+        it('should not send completed checkout step data without an option', function () {
+          window.digitalData.events.push({
+            name: 'Completed Checkout Step',
+            category: 'Ecommerce',
+            step: 2,
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 0);
+            }
+          });
+        });
+
+        it('should send simple completed order data', function () {
+          window.digitalData.events.push({
+            name: 'Completed Transaction',
+            category: 'Ecommerce',
+            transaction: {
+              orderId: '7306cc06'
+            },
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 4);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:setAction', 'purchase', {
+                id: '7306cc06',
+                affiliation: undefined,
+                revenue: 0.0,
+                tax: undefined,
+                shipping: undefined,
+                coupon: undefined
+              }]);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send completed order data with custom dimensions and metrics', function () {
+          window.digitalData.events.push({
+            name: 'Completed Transaction',
+            category: 'Ecommerce',
+            transaction: {
+              orderId: '780bc55',
+              total: 99.9,
+              tax: 20.99,
+              shippingCost: 13.99,
+              currency: 'CAD',
+              vouchers: ['coupon'],
+              affiliation: 'affiliation',
+              lineItems: [{
+                product: {
+                  id: 'p-298',
+                  unitPrice: 24.75,
+                  name: 'my product',
+                  category: 'cat 1',
+                  skuCode: 'p-298',
+                  stock: 25,
+                  weight: 100
+                },
+                quantity: 1
+              }, {
+                product: {
+                  unitSalePrice: 24.75,
+                  name: 'other product',
+                  category: 'cat 2',
+                  skuCode: 'p-299',
+                  currency: 'EUR',
+                  stock: 30,
+                  weight: 200
+                },
+                quantity: 3
+              }]
+
+            },
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 6);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1',
+                quantity: 1,
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+                dimension10: 25,
+                metric10: 100
+              }]);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['ec:addProduct', {
+                id: 'p-299',
+                name: 'other product',
+                category: 'cat 2',
+                quantity: 3,
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'EUR',
+                dimension10: 30,
+                metric10: 200
+              }]);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[4]), ['ec:setAction', 'purchase', {
+                id: '780bc55',
+                affiliation: 'affiliation',
+                revenue: 99.9,
+                tax: 20.99,
+                shipping: 13.99,
+                coupon: 'coupon'
+              }]);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[5]), ['send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should add coupon to product level in completed order', function () {
+          window.digitalData.events.push({
+            name: 'Completed Transaction',
+            category: 'Ecommerce',
+            transaction: {
+              orderId: '780bc55',
+              total: 99.9,
+              tax: 20.99,
+              shippingCost: 13.99,
+              currency: 'CAD',
+              vouchers: ['coupon'],
+              affiliation: 'affiliation',
+              lineItems: [{
+                product: {
+                  id: 'p-298',
+                  unitPrice: 24.75,
+                  name: 'my product',
+                  category: 'cat 1',
+                  skuCode: 'p-298',
+                  voucher: 'promo'
+                },
+                quantity: 1
+              }, {
+                product: {
+                  unitSalePrice: 24.75,
+                  name: 'other product',
+                  category: 'cat 2',
+                  skuCode: 'p-299',
+                  currency: 'EUR'
+                },
+                quantity: 3
+              }]
+
+            },
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 6);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1',
+                quantity: 1,
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+                coupon: 'promo'
+              }]);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['ec:addProduct', {
+                id: 'p-299',
+                name: 'other product',
+                category: 'cat 2',
+                quantity: 3,
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'EUR'
+              }]);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[4]), ['ec:setAction', 'purchase', {
+                id: '780bc55',
+                affiliation: 'affiliation',
+                revenue: 99.9,
+                tax: 20.99,
+                shipping: 13.99,
+                coupon: 'coupon'
+              }]);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[5]), ['send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('completed order should fallback to revenue', function () {
+          window.digitalData.events.push({
+            name: 'Completed Transaction',
+            category: 'Ecommerce',
+            transaction: {
+              orderId: '5d4c7cb5',
+              total: 99.9,
+              tax: 20.99,
+              shippingCost: 13.99,
+              currency: 'CAD',
+              lineItems: []
+            },
+            callback: function callback() {
+              _assert2['default'].deepEqual(window.ga.args[2], ['ec:setAction', 'purchase', {
+                id: '5d4c7cb5',
+                affiliation: undefined,
+                revenue: 99.9,
+                tax: 20.99,
+                shipping: 13.99,
+                coupon: undefined
+              }]);
+            }
+          });
+        });
+
+        it('should send full refunded order data', function () {
+          window.digitalData.events.push({
+            name: 'Refunded Transaction',
+            category: 'Ecommerce',
+            transaction: {
+              orderId: '780bc55',
+              total: 99.9,
+              tax: 20.99,
+              shippingCost: 13.99,
+              currency: 'CAD',
+              lineItems: []
+            },
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 4);
+              _assert2['default'].deepEqual(window.ga.args[2], ['ec:setAction', 'refund', {
+                id: '780bc55'
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[3], ['send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send partial refunded order data', function () {
+          window.digitalData.events.push({
+            name: 'Refunded Transaction',
+            category: 'Ecommerce',
+            transaction: {
+              orderId: '780bc55',
+              total: 99.9,
+              tax: 20.99,
+              shippingCost: 13.99,
+              currency: 'CAD',
+              lineItems: [{
+                product: {
+                  skuCode: 'p-298'
+                },
+                quanity: 1
+              }, {
+                product: {
+                  skuCode: 'p-299'
+                },
+                quantity: 2
+              }]
+            },
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 6);
+              _assert2['default'].deepEqual(window.ga.args[2], ['ec:addProduct', {
+                id: 'p-298',
+                name: undefined,
+                category: undefined,
+                price: undefined,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD'
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[3], ['ec:addProduct', {
+                id: 'p-299',
+                name: undefined,
+                category: undefined,
+                quantity: 2,
+                price: undefined,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD'
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[4], ['ec:setAction', 'refund', {
+                id: '780bc55'
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[5], ['send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: 1 }]);
+            }
+          });
+        });
+      });
+    });
+  });
+
+  describe('Universal with noConflict', function () {
+
+    var ga = void 0;
+    var options = {
+      trackingId: 'UA-51485228-7',
+      domain: 'none',
+      defaultCurrency: 'USD',
+      siteSpeedSampleRate: 42,
+      namespace: 'ddl',
+      noConflict: true
+    };
+
+    function loadGA(callback) {
+      //load GA
+      (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;i[r] = i[r] || function () {
+          (i[r].q = i[r].q || []).push(arguments);
+        }, i[r].l = 1 * new Date();a = s.createElement(o), m = s.getElementsByTagName(o)[0];a.async = 1;a.src = g;m.parentNode.insertBefore(a, m);
+      })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+      window.ga('create', 'UA-51485228-7', {
+        // Fall back on default to protect against empty string
+        cookieDomain: 'auto',
+        name: 'gtm.123'
+      });
+      window.ga('send', 'pageview');
+
+      window.ga(function () {
+        callback();
+      });
+    }
+
+    beforeEach(function () {
+      window.digitalData = {
+        events: []
+      };
+      ga = new _GoogleAnalytics2['default'](window.digitalData, options);
+      _ddManager2['default'].addIntegration('Google Analytics', ga);
+    });
+
+    afterEach(function () {
+      ga.reset();
+      _ddManager2['default'].reset();
+      (0, _reset2['default'])();
+    });
+
+    describe('after loading', function () {
+      beforeEach(function (done) {
+        loadGA(function () {
+          _ddManager2['default'].once('ready', done);
+          _ddManager2['default'].initialize({
+            autoEvents: false
+          });
+        });
+      });
+
+      describe('enhanced ecommerce', function () {
+
+        beforeEach(function () {
+          _sinon2['default'].spy(window, 'ga');
+        });
+
+        afterEach(function () {
+          window.ga.restore();
+        });
+
+        it('should use custom namespace in requests', function (done) {
+          window.digitalData.events.push({
+            name: 'Test',
+            category: 'Test',
+            callback: function callback() {
+              _assert2['default'].equal(2, window.ga.getAll().length);
+              _assert2['default'].ok(window.ga.calledOnce);
+              done();
+            }
+          });
+        });
+
+        it('should not track View Page semantic event', function (done) {
+          window.digitalData.events.push({
+            name: 'Viewed Page',
+            category: 'Content',
+            callback: function callback() {
+              _assert2['default'].ok(!window.ga.called);
+              done();
+            }
+          });
+        });
+
+        it('should not track simple ecommerce data', function () {
+          window.digitalData.events.push({
+            name: 'Completed Transaction',
+            category: 'Ecommerce',
+            transaction: {
+              orderId: '7306cc06'
+            },
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 1);
+            }
+          });
+        });
+      });
+    });
+  });
+
+  describe('Universal with filterEvents', function () {
+
+    var ga = void 0;
+    var options = {
+      enhancedEcommerce: true,
+      trackingId: 'UA-51485228-7',
+      domain: 'none',
+      defaultCurrency: 'USD',
+      siteSpeedSampleRate: 42,
+      namespace: 'ddl',
+      filterEvents: ['Completed Transaction']
+    };
+
+    beforeEach(function () {
+      window.digitalData = {
+        events: []
+      };
+      ga = new _GoogleAnalytics2['default'](window.digitalData, options);
+      _ddManager2['default'].addIntegration('Google Analytics', ga);
+    });
+
+    afterEach(function () {
+      ga.reset();
+      _ddManager2['default'].reset();
+      (0, _reset2['default'])();
+    });
+
+    describe('after loading', function () {
+      beforeEach(function (done) {
+        _ddManager2['default'].once('ready', done);
+        _ddManager2['default'].initialize({
+          autoEvents: false
+        });
+      });
+
+      describe('enhanced ecommerce', function () {
+
+        beforeEach(function () {
+          _sinon2['default'].spy(window, 'ga');
+        });
+
+        afterEach(function () {
+          window.ga.restore();
+        });
+
+        it('should not track View Page semantic event', function (done) {
+          window.digitalData.events.push({
+            name: 'Viewed Page',
+            category: 'Content',
+            callback: function callback() {
+              _assert2['default'].ok(!window.ga.called);
+              done();
+            }
+          });
+        });
+
+        it('should not track simple ecommerce data', function (done) {
+          window.digitalData.events.push({
+            name: 'Completed Transaction',
+            category: 'Ecommerce',
+            transaction: {
+              orderId: '7306cc06'
+            },
+            callback: function callback() {
+              _assert2['default'].ok(!window.ga.called);
+              done();
+            }
+          });
+        });
+      });
+    });
+  });
+});
+
+},{"./../../src/ddManager.js":100,"./../../src/functions/after.js":101,"./../../src/integrations/GoogleAnalytics.js":121,"./../functions/argumentsToArray.js":137,"./../reset.js":152,"assert":1,"sinon":64}],144:[function(require,module,exports){
+'use strict';
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _reset = require('./../reset.js');
+
+var _reset2 = _interopRequireDefault(_reset);
+
+var _GoogleTagManager = require('./../../src/integrations/GoogleTagManager.js');
+
+var _GoogleTagManager2 = _interopRequireDefault(_GoogleTagManager);
+
+var _ddManager = require('./../../src/ddManager.js');
+
+var _ddManager2 = _interopRequireDefault(_ddManager);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+describe('Integrations: GoogleTagManager', function () {
+  describe('using containerID', function () {
+
+    var gtm = void 0;
+    var options = {
+      containerId: 'GTM-M9CMLZ'
+    };
+
+    beforeEach(function () {
+      gtm = new _GoogleTagManager2['default'](window.digitalData, options);
+      _ddManager2['default'].addIntegration('Google Tag Manager', gtm);
+    });
+
+    afterEach(function () {
+      gtm.reset();
+      _ddManager2['default'].reset();
+      (0, _reset2['default'])();
+    });
+
+    describe('#constructor', function () {
+
+      it('should create GTM integrations with proper options and tags', function () {
+        _assert2['default'].equal(options.containerId, gtm.getOption('containerId'));
+        _assert2['default'].equal('script', gtm.getTag().type);
+        _assert2['default'].ok(gtm.getTag().attr.src.indexOf(options.containerId) > 0);
+      });
+    });
+
+    describe('#load', function () {
+
+      it('should load', function (done) {
+        _assert2['default'].ok(!gtm.isLoaded());
+        _ddManager2['default'].once('load', function () {
+          _assert2['default'].ok(gtm.isLoaded());
+          done();
+        });
+        _ddManager2['default'].initialize();
+      });
+
+      it('should not load if gtm is already loaded', function (done) {
+        var originalIsLoaded = gtm.isLoaded;
+        gtm.isLoaded = function () {
+          return true;
+        };
+        _assert2['default'].ok(gtm.isLoaded());
+        _ddManager2['default'].once('ready', function () {
+          _assert2['default'].ok(!originalIsLoaded());
+          done();
+        });
+        _ddManager2['default'].initialize();
+      });
+    });
+
+    describe('after loading', function () {
+      beforeEach(function (done) {
+        _ddManager2['default'].once('ready', done);
+        _ddManager2['default'].initialize();
+      });
+
+      it('should update dataLayer', function () {
+        var dl = window.dataLayer;
+
+        _assert2['default'].ok(dl);
+        _assert2['default'].ok(dl[0].event === 'gtm.js');
+        _assert2['default'].ok(typeof dl[0]['gtm.start'] === 'number');
+      });
+
+      describe('#trackEvent', function () {
+
+        beforeEach(function () {
+          window.dataLayer = [];
+        });
+
+        it('should send event', function () {
+          window.digitalData.events.push({
+            name: 'some-event',
+            category: 'some-category'
+          });
+
+          var dl = window.dataLayer;
+
+          _assert2['default'].ok(dl[0].event === 'some-event');
+          _assert2['default'].ok(dl[0].eventCategory === 'some-category');
+        });
+
+        it('should send event with additional parameters', function () {
+          window.digitalData.events.push({
+            name: 'some-event',
+            category: 'some-category',
+            additionalParam: true
+          });
+
+          var dl = window.dataLayer;
+
+          _assert2['default'].ok(dl[0].event === 'some-event');
+          _assert2['default'].ok(dl[0].additionalParam === true);
+        });
+      });
+    });
+  });
+
+  describe('using existing GTM', function () {
+
+    var gtm = void 0;
+
+    beforeEach(function () {
+      window.dataLayer = [];
+      window.dataLayer.push = function () {
+        window.dataLayer.prototype.apply(this, arguments);
+      };
+      gtm = new _GoogleTagManager2['default'](window.digitalData, {
+        noConflict: true
+      });
+      _ddManager2['default'].addIntegration('Google Tag Manager', gtm);
+    });
+
+    afterEach(function () {
+      gtm.reset();
+      _ddManager2['default'].reset();
+      (0, _reset2['default'])();
+    });
+
+    describe('after loading', function () {
+      beforeEach(function (done) {
+        _ddManager2['default'].once('ready', done);
+        _ddManager2['default'].initialize();
+      });
+
+      describe('#trackEvent', function () {
+
+        beforeEach(function () {
+          window.dataLayer = [];
+        });
+
+        it('should send event with additional parameters to existing GTM', function () {
+          window.digitalData.events.push({
+            name: 'some-event',
+            category: 'some-category',
+            additionalParam: true
+          });
+
+          var dl = window.dataLayer;
+
+          _assert2['default'].ok(dl[0].event === 'some-event');
+          _assert2['default'].ok(dl[0].additionalParam === true);
+        });
+      });
+    });
+  });
+});
+
+},{"./../../src/ddManager.js":100,"./../../src/integrations/GoogleTagManager.js":122,"./../reset.js":152,"assert":1}],145:[function(require,module,exports){
+'use strict';
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _sinon = require('sinon');
+
+var _sinon2 = _interopRequireDefault(_sinon);
+
+var _reset = require('./../reset.js');
+
+var _reset2 = _interopRequireDefault(_reset);
+
+var _MyTarget = require('./../../src/integrations/MyTarget.js');
+
+var _MyTarget2 = _interopRequireDefault(_MyTarget);
+
+var _ddManager = require('./../../src/ddManager.js');
+
+var _ddManager2 = _interopRequireDefault(_ddManager);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+describe('Integrations: MyTarget', function () {
+
+  var myTarget = void 0;
+  var options = {
+    counterId: '123'
+  };
+
+  beforeEach(function () {
+    window.digitalData = {
+      website: {},
+      page: {},
+      user: {},
+      events: []
+    };
+    myTarget = new _MyTarget2['default'](window.digitalData, options);
+    _ddManager2['default'].addIntegration('MyTarget', myTarget);
+  });
+
+  afterEach(function () {
+    myTarget.reset();
+    _ddManager2['default'].reset();
+    (0, _reset2['default'])();
+  });
+
+  describe('before loading', function () {
+    beforeEach(function () {
+      _sinon2['default'].stub(myTarget, 'load');
+    });
+
+    afterEach(function () {
+      myTarget.load.restore();
+    });
+
+    describe('#constructor', function () {
+      it('should add proper tags and options', function () {
+        _assert2['default'].equal(options.counterId, myTarget.getOption('counterId'));
+        _assert2['default'].equal(options.listProperty, myTarget.getOption('listProperty'));
+        _assert2['default'].deepEqual(options.listPropertyMapping, myTarget.getOption('listPropertyMapping'));
+        _assert2['default'].equal('script', myTarget.getTag().type);
+        _assert2['default'].equal(myTarget.getTag().attr.src, '//top-fwz1.mail.ru/js/code.js');
+      });
+    });
+
+    describe('#getList', function () {
+      it('should return default list', function () {
+        _assert2['default'].equal(myTarget.getList(), '1');
+      });
+
+      it('should return defined list', function () {
+        myTarget.setOption('list', '5');
+        _assert2['default'].equal(myTarget.getList(), '5');
+      });
+
+      it('should return list defined in DDL', function () {
+        window.digitalData.page.list = '5';
+        myTarget.setOption('listProperty', 'page.list');
+        _assert2['default'].equal(myTarget.getList(), '5');
+      });
+
+      it('should return list defined in DDL using mapping', function () {
+        window.digitalData.website.region = 'New York';
+        myTarget.setOption('listProperty', 'website.region');
+        myTarget.setOption('listPropertyMapping', {
+          'New York': '5'
+        });
+        _assert2['default'].equal(myTarget.getList(), '5');
+      });
+    });
+
+    describe('#initialize', function () {
+      it('should initialize mytarget queue object', function () {
+        _ddManager2['default'].initialize();
+        _assert2['default'].ok(window._tmr);
+        _assert2['default'].ok(window._tmr.push);
+      });
+
+      it('should call tags load after initialization', function () {
+        _ddManager2['default'].initialize();
+        _assert2['default'].ok(myTarget.load.calledOnce);
+      });
+    });
+  });
+
+  describe('loading', function () {
+    beforeEach(function () {
+      _sinon2['default'].stub(myTarget, 'load', function () {
+        window._tmr = {
+          push: function push() {},
+          unload: function unload() {}
+        };
+        myTarget.onLoad();
+      });
+    });
+
+    afterEach(function () {
+      myTarget.load.restore();
+    });
+
+    it('should load', function (done) {
+      _assert2['default'].ok(!myTarget.isLoaded());
+      _ddManager2['default'].once('load', function () {
+        _assert2['default'].ok(myTarget.isLoaded());
+        done();
+      });
+      _ddManager2['default'].initialize({
+        autoEvents: false
+      });
+    });
+  });
+
+  describe('after loading', function () {
+    beforeEach(function (done) {
+      _sinon2['default'].stub(myTarget, 'load', function () {
+        myTarget.onLoad();
+      });
+      _ddManager2['default'].once('ready', done);
+      _ddManager2['default'].initialize({
+        autoEvents: false
+      });
+    });
+
+    afterEach(function () {
+      myTarget.load.restore();
+    });
+
+    describe('#onViewedPage', function () {
+      it('should send pageView for every "Viewed Page" event', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          category: 'Content',
+          page: {},
+          callback: function callback() {
+            _assert2['default'].equal(window._tmr[0].id, myTarget.getOption('counterId'));
+            _assert2['default'].equal(window._tmr[0].type, 'pageView');
+            done();
+          }
+        });
+      });
+
+      it('should not send pageView event if noConflict setting is true', function (done) {
+        myTarget.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          category: 'Content',
+          page: {
+            type: 'home'
+          },
+          callback: function callback() {
+            _assert2['default'].equal(window._tmr.length, 0);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onViewedHome', function () {
+      it('should send viewHome event if user visits home page', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          category: 'Content',
+          page: {
+            type: 'home'
+          },
+          callback: function callback() {
+            _assert2['default'].equal(window._tmr.length, 2);
+            _assert2['default'].deepEqual(window._tmr[1], {
+              type: 'itemView',
+              productid: '',
+              pagetype: 'home',
+              totalvalue: '',
+              list: myTarget.getList()
+            });
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onViewedProductCategory', function () {
+      it('should send itemView event for every "Viewed Product Category" event', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          category: 'Content',
+          callback: function callback() {
+            _assert2['default'].deepEqual(window._tmr[0], {
+              type: 'itemView',
+              productid: '',
+              pagetype: 'category',
+              totalvalue: '',
+              list: myTarget.getList()
+            });
+            done();
+          }
+        });
+      });
+
+      it('should not send itemView event if noConflict setting is true', function (done) {
+        myTarget.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          category: 'Content',
+          callback: function callback() {
+            _assert2['default'].equal(window._tmr.length, 0);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onViewedProductDetail', function () {
+      it('should send itemView event for every "Viewed Product Detail" event', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            unitSalePrice: 150
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window._tmr[0], {
+              type: 'itemView',
+              productid: '123',
+              pagetype: 'product',
+              totalvalue: 150,
+              list: myTarget.getList()
+            });
+            done();
+          }
+        });
+      });
+
+      it('should not send itemView event if noConflict option is true', function (done) {
+        myTarget.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: {
+            id: '123'
+          },
+          callback: function callback() {
+            _assert2['default'].equal(window._tmr.length, 0);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onViewedCart', function () {
+      it('should send itemView event if user visits cart page', function (done) {
+        window.digitalData.cart = {
+          lineItems: [{
+            product: {
+              id: '123',
+              unitSalePrice: 100
+            },
+            quantity: 1
+          }, {
+            product: {
+              id: '234',
+              unitPrice: 100,
+              unitSalePrice: 50
+            },
+            quantity: 2
+          }, {
+            product: {
+              id: '345',
+              unitPrice: 30
+            }
+          }, {
+            product: {
+              id: '456'
+            }
+          }, {
+            product: {}
+          }],
+          total: 230
+        };
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          category: 'Content',
+          page: {
+            type: 'cart'
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window._tmr[1], {
+              type: 'itemView',
+              productid: ['123', '234', '345', '456'],
+              pagetype: 'cart',
+              totalvalue: 230,
+              list: myTarget.getList()
+            });
+            done();
+          }
+        });
+      });
+
+      it('should not send itemView event if noConflict option is true', function (done) {
+        myTarget.setOption('noConflict', true);
+        window.digitalData.cart = {
+          lineItems: [{
+            product: {
+              id: '123',
+              unitSalePrice: 100
+            },
+            quantity: 1
+          }]
+        };
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          category: 'Content',
+          page: {
+            type: 'cart'
+          },
+          callback: function callback() {
+            _assert2['default'].equal(window._tmr.length, 0);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onCompletedTransaction', function () {
+      var lineItems = [{
+        product: {
+          id: '123',
+          unitSalePrice: 100
+        },
+        quantity: 1
+      }, {
+        product: {
+          id: '234',
+          unitPrice: 100,
+          unitSalePrice: 50
+        },
+        quantity: 2
+      }, {
+        product: {
+          id: '345',
+          unitPrice: 30
+        }
+      }, {
+        product: {
+          id: '456'
+        }
+      }, {
+        product: {}
+      }];
+
+      it('should send itemView event if transaction is completed', function (done) {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          transaction: {
+            orderId: '123',
+            isFirst: true,
+            lineItems: lineItems,
+            total: 230
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window._tmr[0], {
+              type: 'itemView',
+              productid: ['123', '234', '345', '456'],
+              pagetype: 'purchase',
+              totalvalue: 230,
+              list: myTarget.getList()
+            });
+            done();
+          }
+        });
+      });
+
+      it('should not send trackTransaction event if noConflict option is true', function (done) {
+        myTarget.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          transaction: {
+            orderId: '123',
+            lineItems: lineItems
+          },
+          callback: function callback() {
+            _assert2['default'].equal(window._tmr.length, 0);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onCustomEvent', function () {
+      it('should send reachGoal event for any other DDL event', function (done) {
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          category: 'Email',
+          user: {
+            email: 'test@driveback.ru'
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window._tmr[0], {
+              id: myTarget.getOption('counterId'),
+              type: 'reachGoal',
+              goal: 'Subscribed'
+            });
+            done();
+          }
+        });
+      });
+
+      it('should send reachGoal event for any other DDL event event if noConflict option is true', function (done) {
+        myTarget.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          category: 'Email',
+          user: {
+            email: 'test@driveback.ru'
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window._tmr[0], {
+              id: myTarget.getOption('counterId'),
+              type: 'reachGoal',
+              goal: 'Subscribed'
+            });
+            done();
+          }
+        });
+      });
+    });
+  });
+});
+
+},{"./../../src/ddManager.js":100,"./../../src/integrations/MyTarget.js":123,"./../reset.js":152,"assert":1,"sinon":64}],146:[function(require,module,exports){
+'use strict';
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _sinon = require('sinon');
+
+var _sinon2 = _interopRequireDefault(_sinon);
+
+var _reset = require('./../reset.js');
+
+var _reset2 = _interopRequireDefault(_reset);
+
+var _argumentsToArray = require('./../functions/argumentsToArray.js');
+
+var _argumentsToArray2 = _interopRequireDefault(_argumentsToArray);
+
+var _GoogleAnalytics = require('./../../src/integrations/GoogleAnalytics.js');
+
+var _GoogleAnalytics2 = _interopRequireDefault(_GoogleAnalytics);
+
+var _OWOXBIStreaming = require('./../../src/integrations/OWOXBIStreaming.js');
+
+var _OWOXBIStreaming2 = _interopRequireDefault(_OWOXBIStreaming);
+
+var _ddManager = require('./../../src/ddManager.js');
+
+var _ddManager2 = _interopRequireDefault(_ddManager);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+describe('Integrations: OWOXBIStreaming', function () {
+
+  describe('OWOXBIStreaming', function () {
+    var ga = void 0;
+    var owox = void 0;
+    var options = {
+      trackingId: 'UA-51485228-7',
+      domain: 'auto'
+    };
+
+    beforeEach(function () {
+      window.digitalData = {
+        events: []
+      };
+      ga = new _GoogleAnalytics2['default'](window.digitalData, options);
+      owox = new _OWOXBIStreaming2['default'](window.digitalData, {
+        'sessionIdDimension': 'sessionId'
+      });
+
+      // reset in case GA was loaded
+      // from previous tests asyncronously
+      ga.reset();
+      owox.reset();
+
+      // OWOX should depend on Google Analtics, so this order is for reason
+      // to test that everything works well even if OWOX BI is added before GA
+      // TODO: change order and make sure everything works
+      _ddManager2['default'].addIntegration('Google Analytics', ga);
+      _ddManager2['default'].addIntegration('OWOX BI Streaming', owox);
+    });
+
+    afterEach(function () {
+      ga.reset();
+      owox.reset();
+      _ddManager2['default'].reset();
+      (0, _reset2['default'])();
+    });
+
+    describe('before loading', function () {
+      beforeEach(function () {
+        _sinon2['default'].stub(ga, 'load');
+        _sinon2['default'].stub(owox, 'load');
+      });
+
+      afterEach(function () {
+        ga.load.restore();
+        owox.load.restore();
+      });
+
+      describe('#initialize', function () {
+
+        it('should require Google Analytics OWOXBIStreaming plugin', function () {
+          ga.setOption('sessionIdDimension', 'SessionId');
+          _ddManager2['default'].initialize();
+          _ddManager2['default'].on('ready', function () {
+            _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.q[2]), ['ddl.require', 'OWOXBIStreaming', {
+              'sessionIdDimension': 'sessionId'
+            }]);
+            _assert2['default'].deepEqual([window.ga.q[3][0], window.ga.q[3][1]], ['provide', 'OWOXBIStreaming']);
+          });
+        });
+      });
+    });
+  });
+});
+
+},{"./../../src/ddManager.js":100,"./../../src/integrations/GoogleAnalytics.js":121,"./../../src/integrations/OWOXBIStreaming.js":124,"./../functions/argumentsToArray.js":137,"./../reset.js":152,"assert":1,"sinon":64}],147:[function(require,module,exports){
+'use strict';
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _sinon = require('sinon');
+
+var _sinon2 = _interopRequireDefault(_sinon);
+
+var _reset = require('./../reset.js');
+
+var _reset2 = _interopRequireDefault(_reset);
+
+var _deleteProperty = require('./../../src/functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+var _RetailRocket = require('./../../src/integrations/RetailRocket.js');
+
+var _RetailRocket2 = _interopRequireDefault(_RetailRocket);
+
+var _ddManager = require('./../../src/ddManager.js');
+
+var _ddManager2 = _interopRequireDefault(_ddManager);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+describe('Integrations: RetailRocket', function () {
+  // this var will be reused in all Retail Rocket tests
+  // as Retail Rocket throws error when loaded few times
+  var retailRocket = void 0;
+  var stubsPrepared = false;
+
+  var options = {
+    partnerId: '567c343e6c7d3d14101afee5',
+    userIdProperty: 'user.email'
+  };
+
+  beforeEach(function () {
+    window.digitalData = {
+      user: {},
+      events: []
+    };
+    retailRocket = new _RetailRocket2['default'](window.digitalData, options);
+    _ddManager2['default'].addIntegration('Retail Rocket', retailRocket);
+  });
+
+  afterEach(function () {
+    retailRocket.reset();
+    _ddManager2['default'].reset();
+    (0, _reset2['default'])();
+
+    // stubs for callbacks (hack)
+    window.rrApi = {};
+    window.rrApi.pageViewCompleted = function () {};
+    window.rrApi.setEmailCompleted = function () {};
+  });
+
+  describe('before loading', function () {
+    beforeEach(function () {
+      _sinon2['default'].stub(retailRocket, 'load');
+    });
+
+    afterEach(function () {
+      retailRocket.load.restore();
+    });
+
+    describe('#constructor', function () {
+
+      it('should create Retail Rocket integrations with proper options and tags', function () {
+        _assert2['default'].equal(options.partnerId, retailRocket.getOption('partnerId'));
+        _assert2['default'].equal('script', retailRocket.getTag().type);
+        _assert2['default'].ok(retailRocket.getTag().attr.src.indexOf('retailrocket.ru') > 0);
+      });
+    });
+
+    describe('#initialize', function () {
+      it('should initialize all methods', function () {
+        _ddManager2['default'].initialize();
+        _assert2['default'].ok(window.rrPartnerId, 'window.rrPartnerId is not defined');
+        _assert2['default'].ok(window.rrApi, 'window.rrApi is not defined');
+        _assert2['default'].ok(window.rrApiOnReady, 'window.rrApiOnReady is not defined');
+        _assert2['default'].ok(typeof window.rrApi.addToBasket === 'function', 'window.rrApi.addToBasket is not a function');
+        _assert2['default'].ok(typeof window.rrApi.order === 'function', 'window.rrApi.order is not a function');
+        _assert2['default'].ok(typeof window.rrApi.categoryView === 'function', 'window.rrApi.categoryView is not a function');
+        _assert2['default'].ok(typeof window.rrApi.view === 'function', 'window.rrApi.view is not a function');
+        _assert2['default'].ok(typeof window.rrApi.recomMouseDown === 'function', 'window.rrApi.recomMouseDown is not a function');
+        _assert2['default'].ok(typeof window.rrApi.recomAddToCart === 'function', 'window.rrApi.recomAddToCart is not a function');
+      });
+
+      it('should set window.rrPartnerUserId if possible', function () {
+        window.digitalData.user.email = 'test@test.com';
+        _ddManager2['default'].initialize();
+        _assert2['default'].equal(window.rrPartnerUserId, 'test@test.com');
+      });
+    });
+  });
+
+  describe('after loading', function () {
+
+    var prepareStubs = function prepareStubs() {
+      window.rrApiOnReady.push = function (fn) {
+        fn();
+      };
+      _sinon2['default'].stub(window.rrApi, 'addToBasket');
+      _sinon2['default'].stub(window.rrApi, 'view');
+      _sinon2['default'].stub(window.rrApi, 'categoryView');
+      _sinon2['default'].stub(window.rrApi, 'order');
+      _sinon2['default'].stub(window.rrApi, 'pageView');
+      _sinon2['default'].stub(window.rrApi, 'search');
+      _sinon2['default'].stub(window.rrApi, 'recomMouseDown');
+      window.rrApi.setEmail = function () {};
+      stubsPrepared = true;
+    };
+
+    var restoreStubs = function restoreStubs() {
+      window.rrApi.addToBasket.restore();
+      window.rrApi.view.restore();
+      window.rrApi.categoryView.restore();
+      window.rrApi.order.restore();
+      window.rrApi.pageView.restore();
+      window.rrApi.search.restore();
+      window.rrApi.recomMouseDown.restore();
+    };
+
+    beforeEach(function (done) {
+      _sinon2['default'].stub(retailRocket, 'load', function () {
+        rrApi._initialize = function () {};
+        retailRocket.onLoad();
+      });
+
+      _ddManager2['default'].once('ready', done);
+      _ddManager2['default'].initialize();
+      prepareStubs();
+    });
+
+    afterEach(function () {
+      restoreStubs();
+    });
+
+    describe('#onViewedProductCategory', function () {
+
+      it('should track "Viewed Product Category" with categoryId param', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          category: 'Ecommerce',
+          listing: {
+            categoryId: '28'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(window.rrApi.categoryView.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should throw validation error for "Viewed Product Category" event', function (done) {
+        window.digitalData.page = {};
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          category: 'Ecommerce',
+          callback: function callback(results, errors) {
+            _assert2['default'].ok(errors.length > 0);
+            _assert2['default'].ok(errors[0].code === 'validation_error');
+            done();
+          }
+        });
+      });
+
+      it('should not track "Viewed Product Category" if noConflict option is true', function (done) {
+        retailRocket.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          category: 'Ecommerce',
+          listing: {
+            categoryId: '28'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window.rrApi.categoryView.called);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onViewedProductDetail', function () {
+
+      it('should track "Viewed Product Detail" with product.id param', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: {
+            id: '327'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(window.rrApi.view.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should track "Viewed Product Detail" event with product param', function (done) {
+        window.digitalData.page = {
+          type: 'product'
+        };
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: '327',
+          callback: function callback() {
+            _assert2['default'].ok(window.rrApi.view.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should throw validation error for "Viewed Product Detail" event', function (done) {
+        window.digitalData.page = {};
+        window.digitalData.product = {};
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          callback: function callback(results, errors) {
+            _assert2['default'].ok(errors.length > 0);
+            _assert2['default'].ok(errors[0].code === 'validation_error');
+            done();
+          }
+        });
+      });
+
+      it('should not track "Viewed Product Detail" if noConflict option is true', function (done) {
+        retailRocket.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: {
+            id: '327'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window.rrApi.view.called);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onAddedProduct', function () {
+
+      it('should track "Added Product" with product.id param', function (done) {
+        window.digitalData.events.push({
+          name: 'Added Product',
+          category: 'Ecommerce',
+          product: {
+            id: '327'
+          },
+          quantity: 1,
+          callback: function callback() {
+            _assert2['default'].ok(window.rrApi.addToBasket.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should track "Added Product" event by product id', function (done) {
+        window.digitalData.page = {
+          type: 'product'
+        };
+        window.digitalData.events.push({
+          name: 'Added Product',
+          category: 'Ecommerce',
+          product: '327',
+          quantity: 1,
+          callback: function callback() {
+            _assert2['default'].ok(window.rrApi.addToBasket.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should throw validation error for "Added Product" event', function (done) {
+        window.digitalData.page = {};
+        window.digitalData.product = {};
+        window.digitalData.events.push({
+          name: 'Added Product',
+          category: 'Ecommerce',
+          callback: function callback(results, errors) {
+            _assert2['default'].ok(errors.length > 0);
+            _assert2['default'].ok(errors[0].code === 'validation_error');
+            done();
+          }
+        });
+      });
+
+      it('should not track "Added Product" if noConflict option is true', function (done) {
+        retailRocket.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Added Product',
+          category: 'Ecommerce',
+          product: {
+            id: '327'
+          },
+          quantity: 1,
+          callback: function callback() {
+            _assert2['default'].ok(!window.rrApi.addToBasket.called);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onClickedProduct', function () {
+
+      it('should track "Clicked Product" with product.id param', function (done) {
+        retailRocket.setOption('listMethods', {
+          recom1: 'Related'
+        });
+        window.digitalData.events.push({
+          name: 'Clicked Product',
+          category: 'Ecommerce',
+          listItem: {
+            product: {
+              id: '327'
+            },
+            listName: 'recom1'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(window.rrApi.recomMouseDown.calledWith('327', 'Related'));
+            done();
+          }
+        });
+      });
+
+      it('should track "Clicked Product" event by product id', function (done) {
+        retailRocket.setOption('listMethods', {
+          recom1: 'Related'
+        });
+        window.digitalData.page = {
+          type: 'product'
+        };
+        window.digitalData.recommendation = [{
+          listName: 'recom1',
+          items: [{
+            id: '327'
+          }]
+        }];
+        window.digitalData.events.push({
+          name: 'Clicked Product',
+          category: 'Ecommerce',
+          listItem: {
+            product: '327'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(window.rrApi.recomMouseDown.calledWith('327', 'Related'));
+            done();
+          }
+        });
+      });
+
+      it('should throw validation error for "Clicked Product" event', function (done) {
+        window.digitalData.page = {};
+        window.digitalData.product = {};
+        window.digitalData.events.push({
+          name: 'Clicked Product',
+          category: 'Ecommerce',
+          callback: function callback(results, errors) {
+            _assert2['default'].ok(errors.length > 0);
+            _assert2['default'].ok(errors[0].code === 'validation_error');
+            done();
+          }
+        });
+      });
+
+      it('should not track "Clicked Product" event if listName is not defined for product', function (done) {
+        window.digitalData.page = {};
+        window.digitalData.product = {};
+        window.digitalData.events.push({
+          name: 'Clicked Product',
+          category: 'Ecommerce',
+          listItem: {
+            product: {
+              id: '327'
+            }
+          },
+          callback: function callback(results, errors) {
+            _assert2['default'].ok(!window.rrApi.recomMouseDown.called);
+            done();
+          }
+        });
+      });
+
+      it('should not track "Clicked Product" event if list recommendation method is not defined for product', function (done) {
+        window.digitalData.page = {};
+        window.digitalData.product = {};
+        window.digitalData.events.push({
+          name: 'Clicked Product',
+          category: 'Ecommerce',
+          listItem: {
+            product: {
+              id: '327'
+            },
+            listName: 'recom1'
+          },
+          callback: function callback(results, errors) {
+            _assert2['default'].ok(!window.rrApi.recomMouseDown.called);
+            done();
+          }
+        });
+      });
+
+      it('should not track "Clicked Product" if noConflict option is true', function (done) {
+        retailRocket.setOption('noConflict', true);
+        retailRocket.setOption('listMethods', {
+          recom1: 'Related'
+        });
+        window.digitalData.events.push({
+          name: 'Added Product',
+          category: 'Ecommerce',
+          product: {
+            id: '327',
+            listName: 'recom1'
+          },
+          quantity: 1,
+          callback: function callback() {
+            _assert2['default'].ok(!window.rrApi.recomMouseDown.called);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onCompletedTransaction', function () {
+
+      it('should track "Completed Transaction" with transaction param', function (done) {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          transaction: {
+            orderId: '123',
+            lineItems: [{
+              product: {
+                id: '327',
+                unitSalePrice: 245
+              },
+              quantity: 1
+            }, {
+              product: {
+                id: '328',
+                unitSalePrice: 245
+              },
+              quantity: 2
+            }]
+          },
+          callback: function callback() {
+            _assert2['default'].ok(window.rrApi.order.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should track "Completed Transaction" with transaction param and product.unitPrice instead of product.unitSalePrice', function (done) {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          transaction: {
+            orderId: '123',
+            lineItems: [{
+              product: {
+                id: '327',
+                unitPrice: 245
+              },
+              quantity: 1
+            }, {
+              product: {
+                id: '328',
+                unitPrice: 245
+              },
+              quantity: 2
+            }]
+          },
+          callback: function callback() {
+            _assert2['default'].ok(window.rrApi.order.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should throw validation error for "Completed Transaction" event when missing transaction param', function (done) {
+        (0, _deleteProperty2['default'])(window.digitalData, 'transaction');
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          callback: function callback(results, errors) {
+            _assert2['default'].ok(errors.length > 0);
+            _assert2['default'].ok(errors[0].code === 'validation_error');
+            done();
+          }
+        });
+      });
+
+      it('should throw validation error for "Completed Transaction" event when missing lineItems params', function (done) {
+        window.digitalData.transaction = {
+          orderId: '123'
+        };
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          callback: function callback(results, errors) {
+            _assert2['default'].ok(errors.length > 0);
+            _assert2['default'].ok(errors[0].code === 'validation_error');
+            done();
+          }
+        });
+      });
+
+      it('should throw validation error for "Completed Transaction" event when missing product.id params', function (done) {
+        window.digitalData.transaction = {
+          orderId: '123',
+          lineItems: [{
+            product: {}
+          }, {
+            product: {}
+          }]
+        };
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          callback: function callback(results, errors) {
+            _assert2['default'].ok(errors.length > 0, 'There was no errors');
+            _assert2['default'].ok(errors[0].code === 'validation_error', 'Error code is not correct');
+            done();
+          }
+        });
+      });
+
+      it('should throw validation error for "Completed Transaction" event when missing lineItem quantity params', function (done) {
+        window.digitalData.transaction = {
+          orderId: '123',
+          lineItems: [{
+            product: {
+              id: '327',
+              unitSalePrice: 245
+            }
+          }, {
+            product: {
+              id: '328',
+              unitSalePrice: 245
+            }
+          }]
+        };
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          callback: function callback(results, errors) {
+            _assert2['default'].ok(errors.length > 0, 'There was no errors');
+            _assert2['default'].ok(errors[0].code === 'validation_error', 'Error code is not correct');
+            done();
+          }
+        });
+      });
+
+      it('should throw validation error for "Completed Transaction" event when missing product.unitSalePrice params', function (done) {
+        window.digitalData.transaction = {
+          orderId: '123',
+          lineItems: [{
+            product: {
+              id: '327'
+            },
+            quantity: 1
+          }, {
+            product: {
+              id: '328'
+            },
+            quantity: 2
+          }]
+        };
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          callback: function callback(results, errors) {
+            _assert2['default'].ok(errors.length > 0);
+            _assert2['default'].ok(errors[0].code === 'validation_error');
+            done();
+          }
+        });
+      });
+
+      it('should not track "Completed Transaction" if noConflict option is true', function (done) {
+        retailRocket.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          transaction: {
+            orderId: '123',
+            lineItems: [{
+              product: {
+                id: '327',
+                unitSalePrice: 245
+              },
+              quantity: 1
+            }, {
+              product: {
+                id: '328',
+                unitSalePrice: 245
+              },
+              quantity: 2
+            }]
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window.rrApi.order.called);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onSubscribed', function () {
+
+      beforeEach(function () {
+        _sinon2['default'].stub(window.rrApi, 'setEmail');
+      });
+
+      afterEach(function () {
+        window.rrApi.setEmail.restore();
+      });
+
+      it('should track "Subscribed" with user.email param', function (done) {
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          category: 'Email',
+          user: {
+            email: 'test@driveback.ru'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(window.rrApi.setEmail.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should track "Subscribed" with user.email param and other custom params', function (done) {
+        retailRocket.setOption('customVariables', {
+          param1: 'eventParam1',
+          param2: 'eventParam2',
+          param3: 'user.firstName'
+        });
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          category: 'Email',
+          user: {
+            email: 'test@driveback.ru',
+            firstName: 'John Dow'
+          },
+          eventParam1: 'test1',
+          eventParam2: true,
+          callback: function callback() {
+            _assert2['default'].ok(window.rrApi.setEmail.calledWith('test@driveback.ru', {
+              param1: 'test1',
+              param2: 'true',
+              param3: 'John Dow'
+            }));
+            done();
+          }
+        });
+      });
+
+      it('should track "Subscribed" event with user.email param  if noConflict is true', function (done) {
+        retailRocket.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          category: 'Email',
+          user: {
+            email: 'test@driveback.ru'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(window.rrApi.setEmail.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should track "Subscribed" event with user.email param and other customs if noConflict is true', function (done) {
+        retailRocket.setOption('noConflict', true);
+        retailRocket.setOption('customVariables', {
+          param1: 'eventParam1',
+          param2: 'eventParam2',
+          param3: 'user.firstName'
+        });
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          category: 'Email',
+          user: {
+            email: 'test@driveback.ru',
+            firstName: 'John Dow'
+          },
+          eventParam1: 'test1',
+          eventParam2: true,
+          callback: function callback() {
+            _assert2['default'].ok(window.rrApi.setEmail.calledWith('test@driveback.ru', {
+              param1: 'test1',
+              param2: 'true',
+              param3: 'John Dow'
+            }));
+            done();
+          }
+        });
+      });
+
+      it('should throw validation error for "Subscribed" event', function (done) {
+        window.digitalData.user = {};
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          category: 'Email',
+          callback: function callback(results, errors) {
+            _assert2['default'].ok(errors.length > 0);
+            _assert2['default'].ok(errors[0].code === 'validation_error');
+            _assert2['default'].ok(!window.rrApi.setEmail.called);
+            done();
+          }
+        });
+      });
+
+      it('should track email if user.email is set and user.isSubscribed is TRUE', function () {
+        window.digitalData.user = {
+          email: 'test@driveback.ru',
+          isSubscribed: true
+        };
+        retailRocket.setOption('trackAllEmails', false);
+        retailRocket.trackEmail();
+        _assert2['default'].ok(window.rrApi.setEmail.calledOnce);
+      });
+
+      it('should NOT track email if user.email is set and user.isSubscribed is FALSE', function () {
+        window.digitalData.user = {
+          email: 'test@driveback.ru',
+          isSubscribed: false
+        };
+        retailRocket.setOption('trackAllEmails', false);
+        retailRocket.trackEmail();
+        _assert2['default'].ok(!window.rrApi.setEmail.called);
+      });
+
+      it('should track email if user.email is set and user.isSubscribed is FALSE if trackAllEmail option is TRUE', function () {
+        window.digitalData.user = {
+          email: 'test@driveback.ru',
+          isSubscribed: false
+        };
+        retailRocket.setOption('trackAllEmails', true);
+        retailRocket.trackEmail();
+        _assert2['default'].ok(window.rrApi.setEmail.calledOnce);
+      });
+
+      it('should update user.email if rr_setemail is set', function () {
+        window.digitalData.user = {};
+
+        _sinon2['default'].stub(retailRocket, 'getQueryString', function () {
+          return '?rr_setemail=test@driveback.ru';
+        });
+
+        retailRocket.setOption('trackAllEmails', false);
+        retailRocket.trackEmail();
+
+        _assert2['default'].ok(window.digitalData.user.email === 'test@driveback.ru');
+        retailRocket.getQueryString.restore();
+      });
+
+      it('should track email anytime user.email updated if trackAllEmails is TRUE', function (done) {
+        retailRocket.setOption('trackAllEmails', true);
+        window.digitalData.user = {
+          email: 'test@driveback.ru'
+        };
+
+        // wait 101 while DDL changes listener will update to new state
+        setTimeout(function () {
+          _assert2['default'].ok(window.rrApi.setEmail.calledOnce);
+          done();
+        }, 101);
+      });
+
+      it('should NOT track email anytime user.email updated if trackAllEmails is FALSE', function (done) {
+        retailRocket.setOption('trackAllEmails', false);
+        window.digitalData.user = {
+          email: 'test@driveback.ru'
+        };
+
+        setTimeout(function () {
+          _assert2['default'].ok(!window.rrApi.setEmail.called);
+          done();
+        }, 101);
+      });
+    });
+
+    describe('#onSearched', function () {
+
+      it('should track "Searched" with query param', function (done) {
+        window.digitalData.events.push({
+          name: 'Searched',
+          category: 'Content',
+          listing: {
+            query: 'Test query'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(window.rrApi.search.calledWith('Test query'));
+            done();
+          }
+        });
+      });
+
+      it('should throw validation error for "Searched" event', function (done) {
+        window.digitalData.events.push({
+          name: 'Searched',
+          category: 'Content',
+          callback: function callback(results, errors) {
+            _assert2['default'].ok(errors.length > 0);
+            _assert2['default'].ok(errors[0].code === 'validation_error');
+            done();
+          }
+        });
+      });
+
+      it('should not track "Searched" if noConflict option is true', function (done) {
+        retailRocket.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Searched',
+          category: 'Content',
+          listing: {
+            query: 'Test query'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window.rrApi.search.called);
+            done();
+          }
+        });
+      });
+    });
+  });
+});
+
+},{"./../../src/ddManager.js":100,"./../../src/functions/deleteProperty.js":102,"./../../src/integrations/RetailRocket.js":125,"./../reset.js":152,"assert":1,"sinon":64}],148:[function(require,module,exports){
 'use strict';
 
 var _SegmentStream = require('./../../src/integrations/SegmentStream.js');
@@ -16877,6 +27099,7 @@ describe('SegmentStream', function () {
     };
     window.localStorage.clear(); // just to be sure
     _ss = new _SegmentStream2['default'](window.digitalData, options);
+    _ss.reset(); // in case it was initialized somewhere before
     _ddManager2['default'].addIntegration('SegmentStream', _ss);
   });
 
@@ -16992,7 +27215,866 @@ describe('SegmentStream', function () {
   });
 });
 
-},{"./../../src/ddManager.js":99,"./../../src/integrations/SegmentStream.js":114,"./../reset.js":118,"assert":1,"sinon":64}],118:[function(require,module,exports){
+},{"./../../src/ddManager.js":100,"./../../src/integrations/SegmentStream.js":126,"./../reset.js":152,"assert":1,"sinon":64}],149:[function(require,module,exports){
+'use strict';
+
+var _SendPulse = require('./../../src/integrations/SendPulse.js');
+
+var _SendPulse2 = _interopRequireDefault(_SendPulse);
+
+var _ddManager = require('./../../src/ddManager.js');
+
+var _ddManager2 = _interopRequireDefault(_ddManager);
+
+var _sinon = require('sinon');
+
+var _sinon2 = _interopRequireDefault(_sinon);
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _reset = require('./../reset.js');
+
+var _reset2 = _interopRequireDefault(_reset);
+
+var _after = require('./../../src/functions/after.js');
+
+var _after2 = _interopRequireDefault(_after);
+
+var _deleteProperty = require('./../../src/functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+describe('SendPulse', function () {
+
+  var _sp = void 0;
+  var options = {
+    pushScriptUrl: '//cdn.sendpulse.com/js/push/e3f319c5d3eb82e6edce82a263b937d0_0.js'
+  };
+
+  beforeEach(function () {
+    window.digitalData = {
+      events: []
+    };
+    _sp = new _SendPulse2['default'](window.digitalData, options);
+    _ddManager2['default'].addIntegration('SendPulse', _sp);
+  });
+
+  afterEach(function () {
+    _sp.reset();
+    _ddManager2['default'].reset();
+    (0, _reset2['default'])();
+  });
+
+  describe('after loading', function () {
+
+    beforeEach(function (done) {
+      window.digitalData.user = {
+        test: 'test',
+        obj: {
+          param1: 'test',
+          param2: 'test'
+        }
+      };
+
+      _sinon2['default'].stub(_sp, 'load', function (callback) {
+        window.oSpP = {
+          detectSite: function detectSite() {
+            return true;
+          },
+          detectOs: function detectOs() {
+            return 'Mac OS X';
+          },
+          detectBrowser: function detectBrowser() {
+            return {
+              name: 'Firefox',
+              version: 44
+            };
+          },
+          getDbValue: function getDbValue(param1, param2, callback) {
+            setTimeout(function () {
+              callback({
+                target: {
+                  result: {
+                    type: 'SubscriptionId',
+                    value: "v1/gAAAAABW9rF70jehdBnhO...O1DEYc0qZud-g-FdaW73j__"
+                  }
+                }
+              });
+            }, 0);
+          },
+          storeSubscription: function storeSubscription() {},
+          push: function push(key, value) {},
+          showPopUp: function showPopUp() {},
+          startSubscription: function startSubscription() {},
+          isServiceWorkerChromeSupported: function isServiceWorkerChromeSupported() {}
+        };
+        _sinon2['default'].stub(window.oSpP, 'push');
+        callback();
+      });
+
+      _ddManager2['default'].once('ready', done);
+      _ddManager2['default'].initialize({
+        autoEvents: false
+      });
+    });
+
+    afterEach(function () {
+      _sp.load.restore();
+    });
+
+    describe('#enrichDigitalData', function () {
+
+      it('should enrich digitalData.user', function () {
+        _sp.on('enrich', function () {
+          _assert2['default'].ok(window.digitalData.user.pushNotifications);
+        });
+      });
+
+      it('should not support push notifications for IE and Edge', function () {
+        _sp.on('enrich', function () {
+          window.oSpP.detectBrowser = function () {
+            return {
+              name: 'Edge',
+              version: '25.10'
+            };
+          };
+          _assert2['default'].ok(!_sp.checkPushNotificationsSupport());
+        });
+      });
+    });
+
+    describe('digitalData changes', function () {
+
+      afterEach(function () {
+        window.oSpP.push.restore();
+      });
+
+      it('should add additional params to SendPulse once integration is initialized', function () {
+        _sp.once('enrich', function () {
+          _assert2['default'].ok(window.oSpP.push.calledWith('test', 'test'));
+        });
+      });
+
+      it('should add additional params to SendPulse if user is subscribed', function (done) {
+        _sp.once('enrich', function () {
+          window.digitalData.user.city = 'New York';
+          window.digitalData.user.isBoolean = true;
+          window.digitalData.user.test = 'test';
+
+          window.oSpP.push.restore();
+          _sinon2['default'].spy(window.oSpP, 'push');
+          setTimeout(function () {
+            _assert2['default'].ok(window.oSpP.push.calledWith('city', 'New York'));
+            _assert2['default'].ok(window.oSpP.push.calledWith('isBoolean', 'true'));
+            _assert2['default'].ok(!window.oSpP.push.calledWith('test', 'test'));
+            done();
+          }, 101);
+        });
+      });
+
+      it('should not add additional params to SendPulse if user is not subscribed', function (done) {
+        _sp.once('enrich', function () {
+          window.digitalData.user.pushNotifications.isSubscribed = false;
+          window.oSpP.push.restore();
+          _sinon2['default'].spy(window.oSpP, 'push');
+          window.digitalData.user.city = 'New York';
+          setTimeout(function () {
+            _assert2['default'].ok(!window.oSpP.push.called);
+            done();
+          }, 101);
+        });
+      });
+    });
+
+    describe('oSpP.storeSubscription', function () {
+
+      it('should send user attributes if any', function () {
+        _sp.once('enrich', function () {
+          window.digitalData.user.test = 'test';
+          //sinon.spy(window.oSpP, 'push');
+          window.oSpP.storeSubscription('DUMMY');
+          _assert2['default'].ok(window.oSpP.push.calledWith('test', 'test'));
+        });
+      });
+    });
+
+    describe('#trackEvent', function () {
+
+      it('should call oSpP.showPopUp', function (done) {
+        _sinon2['default'].spy(window.oSpP, 'showPopUp');
+        window.digitalData.events.push({
+          name: 'Agreed to Receive Push Notifications',
+          callback: function callback() {
+            _assert2['default'].ok(window.oSpP.showPopUp.calledOnce);
+            window.oSpP.showPopUp.restore();
+            done();
+          }
+        });
+      });
+
+      it('should call oSpP.startSubscription', function (done) {
+        window.oSpP.detectBrowser = function () {
+          return {
+            name: 'Safari',
+            version: '9.0.3'
+          };
+        };
+        window.oSpP.isSafariNotificationSupported = function () {
+          return true;
+        };
+        _sinon2['default'].spy(window.oSpP, 'startSubscription');
+        window.digitalData.events.push({
+          name: 'Agreed to Receive Push Notifications',
+          callback: function callback() {
+            _assert2['default'].ok(window.oSpP.startSubscription.calledOnce);
+            window.oSpP.startSubscription.restore();
+            done();
+          }
+        });
+      });
+
+      it('should call oSpP.startSubscription for https website', function (done) {
+        _sinon2['default'].stub(_sp, 'isHttps', function () {
+          return true;
+        });
+        window.oSpP.isServiceWorkerChromeSupported = function () {
+          return true;
+        };
+        _sinon2['default'].spy(window.oSpP, 'startSubscription');
+        window.digitalData.events.push({
+          name: 'Agreed to Receive Push Notifications',
+          callback: function callback() {
+            _assert2['default'].ok(window.oSpP.startSubscription.calledOnce);
+            window.oSpP.startSubscription.restore();
+            done();
+          }
+        });
+        _sp.isHttps.restore();
+      });
+    });
+  });
+});
+
+},{"./../../src/ddManager.js":100,"./../../src/functions/after.js":101,"./../../src/functions/deleteProperty.js":102,"./../../src/integrations/SendPulse.js":127,"./../reset.js":152,"assert":1,"sinon":64}],150:[function(require,module,exports){
+'use strict';
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _sinon = require('sinon');
+
+var _sinon2 = _interopRequireDefault(_sinon);
+
+var _reset = require('./../reset.js');
+
+var _reset2 = _interopRequireDefault(_reset);
+
+var _Vkontakte = require('./../../src/integrations/Vkontakte.js');
+
+var _Vkontakte2 = _interopRequireDefault(_Vkontakte);
+
+var _ddManager = require('./../../src/ddManager.js');
+
+var _ddManager2 = _interopRequireDefault(_ddManager);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+describe('Integrations: Vkontakte', function () {
+
+  var vk = void 0;
+  var options = {
+    eventPixels: {
+      'Viewed Product Detail': '//vk.com/rtrg?r=Ug6K6tdSZ*shxgTtjsI9bzDBp1ShCs3q3RdXVNHK1asqy2mLKDvJxuvWw8M7hqktulxtbSlnJsT7*/7Jf5MzEfqO3K5TF9z2zwlFLTuWCy3PiRkO9Ga1I6yOoseM*lfVbhVlQRoHjI5Bt66fOiB1TZLJEZ5nGwFALsuVd5WmSrk-'
+    }
+  };
+
+  beforeEach(function () {
+    window.digitalData = {
+      page: {},
+      user: {},
+      events: []
+    };
+    vk = new _Vkontakte2['default'](window.digitalData, options);
+    _ddManager2['default'].addIntegration('Vkontakte', vk);
+  });
+
+  afterEach(function () {
+    vk.reset();
+    _ddManager2['default'].reset();
+    (0, _reset2['default'])();
+  });
+
+  describe('before loading', function () {
+
+    describe('#constructor', function () {
+      it('should add proper options', function () {
+        _assert2['default'].equal(options.eventPixels, vk.getOption('eventPixels'));
+      });
+    });
+
+    describe('#initialize', function () {
+      it('should call ready after initialization', function () {
+        _sinon2['default'].stub(vk, 'onLoad');
+        _ddManager2['default'].initialize();
+        _assert2['default'].ok(vk.onLoad.calledOnce);
+        vk.onLoad.restore();
+      });
+    });
+  });
+
+  describe('loading', function () {
+    it('should load', function (done) {
+      _assert2['default'].ok(!vk.isLoaded());
+      _ddManager2['default'].once('load', function () {
+        _assert2['default'].ok(vk.isLoaded());
+        done();
+      });
+      _ddManager2['default'].initialize({
+        autoEvents: false
+      });
+    });
+  });
+
+  describe('after loading', function () {
+    beforeEach(function (done) {
+      _sinon2['default'].spy(vk, 'addPixel');
+      _ddManager2['default'].once('ready', done);
+      _ddManager2['default'].initialize({
+        autoEvents: false
+      });
+    });
+
+    afterEach(function () {
+      vk.addPixel.restore();
+    });
+
+    describe('#onAnyEvent', function () {
+      it('should add pixel to the page', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          page: {},
+          callback: function callback() {
+            _assert2['default'].ok(vk.addPixel.called);
+            done();
+          }
+        });
+      });
+
+      it('should not add pixel to the page', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product',
+          category: 'Ecommerce',
+          page: {},
+          callback: function callback() {
+            _assert2['default'].ok(!vk.addPixel.called);
+            done();
+          }
+        });
+      });
+    });
+  });
+});
+
+},{"./../../src/ddManager.js":100,"./../../src/integrations/Vkontakte.js":128,"./../reset.js":152,"assert":1,"sinon":64}],151:[function(require,module,exports){
+'use strict';
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _sinon = require('sinon');
+
+var _sinon2 = _interopRequireDefault(_sinon);
+
+var _reset = require('./../reset.js');
+
+var _reset2 = _interopRequireDefault(_reset);
+
+var _YandexMetrica = require('./../../src/integrations/YandexMetrica.js');
+
+var _YandexMetrica2 = _interopRequireDefault(_YandexMetrica);
+
+var _ddManager = require('./../../src/ddManager.js');
+
+var _ddManager2 = _interopRequireDefault(_ddManager);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+describe('Integrations: Yandex Metrica', function () {
+
+  var ym = void 0;
+  var options = {
+    counterId: '37510050',
+    clickmap: true,
+    webvisor: true,
+    trackLinks: false,
+    trackHash: true,
+    purchaseGoalId: '20185850',
+    goals: {
+      'Test Event': 'GOAL1'
+    },
+    noConflict: false
+  };
+
+  beforeEach(function () {
+    window.digitalData = {
+      page: {},
+      user: {},
+      events: []
+    };
+    ym = new _YandexMetrica2['default'](window.digitalData, options);
+    _ddManager2['default'].addIntegration('YandexMetrica', ym);
+  });
+
+  afterEach(function () {
+    ym.reset();
+    _ddManager2['default'].reset();
+    (0, _reset2['default'])();
+  });
+
+  describe('before loading', function () {
+    beforeEach(function () {
+      _sinon2['default'].stub(ym, 'load');
+    });
+
+    afterEach(function () {
+      ym.load.restore();
+    });
+
+    describe('#constructor', function () {
+      it('should add proper tags and options', function () {
+        _assert2['default'].equal(options.counterId, ym.getOption('counterId'));
+        _assert2['default'].equal(options.clickmap, ym.getOption('clickmap'));
+        _assert2['default'].equal(options.webvisor, ym.getOption('webvisor'));
+        _assert2['default'].equal(options.trackLinks, ym.getOption('trackLinks'));
+        _assert2['default'].equal(options.trackHash, ym.getOption('trackHash'));
+        _assert2['default'].equal(options.purchaseGoalId, ym.getOption('purchaseGoalId'));
+        _assert2['default'].deepEqual(options.goals, ym.getOption('goals'));
+        _assert2['default'].equal('script', ym.getTag().type);
+        _assert2['default'].equal(ym.getTag().attr.src, '//mc.yandex.ru/metrika/watch.js');
+      });
+    });
+
+    describe('#initialize', function () {
+      it('should initialize yandex metrica queue object', function () {
+        _ddManager2['default'].initialize();
+        _assert2['default'].ok(window.yandex_metrika_callbacks);
+        _assert2['default'].ok(window.yandex_metrika_callbacks.push);
+        _assert2['default'].ok(window.yandex_metrika_callbacks.length, 1);
+      });
+
+      it('should call tags load after initialization', function () {
+        _ddManager2['default'].initialize();
+        _assert2['default'].ok(ym.load.calledOnce);
+      });
+    });
+  });
+
+  describe('loading', function () {
+    beforeEach(function () {
+      _sinon2['default'].stub(ym, 'load', function () {
+        window.Ya = {};
+        window.Ya.Metrika = function (options) {
+          _assert2['default'].equal(options.id, ym.getOption('counterId'));
+          _assert2['default'].equal(options.clickmap, ym.getOption('clickmap'));
+          _assert2['default'].equal(options.webvisor, ym.getOption('webvisor'));
+          _assert2['default'].equal(options.trackLinks, ym.getOption('trackLinks'));
+          _assert2['default'].equal(options.trackHash, ym.getOption('trackHash'));
+        };
+        window.yandex_metrika_callbacks.pop()();
+        ym.onLoad();
+      });
+    });
+
+    afterEach(function () {
+      ym.load.restore();
+    });
+
+    it('should load', function (done) {
+      _assert2['default'].ok(!ym.isLoaded());
+      _ddManager2['default'].once('load', function () {
+        _assert2['default'].ok(ym.isLoaded());
+        done();
+      });
+      _ddManager2['default'].initialize({
+        autoEvents: false
+      });
+    });
+  });
+
+  describe('after loading', function () {
+    beforeEach(function (done) {
+      _sinon2['default'].stub(ym, 'load', function () {
+        window.Ya = {};
+        window.Ya.Metrika = function () {
+          this.reachGoal = function () {};
+        };
+        window.yandex_metrika_callbacks.pop()();
+        ym.onLoad();
+      });
+      _ddManager2['default'].once('ready', done);
+      _ddManager2['default'].initialize({
+        autoEvents: false
+      });
+    });
+
+    afterEach(function () {
+      ym.load.restore();
+    });
+
+    describe('#onViewedProductDetail', function () {
+      it('should push product detail into dataLayer', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            manufacturer: 'Test Brand',
+            category: 'Category 1',
+            subcategory: 'Subcategory 1',
+            voucher: 'VOUCHER1',
+            unitSalePrice: 1500,
+            variant: 'Variant 1'
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window.dataLayer[0], {
+              ecommerce: {
+                detail: {
+                  products: [{
+                    id: '123',
+                    name: 'Test Product',
+                    price: 1500,
+                    brand: 'Test Brand',
+                    category: 'Category 1/Subcategory 1',
+                    coupon: 'VOUCHER1',
+                    variant: 'Variant 1'
+                  }]
+                }
+              }
+            });
+            done();
+          }
+        });
+      });
+
+      it('should not push product detail into dataLayer if product ID or product name is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: {
+            price: 1500
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window.dataLayer[0]);
+            done();
+          }
+        });
+      });
+
+      it('should not push product detail into dataLayer event if noConflict option is true', function (done) {
+        ym.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: {
+            id: '123'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window.dataLayer[0]);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onAddedProduct', function () {
+      it('should push added product into dataLayer', function (done) {
+        window.digitalData.events.push({
+          name: 'Added Product',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            manufacturer: 'Test Brand',
+            category: 'Category 1',
+            subcategory: 'Subcategory 1',
+            voucher: 'VOUCHER1',
+            unitSalePrice: 1500,
+            variant: 'Variant 1'
+          },
+          quantity: 3,
+          callback: function callback() {
+            _assert2['default'].deepEqual(window.dataLayer[0], {
+              ecommerce: {
+                add: {
+                  products: [{
+                    id: '123',
+                    name: 'Test Product',
+                    price: 1500,
+                    brand: 'Test Brand',
+                    category: 'Category 1/Subcategory 1',
+                    coupon: 'VOUCHER1',
+                    variant: 'Variant 1',
+                    quantity: 3
+                  }]
+                }
+              }
+            });
+            done();
+          }
+        });
+      });
+
+      it('should not push added product into dataLayer if product ID or product name is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Added Product',
+          category: 'Ecommerce',
+          product: {
+            price: 1500
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window.dataLayer[0]);
+            done();
+          }
+        });
+      });
+
+      it('should not push added product into dataLayer event if noConflict option is true', function (done) {
+        ym.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Added Product',
+          category: 'Ecommerce',
+          product: {
+            id: '123'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window.dataLayer[0]);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onRemovedProduct', function () {
+      it('should push removed product into dataLayer', function (done) {
+        window.digitalData.events.push({
+          name: 'Removed Product',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            manufacturer: 'Test Brand',
+            category: 'Category 1',
+            subcategory: 'Subcategory 1',
+            voucher: 'VOUCHER1',
+            unitSalePrice: 1500,
+            variant: 'Variant 1'
+          },
+          quantity: 3,
+          callback: function callback() {
+            _assert2['default'].deepEqual(window.dataLayer[0], {
+              ecommerce: {
+                remove: {
+                  products: [{
+                    id: '123',
+                    name: 'Test Product',
+                    category: 'Category 1/Subcategory 1',
+                    quantity: 3
+                  }]
+                }
+              }
+            });
+            done();
+          }
+        });
+      });
+
+      it('should not push removed product into dataLayer if product ID or product name is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Removed Product',
+          category: 'Ecommerce',
+          product: {
+            price: 1500
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window.dataLayer[0]);
+            done();
+          }
+        });
+      });
+
+      it('should not push removed product into dataLayer event if noConflict option is true', function (done) {
+        ym.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Removed Product',
+          category: 'Ecommerce',
+          product: {
+            id: '123'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window.dataLayer[0]);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onCompletedTransaction', function () {
+      var lineItems = [{
+        product: {
+          id: '123',
+          unitSalePrice: 100
+        },
+        quantity: 1
+      }, {
+        product: {
+          id: '234',
+          unitPrice: 100,
+          unitSalePrice: 50
+        },
+        quantity: 2
+      }, {
+        product: {
+          name: 'Test Product',
+          unitPrice: 30
+        }
+      }, {
+        product: {
+          unitPrice: 30
+        }
+      }, {
+        product: {}
+      }];
+
+      it('should push purchase information into dataLayer', function (done) {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          transaction: {
+            orderId: '123',
+            vouchers: ['VOUCHER1'],
+            lineItems: lineItems,
+            total: 1500
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window.dataLayer[0], {
+              ecommerce: {
+                purchase: {
+                  actionField: {
+                    id: '123',
+                    goal_id: options.purchaseGoalId,
+                    coupon: 'VOUCHER1',
+                    revenue: 1500
+                  },
+                  products: [{
+                    id: '123',
+                    price: 100,
+                    quantity: 1
+                  }, {
+                    id: '234',
+                    price: 50,
+                    quantity: 2
+                  }, {
+                    name: 'Test Product',
+                    price: 30,
+                    quantity: 1
+                  }]
+                }
+              }
+            });
+            done();
+          }
+        });
+      });
+
+      it('should not purchase information into dataLayer if transaction object is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          callback: function callback() {
+            _assert2['default'].ok(!window.dataLayer[0]);
+            done();
+          }
+        });
+      });
+
+      it('should not purchase information into dataLayer if transaction object is no orderId', function (done) {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          transaction: {
+            lineItems: [{
+              product: {
+                id: '123',
+                unitSalePrice: 100
+              },
+              quantity: 1
+            }]
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window.dataLayer[0]);
+            done();
+          }
+        });
+      });
+
+      it('should not send trackTransaction event if noConflict option is true', function (done) {
+        ym.setOption('noConflict', true);
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          transaction: {
+            orderId: '123',
+            lineItems: lineItems
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window.dataLayer[0]);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('Custom Goal', function () {
+      it('should track custom event as a goal', function (done) {
+        _sinon2['default'].stub(ym.yaCounter, 'reachGoal');
+        window.digitalData.events.push({
+          name: 'Test Event',
+          callback: function callback() {
+            _assert2['default'].ok(ym.yaCounter.reachGoal.calledWith('GOAL1'));
+            done();
+          }
+        });
+      });
+
+      it('should not track custom event as a goal', function (done) {
+        _sinon2['default'].stub(ym.yaCounter, 'reachGoal');
+        window.digitalData.events.push({
+          name: 'Test Event 2',
+          callback: function callback() {
+            _assert2['default'].ok(!ym.yaCounter.reachGoal.called);
+            done();
+          }
+        });
+      });
+    });
+  });
+});
+
+},{"./../../src/ddManager.js":100,"./../../src/integrations/YandexMetrica.js":129,"./../reset.js":152,"assert":1,"sinon":64}],152:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -17003,5 +28085,54 @@ function reset() {
   window.ddManager = undefined;
 }
 
-},{}]},{},[116])
+},{}],153:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+exports['default'] = function () {
+  // Create a queue, but don't obliterate an existing one!
+  var ddManager = window.ddManager = window.ddManager || [];
+  var ddListener = window.ddListener = window.ddListener || [];
+  var digitalData = window.digitalData = window.digitalData || {};
+  digitalData.events = digitalData.events || [];
+
+  // If the real ddManager is already on the page return.
+  if (ddManager.initialize) return;
+
+  // If the snippet was invoked already show an error.
+  if (ddManager.invoked) {
+    if (window.console && console.error) {
+      console.error('Digital Data Manager snippet included twice.');
+    }
+    return;
+  }
+  // Invoked flag, to make sure the snippet
+  // is never invoked twice.
+  ddManager.invoked = true;
+
+  // A list of the methods in Analytics.js to stub.
+  ddManager.methods = ['initialize', 'addIntegration', 'on', 'once', 'off'];
+
+  // Define a factory to create stubs. These are placeholders
+  // for methods in Digital Data Manager so that you never have to wait
+  // for it to load to actually record data. The `method` is
+  // stored as the first argument, so we can replay the data.
+  ddManager.factory = function (method) {
+    return function () {
+      var args = Array.prototype.slice.call(arguments);
+      args.unshift(method);
+      ddManager.push(args);
+      return ddManager;
+    };
+  };
+
+  // For each of our methods, generate a queueing stub.
+  for (var i = 0; i < ddManager.methods.length; i++) {
+    var key = ddManager.methods[i];
+    ddManager[key] = ddManager.factory(key);
+  }
+};
+
+},{}]},{},[138])
 //# sourceMappingURL=dd-manager-test.js.map
