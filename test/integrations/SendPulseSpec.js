@@ -143,7 +143,7 @@ describe('SendPulse', function() {
           setTimeout(() => {
             assert.ok(!window.oSpP.push.called);
             done();
-          }, 100);
+          }, 101);
         });
       });
     });

@@ -37,7 +37,7 @@ describe('SegmentStream', function() {
 
     describe('#initialize', function () {
 
-      it('it should initialize all stub functions`', function () {
+      it('it should initialize all stub functions', function () {
         ddManager.initialize({
           autoEvents: false
         });
@@ -71,11 +71,13 @@ describe('SegmentStream', function() {
     describe('#enrichDigitalData', function () {
 
       it('should enrich digitalData.user', () => {
-        assert.equal(window.digitalData.user.test, 'test');
-        assert.equal(window.digitalData.user.lifetimeVisitCount, 5);
-        assert.equal(window.digitalData.user.ssAttributes.lifetimeVisitCount, 0);
-        assert.ok(window.digitalData.user.ssAttributes.firstVisit !== undefined);
-        assert.ok(window.digitalData.user.anonymousId);
+        window.ssApi.pushOnReady(() => {
+          assert.equal(window.digitalData.user.test, 'test');
+          assert.equal(window.digitalData.user.lifetimeVisitCount, 5);
+          assert.equal(window.digitalData.user.ssAttributes.lifetimeVisitCount, 0);
+          assert.ok(window.digitalData.user.ssAttributes.firstVisit !== undefined);
+          assert.ok(window.digitalData.user.anonymousId);
+        });
       });
 
       it('should track Viewed Page semantic event', (done) => {
@@ -83,8 +85,10 @@ describe('SegmentStream', function() {
           name: 'Viewed Page',
           category: 'Content',
           callback: () => {
-            assert.equal(window.digitalData.user.ssAttributes.lifetimeVisitCount, 1);
-            done();
+            window.ssApi.pushOnReady(() => {
+              assert.equal(window.digitalData.user.ssAttributes.lifetimeVisitCount, 1);
+              done();
+            });
           }
         });
       });
@@ -98,11 +102,13 @@ describe('SegmentStream', function() {
             unitSalePrice: 100
           },
           callback: () => {
-            assert.equal(window.digitalData.user.ssAttributes.viewedProductsCount, 1);
-            assert.equal(window.digitalData.user.ssAttributes.lifetimeViewedProductsCount, 1);
-            assert.equal(window.digitalData.user.ssAttributes.lifetimeAverageViewedProductsPrice, 100);
-            assert.equal(window.digitalData.user.ssAttributes.averageViewedProductsPrice, 100);
-            done();
+            window.ssApi.pushOnReady(() => {
+              assert.equal(window.digitalData.user.ssAttributes.viewedProductsCount, 1);
+              assert.equal(window.digitalData.user.ssAttributes.lifetimeViewedProductsCount, 1);
+              assert.equal(window.digitalData.user.ssAttributes.lifetimeAverageViewedProductsPrice, 100);
+              assert.equal(window.digitalData.user.ssAttributes.averageViewedProductsPrice, 100);
+              done();
+            });
           }
         });
       });
@@ -116,9 +122,11 @@ describe('SegmentStream', function() {
             unitSalePrice: 100
           },
           callback: () => {
-            assert.equal(window.digitalData.user.ssAttributes.everAddedToCart, true);
-            assert.equal(window.digitalData.user.ssAttributes.addedToCart, true);
-            done();
+            window.ssApi.pushOnReady(() => {
+              assert.equal(window.digitalData.user.ssAttributes.everAddedToCart, true);
+              assert.equal(window.digitalData.user.ssAttributes.addedToCart, true);
+              done();
+            });
           }
         });
       });
