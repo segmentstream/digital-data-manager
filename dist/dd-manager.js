@@ -11806,22 +11806,34 @@ var SegmentStream = function (_Integration) {
   };
 
   SegmentStream.prototype.onViewedPage = function onViewedPage() {
-    window.ssApi.track('Viewed Page');
-    this.enrichDigitalData();
+    var _this4 = this;
+
+    ssApi.pushOnReady(function () {
+      window.ssApi.track('Viewed Page');
+      _this4.enrichDigitalData();
+    });
   };
 
   SegmentStream.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
-    window.ssApi.track('Viewed Product Detail', {
-      price: event.product.unitSalePrice || event.product.unitPrice || 0
+    var _this5 = this;
+
+    ssApi.pushOnReady(function () {
+      window.ssApi.track('Viewed Product Detail', {
+        price: event.product.unitSalePrice || event.product.unitPrice || 0
+      });
+      _this5.enrichDigitalData();
     });
-    this.enrichDigitalData();
   };
 
   SegmentStream.prototype.onAddedProduct = function onAddedProduct(event) {
-    window.ssApi.track('Added Product', {
-      price: event.product.unitSalePrice || event.product.unitPrice || 0
+    var _this6 = this;
+
+    ssApi.pushOnReady(function () {
+      window.ssApi.track('Added Product', {
+        price: event.product.unitSalePrice || event.product.unitPrice || 0
+      });
+      _this6.enrichDigitalData();
     });
-    this.enrichDigitalData();
   };
 
   return SegmentStream;
