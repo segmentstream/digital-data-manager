@@ -32,7 +32,7 @@ describe('DDManager', () => {
       window.ddManager.initialize();
       ddManager.processEarlyStubCalls();
 
-      assert.ok(ddManager.isInitialized());
+      assert.ok(ddManager.isReady());
       assert.ok(Array.isArray(window.digitalData.events));
       assert.ok(Array.isArray(window.ddListener));
     });
@@ -40,7 +40,7 @@ describe('DDManager', () => {
     it('should initialize after all other stubs', (done) => {
       snippet();
       window.ddManager.initialize();
-      window.ddManager.on('initialize', () => {
+      window.ddManager.on('ready', () => {
         done();
       });
       ddManager.processEarlyStubCalls();
@@ -48,7 +48,7 @@ describe('DDManager', () => {
 
     it('should initialize DDManager instance', () => {
       ddManager.initialize();
-      assert.ok(ddManager.isInitialized());
+      assert.ok(ddManager.isReady());
     });
 
     it('should add integration if old-style object settings', () => {
@@ -128,8 +128,8 @@ describe('DDManager', () => {
 
     it('it should fire on("initialize") event even if ddManager was initialized before', (done) => {
       ddManager.initialize();
-      if (ddManager.isInitialized()) {
-        ddManager.on('initialize', () => {
+      if (ddManager.isReady()) {
+        ddManager.on('ready', () => {
           done();
         });
       } else {
@@ -139,8 +139,8 @@ describe('DDManager', () => {
 
     it('it should fire once("initialize") event even if ddManager was initialized before', (done) => {
       ddManager.initialize();
-      if (ddManager.isInitialized()) {
-        ddManager.once('initialize', () => {
+      if (ddManager.isReady()) {
+        ddManager.once('ready', () => {
           done();
         });
       } else {
@@ -150,8 +150,8 @@ describe('DDManager', () => {
 
     it('it should fire fire "Viewed Page" event if autoEvents == true', (done) => {
       ddManager.initialize();
-      if (ddManager.isInitialized()) {
-        ddManager.once('initialize', () => {
+      if (ddManager.isReady()) {
+        ddManager.once('ready', () => {
           assert.ok(window.digitalData.events[0].name === 'Viewed Page');
           assert.ok(window.digitalData.events.length === 1);
           done();
@@ -165,8 +165,8 @@ describe('DDManager', () => {
       ddManager.initialize({
         autoEvents: false
       });
-      if (ddManager.isInitialized()) {
-        ddManager.once('initialize', () => {
+      if (ddManager.isReady()) {
+        ddManager.once('ready', () => {
           assert.ok(window.digitalData.events.length === 0);
           done();
         });
@@ -177,8 +177,8 @@ describe('DDManager', () => {
 
     it('it should enrich digital data', (done) => {
       ddManager.initialize();
-      if (ddManager.isInitialized()) {
-        ddManager.once('initialize', () => {
+      if (ddManager.isReady()) {
+        ddManager.once('ready', () => {
           assert.ok(window.digitalData.context.userAgent);
           done();
         });

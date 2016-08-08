@@ -33,15 +33,20 @@ class SendPulse extends Integration {
           this.sendUserAttributes(this.digitalData.user);
         }
       };
-      this.ready();
+      this.enrichDigitalData();
+      this.onLoad();
     });
   }
 
-  enrichDigitalData(done) {
+  enrichDigitalData() {
     const pushNotification = this.digitalData.user.pushNotifications = {};
     try {
       pushNotification.isSupported = this.checkPushNotificationsSupport();
       this.getPushSubscriptionInfo((subscriptionInfo) => {
+        if (!this.isLoaded()) {
+          // to avoid problems in unit tests because of asyncoronous delay
+          return;
+        }
         if (subscriptionInfo === undefined) {
           pushNotification.isSubscribed = false;
           if (window.oSpP.isSafariNotificationSupported()) {
@@ -60,11 +65,11 @@ class SendPulse extends Integration {
           }
         }
         this.onSubscriptionStatusReceived();
-        done();
+        this.onEnrich();
       });
     } catch (e) {
       pushNotification.isSupported = false;
-      done();
+      this.onEnrich();
     }
   }
 

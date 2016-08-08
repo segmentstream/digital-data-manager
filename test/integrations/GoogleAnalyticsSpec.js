@@ -172,7 +172,7 @@ describe('Integrations: GoogleAnalytics', () => {
           ddManager.initialize({
             autoEvents: false
           });
-          assert.deepEqual(window.ga.q[2], undefined);
+          assert.deepEqual(window.ga.q[3], undefined);
         });
       });
 
@@ -181,7 +181,7 @@ describe('Integrations: GoogleAnalytics', () => {
     describe('loading', function () {
       it('should load', function (done) {
         assert.ok(!ga.isLoaded());
-        ddManager.once('ready', () => {
+        ddManager.once('load', () => {
           assert.ok(ga.isLoaded());
           done();
         });
@@ -196,6 +196,16 @@ describe('Integrations: GoogleAnalytics', () => {
         ddManager.once('ready', done);
         ddManager.initialize({
           autoEvents: false
+        });
+      });
+
+      describe('#enrichDigitalData', () => {
+        it('should add clientId', (done) => {
+          ga.on('enrich', () => {
+            assert.ok(window.digitalData.integrations.googleAnalytics);
+            assert.ok(window.digitalData.integrations.googleAnalytics.clientId);
+            done();
+          });
         });
       });
 
@@ -305,7 +315,8 @@ describe('Integrations: GoogleAnalytics', () => {
 
         it('should map custom dimensions, metrics & content groupings using event properties', (done) => {
           ga.setOption('metrics', {
-            metric1: 'page.score'
+            metric1: 'page.score',
+            metric2: 'timestamp' // timestamp is added for every event inside EventManager
           });
           ga.setOption('dimensions', {
             dimension1: 'page.author',
@@ -325,6 +336,7 @@ describe('Integrations: GoogleAnalytics', () => {
             callback: () => {
               assert.ok(window.ga.calledWith('set', {
                 metric1: 21,
+                metric2: sinon.match.any, // timestamp is added for every event inside EventManager
                 dimension1: 'Author',
                 dimension2: 'blog',
                 contentGrouping1: 'News'
@@ -604,7 +616,13 @@ describe('Integrations: GoogleAnalytics', () => {
       domain: 'none',
       defaultCurrency: 'USD',
       siteSpeedSampleRate: 42,
-      namespace: false
+      namespace: false,
+      productDimensions: {
+        'dimension10': 'stock'
+      },
+      productMetrics: {
+        'metric10': 'weight'
+      },
     };
 
     beforeEach(() => {
@@ -720,6 +738,40 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
+        it('should send added product data with custom dimensions and metrics', function() {
+          window.digitalData.events.push({
+            name: 'Added Product',
+            category: 'Ecommerce',
+            product: {
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298',
+              stock: 25,
+              weight: 100
+            },
+            quantity: 1,
+            callback: () => {
+              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1',
+                quantity: 1,
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+                dimension10: 25,
+                metric10: 100
+              }]);
+              assert.deepEqual(window.ga.args[3], ['ec:setAction', 'add', {}]);
+              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
         it('should send added product data from digital data layer', function() {
           window.digitalData.product = {
             id: 'p-298',
@@ -815,6 +867,41 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
+        it('should send removed product data with custom dimensions and metrics', function() {
+          window.digitalData.events.push({
+            name: 'Removed Product',
+            category: 'Ecommerce',
+            product: {
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298',
+              stock: 25,
+              weight: 100
+            },
+            quantity: 1,
+            callback: () => {
+              assert.equal(window.ga.args.length, 5);
+              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1',
+                quantity: 1,
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+                dimension10: 25,
+                metric10: 100
+              }]);
+              assert.deepEqual(window.ga.args[3], ['ec:setAction', 'remove', {}]);
+              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
         it('should send viewed product detail data', function() {
           window.digitalData.events.push({
             name: 'Viewed Product Detail',
@@ -843,7 +930,39 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should send clicked product data', function() {
+        it('should send viewed product detail data with custom dimensions and metrics', function() {
+          window.digitalData.events.push({
+            name: 'Viewed Product Detail',
+            product: {
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298',
+              stock: 25,
+              weight: 100
+            },
+            callback: () => {
+              assert.equal(window.ga.args.length, 5);
+              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1',
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+                dimension10: 25,
+                metric10: 100
+              }]);
+              assert.deepEqual(window.ga.args[3], ['ec:setAction', 'detail', {}]);
+              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send clicked product data with custom dimensions and metrics', function() {
           window.digitalData.events.push({
             name: 'Clicked Product',
             listItem: {
@@ -853,7 +972,9 @@ describe('Integrations: GoogleAnalytics', () => {
                 name: 'my product',
                 category: 'cat 1',
                 skuCode: 'p-298',
-                listName: 'search results'
+                listName: 'search results',
+                stock: 25,
+                weight: 100
               },
               listName: 'search results',
             },
@@ -868,6 +989,8 @@ describe('Integrations: GoogleAnalytics', () => {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD',
+                dimension10: 25,
+                metric10: 100
               }]);
               assert.deepEqual(window.ga.args[3], ['ec:setAction', 'click', {
                 list: 'search results'
@@ -918,7 +1041,7 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should send viewed product data', function() {
+        it('should send viewed product data with custom dimensions and metrics', function() {
           window.digitalData.events.push({
             name: 'Viewed Product',
             category: 'Ecommerce',
@@ -929,6 +1052,8 @@ describe('Integrations: GoogleAnalytics', () => {
                 name: 'my product',
                 category: 'cat 1',
                 skuCode: 'p-298',
+                stock: 25,
+                weight: 100
               },
               listName: 'search results',
               position: 2,
@@ -946,6 +1071,8 @@ describe('Integrations: GoogleAnalytics', () => {
                 currency: 'CAD',
                 variant: undefined,
                 position: 2,
+                dimension10: 25,
+                metric10: 100
               }]);
               assert.deepEqual(window.ga.args[3], ['send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }]);
             }
@@ -1277,7 +1404,7 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should send started order data', function() {
+        it('should send started order data with custom dimensions and metrics', function() {
           window.digitalData.cart = {
             currency: 'CAD',
             lineItems: [
@@ -1286,7 +1413,9 @@ describe('Integrations: GoogleAnalytics', () => {
                   id: 'p-298',
                   unitPrice: 24.75,
                   name: 'my product',
-                  skuCode: 'p-298'
+                  skuCode: 'p-298',
+                  stock: 25,
+                  weight: 100
                 },
                 quantity: 1
               },
@@ -1295,7 +1424,9 @@ describe('Integrations: GoogleAnalytics', () => {
                   id: 'p-299',
                   unitPrice: 24.75,
                   name: 'other product',
-                  skuCode: 'p-299'
+                  skuCode: 'p-299',
+                  stock: 30,
+                  weight: 200
                 },
                 quantity: 3
               }
@@ -1317,6 +1448,8 @@ describe('Integrations: GoogleAnalytics', () => {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD',
+                dimension10: 25,
+                metric10: 100
               }]);
               assert.deepEqual(argumentsToArray(window.ga.args[3]), ['ec:addProduct', {
                 id: 'p-299',
@@ -1327,6 +1460,8 @@ describe('Integrations: GoogleAnalytics', () => {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD',
+                dimension10: 30,
+                metric10: 200
               }]);
               assert.deepEqual(argumentsToArray(window.ga.args[4]), ['ec:setAction', 'checkout', {
                 step: 1,
@@ -1346,7 +1481,9 @@ describe('Integrations: GoogleAnalytics', () => {
                   id: 'p-298',
                   unitPrice: 24.75,
                   name: 'my product',
-                  skuCode: 'p-298'
+                  skuCode: 'p-298',
+                  stock: 25,
+                  weight: 100
                 },
                 quantity: 1
               },
@@ -1355,7 +1492,9 @@ describe('Integrations: GoogleAnalytics', () => {
                   id: 'p-299',
                   unitPrice: 24.75,
                   name: 'other product',
-                  skuCode: 'p-299'
+                  skuCode: 'p-299',
+                  stock: 30,
+                  weight: 200
                 },
                 quantity: 3
               }
@@ -1464,7 +1603,7 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should send completed order data', function() {
+        it('should send completed order data with custom dimensions and metrics', function() {
           window.digitalData.events.push({
             name: 'Completed Transaction',
             category: 'Ecommerce',
@@ -1483,7 +1622,9 @@ describe('Integrations: GoogleAnalytics', () => {
                     unitPrice: 24.75,
                     name: 'my product',
                     category: 'cat 1',
-                    skuCode: 'p-298'
+                    skuCode: 'p-298',
+                    stock: 25,
+                    weight: 100
                   },
                   quantity: 1
                 },
@@ -1493,7 +1634,9 @@ describe('Integrations: GoogleAnalytics', () => {
                     name: 'other product',
                     category: 'cat 2',
                     skuCode: 'p-299',
-                    currency: 'EUR'
+                    currency: 'EUR',
+                    stock: 30,
+                    weight: 200
                   },
                   quantity: 3
                 }
@@ -1512,6 +1655,8 @@ describe('Integrations: GoogleAnalytics', () => {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD',
+                dimension10: 25,
+                metric10: 100,
               }]);
               assert.deepEqual(argumentsToArray(window.ga.args[3]), ['ec:addProduct', {
                 id: 'p-299',
@@ -1522,6 +1667,8 @@ describe('Integrations: GoogleAnalytics', () => {
                 brand: undefined,
                 variant: undefined,
                 currency: 'EUR',
+                dimension10: 30,
+                metric10: 200,
               }]);
               assert.deepEqual(argumentsToArray(window.ga.args[4]), ['ec:setAction', 'purchase', {
                 id: '780bc55',

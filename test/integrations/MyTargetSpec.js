@@ -94,7 +94,7 @@ describe('Integrations: MyTarget', () => {
           push: function() {},
           unload: function() {}
         };
-        myTarget.ready();
+        myTarget.onLoad();
       });
     });
 
@@ -104,7 +104,7 @@ describe('Integrations: MyTarget', () => {
 
     it('should load', function (done) {
       assert.ok(!myTarget.isLoaded());
-      ddManager.once('ready', () => {
+      ddManager.once('load', () => {
         assert.ok(myTarget.isLoaded());
         done();
       });
@@ -117,7 +117,7 @@ describe('Integrations: MyTarget', () => {
   describe('after loading', () => {
     beforeEach((done) => {
       sinon.stub(myTarget, 'load', () => {
-        myTarget.ready();
+        myTarget.onLoad();
       });
       ddManager.once('ready', done);
       ddManager.initialize({

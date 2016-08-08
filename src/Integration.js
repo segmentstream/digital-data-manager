@@ -17,60 +17,78 @@ class Integration extends EventEmitter
     this.options = options;
     this.tags = tags || {};
     this.digitalData = digitalData;
-    this.ready = this.ready.bind(this);
+    this.onLoad = this.onLoad.bind(this);
+    this._isEnriched = false;
   }
 
   initialize() {
-    const ready = this.ready;
-    async.nextTick(ready);
+    const onLoad = this.onLoad;
+    async.nextTick(onLoad);
   }
 
   load(tagName, callback) {
-    // Argument shuffling
-    if (typeof tagName === 'function') { callback = tagName; tagName = null; }
+    setTimeout(() => {
+      const callbackCalled = false;
+      const safeCallback = () => {
+        if (!callbackCalled) {
+          callback();
+        }
+      };
 
-    // Default arguments
-    tagName = tagName || 'library';
+      // sometimes loadScript callback doesn't fire
+      // for https scripts in IE8, IE9 and opera
+      // in this case we check is script was loaded every 500ms
+      const intervalId = setInterval(() => {
+        if (this.isLoaded()) {
+          safeCallback();
+          clearInterval(intervalId);
+        }
+      }, 500);
 
-    const tag = this.tags[tagName];
-    if (!tag) throw new Error(format('tag "%s" not defined.', tagName));
-    callback = callback || noop;
+      // Argument shuffling
+      if (typeof tagName === 'function') { callback = tagName; tagName = null; }
 
-    let el;
-    const attr = tag.attr;
-    switch (tag.type) {
-    case 'img':
-      attr.width = 1;
-      attr.height = 1;
-      el = loadPixel(attr, callback);
-      break;
-    case 'script':
-      el = loadScript(attr, (err) => {
-        if (!err) return callback();
-        debug('error loading "%s" error="%s"', tagName, err);
-      });
-      // TODO: hack until refactoring load-script
-      deleteProperty(attr, 'src');
-      each(attr, (key, value) => {
-        el.setAttribute(key, value);
-      });
-      break;
-    case 'iframe':
-      el = loadIframe(attr, callback);
-      break;
-    default:
-      // No default case
-    }
+      // Default arguments
+      tagName = tagName || 'library';
 
-    return el;
+      const tag = this.tags[tagName];
+      if (!tag) throw new Error(format('tag "%s" not defined.', tagName));
+      callback = callback || noop;
+
+      let el;
+      const attr = tag.attr;
+      switch (tag.type) {
+      case 'img':
+        attr.width = 1;
+        attr.height = 1;
+        el = loadPixel(attr, safeCallback);
+        break;
+      case 'script':
+        el = loadScript(attr, (err) => {
+          if (!err) return safeCallback();
+          debug('error loading "%s" error="%s"', tagName, err);
+        });
+        // TODO: hack until refactoring load-script
+        deleteProperty(attr, 'src');
+        each(attr, (key, value) => {
+          el.setAttribute(key, value);
+        });
+        break;
+      case 'iframe':
+        el = loadIframe(attr, safeCallback);
+        break;
+      default:
+        // No default case
+      }
+    }, 0);
   }
 
   isLoaded() {
     return false;
   }
 
-  ready() {
-    this.emit('ready');
+  onLoad() {
+    this.emit('load');
   }
 
   addTag(name, tag) {
@@ -107,9 +125,13 @@ class Integration extends EventEmitter
     // abstract
   }
 
-  enrichDigitalData(done) {
-    // abstract
-    done();
+  onEnrich() {
+    this._isEnriched = true;
+    this.emit('enrich');
+  }
+
+  isEnriched() {
+    return this._isEnriched;
   }
 
   trackEvent() {

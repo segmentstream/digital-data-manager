@@ -69,9 +69,9 @@ class YandexMetrica extends Integration {
           ecommerce: true,
         });
       });
-      this.load(this.ready);
+      this.load(this.onLoad);
     } else {
-      this.ready();
+      this.onLoad();
     }
   }
 

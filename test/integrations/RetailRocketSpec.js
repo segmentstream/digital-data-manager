@@ -107,7 +107,7 @@ describe('Integrations: RetailRocket', () => {
     beforeEach((done) => {
       sinon.stub(retailRocket, 'load', () => {
         rrApi._initialize = () => {};
-        retailRocket.ready();
+        retailRocket.onLoad();
       });
 
       ddManager.once('ready', done);
@@ -647,7 +647,33 @@ describe('Integrations: RetailRocket', () => {
         });
       });
 
-      it('should track "Subscribed" with user.email param event if noConflict is true', (done) => {
+      it('should track "Subscribed" with user.email param and other custom params', (done) => {
+        retailRocket.setOption('customVariables', {
+          param1: 'eventParam1',
+          param2: 'eventParam2',
+          param3: 'user.firstName',
+        });
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          category: 'Email',
+          user: {
+            email: 'test@driveback.ru',
+            firstName: 'John Dow',
+          },
+          eventParam1: 'test1',
+          eventParam2: true,
+          callback: () => {
+            assert.ok(window.rrApi.setEmail.calledWith('test@driveback.ru', {
+              param1: 'test1',
+              param2: 'true',
+              param3: 'John Dow',
+            }));
+            done();
+          }
+        });
+      });
+
+      it('should track "Subscribed" event with user.email param  if noConflict is true', (done) => {
         retailRocket.setOption('noConflict', true);
         window.digitalData.events.push({
           name: 'Subscribed',
@@ -657,6 +683,33 @@ describe('Integrations: RetailRocket', () => {
           },
           callback: () => {
             assert.ok(window.rrApi.setEmail.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should track "Subscribed" event with user.email param and other customs if noConflict is true', (done) => {
+        retailRocket.setOption('noConflict', true);
+        retailRocket.setOption('customVariables', {
+          param1: 'eventParam1',
+          param2: 'eventParam2',
+          param3: 'user.firstName',
+        });
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          category: 'Email',
+          user: {
+            email: 'test@driveback.ru',
+            firstName: 'John Dow',
+          },
+          eventParam1: 'test1',
+          eventParam2: true,
+          callback: () => {
+            assert.ok(window.rrApi.setEmail.calledWith('test@driveback.ru', {
+              param1: 'test1',
+              param2: 'true',
+              param3: 'John Dow',
+            }));
             done();
           }
         });

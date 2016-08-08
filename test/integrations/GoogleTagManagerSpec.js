@@ -36,7 +36,7 @@ describe('Integrations: GoogleTagManager', () => {
 
       it('should load', (done) => {
         assert.ok(!gtm.isLoaded());
-        ddManager.once('ready', () => {
+        ddManager.once('load', () => {
           assert.ok(gtm.isLoaded());
           done();
         });

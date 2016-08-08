@@ -24,6 +24,15 @@ describe('Integrations: OWOXBIStreaming', () => {
       owox = new OWOXBIStreaming(window.digitalData, {
         'sessionIdDimension': 'sessionId'
       });
+
+      // reset in case GA was loaded
+      // from previous tests asyncronously
+      ga.reset();
+      owox.reset();
+
+      // OWOX should depend on Google Analtics, so this order is for reason
+      // to test that everything works well even if OWOX BI is added before GA
+      // TODO: change order and make sure everything works
       ddManager.addIntegration('Google Analytics', ga);
       ddManager.addIntegration('OWOX BI Streaming', owox);
     });
@@ -51,10 +60,12 @@ describe('Integrations: OWOXBIStreaming', () => {
         it('should require Google Analytics OWOXBIStreaming plugin', function () {
           ga.setOption('sessionIdDimension', 'SessionId');
           ddManager.initialize();
-          assert.deepEqual(argumentsToArray(window.ga.q[1]), ['ddl.require', 'OWOXBIStreaming', {
-            'sessionIdDimension': 'sessionId'
-          }]);
-          assert.deepEqual([window.ga.q[2][0], window.ga.q[2][1]], ['provide', 'OWOXBIStreaming']);
+          ddManager.on('ready', () => {
+            assert.deepEqual(argumentsToArray(window.ga.q[2]), ['ddl.require', 'OWOXBIStreaming', {
+              'sessionIdDimension': 'sessionId'
+            }]);
+            assert.deepEqual([window.ga.q[3][0], window.ga.q[3][1]], ['provide', 'OWOXBIStreaming']);
+          });
         });
 
       });

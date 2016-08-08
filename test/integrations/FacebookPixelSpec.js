@@ -34,7 +34,7 @@ describe('Integrations: FacebookPixel', () => {
 
     it('should load', (done) => {
       assert.ok(!fbPixel.isLoaded());
-      ddManager.once('ready', () => {
+      ddManager.once('load', () => {
         assert.ok(fbPixel.isLoaded());
         done();
       });
@@ -46,7 +46,7 @@ describe('Integrations: FacebookPixel', () => {
   describe('after loading', () => {
 
     before((done) => {
-      if (!ddManager.isInitialized()) {
+      if (!ddManager.isReady()) {
         ddManager.once('ready', done);
         ddManager.initialize();
       } else {

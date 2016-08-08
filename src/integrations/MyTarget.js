@@ -35,9 +35,9 @@ class MyTarget extends Integration {
   initialize() {
     window._tmr = window._tmr || [];
     if (!this.getOption('noConflict')) {
-      this.load(this.ready);
+      this.load(this.onLoad);
     } else {
-      this.ready();
+      this.onLoad();
     }
   }
 

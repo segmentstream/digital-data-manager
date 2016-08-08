@@ -56,9 +56,9 @@ class SegmentStream extends Integration {
 
     ssApi.initialize(this._options);
     ssApi.pushOnReady(() => {
-      this.ready();
+      this.enrichDigitalData();
     });
-    this.load();
+    this.load(this.onLoad);
   }
 
   isLoaded() {
@@ -70,7 +70,7 @@ class SegmentStream extends Integration {
     localStorage.clear();
   }
 
-  enrichDigitalData(done) {
+  enrichDigitalData() {
     function lowercaseFirstLetter(string) {
       return string.charAt(0).toLowerCase() + string.slice(1);
     }
@@ -81,7 +81,7 @@ class SegmentStream extends Integration {
       const key = lowercaseFirstLetter(name);
       this.digitalData.user.ssAttributes[key] = value;
     });
-    done();
+    this.onEnrich();
   }
 
   trackEvent(event) {
@@ -98,22 +98,28 @@ class SegmentStream extends Integration {
   }
 
   onViewedPage() {
-    window.ssApi.track('Viewed Page');
-    this.enrichDigitalData();
+    ssApi.pushOnReady(() => {
+      window.ssApi.track('Viewed Page');
+      this.enrichDigitalData();
+    });
   }
 
   onViewedProductDetail(event) {
-    window.ssApi.track('Viewed Product Detail', {
-      price: event.product.unitSalePrice || event.product.unitPrice || 0,
+    ssApi.pushOnReady(() => {
+      window.ssApi.track('Viewed Product Detail', {
+        price: event.product.unitSalePrice || event.product.unitPrice || 0,
+      });
+      this.enrichDigitalData();
     });
-    this.enrichDigitalData();
   }
 
   onAddedProduct(event) {
-    window.ssApi.track('Added Product', {
-      price: event.product.unitSalePrice || event.product.unitPrice || 0,
+    ssApi.pushOnReady(() => {
+      window.ssApi.track('Added Product', {
+        price: event.product.unitSalePrice || event.product.unitPrice || 0,
+      });
+      this.enrichDigitalData();
     });
-    this.enrichDigitalData();
   }
 }
 

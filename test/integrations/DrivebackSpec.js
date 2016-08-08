@@ -34,7 +34,7 @@ describe('Integrations: Driveback', () => {
 
     it('should load', (done) => {
       assert.ok(!driveback.isLoaded());
-      ddManager.once('ready', () => {
+      ddManager.once('load', () => {
         assert.ok(driveback.isLoaded());
         done();
       });
@@ -58,7 +58,7 @@ describe('Integrations: Driveback', () => {
 
   describe('after loading', () => {
     beforeEach((done) => {
-      ddManager.once('ready', done);
+      ddManager.once('load', done);
       ddManager.initialize();
     });
 

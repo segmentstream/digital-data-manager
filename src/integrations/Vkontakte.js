@@ -12,7 +12,7 @@ class Vkontakte extends Integration {
 
   initialize() {
     this._isLoaded = true;
-    this.ready();
+    this.onLoad();
   }
 
   isLoaded() {
