@@ -81,7 +81,7 @@ class SegmentStream extends Integration {
       const key = lowercaseFirstLetter(name);
       this.digitalData.user.ssAttributes[key] = value;
     });
-    this.completeEnrichment();
+    this.onEnrich();
   }
 
   trackEvent(event) {

@@ -61,10 +61,10 @@ describe('Integrations: OWOXBIStreaming', () => {
           ga.setOption('sessionIdDimension', 'SessionId');
           ddManager.initialize();
           ddManager.on('ready', () => {
-            assert.deepEqual(argumentsToArray(window.ga.q[1]), ['ddl.require', 'OWOXBIStreaming', {
+            assert.deepEqual(argumentsToArray(window.ga.q[2]), ['ddl.require', 'OWOXBIStreaming', {
               'sessionIdDimension': 'sessionId'
             }]);
-            assert.deepEqual([window.ga.q[2][0], window.ga.q[2][1]], ['provide', 'OWOXBIStreaming']);
+            assert.deepEqual([window.ga.q[3][0], window.ga.q[3][1]], ['provide', 'OWOXBIStreaming']);
           });
         });
 

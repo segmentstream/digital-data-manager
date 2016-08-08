@@ -125,7 +125,7 @@ class Integration extends EventEmitter
     // abstract
   }
 
-  completeEnrichment() {
+  onEnrich() {
     this._isEnriched = true;
     this.emit('enrich');
   }

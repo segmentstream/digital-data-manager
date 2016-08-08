@@ -15,6 +15,7 @@ let _previousDigitalData = {};
 let _digitalData = {};
 let _checkForChangesIntervalId;
 let _autoEvents;
+let _viewabilityTracker;
 let _isInitialized = false;
 
 const _callbackOnComplete = (error) => {
@@ -60,6 +61,9 @@ class EventManager {
     if (_autoEvents) {
       _autoEvents.onInitialize();
     }
+    if (_viewabilityTracker) {
+      _viewabilityTracker.initialize();
+    }
     _checkForChangesIntervalId = setInterval(() => {
       this.fireDefine();
       this.checkForChanges();
@@ -72,6 +76,10 @@ class EventManager {
     _autoEvents = autoEvents;
     _autoEvents.setDigitalData(_digitalData);
     _autoEvents.setDDListener(_ddListener);
+  }
+
+  setViewabilityTracker(viewabilityTracker) {
+    _viewabilityTracker = viewabilityTracker;
   }
 
   getAutoEvents() {
@@ -145,6 +153,9 @@ class EventManager {
         }
       }
       if (callback.snapshot) {
+        // remove DDL snapshot after first change fire
+        // because now normal setInterval and _previousDigitalData will do the job
+        // TODO: test performance using snapshots insted of _previousDigitalData
         deleteProperty(callback, 'snapshot');
       }
     }
@@ -152,7 +163,7 @@ class EventManager {
 
   fireEvent(event) {
     let eventCallback;
-    event.time = (new Date()).getTime();
+    event.timestamp = (new Date()).getTime();
 
     if (_callbacks.event) {
       const results = [];
@@ -201,6 +212,9 @@ class EventManager {
       } else {
         snapshot = clone(_getCopyWithoutEvents(_digitalData));
       }
+    } else if (type === 'view') {
+      _viewabilityTracker.addTracker(key, handler);
+      return; // delegate view tracking to ViewabilityTracker
     }
 
     _callbacks[type] = _callbacks[type] || [];
@@ -277,6 +291,7 @@ class EventManager {
     _ddListener.push = Array.prototype.push;
     _callbacks = {};
     _autoEvents = null;
+    _viewabilityTracker = null;
   }
 }
 

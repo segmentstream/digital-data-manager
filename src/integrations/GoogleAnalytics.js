@@ -90,6 +90,7 @@ class GoogleAnalytics extends Integration {
     } else {
       this.onLoad();
     }
+    this.enrichDigitalData();
   }
 
   initializeTracker() {
@@ -203,10 +204,11 @@ class GoogleAnalytics extends Integration {
       }
     }
 
+    this.setEventCustomDimensions(event);
     this.ga.apply(this, cleanedArgs);
   }
 
-  enrichDigitalData(done) {
+  enrichDigitalData() {
     window.ga((tracker) => {
       const trackerName = this.getOption('namespace');
       tracker = tracker || window.ga.getByName(trackerName);
@@ -214,7 +216,7 @@ class GoogleAnalytics extends Integration {
         const clientId = tracker.get('clientId');
         this.digitalData.integrations.googleAnalytics = { clientId };
       }
-      done();
+      this.onEnrich();
     });
   }
 
@@ -300,7 +302,9 @@ class GoogleAnalytics extends Integration {
         continue;
       }
       this.loadEnhancedEcommerce(product.currency);
-      this.ga('ec:addImpression', {
+
+      const custom = this.getCustomDimensions(product, true);
+      const gaProduct = Object.assign({
         id: product.id || product.skuCode,
         name: product.name,
         list: listItem.listName,
@@ -310,7 +314,8 @@ class GoogleAnalytics extends Integration {
         currency: product.currency || this.getOption('defaultCurrency'),
         variant: product.variant,
         position: listItem.position,
-      });
+      }, custom);
+      this.ga('ec:addImpression', gaProduct);
     }
 
     this.pushEnhancedEcommerce(event);
@@ -545,7 +550,8 @@ class GoogleAnalytics extends Integration {
   }
 
   enhancedEcommerceTrackProduct(product, quantity, position) {
-    const gaProduct = {
+    const custom = this.getCustomDimensions(product, true);
+    const gaProduct = Object.assign({
       id: product.id || product.skuCode,
       name: product.name,
       category: product.category,
@@ -553,7 +559,7 @@ class GoogleAnalytics extends Integration {
       brand: product.brand || product.manufacturer,
       variant: product.variant,
       currency: product.currency,
-    };
+    }, custom);;
     if (quantity) gaProduct.quantity = quantity;
     if (position) gaProduct.position = position;
     // append coupon if it set

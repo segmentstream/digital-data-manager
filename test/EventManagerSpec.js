@@ -40,7 +40,7 @@ describe('EventManager', () => {
       _digitalData.events.push(event);
 
       assert.ok(_digitalData.events.length == 1);
-      assert.ok(_digitalData.events[0].time > 100000);
+      assert.ok(_digitalData.events[0].timestamp > 100000);
       assert.ok(_digitalData.events[0].hasFired);
     });
 

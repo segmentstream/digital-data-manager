@@ -65,11 +65,11 @@ class SendPulse extends Integration {
           }
         }
         this.onSubscriptionStatusReceived();
-        this.completeEnrichment();
+        this.onEnrich();
       });
     } catch (e) {
       pushNotification.isSupported = false;
-      this.completeEnrichment();
+      this.onEnrich();
     }
   }
 

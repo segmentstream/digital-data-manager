@@ -5759,6 +5759,7 @@ var createDict = function(){
   // Thrash, waste and sodomy: IE GC bug
   var iframe = require('./_dom-create')('iframe')
     , i      = enumBugKeys.length
+    , lt     = '<'
     , gt     = '>'
     , iframeDocument;
   iframe.style.display = 'none';
@@ -5768,7 +5769,7 @@ var createDict = function(){
   // html.removeChild(iframe);
   iframeDocument = iframe.contentWindow.document;
   iframeDocument.open();
-  iframeDocument.write('<script>document.F=Object</script' + gt);
+  iframeDocument.write(lt + 'script' + gt + 'document.F=Object' + lt + '/script' + gt);
   iframeDocument.close();
   createDict = iframeDocument.F;
   while(i--)delete createDict[PROTOTYPE][enumBugKeys[i]];
@@ -5786,6 +5787,7 @@ module.exports = Object.create || function create(O, Properties){
   } else result = createDict();
   return Properties === undefined ? result : dPs(result, Properties);
 };
+
 },{"./_an-object":6,"./_dom-create":14,"./_enum-bug-keys":15,"./_html":21,"./_object-dps":30,"./_shared-key":37}],29:[function(require,module,exports){
 var anObject       = require('./_an-object')
   , IE8_DOM_DEFINE = require('./_ie8-dom-define')
@@ -6855,7 +6857,7 @@ var AutoEvents = function () {
 
 exports['default'] = AutoEvents;
 
-},{"./DOMComponentsTracking.js":61,"./functions/semver":81,"component-type":4}],60:[function(require,module,exports){
+},{"./DOMComponentsTracking.js":61,"./functions/semver":82,"component-type":4}],60:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7018,7 +7020,7 @@ var DDHelper = function () {
 
 exports['default'] = DDHelper;
 
-},{"./functions/getProperty.js":72,"component-clone":2}],61:[function(require,module,exports){
+},{"./functions/getProperty.js":73,"component-clone":2}],61:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7379,7 +7381,7 @@ var DigitalDataEnricher = function () {
 
 exports['default'] = DigitalDataEnricher;
 
-},{"./functions/htmlGlobals.js":74}],63:[function(require,module,exports){
+},{"./functions/htmlGlobals.js":75}],63:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7612,6 +7614,7 @@ var _previousDigitalData = {};
 var _digitalData = {};
 var _checkForChangesIntervalId = void 0;
 var _autoEvents = void 0;
+var _viewabilityTracker = void 0;
 var _isInitialized = false;
 
 var _callbackOnComplete = function _callbackOnComplete(error) {
@@ -7660,6 +7663,9 @@ var EventManager = function () {
     if (_autoEvents) {
       _autoEvents.onInitialize();
     }
+    if (_viewabilityTracker) {
+      _viewabilityTracker.initialize();
+    }
     _checkForChangesIntervalId = setInterval(function () {
       _this.fireDefine();
       _this.checkForChanges();
@@ -7672,6 +7678,10 @@ var EventManager = function () {
     _autoEvents = autoEvents;
     _autoEvents.setDigitalData(_digitalData);
     _autoEvents.setDDListener(_ddListener);
+  };
+
+  EventManager.prototype.setViewabilityTracker = function setViewabilityTracker(viewabilityTracker) {
+    _viewabilityTracker = viewabilityTracker;
   };
 
   EventManager.prototype.getAutoEvents = function getAutoEvents() {
@@ -7754,13 +7764,19 @@ var EventManager = function () {
         if (callback.key) {
           var key = callback.key;
           var newKeyValue = _DDHelper2['default'].get(key, newValue);
-          var previousKeyValue = _DDHelper2['default'].get(key, previousValue);
+          var previousKeyValue = callback.snapshot || _DDHelper2['default'].get(key, previousValue);
           if (!(0, _jsonIsEqual2['default'])(newKeyValue, previousKeyValue)) {
             callback.handler(newKeyValue, previousKeyValue, _callbackOnComplete);
           }
         } else {
-          callback.handler(newValue, previousValue, _callbackOnComplete);
+          callback.handler(newValue, callback.snapshot || previousValue, _callbackOnComplete);
         }
+      }
+      if (callback.snapshot) {
+        // remove DDL snapshot after first change fire
+        // because now normal setInterval and _previousDigitalData will do the job
+        // TODO: test performance using snapshots insted of _previousDigitalData
+        (0, _deleteProperty2['default'])(callback, 'snapshot');
       }
     }
   };
@@ -7769,7 +7785,7 @@ var EventManager = function () {
     var _this2 = this;
 
     var eventCallback = void 0;
-    event.time = new Date().getTime();
+    event.timestamp = new Date().getTime();
 
     if (_callbacks.event) {
       (function () {
@@ -7825,17 +7841,25 @@ var EventManager = function () {
     var type = _eventInfo$split[0];
     var key = _eventInfo$split[1];
 
-    _callbacks[type] = _callbacks[type] || [];
-    if (key) {
-      _callbacks[type].push({
-        key: key,
-        handler: handler
-      });
-    } else {
-      _callbacks[type].push({
-        handler: handler
-      });
+    var snapshot = void 0;
+
+    if (type === 'change') {
+      if (key) {
+        snapshot = (0, _componentClone2['default'])(_DDHelper2['default'].get(key, _digitalData));
+      } else {
+        snapshot = (0, _componentClone2['default'])(_getCopyWithoutEvents(_digitalData));
+      }
+    } else if (type === 'view') {
+      _viewabilityTracker.addTracker(key, handler);
+      return; // delegate view tracking to ViewabilityTracker
     }
+
+    _callbacks[type] = _callbacks[type] || [];
+    _callbacks[type].push({
+      key: key,
+      handler: handler,
+      snapshot: snapshot
+    });
     if (_isInitialized && type === 'event' && processPastEvents) {
       this.applyCallbackForPastEvents(handler);
     }
@@ -7935,6 +7959,7 @@ var EventManager = function () {
     _ddListener.push = Array.prototype.push;
     _callbacks = {};
     _autoEvents = null;
+    _viewabilityTracker = null;
   };
 
   return EventManager;
@@ -7942,7 +7967,7 @@ var EventManager = function () {
 
 exports['default'] = EventManager;
 
-},{"./DDHelper.js":60,"./EventDataEnricher.js":63,"./functions/after.js":68,"./functions/deleteProperty.js":69,"./functions/jsonIsEqual.js":75,"./functions/noop.js":79,"./functions/size.js":82,"async":1,"component-clone":2,"debug":55}],65:[function(require,module,exports){
+},{"./DDHelper.js":60,"./EventDataEnricher.js":63,"./functions/after.js":69,"./functions/deleteProperty.js":70,"./functions/jsonIsEqual.js":76,"./functions/noop.js":80,"./functions/size.js":83,"async":1,"component-clone":2,"debug":55}],65:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -8026,63 +8051,83 @@ var Integration = function (_EventEmitter) {
     _this.options = options;
     _this.tags = tags || {};
     _this.digitalData = digitalData;
-    _this.ready = _this.ready.bind(_this);
+    _this.onLoad = _this.onLoad.bind(_this);
+    _this._isEnriched = false;
     return _this;
   }
 
   Integration.prototype.initialize = function initialize() {
-    var ready = this.ready;
-    _async2['default'].nextTick(ready);
+    var onLoad = this.onLoad;
+    _async2['default'].nextTick(onLoad);
   };
 
   Integration.prototype.load = function load(tagName, callback) {
-    // Argument shuffling
-    if (typeof tagName === 'function') {
-      callback = tagName;tagName = null;
-    }
+    var _this2 = this;
 
-    // Default arguments
-    tagName = tagName || 'library';
+    setTimeout(function () {
+      var callbackCalled = false;
+      var safeCallback = function safeCallback() {
+        if (!callbackCalled) {
+          callback();
+        }
+      };
 
-    var tag = this.tags[tagName];
-    if (!tag) throw new Error((0, _format2['default'])('tag "%s" not defined.', tagName));
-    callback = callback || _noop2['default'];
+      // sometimes loadScript callback doesn't fire
+      // for https scripts in IE8, IE9 and opera
+      // in this case we check is script was loaded every 500ms
+      var intervalId = setInterval(function () {
+        if (_this2.isLoaded()) {
+          safeCallback();
+          clearInterval(intervalId);
+        }
+      }, 500);
 
-    var el = void 0;
-    var attr = tag.attr;
-    switch (tag.type) {
-      case 'img':
-        attr.width = 1;
-        attr.height = 1;
-        el = (0, _loadPixel2['default'])(attr, callback);
-        break;
-      case 'script':
-        el = (0, _loadScript2['default'])(attr, function (err) {
-          if (!err) return callback();
-          (0, _debug2['default'])('error loading "%s" error="%s"', tagName, err);
-        });
-        // TODO: hack until refactoring load-script
-        (0, _deleteProperty2['default'])(attr, 'src');
-        (0, _each2['default'])(attr, function (key, value) {
-          el.setAttribute(key, value);
-        });
-        break;
-      case 'iframe':
-        el = (0, _loadIframe2['default'])(attr, callback);
-        break;
-      default:
-      // No default case
-    }
+      // Argument shuffling
+      if (typeof tagName === 'function') {
+        callback = tagName;tagName = null;
+      }
 
-    return el;
+      // Default arguments
+      tagName = tagName || 'library';
+
+      var tag = _this2.tags[tagName];
+      if (!tag) throw new Error((0, _format2['default'])('tag "%s" not defined.', tagName));
+      callback = callback || _noop2['default'];
+
+      var el = void 0;
+      var attr = tag.attr;
+      switch (tag.type) {
+        case 'img':
+          attr.width = 1;
+          attr.height = 1;
+          el = (0, _loadPixel2['default'])(attr, safeCallback);
+          break;
+        case 'script':
+          el = (0, _loadScript2['default'])(attr, function (err) {
+            if (!err) return safeCallback();
+            (0, _debug2['default'])('error loading "%s" error="%s"', tagName, err);
+          });
+          // TODO: hack until refactoring load-script
+          (0, _deleteProperty2['default'])(attr, 'src');
+          (0, _each2['default'])(attr, function (key, value) {
+            el.setAttribute(key, value);
+          });
+          break;
+        case 'iframe':
+          el = (0, _loadIframe2['default'])(attr, safeCallback);
+          break;
+        default:
+        // No default case
+      }
+    }, 0);
   };
 
   Integration.prototype.isLoaded = function isLoaded() {
     return false;
   };
 
-  Integration.prototype.ready = function ready() {
-    this.emit('ready');
+  Integration.prototype.onLoad = function onLoad() {
+    this.emit('load');
   };
 
   Integration.prototype.addTag = function addTag(name, tag) {
@@ -8119,9 +8164,13 @@ var Integration = function (_EventEmitter) {
     // abstract
   };
 
-  Integration.prototype.enrichDigitalData = function enrichDigitalData(done) {
-    // abstract
-    done();
+  Integration.prototype.onEnrich = function onEnrich() {
+    this._isEnriched = true;
+    this.emit('enrich');
+  };
+
+  Integration.prototype.isEnriched = function isEnriched() {
+    return this._isEnriched;
   };
 
   Integration.prototype.trackEvent = function trackEvent() {
@@ -8133,7 +8182,244 @@ var Integration = function (_EventEmitter) {
 
 exports['default'] = Integration;
 
-},{"./DDHelper.js":60,"./functions/deleteProperty.js":69,"./functions/each.js":70,"./functions/format.js":71,"./functions/loadIframe.js":76,"./functions/loadPixel.js":77,"./functions/loadScript.js":78,"./functions/noop.js":79,"async":1,"component-emitter":3,"debug":55}],66:[function(require,module,exports){
+},{"./DDHelper.js":60,"./functions/deleteProperty.js":70,"./functions/each.js":71,"./functions/format.js":72,"./functions/loadIframe.js":77,"./functions/loadPixel.js":78,"./functions/loadScript.js":79,"./functions/noop.js":80,"async":1,"component-emitter":3,"debug":55}],66:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+var _noop = require('./functions/noop.js');
+
+var _noop2 = _interopRequireDefault(_noop);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+var ViewabilityTracker = function () {
+  function ViewabilityTracker(options) {
+    _classCallCheck(this, ViewabilityTracker);
+
+    this.options = Object.assign({
+      websiteMaxWidth: 'auto'
+    }, options);
+
+    this.$trackedComponents = {};
+    this.viewedComponents = {};
+    this.selectorHandlers = {};
+    this.selectors = [];
+  }
+
+  ViewabilityTracker.prototype.addTracker = function addTracker(selector, handler) {
+    // start tracking only when at least one
+    // tracker is added
+    if (this.selectors.length === 0) {
+      this.startTracking();
+    }
+
+    if (this.selectors.indexOf(selector) < 0) {
+      this.selectors.push(selector);
+    }
+
+    var selectorHandlers = this.selectorHandlers[selector];
+    if (!selectorHandlers) {
+      this.selectorHandlers[selector] = [handler];
+    } else {
+      selectorHandlers.push(handler);
+    }
+
+    // prepare empty array for tacking already viewed components
+    if (!this.viewedComponents[selector]) {
+      this.viewedComponents[selector] = [];
+    }
+  };
+
+  ViewabilityTracker.prototype.initialize = function initialize() {
+    var _this = this;
+
+    if (!window.jQuery) {
+      return;
+    }
+    window.jQuery(function () {
+      // detect max website width
+      if (!_this.options.websiteMaxWidth || _this.options.websiteMaxWidth === 'auto') {
+        var $body = window.jQuery('body');
+        _this.options.websiteMaxWidth = $body.children('.container').first().width() || $body.children('div').first().width();
+      }
+    });
+  };
+
+  ViewabilityTracker.prototype.defineDocBoundaries = function defineDocBoundaries() {
+    var _this2 = this;
+
+    var $window = window.jQuery(window);
+
+    var _defineDocBoundaries = function _defineDocBoundaries() {
+      _this2.docViewTop = $window.scrollTop();
+      _this2.docViewBottom = _this2.docViewTop + $window.height();
+      _this2.docViewLeft = $window.scrollLeft();
+      _this2.docViewRight = _this2.docViewLeft + $window.width();
+
+      var maxWebsiteWidth = _this2.options.maxWebsiteWidth;
+      if (maxWebsiteWidth && maxWebsiteWidth < _this2.docViewRight && _this2.docViewLeft === 0) {
+        _this2.docViewLeft = (_this2.docViewRight - maxWebsiteWidth) / 2;
+        _this2.docViewRight = _this2.docViewLeft + maxWebsiteWidth;
+      }
+    };
+
+    _defineDocBoundaries();
+    $window.resize(function () {
+      _defineDocBoundaries();
+    });
+    $window.scroll(function () {
+      _defineDocBoundaries();
+    });
+  };
+
+  ViewabilityTracker.prototype.updateTrackedComponents = function updateTrackedComponents() {
+    for (var _iterator = this.selectors, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+      var _ref;
+
+      if (_isArray) {
+        if (_i >= _iterator.length) break;
+        _ref = _iterator[_i++];
+      } else {
+        _i = _iterator.next();
+        if (_i.done) break;
+        _ref = _i.value;
+      }
+
+      var selector = _ref;
+
+      this.$trackedComponents[selector] = window.jQuery(selector);
+    }
+  };
+
+  ViewabilityTracker.prototype.trackViews = function trackViews() {
+    var _this3 = this;
+
+    var _loop = function _loop() {
+      if (_isArray2) {
+        if (_i2 >= _iterator2.length) return 'break';
+        _ref2 = _iterator2[_i2++];
+      } else {
+        _i2 = _iterator2.next();
+        if (_i2.done) return 'break';
+        _ref2 = _i2.value;
+      }
+
+      var selector = _ref2;
+
+      var newViewedComponents = [];
+      var $components = _this3.$trackedComponents[selector];
+      $components.each(function (index, el) {
+        // eslint-disable-line no-loop-func
+        var $el = window.jQuery(el);
+        if (_this3.viewedComponents[selector].indexOf(el) < 0 && _this3.isVisible($el)) {
+          _this3.viewedComponents[selector].push(el);
+          newViewedComponents.push(el);
+        }
+      });
+
+      if (newViewedComponents.length > 0) {
+        var handlers = _this3.selectorHandlers[selector];
+        for (var _iterator3 = handlers, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
+          var _ref3;
+
+          if (_isArray3) {
+            if (_i3 >= _iterator3.length) break;
+            _ref3 = _iterator3[_i3++];
+          } else {
+            _i3 = _iterator3.next();
+            if (_i3.done) break;
+            _ref3 = _i3.value;
+          }
+
+          var handler = _ref3;
+
+          handler(newViewedComponents, _noop2['default']);
+        }
+      }
+    };
+
+    for (var _iterator2 = this.selectors, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+      var _ref2;
+
+      var _ret = _loop();
+
+      if (_ret === 'break') break;
+    }
+  };
+
+  ViewabilityTracker.prototype.startTracking = function startTracking() {
+    var _this4 = this;
+
+    this.defineDocBoundaries();
+
+    var _track = function _track() {
+      _this4.updateTrackedComponents();
+      _this4.trackViews();
+    };
+
+    _track();
+    setInterval(function () {
+      _track();
+    }, 500);
+  };
+
+  /**
+   * Returns true if element is visible by css
+   * and at least 3/4 of the element fit user viewport
+   *
+   * @param $elem JQuery object
+   * @returns boolean
+   */
+
+  ViewabilityTracker.prototype.isVisible = function isVisible($elem) {
+    var el = $elem[0];
+    var $window = window.jQuery(window);
+
+    var elemOffset = $elem.offset();
+    var elemWidth = $elem.width();
+    var elemHeight = $elem.height();
+
+    var elemTop = elemOffset.top;
+    var elemBottom = elemTop + elemHeight;
+    var elemLeft = elemOffset.left;
+    var elemRight = elemLeft + elemWidth;
+
+    var visible = $elem.is(':visible') && $elem.css('opacity') > 0 && $elem.css('visibility') !== 'hidden';
+    if (!visible) {
+      return false;
+    }
+
+    var fitsVertical = elemBottom - elemHeight / 4 <= this.docViewBottom && elemTop + elemHeight / 4 >= this.docViewTop;
+    var fitsHorizontal = elemLeft + elemWidth / 4 >= this.docViewLeft && elemRight - elemWidth / 4 <= this.docViewRight;
+
+    if (!fitsVertical || !fitsHorizontal) {
+      return false;
+    }
+
+    var elementFromPoint = document.elementFromPoint(elemLeft - $window.scrollLeft() + elemWidth / 2, elemTop - $window.scrollTop() + elemHeight / 2);
+
+    while (elementFromPoint && elementFromPoint !== el && elementFromPoint.parentNode !== document) {
+      elementFromPoint = elementFromPoint.parentNode;
+    }
+
+    return !!elementFromPoint && elementFromPoint === el;
+  };
+
+  return ViewabilityTracker;
+}();
+
+exports['default'] = ViewabilityTracker;
+
+},{"./functions/noop.js":80}],67:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -8212,7 +8498,7 @@ var integrations = {
 
 exports['default'] = integrations;
 
-},{"./integrations/Criteo.js":85,"./integrations/Driveback.js":86,"./integrations/Emarsys.js":87,"./integrations/FacebookPixel.js":88,"./integrations/GoogleAnalytics.js":89,"./integrations/GoogleTagManager.js":90,"./integrations/MyTarget.js":91,"./integrations/OWOXBIStreaming.js":92,"./integrations/RetailRocket.js":93,"./integrations/SegmentStream.js":94,"./integrations/SendPulse.js":95,"./integrations/Vkontakte.js":96,"./integrations/YandexMetrica.js":97}],67:[function(require,module,exports){
+},{"./integrations/Criteo.js":86,"./integrations/Driveback.js":87,"./integrations/Emarsys.js":88,"./integrations/FacebookPixel.js":89,"./integrations/GoogleAnalytics.js":90,"./integrations/GoogleTagManager.js":91,"./integrations/MyTarget.js":92,"./integrations/OWOXBIStreaming.js":93,"./integrations/RetailRocket.js":94,"./integrations/SegmentStream.js":95,"./integrations/SendPulse.js":96,"./integrations/Vkontakte.js":97,"./integrations/YandexMetrica.js":98}],68:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -8260,6 +8546,10 @@ var _EventManager2 = _interopRequireDefault(_EventManager);
 var _AutoEvents = require('./AutoEvents.js');
 
 var _AutoEvents2 = _interopRequireDefault(_AutoEvents);
+
+var _ViewabilityTracker = require('./ViewabilityTracker.js');
+
+var _ViewabilityTracker2 = _interopRequireDefault(_ViewabilityTracker);
 
 var _DDHelper = require('./DDHelper.js');
 
@@ -8327,7 +8617,7 @@ var _integrations = {};
  * @type {boolean}
  * @private
  */
-var _isInitialized = false;
+var _isLoaded = false;
 
 /**
  * @type {boolean}
@@ -8346,6 +8636,7 @@ function _prepareGlobals() {
   _digitalData.page = _digitalData.page || {};
   _digitalData.user = _digitalData.user || {};
   _digitalData.context = _digitalData.context || {};
+  _digitalData.integrations = _digitalData.integrations || {};
   if (!_digitalData.page.type || _digitalData.page.type !== 'confirmation') {
     _digitalData.cart = _digitalData.cart || {};
   }
@@ -8357,7 +8648,12 @@ function _prepareGlobals() {
   }
 }
 
-function _initializeIntegrations(settings, onReady) {
+function _initializeIntegrations(settings) {
+  var onLoad = function onLoad() {
+    _isLoaded = true;
+    ddManager.emit('load');
+  };
+
   if (settings && (typeof settings === 'undefined' ? 'undefined' : _typeof(settings)) === 'object') {
     (function () {
       var integrationSettings = settings.integrations;
@@ -8394,26 +8690,22 @@ function _initializeIntegrations(settings, onReady) {
         }
       }
 
-      var ready = (0, _after2['default'])((0, _size2['default'])(_integrations), onReady);
+      var loaded = (0, _after2['default'])((0, _size2['default'])(_integrations), onLoad);
 
       if ((0, _size2['default'])(_integrations) > 0) {
         (0, _each2['default'])(_integrations, function (name, integration) {
           if (!integration.isLoaded() || integration.getOption('noConflict')) {
-            integration.once('ready', function () {
-              integration.enrichDigitalData(function () {
-                _eventManager.addCallback(['on', 'event', function (event) {
-                  return integration.trackEvent(event);
-                }], true);
-                ready();
-              });
-            });
+            integration.once('load', loaded);
             integration.initialize();
+            _eventManager.addCallback(['on', 'event', function (event) {
+              return integration.trackEvent(event);
+            }], true);
           } else {
-            ready();
+            loaded();
           }
         });
       } else {
-        ready();
+        loaded();
       }
     })();
   }
@@ -8421,7 +8713,7 @@ function _initializeIntegrations(settings, onReady) {
 
 ddManager = {
 
-  VERSION: '1.1.1',
+  VERSION: '1.1.2',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -8485,10 +8777,11 @@ ddManager = {
       autoEvents: {
         trackDOMComponents: false
       },
+      websiteMaxWidth: 'auto',
       sessionLength: 3600
     }, settings);
 
-    if (_isInitialized) {
+    if (_isReady) {
       throw new Error('ddManager is already initialized');
     }
 
@@ -8503,20 +8796,22 @@ ddManager = {
     if (settings.autoEvents !== false) {
       _eventManager.setAutoEvents(new _AutoEvents2['default'](settings.autoEvents));
     }
+    _eventManager.setViewabilityTracker(new _ViewabilityTracker2['default']({
+      websiteMaxWidth: settings.websiteMaxWidth
+    }));
 
-    _initializeIntegrations(settings, function () {
-      _isReady = true;
-      ddManager.emit('ready');
-    });
+    _initializeIntegrations(settings);
 
+    // should be initialized after integrations, otherwise
+    // autoEvents will be fired immediately
     _eventManager.initialize();
 
-    _isInitialized = true;
-    ddManager.emit('initialize', settings);
+    _isReady = true;
+    ddManager.emit('ready');
   },
 
-  isInitialized: function isInitialized() {
-    return _isInitialized;
+  isLoaded: function isLoaded() {
+    return _isLoaded;
   },
 
   isReady: function isReady() {
@@ -8524,7 +8819,7 @@ ddManager = {
   },
 
   addIntegration: function addIntegration(name, integration) {
-    if (_isInitialized) {
+    if (_isReady) {
       throw new Error('Adding integrations after ddManager initialization is not allowed');
     }
 
@@ -8565,7 +8860,7 @@ ddManager = {
     ddManager.removeAllListeners();
     _eventManager = null;
     _integrations = {};
-    _isInitialized = false;
+    _isLoaded = false;
     _isReady = false;
   },
 
@@ -8583,8 +8878,8 @@ ddManager.on = ddManager.addEventListener = function (event, handler) {
       handler();
       return;
     }
-  } else if (event === 'initialize') {
-    if (_isInitialized) {
+  } else if (event === 'load') {
+    if (_isLoaded) {
       handler();
       return;
     }
@@ -8595,7 +8890,7 @@ ddManager.on = ddManager.addEventListener = function (event, handler) {
 
 exports['default'] = ddManager;
 
-},{"./AutoEvents.js":59,"./DDHelper.js":60,"./DigitalDataEnricher.js":62,"./EventManager.js":64,"./Integration.js":65,"./functions/after.js":68,"./functions/each.js":70,"./functions/size.js":82,"async":1,"component-clone":2,"component-emitter":3}],68:[function(require,module,exports){
+},{"./AutoEvents.js":59,"./DDHelper.js":60,"./DigitalDataEnricher.js":62,"./EventManager.js":64,"./Integration.js":65,"./ViewabilityTracker.js":66,"./functions/after.js":69,"./functions/each.js":71,"./functions/size.js":83,"async":1,"component-clone":2,"component-emitter":3}],69:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -8609,7 +8904,7 @@ exports["default"] = function (times, fn) {
   };
 };
 
-},{}],69:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -8622,7 +8917,7 @@ exports["default"] = function (obj, prop) {
   }
 };
 
-},{}],70:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -8635,7 +8930,7 @@ exports["default"] = function (obj, fn) {
   }
 };
 
-},{}],71:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -8674,7 +8969,7 @@ function format(str) {
   });
 }
 
-},{}],72:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -8703,7 +8998,7 @@ function _keyToArray(key) {
   return key.split('.');
 }
 
-},{}],73:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -8718,7 +9013,7 @@ function getQueryParam(name, queryString) {
   return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
 }
 
-},{}],74:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -8736,7 +9031,7 @@ exports["default"] = {
   }
 };
 
-},{}],75:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -8751,7 +9046,7 @@ function jsonIsEqual(json1, json2) {
   return json1 === json2;
 }
 
-},{}],76:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -8811,7 +9106,7 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":80,"async":1}],77:[function(require,module,exports){
+},{"./scriptOnLoad.js":81,"async":1}],78:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -8847,7 +9142,7 @@ function error(fn, message, img) {
   };
 }
 
-},{}],78:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -8906,14 +9201,14 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":80,"async":1}],79:[function(require,module,exports){
+},{"./scriptOnLoad.js":81,"async":1}],80:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
 
 exports["default"] = function () {};
 
-},{}],80:[function(require,module,exports){
+},{}],81:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -8968,7 +9263,7 @@ function attachEvent(el, fn) {
   });
 }
 
-},{}],81:[function(require,module,exports){
+},{}],82:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -8989,7 +9284,7 @@ function cmp(a, b) {
 
 exports['default'] = { cmp: cmp };
 
-},{}],82:[function(require,module,exports){
+},{}],83:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -9002,7 +9297,7 @@ exports["default"] = function (obj) {
   return size;
 };
 
-},{}],83:[function(require,module,exports){
+},{}],84:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -9029,7 +9324,7 @@ function throwError(code, message) {
   throw error;
 }
 
-},{"debug":55}],84:[function(require,module,exports){
+},{"debug":55}],85:[function(require,module,exports){
 'use strict';
 
 require('./polyfill.js');
@@ -9051,7 +9346,7 @@ _ddManager2['default'].processEarlyStubCalls();
 
 window.ddManager = _ddManager2['default'];
 
-},{"./availableIntegrations.js":66,"./ddManager.js":67,"./polyfill.js":98}],85:[function(require,module,exports){
+},{"./availableIntegrations.js":67,"./ddManager.js":68,"./polyfill.js":99}],86:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -9180,9 +9475,9 @@ var Criteo = function (_Integration) {
           });
         }]);
       }
-      this.load(this.ready);
+      this.load(this.onLoad);
     } else {
-      this.ready();
+      this.onLoad();
     }
   };
 
@@ -9319,7 +9614,7 @@ var Criteo = function (_Integration) {
 
 exports['default'] = Criteo;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty":69,"./../functions/semver":81}],86:[function(require,module,exports){
+},{"./../Integration.js":65,"./../functions/deleteProperty":70,"./../functions/semver":82}],87:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -9401,9 +9696,9 @@ var Driveback = function (_Integration) {
       if (this.getOption('autoInit') === false) {
         window.DrivebackAsyncInit = _noop2['default'];
       }
-      this.load(this.ready);
+      this.load(this.onLoad);
     } else {
-      this.ready();
+      this.onLoad();
     }
   };
 
@@ -9425,7 +9720,7 @@ var Driveback = function (_Integration) {
 
 exports['default'] = Driveback;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":69,"./../functions/noop.js":79}],87:[function(require,module,exports){
+},{"./../Integration.js":65,"./../functions/deleteProperty.js":70,"./../functions/noop.js":80}],88:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -9518,9 +9813,9 @@ var Emarsys = function (_Integration) {
   Emarsys.prototype.initialize = function initialize() {
     window.ScarabQueue = window.ScarabQueue || [];
     if (!this.getOption('noConflict')) {
-      this.load(this.ready);
+      this.load(this.onLoad);
     } else {
-      this.ready();
+      this.onLoad();
     }
   };
 
@@ -9630,7 +9925,7 @@ var Emarsys = function (_Integration) {
 
 exports['default'] = Emarsys;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":69}],88:[function(require,module,exports){
+},{"./../Integration.js":65,"./../functions/deleteProperty.js":70}],89:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -9705,10 +10000,10 @@ var FacebookPixel = function (_Integration) {
       window.fbq.loaded = true;
       window.fbq.version = '2.0';
       window.fbq.queue = [];
-      this.load(this.ready);
+      this.load(this.onLoad);
       window.fbq('init', this.getOption('pixelId'));
     } else {
-      this.ready();
+      this.onLoad();
     }
   };
 
@@ -9823,7 +10118,7 @@ var FacebookPixel = function (_Integration) {
 
 exports['default'] = FacebookPixel;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":69,"component-type":4}],89:[function(require,module,exports){
+},{"./../Integration.js":65,"./../functions/deleteProperty.js":70,"component-type":4}],90:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -9849,10 +10144,6 @@ var _each2 = _interopRequireDefault(_each);
 var _size = require('./../functions/size.js');
 
 var _size2 = _interopRequireDefault(_size);
-
-var _componentType = require('component-type');
-
-var _componentType2 = _interopRequireDefault(_componentType);
 
 var _componentClone = require('component-clone');
 
@@ -9887,18 +10178,12 @@ function getTransactionVoucher(transaction) {
   } else {
     voucher = transaction.voucher;
   }
-  if (!voucher) {
-    if (Array.isArray(transaction.promotions)) {
-      voucher = transaction.promotions[0];
-    } else {
-      voucher = transaction.promotion;
-    }
-  }
+
   return voucher;
 }
 
-function getCheckoutOptions(event) {
-  var optionNames = ['paymentMethod', 'shippingMethod'];
+function getCheckoutOptions(event, checkoutOptions) {
+  var optionNames = checkoutOptions;
   var options = [];
   for (var _iterator = optionNames, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
     var _ref;
@@ -9914,8 +10199,9 @@ function getCheckoutOptions(event) {
 
     var optionName = _ref;
 
-    if (event[optionName]) {
-      options.push(event[optionName]);
+    var optionValue = (0, _getProperty2['default'])(event, optionName);
+    if (optionValue) {
+      options.push(optionValue);
     }
   }
   return options.join(', ');
@@ -9942,8 +10228,11 @@ var GoogleAnalytics = function (_Integration) {
       metrics: {},
       dimensions: {},
       contentGroupings: {},
+      productDimensions: {},
+      productMetrics: {},
       namespace: 'ddl',
       noConflict: false,
+      checkoutOptions: ['paymentMethod', 'shippingMethod'],
       filterEvents: []
     }, options);
 
@@ -9977,13 +10266,14 @@ var GoogleAnalytics = function (_Integration) {
       this.initializeTracker();
 
       if (this.getOption('noConflict')) {
-        this.ready();
+        this.onLoad();
       } else {
-        this.load(this.ready);
+        this.load(this.onLoad);
       }
     } else {
-      this.ready();
+      this.onLoad();
     }
+    this.enrichDigitalData();
   };
 
   GoogleAnalytics.prototype.initializeTracker = function initializeTracker() {
@@ -9994,7 +10284,6 @@ var GoogleAnalytics = function (_Integration) {
       allowLinker: true,
       name: this.getOption('namespace') ? this.getOption('namespace') : undefined
     });
-
     // display advertising
     if (this.getOption('doubleClick')) {
       this.ga('require', 'displayfeatures');
@@ -10042,13 +10331,20 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.getCustomDimensions = function getCustomDimensions(source) {
+    var productScope = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+
     source = source || this.digitalData;
-    var settings = Object.assign(Object.assign(this.getOption('metrics'), this.getOption('dimensions')), this.getOption('contentGroupings'));
+    var settings = void 0;
+    if (!productScope) {
+      settings = Object.assign(this.getOption('metrics'), this.getOption('dimensions'), this.getOption('contentGroupings'));
+    } else {
+      settings = Object.assign(this.getOption('productMetrics'), this.getOption('productDimensions'));
+    }
     var custom = {};
     (0, _each2['default'])(settings, function (key, value) {
       var dimensionVal = (0, _getProperty2['default'])(source, value);
       if (dimensionVal !== undefined) {
-        if ((0, _componentType2['default'])(dimensionVal) === 'boolean') dimensionVal = dimensionVal.toString();
+        if (typeof dimensionVal === 'boolean') dimensionVal = dimensionVal.toString();
         custom[key] = dimensionVal;
       }
     });
@@ -10092,7 +10388,22 @@ var GoogleAnalytics = function (_Integration) {
       }
     }
 
+    this.setEventCustomDimensions(event);
     this.ga.apply(this, cleanedArgs);
+  };
+
+  GoogleAnalytics.prototype.enrichDigitalData = function enrichDigitalData() {
+    var _this2 = this;
+
+    window.ga(function (tracker) {
+      var trackerName = _this2.getOption('namespace');
+      tracker = tracker || window.ga.getByName(trackerName);
+      if (tracker) {
+        var clientId = tracker.get('clientId');
+        _this2.digitalData.integrations.googleAnalytics = { clientId: clientId };
+      }
+      _this2.onEnrich();
+    });
   };
 
   GoogleAnalytics.prototype.trackEvent = function trackEvent(event) {
@@ -10106,32 +10417,24 @@ var GoogleAnalytics = function (_Integration) {
         this.onViewedPage(event);
       }
     } else if (this.getOption('enhancedEcommerce')) {
-      if (event.name === 'Viewed Product') {
-        this.onViewedProduct(event);
-      } else if (event.name === 'Clicked Product') {
-        this.onClickedProduct(event);
-      } else if (event.name === 'Viewed Product Detail') {
-        this.onViewedProductDetail(event);
-      } else if (event.name === 'Added Product') {
-        this.onAddedProduct(event);
-      } else if (event.name === 'Removed Product') {
-        this.onRemovedProduct(event);
-      } else if (event.name === 'Completed Transaction') {
-        this.onCompletedTransactionEnhanced(event);
-      } else if (event.name === 'Refunded Transaction') {
-        this.onRefundedTransaction(event);
-      } else if (event.name === 'Viewed Product Category') {
-        this.onViewedProductCategory(event);
-      } else if (event.name === 'Viewed Campaign') {
-        this.onViewedCampaign(event);
-      } else if (event.name === 'Clicked Campaign') {
-        this.onClickedCampaign(event);
-      } else if (event.name === 'Viewed Checkout Step') {
-        this.onViewedCheckoutStep(event);
-      } else if (event.name === 'Completed Checkout Step') {
-        this.onCompletedCheckoutStep(event);
+      var methods = {
+        'Viewed Product': this.onViewedProduct,
+        'Clicked Product': this.onClickedProduct,
+        'Viewed Product Detail': this.onViewedProductDetail,
+        'Added Product': this.onAddedProduct,
+        'Removed Product': this.onRemovedProduct,
+        'Completed Transaction': this.onCompletedTransactionEnhanced,
+        'Refunded Transaction': this.onRefundedTransaction,
+        'Viewed Campaign': this.onViewedCampaign,
+        'Clicked Campaign': this.onClickedCampaign,
+        'Viewed Checkout Step': this.onViewedCheckoutStep,
+        'Completed Checkout Step': this.onCompletedCheckoutStep
+      };
+      var method = methods[event.name];
+      if (method) {
+        method.bind(this)(event);
       } else {
-        this.onCustomEvent(event);
+        this.trackCustomEvent(event);
       }
     } else {
       if (event.name === 'Completed Transaction' && !this.getOption('noConflict')) {
@@ -10167,6 +10470,7 @@ var GoogleAnalytics = function (_Integration) {
     }
 
     // send
+    this.setEventCustomDimensions(event);
     this.ga('send', 'pageview', pageview);
 
     this.pageCalled = true;
@@ -10197,7 +10501,9 @@ var GoogleAnalytics = function (_Integration) {
         continue;
       }
       this.loadEnhancedEcommerce(product.currency);
-      this.ga('ec:addImpression', {
+
+      var custom = this.getCustomDimensions(product, true);
+      var gaProduct = Object.assign({
         id: product.id || product.skuCode,
         name: product.name,
         list: listItem.listName,
@@ -10207,7 +10513,8 @@ var GoogleAnalytics = function (_Integration) {
         currency: product.currency || this.getOption('defaultCurrency'),
         variant: product.variant,
         position: listItem.position
-      });
+      }, custom);
+      this.ga('ec:addImpression', gaProduct);
     }
 
     this.pushEnhancedEcommerce(event);
@@ -10247,7 +10554,7 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onCompletedTransaction = function onCompletedTransaction(event) {
-    var _this2 = this;
+    var _this3 = this;
 
     var transaction = event.transaction;
     // orderId is required.
@@ -10273,7 +10580,7 @@ var GoogleAnalytics = function (_Integration) {
     (0, _each2['default'])(transaction.lineItems, function (key, lineItem) {
       var product = lineItem.product;
       if (product) {
-        _this2.ga('ecommerce:addItem', {
+        _this3.ga('ecommerce:addItem', {
           id: transaction.orderId,
           category: product.category,
           quantity: lineItem.quantity,
@@ -10290,7 +10597,7 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onCompletedTransactionEnhanced = function onCompletedTransactionEnhanced(event) {
-    var _this3 = this;
+    var _this4 = this;
 
     var transaction = event.transaction;
 
@@ -10302,8 +10609,8 @@ var GoogleAnalytics = function (_Integration) {
     (0, _each2['default'])(transaction.lineItems, function (key, lineItem) {
       var product = lineItem.product;
       if (product) {
-        product.currency = product.currency || transaction.currency || _this3.getOption('defaultCurrency');
-        _this3.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
+        product.currency = product.currency || transaction.currency || _this4.getOption('defaultCurrency');
+        _this4.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
       }
     });
 
@@ -10321,7 +10628,7 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onRefundedTransaction = function onRefundedTransaction(event) {
-    var _this4 = this;
+    var _this5 = this;
 
     var transaction = event.transaction;
 
@@ -10332,8 +10639,8 @@ var GoogleAnalytics = function (_Integration) {
     (0, _each2['default'])(transaction.lineItems, function (key, lineItem) {
       var product = lineItem.product;
       if (product) {
-        product.currency = product.currency || transaction.currency || _this4.getOption('defaultCurrency');
-        _this4.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
+        product.currency = product.currency || transaction.currency || _this5.getOption('defaultCurrency');
+        _this5.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
       }
     });
 
@@ -10400,7 +10707,7 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onViewedCheckoutStep = function onViewedCheckoutStep(event) {
-    var _this5 = this;
+    var _this6 = this;
 
     var cartOrTransaction = this.get('cart') || this.get('transaction');
 
@@ -10409,14 +10716,14 @@ var GoogleAnalytics = function (_Integration) {
     (0, _each2['default'])(cartOrTransaction.lineItems, function (key, lineItem) {
       var product = lineItem.product;
       if (product) {
-        product.currency = product.currency || cartOrTransaction.currency || _this5.getOption('defaultCurrency');
-        _this5.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
+        product.currency = product.currency || cartOrTransaction.currency || _this6.getOption('defaultCurrency');
+        _this6.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
       }
     });
 
     this.ga('ec:setAction', 'checkout', {
       step: event.step || 1,
-      option: getCheckoutOptions(event) || undefined
+      option: getCheckoutOptions(event, this.getOption('checkoutOptions')) || undefined
     });
 
     this.pushEnhancedEcommerce(event);
@@ -10424,8 +10731,7 @@ var GoogleAnalytics = function (_Integration) {
 
   GoogleAnalytics.prototype.onCompletedCheckoutStep = function onCompletedCheckoutStep(event) {
     var cartOrTransaction = this.get('cart') || this.get('transaction');
-    var options = getCheckoutOptions(event);
-
+    var options = getCheckoutOptions(event, this.getOption('checkoutOptions'));
     if (!event.step || !options) {
       return;
     }
@@ -10441,13 +10747,6 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onCustomEvent = function onCustomEvent(event) {
-    // custom dimensions & metrics
-    var source = (0, _componentClone2['default'])(event);
-    (0, _deleteProperty2['default'])(source, 'name');
-    (0, _deleteProperty2['default'])(source, 'category');
-    var custom = this.getCustomDimensions(source);
-    if ((0, _size2['default'])(custom)) this.ga('set', custom);
-
     var payload = {
       eventAction: event.name || 'event',
       eventCategory: event.category || 'All',
@@ -10456,11 +10755,25 @@ var GoogleAnalytics = function (_Integration) {
       nonInteraction: !!event.nonInteraction
     };
 
+    this.setEventCustomDimensions(event);
     this.ga('send', 'event', payload);
   };
 
+  GoogleAnalytics.prototype.setEventCustomDimensions = function setEventCustomDimensions(event) {
+    // custom dimensions & metrics
+    var source = (0, _componentClone2['default'])(event);
+    var _arr = ['name', 'category', 'label', 'nonInteraction', 'value'];
+    for (var _i5 = 0; _i5 < _arr.length; _i5++) {
+      var prop = _arr[_i5];
+      (0, _deleteProperty2['default'])(source, prop);
+    }
+    var custom = this.getCustomDimensions(source);
+    if ((0, _size2['default'])(custom)) this.ga('set', custom);
+  };
+
   GoogleAnalytics.prototype.enhancedEcommerceTrackProduct = function enhancedEcommerceTrackProduct(product, quantity, position) {
-    var gaProduct = {
+    var custom = this.getCustomDimensions(product, true);
+    var gaProduct = Object.assign({
       id: product.id || product.skuCode,
       name: product.name,
       category: product.category,
@@ -10468,7 +10781,7 @@ var GoogleAnalytics = function (_Integration) {
       brand: product.brand || product.manufacturer,
       variant: product.variant,
       currency: product.currency
-    };
+    }, custom);;
     if (quantity) gaProduct.quantity = quantity;
     if (position) gaProduct.position = position;
     // append coupon if it set
@@ -10495,7 +10808,7 @@ var GoogleAnalytics = function (_Integration) {
 
 exports['default'] = GoogleAnalytics;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":69,"./../functions/each.js":70,"./../functions/getProperty.js":72,"./../functions/size.js":82,"component-clone":2,"component-type":4}],90:[function(require,module,exports){
+},{"./../Integration.js":65,"./../functions/deleteProperty.js":70,"./../functions/each.js":71,"./../functions/getProperty.js":73,"./../functions/size.js":83,"component-clone":2}],91:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -10558,9 +10871,9 @@ var GoogleTagManager = function (_Integration) {
     if (this.getOption('containerId') && this.getOption('noConflict') === false) {
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({ 'gtm.start': Number(new Date()), event: 'gtm.js' });
-      this.load(this.ready);
+      this.load(this.onLoad);
     } else {
-      this.ready();
+      this.onLoad();
     }
   };
 
@@ -10588,7 +10901,7 @@ var GoogleTagManager = function (_Integration) {
 
 exports['default'] = GoogleTagManager;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":69}],91:[function(require,module,exports){
+},{"./../Integration.js":65,"./../functions/deleteProperty.js":70}],92:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -10663,9 +10976,9 @@ var MyTarget = function (_Integration) {
   MyTarget.prototype.initialize = function initialize() {
     window._tmr = window._tmr || [];
     if (!this.getOption('noConflict')) {
-      this.load(this.ready);
+      this.load(this.onLoad);
     } else {
-      this.ready();
+      this.onLoad();
     }
   };
 
@@ -10821,7 +11134,7 @@ var MyTarget = function (_Integration) {
 
 exports['default'] = MyTarget;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":69}],92:[function(require,module,exports){
+},{"./../Integration.js":65,"./../functions/deleteProperty.js":70}],93:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -10899,7 +11212,7 @@ var OWOXBIStreaming = function (_Integration) {
     })();
     /* eslint-enable */
     this._loaded = true;
-    this.ready();
+    this.onLoad();
   };
 
   OWOXBIStreaming.prototype.isLoaded = function isLoaded() {
@@ -10924,7 +11237,7 @@ var OWOXBIStreaming = function (_Integration) {
 
 exports['default'] = OWOXBIStreaming;
 
-},{"./../Integration.js":65}],93:[function(require,module,exports){
+},{"./../Integration.js":65}],94:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -11043,9 +11356,9 @@ var RetailRocket = function (_Integration) {
 
       this.trackEmail();
 
-      this.load(this.ready);
+      this.load(this.onLoad);
     } else {
-      this.ready();
+      this.onLoad();
     }
   };
 
@@ -11354,7 +11667,7 @@ var RetailRocket = function (_Integration) {
 
 exports['default'] = RetailRocket;
 
-},{"./../../src/functions/getProperty":72,"./../Integration.js":65,"./../functions/deleteProperty":69,"./../functions/each":70,"./../functions/format":71,"./../functions/getQueryParam":73,"./../functions/throwError":83,"component-clone":2,"component-type":4}],94:[function(require,module,exports){
+},{"./../../src/functions/getProperty":73,"./../Integration.js":65,"./../functions/deleteProperty":70,"./../functions/each":71,"./../functions/format":72,"./../functions/getQueryParam":74,"./../functions/throwError":84,"component-clone":2,"component-type":4}],95:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -11449,9 +11762,9 @@ var SegmentStream = function (_Integration) {
 
     ssApi.initialize(this._options);
     ssApi.pushOnReady(function () {
-      _this2.ready();
+      _this2.enrichDigitalData();
     });
-    this.load();
+    this.load(this.onLoad);
   };
 
   SegmentStream.prototype.isLoaded = function isLoaded() {
@@ -11463,7 +11776,7 @@ var SegmentStream = function (_Integration) {
     localStorage.clear();
   };
 
-  SegmentStream.prototype.enrichDigitalData = function enrichDigitalData(done) {
+  SegmentStream.prototype.enrichDigitalData = function enrichDigitalData() {
     var _this3 = this;
 
     function lowercaseFirstLetter(string) {
@@ -11476,7 +11789,7 @@ var SegmentStream = function (_Integration) {
       var key = lowercaseFirstLetter(name);
       _this3.digitalData.user.ssAttributes[key] = value;
     });
-    done();
+    this.onEnrich();
   };
 
   SegmentStream.prototype.trackEvent = function trackEvent(event) {
@@ -11516,7 +11829,7 @@ var SegmentStream = function (_Integration) {
 
 exports['default'] = SegmentStream;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":69,"./../functions/each.js":70}],95:[function(require,module,exports){
+},{"./../Integration.js":65,"./../functions/deleteProperty.js":70,"./../functions/each.js":71}],96:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -11597,17 +11910,22 @@ var SendPulse = function (_Integration) {
           _this2.sendUserAttributes(_this2.digitalData.user);
         }
       };
-      _this2.ready();
+      _this2.enrichDigitalData();
+      _this2.onLoad();
     });
   };
 
-  SendPulse.prototype.enrichDigitalData = function enrichDigitalData(done) {
+  SendPulse.prototype.enrichDigitalData = function enrichDigitalData() {
     var _this3 = this;
 
     var pushNotification = this.digitalData.user.pushNotifications = {};
     try {
       pushNotification.isSupported = this.checkPushNotificationsSupport();
       this.getPushSubscriptionInfo(function (subscriptionInfo) {
+        if (!_this3.isLoaded()) {
+          // to avoid problems in unit tests because of asyncoronous delay
+          return;
+        }
         if (subscriptionInfo === undefined) {
           pushNotification.isSubscribed = false;
           if (window.oSpP.isSafariNotificationSupported()) {
@@ -11626,11 +11944,11 @@ var SendPulse = function (_Integration) {
           }
         }
         _this3.onSubscriptionStatusReceived();
-        done();
+        _this3.onEnrich();
       });
     } catch (e) {
       pushNotification.isSupported = false;
-      done();
+      this.onEnrich();
     }
   };
 
@@ -11730,7 +12048,7 @@ var SendPulse = function (_Integration) {
 
 exports['default'] = SendPulse;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":69,"./../functions/each.js":70,"component-type":4}],96:[function(require,module,exports){
+},{"./../Integration.js":65,"./../functions/deleteProperty.js":70,"./../functions/each.js":71,"component-type":4}],97:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -11781,7 +12099,7 @@ var Vkontakte = function (_Integration) {
 
   Vkontakte.prototype.initialize = function initialize() {
     this._isLoaded = true;
-    this.ready();
+    this.onLoad();
   };
 
   Vkontakte.prototype.isLoaded = function isLoaded() {
@@ -11809,7 +12127,7 @@ var Vkontakte = function (_Integration) {
 
 exports['default'] = Vkontakte;
 
-},{"./../Integration.js":65}],97:[function(require,module,exports){
+},{"./../Integration.js":65}],98:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -11920,9 +12238,9 @@ var YandexMetrica = function (_Integration) {
           ecommerce: true
         });
       });
-      this.load(this.ready);
+      this.load(this.onLoad);
     } else {
-      this.ready();
+      this.onLoad();
     }
   };
 
@@ -12041,7 +12359,7 @@ var YandexMetrica = function (_Integration) {
 
 exports['default'] = YandexMetrica;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":69}],98:[function(require,module,exports){
+},{"./../Integration.js":65,"./../functions/deleteProperty.js":70}],99:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es6.object.create');
@@ -12058,4 +12376,4 @@ require('core-js/modules/es6.string.trim');
 
 require('core-js/modules/_has');
 
-},{"core-js/modules/_has":19,"core-js/modules/es6.array.index-of":49,"core-js/modules/es6.array.is-array":50,"core-js/modules/es6.function.bind":51,"core-js/modules/es6.object.assign":52,"core-js/modules/es6.object.create":53,"core-js/modules/es6.string.trim":54}]},{},[84]);
+},{"core-js/modules/_has":19,"core-js/modules/es6.array.index-of":49,"core-js/modules/es6.array.is-array":50,"core-js/modules/es6.function.bind":51,"core-js/modules/es6.object.assign":52,"core-js/modules/es6.object.create":53,"core-js/modules/es6.string.trim":54}]},{},[85]);

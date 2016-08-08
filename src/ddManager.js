@@ -8,6 +8,7 @@ import emitter from 'component-emitter';
 import Integration from './Integration.js';
 import EventManager from './EventManager.js';
 import AutoEvents from './AutoEvents.js';
+import ViewabilityTracker from './ViewabilityTracker.js';
 import DDHelper from './DDHelper.js';
 import DigitalDataEnricher from './DigitalDataEnricher.js';
 
@@ -145,7 +146,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.1.1',
+  VERSION: '1.1.2',
 
   setAvailableIntegrations: (availableIntegrations) => {
     _availableIntegrations = availableIntegrations;
@@ -209,6 +210,7 @@ ddManager = {
       autoEvents: {
         trackDOMComponents: false,
       },
+      websiteMaxWidth: 'auto',
       sessionLength: 3600,
     }, settings);
 
@@ -227,6 +229,9 @@ ddManager = {
     if (settings.autoEvents !== false) {
       _eventManager.setAutoEvents(new AutoEvents(settings.autoEvents));
     }
+    _eventManager.setViewabilityTracker(new ViewabilityTracker({
+      websiteMaxWidth: settings.websiteMaxWidth,
+    }));
 
     _initializeIntegrations(settings);
 
