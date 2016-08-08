@@ -15,6 +15,7 @@ describe('SegmentStream', function() {
     window.digitalData = {
       events: []
     };
+    window.localStorage.clear(); // just to be sure
     _ss = new SegmentStream(window.digitalData, options);
     ddManager.addIntegration('SegmentStream', _ss);
   });

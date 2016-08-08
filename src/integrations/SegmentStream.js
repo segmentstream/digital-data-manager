@@ -98,22 +98,28 @@ class SegmentStream extends Integration {
   }
 
   onViewedPage() {
-    window.ssApi.track('Viewed Page');
-    this.enrichDigitalData();
+    ssApi.pushOnReady(() => {
+      window.ssApi.track('Viewed Page');
+      this.enrichDigitalData();
+    });
   }
 
   onViewedProductDetail(event) {
-    window.ssApi.track('Viewed Product Detail', {
-      price: event.product.unitSalePrice || event.product.unitPrice || 0,
+    ssApi.pushOnReady(() => {
+      window.ssApi.track('Viewed Product Detail', {
+        price: event.product.unitSalePrice || event.product.unitPrice || 0,
+      });
+      this.enrichDigitalData();
     });
-    this.enrichDigitalData();
   }
 
   onAddedProduct(event) {
-    window.ssApi.track('Added Product', {
-      price: event.product.unitSalePrice || event.product.unitPrice || 0,
+    ssApi.pushOnReady(() => {
+      window.ssApi.track('Added Product', {
+        price: event.product.unitSalePrice || event.product.unitPrice || 0,
+      });
+      this.enrichDigitalData();
     });
-    this.enrichDigitalData();
   }
 }
 
