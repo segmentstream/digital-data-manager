@@ -27166,6 +27166,7 @@ describe('SegmentStream', function () {
           name: 'Viewed Page',
           category: 'Content',
           callback: function callback() {
+            console.log(window.ssApi);
             window.ssApi.pushOnReady(function () {
               _assert2['default'].equal(window.digitalData.user.ssAttributes.lifetimeVisitCount, 1);
               done();
