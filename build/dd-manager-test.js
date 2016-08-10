@@ -17306,31 +17306,39 @@ var Emarsys = function (_Integration) {
   Emarsys.prototype.onViewedProductCategory = function onViewedProductCategory(event) {
     var listing = event.listing || {};
     var category = listing.category;
-    if (Array.isArray(listing.category)) {
-      category = category.join(this.getOption('categorySeparator'));
+    if (listing.category) {
+      if (Array.isArray(listing.category)) {
+        category = category.join(this.getOption('categorySeparator'));
+      }
+      window.ScarabQueue.push(['category', category]);
     }
-    window.ScarabQueue.push(['category', category]);
     go();
   };
 
   Emarsys.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
-    var product = event.product;
-    window.ScarabQueue.push(['view', product.id || product.skuCode]);
+    var product = event.product || {};
+    if (product.id || product.skuCode) {
+      window.ScarabQueue.push(['view', product.id || product.skuCode]);
+    }
     go();
   };
 
   Emarsys.prototype.onSearched = function onSearched(event) {
     var listing = event.listing || {};
-    window.ScarabQueue.push(['searchTerm', listing.query]);
+    if (listing.query) {
+      window.ScarabQueue.push(['searchTerm', listing.query]);
+    }
     go();
   };
 
   Emarsys.prototype.onCompletedTransaction = function onCompletedTransaction(event) {
-    var transaction = event.transaction;
-    window.ScarabQueue.push(['purchase', {
-      orderId: transaction.orderId,
-      items: mapLineItems(transaction.lineItems)
-    }]);
+    var transaction = event.transaction || {};
+    if (transaction.orderId && transaction.lineItems) {
+      window.ScarabQueue.push(['purchase', {
+        orderId: transaction.orderId,
+        items: mapLineItems(transaction.lineItems)
+      }]);
+    }
     go();
   };
 
@@ -22733,7 +22741,7 @@ describe('Integrations: Emarsys', function () {
 
   var emarsys = void 0;
   var options = {
-    merchantId: '123'
+    merchantId: '1ED4C63984B56E58'
   };
 
   beforeEach(function () {
@@ -23803,14 +23811,15 @@ describe('Integrations: GoogleAnalytics', function () {
           });
         });
 
-        it('should map custom dimensions, metrics & content groupings using event properties', function (done) {
+        it.only('should map custom dimensions, metrics & content groupings using event properties', function (done) {
           ga.setOption('metrics', {
             metric1: 'page.score',
             metric2: 'timestamp' // timestamp is added for every event inside EventManager
           });
           ga.setOption('dimensions', {
             dimension1: 'page.author',
-            dimension2: 'page.postType'
+            dimension2: 'page.postType',
+            dimension3: 'test'
           });
           ga.setOption('contentGroupings', {
             contentGrouping1: 'page.section'
@@ -23823,12 +23832,14 @@ describe('Integrations: GoogleAnalytics', function () {
               postType: 'blog',
               section: 'News'
             },
+            test: 'test',
             callback: function callback() {
               _assert2['default'].ok(window.ga.calledWith('set', {
                 metric1: 21,
                 metric2: _sinon2['default'].match.any, // timestamp is added for every event inside EventManager
                 dimension1: 'Author',
                 dimension2: 'blog',
+                dimension3: 'test',
                 contentGrouping1: 'News'
               }));
               done();
@@ -27166,7 +27177,6 @@ describe('SegmentStream', function () {
           name: 'Viewed Page',
           category: 'Content',
           callback: function callback() {
-            console.log(window.ssApi);
             window.ssApi.pushOnReady(function () {
               _assert2['default'].equal(window.digitalData.user.ssAttributes.lifetimeVisitCount, 1);
               done();
