@@ -313,14 +313,15 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should map custom dimensions, metrics & content groupings using event properties', (done) => {
+        it.only('should map custom dimensions, metrics & content groupings using event properties', (done) => {
           ga.setOption('metrics', {
             metric1: 'page.score',
             metric2: 'timestamp' // timestamp is added for every event inside EventManager
           });
           ga.setOption('dimensions', {
             dimension1: 'page.author',
-            dimension2: 'page.postType'
+            dimension2: 'page.postType',
+            dimension3: 'test',
           });
           ga.setOption('contentGroupings', {
             contentGrouping1: 'page.section'
@@ -333,12 +334,14 @@ describe('Integrations: GoogleAnalytics', () => {
               postType: 'blog',
               section: 'News'
             },
+            test: 'test',
             callback: () => {
               assert.ok(window.ga.calledWith('set', {
                 metric1: 21,
                 metric2: sinon.match.any, // timestamp is added for every event inside EventManager
                 dimension1: 'Author',
                 dimension2: 'blog',
+                dimension3: 'test',
                 contentGrouping1: 'News'
               }));
               done();

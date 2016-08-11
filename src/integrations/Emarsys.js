@@ -126,31 +126,39 @@ class Emarsys extends Integration {
   onViewedProductCategory(event) {
     const listing = event.listing || {};
     let category = listing.category;
-    if (Array.isArray(listing.category)) {
-      category = category.join(this.getOption('categorySeparator'));
+    if (listing.category) {
+      if (Array.isArray(listing.category)) {
+        category = category.join(this.getOption('categorySeparator'));
+      }
+      window.ScarabQueue.push(['category', category]);
     }
-    window.ScarabQueue.push(['category', category]);
     go();
   }
 
   onViewedProductDetail(event) {
-    const product = event.product;
-    window.ScarabQueue.push(['view', product.id || product.skuCode]);
+    const product = event.product || {};
+    if (product.id || product.skuCode) {
+      window.ScarabQueue.push(['view', product.id || product.skuCode]);
+    }
     go();
   }
 
   onSearched(event) {
     const listing = event.listing || {};
-    window.ScarabQueue.push(['searchTerm', listing.query]);
+    if (listing.query) {
+      window.ScarabQueue.push(['searchTerm', listing.query]);
+    }
     go();
   }
 
   onCompletedTransaction(event) {
-    const transaction = event.transaction;
-    window.ScarabQueue.push(['purchase', {
-      orderId: transaction.orderId,
-      items: mapLineItems(transaction.lineItems),
-    }]);
+    const transaction = event.transaction || {};
+    if (transaction.orderId && transaction.lineItems) {
+      window.ScarabQueue.push(['purchase', {
+        orderId: transaction.orderId,
+        items: mapLineItems(transaction.lineItems),
+      }]);
+    }
     go();
   }
 }

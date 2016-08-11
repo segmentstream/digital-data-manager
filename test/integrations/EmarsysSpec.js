@@ -59,7 +59,7 @@ describe('Integrations: Emarsys', () => {
 
   let emarsys;
   const options = {
-    merchantId: '123',
+    merchantId: '1ED4C63984B56E58',
   };
 
   beforeEach(() => {
