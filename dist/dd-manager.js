@@ -7713,8 +7713,12 @@ var EventManager = function () {
       if (callbackInfo.length < 3) {
         return;
       }
-      var asyncHandler = _async2['default'].asyncify(callbackInfo[2]);
-      this.on(callbackInfo[1], asyncHandler, processPastEvents);
+      var handler = callbackInfo[2];
+      if (callbackInfo[1] !== 'beforeEvent') {
+        // make handler async if it is not before-handler
+        handler = _async2['default'].asyncify(callbackInfo[2]);
+      }
+      this.on(callbackInfo[1], handler, processPastEvents);
     }if (callbackInfo[0] === 'off') {
       // TODO
     }
@@ -7781,11 +7785,40 @@ var EventManager = function () {
     }
   };
 
+  EventManager.prototype.beforeFireEvent = function beforeFireEvent(event) {
+    if (!_callbacks.beforeEvent) {
+      return true;
+    }
+
+    var beforeEventCallback = void 0;
+    var result = void 0;
+    for (var _iterator3 = _callbacks.beforeEvent, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
+      if (_isArray3) {
+        if (_i3 >= _iterator3.length) break;
+        beforeEventCallback = _iterator3[_i3++];
+      } else {
+        _i3 = _iterator3.next();
+        if (_i3.done) break;
+        beforeEventCallback = _i3.value;
+      }
+
+      result = beforeEventCallback.handler(event);
+      if (result === false) {
+        return false;
+      }
+    }
+    return true;
+  };
+
   EventManager.prototype.fireEvent = function fireEvent(event) {
     var _this2 = this;
 
     var eventCallback = void 0;
     event.timestamp = new Date().getTime();
+
+    if (!this.beforeFireEvent(event)) {
+      return false;
+    }
 
     if (_callbacks.event) {
       (function () {
@@ -7808,14 +7841,14 @@ var EventManager = function () {
           ready();
         };
 
-        for (var _iterator3 = _callbacks.event, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
-          if (_isArray3) {
-            if (_i3 >= _iterator3.length) break;
-            eventCallback = _iterator3[_i3++];
+        for (var _iterator4 = _callbacks.event, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
+          if (_isArray4) {
+            if (_i4 >= _iterator4.length) break;
+            eventCallback = _iterator4[_i4++];
           } else {
-            _i3 = _iterator3.next();
-            if (_i3.done) break;
-            eventCallback = _i3.value;
+            _i4 = _iterator4.next();
+            if (_i4.done) break;
+            eventCallback = _i4.value;
           }
 
           var eventCopy = (0, _componentClone2['default'])(event);
@@ -7868,14 +7901,14 @@ var EventManager = function () {
   EventManager.prototype.applyCallbackForPastEvents = function applyCallbackForPastEvents(handler) {
     var events = _digitalData.events;
     var event = void 0;
-    for (var _iterator4 = events, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
-      if (_isArray4) {
-        if (_i4 >= _iterator4.length) break;
-        event = _iterator4[_i4++];
+    for (var _iterator5 = events, _isArray5 = Array.isArray(_iterator5), _i5 = 0, _iterator5 = _isArray5 ? _iterator5 : _iterator5[Symbol.iterator]();;) {
+      if (_isArray5) {
+        if (_i5 >= _iterator5.length) break;
+        event = _iterator5[_i5++];
       } else {
-        _i4 = _iterator4.next();
-        if (_i4.done) break;
-        event = _i4.value;
+        _i5 = _iterator5.next();
+        if (_i5.done) break;
+        event = _i5.value;
       }
 
       if (event.hasFired) {
@@ -7892,14 +7925,14 @@ var EventManager = function () {
   EventManager.prototype.fireUnfiredEvents = function fireUnfiredEvents() {
     var events = _digitalData.events;
     var event = void 0;
-    for (var _iterator5 = events, _isArray5 = Array.isArray(_iterator5), _i5 = 0, _iterator5 = _isArray5 ? _iterator5 : _iterator5[Symbol.iterator]();;) {
-      if (_isArray5) {
-        if (_i5 >= _iterator5.length) break;
-        event = _iterator5[_i5++];
+    for (var _iterator6 = events, _isArray6 = Array.isArray(_iterator6), _i6 = 0, _iterator6 = _isArray6 ? _iterator6 : _iterator6[Symbol.iterator]();;) {
+      if (_isArray6) {
+        if (_i6 >= _iterator6.length) break;
+        event = _iterator6[_i6++];
       } else {
-        _i5 = _iterator5.next();
-        if (_i5.done) break;
-        event = _i5.value;
+        _i6 = _iterator6.next();
+        if (_i6.done) break;
+        event = _i6.value;
       }
 
       if (!event.hasFired) {
@@ -7910,14 +7943,14 @@ var EventManager = function () {
 
   EventManager.prototype.addEarlyCallbacks = function addEarlyCallbacks() {
     var callbackInfo = void 0;
-    for (var _iterator6 = _ddListener, _isArray6 = Array.isArray(_iterator6), _i6 = 0, _iterator6 = _isArray6 ? _iterator6 : _iterator6[Symbol.iterator]();;) {
-      if (_isArray6) {
-        if (_i6 >= _iterator6.length) break;
-        callbackInfo = _iterator6[_i6++];
+    for (var _iterator7 = _ddListener, _isArray7 = Array.isArray(_iterator7), _i7 = 0, _iterator7 = _isArray7 ? _iterator7 : _iterator7[Symbol.iterator]();;) {
+      if (_isArray7) {
+        if (_i7 >= _iterator7.length) break;
+        callbackInfo = _iterator7[_i7++];
       } else {
-        _i6 = _iterator6.next();
-        if (_i6.done) break;
-        callbackInfo = _i6.value;
+        _i7 = _iterator7.next();
+        if (_i7.done) break;
+        callbackInfo = _i7.value;
       }
 
       this.addCallback(callbackInfo);
@@ -7925,18 +7958,18 @@ var EventManager = function () {
   };
 
   EventManager.prototype.enrichEventWithData = function enrichEventWithData(event) {
-    var enrichableVars = ['product', 'listItem', 'listItems', 'transaction', 'campaign', 'campaigns', 'user', 'page'];
+    var enrichableVars = ['product', 'listItem', 'listItems', 'campaign', 'campaigns'];
 
-    for (var _iterator7 = enrichableVars, _isArray7 = Array.isArray(_iterator7), _i7 = 0, _iterator7 = _isArray7 ? _iterator7 : _iterator7[Symbol.iterator]();;) {
+    for (var _iterator8 = enrichableVars, _isArray8 = Array.isArray(_iterator8), _i8 = 0, _iterator8 = _isArray8 ? _iterator8 : _iterator8[Symbol.iterator]();;) {
       var _ref;
 
-      if (_isArray7) {
-        if (_i7 >= _iterator7.length) break;
-        _ref = _iterator7[_i7++];
+      if (_isArray8) {
+        if (_i8 >= _iterator8.length) break;
+        _ref = _iterator8[_i8++];
       } else {
-        _i7 = _iterator7.next();
-        if (_i7.done) break;
-        _ref = _i7.value;
+        _i8 = _iterator8.next();
+        if (_i8.done) break;
+        _ref = _i8.value;
       }
 
       var enrichableVar = _ref;
@@ -8713,7 +8746,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.1.2',
+  VERSION: '1.1.3',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -9892,31 +9925,39 @@ var Emarsys = function (_Integration) {
   Emarsys.prototype.onViewedProductCategory = function onViewedProductCategory(event) {
     var listing = event.listing || {};
     var category = listing.category;
-    if (Array.isArray(listing.category)) {
-      category = category.join(this.getOption('categorySeparator'));
+    if (listing.category) {
+      if (Array.isArray(listing.category)) {
+        category = category.join(this.getOption('categorySeparator'));
+      }
+      window.ScarabQueue.push(['category', category]);
     }
-    window.ScarabQueue.push(['category', category]);
     go();
   };
 
   Emarsys.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
-    var product = event.product;
-    window.ScarabQueue.push(['view', product.id || product.skuCode]);
+    var product = event.product || {};
+    if (product.id || product.skuCode) {
+      window.ScarabQueue.push(['view', product.id || product.skuCode]);
+    }
     go();
   };
 
   Emarsys.prototype.onSearched = function onSearched(event) {
     var listing = event.listing || {};
-    window.ScarabQueue.push(['searchTerm', listing.query]);
+    if (listing.query) {
+      window.ScarabQueue.push(['searchTerm', listing.query]);
+    }
     go();
   };
 
   Emarsys.prototype.onCompletedTransaction = function onCompletedTransaction(event) {
-    var transaction = event.transaction;
-    window.ScarabQueue.push(['purchase', {
-      orderId: transaction.orderId,
-      items: mapLineItems(transaction.lineItems)
-    }]);
+    var transaction = event.transaction || {};
+    if (transaction.orderId && transaction.lineItems) {
+      window.ScarabQueue.push(['purchase', {
+        orderId: transaction.orderId,
+        items: mapLineItems(transaction.lineItems)
+      }]);
+    }
     go();
   };
 
@@ -10434,7 +10475,7 @@ var GoogleAnalytics = function (_Integration) {
       if (method) {
         method.bind(this)(event);
       } else {
-        this.trackCustomEvent(event);
+        this.onCustomEvent(event);
       }
     } else {
       if (event.name === 'Completed Transaction' && !this.getOption('noConflict')) {

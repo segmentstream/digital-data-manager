@@ -15149,8 +15149,12 @@ var EventManager = function () {
       if (callbackInfo.length < 3) {
         return;
       }
-      var asyncHandler = _async2['default'].asyncify(callbackInfo[2]);
-      this.on(callbackInfo[1], asyncHandler, processPastEvents);
+      var handler = callbackInfo[2];
+      if (callbackInfo[1] !== 'beforeEvent') {
+        // make handler async if it is not before-handler
+        handler = _async2['default'].asyncify(callbackInfo[2]);
+      }
+      this.on(callbackInfo[1], handler, processPastEvents);
     }if (callbackInfo[0] === 'off') {
       // TODO
     }
@@ -15217,11 +15221,40 @@ var EventManager = function () {
     }
   };
 
+  EventManager.prototype.beforeFireEvent = function beforeFireEvent(event) {
+    if (!_callbacks.beforeEvent) {
+      return true;
+    }
+
+    var beforeEventCallback = void 0;
+    var result = void 0;
+    for (var _iterator3 = _callbacks.beforeEvent, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
+      if (_isArray3) {
+        if (_i3 >= _iterator3.length) break;
+        beforeEventCallback = _iterator3[_i3++];
+      } else {
+        _i3 = _iterator3.next();
+        if (_i3.done) break;
+        beforeEventCallback = _i3.value;
+      }
+
+      result = beforeEventCallback.handler(event);
+      if (result === false) {
+        return false;
+      }
+    }
+    return true;
+  };
+
   EventManager.prototype.fireEvent = function fireEvent(event) {
     var _this2 = this;
 
     var eventCallback = void 0;
     event.timestamp = new Date().getTime();
+
+    if (!this.beforeFireEvent(event)) {
+      return false;
+    }
 
     if (_callbacks.event) {
       (function () {
@@ -15244,14 +15277,14 @@ var EventManager = function () {
           ready();
         };
 
-        for (var _iterator3 = _callbacks.event, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
-          if (_isArray3) {
-            if (_i3 >= _iterator3.length) break;
-            eventCallback = _iterator3[_i3++];
+        for (var _iterator4 = _callbacks.event, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
+          if (_isArray4) {
+            if (_i4 >= _iterator4.length) break;
+            eventCallback = _iterator4[_i4++];
           } else {
-            _i3 = _iterator3.next();
-            if (_i3.done) break;
-            eventCallback = _i3.value;
+            _i4 = _iterator4.next();
+            if (_i4.done) break;
+            eventCallback = _i4.value;
           }
 
           var eventCopy = (0, _componentClone2['default'])(event);
@@ -15304,14 +15337,14 @@ var EventManager = function () {
   EventManager.prototype.applyCallbackForPastEvents = function applyCallbackForPastEvents(handler) {
     var events = _digitalData.events;
     var event = void 0;
-    for (var _iterator4 = events, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
-      if (_isArray4) {
-        if (_i4 >= _iterator4.length) break;
-        event = _iterator4[_i4++];
+    for (var _iterator5 = events, _isArray5 = Array.isArray(_iterator5), _i5 = 0, _iterator5 = _isArray5 ? _iterator5 : _iterator5[Symbol.iterator]();;) {
+      if (_isArray5) {
+        if (_i5 >= _iterator5.length) break;
+        event = _iterator5[_i5++];
       } else {
-        _i4 = _iterator4.next();
-        if (_i4.done) break;
-        event = _i4.value;
+        _i5 = _iterator5.next();
+        if (_i5.done) break;
+        event = _i5.value;
       }
 
       if (event.hasFired) {
@@ -15328,14 +15361,14 @@ var EventManager = function () {
   EventManager.prototype.fireUnfiredEvents = function fireUnfiredEvents() {
     var events = _digitalData.events;
     var event = void 0;
-    for (var _iterator5 = events, _isArray5 = Array.isArray(_iterator5), _i5 = 0, _iterator5 = _isArray5 ? _iterator5 : _iterator5[Symbol.iterator]();;) {
-      if (_isArray5) {
-        if (_i5 >= _iterator5.length) break;
-        event = _iterator5[_i5++];
+    for (var _iterator6 = events, _isArray6 = Array.isArray(_iterator6), _i6 = 0, _iterator6 = _isArray6 ? _iterator6 : _iterator6[Symbol.iterator]();;) {
+      if (_isArray6) {
+        if (_i6 >= _iterator6.length) break;
+        event = _iterator6[_i6++];
       } else {
-        _i5 = _iterator5.next();
-        if (_i5.done) break;
-        event = _i5.value;
+        _i6 = _iterator6.next();
+        if (_i6.done) break;
+        event = _i6.value;
       }
 
       if (!event.hasFired) {
@@ -15346,14 +15379,14 @@ var EventManager = function () {
 
   EventManager.prototype.addEarlyCallbacks = function addEarlyCallbacks() {
     var callbackInfo = void 0;
-    for (var _iterator6 = _ddListener, _isArray6 = Array.isArray(_iterator6), _i6 = 0, _iterator6 = _isArray6 ? _iterator6 : _iterator6[Symbol.iterator]();;) {
-      if (_isArray6) {
-        if (_i6 >= _iterator6.length) break;
-        callbackInfo = _iterator6[_i6++];
+    for (var _iterator7 = _ddListener, _isArray7 = Array.isArray(_iterator7), _i7 = 0, _iterator7 = _isArray7 ? _iterator7 : _iterator7[Symbol.iterator]();;) {
+      if (_isArray7) {
+        if (_i7 >= _iterator7.length) break;
+        callbackInfo = _iterator7[_i7++];
       } else {
-        _i6 = _iterator6.next();
-        if (_i6.done) break;
-        callbackInfo = _i6.value;
+        _i7 = _iterator7.next();
+        if (_i7.done) break;
+        callbackInfo = _i7.value;
       }
 
       this.addCallback(callbackInfo);
@@ -15361,18 +15394,18 @@ var EventManager = function () {
   };
 
   EventManager.prototype.enrichEventWithData = function enrichEventWithData(event) {
-    var enrichableVars = ['product', 'listItem', 'listItems', 'transaction', 'campaign', 'campaigns', 'user', 'page'];
+    var enrichableVars = ['product', 'listItem', 'listItems', 'campaign', 'campaigns'];
 
-    for (var _iterator7 = enrichableVars, _isArray7 = Array.isArray(_iterator7), _i7 = 0, _iterator7 = _isArray7 ? _iterator7 : _iterator7[Symbol.iterator]();;) {
+    for (var _iterator8 = enrichableVars, _isArray8 = Array.isArray(_iterator8), _i8 = 0, _iterator8 = _isArray8 ? _iterator8 : _iterator8[Symbol.iterator]();;) {
       var _ref;
 
-      if (_isArray7) {
-        if (_i7 >= _iterator7.length) break;
-        _ref = _iterator7[_i7++];
+      if (_isArray8) {
+        if (_i8 >= _iterator8.length) break;
+        _ref = _iterator8[_i8++];
       } else {
-        _i7 = _iterator7.next();
-        if (_i7.done) break;
-        _ref = _i7.value;
+        _i8 = _iterator8.next();
+        if (_i8.done) break;
+        _ref = _i8.value;
       }
 
       var enrichableVar = _ref;
@@ -16149,7 +16182,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.1.2',
+  VERSION: '1.1.3',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -17856,7 +17889,7 @@ var GoogleAnalytics = function (_Integration) {
       if (method) {
         method.bind(this)(event);
       } else {
-        this.trackCustomEvent(event);
+        this.onCustomEvent(event);
       }
     } else {
       if (event.name === 'Completed Transaction' && !this.getOption('noConflict')) {
@@ -21062,6 +21095,47 @@ describe('EventManager', function () {
       _assert2['default'].equal(receivedEvent.category, event.category);
     });
 
+    it('should process callback for beforeEvent and event', function () {
+      var event = Object.assign({}, eventTemplate);
+      var callbackFired = false;
+      var receivedEvent = void 0;
+
+      _eventManager.initialize();
+
+      _ddListener.push(['on', 'event', function (e) {
+        callbackFired = true;
+        receivedEvent = e;
+      }]);
+      _ddListener.push(['on', 'beforeEvent', function (e) {
+        e.newVar = 'test';
+      }]);
+      _digitalData.events.push(event);
+
+      _assert2['default'].ok(callbackFired);
+      _assert2['default'].equal(receivedEvent.action, event.action);
+      _assert2['default'].equal(receivedEvent.category, event.category);
+      _assert2['default'].equal(receivedEvent.newVar, 'test');
+    });
+
+    it('should not process callback evet after beforeEvent callback returned false', function () {
+      var event = Object.assign({}, eventTemplate);
+      var callbackFired = false;
+      var receivedEvent = void 0;
+
+      _eventManager.initialize();
+
+      _ddListener.push(['on', 'event', function (e) {
+        callbackFired = true;
+        receivedEvent = e;
+      }]);
+      _ddListener.push(['on', 'beforeEvent', function (e) {
+        return false;
+      }]);
+      _digitalData.events.push(event);
+
+      _assert2['default'].ok(!callbackFired);
+    });
+
     it('should process early callback for event', function () {
       var event = Object.assign({}, eventTemplate);
 
@@ -21083,6 +21157,23 @@ describe('EventManager', function () {
         _assert2['default'].ok(true);
         _assert2['default'].equal(e.action, event.action);
         _assert2['default'].equal(e.category, event.category);
+      }]);
+      _digitalData.events.push(event);
+
+      _eventManager.initialize();
+    });
+
+    it('should process early callback for early event and beforeEvent', function () {
+      var event = Object.assign({}, eventTemplate);
+
+      _ddListener.push(['on', 'event', function (e) {
+        _assert2['default'].ok(true);
+        _assert2['default'].equal(e.action, event.action);
+        _assert2['default'].equal(e.category, event.category);
+        _assert2['default'].equal(e.newVar, 'test');
+      }]);
+      _ddListener.push(['on', 'beforeEvent', function (e) {
+        e.newVar = 'test';
       }]);
       _digitalData.events.push(event);
 
@@ -23719,7 +23810,7 @@ describe('Integrations: GoogleAnalytics', function () {
         it('should send a page view', function (done) {
           window.digitalData.events.push({
             name: 'Viewed Page',
-            page: {},
+            page: window.digitalData.page,
             callback: function callback() {
               _assert2['default'].ok(window.ga.calledWith('send', 'pageview', {
                 page: window.location.pathname,
@@ -23734,7 +23825,7 @@ describe('Integrations: GoogleAnalytics', function () {
         it('should omit location on subsequent page views', function (done) {
           window.digitalData.events.push({
             name: 'Viewed Page',
-            page: {},
+            page: window.digitalData.page,
             callback: function callback() {
               _assert2['default'].ok(window.ga.calledWith('send', 'pageview', {
                 page: window.location.pathname,
@@ -23744,7 +23835,7 @@ describe('Integrations: GoogleAnalytics', function () {
 
               window.digitalData.events.push({
                 name: 'Viewed Page',
-                page: {},
+                page: window.digitalData.page,
                 callback: function callback() {
                   _assert2['default'].ok(window.ga.calledWith('send', 'pageview', {
                     page: window.location.pathname,
@@ -23811,7 +23902,7 @@ describe('Integrations: GoogleAnalytics', function () {
           });
         });
 
-        it.only('should map custom dimensions, metrics & content groupings using event properties', function (done) {
+        it('should map custom dimensions, metrics & content groupings using event properties', function (done) {
           ga.setOption('metrics', {
             metric1: 'page.score',
             metric2: 'timestamp' // timestamp is added for every event inside EventManager

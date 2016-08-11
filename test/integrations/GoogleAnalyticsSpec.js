@@ -221,7 +221,7 @@ describe('Integrations: GoogleAnalytics', () => {
         it('should send a page view', (done) => {
           window.digitalData.events.push({
             name: 'Viewed Page',
-            page: {},
+            page: window.digitalData.page,
             callback: () => {
               assert.ok(window.ga.calledWith('send', 'pageview', {
                 page: window.location.pathname,
@@ -236,7 +236,7 @@ describe('Integrations: GoogleAnalytics', () => {
         it('should omit location on subsequent page views', (done) => {
           window.digitalData.events.push({
             name: 'Viewed Page',
-            page: {},
+            page: window.digitalData.page,
             callback: () => {
               assert.ok(window.ga.calledWith('send', 'pageview', {
                 page: window.location.pathname,
@@ -246,7 +246,7 @@ describe('Integrations: GoogleAnalytics', () => {
 
               window.digitalData.events.push({
                 name: 'Viewed Page',
-                page: {},
+                page: window.digitalData.page,
                 callback: () => {
                   assert.ok(window.ga.calledWith('send', 'pageview', {
                     page: window.location.pathname,
@@ -313,7 +313,7 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it.only('should map custom dimensions, metrics & content groupings using event properties', (done) => {
+        it('should map custom dimensions, metrics & content groupings using event properties', (done) => {
           ga.setOption('metrics', {
             metric1: 'page.score',
             metric2: 'timestamp' // timestamp is added for every event inside EventManager

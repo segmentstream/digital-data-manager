@@ -111,8 +111,12 @@ class EventManager {
       if (callbackInfo.length < 3) {
         return;
       }
-      const asyncHandler = async.asyncify(callbackInfo[2]);
-      this.on(callbackInfo[1], asyncHandler, processPastEvents);
+      let handler = callbackInfo[2];
+      if (callbackInfo[1] !== 'beforeEvent') {
+        // make handler async if it is not before-handler
+        handler = async.asyncify(callbackInfo[2]);
+      }
+      this.on(callbackInfo[1], handler, processPastEvents);
     } if (callbackInfo[0] === 'off') {
       // TODO
     }
@@ -161,9 +165,29 @@ class EventManager {
     }
   }
 
+  beforeFireEvent(event) {
+    if (!_callbacks.beforeEvent) {
+      return true;
+    }
+
+    let beforeEventCallback;
+    let result;
+    for (beforeEventCallback of _callbacks.beforeEvent) {
+      result = beforeEventCallback.handler(event);
+      if (result === false) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   fireEvent(event) {
     let eventCallback;
     event.timestamp = (new Date()).getTime();
+
+    if (!this.beforeFireEvent(event)) {
+      return false;
+    }
 
     if (_callbacks.event) {
       const results = [];
@@ -265,11 +289,8 @@ class EventManager {
       'product',
       'listItem',
       'listItems',
-      'transaction',
       'campaign',
       'campaigns',
-      'user',
-      'page',
     ];
 
     for (const enrichableVar of enrichableVars) {
