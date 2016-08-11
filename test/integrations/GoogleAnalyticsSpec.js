@@ -221,7 +221,7 @@ describe('Integrations: GoogleAnalytics', () => {
         it('should send a page view', (done) => {
           window.digitalData.events.push({
             name: 'Viewed Page',
-            page: {},
+            page: window.digitalData.page,
             callback: () => {
               assert.ok(window.ga.calledWith('send', 'pageview', {
                 page: window.location.pathname,
@@ -236,7 +236,7 @@ describe('Integrations: GoogleAnalytics', () => {
         it('should omit location on subsequent page views', (done) => {
           window.digitalData.events.push({
             name: 'Viewed Page',
-            page: {},
+            page: window.digitalData.page,
             callback: () => {
               assert.ok(window.ga.calledWith('send', 'pageview', {
                 page: window.location.pathname,
@@ -246,7 +246,7 @@ describe('Integrations: GoogleAnalytics', () => {
 
               window.digitalData.events.push({
                 name: 'Viewed Page',
-                page: {},
+                page: window.digitalData.page,
                 callback: () => {
                   assert.ok(window.ga.calledWith('send', 'pageview', {
                     page: window.location.pathname,
@@ -320,7 +320,8 @@ describe('Integrations: GoogleAnalytics', () => {
           });
           ga.setOption('dimensions', {
             dimension1: 'page.author',
-            dimension2: 'page.postType'
+            dimension2: 'page.postType',
+            dimension3: 'test',
           });
           ga.setOption('contentGroupings', {
             contentGrouping1: 'page.section'
@@ -333,12 +334,14 @@ describe('Integrations: GoogleAnalytics', () => {
               postType: 'blog',
               section: 'News'
             },
+            test: 'test',
             callback: () => {
               assert.ok(window.ga.calledWith('set', {
                 metric1: 21,
                 metric2: sinon.match.any, // timestamp is added for every event inside EventManager
                 dimension1: 'Author',
                 dimension2: 'blog',
+                dimension3: 'test',
                 contentGrouping1: 'News'
               }));
               done();

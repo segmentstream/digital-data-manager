@@ -62,6 +62,46 @@ describe('EventManager', () => {
       assert.equal(receivedEvent.category, event.category);
     });
 
+    it('should process callback for beforeEvent and event', () => {
+      let event = Object.assign({}, eventTemplate);
+      let callbackFired = false;
+      let receivedEvent;
+
+      _eventManager.initialize();
+
+      _ddListener.push(['on', 'event', (e) => {
+        callbackFired = true;
+        receivedEvent = e;
+      }]);
+      _ddListener.push(['on', 'beforeEvent', (e) => {
+        e.newVar = 'test';
+      }]);
+      _digitalData.events.push(event);
+
+      assert.ok(callbackFired);
+      assert.equal(receivedEvent.action, event.action);
+      assert.equal(receivedEvent.category, event.category);
+      assert.equal(receivedEvent.newVar, 'test');
+    });
+
+    it('should not process callback evet after beforeEvent callback returned false', () => {
+      let event = Object.assign({}, eventTemplate);
+      let callbackFired = false;
+      let receivedEvent;
+
+      _eventManager.initialize();
+
+      _ddListener.push(['on', 'event', (e) => {
+        callbackFired = true;
+        receivedEvent = e;
+      }]);
+      _ddListener.push(['on', 'beforeEvent', (e) => {
+        return false;
+      }]);
+      _digitalData.events.push(event);
+
+      assert.ok(!callbackFired);
+    });
 
     it('should process early callback for event', () => {
       let event = Object.assign({}, eventTemplate);
@@ -84,6 +124,23 @@ describe('EventManager', () => {
         assert.ok(true);
         assert.equal(e.action, event.action);
         assert.equal(e.category, event.category);
+      }]);
+      _digitalData.events.push(event);
+
+      _eventManager.initialize();
+    });
+
+    it('should process early callback for early event and beforeEvent', () => {
+      let event = Object.assign({}, eventTemplate);
+
+      _ddListener.push(['on', 'event', (e) => {
+        assert.ok(true);
+        assert.equal(e.action, event.action);
+        assert.equal(e.category, event.category);
+        assert.equal(e.newVar, 'test');
+      }]);
+      _ddListener.push(['on', 'beforeEvent', (e) => {
+        e.newVar = 'test';
       }]);
       _digitalData.events.push(event);
 

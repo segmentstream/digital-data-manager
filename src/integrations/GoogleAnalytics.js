@@ -248,7 +248,7 @@ class GoogleAnalytics extends Integration {
       if (method) {
         method.bind(this)(event);
       } else {
-        this.trackCustomEvent(event);
+        this.onCustomEvent(event);
       }
     } else {
       if (event.name === 'Completed Transaction' && !this.getOption('noConflict')) {

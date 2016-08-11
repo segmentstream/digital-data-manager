@@ -146,7 +146,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.1.2',
+  VERSION: '1.1.3',
 
   setAvailableIntegrations: (availableIntegrations) => {
     _availableIntegrations = availableIntegrations;
