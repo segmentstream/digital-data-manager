@@ -1,6 +1,6 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
-import each from './../functions/each.js';
+import getProperty from './../functions/getProperty.js';
 import type from 'component-type';
 
 class SendPulse extends Integration {
@@ -10,6 +10,7 @@ class SendPulse extends Integration {
       https: false,
       pushScriptUrl: '',
       pushSubscriptionTriggerEvent: 'Agreed to Receive Push Notifications',
+      userVariables: [],
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -125,11 +126,13 @@ class SendPulse extends Integration {
   }
 
   sendUserAttributes(newUser, oldUser) {
-    each(newUser, (key, value) => {
-      if (type(value) !== 'object' && (!oldUser || value !== oldUser[key])) {
-        window.oSpP.push(key, String(value));
+    const userVariables = this.getOption('userVariables');
+    for (const userVar of userVariables) {
+      const value = getProperty(newUser, userVar);
+      if (type(value) !== 'object' && (!oldUser || value !== oldUser[userVar])) {
+        window.oSpP.push(userVar, String(value));
       }
-    });
+    }
   }
 
   isLoaded() {

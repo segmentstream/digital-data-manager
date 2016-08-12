@@ -559,7 +559,7 @@ class GoogleAnalytics extends Integration {
       brand: product.brand || product.manufacturer,
       variant: product.variant,
       currency: product.currency,
-    }, custom);;
+    }, custom);
     if (quantity) gaProduct.quantity = quantity;
     if (position) gaProduct.position = position;
     // append coupon if it set

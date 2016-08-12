@@ -98,14 +98,14 @@ class SegmentStream extends Integration {
   }
 
   onViewedPage() {
-    ssApi.pushOnReady(() => {
+    window.ssApi.pushOnReady(() => {
       window.ssApi.track('Viewed Page');
       this.enrichDigitalData();
     });
   }
 
   onViewedProductDetail(event) {
-    ssApi.pushOnReady(() => {
+    window.ssApi.pushOnReady(() => {
       window.ssApi.track('Viewed Product Detail', {
         price: event.product.unitSalePrice || event.product.unitPrice || 0,
       });
@@ -114,7 +114,7 @@ class SegmentStream extends Integration {
   }
 
   onAddedProduct(event) {
-    ssApi.pushOnReady(() => {
+    window.ssApi.pushOnReady(() => {
       window.ssApi.track('Added Product', {
         price: event.product.unitSalePrice || event.product.unitPrice || 0,
       });
