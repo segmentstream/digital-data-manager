@@ -24782,7 +24782,7 @@ describe('Integrations: GoogleAnalytics', function () {
           });
         });
 
-        it('should send viewed product data from DDL', function () {
+        it('should send viewed product with multiple products data from DDL', function () {
           window.digitalData.listing = {
             listName: 'search results',
             items: [{
