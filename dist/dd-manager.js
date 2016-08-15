@@ -8465,6 +8465,10 @@ var _GoogleTagManager = require('./integrations/GoogleTagManager.js');
 
 var _GoogleTagManager2 = _interopRequireDefault(_GoogleTagManager);
 
+var _GoogleAdWords = require('./integrations/GoogleAdWords.js');
+
+var _GoogleAdWords2 = _interopRequireDefault(_GoogleAdWords);
+
 var _Driveback = require('./integrations/Driveback.js');
 
 var _Driveback2 = _interopRequireDefault(_Driveback);
@@ -8516,6 +8520,7 @@ function _interopRequireDefault(obj) {
 var integrations = {
   'Google Analytics': _GoogleAnalytics2['default'],
   'Google Tag Manager': _GoogleTagManager2['default'],
+  'Google AdWords': _GoogleAdWords2['default'],
   'OWOX BI Streaming': _OWOXBIStreaming2['default'],
   'Facebook Pixel': _FacebookPixel2['default'],
   'Driveback': _Driveback2['default'],
@@ -8531,7 +8536,7 @@ var integrations = {
 
 exports['default'] = integrations;
 
-},{"./integrations/Criteo.js":86,"./integrations/Driveback.js":87,"./integrations/Emarsys.js":88,"./integrations/FacebookPixel.js":89,"./integrations/GoogleAnalytics.js":90,"./integrations/GoogleTagManager.js":91,"./integrations/MyTarget.js":92,"./integrations/OWOXBIStreaming.js":93,"./integrations/RetailRocket.js":94,"./integrations/SegmentStream.js":95,"./integrations/SendPulse.js":96,"./integrations/Vkontakte.js":97,"./integrations/YandexMetrica.js":98}],68:[function(require,module,exports){
+},{"./integrations/Criteo.js":86,"./integrations/Driveback.js":87,"./integrations/Emarsys.js":88,"./integrations/FacebookPixel.js":89,"./integrations/GoogleAdWords.js":90,"./integrations/GoogleAnalytics.js":91,"./integrations/GoogleTagManager.js":92,"./integrations/MyTarget.js":93,"./integrations/OWOXBIStreaming.js":94,"./integrations/RetailRocket.js":95,"./integrations/SegmentStream.js":96,"./integrations/SendPulse.js":97,"./integrations/Vkontakte.js":98,"./integrations/YandexMetrica.js":99}],68:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -9379,7 +9384,7 @@ _ddManager2['default'].processEarlyStubCalls();
 
 window.ddManager = _ddManager2['default'];
 
-},{"./availableIntegrations.js":67,"./ddManager.js":68,"./polyfill.js":99}],86:[function(require,module,exports){
+},{"./availableIntegrations.js":67,"./ddManager.js":68,"./polyfill.js":100}],86:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -10174,6 +10179,233 @@ var _deleteProperty = require('./../functions/deleteProperty.js');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+function lineItemsToProductIds(lineItems) {
+  lineItems = lineItems || [];
+  var productIds = lineItems.filter(function (lineItem) {
+    return !!(lineItem.product.id || lineItem.product.skuCode);
+  }).map(function (lineItem) {
+    return lineItem.product.id || lineItem.product.skuCode;
+  });
+  return productIds;
+}
+
+function mapPageType(pageType) {
+  var map = {
+    home: 'home',
+    search: 'searchresults'
+  };
+  if (map[pageType]) {
+    return map[pageType];
+  }
+  return 'other';
+}
+
+var GoogleAdWords = function (_Integration) {
+  _inherits(GoogleAdWords, _Integration);
+
+  function GoogleAdWords(digitalData, options) {
+    _classCallCheck(this, GoogleAdWords);
+
+    var optionsWithDefaults = Object.assign({
+      conversionId: '',
+      remarketingOnly: false
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        src: '//www.googleadservices.com/pagead/conversion_async.js'
+      }
+    });
+    return _this;
+  }
+
+  GoogleAdWords.prototype.initialize = function initialize() {
+    var _this2 = this;
+
+    this.asyncQueue = [];
+
+    // emulate async queue for Google AdWords sync script
+    var invervalCounter = 0;
+    var invervalId = setInterval(function () {
+      invervalCounter++;
+      if (_this2.isLoaded()) {
+        _this2.flushQueue();
+        clearInterval(invervalId);
+      } else if (invervalCounter > 10) {
+        clearInterval(invervalId);
+      }
+    }, 100);
+
+    if (!this.getOption('noConflict')) {
+      this.load(this.onLoad);
+    } else {
+      this.onLoad();
+    }
+  };
+
+  GoogleAdWords.prototype.isLoaded = function isLoaded() {
+    return !!window.google_trackConversion;
+  };
+
+  GoogleAdWords.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, 'google_trackConversion');
+  };
+
+  GoogleAdWords.prototype.trackEvent = function trackEvent(event) {
+    var methods = {
+      'Viewed Page': 'onViewedPage',
+      'Viewed Product Category': 'onViewedProductCategory',
+      'Viewed Product Detail': 'onViewedProductDetail',
+      'Completed Transaction': 'onCompletedTransaction',
+      'Viewed Cart': 'onViewedCart'
+    };
+
+    var method = methods[event.name];
+    if (method && this.getOption('conversionId')) {
+      this[method](event);
+    }
+  };
+
+  GoogleAdWords.prototype.trackConversion = function trackConversion(params) {
+    var trackConversionEvent = {
+      google_conversion_id: this.getOption('conversionId'),
+      google_custom_params: params,
+      google_remarketing_only: this.getOption('remarketingOnly')
+    };
+    if (this.isLoaded()) {
+      window.google_trackConversion(trackConversionEvent);
+    } else {
+      this.asyncQueue.push(trackConversionEvent);
+    }
+  };
+
+  GoogleAdWords.prototype.flushQueue = function flushQueue() {
+    var trackConversionEvent = this.asyncQueue.shift();
+    while (trackConversionEvent) {
+      window.google_trackConversion(trackConversionEvent);
+      trackConversionEvent = this.asyncQueue.shift();
+    }
+  };
+
+  GoogleAdWords.prototype.onViewedPage = function onViewedPage(event) {
+    var page = event.page;
+    // product, category, cart, checkout and confirmation pages are tracked separately
+    if (['product', 'category', 'cart', 'checkout', 'confirmation'].indexOf(page.type) < 0) {
+      this.trackConversion({
+        ecomm_pagetype: mapPageType(page.type)
+      });
+    }
+  };
+
+  GoogleAdWords.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
+    var product = event.product;
+    if (!product) {
+      return;
+    }
+    var category = product.category;
+    if (Array.isArray(category)) {
+      category = category.join('/');
+    } else if (category && product.subcategory) {
+      // legacy DDL support
+      category = category + '/' + product.subcategory;
+    }
+
+    this.trackConversion({
+      ecomm_prodid: product.id || product.skuCode || undefined,
+      ecomm_pagetype: 'product',
+      ecomm_totalvalue: product.unitSalePrice || product.unitPrice,
+      ecomm_category: category
+    });
+  };
+
+  GoogleAdWords.prototype.onViewedProductCategory = function onViewedProductCategory(event) {
+    var listing = event.listing;
+    if (!listing) {
+      return;
+    }
+
+    var category = listing.category;
+    if (Array.isArray(category)) {
+      category = category.join('/');
+    }
+
+    this.trackConversion({
+      ecomm_pagetype: 'category',
+      ecomm_category: category
+    });
+  };
+
+  GoogleAdWords.prototype.onViewedCart = function onViewedCart(event) {
+    var cart = event.cart;
+    if (!cart) {
+      return;
+    }
+
+    this.trackConversion({
+      ecomm_prodid: lineItemsToProductIds(cart.lineItems),
+      ecomm_pagetype: 'cart',
+      ecomm_totalvalue: cart.subtotal || cart.total
+    });
+  };
+
+  GoogleAdWords.prototype.onCompletedTransaction = function onCompletedTransaction(event) {
+    var transaction = event.transaction;
+    if (!transaction) {
+      return;
+    }
+
+    this.trackConversion({
+      ecomm_prodid: lineItemsToProductIds(transaction.lineItems),
+      ecomm_pagetype: 'purchase',
+      ecomm_totalvalue: transaction.subtotal || transaction.total
+    });
+  };
+
+  return GoogleAdWords;
+}(_Integration3['default']);
+
+exports['default'] = GoogleAdWords;
+
+},{"./../Integration.js":65,"./../functions/deleteProperty.js":70}],91:[function(require,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+var _deleteProperty = require('./../functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
 var _getProperty = require('./../functions/getProperty.js');
 
 var _getProperty2 = _interopRequireDefault(_getProperty);
@@ -10849,7 +11081,7 @@ var GoogleAnalytics = function (_Integration) {
 
 exports['default'] = GoogleAnalytics;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":70,"./../functions/each.js":71,"./../functions/getProperty.js":73,"./../functions/size.js":83,"component-clone":2}],91:[function(require,module,exports){
+},{"./../Integration.js":65,"./../functions/deleteProperty.js":70,"./../functions/each.js":71,"./../functions/getProperty.js":73,"./../functions/size.js":83,"component-clone":2}],92:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -10942,7 +11174,7 @@ var GoogleTagManager = function (_Integration) {
 
 exports['default'] = GoogleTagManager;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":70}],92:[function(require,module,exports){
+},{"./../Integration.js":65,"./../functions/deleteProperty.js":70}],93:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -11175,7 +11407,7 @@ var MyTarget = function (_Integration) {
 
 exports['default'] = MyTarget;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":70}],93:[function(require,module,exports){
+},{"./../Integration.js":65,"./../functions/deleteProperty.js":70}],94:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -11278,7 +11510,7 @@ var OWOXBIStreaming = function (_Integration) {
 
 exports['default'] = OWOXBIStreaming;
 
-},{"./../Integration.js":65}],94:[function(require,module,exports){
+},{"./../Integration.js":65}],95:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -11708,7 +11940,7 @@ var RetailRocket = function (_Integration) {
 
 exports['default'] = RetailRocket;
 
-},{"./../../src/functions/getProperty":73,"./../Integration.js":65,"./../functions/deleteProperty":70,"./../functions/each":71,"./../functions/format":72,"./../functions/getQueryParam":74,"./../functions/throwError":84,"component-clone":2,"component-type":4}],95:[function(require,module,exports){
+},{"./../../src/functions/getProperty":73,"./../Integration.js":65,"./../functions/deleteProperty":70,"./../functions/each":71,"./../functions/format":72,"./../functions/getQueryParam":74,"./../functions/throwError":84,"component-clone":2,"component-type":4}],96:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -11882,7 +12114,7 @@ var SegmentStream = function (_Integration) {
 
 exports['default'] = SegmentStream;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":70,"./../functions/each.js":71}],96:[function(require,module,exports){
+},{"./../Integration.js":65,"./../functions/deleteProperty.js":70,"./../functions/each.js":71}],97:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -12117,7 +12349,7 @@ var SendPulse = function (_Integration) {
 
 exports['default'] = SendPulse;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":70,"./../functions/getProperty.js":73,"component-type":4}],97:[function(require,module,exports){
+},{"./../Integration.js":65,"./../functions/deleteProperty.js":70,"./../functions/getProperty.js":73,"component-type":4}],98:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -12196,7 +12428,7 @@ var Vkontakte = function (_Integration) {
 
 exports['default'] = Vkontakte;
 
-},{"./../Integration.js":65}],98:[function(require,module,exports){
+},{"./../Integration.js":65}],99:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -12428,7 +12660,7 @@ var YandexMetrica = function (_Integration) {
 
 exports['default'] = YandexMetrica;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":70}],99:[function(require,module,exports){
+},{"./../Integration.js":65,"./../functions/deleteProperty.js":70}],100:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es6.object.create');
