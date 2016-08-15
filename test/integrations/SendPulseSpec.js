@@ -58,7 +58,7 @@ describe('SendPulse', function() {
                 target: {
                   result: {
                     type: 'SubscriptionId',
-                    value: "v1/gAAAAABW9rF70jehdBnhO...O1DEYc0qZud-g-FdaW73j__"
+                    value: 'v1/gAAAAABW9rF70jehdBnhO...O1DEYc0qZud-g-FdaW73j__'
                   }
                 }
               });
@@ -112,16 +112,25 @@ describe('SendPulse', function() {
       });
 
       it('should add additional params to SendPulse once integration is initialized', () => {
+        _sp.setOption('userVariables', ['test']);
         _sp.once('enrich', () => {
           assert.ok(window.oSpP.push.calledWith('test', 'test'));
         })
       });
 
+      it('should not add additional params to SendPulse once integration is initialized', () => {
+        _sp.once('enrich', () => {
+          assert.ok(!window.oSpP.push.calledWith('test', 'test'));
+        })
+      });
+
       it('should add additional params to SendPulse if user is subscribed', (done) => {
+        _sp.setOption('userVariables', ['city', 'isBoolean']);
         _sp.once('enrich', () => {
           window.digitalData.user.city = 'New York';
           window.digitalData.user.isBoolean = true;
           window.digitalData.user.test = 'test';
+          window.digitalData.user.test2 = 'test2';
 
           window.oSpP.push.restore();
           sinon.spy(window.oSpP, 'push');
@@ -129,12 +138,14 @@ describe('SendPulse', function() {
             assert.ok(window.oSpP.push.calledWith('city', 'New York'));
             assert.ok(window.oSpP.push.calledWith('isBoolean', 'true'));
             assert.ok(!window.oSpP.push.calledWith('test', 'test'));
+            assert.ok(!window.oSpP.push.calledWith('test2', 'test2'));
             done();
           }, 101);
         });
       });
 
       it('should not add additional params to SendPulse if user is not subscribed', (done) => {
+        _sp.setOption('userVariables', ['city', 'isBoolean'])
         _sp.once('enrich', () => {
           window.digitalData.user.pushNotifications.isSubscribed = false;
           window.oSpP.push.restore();
@@ -151,11 +162,21 @@ describe('SendPulse', function() {
     describe('oSpP.storeSubscription', () => {
 
       it('should send user attributes if any', () => {
+        _sp.setOption('userVariables', ['test']);
         _sp.once('enrich', () => {
           window.digitalData.user.test = 'test';
           //sinon.spy(window.oSpP, 'push');
           window.oSpP.storeSubscription('DUMMY');
           assert.ok(window.oSpP.push.calledWith('test', 'test'));
+        });
+      });
+
+      it('should not send user attributes if any', () => {
+        _sp.once('enrich', () => {
+          window.digitalData.user.test = 'test';
+          //sinon.spy(window.oSpP, 'push');
+          window.oSpP.storeSubscription('DUMMY');
+          assert.ok(!window.oSpP.push.calledWith('test', 'test'));
         });
       });
 

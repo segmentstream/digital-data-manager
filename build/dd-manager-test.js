@@ -18236,7 +18236,7 @@ var GoogleAnalytics = function (_Integration) {
       brand: product.brand || product.manufacturer,
       variant: product.variant,
       currency: product.currency
-    }, custom);;
+    }, custom);
     if (quantity) gaProduct.quantity = quantity;
     if (position) gaProduct.position = position;
     // append coupon if it set
@@ -19263,7 +19263,7 @@ var SegmentStream = function (_Integration) {
   SegmentStream.prototype.onViewedPage = function onViewedPage() {
     var _this4 = this;
 
-    ssApi.pushOnReady(function () {
+    window.ssApi.pushOnReady(function () {
       window.ssApi.track('Viewed Page');
       _this4.enrichDigitalData();
     });
@@ -19272,7 +19272,7 @@ var SegmentStream = function (_Integration) {
   SegmentStream.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
     var _this5 = this;
 
-    ssApi.pushOnReady(function () {
+    window.ssApi.pushOnReady(function () {
       window.ssApi.track('Viewed Product Detail', {
         price: event.product.unitSalePrice || event.product.unitPrice || 0
       });
@@ -19283,7 +19283,7 @@ var SegmentStream = function (_Integration) {
   SegmentStream.prototype.onAddedProduct = function onAddedProduct(event) {
     var _this6 = this;
 
-    ssApi.pushOnReady(function () {
+    window.ssApi.pushOnReady(function () {
       window.ssApi.track('Added Product', {
         price: event.product.unitSalePrice || event.product.unitPrice || 0
       });
@@ -19311,9 +19311,9 @@ var _deleteProperty = require('./../functions/deleteProperty.js');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
-var _each = require('./../functions/each.js');
+var _getProperty = require('./../functions/getProperty.js');
 
-var _each2 = _interopRequireDefault(_each);
+var _getProperty2 = _interopRequireDefault(_getProperty);
 
 var _componentType = require('component-type');
 
@@ -19350,7 +19350,8 @@ var SendPulse = function (_Integration) {
     var optionsWithDefaults = Object.assign({
       https: false,
       pushScriptUrl: '',
-      pushSubscriptionTriggerEvent: 'Agreed to Receive Push Notifications'
+      pushSubscriptionTriggerEvent: 'Agreed to Receive Push Notifications',
+      userVariables: []
     }, options);
 
     var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
@@ -19473,11 +19474,26 @@ var SendPulse = function (_Integration) {
   };
 
   SendPulse.prototype.sendUserAttributes = function sendUserAttributes(newUser, oldUser) {
-    (0, _each2['default'])(newUser, function (key, value) {
-      if ((0, _componentType2['default'])(value) !== 'object' && (!oldUser || value !== oldUser[key])) {
-        window.oSpP.push(key, String(value));
+    var userVariables = this.getOption('userVariables');
+    for (var _iterator = userVariables, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+      var _ref;
+
+      if (_isArray) {
+        if (_i >= _iterator.length) break;
+        _ref = _iterator[_i++];
+      } else {
+        _i = _iterator.next();
+        if (_i.done) break;
+        _ref = _i.value;
       }
-    });
+
+      var userVar = _ref;
+
+      var value = (0, _getProperty2['default'])(newUser, userVar);
+      if (value !== undefined && (0, _componentType2['default'])(value) !== 'object' && (!oldUser || value !== (0, _getProperty2['default'])(oldUser, userVar))) {
+        window.oSpP.push(userVar, String(value));
+      }
+    }
   };
 
   SendPulse.prototype.isLoaded = function isLoaded() {
@@ -19515,7 +19531,7 @@ var SendPulse = function (_Integration) {
 
 exports['default'] = SendPulse;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"./../functions/each.js":103,"component-type":5}],128:[function(require,module,exports){
+},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"./../functions/getProperty.js":105,"component-type":5}],128:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -24766,7 +24782,7 @@ describe('Integrations: GoogleAnalytics', function () {
           });
         });
 
-        it('should send viewed product data from DDL', function () {
+        it('should send viewed product with multiple products data from DDL', function () {
           window.digitalData.listing = {
             listName: 'search results',
             items: [{
@@ -27404,7 +27420,7 @@ describe('SendPulse', function () {
                 target: {
                   result: {
                     type: 'SubscriptionId',
-                    value: "v1/gAAAAABW9rF70jehdBnhO...O1DEYc0qZud-g-FdaW73j__"
+                    value: 'v1/gAAAAABW9rF70jehdBnhO...O1DEYc0qZud-g-FdaW73j__'
                   }
                 }
               });
@@ -27458,16 +27474,25 @@ describe('SendPulse', function () {
       });
 
       it('should add additional params to SendPulse once integration is initialized', function () {
+        _sp.setOption('userVariables', ['test']);
         _sp.once('enrich', function () {
           _assert2['default'].ok(window.oSpP.push.calledWith('test', 'test'));
         });
       });
 
+      it('should not add additional params to SendPulse once integration is initialized', function () {
+        _sp.once('enrich', function () {
+          _assert2['default'].ok(!window.oSpP.push.calledWith('test', 'test'));
+        });
+      });
+
       it('should add additional params to SendPulse if user is subscribed', function (done) {
+        _sp.setOption('userVariables', ['city', 'isBoolean']);
         _sp.once('enrich', function () {
           window.digitalData.user.city = 'New York';
           window.digitalData.user.isBoolean = true;
           window.digitalData.user.test = 'test';
+          window.digitalData.user.test2 = 'test2';
 
           window.oSpP.push.restore();
           _sinon2['default'].spy(window.oSpP, 'push');
@@ -27475,12 +27500,14 @@ describe('SendPulse', function () {
             _assert2['default'].ok(window.oSpP.push.calledWith('city', 'New York'));
             _assert2['default'].ok(window.oSpP.push.calledWith('isBoolean', 'true'));
             _assert2['default'].ok(!window.oSpP.push.calledWith('test', 'test'));
+            _assert2['default'].ok(!window.oSpP.push.calledWith('test2', 'test2'));
             done();
           }, 101);
         });
       });
 
       it('should not add additional params to SendPulse if user is not subscribed', function (done) {
+        _sp.setOption('userVariables', ['city', 'isBoolean']);
         _sp.once('enrich', function () {
           window.digitalData.user.pushNotifications.isSubscribed = false;
           window.oSpP.push.restore();
@@ -27497,11 +27524,21 @@ describe('SendPulse', function () {
     describe('oSpP.storeSubscription', function () {
 
       it('should send user attributes if any', function () {
+        _sp.setOption('userVariables', ['test']);
         _sp.once('enrich', function () {
           window.digitalData.user.test = 'test';
           //sinon.spy(window.oSpP, 'push');
           window.oSpP.storeSubscription('DUMMY');
           _assert2['default'].ok(window.oSpP.push.calledWith('test', 'test'));
+        });
+      });
+
+      it('should not send user attributes if any', function () {
+        _sp.once('enrich', function () {
+          window.digitalData.user.test = 'test';
+          //sinon.spy(window.oSpP, 'push');
+          window.oSpP.storeSubscription('DUMMY');
+          _assert2['default'].ok(!window.oSpP.push.calledWith('test', 'test'));
         });
       });
     });
