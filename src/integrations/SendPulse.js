@@ -129,7 +129,11 @@ class SendPulse extends Integration {
     const userVariables = this.getOption('userVariables');
     for (const userVar of userVariables) {
       const value = getProperty(newUser, userVar);
-      if (type(value) !== 'object' && (!oldUser || value !== oldUser[userVar])) {
+      if (
+        value !== undefined &&
+        type(value) !== 'object' &&
+        (!oldUser || value !== getProperty(oldUser, userVar))
+      ) {
         window.oSpP.push(userVar, String(value));
       }
     }

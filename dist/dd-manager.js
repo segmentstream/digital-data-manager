@@ -12076,7 +12076,7 @@ var SendPulse = function (_Integration) {
       var userVar = _ref;
 
       var value = (0, _getProperty2['default'])(newUser, userVar);
-      if ((0, _componentType2['default'])(value) !== 'object' && (!oldUser || value !== oldUser[userVar])) {
+      if (value !== undefined && (0, _componentType2['default'])(value) !== 'object' && (!oldUser || value !== (0, _getProperty2['default'])(oldUser, userVar))) {
         window.oSpP.push(userVar, String(value));
       }
     }
