@@ -15901,6 +15901,10 @@ var _GoogleTagManager = require('./integrations/GoogleTagManager.js');
 
 var _GoogleTagManager2 = _interopRequireDefault(_GoogleTagManager);
 
+var _GoogleAdWords = require('./integrations/GoogleAdWords.js');
+
+var _GoogleAdWords2 = _interopRequireDefault(_GoogleAdWords);
+
 var _Driveback = require('./integrations/Driveback.js');
 
 var _Driveback2 = _interopRequireDefault(_Driveback);
@@ -15952,6 +15956,7 @@ function _interopRequireDefault(obj) {
 var integrations = {
   'Google Analytics': _GoogleAnalytics2['default'],
   'Google Tag Manager': _GoogleTagManager2['default'],
+  'Google AdWords': _GoogleAdWords2['default'],
   'OWOX BI Streaming': _OWOXBIStreaming2['default'],
   'Facebook Pixel': _FacebookPixel2['default'],
   'Driveback': _Driveback2['default'],
@@ -15967,7 +15972,7 @@ var integrations = {
 
 exports['default'] = integrations;
 
-},{"./integrations/Criteo.js":117,"./integrations/Driveback.js":118,"./integrations/Emarsys.js":119,"./integrations/FacebookPixel.js":120,"./integrations/GoogleAnalytics.js":121,"./integrations/GoogleTagManager.js":122,"./integrations/MyTarget.js":123,"./integrations/OWOXBIStreaming.js":124,"./integrations/RetailRocket.js":125,"./integrations/SegmentStream.js":126,"./integrations/SendPulse.js":127,"./integrations/Vkontakte.js":128,"./integrations/YandexMetrica.js":129}],100:[function(require,module,exports){
+},{"./integrations/Criteo.js":117,"./integrations/Driveback.js":118,"./integrations/Emarsys.js":119,"./integrations/FacebookPixel.js":120,"./integrations/GoogleAdWords.js":121,"./integrations/GoogleAnalytics.js":122,"./integrations/GoogleTagManager.js":123,"./integrations/MyTarget.js":124,"./integrations/OWOXBIStreaming.js":125,"./integrations/RetailRocket.js":126,"./integrations/SegmentStream.js":127,"./integrations/SendPulse.js":128,"./integrations/Vkontakte.js":129,"./integrations/YandexMetrica.js":130}],100:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -16182,7 +16187,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.1.3',
+  VERSION: '1.1.4',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -17588,6 +17593,233 @@ var _deleteProperty = require('./../functions/deleteProperty.js');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+function lineItemsToProductIds(lineItems) {
+  lineItems = lineItems || [];
+  var productIds = lineItems.filter(function (lineItem) {
+    return !!(lineItem.product.id || lineItem.product.skuCode);
+  }).map(function (lineItem) {
+    return lineItem.product.id || lineItem.product.skuCode;
+  });
+  return productIds;
+}
+
+function mapPageType(pageType) {
+  var map = {
+    home: 'home',
+    search: 'searchresults'
+  };
+  if (map[pageType]) {
+    return map[pageType];
+  }
+  return 'other';
+}
+
+var GoogleAdWords = function (_Integration) {
+  _inherits(GoogleAdWords, _Integration);
+
+  function GoogleAdWords(digitalData, options) {
+    _classCallCheck(this, GoogleAdWords);
+
+    var optionsWithDefaults = Object.assign({
+      conversionId: '',
+      remarketingOnly: false
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        src: '//www.googleadservices.com/pagead/conversion_async.js'
+      }
+    });
+    return _this;
+  }
+
+  GoogleAdWords.prototype.initialize = function initialize() {
+    var _this2 = this;
+
+    this.asyncQueue = [];
+
+    // emulate async queue for Google AdWords sync script
+    var invervalCounter = 0;
+    var invervalId = setInterval(function () {
+      invervalCounter++;
+      if (_this2.isLoaded()) {
+        _this2.flushQueue();
+        clearInterval(invervalId);
+      } else if (invervalCounter > 10) {
+        clearInterval(invervalId);
+      }
+    }, 100);
+
+    if (!this.getOption('noConflict')) {
+      this.load(this.onLoad);
+    } else {
+      this.onLoad();
+    }
+  };
+
+  GoogleAdWords.prototype.isLoaded = function isLoaded() {
+    return !!window.google_trackConversion;
+  };
+
+  GoogleAdWords.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, 'google_trackConversion');
+  };
+
+  GoogleAdWords.prototype.trackEvent = function trackEvent(event) {
+    var methods = {
+      'Viewed Page': 'onViewedPage',
+      'Viewed Product Category': 'onViewedProductCategory',
+      'Viewed Product Detail': 'onViewedProductDetail',
+      'Completed Transaction': 'onCompletedTransaction',
+      'Viewed Cart': 'onViewedCart'
+    };
+
+    var method = methods[event.name];
+    if (method && this.getOption('conversionId')) {
+      this[method](event);
+    }
+  };
+
+  GoogleAdWords.prototype.trackConversion = function trackConversion(params) {
+    var trackConversionEvent = {
+      google_conversion_id: this.getOption('conversionId'),
+      google_custom_params: params,
+      google_remarketing_only: this.getOption('remarketingOnly')
+    };
+    if (this.isLoaded()) {
+      window.google_trackConversion(trackConversionEvent);
+    } else {
+      this.asyncQueue.push(trackConversionEvent);
+    }
+  };
+
+  GoogleAdWords.prototype.flushQueue = function flushQueue() {
+    var trackConversionEvent = this.asyncQueue.shift();
+    while (trackConversionEvent) {
+      window.google_trackConversion(trackConversionEvent);
+      trackConversionEvent = this.asyncQueue.shift();
+    }
+  };
+
+  GoogleAdWords.prototype.onViewedPage = function onViewedPage(event) {
+    var page = event.page;
+    // product, category, cart, checkout and confirmation pages are tracked separately
+    if (['product', 'category', 'cart', 'checkout', 'confirmation'].indexOf(page.type) < 0) {
+      this.trackConversion({
+        ecomm_pagetype: mapPageType(page.type)
+      });
+    }
+  };
+
+  GoogleAdWords.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
+    var product = event.product;
+    if (!product) {
+      return;
+    }
+    var category = product.category;
+    if (Array.isArray(category)) {
+      category = category.join('/');
+    } else if (category && product.subcategory) {
+      // legacy DDL support
+      category = category + '/' + product.subcategory;
+    }
+
+    this.trackConversion({
+      ecomm_prodid: product.id || product.skuCode || undefined,
+      ecomm_pagetype: 'product',
+      ecomm_totalvalue: product.unitSalePrice || product.unitPrice,
+      ecomm_category: category
+    });
+  };
+
+  GoogleAdWords.prototype.onViewedProductCategory = function onViewedProductCategory(event) {
+    var listing = event.listing;
+    if (!listing) {
+      return;
+    }
+
+    var category = listing.category;
+    if (Array.isArray(category)) {
+      category = category.join('/');
+    }
+
+    this.trackConversion({
+      ecomm_pagetype: 'category',
+      ecomm_category: category
+    });
+  };
+
+  GoogleAdWords.prototype.onViewedCart = function onViewedCart(event) {
+    var cart = event.cart;
+    if (!cart) {
+      return;
+    }
+
+    this.trackConversion({
+      ecomm_prodid: lineItemsToProductIds(cart.lineItems),
+      ecomm_pagetype: 'cart',
+      ecomm_totalvalue: cart.subtotal || cart.total
+    });
+  };
+
+  GoogleAdWords.prototype.onCompletedTransaction = function onCompletedTransaction(event) {
+    var transaction = event.transaction;
+    if (!transaction) {
+      return;
+    }
+
+    this.trackConversion({
+      ecomm_prodid: lineItemsToProductIds(transaction.lineItems),
+      ecomm_pagetype: 'purchase',
+      ecomm_totalvalue: transaction.subtotal || transaction.total
+    });
+  };
+
+  return GoogleAdWords;
+}(_Integration3['default']);
+
+exports['default'] = GoogleAdWords;
+
+},{"./../Integration.js":97,"./../functions/deleteProperty.js":102}],122:[function(require,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+var _deleteProperty = require('./../functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
 var _getProperty = require('./../functions/getProperty.js');
 
 var _getProperty2 = _interopRequireDefault(_getProperty);
@@ -18263,7 +18495,7 @@ var GoogleAnalytics = function (_Integration) {
 
 exports['default'] = GoogleAnalytics;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"./../functions/each.js":103,"./../functions/getProperty.js":105,"./../functions/size.js":115,"component-clone":3}],122:[function(require,module,exports){
+},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"./../functions/each.js":103,"./../functions/getProperty.js":105,"./../functions/size.js":115,"component-clone":3}],123:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -18356,7 +18588,7 @@ var GoogleTagManager = function (_Integration) {
 
 exports['default'] = GoogleTagManager;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102}],123:[function(require,module,exports){
+},{"./../Integration.js":97,"./../functions/deleteProperty.js":102}],124:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -18589,7 +18821,7 @@ var MyTarget = function (_Integration) {
 
 exports['default'] = MyTarget;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102}],124:[function(require,module,exports){
+},{"./../Integration.js":97,"./../functions/deleteProperty.js":102}],125:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -18692,7 +18924,7 @@ var OWOXBIStreaming = function (_Integration) {
 
 exports['default'] = OWOXBIStreaming;
 
-},{"./../Integration.js":97}],125:[function(require,module,exports){
+},{"./../Integration.js":97}],126:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -19122,7 +19354,7 @@ var RetailRocket = function (_Integration) {
 
 exports['default'] = RetailRocket;
 
-},{"./../../src/functions/getProperty":105,"./../Integration.js":97,"./../functions/deleteProperty":102,"./../functions/each":103,"./../functions/format":104,"./../functions/getQueryParam":106,"./../functions/throwError":116,"component-clone":3,"component-type":5}],126:[function(require,module,exports){
+},{"./../../src/functions/getProperty":105,"./../Integration.js":97,"./../functions/deleteProperty":102,"./../functions/each":103,"./../functions/format":104,"./../functions/getQueryParam":106,"./../functions/throwError":116,"component-clone":3,"component-type":5}],127:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -19296,7 +19528,7 @@ var SegmentStream = function (_Integration) {
 
 exports['default'] = SegmentStream;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"./../functions/each.js":103}],127:[function(require,module,exports){
+},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"./../functions/each.js":103}],128:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -19531,7 +19763,7 @@ var SendPulse = function (_Integration) {
 
 exports['default'] = SendPulse;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"./../functions/getProperty.js":105,"component-type":5}],128:[function(require,module,exports){
+},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"./../functions/getProperty.js":105,"component-type":5}],129:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -19610,7 +19842,7 @@ var Vkontakte = function (_Integration) {
 
 exports['default'] = Vkontakte;
 
-},{"./../Integration.js":97}],129:[function(require,module,exports){
+},{"./../Integration.js":97}],130:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -19842,7 +20074,7 @@ var YandexMetrica = function (_Integration) {
 
 exports['default'] = YandexMetrica;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102}],130:[function(require,module,exports){
+},{"./../Integration.js":97,"./../functions/deleteProperty.js":102}],131:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es6.object.create');
@@ -19859,7 +20091,7 @@ require('core-js/modules/es6.string.trim');
 
 require('core-js/modules/_has');
 
-},{"core-js/modules/_has":20,"core-js/modules/es6.array.index-of":50,"core-js/modules/es6.array.is-array":51,"core-js/modules/es6.function.bind":52,"core-js/modules/es6.object.assign":53,"core-js/modules/es6.object.create":54,"core-js/modules/es6.string.trim":55}],131:[function(require,module,exports){
+},{"core-js/modules/_has":20,"core-js/modules/es6.array.index-of":50,"core-js/modules/es6.array.is-array":51,"core-js/modules/es6.function.bind":52,"core-js/modules/es6.object.assign":53,"core-js/modules/es6.object.create":54,"core-js/modules/es6.string.trim":55}],132:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -20114,7 +20346,7 @@ describe('AutoEvents', function () {
   });
 });
 
-},{"./../src/AutoEvents.js":91,"./../src/functions/deleteProperty.js":102,"assert":1}],132:[function(require,module,exports){
+},{"./../src/AutoEvents.js":91,"./../src/functions/deleteProperty.js":102,"assert":1}],133:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -20320,7 +20552,7 @@ describe('DDHelper', function () {
   });
 });
 
-},{"./../src/DDHelper.js":92,"assert":1}],133:[function(require,module,exports){
+},{"./../src/DDHelper.js":92,"assert":1}],134:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -20426,7 +20658,7 @@ describe('DigitalDataEnricher', function () {
   });
 });
 
-},{"./../src/DigitalDataEnricher.js":94,"./../src/functions/deleteProperty.js":102,"assert":1,"sinon":64}],134:[function(require,module,exports){
+},{"./../src/DigitalDataEnricher.js":94,"./../src/functions/deleteProperty.js":102,"assert":1,"sinon":64}],135:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -21029,7 +21261,7 @@ describe('EventDataEnricher', function () {
   });
 });
 
-},{"./../src/EventDataEnricher.js":95,"./../src/functions/deleteProperty.js":102,"assert":1}],135:[function(require,module,exports){
+},{"./../src/EventDataEnricher.js":95,"./../src/functions/deleteProperty.js":102,"assert":1}],136:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -21645,7 +21877,7 @@ describe('EventManager', function () {
   });
 });
 
-},{"./../src/AutoEvents.js":91,"./../src/EventManager.js":96,"./reset.js":152,"assert":1}],136:[function(require,module,exports){
+},{"./../src/AutoEvents.js":91,"./../src/EventManager.js":96,"./reset.js":154,"assert":1}],137:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -21881,7 +22113,7 @@ describe('DDManager', function () {
   });
 });
 
-},{"../src/Integration.js":97,"../src/availableIntegrations.js":99,"../src/ddManager.js":100,"./reset.js":152,"./snippet.js":153,"assert":1}],137:[function(require,module,exports){
+},{"../src/Integration.js":97,"../src/availableIntegrations.js":99,"../src/ddManager.js":100,"./reset.js":154,"./snippet.js":155,"assert":1}],138:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -21893,7 +22125,7 @@ function argumentsToArray(args) {
   return Array.prototype.slice.call(args);
 }
 
-},{}],138:[function(require,module,exports){
+},{}],139:[function(require,module,exports){
 'use strict';
 
 require('./../src/polyfill.js');
@@ -21913,6 +22145,8 @@ require('./DigitalDataEnricherSpec.js');
 require('./integrations/GoogleAnalyticsSpec.js');
 
 require('./integrations/GoogleTagManagerSpec.js');
+
+require('./integrations/GoogleAdWordsSpec.js');
 
 require('./integrations/DrivebackSpec.js');
 
@@ -21936,7 +22170,7 @@ require('./integrations/VkontakteSpec.js');
 
 require('./integrations/EmarsysSpec.js');
 
-},{"./../src/polyfill.js":130,"./AutoEventsSpec.js":131,"./DDHelperSpec.js":132,"./DigitalDataEnricherSpec.js":133,"./EventDataEnricherSpec.js":134,"./EventManagerSpec.js":135,"./ddManagerSpec.js":136,"./integrations/CriteoSpec.js":139,"./integrations/DrivebackSpec.js":140,"./integrations/EmarsysSpec.js":141,"./integrations/FacebookPixelSpec.js":142,"./integrations/GoogleAnalyticsSpec.js":143,"./integrations/GoogleTagManagerSpec.js":144,"./integrations/MyTargetSpec.js":145,"./integrations/OWOXBIStreamingSpec.js":146,"./integrations/RetailRocketSpec.js":147,"./integrations/SegmentStreamSpec.js":148,"./integrations/SendPulseSpec.js":149,"./integrations/VkontakteSpec.js":150,"./integrations/YandexMetricaSpec.js":151}],139:[function(require,module,exports){
+},{"./../src/polyfill.js":131,"./AutoEventsSpec.js":132,"./DDHelperSpec.js":133,"./DigitalDataEnricherSpec.js":134,"./EventDataEnricherSpec.js":135,"./EventManagerSpec.js":136,"./ddManagerSpec.js":137,"./integrations/CriteoSpec.js":140,"./integrations/DrivebackSpec.js":141,"./integrations/EmarsysSpec.js":142,"./integrations/FacebookPixelSpec.js":143,"./integrations/GoogleAdWordsSpec.js":144,"./integrations/GoogleAnalyticsSpec.js":145,"./integrations/GoogleTagManagerSpec.js":146,"./integrations/MyTargetSpec.js":147,"./integrations/OWOXBIStreamingSpec.js":148,"./integrations/RetailRocketSpec.js":149,"./integrations/SegmentStreamSpec.js":150,"./integrations/SendPulseSpec.js":151,"./integrations/VkontakteSpec.js":152,"./integrations/YandexMetricaSpec.js":153}],140:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -22674,7 +22908,7 @@ describe('Integrations: Criteo', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/Criteo.js":117,"./../reset.js":152,"assert":1,"sinon":64}],140:[function(require,module,exports){
+},{"./../../src/ddManager.js":100,"./../../src/integrations/Criteo.js":117,"./../reset.js":154,"assert":1,"sinon":64}],141:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -22764,7 +22998,7 @@ describe('Integrations: Driveback', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/Driveback.js":118,"./../reset.js":152,"assert":1}],141:[function(require,module,exports){
+},{"./../../src/ddManager.js":100,"./../../src/integrations/Driveback.js":118,"./../reset.js":154,"assert":1}],142:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -23159,7 +23393,7 @@ describe('Integrations: Emarsys', function () {
   });
 });
 
-},{"./../../src/ddManager":100,"./../../src/integrations/Emarsys":119,"./../reset":152,"assert":1,"sinon":64}],142:[function(require,module,exports){
+},{"./../../src/ddManager":100,"./../../src/integrations/Emarsys":119,"./../reset":154,"assert":1,"sinon":64}],143:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -23569,7 +23803,413 @@ describe('Integrations: FacebookPixel', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/FacebookPixel.js":120,"./../reset.js":152,"assert":1,"sinon":64}],143:[function(require,module,exports){
+},{"./../../src/ddManager.js":100,"./../../src/integrations/FacebookPixel.js":120,"./../reset.js":154,"assert":1,"sinon":64}],144:[function(require,module,exports){
+'use strict';
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _sinon = require('sinon');
+
+var _sinon2 = _interopRequireDefault(_sinon);
+
+var _reset = require('./../reset');
+
+var _reset2 = _interopRequireDefault(_reset);
+
+var _GoogleAdWords = require('./../../src/integrations/GoogleAdWords');
+
+var _GoogleAdWords2 = _interopRequireDefault(_GoogleAdWords);
+
+var _ddManager = require('./../../src/ddManager');
+
+var _ddManager2 = _interopRequireDefault(_ddManager);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+// Google AdWords doesn't have stubs for async loading
+// so we emulate async queue in integration and wait
+// until scripts are loaded using setInterval
+function asyncCallback(callback) {
+  return function () {
+    _ddManager2['default'].on('load', function () {
+      setTimeout(function () {
+        callback();
+      }, 101);
+    });
+  };
+}
+
+function viewedPage(callback) {
+  var page = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+  window.digitalData.events.push({
+    name: 'Viewed Page',
+    category: 'Content',
+    page: page,
+    callback: asyncCallback(callback)
+  });
+}
+
+function viewedPageOfType(type, callback) {
+  viewedPage(callback, { type: type });
+}
+
+function viewedProductCategory(category, callback) {
+  window.digitalData.events.push({
+    name: 'Viewed Product Category',
+    category: 'Ecommerce',
+    listing: { category: category },
+    callback: asyncCallback(callback)
+  });
+}
+
+function searched(query, callback) {
+  window.digitalData.events.push({
+    name: 'Searched',
+    category: 'Content',
+    listing: { query: query },
+    callback: asyncCallback(callback)
+  });
+}
+
+function viewedProductDetail(product, callback) {
+  window.digitalData.events.push({
+    name: 'Viewed Product Detail',
+    category: 'Ecommerce',
+    product: product,
+    callback: asyncCallback(callback)
+  });
+}
+
+function completedTransaction(transaction, callback) {
+  window.digitalData.events.push({
+    name: 'Completed Transaction',
+    category: 'Ecommerce',
+    transaction: transaction,
+    callback: asyncCallback(callback)
+  });
+}
+
+function viewedCart(cart, callback) {
+  window.digitalData.events.push({
+    name: 'Viewed Cart',
+    category: 'Ecommerce',
+    cart: cart,
+    callback: asyncCallback(callback)
+  });
+}
+
+describe('Integrations: GoogleAdWords', function () {
+
+  var adwords = void 0;
+  var options = {
+    conversionId: '123'
+  };
+
+  beforeEach(function () {
+    window.digitalData = {
+      website: {},
+      page: {},
+      user: {},
+      events: []
+    };
+    adwords = new _GoogleAdWords2['default'](window.digitalData, options);
+    _ddManager2['default'].addIntegration('Google AdWords', adwords);
+  });
+
+  afterEach(function () {
+    adwords.reset();
+    _ddManager2['default'].reset();
+    (0, _reset2['default'])();
+  });
+
+  describe('before loading', function () {
+    beforeEach(function () {
+      _sinon2['default'].stub(adwords, 'load');
+    });
+
+    afterEach(function () {
+      adwords.load.restore();
+    });
+
+    describe('#constructor', function () {
+      it('should add proper tags and options', function () {
+        _assert2['default'].equal(options.conversionId, adwords.getOption('conversionId'));
+        _assert2['default'].equal('script', adwords.getTag().type);
+        _assert2['default'].equal(adwords.getTag().attr.src, '//www.googleadservices.com/pagead/conversion_async.js');
+      });
+    });
+
+    describe('#initialize', function () {
+      it('should initialize AdWords queue object', function () {
+        _ddManager2['default'].initialize({
+          autoEvents: false
+        });
+        _assert2['default'].ok(adwords.asyncQueue);
+        _assert2['default'].ok(adwords.asyncQueue.push);
+      });
+
+      it('should call tags load after initialization', function () {
+        _ddManager2['default'].initialize({
+          autoEvents: false
+        });
+        _assert2['default'].ok(adwords.load.calledOnce);
+      });
+    });
+  });
+
+  describe('loading', function () {
+
+    it('should load', function (done) {
+      _assert2['default'].ok(!adwords.isLoaded());
+      _ddManager2['default'].once('load', function () {
+        _assert2['default'].ok(adwords.isLoaded());
+        done();
+      });
+      _ddManager2['default'].initialize({
+        autoEvents: false
+      });
+    });
+  });
+
+  describe('after loading', function () {
+    beforeEach(function (done) {
+      _ddManager2['default'].once('ready', done);
+      _ddManager2['default'].once('load', function () {
+        _sinon2['default'].spy(window, 'google_trackConversion');
+      });
+      _ddManager2['default'].initialize({
+        autoEvents: false
+      });
+    });
+
+    afterEach(function () {
+      window.google_trackConversion.restore();
+    });
+
+    describe('#onViewedPage', function () {
+
+      it('should not track conversion for page.type = product', function (done) {
+        viewedPageOfType('product', function () {
+          _assert2['default'].ok(!window.google_trackConversion.called);
+          done();
+        });
+      });
+
+      it('should not track conversion for page.type = category', function (done) {
+        viewedPageOfType('category', function () {
+          _assert2['default'].ok(!window.google_trackConversion.called);
+          done();
+        });
+      });
+
+      it('should not track conversion for page.type = confirmation', function (done) {
+        viewedPageOfType('confirmation', function () {
+          _assert2['default'].ok(!window.google_trackConversion.called);
+          done();
+        });
+      });
+
+      it('should track conversion for home page', function (done) {
+        viewedPageOfType('home', function () {
+          _assert2['default'].ok(window.google_trackConversion.calledWith({
+            google_conversion_id: adwords.getOption('conversionId'),
+            google_custom_params: {
+              ecomm_pagetype: 'home'
+            },
+            google_remarketing_only: adwords.getOption('remarketingOnly')
+          }));
+          done();
+        });
+      });
+
+      it('should track conversion for search page', function (done) {
+        viewedPageOfType('search', function () {
+          _assert2['default'].ok(window.google_trackConversion.calledWith({
+            google_conversion_id: adwords.getOption('conversionId'),
+            google_custom_params: {
+              ecomm_pagetype: 'searchresults'
+            },
+            google_remarketing_only: adwords.getOption('remarketingOnly')
+          }));
+          done();
+        });
+      });
+
+      it('should track conversion for content page', function (done) {
+        viewedPageOfType('content', function () {
+          _assert2['default'].ok(window.google_trackConversion.calledWith({
+            google_conversion_id: adwords.getOption('conversionId'),
+            google_custom_params: {
+              ecomm_pagetype: 'other'
+            },
+            google_remarketing_only: adwords.getOption('remarketingOnly')
+          }));
+          done();
+        });
+      });
+
+      it('should track conversion for any other page', function (done) {
+        viewedPageOfType('login', function () {
+          _assert2['default'].ok(window.google_trackConversion.calledWith({
+            google_conversion_id: adwords.getOption('conversionId'),
+            google_custom_params: {
+              ecomm_pagetype: 'other'
+            },
+            google_remarketing_only: adwords.getOption('remarketingOnly')
+          }));
+          done();
+        });
+      });
+    });
+
+    describe('#onViewedProductCategory', function () {
+      it('should send category with default separator', function (done) {
+        viewedProductCategory(['Category', 'Subcategory 1', 'Subcategory 2'], function () {
+          _assert2['default'].ok(window.google_trackConversion.calledWith({
+            google_conversion_id: adwords.getOption('conversionId'),
+            google_custom_params: {
+              ecomm_pagetype: 'category',
+              ecomm_category: 'Category/Subcategory 1/Subcategory 2'
+            },
+            google_remarketing_only: adwords.getOption('remarketingOnly')
+          }));
+          done();
+        });
+      });
+
+      it('should send "category" without separator', function (done) {
+        viewedProductCategory('Category 1', function () {
+          _assert2['default'].ok(window.google_trackConversion.calledWith({
+            google_conversion_id: adwords.getOption('conversionId'),
+            google_custom_params: {
+              ecomm_pagetype: 'category',
+              ecomm_category: 'Category 1'
+            },
+            google_remarketing_only: adwords.getOption('remarketingOnly')
+          }));
+          done();
+        });
+      });
+    });
+
+    describe('#onViewedProductDetail', function () {
+      it('should send product id, value and category', function (done) {
+        viewedProductDetail({
+          id: '123',
+          unitSalePrice: 100,
+          category: ['Category', 'Subcategory']
+        }, function () {
+          _assert2['default'].ok(window.google_trackConversion.calledWith({
+            google_conversion_id: adwords.getOption('conversionId'),
+            google_custom_params: {
+              ecomm_prodid: '123',
+              ecomm_totalvalue: 100,
+              ecomm_pagetype: 'product',
+              ecomm_category: 'Category/Subcategory'
+            },
+            google_remarketing_only: adwords.getOption('remarketingOnly')
+          }));
+          done();
+        });
+      });
+
+      it('should send product id, value and category for legacy DDL', function (done) {
+        viewedProductDetail({
+          id: '123',
+          unitSalePrice: 100,
+          category: 'Category',
+          subcategory: 'Subcategory'
+        }, function () {
+          _assert2['default'].ok(window.google_trackConversion.calledWith({
+            google_conversion_id: adwords.getOption('conversionId'),
+            google_custom_params: {
+              ecomm_prodid: '123',
+              ecomm_totalvalue: 100,
+              ecomm_pagetype: 'product',
+              ecomm_category: 'Category/Subcategory'
+            },
+            google_remarketing_only: adwords.getOption('remarketingOnly')
+          }));
+          done();
+        });
+      });
+    });
+
+    describe('#onViewedCart', function () {
+      it('should send product ids, value and pagetype', function (done) {
+        viewedCart({
+          lineItems: [{
+            product: {
+              id: '123',
+              unitSalePrice: 100
+            },
+            quantity: 2,
+            subtotal: 180
+          }, {
+            product: {
+              id: '234',
+              unitSalePrice: 100
+            },
+            quantity: 2
+          }],
+          subtotal: 300
+        }, function () {
+          _assert2['default'].ok(window.google_trackConversion.calledWith({
+            google_conversion_id: adwords.getOption('conversionId'),
+            google_custom_params: {
+              ecomm_prodid: ['123', '234'],
+              ecomm_totalvalue: 300,
+              ecomm_pagetype: 'cart'
+            },
+            google_remarketing_only: adwords.getOption('remarketingOnly')
+          }));
+          done();
+        });
+      });
+    });
+
+    describe('#onCompletedTransaction', function () {
+      it('should send product ids, value and pagetype', function (done) {
+        completedTransaction({
+          orderId: '123',
+          lineItems: [{
+            product: {
+              id: '123',
+              unitSalePrice: 100
+            },
+            quantity: 2,
+            subtotal: 180
+          }, {
+            product: {
+              id: '234',
+              unitSalePrice: 100
+            },
+            quantity: 2
+          }],
+          subtotal: 300
+        }, function () {
+          _assert2['default'].ok(window.google_trackConversion.calledWith({
+            google_conversion_id: adwords.getOption('conversionId'),
+            google_custom_params: {
+              ecomm_prodid: ['123', '234'],
+              ecomm_totalvalue: 300,
+              ecomm_pagetype: 'purchase'
+            },
+            google_remarketing_only: adwords.getOption('remarketingOnly')
+          }));
+          done();
+        });
+      });
+    });
+  });
+});
+
+},{"./../../src/ddManager":100,"./../../src/integrations/GoogleAdWords":121,"./../reset":154,"assert":1,"sinon":64}],145:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -25605,7 +26245,7 @@ describe('Integrations: GoogleAnalytics', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/functions/after.js":101,"./../../src/integrations/GoogleAnalytics.js":121,"./../functions/argumentsToArray.js":137,"./../reset.js":152,"assert":1,"sinon":64}],144:[function(require,module,exports){
+},{"./../../src/ddManager.js":100,"./../../src/functions/after.js":101,"./../../src/integrations/GoogleAnalytics.js":122,"./../functions/argumentsToArray.js":138,"./../reset.js":154,"assert":1,"sinon":64}],146:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -25779,7 +26419,7 @@ describe('Integrations: GoogleTagManager', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/GoogleTagManager.js":122,"./../reset.js":152,"assert":1}],145:[function(require,module,exports){
+},{"./../../src/ddManager.js":100,"./../../src/integrations/GoogleTagManager.js":123,"./../reset.js":154,"assert":1}],147:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -26235,7 +26875,7 @@ describe('Integrations: MyTarget', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/MyTarget.js":123,"./../reset.js":152,"assert":1,"sinon":64}],146:[function(require,module,exports){
+},{"./../../src/ddManager.js":100,"./../../src/integrations/MyTarget.js":124,"./../reset.js":154,"assert":1,"sinon":64}],148:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -26336,7 +26976,7 @@ describe('Integrations: OWOXBIStreaming', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/GoogleAnalytics.js":121,"./../../src/integrations/OWOXBIStreaming.js":124,"./../functions/argumentsToArray.js":137,"./../reset.js":152,"assert":1,"sinon":64}],147:[function(require,module,exports){
+},{"./../../src/ddManager.js":100,"./../../src/integrations/GoogleAnalytics.js":122,"./../../src/integrations/OWOXBIStreaming.js":125,"./../functions/argumentsToArray.js":138,"./../reset.js":154,"assert":1,"sinon":64}],149:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -27177,7 +27817,7 @@ describe('Integrations: RetailRocket', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/functions/deleteProperty.js":102,"./../../src/integrations/RetailRocket.js":125,"./../reset.js":152,"assert":1,"sinon":64}],148:[function(require,module,exports){
+},{"./../../src/ddManager.js":100,"./../../src/functions/deleteProperty.js":102,"./../../src/integrations/RetailRocket.js":126,"./../reset.js":154,"assert":1,"sinon":64}],150:[function(require,module,exports){
 'use strict';
 
 var _SegmentStream = require('./../../src/integrations/SegmentStream.js');
@@ -27333,7 +27973,7 @@ describe('SegmentStream', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/SegmentStream.js":126,"./../reset.js":152,"assert":1,"sinon":64}],149:[function(require,module,exports){
+},{"./../../src/ddManager.js":100,"./../../src/integrations/SegmentStream.js":127,"./../reset.js":154,"assert":1,"sinon":64}],151:[function(require,module,exports){
 'use strict';
 
 var _SendPulse = require('./../../src/integrations/SendPulse.js');
@@ -27600,7 +28240,7 @@ describe('SendPulse', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/functions/after.js":101,"./../../src/functions/deleteProperty.js":102,"./../../src/integrations/SendPulse.js":127,"./../reset.js":152,"assert":1,"sinon":64}],150:[function(require,module,exports){
+},{"./../../src/ddManager.js":100,"./../../src/functions/after.js":101,"./../../src/functions/deleteProperty.js":102,"./../../src/integrations/SendPulse.js":128,"./../reset.js":154,"assert":1,"sinon":64}],152:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -27724,7 +28364,7 @@ describe('Integrations: Vkontakte', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/Vkontakte.js":128,"./../reset.js":152,"assert":1,"sinon":64}],151:[function(require,module,exports){
+},{"./../../src/ddManager.js":100,"./../../src/integrations/Vkontakte.js":129,"./../reset.js":154,"assert":1,"sinon":64}],153:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -28213,7 +28853,7 @@ describe('Integrations: Yandex Metrica', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/YandexMetrica.js":129,"./../reset.js":152,"assert":1,"sinon":64}],152:[function(require,module,exports){
+},{"./../../src/ddManager.js":100,"./../../src/integrations/YandexMetrica.js":130,"./../reset.js":154,"assert":1,"sinon":64}],154:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -28224,7 +28864,7 @@ function reset() {
   window.ddManager = undefined;
 }
 
-},{}],153:[function(require,module,exports){
+},{}],155:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -28273,5 +28913,5 @@ exports['default'] = function () {
   }
 };
 
-},{}]},{},[138])
+},{}]},{},[139])
 //# sourceMappingURL=dd-manager-test.js.map
