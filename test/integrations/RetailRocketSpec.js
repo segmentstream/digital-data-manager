@@ -306,7 +306,7 @@ describe('Integrations: RetailRocket', () => {
             product: {
               id: '327',
             },
-            listName: 'recom1'
+            listId: 'recom1'
           },
           callback: () => {
             assert.ok(window.rrApi.recomMouseDown.calledWith('327', 'Related'));
@@ -324,7 +324,7 @@ describe('Integrations: RetailRocket', () => {
         };
         window.digitalData.recommendation = [
           {
-            listName: 'recom1',
+            listId: 'recom1',
             items: [
               {
                 id: '327'
@@ -359,7 +359,7 @@ describe('Integrations: RetailRocket', () => {
         });
       });
 
-      it('should not track "Clicked Product" event if listName is not defined for product', (done) => {
+      it('should not track "Clicked Product" event if listId is not defined for product', (done) => {
         window.digitalData.page = {};
         window.digitalData.product = {};
         window.digitalData.events.push({
@@ -387,7 +387,7 @@ describe('Integrations: RetailRocket', () => {
             product: {
               id: '327',
             },
-            listName: 'recom1'
+            listId: 'recom1'
           },
           callback: (results, errors) => {
             assert.ok(!window.rrApi.recomMouseDown.called);
@@ -406,7 +406,7 @@ describe('Integrations: RetailRocket', () => {
           category: 'Ecommerce',
           product: {
             id: '327',
-            listName: 'recom1'
+            listId: 'recom1'
           },
           quantity: 1,
           callback: () => {

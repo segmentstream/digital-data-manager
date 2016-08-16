@@ -127,7 +127,7 @@ describe('Integrations: Yandex Metrica', () => {
     });
 
     describe('#onViewedProductDetail', () => {
-      it('should push product detail into dataLayer', (done) => {
+      it('should push product detail into dataLayer (legacy DDL product.category)', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           category: 'Ecommerce',
@@ -137,6 +137,42 @@ describe('Integrations: Yandex Metrica', () => {
             manufacturer: 'Test Brand',
             category: 'Category 1',
             subcategory: 'Subcategory 1',
+            voucher: 'VOUCHER1',
+            unitSalePrice: 1500,
+            variant: 'Variant 1'
+          },
+          callback: () => {
+            assert.deepEqual(window.dataLayer[0], {
+              ecommerce: {
+                detail: {
+                  products: [
+                    {
+                      id: '123',
+                      name: 'Test Product',
+                      price: 1500,
+                      brand: 'Test Brand',
+                      category: 'Category 1/Subcategory 1',
+                      coupon: 'VOUCHER1',
+                      variant: 'Variant 1'
+                    }
+                  ]
+                }
+              }
+            });
+            done();
+          }
+        });
+      });
+
+      it('should push product detail into dataLayer', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            manufacturer: 'Test Brand',
+            category: ['Category 1', 'Subcategory 1'],
             voucher: 'VOUCHER1',
             unitSalePrice: 1500,
             variant: 'Variant 1'

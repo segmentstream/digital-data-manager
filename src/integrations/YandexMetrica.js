@@ -2,10 +2,13 @@ import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
 
 function getProductCategory(product) {
-  const categories = [];
-  if (product.category) categories.push(product.category);
-  if (product.subcategory) categories.push(product.subcategory);
-  return (categories.length) ? categories.join('/') : undefined;
+  let category = product.category;
+  if (Array.isArray(category)) {
+    category = category.join('/');
+  } else if (category && product.subcategory) {
+    category = category + '/' + product.subcategory;
+  }
+  return category;
 }
 
 function getProductId(product) {

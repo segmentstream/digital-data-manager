@@ -95,37 +95,6 @@ describe('AutoEvents', () => {
 
   });
 
-  describe('#fireViewedProductCategory DDL version <1.1.0', () => {
-
-    beforeEach(() => {
-      _digitalData = {
-        version: '1.0.0',
-        page: {
-          type: 'category',
-          categoryId: '123'
-        },
-        events: []
-      };
-      _autoEvents.setDigitalData(_digitalData);
-    });
-
-    it('should fire "Viewed Product Category" event', () => {
-      _autoEvents.fireViewedProductCategory();
-      assert.ok(_digitalData.events[0].name === 'Viewed Product Category');
-      assert.ok(_digitalData.events[0].listing.categoryId === '123');
-      assert.ok(_digitalData.page.type === 'category');
-    });
-
-    it('should fire "Viewed Product Category" and "Viewed Page" event', () => {
-      _autoEvents.onInitialize();
-      assert.ok(_digitalData.events[1].name === 'Viewed Product Category');
-      assert.ok(_digitalData.events[1].listing.categoryId === '123');
-      assert.ok(_digitalData.page.type === 'category');
-      assert.ok(_digitalData.events.length === 2);
-    });
-
-  });
-
   describe('#fireViewedProductDetail', () => {
 
     beforeEach(() => {

@@ -2,6 +2,16 @@ import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
 import type from 'component-type';
 
+function getProductCategory(product) {
+  let category = product.category;
+  if (Array.isArray(category)) {
+    category = category.join('/');
+  } else if (category && product.subcategory) {
+    category = category + '/' + product.subcategory;
+  }
+  return category;
+}
+
 class FacebookPixel extends Integration {
 
   constructor(digitalData, options) {
@@ -84,11 +94,12 @@ class FacebookPixel extends Integration {
   }
 
   onViewedProductDetail(product) {
+    const category = getProductCategory(product);
     window.fbq('track', 'ViewContent', {
       content_ids: [product.id || product.skuCode || ''],
       content_type: 'product',
       content_name: product.name || '',
-      content_category: product.category || '',
+      content_category: category || '',
       currency: product.currency || '',
       value: product.unitSalePrice || product.unitPrice || 0,
     });
@@ -96,12 +107,13 @@ class FacebookPixel extends Integration {
 
   onAddedProduct(product, quantity) {
     if (product && type(product) === 'object') {
+      const category = getProductCategory(product);
       quantity = quantity || 1;
       window.fbq('track', 'AddToCart', {
         content_ids: [product.id || product.skuCode || ''],
         content_type: 'product',
         content_name: product.name || '',
-        content_category: product.category || '',
+        content_category: category || '',
         currency: product.currency || '',
         value: quantity * (product.unitSalePrice || product.unitPrice || 0),
       });

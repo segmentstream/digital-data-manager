@@ -28,6 +28,16 @@ function getCheckoutOptions(event, checkoutOptions) {
   return options.join(', ');
 }
 
+function getProductCategory(product) {
+  let category = product.category;
+  if (Array.isArray(category)) {
+    category = category.join('/');
+  } else if (category && product.subcategory) {
+    category = category + '/' + product.subcategory;
+  }
+  return category;
+}
+
 class GoogleAnalytics extends Integration {
 
   constructor(digitalData, options) {
@@ -308,7 +318,7 @@ class GoogleAnalytics extends Integration {
         id: product.id || product.skuCode,
         name: product.name,
         list: listItem.listName,
-        category: product.category,
+        category: getProductCategory(product),
         brand: product.brand || product.manufacturer,
         price: product.unitSalePrice || product.unitPrice,
         currency: product.currency || this.getOption('defaultCurrency'),
@@ -381,7 +391,7 @@ class GoogleAnalytics extends Integration {
       if (product) {
         this.ga('ecommerce:addItem', {
           id: transaction.orderId,
-          category: product.category,
+          category: getProductCategory(product),
           quantity: lineItem.quantity,
           price: product.unitSalePrice || product.unitPrice,
           name: product.name,
@@ -554,7 +564,7 @@ class GoogleAnalytics extends Integration {
     const gaProduct = Object.assign({
       id: product.id || product.skuCode,
       name: product.name,
-      category: product.category,
+      category: getProductCategory(product),
       price: product.unitSalePrice || product.unitPrice,
       brand: product.brand || product.manufacturer,
       variant: product.variant,

@@ -905,7 +905,7 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should send viewed product detail data', function() {
+        it('should send viewed product detail data (legacy DDL product.category)', function() {
           window.digitalData.events.push({
             name: 'Viewed Product Detail',
             product: {
@@ -922,6 +922,34 @@ describe('Integrations: GoogleAnalytics', () => {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+              }]);
+              assert.deepEqual(window.ga.args[3], ['ec:setAction', 'detail', {}]);
+              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send viewed product detail data', function() {
+          window.digitalData.events.push({
+            name: 'Viewed Product Detail',
+            product: {
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: ['cat 1', 'cat 2'],
+              skuCode: 'p-298'
+            },
+            callback: () => {
+              assert.equal(window.ga.args.length, 5);
+              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1/cat 2',
                 price: 24.75,
                 brand: undefined,
                 variant: undefined,

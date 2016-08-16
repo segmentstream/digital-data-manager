@@ -6673,10 +6673,6 @@ var _componentType = require('component-type');
 
 var _componentType2 = _interopRequireDefault(_componentType);
 
-var _semver = require('./functions/semver');
-
-var _semver2 = _interopRequireDefault(_semver);
-
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -6783,10 +6779,6 @@ var AutoEvents = function () {
     if (page.type !== 'category') {
       return;
     }
-    // compatibility with version <1.1.0
-    if (this.digitalData.version && _semver2['default'].cmp(this.digitalData.version, '1.1.0') < 0) {
-      if (page.categoryId) listing.categoryId = page.categoryId;
-    }
     this.digitalData.events.push({
       enrichEventData: false,
       name: 'Viewed Product Category',
@@ -6857,7 +6849,7 @@ var AutoEvents = function () {
 
 exports['default'] = AutoEvents;
 
-},{"./DOMComponentsTracking.js":61,"./functions/semver":82,"component-type":4}],60:[function(require,module,exports){
+},{"./DOMComponentsTracking.js":61,"component-type":4}],60:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -6951,7 +6943,7 @@ var DDHelper = function () {
     }
   };
 
-  DDHelper.getListItem = function getListItem(id, digitalData, listName) {
+  DDHelper.getListItem = function getListItem(id, digitalData, listId) {
     // search in listings
     var listingItem = {};
     var _arr2 = ['listing', 'recommendation'];
@@ -6976,13 +6968,13 @@ var DDHelper = function () {
 
           var listing = _ref3;
 
-          if (listing.items && listing.items.length && (!listName || listName === listing.listName)) {
+          if (listing.items && listing.items.length && (!listId || listId === listing.listId)) {
             for (var i = 0, length = listing.items.length; i < length; i++) {
               if (listing.items[i].id && String(listing.items[i].id) === String(id)) {
                 var product = (0, _componentClone2['default'])(listing.items[i]);
                 listingItem.product = product;
                 listingItem.position = i + 1;
-                listingItem.listName = listName || listing.listName;
+                listingItem.listId = listId || listing.listId;
                 return listingItem;
               }
             }
@@ -7038,7 +7030,7 @@ function _classCallCheck(instance, Constructor) {
  * - data-ddl-viewed-campaign="<campaign.id>"
  * - data-ddl-clicked-product="<product.id>"
  * - data-ddl-clicked-campaign="<campaign.id>"
- * - data-ddl-product-list-name="<listName>"
+ * - data-ddl-product-list-name="<listId>"
  *
  * If any DOM components are added to the page dynamically
  * corresponding digitalData variable should be updated:
@@ -7129,8 +7121,8 @@ var DOMComponentsTracking = function () {
         var $el = window.jQuery(this);
         var id = $el.data('ddl-clicked-' + type);
         if (type === 'product') {
-          var listName = self.findParentByDataAttr('ddl-product-list-name', $el).data('ddl-product-list-name');
-          self.fireClickedProduct(id, listName);
+          var listId = self.findParentByDataAttr('ddl-product-list-name', $el).data('ddl-product-list-name');
+          self.fireClickedProduct(id, listId);
         } else if (type === 'campaign') {
           self.fireClickedCampaign(id);
         }
@@ -7165,8 +7157,8 @@ var DOMComponentsTracking = function () {
             var listItem = {
               product: { id: id }
             };
-            var listName = _this4.findParentByDataAttr('ddl-product-list-name', $el).data('ddl-product-list-name');
-            if (listName) listItem.listName = listName;
+            var listId = _this4.findParentByDataAttr('ddl-product-list-name', $el).data('ddl-product-list-name');
+            if (listId) listItem.listId = listId;
             newViewedComponents.push(listItem);
           } else {
             newViewedComponents.push(id);
@@ -7218,13 +7210,13 @@ var DOMComponentsTracking = function () {
     });
   };
 
-  DOMComponentsTracking.prototype.fireClickedProduct = function fireClickedProduct(productId, listName) {
+  DOMComponentsTracking.prototype.fireClickedProduct = function fireClickedProduct(productId, listId) {
     var listItem = {
       product: {
         id: productId
       }
     };
-    if (listName) listItem.listName = listName;
+    if (listId) listItem.listId = listId;
     window.digitalData.events.push({
       name: 'Clicked Product',
       category: 'Ecommerce',
@@ -7325,6 +7317,10 @@ var _htmlGlobals = require('./functions/htmlGlobals.js');
 
 var _htmlGlobals2 = _interopRequireDefault(_htmlGlobals);
 
+var _semver = require('./functions/semver.js');
+
+var _semver2 = _interopRequireDefault(_semver);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -7349,6 +7345,7 @@ var DigitalDataEnricher = function () {
   DigitalDataEnricher.prototype.enrichDigitalData = function enrichDigitalData() {
     this.enrichPageData();
     this.enrichContextData();
+    this.enrichLegacyVersions();
   };
 
   DigitalDataEnricher.prototype.enrichPageData = function enrichPageData() {
@@ -7367,6 +7364,50 @@ var DigitalDataEnricher = function () {
     context.userAgent = this.getHtmlGlobals().getNavigator().userAgent;
   };
 
+  DigitalDataEnricher.prototype.enrichLegacyVersions = function enrichLegacyVersions() {
+    // compatibility with version <1.1.1
+    if (this.digitalData.version && _semver2['default'].cmp(this.digitalData.version, '1.1.1') < 0) {
+      // enrich listing.listId
+      var listing = this.digitalData.listing;
+      if (listing && listing.listName && !listing.listId) {
+        listing.listId = listing.listName;
+      }
+      // enrich recommendation[].listId
+      var recommendations = this.digitalData.recommendation || [];
+      if (!Array.isArray(recommendations)) {
+        recommendations = [recommendations];
+      }
+      for (var _iterator = recommendations, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+        var _ref;
+
+        if (_isArray) {
+          if (_i >= _iterator.length) break;
+          _ref = _iterator[_i++];
+        } else {
+          _i = _iterator.next();
+          if (_i.done) break;
+          _ref = _i.value;
+        }
+
+        var recommendation = _ref;
+
+        if (recommendation && recommendation.listName && !recommendation.listId) {
+          recommendation.listId = recommendation.listName;
+        }
+      }
+    }
+
+    // compatibility with version <1.1.0
+    if (this.digitalData.version && _semver2['default'].cmp(this.digitalData.version, '1.1.0') < 0) {
+      // enrich listing.categoryId
+      var page = this.digitalData.page;
+      if (page.type === 'category' && page.categoryId) {
+        var _listing = this.digitalData.listing = this.digitalData.listing || {};
+        _listing.categoryId = page.categoryId;
+      }
+    }
+  };
+
   /**
    * Can be overriden for test purposes
    * @returns {{getDocument, getLocation, getNavigator}}
@@ -7381,7 +7422,7 @@ var DigitalDataEnricher = function () {
 
 exports['default'] = DigitalDataEnricher;
 
-},{"./functions/htmlGlobals.js":75}],63:[function(require,module,exports){
+},{"./functions/htmlGlobals.js":75,"./functions/semver.js":82}],63:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7444,7 +7485,7 @@ var EventDataEnricher = function () {
     }
 
     if (productId) {
-      var ddlListItem = _DDHelper2['default'].getListItem(productId, digitalData, _listItem.listName);
+      var ddlListItem = _DDHelper2['default'].getListItem(productId, digitalData, _listItem.listId);
       if (ddlListItem) {
         _listItem.product = Object.assign(ddlListItem.product, _listItem.product);
         _listItem = Object.assign(ddlListItem, _listItem);
@@ -10012,6 +10053,16 @@ function _inherits(subClass, superClass) {
   }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
 }
 
+function getProductCategory(product) {
+  var category = product.category;
+  if (Array.isArray(category)) {
+    category = category.join('/');
+  } else if (category && product.subcategory) {
+    category = category + '/' + product.subcategory;
+  }
+  return category;
+}
+
 var FacebookPixel = function (_Integration) {
   _inherits(FacebookPixel, _Integration);
 
@@ -10089,11 +10140,12 @@ var FacebookPixel = function (_Integration) {
   };
 
   FacebookPixel.prototype.onViewedProductDetail = function onViewedProductDetail(product) {
+    var category = getProductCategory(product);
     window.fbq('track', 'ViewContent', {
       content_ids: [product.id || product.skuCode || ''],
       content_type: 'product',
       content_name: product.name || '',
-      content_category: product.category || '',
+      content_category: category || '',
       currency: product.currency || '',
       value: product.unitSalePrice || product.unitPrice || 0
     });
@@ -10101,12 +10153,13 @@ var FacebookPixel = function (_Integration) {
 
   FacebookPixel.prototype.onAddedProduct = function onAddedProduct(product, quantity) {
     if (product && (0, _componentType2['default'])(product) === 'object') {
+      var category = getProductCategory(product);
       quantity = quantity || 1;
       window.fbq('track', 'AddToCart', {
         content_ids: [product.id || product.skuCode || ''],
         content_type: 'product',
         content_name: product.name || '',
-        content_category: product.category || '',
+        content_category: category || '',
         currency: product.currency || '',
         value: quantity * (product.unitSalePrice || product.unitPrice || 0)
       });
@@ -10480,6 +10533,16 @@ function getCheckoutOptions(event, checkoutOptions) {
   return options.join(', ');
 }
 
+function getProductCategory(product) {
+  var category = product.category;
+  if (Array.isArray(category)) {
+    category = category.join('/');
+  } else if (category && product.subcategory) {
+    category = category + '/' + product.subcategory;
+  }
+  return category;
+}
+
 var GoogleAnalytics = function (_Integration) {
   _inherits(GoogleAnalytics, _Integration);
 
@@ -10780,7 +10843,7 @@ var GoogleAnalytics = function (_Integration) {
         id: product.id || product.skuCode,
         name: product.name,
         list: listItem.listName,
-        category: product.category,
+        category: getProductCategory(product),
         brand: product.brand || product.manufacturer,
         price: product.unitSalePrice || product.unitPrice,
         currency: product.currency || this.getOption('defaultCurrency'),
@@ -10855,7 +10918,7 @@ var GoogleAnalytics = function (_Integration) {
       if (product) {
         _this3.ga('ecommerce:addItem', {
           id: transaction.orderId,
-          category: product.category,
+          category: getProductCategory(product),
           quantity: lineItem.quantity,
           price: product.unitSalePrice || product.unitPrice,
           name: product.name,
@@ -11049,7 +11112,7 @@ var GoogleAnalytics = function (_Integration) {
     var gaProduct = Object.assign({
       id: product.id || product.skuCode,
       name: product.name,
-      category: product.category,
+      category: getProductCategory(product),
       price: product.unitSalePrice || product.unitPrice,
       brand: product.brand || product.manufacturer,
       variant: product.variant,
@@ -11763,11 +11826,11 @@ var RetailRocket = function (_Integration) {
       this.onValidationError('listItem.product.id');
       return;
     }
-    var listName = listItem.listName;
-    if (!listName) {
+    var listId = listItem.listId;
+    if (!listId) {
       return;
     }
-    var methodName = this.getOption('listMethods')[listName];
+    var methodName = this.getOption('listMethods')[listId];
     if (!methodName) {
       return;
     }
@@ -12466,10 +12529,13 @@ function _inherits(subClass, superClass) {
 }
 
 function getProductCategory(product) {
-  var categories = [];
-  if (product.category) categories.push(product.category);
-  if (product.subcategory) categories.push(product.subcategory);
-  return categories.length ? categories.join('/') : undefined;
+  var category = product.category;
+  if (Array.isArray(category)) {
+    category = category.join('/');
+  } else if (category && product.subcategory) {
+    category = category + '/' + product.subcategory;
+  }
+  return category;
 }
 
 function getProductId(product) {

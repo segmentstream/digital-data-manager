@@ -14109,10 +14109,6 @@ var _componentType = require('component-type');
 
 var _componentType2 = _interopRequireDefault(_componentType);
 
-var _semver = require('./functions/semver');
-
-var _semver2 = _interopRequireDefault(_semver);
-
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -14219,10 +14215,6 @@ var AutoEvents = function () {
     if (page.type !== 'category') {
       return;
     }
-    // compatibility with version <1.1.0
-    if (this.digitalData.version && _semver2['default'].cmp(this.digitalData.version, '1.1.0') < 0) {
-      if (page.categoryId) listing.categoryId = page.categoryId;
-    }
     this.digitalData.events.push({
       enrichEventData: false,
       name: 'Viewed Product Category',
@@ -14293,7 +14285,7 @@ var AutoEvents = function () {
 
 exports['default'] = AutoEvents;
 
-},{"./DOMComponentsTracking.js":93,"./functions/semver":114,"component-type":5}],92:[function(require,module,exports){
+},{"./DOMComponentsTracking.js":93,"component-type":5}],92:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -14387,7 +14379,7 @@ var DDHelper = function () {
     }
   };
 
-  DDHelper.getListItem = function getListItem(id, digitalData, listName) {
+  DDHelper.getListItem = function getListItem(id, digitalData, listId) {
     // search in listings
     var listingItem = {};
     var _arr2 = ['listing', 'recommendation'];
@@ -14412,13 +14404,13 @@ var DDHelper = function () {
 
           var listing = _ref3;
 
-          if (listing.items && listing.items.length && (!listName || listName === listing.listName)) {
+          if (listing.items && listing.items.length && (!listId || listId === listing.listId)) {
             for (var i = 0, length = listing.items.length; i < length; i++) {
               if (listing.items[i].id && String(listing.items[i].id) === String(id)) {
                 var product = (0, _componentClone2['default'])(listing.items[i]);
                 listingItem.product = product;
                 listingItem.position = i + 1;
-                listingItem.listName = listName || listing.listName;
+                listingItem.listId = listId || listing.listId;
                 return listingItem;
               }
             }
@@ -14474,7 +14466,7 @@ function _classCallCheck(instance, Constructor) {
  * - data-ddl-viewed-campaign="<campaign.id>"
  * - data-ddl-clicked-product="<product.id>"
  * - data-ddl-clicked-campaign="<campaign.id>"
- * - data-ddl-product-list-name="<listName>"
+ * - data-ddl-product-list-name="<listId>"
  *
  * If any DOM components are added to the page dynamically
  * corresponding digitalData variable should be updated:
@@ -14565,8 +14557,8 @@ var DOMComponentsTracking = function () {
         var $el = window.jQuery(this);
         var id = $el.data('ddl-clicked-' + type);
         if (type === 'product') {
-          var listName = self.findParentByDataAttr('ddl-product-list-name', $el).data('ddl-product-list-name');
-          self.fireClickedProduct(id, listName);
+          var listId = self.findParentByDataAttr('ddl-product-list-name', $el).data('ddl-product-list-name');
+          self.fireClickedProduct(id, listId);
         } else if (type === 'campaign') {
           self.fireClickedCampaign(id);
         }
@@ -14601,8 +14593,8 @@ var DOMComponentsTracking = function () {
             var listItem = {
               product: { id: id }
             };
-            var listName = _this4.findParentByDataAttr('ddl-product-list-name', $el).data('ddl-product-list-name');
-            if (listName) listItem.listName = listName;
+            var listId = _this4.findParentByDataAttr('ddl-product-list-name', $el).data('ddl-product-list-name');
+            if (listId) listItem.listId = listId;
             newViewedComponents.push(listItem);
           } else {
             newViewedComponents.push(id);
@@ -14654,13 +14646,13 @@ var DOMComponentsTracking = function () {
     });
   };
 
-  DOMComponentsTracking.prototype.fireClickedProduct = function fireClickedProduct(productId, listName) {
+  DOMComponentsTracking.prototype.fireClickedProduct = function fireClickedProduct(productId, listId) {
     var listItem = {
       product: {
         id: productId
       }
     };
-    if (listName) listItem.listName = listName;
+    if (listId) listItem.listId = listId;
     window.digitalData.events.push({
       name: 'Clicked Product',
       category: 'Ecommerce',
@@ -14761,6 +14753,10 @@ var _htmlGlobals = require('./functions/htmlGlobals.js');
 
 var _htmlGlobals2 = _interopRequireDefault(_htmlGlobals);
 
+var _semver = require('./functions/semver.js');
+
+var _semver2 = _interopRequireDefault(_semver);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -14785,6 +14781,7 @@ var DigitalDataEnricher = function () {
   DigitalDataEnricher.prototype.enrichDigitalData = function enrichDigitalData() {
     this.enrichPageData();
     this.enrichContextData();
+    this.enrichLegacyVersions();
   };
 
   DigitalDataEnricher.prototype.enrichPageData = function enrichPageData() {
@@ -14803,6 +14800,50 @@ var DigitalDataEnricher = function () {
     context.userAgent = this.getHtmlGlobals().getNavigator().userAgent;
   };
 
+  DigitalDataEnricher.prototype.enrichLegacyVersions = function enrichLegacyVersions() {
+    // compatibility with version <1.1.1
+    if (this.digitalData.version && _semver2['default'].cmp(this.digitalData.version, '1.1.1') < 0) {
+      // enrich listing.listId
+      var listing = this.digitalData.listing;
+      if (listing && listing.listName && !listing.listId) {
+        listing.listId = listing.listName;
+      }
+      // enrich recommendation[].listId
+      var recommendations = this.digitalData.recommendation || [];
+      if (!Array.isArray(recommendations)) {
+        recommendations = [recommendations];
+      }
+      for (var _iterator = recommendations, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+        var _ref;
+
+        if (_isArray) {
+          if (_i >= _iterator.length) break;
+          _ref = _iterator[_i++];
+        } else {
+          _i = _iterator.next();
+          if (_i.done) break;
+          _ref = _i.value;
+        }
+
+        var recommendation = _ref;
+
+        if (recommendation && recommendation.listName && !recommendation.listId) {
+          recommendation.listId = recommendation.listName;
+        }
+      }
+    }
+
+    // compatibility with version <1.1.0
+    if (this.digitalData.version && _semver2['default'].cmp(this.digitalData.version, '1.1.0') < 0) {
+      // enrich listing.categoryId
+      var page = this.digitalData.page;
+      if (page.type === 'category' && page.categoryId) {
+        var _listing = this.digitalData.listing = this.digitalData.listing || {};
+        _listing.categoryId = page.categoryId;
+      }
+    }
+  };
+
   /**
    * Can be overriden for test purposes
    * @returns {{getDocument, getLocation, getNavigator}}
@@ -14817,7 +14858,7 @@ var DigitalDataEnricher = function () {
 
 exports['default'] = DigitalDataEnricher;
 
-},{"./functions/htmlGlobals.js":107}],95:[function(require,module,exports){
+},{"./functions/htmlGlobals.js":107,"./functions/semver.js":114}],95:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -14880,7 +14921,7 @@ var EventDataEnricher = function () {
     }
 
     if (productId) {
-      var ddlListItem = _DDHelper2['default'].getListItem(productId, digitalData, _listItem.listName);
+      var ddlListItem = _DDHelper2['default'].getListItem(productId, digitalData, _listItem.listId);
       if (ddlListItem) {
         _listItem.product = Object.assign(ddlListItem.product, _listItem.product);
         _listItem = Object.assign(ddlListItem, _listItem);
@@ -17426,6 +17467,16 @@ function _inherits(subClass, superClass) {
   }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
 }
 
+function getProductCategory(product) {
+  var category = product.category;
+  if (Array.isArray(category)) {
+    category = category.join('/');
+  } else if (category && product.subcategory) {
+    category = category + '/' + product.subcategory;
+  }
+  return category;
+}
+
 var FacebookPixel = function (_Integration) {
   _inherits(FacebookPixel, _Integration);
 
@@ -17503,11 +17554,12 @@ var FacebookPixel = function (_Integration) {
   };
 
   FacebookPixel.prototype.onViewedProductDetail = function onViewedProductDetail(product) {
+    var category = getProductCategory(product);
     window.fbq('track', 'ViewContent', {
       content_ids: [product.id || product.skuCode || ''],
       content_type: 'product',
       content_name: product.name || '',
-      content_category: product.category || '',
+      content_category: category || '',
       currency: product.currency || '',
       value: product.unitSalePrice || product.unitPrice || 0
     });
@@ -17515,12 +17567,13 @@ var FacebookPixel = function (_Integration) {
 
   FacebookPixel.prototype.onAddedProduct = function onAddedProduct(product, quantity) {
     if (product && (0, _componentType2['default'])(product) === 'object') {
+      var category = getProductCategory(product);
       quantity = quantity || 1;
       window.fbq('track', 'AddToCart', {
         content_ids: [product.id || product.skuCode || ''],
         content_type: 'product',
         content_name: product.name || '',
-        content_category: product.category || '',
+        content_category: category || '',
         currency: product.currency || '',
         value: quantity * (product.unitSalePrice || product.unitPrice || 0)
       });
@@ -17894,6 +17947,16 @@ function getCheckoutOptions(event, checkoutOptions) {
   return options.join(', ');
 }
 
+function getProductCategory(product) {
+  var category = product.category;
+  if (Array.isArray(category)) {
+    category = category.join('/');
+  } else if (category && product.subcategory) {
+    category = category + '/' + product.subcategory;
+  }
+  return category;
+}
+
 var GoogleAnalytics = function (_Integration) {
   _inherits(GoogleAnalytics, _Integration);
 
@@ -18194,7 +18257,7 @@ var GoogleAnalytics = function (_Integration) {
         id: product.id || product.skuCode,
         name: product.name,
         list: listItem.listName,
-        category: product.category,
+        category: getProductCategory(product),
         brand: product.brand || product.manufacturer,
         price: product.unitSalePrice || product.unitPrice,
         currency: product.currency || this.getOption('defaultCurrency'),
@@ -18269,7 +18332,7 @@ var GoogleAnalytics = function (_Integration) {
       if (product) {
         _this3.ga('ecommerce:addItem', {
           id: transaction.orderId,
-          category: product.category,
+          category: getProductCategory(product),
           quantity: lineItem.quantity,
           price: product.unitSalePrice || product.unitPrice,
           name: product.name,
@@ -18463,7 +18526,7 @@ var GoogleAnalytics = function (_Integration) {
     var gaProduct = Object.assign({
       id: product.id || product.skuCode,
       name: product.name,
-      category: product.category,
+      category: getProductCategory(product),
       price: product.unitSalePrice || product.unitPrice,
       brand: product.brand || product.manufacturer,
       variant: product.variant,
@@ -19177,11 +19240,11 @@ var RetailRocket = function (_Integration) {
       this.onValidationError('listItem.product.id');
       return;
     }
-    var listName = listItem.listName;
-    if (!listName) {
+    var listId = listItem.listId;
+    if (!listId) {
       return;
     }
-    var methodName = this.getOption('listMethods')[listName];
+    var methodName = this.getOption('listMethods')[listId];
     if (!methodName) {
       return;
     }
@@ -19880,10 +19943,13 @@ function _inherits(subClass, superClass) {
 }
 
 function getProductCategory(product) {
-  var categories = [];
-  if (product.category) categories.push(product.category);
-  if (product.subcategory) categories.push(product.subcategory);
-  return categories.length ? categories.join('/') : undefined;
+  var category = product.category;
+  if (Array.isArray(category)) {
+    category = category.join('/');
+  } else if (category && product.subcategory) {
+    category = category + '/' + product.subcategory;
+  }
+  return category;
 }
 
 function getProductId(product) {
@@ -20200,36 +20266,6 @@ describe('AutoEvents', function () {
     });
   });
 
-  describe('#fireViewedProductCategory DDL version <1.1.0', function () {
-
-    beforeEach(function () {
-      _digitalData = {
-        version: '1.0.0',
-        page: {
-          type: 'category',
-          categoryId: '123'
-        },
-        events: []
-      };
-      _autoEvents.setDigitalData(_digitalData);
-    });
-
-    it('should fire "Viewed Product Category" event', function () {
-      _autoEvents.fireViewedProductCategory();
-      _assert2['default'].ok(_digitalData.events[0].name === 'Viewed Product Category');
-      _assert2['default'].ok(_digitalData.events[0].listing.categoryId === '123');
-      _assert2['default'].ok(_digitalData.page.type === 'category');
-    });
-
-    it('should fire "Viewed Product Category" and "Viewed Page" event', function () {
-      _autoEvents.onInitialize();
-      _assert2['default'].ok(_digitalData.events[1].name === 'Viewed Product Category');
-      _assert2['default'].ok(_digitalData.events[1].listing.categoryId === '123');
-      _assert2['default'].ok(_digitalData.page.type === 'category');
-      _assert2['default'].ok(_digitalData.events.length === 2);
-    });
-  });
-
   describe('#fireViewedProductDetail', function () {
 
     beforeEach(function () {
@@ -20425,7 +20461,7 @@ describe('DDHelper', function () {
           }]
         },
         recommendation: {
-          listName: 'recom',
+          listId: 'recom',
           items: [{
             id: '4'
           }, {
@@ -20455,9 +20491,9 @@ describe('DDHelper', function () {
       _assert2['default'].ok(_DDHelper2['default'].getProduct('4', _digitalData).id === '4');
     });
 
-    it('should get product from list key without any listName properties', function () {
+    it('should get product from list key without any listId properties', function () {
       _assert2['default'].ok(_DDHelper2['default'].getProduct('5', _digitalData, 'recom').id === '5');
-      _assert2['default'].ok(!_DDHelper2['default'].getProduct('5', _digitalData, 'recom').listName);
+      _assert2['default'].ok(!_DDHelper2['default'].getProduct('5', _digitalData, 'recom').listId);
     });
 
     it('should get product from cart key', function () {
@@ -20488,7 +20524,7 @@ describe('DDHelper', function () {
           }]
         },
         recommendation: {
-          listName: 'recom',
+          listId: 'recom',
           items: [{
             id: '4'
           }, {
@@ -20520,7 +20556,7 @@ describe('DDHelper', function () {
 
     it('should get product from recommendation key from list "recom"', function () {
       _assert2['default'].ok(_DDHelper2['default'].getListItem('5', _digitalData, 'recom').product.id === '5');
-      _assert2['default'].ok(_DDHelper2['default'].getListItem('5', _digitalData, 'recom').listName === 'recom');
+      _assert2['default'].ok(_DDHelper2['default'].getListItem('5', _digitalData, 'recom').listId === 'recom');
     });
 
     it('should not get product from cart key', function () {
@@ -20654,6 +20690,68 @@ describe('DigitalDataEnricher', function () {
       _digitalDataEnricher.setDigitalData(_digitalData);
       _digitalDataEnricher.enrichContextData();
       _assert2['default'].ok(_digitalData.context.userAgent === _navigator.userAgent);
+    });
+  });
+
+  describe('#enrichLegacyVersions', function () {
+
+    it('should enrich DDL listing variable with categoryId', function () {
+      _digitalData = {
+        page: {
+          type: 'category',
+          categoryId: '123'
+        },
+        events: [],
+        version: '1.0.0'
+      };
+      _digitalDataEnricher.setDigitalData(_digitalData);
+      _digitalDataEnricher.enrichLegacyVersions();
+      _assert2['default'].ok(_digitalData.listing.categoryId === '123');
+    });
+
+    it('should enrich DDL listing variable with listId', function () {
+      _digitalData = {
+        page: {
+          type: 'category',
+          categoryId: '123'
+        },
+        listing: {
+          listName: 'main'
+        },
+        recommendation: {
+          listName: 'recommendation'
+        },
+        events: [],
+        version: '1.1.0'
+      };
+      _digitalDataEnricher.setDigitalData(_digitalData);
+      _digitalDataEnricher.enrichLegacyVersions();
+      _assert2['default'].ok(_digitalData.listing.listId === 'main');
+      _assert2['default'].ok(_digitalData.recommendation.listId === 'recommendation');
+    });
+
+    it('should enrich DDL recommendation array with listId', function () {
+      _digitalData = {
+        page: {
+          type: 'category',
+          categoryId: '123'
+        },
+        listing: {
+          listName: 'main'
+        },
+        recommendation: [{
+          listName: 'recom1'
+        }, {
+          listName: 'recom2'
+        }],
+        events: [],
+        version: '1.0.0'
+      };
+      _digitalDataEnricher.setDigitalData(_digitalData);
+      _digitalDataEnricher.enrichLegacyVersions();
+      _assert2['default'].ok(_digitalData.listing.listId === 'main');
+      _assert2['default'].ok(_digitalData.recommendation[0].listId === 'recom1');
+      _assert2['default'].ok(_digitalData.recommendation[1].listId === 'recom2');
     });
   });
 });
@@ -23540,7 +23638,7 @@ describe('Integrations: FacebookPixel', function () {
         fbPixel.onViewedProductDetail.restore();
       });
 
-      it('should call fbq track ViewContent', function (done) {
+      it('should call fbq track ViewContent (legacy product.category format)', function (done) {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           category: 'Ecommerce',
@@ -23569,6 +23667,67 @@ describe('Integrations: FacebookPixel', function () {
           }
         });
       });
+
+      it('should call fbq track ViewContent (legacy product.category with product.subcategory format)', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            category: 'Category 1',
+            subcategory: 'Subcategory 1',
+            currency: 'USD',
+            unitSalePrice: 10000
+          },
+          callback: function callback() {
+            _assert2['default'].ok(window.fbq.calledWith('track', 'ViewContent', {
+              content_ids: ['123'],
+              content_type: 'product',
+              content_name: 'Test Product',
+              content_category: 'Category 1/Subcategory 1',
+              currency: 'USD',
+              value: 10000
+            }), 'fbq("track", "ViewContent") was not called with correct params');
+            var productArg = fbPixel.onViewedProductDetail.getCall(0).args[0];
+            _assert2['default'].ok(productArg.id, 'product.id is not defined');
+            _assert2['default'].ok(productArg.name, 'product.name is not defined');
+            _assert2['default'].ok(productArg.category, 'product.category is not defined');
+            _assert2['default'].ok(productArg.unitSalePrice, 'product.unitSalePrice is not defined');
+            done();
+          }
+        });
+      });
+
+      it('should call fbq track ViewContent', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            category: ['Category 1', 'Subcategory 1'],
+            currency: 'USD',
+            unitSalePrice: 10000
+          },
+          callback: function callback() {
+            _assert2['default'].ok(window.fbq.calledWith('track', 'ViewContent', {
+              content_ids: ['123'],
+              content_type: 'product',
+              content_name: 'Test Product',
+              content_category: 'Category 1/Subcategory 1',
+              currency: 'USD',
+              value: 10000
+            }), 'fbq("track", "ViewContent") was not called');
+            var productArg = fbPixel.onViewedProductDetail.getCall(0).args[0];
+            _assert2['default'].ok(productArg.id, 'product.id is not defined');
+            _assert2['default'].ok(productArg.name, 'product.name is not defined');
+            _assert2['default'].ok(productArg.category, 'product.category is not defined');
+            _assert2['default'].ok(productArg.unitSalePrice, 'product.unitSalePrice is not defined');
+            done();
+          }
+        });
+      });
     });
 
     describe('#onAddedProduct', function () {
@@ -23581,7 +23740,7 @@ describe('Integrations: FacebookPixel', function () {
         fbPixel.onAddedProduct.restore();
       });
 
-      it('should call fbq track AddToCart', function (done) {
+      it('should call fbq track AddToCart (legacy product.category format)', function (done) {
         window.digitalData.events.push({
           name: 'Added Product',
           category: 'Ecommerce',
@@ -23613,38 +23772,107 @@ describe('Integrations: FacebookPixel', function () {
             done();
           }
         });
+      });
 
-        it('should call fbq track ViewContent even without quantity param', function (done) {
-          window.digitalData.events.push({
-            name: 'Added Product',
-            category: 'Ecommerce',
-            product: {
-              id: '123',
-              name: 'Test Product',
-              category: 'Category 1',
+      it('should call fbq track AddToCart (legacy product.category format with product.subcategory)', function (done) {
+        window.digitalData.events.push({
+          name: 'Added Product',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            category: 'Category 1',
+            subcategory: 'Subcategory 1',
+            currency: 'USD',
+            unitSalePrice: 10000
+          },
+          quantity: 2,
+          callback: function callback() {
+            _assert2['default'].ok(window.fbq.calledWith('track', 'AddToCart', {
+              content_ids: ['123'],
+              content_type: 'product',
+              content_name: 'Test Product',
+              content_category: 'Category 1/Subcategory 1',
               currency: 'USD',
-              unitSalePrice: 10000
-            },
-            callback: function callback() {
-              _assert2['default'].ok(window.fbq.calledWith('track', 'AddToCart', {
-                content_ids: ['123'],
-                content_type: 'product',
-                content_name: 'Test Product',
-                content_category: 'Category 1',
-                currency: 'USD',
-                value: 10000
-              }), 'fbq("track", "AddToCart") was not called');
-              var productArg = fbPixel.onAddedProduct.getCall(0).args[0];
-              var quantityArg = fbPixel.onAddedProduct.getCall(0).args[1];
-              _assert2['default'].ok(productArg.id, 'product.id is not defined');
-              _assert2['default'].ok(productArg.name, 'product.name is not defined');
-              _assert2['default'].ok(productArg.category, 'product.category is not defined');
-              _assert2['default'].ok(productArg.currency, 'product.currency is not defined');
-              _assert2['default'].ok(productArg.unitSalePrice, 'product.unitSalePrice is not defined');
-              _assert2['default'].ok(!quantityArg);
-              done();
-            }
-          });
+              value: 20000
+            }), 'fbq("track", "AddToCart") was not called');
+            var productArg = fbPixel.onAddedProduct.getCall(0).args[0];
+            var quantityArg = fbPixel.onAddedProduct.getCall(0).args[1];
+            _assert2['default'].ok(productArg.id, 'product.id is not defined');
+            _assert2['default'].ok(productArg.name, 'product.name is not defined');
+            _assert2['default'].ok(productArg.category, 'product.category is not defined');
+            _assert2['default'].ok(productArg.currency, 'product.currency is not defined');
+            _assert2['default'].ok(productArg.unitSalePrice, 'product.unitSalePrice is not defined');
+            _assert2['default'].ok(quantityArg === 2);
+            done();
+          }
+        });
+      });
+
+      it('should call fbq track AddToCart', function (done) {
+        window.digitalData.events.push({
+          name: 'Added Product',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            category: ['Category 1', 'Subcategory 1'],
+            currency: 'USD',
+            unitSalePrice: 10000
+          },
+          quantity: 2,
+          callback: function callback() {
+            _assert2['default'].ok(window.fbq.calledWith('track', 'AddToCart', {
+              content_ids: ['123'],
+              content_type: 'product',
+              content_name: 'Test Product',
+              content_category: 'Category 1/Subcategory 1',
+              currency: 'USD',
+              value: 20000
+            }), 'fbq("track", "AddToCart") was not called');
+            var productArg = fbPixel.onAddedProduct.getCall(0).args[0];
+            var quantityArg = fbPixel.onAddedProduct.getCall(0).args[1];
+            _assert2['default'].ok(productArg.id, 'product.id is not defined');
+            _assert2['default'].ok(productArg.name, 'product.name is not defined');
+            _assert2['default'].ok(productArg.category, 'product.category is not defined');
+            _assert2['default'].ok(productArg.currency, 'product.currency is not defined');
+            _assert2['default'].ok(productArg.unitSalePrice, 'product.unitSalePrice is not defined');
+            _assert2['default'].ok(quantityArg === 2);
+            done();
+          }
+        });
+      });
+
+      it('should call fbq track ViewContent even without quantity param', function (done) {
+        window.digitalData.events.push({
+          name: 'Added Product',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            category: 'Category 1',
+            currency: 'USD',
+            unitSalePrice: 10000
+          },
+          callback: function callback() {
+            _assert2['default'].ok(window.fbq.calledWith('track', 'AddToCart', {
+              content_ids: ['123'],
+              content_type: 'product',
+              content_name: 'Test Product',
+              content_category: 'Category 1',
+              currency: 'USD',
+              value: 10000
+            }), 'fbq("track", "AddToCart") was not called');
+            var productArg = fbPixel.onAddedProduct.getCall(0).args[0];
+            var quantityArg = fbPixel.onAddedProduct.getCall(0).args[1];
+            _assert2['default'].ok(productArg.id, 'product.id is not defined');
+            _assert2['default'].ok(productArg.name, 'product.name is not defined');
+            _assert2['default'].ok(productArg.category, 'product.category is not defined');
+            _assert2['default'].ok(productArg.currency, 'product.currency is not defined');
+            _assert2['default'].ok(productArg.unitSalePrice, 'product.unitSalePrice is not defined');
+            _assert2['default'].ok(!quantityArg);
+            done();
+          }
         });
       });
     });
@@ -25145,7 +25373,7 @@ describe('Integrations: GoogleAnalytics', function () {
           });
         });
 
-        it('should send viewed product detail data', function () {
+        it('should send viewed product detail data (legacy DDL product.category)', function () {
           window.digitalData.events.push({
             name: 'Viewed Product Detail',
             product: {
@@ -25162,6 +25390,34 @@ describe('Integrations: GoogleAnalytics', function () {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD'
+              }]);
+              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'detail', {}]);
+              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }]);
+            }
+          });
+        });
+
+        it('should send viewed product detail data', function () {
+          window.digitalData.events.push({
+            name: 'Viewed Product Detail',
+            product: {
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: ['cat 1', 'cat 2'],
+              skuCode: 'p-298'
+            },
+            callback: function callback() {
+              _assert2['default'].equal(window.ga.args.length, 5);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
+              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1/cat 2',
                 price: 24.75,
                 brand: undefined,
                 variant: undefined,
@@ -27303,7 +27559,7 @@ describe('Integrations: RetailRocket', function () {
             product: {
               id: '327'
             },
-            listName: 'recom1'
+            listId: 'recom1'
           },
           callback: function callback() {
             _assert2['default'].ok(window.rrApi.recomMouseDown.calledWith('327', 'Related'));
@@ -27320,7 +27576,7 @@ describe('Integrations: RetailRocket', function () {
           type: 'product'
         };
         window.digitalData.recommendation = [{
-          listName: 'recom1',
+          listId: 'recom1',
           items: [{
             id: '327'
           }]
@@ -27352,7 +27608,7 @@ describe('Integrations: RetailRocket', function () {
         });
       });
 
-      it('should not track "Clicked Product" event if listName is not defined for product', function (done) {
+      it('should not track "Clicked Product" event if listId is not defined for product', function (done) {
         window.digitalData.page = {};
         window.digitalData.product = {};
         window.digitalData.events.push({
@@ -27380,7 +27636,7 @@ describe('Integrations: RetailRocket', function () {
             product: {
               id: '327'
             },
-            listName: 'recom1'
+            listId: 'recom1'
           },
           callback: function callback(results, errors) {
             _assert2['default'].ok(!window.rrApi.recomMouseDown.called);
@@ -27399,7 +27655,7 @@ describe('Integrations: RetailRocket', function () {
           category: 'Ecommerce',
           product: {
             id: '327',
-            listName: 'recom1'
+            listId: 'recom1'
           },
           quantity: 1,
           callback: function callback() {
@@ -28514,7 +28770,7 @@ describe('Integrations: Yandex Metrica', function () {
     });
 
     describe('#onViewedProductDetail', function () {
-      it('should push product detail into dataLayer', function (done) {
+      it('should push product detail into dataLayer (legacy DDL product.category)', function (done) {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           category: 'Ecommerce',
@@ -28524,6 +28780,40 @@ describe('Integrations: Yandex Metrica', function () {
             manufacturer: 'Test Brand',
             category: 'Category 1',
             subcategory: 'Subcategory 1',
+            voucher: 'VOUCHER1',
+            unitSalePrice: 1500,
+            variant: 'Variant 1'
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window.dataLayer[0], {
+              ecommerce: {
+                detail: {
+                  products: [{
+                    id: '123',
+                    name: 'Test Product',
+                    price: 1500,
+                    brand: 'Test Brand',
+                    category: 'Category 1/Subcategory 1',
+                    coupon: 'VOUCHER1',
+                    variant: 'Variant 1'
+                  }]
+                }
+              }
+            });
+            done();
+          }
+        });
+      });
+
+      it('should push product detail into dataLayer', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            manufacturer: 'Test Brand',
+            category: ['Category 1', 'Subcategory 1'],
             voucher: 'VOUCHER1',
             unitSalePrice: 1500,
             variant: 'Variant 1'

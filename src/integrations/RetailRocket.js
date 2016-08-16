@@ -183,11 +183,11 @@ class RetailRocket extends Integration {
       this.onValidationError('listItem.product.id');
       return;
     }
-    const listName = listItem.listName;
-    if (!listName) {
+    const listId = listItem.listId;
+    if (!listId) {
       return;
     }
-    const methodName = this.getOption('listMethods')[listName];
+    const methodName = this.getOption('listMethods')[listId];
     if (!methodName) {
       return;
     }
