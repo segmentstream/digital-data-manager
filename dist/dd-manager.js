@@ -10370,7 +10370,9 @@ var GoogleAdWords = function (_Integration) {
     // product, category, cart, checkout and confirmation pages are tracked separately
     if (['product', 'category', 'cart', 'checkout', 'confirmation'].indexOf(page.type) < 0) {
       this.trackConversion({
-        ecomm_pagetype: mapPageType(page.type)
+        ecomm_prodid: '',
+        ecomm_pagetype: mapPageType(page.type),
+        ecomm_totalvalue: ''
       });
     }
   };
@@ -10391,7 +10393,7 @@ var GoogleAdWords = function (_Integration) {
     this.trackConversion({
       ecomm_prodid: product.id || product.skuCode || undefined,
       ecomm_pagetype: 'product',
-      ecomm_totalvalue: product.unitSalePrice || product.unitPrice,
+      ecomm_totalvalue: product.unitSalePrice || product.unitPrice || '',
       ecomm_category: category
     });
   };
@@ -10408,7 +10410,9 @@ var GoogleAdWords = function (_Integration) {
     }
 
     this.trackConversion({
+      ecomm_prodid: '',
       ecomm_pagetype: 'category',
+      ecomm_totalvalue: '',
       ecomm_category: category
     });
   };
@@ -10422,7 +10426,7 @@ var GoogleAdWords = function (_Integration) {
     this.trackConversion({
       ecomm_prodid: lineItemsToProductIds(cart.lineItems),
       ecomm_pagetype: 'cart',
-      ecomm_totalvalue: cart.subtotal || cart.total
+      ecomm_totalvalue: cart.subtotal || cart.total || ''
     });
   };
 
@@ -10435,7 +10439,7 @@ var GoogleAdWords = function (_Integration) {
     this.trackConversion({
       ecomm_prodid: lineItemsToProductIds(transaction.lineItems),
       ecomm_pagetype: 'purchase',
-      ecomm_totalvalue: transaction.subtotal || transaction.total
+      ecomm_totalvalue: transaction.subtotal || transaction.total || ''
     });
   };
 
