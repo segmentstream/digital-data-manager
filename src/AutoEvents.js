@@ -1,6 +1,5 @@
 import DOMComponentsTracking from './DOMComponentsTracking.js';
 import type from 'component-type';
-import semver from './functions/semver';
 
 class AutoEvents
 {
@@ -96,10 +95,6 @@ class AutoEvents
     const listing = this.digitalData.listing || {};
     if (page.type !== 'category') {
       return;
-    }
-    // compatibility with version <1.1.0
-    if (this.digitalData.version && semver.cmp(this.digitalData.version, '1.1.0') < 0) {
-      if (page.categoryId) listing.categoryId = page.categoryId;
     }
     this.digitalData.events.push({
       enrichEventData: false,

@@ -191,7 +191,9 @@ describe('Integrations: GoogleAdWords', () => {
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
-              ecomm_pagetype: 'home'
+              ecomm_prodid: '',
+              ecomm_pagetype: 'home',
+              ecomm_totalvalue: ''
             },
             google_remarketing_only: adwords.getOption('remarketingOnly'),
           }));
@@ -204,7 +206,9 @@ describe('Integrations: GoogleAdWords', () => {
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
-              ecomm_pagetype: 'searchresults'
+              ecomm_prodid: '',
+              ecomm_pagetype: 'searchresults',
+              ecomm_totalvalue: ''
             },
             google_remarketing_only: adwords.getOption('remarketingOnly'),
           }));
@@ -217,7 +221,9 @@ describe('Integrations: GoogleAdWords', () => {
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
-              ecomm_pagetype: 'other'
+              ecomm_prodid: '',
+              ecomm_pagetype: 'other',
+              ecomm_totalvalue: ''
             },
             google_remarketing_only: adwords.getOption('remarketingOnly'),
           }));
@@ -230,7 +236,9 @@ describe('Integrations: GoogleAdWords', () => {
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
-              ecomm_pagetype: 'other'
+              ecomm_prodid: '',
+              ecomm_pagetype: 'other',
+              ecomm_totalvalue: ''
             },
             google_remarketing_only: adwords.getOption('remarketingOnly'),
           }));
@@ -245,8 +253,10 @@ describe('Integrations: GoogleAdWords', () => {
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
+              ecomm_prodid: '',
               ecomm_pagetype: 'category',
-              ecomm_category: 'Category/Subcategory 1/Subcategory 2'
+              ecomm_totalvalue: '',
+              ecomm_category: 'Category/Subcategory 1/Subcategory 2',
             },
             google_remarketing_only: adwords.getOption('remarketingOnly'),
           }));
@@ -259,7 +269,9 @@ describe('Integrations: GoogleAdWords', () => {
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
+              ecomm_prodid: '',
               ecomm_pagetype: 'category',
+              ecomm_totalvalue: '',
               ecomm_category: 'Category 1'
             },
             google_remarketing_only: adwords.getOption('remarketingOnly'),

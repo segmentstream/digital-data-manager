@@ -1,4 +1,5 @@
 import htmlGlobals from './functions/htmlGlobals.js';
+import semver from './functions/semver.js';
 
 class DigitalDataEnricher
 {
@@ -13,6 +14,7 @@ class DigitalDataEnricher
   enrichDigitalData() {
     this.enrichPageData();
     this.enrichContextData();
+    this.enrichLegacyVersions();
   }
 
   enrichPageData() {
@@ -29,6 +31,37 @@ class DigitalDataEnricher
   enrichContextData() {
     const context = this.digitalData.context;
     context.userAgent = this.getHtmlGlobals().getNavigator().userAgent;
+  }
+
+  enrichLegacyVersions() {
+    // compatibility with version <1.1.1
+    if (this.digitalData.version && semver.cmp(this.digitalData.version, '1.1.1') < 0) {
+      // enrich listing.listId
+      const listing = this.digitalData.listing;
+      if (listing && listing.listName && !listing.listId) {
+        listing.listId = listing.listName;
+      }
+      // enrich recommendation[].listId
+      let recommendations = this.digitalData.recommendation || [];
+      if (!Array.isArray(recommendations)) {
+        recommendations = [recommendations];
+      }
+      for (const recommendation of recommendations) {
+        if (recommendation && recommendation.listName && !recommendation.listId) {
+          recommendation.listId = recommendation.listName;
+        }
+      }
+    }
+
+    // compatibility with version <1.1.0
+    if (this.digitalData.version && semver.cmp(this.digitalData.version, '1.1.0') < 0) {
+      // enrich listing.categoryId
+      const page = this.digitalData.page;
+      if (page.type === 'category' && page.categoryId) {
+        const listing = this.digitalData.listing = this.digitalData.listing || {};
+        listing.categoryId = page.categoryId;
+      }
+    }
   }
 
   /**

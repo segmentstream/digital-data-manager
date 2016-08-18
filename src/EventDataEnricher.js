@@ -38,7 +38,7 @@ class EventDataEnricher
     }
 
     if (productId) {
-      const ddlListItem = DDHelper.getListItem(productId, digitalData, listItem.listName);
+      const ddlListItem = DDHelper.getListItem(productId, digitalData, listItem.listId);
       if (ddlListItem) {
         listItem.product = Object.assign(ddlListItem.product, listItem.product);
         listItem = Object.assign(ddlListItem, listItem);

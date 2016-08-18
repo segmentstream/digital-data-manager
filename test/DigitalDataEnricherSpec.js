@@ -87,4 +87,70 @@ describe('DigitalDataEnricher', () => {
 
   });
 
+  describe('#enrichLegacyVersions', () => {
+
+    it('should enrich DDL listing variable with categoryId', () => {
+      _digitalData = {
+        page: {
+          type: 'category',
+          categoryId: '123'
+        },
+        events: [],
+        version: '1.0.0'
+      };
+      _digitalDataEnricher.setDigitalData(_digitalData);
+      _digitalDataEnricher.enrichLegacyVersions();
+      assert.ok(_digitalData.listing.categoryId === '123');
+    });
+
+    it('should enrich DDL listing variable with listId', () => {
+      _digitalData = {
+        page: {
+          type: 'category',
+          categoryId: '123'
+        },
+        listing: {
+          listName: 'main'
+        },
+        recommendation: {
+          listName: 'recommendation'
+        },
+        events: [],
+        version: '1.1.0'
+      };
+      _digitalDataEnricher.setDigitalData(_digitalData);
+      _digitalDataEnricher.enrichLegacyVersions();
+      assert.ok(_digitalData.listing.listId === 'main');
+      assert.ok(_digitalData.recommendation.listId === 'recommendation');
+    });
+
+    it('should enrich DDL recommendation array with listId', () => {
+      _digitalData = {
+        page: {
+          type: 'category',
+          categoryId: '123'
+        },
+        listing: {
+          listName: 'main'
+        },
+        recommendation: [
+          {
+            listName: 'recom1'
+          },
+          {
+            listName: 'recom2'
+          }
+        ],
+        events: [],
+        version: '1.0.0'
+      };
+      _digitalDataEnricher.setDigitalData(_digitalData);
+      _digitalDataEnricher.enrichLegacyVersions();
+      assert.ok(_digitalData.listing.listId === 'main');
+      assert.ok(_digitalData.recommendation[0].listId === 'recom1');
+      assert.ok(_digitalData.recommendation[1].listId === 'recom2');
+    });
+
+  });
+
 });

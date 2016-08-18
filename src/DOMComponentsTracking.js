@@ -5,7 +5,7 @@
  * - data-ddl-viewed-campaign="<campaign.id>"
  * - data-ddl-clicked-product="<product.id>"
  * - data-ddl-clicked-campaign="<campaign.id>"
- * - data-ddl-product-list-name="<listName>"
+ * - data-ddl-product-list-name="<listId>"
  *
  * If any DOM components are added to the page dynamically
  * corresponding digitalData variable should be updated:
@@ -87,8 +87,8 @@ class DOMComponentsTracking
         const $el = window.jQuery(this);
         const id = $el.data('ddl-clicked-' + type);
         if (type === 'product') {
-          const listName = self.findParentByDataAttr('ddl-product-list-name', $el).data('ddl-product-list-name');
-          self.fireClickedProduct(id, listName);
+          const listId = self.findParentByDataAttr('ddl-product-list-name', $el).data('ddl-product-list-name');
+          self.fireClickedProduct(id, listId);
         } else if (type === 'campaign') {
           self.fireClickedCampaign(id);
         }
@@ -115,8 +115,8 @@ class DOMComponentsTracking
             const listItem = {
               product: { id },
             };
-            const listName = this.findParentByDataAttr('ddl-product-list-name', $el).data('ddl-product-list-name');
-            if (listName) listItem.listName = listName;
+            const listId = this.findParentByDataAttr('ddl-product-list-name', $el).data('ddl-product-list-name');
+            if (listId) listItem.listId = listId;
             newViewedComponents.push(listItem);
           } else {
             newViewedComponents.push(id);
@@ -162,13 +162,13 @@ class DOMComponentsTracking
     });
   }
 
-  fireClickedProduct(productId, listName) {
+  fireClickedProduct(productId, listId) {
     const listItem = {
       product: {
         id: productId,
       },
     };
-    if (listName) listItem.listName = listName;
+    if (listId) listItem.listId = listId;
     window.digitalData.events.push({
       name: 'Clicked Product',
       category: 'Ecommerce',
