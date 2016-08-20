@@ -8,6 +8,6 @@
 .travis.yml
 sauce.json
 sauce_connect.log
+karma.conf.js
 build
-dist
 test
