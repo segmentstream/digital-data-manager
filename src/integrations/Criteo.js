@@ -109,7 +109,7 @@ class Criteo extends Integration {
       'Completed Transaction': 'onCompletedTransaction',
       'Viewed Product Category': 'onViewedProductListing',
       'Viewed Cart': 'onViewedCart',
-      'Searched': 'onViewedProductListing',
+      'Searched Products': 'onViewedProductListing',
       'Subscribed': 'onSubscribed',
     };
 

@@ -154,7 +154,7 @@ class AutoEvents
     }
     const event = {
       enrichEventData: false,
-      name: 'Searched',
+      name: 'Searched Products',
       category: 'Content',
       listing: listing,
     };

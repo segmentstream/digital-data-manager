@@ -185,9 +185,9 @@ describe('AutoEvents', () => {
       _autoEvents.setDigitalData(_digitalData);
     });
 
-    it('should fire "Searched" event', () => {
+    it('should fire "Searched Products" event', () => {
       _autoEvents.fireSearched();
-      assert.ok(_digitalData.events[0].name === 'Searched');
+      assert.ok(_digitalData.events[0].name === 'Searched Products');
       assert.ok(_digitalData.events[0].listing.query === 'some query');
       assert.ok(_digitalData.events[0].listing.resultCount === 10);
     });
@@ -204,9 +204,9 @@ describe('AutoEvents', () => {
       assert.ok(_digitalData.events.length === 1);
     });
 
-    it('should fire "Searched" and "Viewed Page" event', () => {
+    it('should fire "Searched Products" and "Viewed Page" event', () => {
       _autoEvents.onInitialize();
-      assert.ok(_digitalData.events[1].name === 'Searched');
+      assert.ok(_digitalData.events[1].name === 'Searched Products');
       assert.ok(_digitalData.events[1].listing.query === 'some query');
       assert.ok(_digitalData.events[1].listing.resultCount === 10);
       assert.ok(_digitalData.events.length === 2);

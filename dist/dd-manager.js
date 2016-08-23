@@ -6837,7 +6837,7 @@ var AutoEvents = function () {
     }
     var event = {
       enrichEventData: false,
-      name: 'Searched',
+      name: 'Searched Products',
       category: 'Content',
       listing: listing
     };
@@ -8792,7 +8792,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.1.5',
+  VERSION: '1.1.6',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -9575,7 +9575,7 @@ var Criteo = function (_Integration) {
       'Completed Transaction': 'onCompletedTransaction',
       'Viewed Product Category': 'onViewedProductListing',
       'Viewed Cart': 'onViewedCart',
-      'Searched': 'onViewedProductListing',
+      'Searched Products': 'onViewedProductListing',
       'Subscribed': 'onSubscribed'
     };
 
@@ -9928,7 +9928,7 @@ var Emarsys = function (_Integration) {
   Emarsys.prototype.trackEvent = function trackEvent(event) {
     var methods = {
       'Viewed Page': 'onViewedPage',
-      'Searched': 'onSearched',
+      'Searched Products': 'onSearchedProducts',
       'Viewed Product Category': 'onViewedProductCategory',
       'Viewed Product Detail': 'onViewedProductDetail',
       'Completed Transaction': 'onCompletedTransaction'
@@ -9988,7 +9988,7 @@ var Emarsys = function (_Integration) {
     go();
   };
 
-  Emarsys.prototype.onSearched = function onSearched(event) {
+  Emarsys.prototype.onSearchedProducts = function onSearchedProducts(event) {
     var listing = event.listing || {};
     if (listing.query) {
       window.ScarabQueue.push(['searchTerm', listing.query]);
@@ -11724,7 +11724,7 @@ var RetailRocket = function (_Integration) {
     if (this.getOption('noConflict') !== true) {
       if (event.name === 'Viewed Product Category') {
         this.onViewedProductCategory(event.listing);
-      } else if (event.name === 'Added Product') {
+      } else if (event.name === 'Added Product' || event.name === 'Added Product to Wishlist') {
         this.onAddedProduct(event.product);
       } else if (event.name === 'Viewed Product Detail') {
         this.onViewedProductDetail(event.product);
@@ -11734,7 +11734,7 @@ var RetailRocket = function (_Integration) {
         this.onCompletedTransaction(event.transaction);
       } else if (event.name === 'Subscribed') {
         this.onSubscribed(event.user, getEventVars(event));
-      } else if (event.name === 'Searched') {
+      } else if (event.name === 'Searched' || event.name === 'Searched Products') {
         this.onSearched(event.listing);
       }
     } else {

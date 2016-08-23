@@ -41,7 +41,7 @@ function viewedProductCategory(category, callback) {
 
 function searched(query, callback) {
   window.digitalData.events.push({
-    name: 'Searched',
+    name: 'Searched Products',
     category: 'Content',
     listing: { query },
     callback: asyncCallback(callback),
