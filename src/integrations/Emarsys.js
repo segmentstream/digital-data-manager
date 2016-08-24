@@ -83,7 +83,7 @@ class Emarsys extends Integration {
   trackEvent(event) {
     const methods = {
       'Viewed Page': 'onViewedPage',
-      'Searched': 'onSearched',
+      'Searched Products': 'onSearchedProducts',
       'Viewed Product Category': 'onViewedProductCategory',
       'Viewed Product Detail': 'onViewedProductDetail',
       'Completed Transaction': 'onCompletedTransaction',
@@ -143,7 +143,7 @@ class Emarsys extends Integration {
     go();
   }
 
-  onSearched(event) {
+  onSearchedProducts(event) {
     const listing = event.listing || {};
     if (listing.query) {
       window.ScarabQueue.push(['searchTerm', listing.query]);

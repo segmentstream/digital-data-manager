@@ -800,11 +800,11 @@ describe('Integrations: RetailRocket', () => {
 
     });
 
-    describe('#onSearched', () => {
+    describe('#onSearchedProducts', () => {
 
       it('should track "Searched" with query param', (done) => {
         window.digitalData.events.push({
-          name: 'Searched',
+          name: 'Searched Products',
           category: 'Content',
           listing: {
             query: 'Test query',
@@ -818,7 +818,7 @@ describe('Integrations: RetailRocket', () => {
 
       it('should throw validation error for "Searched" event', (done) => {
         window.digitalData.events.push({
-          name: 'Searched',
+          name: 'Searched Products',
           category: 'Content',
           callback: (results, errors) => {
             assert.ok(errors.length > 0);

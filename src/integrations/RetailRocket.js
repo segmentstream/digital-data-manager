@@ -87,7 +87,7 @@ class RetailRocket extends Integration {
     if (this.getOption('noConflict') !== true) {
       if (event.name === 'Viewed Product Category') {
         this.onViewedProductCategory(event.listing);
-      } else if (event.name === 'Added Product') {
+      } else if (event.name === 'Added Product' || event.name === 'Added Product to Wishlist') {
         this.onAddedProduct(event.product);
       } else if (event.name === 'Viewed Product Detail') {
         this.onViewedProductDetail(event.product);
@@ -97,7 +97,7 @@ class RetailRocket extends Integration {
         this.onCompletedTransaction(event.transaction);
       } else if (event.name === 'Subscribed') {
         this.onSubscribed(event.user, getEventVars(event));
-      } else if (event.name === 'Searched') {
+      } else if (event.name === 'Searched' || event.name === 'Searched Products') {
         this.onSearched(event.listing);
       }
     } else {

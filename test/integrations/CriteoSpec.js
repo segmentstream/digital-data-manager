@@ -308,10 +308,10 @@ describe('Integrations: Criteo', () => {
       });
     });
 
-    describe('#onSearched', () => {
+    describe('#onSearchedProducts', () => {
       it('should send viewList event if user visits listing page with more than 3 items', (done) => {
         window.digitalData.events.push({
-          name: 'Searched',
+          name: 'Searched Products',
           category: 'Content',
           listing: {
             items: [
@@ -338,7 +338,7 @@ describe('Integrations: Criteo', () => {
 
       it('should send viewList event if user visits listing page with less than 3 items', (done) => {
         window.digitalData.events.push({
-          name: 'Searched',
+          name: 'Searched Products',
           category: 'Ecommerce',
           listing: {
             items: [
@@ -359,7 +359,7 @@ describe('Integrations: Criteo', () => {
 
       it('should not send viewList event if digitalData.listing obejct is not defined', (done) => {
         window.digitalData.events.push({
-          name: 'Searched',
+          name: 'Searched Products',
           category: 'Ecommerce',
           callback: () => {
             assert.ok(!window.criteo_q[2]);
@@ -371,7 +371,7 @@ describe('Integrations: Criteo', () => {
       it('should not send viewList event if noConflict setting is true', (done) => {
         criteo.setOption('noConflict', true);
         window.digitalData.events.push({
-          name: 'Searched',
+          name: 'Searched Products',
           category: 'Ecommerce',
           listing: {
             items: [

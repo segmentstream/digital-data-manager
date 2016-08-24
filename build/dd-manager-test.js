@@ -14273,7 +14273,7 @@ var AutoEvents = function () {
     }
     var event = {
       enrichEventData: false,
-      name: 'Searched',
+      name: 'Searched Products',
       category: 'Content',
       listing: listing
     };
@@ -16228,7 +16228,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.1.5',
+  VERSION: '1.1.6',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -16989,7 +16989,7 @@ var Criteo = function (_Integration) {
       'Completed Transaction': 'onCompletedTransaction',
       'Viewed Product Category': 'onViewedProductListing',
       'Viewed Cart': 'onViewedCart',
-      'Searched': 'onViewedProductListing',
+      'Searched Products': 'onViewedProductListing',
       'Subscribed': 'onSubscribed'
     };
 
@@ -17342,7 +17342,7 @@ var Emarsys = function (_Integration) {
   Emarsys.prototype.trackEvent = function trackEvent(event) {
     var methods = {
       'Viewed Page': 'onViewedPage',
-      'Searched': 'onSearched',
+      'Searched Products': 'onSearchedProducts',
       'Viewed Product Category': 'onViewedProductCategory',
       'Viewed Product Detail': 'onViewedProductDetail',
       'Completed Transaction': 'onCompletedTransaction'
@@ -17402,7 +17402,7 @@ var Emarsys = function (_Integration) {
     go();
   };
 
-  Emarsys.prototype.onSearched = function onSearched(event) {
+  Emarsys.prototype.onSearchedProducts = function onSearchedProducts(event) {
     var listing = event.listing || {};
     if (listing.query) {
       window.ScarabQueue.push(['searchTerm', listing.query]);
@@ -19138,7 +19138,7 @@ var RetailRocket = function (_Integration) {
     if (this.getOption('noConflict') !== true) {
       if (event.name === 'Viewed Product Category') {
         this.onViewedProductCategory(event.listing);
-      } else if (event.name === 'Added Product') {
+      } else if (event.name === 'Added Product' || event.name === 'Added Product to Wishlist') {
         this.onAddedProduct(event.product);
       } else if (event.name === 'Viewed Product Detail') {
         this.onViewedProductDetail(event.product);
@@ -19148,7 +19148,7 @@ var RetailRocket = function (_Integration) {
         this.onCompletedTransaction(event.transaction);
       } else if (event.name === 'Subscribed') {
         this.onSubscribed(event.user, getEventVars(event));
-      } else if (event.name === 'Searched') {
+      } else if (event.name === 'Searched' || event.name === 'Searched Products') {
         this.onSearched(event.listing);
       }
     } else {
@@ -20355,9 +20355,9 @@ describe('AutoEvents', function () {
       _autoEvents.setDigitalData(_digitalData);
     });
 
-    it('should fire "Searched" event', function () {
+    it('should fire "Searched Products" event', function () {
       _autoEvents.fireSearched();
-      _assert2['default'].ok(_digitalData.events[0].name === 'Searched');
+      _assert2['default'].ok(_digitalData.events[0].name === 'Searched Products');
       _assert2['default'].ok(_digitalData.events[0].listing.query === 'some query');
       _assert2['default'].ok(_digitalData.events[0].listing.resultCount === 10);
     });
@@ -20374,9 +20374,9 @@ describe('AutoEvents', function () {
       _assert2['default'].ok(_digitalData.events.length === 1);
     });
 
-    it('should fire "Searched" and "Viewed Page" event', function () {
+    it('should fire "Searched Products" and "Viewed Page" event', function () {
       _autoEvents.onInitialize();
-      _assert2['default'].ok(_digitalData.events[1].name === 'Searched');
+      _assert2['default'].ok(_digitalData.events[1].name === 'Searched Products');
       _assert2['default'].ok(_digitalData.events[1].listing.query === 'some query');
       _assert2['default'].ok(_digitalData.events[1].listing.resultCount === 10);
       _assert2['default'].ok(_digitalData.events.length === 2);
@@ -22589,10 +22589,10 @@ describe('Integrations: Criteo', function () {
       });
     });
 
-    describe('#onSearched', function () {
+    describe('#onSearchedProducts', function () {
       it('should send viewList event if user visits listing page with more than 3 items', function (done) {
         window.digitalData.events.push({
-          name: 'Searched',
+          name: 'Searched Products',
           category: 'Content',
           listing: {
             items: [{
@@ -22614,7 +22614,7 @@ describe('Integrations: Criteo', function () {
 
       it('should send viewList event if user visits listing page with less than 3 items', function (done) {
         window.digitalData.events.push({
-          name: 'Searched',
+          name: 'Searched Products',
           category: 'Ecommerce',
           listing: {
             items: [{
@@ -22632,7 +22632,7 @@ describe('Integrations: Criteo', function () {
 
       it('should not send viewList event if digitalData.listing obejct is not defined', function (done) {
         window.digitalData.events.push({
-          name: 'Searched',
+          name: 'Searched Products',
           category: 'Ecommerce',
           callback: function callback() {
             _assert2['default'].ok(!window.criteo_q[2]);
@@ -22644,7 +22644,7 @@ describe('Integrations: Criteo', function () {
       it('should not send viewList event if noConflict setting is true', function (done) {
         criteo.setOption('noConflict', true);
         window.digitalData.events.push({
-          name: 'Searched',
+          name: 'Searched Products',
           category: 'Ecommerce',
           listing: {
             items: [{
@@ -23151,7 +23151,7 @@ function viewedProductCategory(category, callback) {
 
 function searched(query, callback) {
   window.digitalData.events.push({
-    name: 'Searched',
+    name: 'Searched Products',
     category: 'Content',
     listing: { query: query },
     callback: callback
@@ -24099,7 +24099,7 @@ function viewedProductCategory(category, callback) {
 
 function searched(query, callback) {
   window.digitalData.events.push({
-    name: 'Searched',
+    name: 'Searched Products',
     category: 'Content',
     listing: { query: query },
     callback: asyncCallback(callback)
@@ -28041,11 +28041,11 @@ describe('Integrations: RetailRocket', function () {
       });
     });
 
-    describe('#onSearched', function () {
+    describe('#onSearchedProducts', function () {
 
       it('should track "Searched" with query param', function (done) {
         window.digitalData.events.push({
-          name: 'Searched',
+          name: 'Searched Products',
           category: 'Content',
           listing: {
             query: 'Test query'
@@ -28059,7 +28059,7 @@ describe('Integrations: RetailRocket', function () {
 
       it('should throw validation error for "Searched" event', function (done) {
         window.digitalData.events.push({
-          name: 'Searched',
+          name: 'Searched Products',
           category: 'Content',
           callback: function callback(results, errors) {
             _assert2['default'].ok(errors.length > 0);
