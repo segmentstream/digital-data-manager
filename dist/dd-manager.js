@@ -8645,24 +8645,6 @@ function _interopRequireDefault(obj) {
 var ddManager = void 0;
 
 /**
- * @type {string}
- * @private
- */
-var _digitalDataNamespace = 'digitalData';
-
-/**
- * @type {string}
- * @private
- */
-var _ddListenerNamespace = 'ddListener';
-
-/**
- * @type {string}
- * @private
- */
-var _ddManagerNamespace = 'ddManager';
-
-/**
  * @type {Object}
  * @private
  */
@@ -8705,10 +8687,10 @@ var _isLoaded = false;
 var _isReady = false;
 
 function _prepareGlobals() {
-  if (_typeof(window[_digitalDataNamespace]) === 'object') {
-    _digitalData = window[_digitalDataNamespace];
+  if (_typeof(window.digitalData) === 'object') {
+    _digitalData = window.digitalData;
   } else {
-    window[_digitalDataNamespace] = _digitalData;
+    window.digitalData = _digitalData;
   }
 
   _digitalData.website = _digitalData.website || {};
@@ -8720,10 +8702,10 @@ function _prepareGlobals() {
     _digitalData.cart = _digitalData.cart || {};
   }
 
-  if (Array.isArray(window[_ddListenerNamespace])) {
-    _ddListener = window[_ddListenerNamespace];
+  if (Array.isArray(window.ddListener)) {
+    _ddListener = window.ddListener;
   } else {
-    window[_ddListenerNamespace] = _ddListener;
+    window.ddListener = _ddListener;
   }
 }
 
@@ -8798,8 +8780,8 @@ ddManager = {
     _availableIntegrations = availableIntegrations;
   },
 
-  processEarlyStubCalls: function processEarlyStubCalls() {
-    var earlyStubCalls = window[_ddManagerNamespace] || [];
+  processEarlyStubCalls: function processEarlyStubCalls(earlyStubsQueue) {
+    var earlyStubCalls = earlyStubsQueue || [];
     var methodCallPromise = function methodCallPromise(method, args) {
       return function () {
         ddManager[method].apply(ddManager, args);
@@ -9420,10 +9402,11 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-_ddManager2['default'].setAvailableIntegrations(_availableIntegrations2['default']);
-_ddManager2['default'].processEarlyStubCalls();
-
+var earlyStubsQueue = window.ddManager;
 window.ddManager = _ddManager2['default'];
+
+_ddManager2['default'].setAvailableIntegrations(_availableIntegrations2['default']);
+_ddManager2['default'].processEarlyStubCalls(earlyStubsQueue);
 
 },{"./availableIntegrations.js":67,"./ddManager.js":68,"./polyfill.js":100}],86:[function(require,module,exports){
 'use strict';

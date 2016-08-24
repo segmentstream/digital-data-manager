@@ -15,24 +15,6 @@ import DigitalDataEnricher from './DigitalDataEnricher.js';
 let ddManager;
 
 /**
- * @type {string}
- * @private
- */
-const _digitalDataNamespace = 'digitalData';
-
-/**
- * @type {string}
- * @private
- */
-const _ddListenerNamespace = 'ddListener';
-
-/**
- * @type {string}
- * @private
- */
-const _ddManagerNamespace = 'ddManager';
-
-/**
  * @type {Object}
  * @private
  */
@@ -76,10 +58,10 @@ let _isLoaded = false;
 let _isReady = false;
 
 function _prepareGlobals() {
-  if (typeof window[_digitalDataNamespace] === 'object') {
-    _digitalData = window[_digitalDataNamespace];
+  if (typeof window.digitalData === 'object') {
+    _digitalData = window.digitalData;
   } else {
-    window[_digitalDataNamespace] = _digitalData;
+    window.digitalData = _digitalData;
   }
 
   _digitalData.website = _digitalData.website || {};
@@ -91,10 +73,10 @@ function _prepareGlobals() {
     _digitalData.cart = _digitalData.cart || {};
   }
 
-  if (Array.isArray(window[_ddListenerNamespace])) {
-    _ddListener = window[_ddListenerNamespace];
+  if (Array.isArray(window.ddListener)) {
+    _ddListener = window.ddListener;
   } else {
-    window[_ddListenerNamespace] = _ddListener;
+    window.ddListener = _ddListener;
   }
 }
 
@@ -152,8 +134,8 @@ ddManager = {
     _availableIntegrations = availableIntegrations;
   },
 
-  processEarlyStubCalls: () => {
-    const earlyStubCalls = window[_ddManagerNamespace] || [];
+  processEarlyStubCalls: (earlyStubsQueue) => {
+    const earlyStubCalls = earlyStubsQueue || [];
     const methodCallPromise = (method, args) => {
       return () => {
         ddManager[method].apply(ddManager, args);

@@ -30,7 +30,7 @@ describe('DDManager', () => {
     it('should work well with async load using stubs from the snippet', () => {
       snippet();
       window.ddManager.initialize();
-      ddManager.processEarlyStubCalls();
+      ddManager.processEarlyStubCalls(window.ddManager);
 
       assert.ok(ddManager.isReady());
       assert.ok(Array.isArray(window.digitalData.events));
@@ -43,7 +43,7 @@ describe('DDManager', () => {
       window.ddManager.on('ready', () => {
         done();
       });
-      ddManager.processEarlyStubCalls();
+      ddManager.processEarlyStubCalls(window.ddManager);
     });
 
     it('should initialize DDManager instance', () => {
