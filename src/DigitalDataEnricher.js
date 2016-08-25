@@ -3,12 +3,17 @@ import semver from './functions/semver.js';
 
 class DigitalDataEnricher
 {
-  constructor(digitalData) {
+  constructor(digitalData, ddListener) {
     this.digitalData = digitalData;
+    this.ddListener = ddListener;
   }
 
   setDigitalData(digitalData) {
     this.digitalData = digitalData;
+  }
+
+  setDDListener(ddListener) {
+    this.ddListener = ddListener;
   }
 
   enrichDigitalData() {
@@ -60,6 +65,9 @@ class DigitalDataEnricher
       if (page.type === 'category' && page.categoryId) {
         const listing = this.digitalData.listing = this.digitalData.listing || {};
         listing.categoryId = page.categoryId;
+        this.ddListener.push(['on', 'change:page.categoryId', () => {
+          this.digitalData.listing.categoryId = this.digitalData.page.categoryId;
+        }]);
       }
     }
   }

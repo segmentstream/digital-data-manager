@@ -14768,14 +14768,19 @@ function _classCallCheck(instance, Constructor) {
 }
 
 var DigitalDataEnricher = function () {
-  function DigitalDataEnricher(digitalData) {
+  function DigitalDataEnricher(digitalData, ddListener) {
     _classCallCheck(this, DigitalDataEnricher);
 
     this.digitalData = digitalData;
+    this.ddListener = ddListener;
   }
 
   DigitalDataEnricher.prototype.setDigitalData = function setDigitalData(digitalData) {
     this.digitalData = digitalData;
+  };
+
+  DigitalDataEnricher.prototype.setDDListener = function setDDListener(ddListener) {
+    this.ddListener = ddListener;
   };
 
   DigitalDataEnricher.prototype.enrichDigitalData = function enrichDigitalData() {
@@ -14801,6 +14806,8 @@ var DigitalDataEnricher = function () {
   };
 
   DigitalDataEnricher.prototype.enrichLegacyVersions = function enrichLegacyVersions() {
+    var _this = this;
+
     // compatibility with version <1.1.1
     if (this.digitalData.version && _semver2['default'].cmp(this.digitalData.version, '1.1.1') < 0) {
       // enrich listing.listId
@@ -14840,6 +14847,9 @@ var DigitalDataEnricher = function () {
       if (page.type === 'category' && page.categoryId) {
         var _listing = this.digitalData.listing = this.digitalData.listing || {};
         _listing.categoryId = page.categoryId;
+        this.ddListener.push(['on', 'change:page.categoryId', function () {
+          _this.digitalData.listing.categoryId = _this.digitalData.page.categoryId;
+        }]);
       }
     }
   };
@@ -15683,6 +15693,10 @@ var Integration = function (_EventEmitter) {
     return this._isEnriched;
   };
 
+  Integration.prototype.setDDManager = function setDDManager(ddManager) {
+    this.ddManager = ddManager;
+  };
+
   Integration.prototype.trackEvent = function trackEvent() {
     // abstract
   };
@@ -16285,7 +16299,7 @@ ddManager = {
     _prepareGlobals();
 
     // initialize digital data enricher
-    var digitalDataEnricher = new _DigitalDataEnricher2['default'](_digitalData);
+    var digitalDataEnricher = new _DigitalDataEnricher2['default'](_digitalData, _ddListener);
     digitalDataEnricher.enrichDigitalData();
 
     // initialize event manager
@@ -16324,6 +16338,7 @@ ddManager = {
       throw new TypeError('attempted to add an invalid integration');
     }
     _integrations[name] = integration;
+    integration.setDDManager(ddManager);
   },
 
   getIntegration: function getIntegration(name) {
@@ -16971,6 +16986,7 @@ var Criteo = function (_Integration) {
       'Completed Transaction': 'onCompletedTransaction',
       'Viewed Product Category': 'onViewedProductListing',
       'Viewed Cart': 'onViewedCart',
+      'Searched': 'onViewedProductListing',
       'Searched Products': 'onViewedProductListing',
       'Subscribed': 'onSubscribed'
     };
@@ -18030,7 +18046,7 @@ var GoogleAnalytics = function (_Integration) {
     }
 
     // send global id
-    var userId = this.get('user.id');
+    var userId = this.get('user.userId');
     if (this.getOption('sendUserId') && userId) {
       this.ga('set', 'userId', userId);
     }
@@ -18604,8 +18620,15 @@ var GoogleTagManager = function (_Integration) {
   }
 
   GoogleTagManager.prototype.initialize = function initialize() {
+    window.dataLayer = window.dataLayer || [];
+    this.ddManager.on('ready', function () {
+      window.dataLayer.push({ event: 'DDManager Ready' });
+    });
+    this.ddManager.on('load', function () {
+      window.dataLayer.push({ event: 'DDManager Loaded' });
+    });
+
     if (this.getOption('containerId') && this.getOption('noConflict') === false) {
-      window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({ 'gtm.start': Number(new Date()), event: 'gtm.js' });
       this.load(this.onLoad);
     } else {
@@ -20597,6 +20620,7 @@ function _interopRequireDefault(obj) {
 
 describe('DigitalDataEnricher', function () {
 
+  var _ddListener = [];
   var _digitalData = void 0;
   var _htmlGlobals = void 0;
   var _digitalDataEnricher = void 0;
@@ -20615,7 +20639,8 @@ describe('DigitalDataEnricher', function () {
   };
 
   before(function () {
-    _digitalDataEnricher = new _DigitalDataEnricher2['default'](_digitalData);
+    _ddListener = [];
+    _digitalDataEnricher = new _DigitalDataEnricher2['default'](_digitalData, _ddListener);
     _htmlGlobals = _digitalDataEnricher.getHtmlGlobals();
     _sinon2['default'].stub(_htmlGlobals, 'getDocument', function () {
       return _document;
@@ -24580,7 +24605,7 @@ describe('Integrations: GoogleAnalytics', function () {
 
         it('should not send universal user id by default', function () {
           window.digitalData.user = {
-            id: 'baz'
+            userId: 'baz'
           };
           _ddManager2['default'].initialize({
             autoEvents: false
@@ -24590,7 +24615,7 @@ describe('Integrations: GoogleAnalytics', function () {
 
         it('should send universal user id if sendUserId option is true and user.id is truthy', function () {
           window.digitalData.user = {
-            id: 'baz'
+            userId: 'baz'
           };
           ga.setOption('sendUserId', true);
           _ddManager2['default'].initialize({
@@ -26575,16 +26600,24 @@ describe('Integrations: GoogleTagManager', function () {
 
     describe('after loading', function () {
       beforeEach(function (done) {
-        _ddManager2['default'].once('ready', done);
-        _ddManager2['default'].initialize();
+        _ddManager2['default'].once('load', done);
+        _ddManager2['default'].initialize({
+          autoEvents: false
+        });
       });
 
-      it('should update dataLayer', function () {
+      it('should update dataLayer', function (done) {
         var dl = window.dataLayer;
-
         _assert2['default'].ok(dl);
-        _assert2['default'].ok(dl[0].event === 'gtm.js');
-        _assert2['default'].ok(typeof dl[0]['gtm.start'] === 'number');
+        setTimeout(function () {
+          _assert2['default'].ok(dl[0].event === 'gtm.js');
+          _assert2['default'].ok(typeof dl[0]['gtm.start'] === 'number');
+          _assert2['default'].ok(dl[1].event === 'DDManager Ready');
+          _assert2['default'].ok(dl[2].event === 'gtm.dom');
+          _assert2['default'].ok(dl[3].event === 'gtm.load');
+          _assert2['default'].ok(dl[4].event === 'DDManager Loaded');
+          done();
+        }, 10);
       });
 
       describe('#trackEvent', function () {
@@ -26627,9 +26660,9 @@ describe('Integrations: GoogleTagManager', function () {
 
     beforeEach(function () {
       window.dataLayer = [];
-      window.dataLayer.push = function () {
-        window.dataLayer.prototype.apply(this, arguments);
-      };
+      // window.dataLayer.push = function() {
+      //   window.dataLayer.prototype.apply(this,arguments);
+      // };
       gtm = new _GoogleTagManager2['default'](window.digitalData, {
         noConflict: true
       });
@@ -26645,14 +26678,12 @@ describe('Integrations: GoogleTagManager', function () {
     describe('after loading', function () {
       beforeEach(function (done) {
         _ddManager2['default'].once('ready', done);
-        _ddManager2['default'].initialize();
+        _ddManager2['default'].initialize({
+          autoEvents: false
+        });
       });
 
       describe('#trackEvent', function () {
-
-        beforeEach(function () {
-          window.dataLayer = [];
-        });
 
         it('should send event with additional parameters to existing GTM', function () {
           window.digitalData.events.push({
@@ -26663,8 +26694,8 @@ describe('Integrations: GoogleTagManager', function () {
 
           var dl = window.dataLayer;
 
-          _assert2['default'].ok(dl[0].event === 'some-event');
-          _assert2['default'].ok(dl[0].additionalParam === true);
+          _assert2['default'].ok(dl[2].event === 'some-event');
+          _assert2['default'].ok(dl[2].additionalParam === true);
         });
       });
     });

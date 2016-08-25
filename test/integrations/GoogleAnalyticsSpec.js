@@ -110,7 +110,7 @@ describe('Integrations: GoogleAnalytics', () => {
 
         it('should not send universal user id by default', function () {
           window.digitalData.user = {
-            id: 'baz'
+            userId: 'baz'
           };
           ddManager.initialize({
             autoEvents: false
@@ -120,7 +120,7 @@ describe('Integrations: GoogleAnalytics', () => {
 
         it('should send universal user id if sendUserId option is true and user.id is truthy', function () {
           window.digitalData.user = {
-            id: 'baz'
+            userId: 'baz'
           };
           ga.setOption('sendUserId', true);
           ddManager.initialize({

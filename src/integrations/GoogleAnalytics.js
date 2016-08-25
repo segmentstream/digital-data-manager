@@ -121,7 +121,7 @@ class GoogleAnalytics extends Integration {
     }
 
     // send global id
-    const userId = this.get('user.id');
+    const userId = this.get('user.userId');
     if (this.getOption('sendUserId') && userId) {
       this.ga('set', 'userId', userId);
     }

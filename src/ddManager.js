@@ -203,7 +203,7 @@ ddManager = {
     _prepareGlobals();
 
     // initialize digital data enricher
-    const digitalDataEnricher = new DigitalDataEnricher(_digitalData);
+    const digitalDataEnricher = new DigitalDataEnricher(_digitalData, _ddListener);
     digitalDataEnricher.enrichDigitalData();
 
     // initialize event manager
@@ -242,6 +242,7 @@ ddManager = {
       throw new TypeError('attempted to add an invalid integration');
     }
     _integrations[name] = integration;
+    integration.setDDManager(ddManager);
   },
 
   getIntegration: (name) => {

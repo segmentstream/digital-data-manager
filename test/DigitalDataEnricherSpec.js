@@ -5,6 +5,7 @@ import DigitalDataEnricher from './../src/DigitalDataEnricher.js';
 
 describe('DigitalDataEnricher', () => {
 
+  let _ddListener = [];
   let _digitalData;
   let _htmlGlobals;
   let _digitalDataEnricher;
@@ -23,7 +24,8 @@ describe('DigitalDataEnricher', () => {
   };
 
   before(() => {
-    _digitalDataEnricher = new DigitalDataEnricher(_digitalData);
+    _ddListener = [];
+    _digitalDataEnricher = new DigitalDataEnricher(_digitalData, _ddListener);
     _htmlGlobals = _digitalDataEnricher.getHtmlGlobals();
     sinon.stub(_htmlGlobals, 'getDocument', () => {
       return _document;

@@ -7332,14 +7332,19 @@ function _classCallCheck(instance, Constructor) {
 }
 
 var DigitalDataEnricher = function () {
-  function DigitalDataEnricher(digitalData) {
+  function DigitalDataEnricher(digitalData, ddListener) {
     _classCallCheck(this, DigitalDataEnricher);
 
     this.digitalData = digitalData;
+    this.ddListener = ddListener;
   }
 
   DigitalDataEnricher.prototype.setDigitalData = function setDigitalData(digitalData) {
     this.digitalData = digitalData;
+  };
+
+  DigitalDataEnricher.prototype.setDDListener = function setDDListener(ddListener) {
+    this.ddListener = ddListener;
   };
 
   DigitalDataEnricher.prototype.enrichDigitalData = function enrichDigitalData() {
@@ -7365,6 +7370,8 @@ var DigitalDataEnricher = function () {
   };
 
   DigitalDataEnricher.prototype.enrichLegacyVersions = function enrichLegacyVersions() {
+    var _this = this;
+
     // compatibility with version <1.1.1
     if (this.digitalData.version && _semver2['default'].cmp(this.digitalData.version, '1.1.1') < 0) {
       // enrich listing.listId
@@ -7404,6 +7411,9 @@ var DigitalDataEnricher = function () {
       if (page.type === 'category' && page.categoryId) {
         var _listing = this.digitalData.listing = this.digitalData.listing || {};
         _listing.categoryId = page.categoryId;
+        this.ddListener.push(['on', 'change:page.categoryId', function () {
+          _this.digitalData.listing.categoryId = _this.digitalData.page.categoryId;
+        }]);
       }
     }
   };
@@ -8247,6 +8257,10 @@ var Integration = function (_EventEmitter) {
     return this._isEnriched;
   };
 
+  Integration.prototype.setDDManager = function setDDManager(ddManager) {
+    this.ddManager = ddManager;
+  };
+
   Integration.prototype.trackEvent = function trackEvent() {
     // abstract
   };
@@ -8849,7 +8863,7 @@ ddManager = {
     _prepareGlobals();
 
     // initialize digital data enricher
-    var digitalDataEnricher = new _DigitalDataEnricher2['default'](_digitalData);
+    var digitalDataEnricher = new _DigitalDataEnricher2['default'](_digitalData, _ddListener);
     digitalDataEnricher.enrichDigitalData();
 
     // initialize event manager
@@ -8888,6 +8902,7 @@ ddManager = {
       throw new TypeError('attempted to add an invalid integration');
     }
     _integrations[name] = integration;
+    integration.setDDManager(ddManager);
   },
 
   getIntegration: function getIntegration(name) {
@@ -9558,6 +9573,7 @@ var Criteo = function (_Integration) {
       'Completed Transaction': 'onCompletedTransaction',
       'Viewed Product Category': 'onViewedProductListing',
       'Viewed Cart': 'onViewedCart',
+      'Searched': 'onViewedProductListing',
       'Searched Products': 'onViewedProductListing',
       'Subscribed': 'onSubscribed'
     };
@@ -10617,7 +10633,7 @@ var GoogleAnalytics = function (_Integration) {
     }
 
     // send global id
-    var userId = this.get('user.id');
+    var userId = this.get('user.userId');
     if (this.getOption('sendUserId') && userId) {
       this.ga('set', 'userId', userId);
     }
@@ -11191,8 +11207,15 @@ var GoogleTagManager = function (_Integration) {
   }
 
   GoogleTagManager.prototype.initialize = function initialize() {
+    window.dataLayer = window.dataLayer || [];
+    this.ddManager.on('ready', function () {
+      window.dataLayer.push({ event: 'DDManager Ready' });
+    });
+    this.ddManager.on('load', function () {
+      window.dataLayer.push({ event: 'DDManager Loaded' });
+    });
+
     if (this.getOption('containerId') && this.getOption('noConflict') === false) {
-      window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({ 'gtm.start': Number(new Date()), event: 'gtm.js' });
       this.load(this.onLoad);
     } else {

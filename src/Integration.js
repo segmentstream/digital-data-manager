@@ -134,6 +134,10 @@ class Integration extends EventEmitter
     return this._isEnriched;
   }
 
+  setDDManager(ddManager) {
+    this.ddManager = ddManager;
+  }
+
   trackEvent() {
     // abstract
   }
