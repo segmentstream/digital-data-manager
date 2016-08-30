@@ -1,4 +1,4 @@
-import dot from 'dot-object';
+import dot from 'dottie';
 
 const keyPersistedKeys = '_persistedKeys';
 
@@ -10,7 +10,7 @@ class DDStorage
   }
 
   persist(key, exp) {
-    const value = dot.pick(key, this.digitalData);
+    const value = dot.get(this.digitalData, key);
     if (value !== undefined) {
       const persistedKeys = this.getPersistedKeys();
       if (persistedKeys.indexOf(key) < 0) {

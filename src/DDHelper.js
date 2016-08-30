@@ -1,10 +1,10 @@
-import dot from 'dot-object';
+import dot from 'dottie';
 import clone from 'component-clone';
 
 class DDHelper {
 
   static get(key, digitalData) {
-    const value = dot.pick(key, digitalData);
+    const value = dot.get(digitalData, key);
     return clone(value);
   }
 

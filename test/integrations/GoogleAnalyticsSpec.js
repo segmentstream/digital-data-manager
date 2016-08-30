@@ -1004,11 +1004,10 @@ describe('Integrations: GoogleAnalytics', () => {
                 name: 'my product',
                 category: 'cat 1',
                 skuCode: 'p-298',
-                listName: 'search results',
                 stock: 25,
                 weight: 100
               },
-              listName: 'search results',
+              listId: 'search results',
             },
             callback: () => {
               assert.equal(window.ga.args.length, 5);
@@ -1034,7 +1033,7 @@ describe('Integrations: GoogleAnalytics', () => {
 
         it('should send clicked product data with data from DDL', function() {
           window.digitalData.listing = {
-            listName: 'search results',
+            listId: 'search results',
             items: [
               {
                 id: 'p-298',
@@ -1050,7 +1049,7 @@ describe('Integrations: GoogleAnalytics', () => {
             name: 'Clicked Product',
             listItem: {
               product: 'p-298',
-              listName: 'search results',
+              listId: 'search results',
             },
             callback: () => {
               assert.equal(window.ga.args.length, 5);
@@ -1087,7 +1086,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 stock: 25,
                 weight: 100
               },
-              listName: 'search results',
+              listId: 'search results',
               position: 2,
             },
             callback: () => {
@@ -1124,7 +1123,7 @@ describe('Integrations: GoogleAnalytics', () => {
                   category: 'cat 1',
                   skuCode: 'p-298',
                 },
-                listName: 'search results',
+                listId: 'search results',
                 position: 2
               },
               {
@@ -1135,11 +1134,11 @@ describe('Integrations: GoogleAnalytics', () => {
                   category: 'cat 1',
                   skuCode: 'p-299',
                 },
-                listName: 'search results',
+                listId: 'search results',
                 position: 2
               }
             ],
-            listName: 'search results',
+            listId: 'search results',
             callback: () => {
               assert.equal(window.ga.args.length, 6);
               assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
@@ -1173,7 +1172,7 @@ describe('Integrations: GoogleAnalytics', () => {
 
         it('should send viewed product data from DDL', function() {
           window.digitalData.listing = {
-            listName: 'search results',
+            listId: 'search results',
             items: [
               {
                 id: 'p-298',
@@ -1198,7 +1197,7 @@ describe('Integrations: GoogleAnalytics', () => {
             category: 'Ecommerce',
             listItem: {
               product: 'p-299',
-              listName: 'search results',
+              listId: 'search results',
             },
             callback: () => {
               assert.equal(window.ga.args.length, 4);
@@ -1221,7 +1220,7 @@ describe('Integrations: GoogleAnalytics', () => {
 
         it('should send viewed product with multiple products data from DDL', function() {
           window.digitalData.listing = {
-            listName: 'search results',
+            listId: 'search results',
             items: [
               {
                 id: 'p-298',
@@ -1247,11 +1246,11 @@ describe('Integrations: GoogleAnalytics', () => {
             listItems: [
               {
                 product: 'p-298',
-                listName: 'search results',
+                listId: 'search results',
               },
               {
                 product: 'p-299',
-                listName: 'search results',
+                listId: 'search results',
               }
             ],
             callback: () => {
