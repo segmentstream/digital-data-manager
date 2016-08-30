@@ -11,6 +11,8 @@ import AutoEvents from './AutoEvents.js';
 import ViewabilityTracker from './ViewabilityTracker.js';
 import DDHelper from './DDHelper.js';
 import DigitalDataEnricher from './DigitalDataEnricher.js';
+import Storage from './Storage.js';
+import DDStorage from './DDStorage.js';
 
 let ddManager;
 
@@ -39,6 +41,18 @@ let _availableIntegrations;
 let _eventManager;
 
 /**
+ * @type {Storage}
+ * @private
+ */
+let _storage;
+
+/**
+ * @type {DDStorage}
+ * @private
+ */
+let _ddStorage;
+
+/**
  * @type {Object}
  * @private
  */
@@ -62,15 +76,6 @@ function _prepareGlobals() {
     _digitalData = window.digitalData;
   } else {
     window.digitalData = _digitalData;
-  }
-
-  _digitalData.website = _digitalData.website || {};
-  _digitalData.page = _digitalData.page || {};
-  _digitalData.user = _digitalData.user || {};
-  _digitalData.context = _digitalData.context || {};
-  _digitalData.integrations = _digitalData.integrations || {};
-  if (!_digitalData.page.type || _digitalData.page.type !== 'confirmation') {
-    _digitalData.cart = _digitalData.cart || {};
   }
 
   if (Array.isArray(window.ddListener)) {
@@ -170,6 +175,7 @@ ddManager = {
    *    },
    *    domain: 'example.com',
    *    sessionLength: 3600,
+   *    persistVars: ['user.hasCoffeeMachine', 'user.everLoggedIn', 'user.email']
    *    integrations: [
    *      {
    *        'name': 'Google Tag Manager',
@@ -202,8 +208,11 @@ ddManager = {
 
     _prepareGlobals();
 
+    _storage = new Storage();
+    _ddStorage = new DDStorage(_digitalData, _storage);
+
     // initialize digital data enricher
-    const digitalDataEnricher = new DigitalDataEnricher(_digitalData, _ddListener);
+    const digitalDataEnricher = new DigitalDataEnricher(_digitalData, _ddListener, _ddStorage);
     digitalDataEnricher.enrichDigitalData();
 
     // initialize event manager
@@ -253,6 +262,10 @@ ddManager = {
     return DDHelper.get(key, _digitalData);
   },
 
+  persist: (key, exp) => {
+    return _ddStorage.persist(key, exp);
+  },
+
   getProduct: (id) => {
     return DDHelper.getProduct(id, _digitalData);
   },
@@ -266,6 +279,7 @@ ddManager = {
   },
 
   reset: () => {
+    _ddStorage.clearPersistedData();
     if (_eventManager instanceof EventManager) {
       _eventManager.reset();
     }

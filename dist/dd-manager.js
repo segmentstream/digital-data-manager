@@ -5216,7 +5216,7 @@
 
 }));
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":58}],2:[function(require,module,exports){
+},{"_process":59}],2:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -6412,7 +6412,492 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":57}],57:[function(require,module,exports){
+},{"ms":58}],57:[function(require,module,exports){
+'use strict'
+
+function _process (v, mod) {
+  var i
+  var r
+
+  if (typeof mod === 'function') {
+    r = mod(v)
+    if (r !== undefined) {
+      v = r
+    }
+  } else if (Array.isArray(mod)) {
+    for (i = 0; i < mod.length; i++) {
+      r = mod[i](v)
+      if (r !== undefined) {
+        v = r
+      }
+    }
+  }
+
+  return v
+}
+
+function parseKey (key, val) {
+  // detect negative index notation
+  if (key[0] === '-' && Array.isArray(val) && /^-\d+$/.test(key)) {
+    return val.length + parseInt(key, 10)
+  }
+  return key
+}
+
+function isIndex (k) {
+  return /^\d+/.test(k)
+}
+
+function parsePath (path, sep) {
+  if (path.indexOf('[') >= 0) {
+    path = path.replace(/\[/g, '.').replace(/]/g, '')
+  }
+  return path.split(sep)
+}
+
+function DotObject (seperator, override, useArray) {
+  if (!(this instanceof DotObject)) {
+    return new DotObject(seperator, override, useArray)
+  }
+
+  if (typeof seperator === 'undefined') seperator = '.'
+  if (typeof override === 'undefined') override = false
+  if (typeof useArray === 'undefined') useArray = true
+  this.seperator = seperator
+  this.override = override
+  this.useArray = useArray
+
+  // contains touched arrays
+  this.cleanup = []
+}
+
+var dotDefault = new DotObject('.', false, true)
+function wrap (method) {
+  return function () {
+    return dotDefault[method].apply(dotDefault, arguments)
+  }
+}
+
+DotObject.prototype._fill = function (a, obj, v, mod) {
+  var k = a.shift()
+
+  if (a.length > 0) {
+    obj[k] = obj[k] ||
+      (this.useArray && isIndex(a[0]) ? [] : {})
+
+    if (obj[k] !== Object(obj[k])) {
+      if (this.override) {
+        obj[k] = {}
+      } else {
+        throw new Error(
+          'Trying to redefine `' + k + '` which is a ' + typeof obj[k]
+        )
+      }
+    }
+
+    this._fill(a, obj[k], v, mod)
+  } else {
+    if (!this.override &&
+      obj[k] === Object(obj[k]) && Object.keys(obj[k]).length) {
+      throw new Error("Trying to redefine non-empty obj['" + k + "']")
+    }
+
+    obj[k] = _process(v, mod)
+  }
+}
+
+/**
+ *
+ * Converts an object with dotted-key/value pairs to it's expanded version
+ *
+ * Optionally transformed by a set of modifiers.
+ *
+ * Usage:
+ *
+ *   var row = {
+ *     'nr': 200,
+ *     'doc.name': '  My Document  '
+ *   }
+ *
+ *   var mods = {
+ *     'doc.name': [_s.trim, _s.underscored]
+ *   }
+ *
+ *   dot.object(row, mods)
+ *
+ * @param {Object} obj
+ * @param {Object} mods
+ */
+DotObject.prototype.object = function (obj, mods) {
+  var self = this
+
+  Object.keys(obj).forEach(function (k) {
+    var mod = mods === undefined ? null : mods[k]
+    // normalize array notation.
+    var ok = parsePath(k, self.seperator).join(self.seperator)
+
+    if (ok.indexOf(self.seperator) !== -1) {
+      self._fill(ok.split(self.seperator), obj, obj[k], mod)
+      delete obj[k]
+    } else if (self.override) {
+      obj[k] = _process(obj[k], mod)
+    }
+  })
+
+  return obj
+}
+
+/**
+ * @param {String} path dotted path
+ * @param {String} v value to be set
+ * @param {Object} obj object to be modified
+ * @param {Function|Array} mod optional modifier
+ */
+DotObject.prototype.str = function (path, v, obj, mod) {
+  if (path.indexOf(this.seperator) !== -1) {
+    this._fill(path.split(this.seperator), obj, v, mod)
+  } else if (this.override) {
+    obj[path] = _process(v, mod)
+  }
+
+  return obj
+}
+
+/**
+ *
+ * Pick a value from an object using dot notation.
+ *
+ * Optionally remove the value
+ *
+ * @param {String} path
+ * @param {Object} obj
+ * @param {Boolean} remove
+ */
+DotObject.prototype.pick = function (path, obj, remove) {
+  var i
+  var keys
+  var val
+  var key
+  var cp
+
+  keys = parsePath(path, this.seperator)
+  for (i = 0; i < keys.length; i++) {
+    key = parseKey(keys[i], obj)
+    if (obj && typeof obj === 'object' && key in obj) {
+      if (i === (keys.length - 1)) {
+        if (remove) {
+          val = obj[key]
+          delete obj[key]
+          if (Array.isArray(obj)) {
+            cp = keys.slice(0, -1).join('.')
+            if (this.cleanup.indexOf(cp) === -1) {
+              this.cleanup.push(cp)
+            }
+          }
+          return val
+        } else {
+          return obj[key]
+        }
+      } else {
+        obj = obj[key]
+      }
+    } else {
+      return undefined
+    }
+  }
+  if (remove && Array.isArray(obj)) {
+    obj = obj.filter(function (n) { return n !== undefined })
+  }
+  return obj
+}
+
+/**
+ *
+ * Remove value from an object using dot notation.
+ *
+ * @param {String} path
+ * @param {Object} obj
+ * @return {Mixed} The removed value
+ */
+DotObject.prototype.remove = function (path, obj) {
+  var i
+
+  this.cleanup = []
+  if (Array.isArray(path)) {
+    for (i = 0; i < path.length; i++) {
+      this.pick(path[i], obj, true)
+    }
+    this._cleanup(obj)
+    return obj
+  } else {
+    return this.pick(path, obj, true)
+  }
+}
+
+DotObject.prototype._cleanup = function (obj) {
+  var ret
+  var i
+  var keys
+  var root
+  if (this.cleanup.length) {
+    for (i = 0; i < this.cleanup.length; i++) {
+      keys = this.cleanup[i].split('.')
+      root = keys.splice(0, -1).join('.')
+      ret = root ? this.pick(root, obj) : obj
+      ret = ret[keys[0]].filter(function (v) { return v !== undefined })
+      this.set(this.cleanup[i], ret, obj)
+    }
+    this.cleanup = []
+  }
+}
+
+// alias method
+DotObject.prototype.del = DotObject.prototype.remove
+
+/**
+ *
+ * Move a property from one place to the other.
+ *
+ * If the source path does not exist (undefined)
+ * the target property will not be set.
+ *
+ * @param {String} source
+ * @param {String} target
+ * @param {Object} obj
+ * @param {Function|Array} mods
+ * @param {Boolean} merge
+ */
+DotObject.prototype.move = function (source, target, obj, mods, merge) {
+  if (typeof mods === 'function' || Array.isArray(mods)) {
+    this.set(target, _process(this.pick(source, obj, true), mods), obj, merge)
+  } else {
+    merge = mods
+    this.set(target, this.pick(source, obj, true), obj, merge)
+  }
+
+  return obj
+}
+
+/**
+ *
+ * Transfer a property from one object to another object.
+ *
+ * If the source path does not exist (undefined)
+ * the property on the other object will not be set.
+ *
+ * @param {String} source
+ * @param {String} target
+ * @param {Object} obj1
+ * @param {Object} obj2
+ * @param {Function|Array} mods
+ * @param {Boolean} merge
+ */
+DotObject.prototype.transfer = function (source, target, obj1, obj2, mods, merge) {
+  if (typeof mods === 'function' || Array.isArray(mods)) {
+    this.set(target,
+      _process(
+        this.pick(source, obj1, true),
+        mods
+      ), obj2, merge)
+  } else {
+    merge = mods
+    this.set(target, this.pick(source, obj1, true), obj2, merge)
+  }
+
+  return obj2
+}
+
+/**
+ *
+ * Copy a property from one object to another object.
+ *
+ * If the source path does not exist (undefined)
+ * the property on the other object will not be set.
+ *
+ * @param {String} source
+ * @param {String} target
+ * @param {Object} obj1
+ * @param {Object} obj2
+ * @param {Function|Array} mods
+ * @param {Boolean} merge
+ */
+DotObject.prototype.copy = function (source, target, obj1, obj2, mods, merge) {
+  if (typeof mods === 'function' || Array.isArray(mods)) {
+    this.set(target,
+      _process(
+        // clone what is picked
+        JSON.parse(
+          JSON.stringify(
+            this.pick(source, obj1, false)
+          )
+        ),
+        mods
+      ), obj2, merge)
+  } else {
+    merge = mods
+    this.set(target, this.pick(source, obj1, false), obj2, merge)
+  }
+
+  return obj2
+}
+
+function isObject (val) {
+  return Object.prototype.toString.call(val) === '[object Object]'
+}
+
+/**
+ *
+ * Set a property on an object using dot notation.
+ *
+ * @param {String} path
+ * @param {Mixed} val
+ * @param {Object} obj
+ * @param {Boolean} merge
+ */
+DotObject.prototype.set = function (path, val, obj, merge) {
+  var i
+  var k
+  var keys
+  var key
+
+  // Do not operate if the value is undefined.
+  if (typeof val === 'undefined') {
+    return obj
+  }
+  keys = parsePath(path, this.seperator)
+
+  for (i = 0; i < keys.length; i++) {
+    key = keys[i]
+    if (i === (keys.length - 1)) {
+      if (merge && isObject(val) && isObject(obj[key])) {
+        for (k in val) {
+          if (val.hasOwnProperty(k)) {
+            obj[key][k] = val[k]
+          }
+        }
+      } else if (merge && Array.isArray(obj[key]) && Array.isArray(val)) {
+        for (var j = 0; j < val.length; j++) {
+          obj[keys[i]].push(val[j])
+        }
+      } else {
+        obj[key] = val
+      }
+    } else if (
+      // force the value to be an object
+      !obj.hasOwnProperty(key) ||
+      (!isObject(obj[key]) && !Array.isArray(obj[key]))
+    ) {
+      // initialize as array if next key is numeric
+      if (/^\d+$/.test(keys[i + 1])) {
+        obj[key] = []
+      } else {
+        obj[key] = {}
+      }
+    }
+    obj = obj[key]
+  }
+  return obj
+}
+
+/**
+ *
+ * Transform an object
+ *
+ * Usage:
+ *
+ *   var obj = {
+ *     "id": 1,
+  *    "some": {
+  *      "thing": "else"
+  *    }
+ *   }
+ *
+ *   var transform = {
+ *     "id": "nr",
+  *    "some.thing": "name"
+ *   }
+ *
+ *   var tgt = dot.transform(transform, obj)
+ *
+ * @param {Object} recipe Transform recipe
+ * @param {Object} obj Object to be transformed
+ * @param {Array} mods modifiers for the target
+ */
+DotObject.prototype.transform = function (recipe, obj, tgt) {
+  obj = obj || {}
+  tgt = tgt || {}
+  Object.keys(recipe).forEach(function (key) {
+    this.set(recipe[key], this.pick(key, obj), tgt)
+  }.bind(this))
+  return tgt
+}
+
+/**
+ *
+ * Convert object to dotted-key/value pair
+ *
+ * Usage:
+ *
+ *   var tgt = dot.dot(obj)
+ *
+ *   or
+ *
+ *   var tgt = {}
+ *   dot.dot(obj, tgt)
+ *
+ * @param {Object} obj source object
+ * @param {Object} tgt target object
+ * @param {Array} path path array (internal)
+ */
+DotObject.prototype.dot = function (obj, tgt, path) {
+  tgt = tgt || {}
+  path = path || []
+  Object.keys(obj).forEach(function (key) {
+    if (Object(obj[key]) === obj[key] && (Object.prototype.toString.call(obj[key]) === '[object Object]') || Object.prototype.toString.call(obj[key]) === '[object Array]') {
+      return this.dot(obj[key], tgt, path.concat(key))
+    } else {
+      tgt[path.concat(key).join(this.seperator)] = obj[key]
+    }
+  }.bind(this))
+  return tgt
+}
+
+DotObject.pick = wrap('pick')
+DotObject.move = wrap('move')
+DotObject.transfer = wrap('transfer')
+DotObject.transform = wrap('transform')
+DotObject.copy = wrap('copy')
+DotObject.object = wrap('object')
+DotObject.str = wrap('str')
+DotObject.set = wrap('set')
+DotObject.del = DotObject.remove = wrap('remove')
+DotObject.dot = wrap('dot')
+
+;['override', 'overwrite'].forEach(function (prop) {
+  Object.defineProperty(DotObject, prop, {
+    get: function () {
+      return dotDefault.override
+    },
+    set: function (val) {
+      dotDefault.override = !!val
+    }
+  })
+})
+
+Object.defineProperty(DotObject, 'useArray', {
+  get: function () {
+    return dotDefault.useArray
+  },
+  set: function (val) {
+    dotDefault.useArray = val
+  }
+})
+
+DotObject._process = _process
+
+module.exports = DotObject;
+
+},{}],58:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -6539,7 +7024,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],58:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -6660,7 +7145,202 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],59:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
+(function (global){
+"use strict"
+// Module export pattern from
+// https://github.com/umdjs/umd/blob/master/returnExports.js
+;(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define([], factory);
+    } else if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = factory();
+    } else {
+        // Browser globals (root is window)
+        root.store = factory();
+  }
+}(this, function () {
+	
+	// Store.js
+	var store = {},
+		win = (typeof window != 'undefined' ? window : global),
+		doc = win.document,
+		localStorageName = 'localStorage',
+		scriptTag = 'script',
+		storage
+
+	store.disabled = false
+	store.version = '1.3.20'
+	store.set = function(key, value) {}
+	store.get = function(key, defaultVal) {}
+	store.has = function(key) { return store.get(key) !== undefined }
+	store.remove = function(key) {}
+	store.clear = function() {}
+	store.transact = function(key, defaultVal, transactionFn) {
+		if (transactionFn == null) {
+			transactionFn = defaultVal
+			defaultVal = null
+		}
+		if (defaultVal == null) {
+			defaultVal = {}
+		}
+		var val = store.get(key, defaultVal)
+		transactionFn(val)
+		store.set(key, val)
+	}
+	store.getAll = function() {}
+	store.forEach = function() {}
+
+	store.serialize = function(value) {
+		return JSON.stringify(value)
+	}
+	store.deserialize = function(value) {
+		if (typeof value != 'string') { return undefined }
+		try { return JSON.parse(value) }
+		catch(e) { return value || undefined }
+	}
+
+	// Functions to encapsulate questionable FireFox 3.6.13 behavior
+	// when about.config::dom.storage.enabled === false
+	// See https://github.com/marcuswestin/store.js/issues#issue/13
+	function isLocalStorageNameSupported() {
+		try { return (localStorageName in win && win[localStorageName]) }
+		catch(err) { return false }
+	}
+
+	if (isLocalStorageNameSupported()) {
+		storage = win[localStorageName]
+		store.set = function(key, val) {
+			if (val === undefined) { return store.remove(key) }
+			storage.setItem(key, store.serialize(val))
+			return val
+		}
+		store.get = function(key, defaultVal) {
+			var val = store.deserialize(storage.getItem(key))
+			return (val === undefined ? defaultVal : val)
+		}
+		store.remove = function(key) { storage.removeItem(key) }
+		store.clear = function() { storage.clear() }
+		store.getAll = function() {
+			var ret = {}
+			store.forEach(function(key, val) {
+				ret[key] = val
+			})
+			return ret
+		}
+		store.forEach = function(callback) {
+			for (var i=0; i<storage.length; i++) {
+				var key = storage.key(i)
+				callback(key, store.get(key))
+			}
+		}
+	} else if (doc && doc.documentElement.addBehavior) {
+		var storageOwner,
+			storageContainer
+		// Since #userData storage applies only to specific paths, we need to
+		// somehow link our data to a specific path.  We choose /favicon.ico
+		// as a pretty safe option, since all browsers already make a request to
+		// this URL anyway and being a 404 will not hurt us here.  We wrap an
+		// iframe pointing to the favicon in an ActiveXObject(htmlfile) object
+		// (see: http://msdn.microsoft.com/en-us/library/aa752574(v=VS.85).aspx)
+		// since the iframe access rules appear to allow direct access and
+		// manipulation of the document element, even for a 404 page.  This
+		// document can be used instead of the current document (which would
+		// have been limited to the current path) to perform #userData storage.
+		try {
+			storageContainer = new ActiveXObject('htmlfile')
+			storageContainer.open()
+			storageContainer.write('<'+scriptTag+'>document.w=window</'+scriptTag+'><iframe src="/favicon.ico"></iframe>')
+			storageContainer.close()
+			storageOwner = storageContainer.w.frames[0].document
+			storage = storageOwner.createElement('div')
+		} catch(e) {
+			// somehow ActiveXObject instantiation failed (perhaps some special
+			// security settings or otherwse), fall back to per-path storage
+			storage = doc.createElement('div')
+			storageOwner = doc.body
+		}
+		var withIEStorage = function(storeFunction) {
+			return function() {
+				var args = Array.prototype.slice.call(arguments, 0)
+				args.unshift(storage)
+				// See http://msdn.microsoft.com/en-us/library/ms531081(v=VS.85).aspx
+				// and http://msdn.microsoft.com/en-us/library/ms531424(v=VS.85).aspx
+				storageOwner.appendChild(storage)
+				storage.addBehavior('#default#userData')
+				storage.load(localStorageName)
+				var result = storeFunction.apply(store, args)
+				storageOwner.removeChild(storage)
+				return result
+			}
+		}
+
+		// In IE7, keys cannot start with a digit or contain certain chars.
+		// See https://github.com/marcuswestin/store.js/issues/40
+		// See https://github.com/marcuswestin/store.js/issues/83
+		var forbiddenCharsRegex = new RegExp("[!\"#$%&'()*+,/\\\\:;<=>?@[\\]^`{|}~]", "g")
+		var ieKeyFix = function(key) {
+			return key.replace(/^d/, '___$&').replace(forbiddenCharsRegex, '___')
+		}
+		store.set = withIEStorage(function(storage, key, val) {
+			key = ieKeyFix(key)
+			if (val === undefined) { return store.remove(key) }
+			storage.setAttribute(key, store.serialize(val))
+			storage.save(localStorageName)
+			return val
+		})
+		store.get = withIEStorage(function(storage, key, defaultVal) {
+			key = ieKeyFix(key)
+			var val = store.deserialize(storage.getAttribute(key))
+			return (val === undefined ? defaultVal : val)
+		})
+		store.remove = withIEStorage(function(storage, key) {
+			key = ieKeyFix(key)
+			storage.removeAttribute(key)
+			storage.save(localStorageName)
+		})
+		store.clear = withIEStorage(function(storage) {
+			var attributes = storage.XMLDocument.documentElement.attributes
+			storage.load(localStorageName)
+			for (var i=attributes.length-1; i>=0; i--) {
+				storage.removeAttribute(attributes[i].name)
+			}
+			storage.save(localStorageName)
+		})
+		store.getAll = function(storage) {
+			var ret = {}
+			store.forEach(function(key, val) {
+				ret[key] = val
+			})
+			return ret
+		}
+		store.forEach = withIEStorage(function(storage, callback) {
+			var attributes = storage.XMLDocument.documentElement.attributes
+			for (var i=0, attr; attr=attributes[i]; ++i) {
+				callback(attr.name, store.deserialize(storage.getAttribute(attr.name)))
+			}
+		})
+	}
+
+	try {
+		var testKey = '__storejs__'
+		store.set(testKey, testKey)
+		if (store.get(testKey) != testKey) { store.disabled = true }
+		store.remove(testKey)
+	} catch(e) {
+		store.disabled = true
+	}
+	store.enabled = !store.disabled
+	
+	return store
+}));
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],61:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -6849,14 +7529,14 @@ var AutoEvents = function () {
 
 exports['default'] = AutoEvents;
 
-},{"./DOMComponentsTracking.js":61,"component-type":4}],60:[function(require,module,exports){
+},{"./DOMComponentsTracking.js":64,"component-type":4}],62:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
 
-var _getProperty = require('./functions/getProperty.js');
+var _dotObject = require('dot-object');
 
-var _getProperty2 = _interopRequireDefault(_getProperty);
+var _dotObject2 = _interopRequireDefault(_dotObject);
 
 var _componentClone = require('component-clone');
 
@@ -6878,7 +7558,7 @@ var DDHelper = function () {
   }
 
   DDHelper.get = function get(key, digitalData) {
-    var value = (0, _getProperty2['default'])(digitalData, key);
+    var value = _dotObject2['default'].pick(key, digitalData);
     return (0, _componentClone2['default'])(value);
   };
 
@@ -7012,7 +7692,100 @@ var DDHelper = function () {
 
 exports['default'] = DDHelper;
 
-},{"./functions/getProperty.js":73,"component-clone":2}],61:[function(require,module,exports){
+},{"component-clone":2,"dot-object":57}],63:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+var _dotObject = require('dot-object');
+
+var _dotObject2 = _interopRequireDefault(_dotObject);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+var keyPersistedKeys = '_persistedKeys';
+
+var DDStorage = function () {
+  function DDStorage(digitalData, storage) {
+    _classCallCheck(this, DDStorage);
+
+    this.digitalData = digitalData;
+    this.storage = storage;
+  }
+
+  DDStorage.prototype.persist = function persist(key, exp) {
+    var value = _dotObject2['default'].pick(key, this.digitalData);
+    if (value !== undefined) {
+      var persistedKeys = this.getPersistedKeys();
+      if (persistedKeys.indexOf(key) < 0) {
+        persistedKeys.push(key);
+        this.storage.set(keyPersistedKeys, persistedKeys);
+      }
+      return this.storage.set(key, value, exp);
+    }
+  };
+
+  DDStorage.prototype.getPersistedKeys = function getPersistedKeys() {
+    var persistedKeys = this.storage.get(keyPersistedKeys) || [];
+    return persistedKeys;
+  };
+
+  DDStorage.prototype.removePersistedKey = function removePersistedKey(key) {
+    var persistedKeys = this.getPersistedKeys();
+    var index = persistedKeys.indexOf(key);
+    if (index > -1) {
+      persistedKeys.splice(index, 1);
+    }
+    this.savePersistedKeys(persistedKeys);
+  };
+
+  DDStorage.prototype.updatePersistedKeys = function updatePersistedKeys(persistedKeys) {
+    this.storage.set(keyPersistedKeys, persistedKeys);
+  };
+
+  DDStorage.prototype.get = function get(key) {
+    var value = this.storage.get(key);
+    if (value === undefined) {
+      this.removePersistedKey(key);
+    }
+    return value;
+  };
+
+  DDStorage.prototype.clearPersistedData = function clearPersistedData() {
+    var persistedKeys = this.getPersistedKeys();
+    for (var _iterator = persistedKeys, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+      var _ref;
+
+      if (_isArray) {
+        if (_i >= _iterator.length) break;
+        _ref = _iterator[_i++];
+      } else {
+        _i = _iterator.next();
+        if (_i.done) break;
+        _ref = _i.value;
+      }
+
+      var key = _ref;
+
+      this.storage.remove(key);
+    }
+    this.storage.remove(keyPersistedKeys);
+  };
+
+  return DDStorage;
+}();
+
+exports['default'] = DDStorage;
+
+},{"dot-object":57}],64:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7308,7 +8081,7 @@ var DOMComponentsTracking = function () {
 
 exports['default'] = DOMComponentsTracking;
 
-},{}],62:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7321,6 +8094,10 @@ var _semver = require('./functions/semver.js');
 
 var _semver2 = _interopRequireDefault(_semver);
 
+var _dotObject = require('dot-object');
+
+var _dotObject2 = _interopRequireDefault(_dotObject);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -7332,11 +8109,12 @@ function _classCallCheck(instance, Constructor) {
 }
 
 var DigitalDataEnricher = function () {
-  function DigitalDataEnricher(digitalData, ddListener) {
+  function DigitalDataEnricher(digitalData, ddListener, ddStorage) {
     _classCallCheck(this, DigitalDataEnricher);
 
     this.digitalData = digitalData;
     this.ddListener = ddListener;
+    this.ddStorage = ddStorage;
   }
 
   DigitalDataEnricher.prototype.setDigitalData = function setDigitalData(digitalData) {
@@ -7347,10 +8125,104 @@ var DigitalDataEnricher = function () {
     this.ddListener = ddListener;
   };
 
+  DigitalDataEnricher.prototype.setDDStorage = function setDDStorage(ddStorage) {
+    this.ddStorage = ddStorage;
+  };
+
   DigitalDataEnricher.prototype.enrichDigitalData = function enrichDigitalData() {
+    // define required digitalData structure
+    this.enrichStructure();
+
+    // persist some default behaviours
+    this.persistUserData();
+
+    // enrich with default context data
     this.enrichPageData();
     this.enrichContextData();
+    this.enrichDDStorageData();
     this.enrichLegacyVersions();
+
+    // when all enrichments are done
+    this.listenToUserDataChanges();
+    this.listenToSemanticEvents();
+  };
+
+  DigitalDataEnricher.prototype.listenToSemanticEvents = function listenToSemanticEvents() {
+    var _this = this;
+
+    this.ddListener.push(['on', 'event', function (event) {
+      if (event.name === 'Subscribed') {
+        var email = _dotObject2['default'].pick('user.email', event);
+        _this.enrichHasSubscribed(email);
+      } else if (event.name === 'Completed Transaction') {
+        _this.enrichHasTransacted();
+      }
+    }]);
+  };
+
+  DigitalDataEnricher.prototype.listenToUserDataChanges = function listenToUserDataChanges() {
+    var _this2 = this;
+
+    this.ddListener.push(['on', 'change:user', function () {
+      _this2.persistUserData();
+    }]);
+  };
+
+  DigitalDataEnricher.prototype.persistUserData = function persistUserData() {
+    var user = this.digitalData.user;
+
+    // persist user.everLoggedIn
+    if (user.isLoggedIn && !user.everLoggedIn) {
+      user.everLoggedIn = true;
+      this.ddStorage.persist('user.everLoggedIn');
+    }
+    // persist user.email
+    if (user.email) {
+      this.ddStorage.persist('user.email');
+    }
+    // persist user.isSubscribed
+    if (user.isSubscribed) {
+      this.ddStorage.persist('user.isSubscribed');
+    }
+    // persist user.hasTransacted
+    if (user.hasTransacted) {
+      this.ddStorage.persist('user.hasTransacted');
+    }
+    // persist user.lastTransactionDate
+    if (user.lastTransactionDate) {
+      this.ddStorage.persist('user.lastTransactionDate');
+    }
+  };
+
+  DigitalDataEnricher.prototype.enrichHasSubscribed = function enrichHasSubscribed(email) {
+    var user = this.digitalData.user;
+    if (!user.isSubscribed) {
+      user.isSubscribed = true;
+    }
+    if (!user.email && email) {
+      user.email = email;
+    }
+  };
+
+  DigitalDataEnricher.prototype.enrichHasTransacted = function enrichHasTransacted() {
+    var user = this.digitalData.user;
+    if (!user.hasTransacted) {
+      user.hasTransacted = true;
+    }
+    if (!user.lastTransactionDate) {
+      user.lastTransactionDate = new Date().toISOString();
+    }
+  };
+
+  DigitalDataEnricher.prototype.enrichStructure = function enrichStructure() {
+    this.digitalData.website = this.digitalData.website || {};
+    this.digitalData.page = this.digitalData.page || {};
+    this.digitalData.user = this.digitalData.user || {};
+    this.digitalData.context = this.digitalData.context || {};
+    this.digitalData.integrations = this.digitalData.integrations || {};
+    if (!this.digitalData.page.type || this.digitalData.page.type !== 'confirmation') {
+      this.digitalData.cart = this.digitalData.cart || {};
+    }
   };
 
   DigitalDataEnricher.prototype.enrichPageData = function enrichPageData() {
@@ -7369,8 +8241,31 @@ var DigitalDataEnricher = function () {
     context.userAgent = this.getHtmlGlobals().getNavigator().userAgent;
   };
 
+  DigitalDataEnricher.prototype.enrichDDStorageData = function enrichDDStorageData() {
+    var persistedKeys = this.ddStorage.getPersistedKeys();
+    for (var _iterator = persistedKeys, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+      var _ref;
+
+      if (_isArray) {
+        if (_i >= _iterator.length) break;
+        _ref = _iterator[_i++];
+      } else {
+        _i = _iterator.next();
+        if (_i.done) break;
+        _ref = _i.value;
+      }
+
+      var key = _ref;
+
+      var value = this.ddStorage.get(key);
+      if (value !== undefined && _dotObject2['default'].pick(key, this.digitalData) !== value) {
+        _dotObject2['default'].str(key, value, this.digitalData);
+      }
+    }
+  };
+
   DigitalDataEnricher.prototype.enrichLegacyVersions = function enrichLegacyVersions() {
-    var _this = this;
+    var _this3 = this;
 
     // compatibility with version <1.1.1
     if (this.digitalData.version && _semver2['default'].cmp(this.digitalData.version, '1.1.1') < 0) {
@@ -7384,19 +8279,19 @@ var DigitalDataEnricher = function () {
       if (!Array.isArray(recommendations)) {
         recommendations = [recommendations];
       }
-      for (var _iterator = recommendations, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
-        var _ref;
+      for (var _iterator2 = recommendations, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+        var _ref2;
 
-        if (_isArray) {
-          if (_i >= _iterator.length) break;
-          _ref = _iterator[_i++];
+        if (_isArray2) {
+          if (_i2 >= _iterator2.length) break;
+          _ref2 = _iterator2[_i2++];
         } else {
-          _i = _iterator.next();
-          if (_i.done) break;
-          _ref = _i.value;
+          _i2 = _iterator2.next();
+          if (_i2.done) break;
+          _ref2 = _i2.value;
         }
 
-        var recommendation = _ref;
+        var recommendation = _ref2;
 
         if (recommendation && recommendation.listName && !recommendation.listId) {
           recommendation.listId = recommendation.listName;
@@ -7412,7 +8307,7 @@ var DigitalDataEnricher = function () {
         var _listing = this.digitalData.listing = this.digitalData.listing || {};
         _listing.categoryId = page.categoryId;
         this.ddListener.push(['on', 'change:page.categoryId', function () {
-          _this.digitalData.listing.categoryId = _this.digitalData.page.categoryId;
+          _this3.digitalData.listing.categoryId = _this3.digitalData.page.categoryId;
         }]);
       }
     }
@@ -7432,7 +8327,7 @@ var DigitalDataEnricher = function () {
 
 exports['default'] = DigitalDataEnricher;
 
-},{"./functions/htmlGlobals.js":75,"./functions/semver.js":82}],63:[function(require,module,exports){
+},{"./functions/htmlGlobals.js":78,"./functions/semver.js":85,"dot-object":57}],66:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7604,7 +8499,7 @@ var EventDataEnricher = function () {
 
 exports['default'] = EventDataEnricher;
 
-},{"./DDHelper.js":60,"component-type":4}],64:[function(require,module,exports){
+},{"./DDHelper.js":62,"component-type":4}],67:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -8051,7 +8946,7 @@ var EventManager = function () {
 
 exports['default'] = EventManager;
 
-},{"./DDHelper.js":60,"./EventDataEnricher.js":63,"./functions/after.js":69,"./functions/deleteProperty.js":70,"./functions/jsonIsEqual.js":76,"./functions/noop.js":80,"./functions/size.js":83,"async":1,"component-clone":2,"debug":55}],65:[function(require,module,exports){
+},{"./DDHelper.js":62,"./EventDataEnricher.js":66,"./functions/after.js":73,"./functions/deleteProperty.js":74,"./functions/jsonIsEqual.js":79,"./functions/noop.js":83,"./functions/size.js":86,"async":1,"component-clone":2,"debug":55}],68:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -8270,7 +9165,83 @@ var Integration = function (_EventEmitter) {
 
 exports['default'] = Integration;
 
-},{"./DDHelper.js":60,"./functions/deleteProperty.js":70,"./functions/each.js":71,"./functions/format.js":72,"./functions/loadIframe.js":77,"./functions/loadPixel.js":78,"./functions/loadScript.js":79,"./functions/noop.js":80,"async":1,"component-emitter":3,"debug":55}],66:[function(require,module,exports){
+},{"./DDHelper.js":62,"./functions/deleteProperty.js":74,"./functions/each.js":75,"./functions/format.js":76,"./functions/loadIframe.js":80,"./functions/loadPixel.js":81,"./functions/loadScript.js":82,"./functions/noop.js":83,"async":1,"component-emitter":3,"debug":55}],69:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+var _store = require('store');
+
+var _store2 = _interopRequireDefault(_store);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+var Storage = function () {
+  function Storage() {
+    var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+    _classCallCheck(this, Storage);
+
+    this.options = Object.assign({
+      prefix: 'ddl:'
+    }, options);
+  }
+
+  Storage.prototype.set = function set(key, val, exp) {
+    key = this.getOption('prefix') + key;
+    if (exp !== undefined) {
+      _store2['default'].set(key, {
+        val: val,
+        exp: exp,
+        time: Date.now()
+      });
+    } else {
+      _store2['default'].set(key, val);
+    }
+  };
+
+  Storage.prototype.get = function get(key) {
+    key = this.getOption('prefix') + key;
+    var info = _store2['default'].get(key);
+    if (info !== undefined) {
+      if (info.val !== undefined && info.exp && info.time) {
+        if (Date.now() - info.time > info.exp) {
+          _store2['default'].remove(key);
+          return undefined;
+        }
+        return info.val;
+      }
+    }
+    return info;
+  };
+
+  Storage.prototype.remove = function remove(key) {
+    key = this.getOption('prefix') + key;
+    return _store2['default'].remove(key);
+  };
+
+  Storage.prototype.isEnabled = function isEnabled() {
+    return _store2['default'].enabled;
+  };
+
+  Storage.prototype.getOption = function getOption(name) {
+    return this.options[name];
+  };
+
+  return Storage;
+}();
+
+exports['default'] = Storage;
+
+},{"store":60}],70:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -8507,7 +9478,7 @@ var ViewabilityTracker = function () {
 
 exports['default'] = ViewabilityTracker;
 
-},{"./functions/noop.js":80}],67:[function(require,module,exports){
+},{"./functions/noop.js":83}],71:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -8591,7 +9562,7 @@ var integrations = {
 
 exports['default'] = integrations;
 
-},{"./integrations/Criteo.js":86,"./integrations/Driveback.js":87,"./integrations/Emarsys.js":88,"./integrations/FacebookPixel.js":89,"./integrations/GoogleAdWords.js":90,"./integrations/GoogleAnalytics.js":91,"./integrations/GoogleTagManager.js":92,"./integrations/MyTarget.js":93,"./integrations/OWOXBIStreaming.js":94,"./integrations/RetailRocket.js":95,"./integrations/SegmentStream.js":96,"./integrations/SendPulse.js":97,"./integrations/Vkontakte.js":98,"./integrations/YandexMetrica.js":99}],68:[function(require,module,exports){
+},{"./integrations/Criteo.js":89,"./integrations/Driveback.js":90,"./integrations/Emarsys.js":91,"./integrations/FacebookPixel.js":92,"./integrations/GoogleAdWords.js":93,"./integrations/GoogleAnalytics.js":94,"./integrations/GoogleTagManager.js":95,"./integrations/MyTarget.js":96,"./integrations/OWOXBIStreaming.js":97,"./integrations/RetailRocket.js":98,"./integrations/SegmentStream.js":99,"./integrations/SendPulse.js":100,"./integrations/Vkontakte.js":101,"./integrations/YandexMetrica.js":102}],72:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -8652,6 +9623,14 @@ var _DigitalDataEnricher = require('./DigitalDataEnricher.js');
 
 var _DigitalDataEnricher2 = _interopRequireDefault(_DigitalDataEnricher);
 
+var _Storage = require('./Storage.js');
+
+var _Storage2 = _interopRequireDefault(_Storage);
+
+var _DDStorage = require('./DDStorage.js');
+
+var _DDStorage2 = _interopRequireDefault(_DDStorage);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -8683,6 +9662,18 @@ var _availableIntegrations = void 0;
 var _eventManager = void 0;
 
 /**
+ * @type {Storage}
+ * @private
+ */
+var _storage = void 0;
+
+/**
+ * @type {DDStorage}
+ * @private
+ */
+var _ddStorage = void 0;
+
+/**
  * @type {Object}
  * @private
  */
@@ -8705,15 +9696,6 @@ function _prepareGlobals() {
     _digitalData = window.digitalData;
   } else {
     window.digitalData = _digitalData;
-  }
-
-  _digitalData.website = _digitalData.website || {};
-  _digitalData.page = _digitalData.page || {};
-  _digitalData.user = _digitalData.user || {};
-  _digitalData.context = _digitalData.context || {};
-  _digitalData.integrations = _digitalData.integrations || {};
-  if (!_digitalData.page.type || _digitalData.page.type !== 'confirmation') {
-    _digitalData.cart = _digitalData.cart || {};
   }
 
   if (Array.isArray(window.ddListener)) {
@@ -8830,6 +9812,7 @@ ddManager = {
    *    },
    *    domain: 'example.com',
    *    sessionLength: 3600,
+   *    persistVars: ['user.hasCoffeeMachine', 'user.everLoggedIn', 'user.email']
    *    integrations: [
    *      {
    *        'name': 'Google Tag Manager',
@@ -8862,8 +9845,11 @@ ddManager = {
 
     _prepareGlobals();
 
+    _storage = new _Storage2['default']();
+    _ddStorage = new _DDStorage2['default'](_digitalData, _storage);
+
     // initialize digital data enricher
-    var digitalDataEnricher = new _DigitalDataEnricher2['default'](_digitalData, _ddListener);
+    var digitalDataEnricher = new _DigitalDataEnricher2['default'](_digitalData, _ddListener, _ddStorage);
     digitalDataEnricher.enrichDigitalData();
 
     // initialize event manager
@@ -8913,6 +9899,10 @@ ddManager = {
     return _DDHelper2['default'].get(key, _digitalData);
   },
 
+  persist: function persist(key, exp) {
+    return _ddStorage.persist(key, exp);
+  },
+
   getProduct: function getProduct(id) {
     return _DDHelper2['default'].getProduct(id, _digitalData);
   },
@@ -8926,6 +9916,7 @@ ddManager = {
   },
 
   reset: function reset() {
+    _ddStorage.clearPersistedData();
     if (_eventManager instanceof _EventManager2['default']) {
       _eventManager.reset();
     }
@@ -8966,7 +9957,7 @@ ddManager.on = ddManager.addEventListener = function (event, handler) {
 
 exports['default'] = ddManager;
 
-},{"./AutoEvents.js":59,"./DDHelper.js":60,"./DigitalDataEnricher.js":62,"./EventManager.js":64,"./Integration.js":65,"./ViewabilityTracker.js":66,"./functions/after.js":69,"./functions/each.js":71,"./functions/size.js":83,"async":1,"component-clone":2,"component-emitter":3}],69:[function(require,module,exports){
+},{"./AutoEvents.js":61,"./DDHelper.js":62,"./DDStorage.js":63,"./DigitalDataEnricher.js":65,"./EventManager.js":67,"./Integration.js":68,"./Storage.js":69,"./ViewabilityTracker.js":70,"./functions/after.js":73,"./functions/each.js":75,"./functions/size.js":86,"async":1,"component-clone":2,"component-emitter":3}],73:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -8980,7 +9971,7 @@ exports["default"] = function (times, fn) {
   };
 };
 
-},{}],70:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -8993,7 +9984,7 @@ exports["default"] = function (obj, prop) {
   }
 };
 
-},{}],71:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -9006,7 +9997,7 @@ exports["default"] = function (obj, fn) {
   }
 };
 
-},{}],72:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -9045,36 +10036,7 @@ function format(str) {
   });
 }
 
-},{}],73:[function(require,module,exports){
-'use strict';
-
-exports.__esModule = true;
-
-exports['default'] = function (obj, prop) {
-  var keyParts = _keyToArray(prop);
-  var nestedVar = obj;
-  while (keyParts.length > 0) {
-    var childKey = keyParts.shift();
-    if (nestedVar.hasOwnProperty(childKey)) {
-      nestedVar = nestedVar[childKey];
-    } else {
-      return undefined;
-    }
-  }
-  return nestedVar;
-};
-
-function _keyToArray(key) {
-  key = key.trim();
-  if (key === '') {
-    return [];
-  }
-  key = key.replace(/\[(\w+)\]/g, '.$1');
-  key = key.replace(/^\./, '');
-  return key.split('.');
-}
-
-},{}],74:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -9089,7 +10051,7 @@ function getQueryParam(name, queryString) {
   return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
 }
 
-},{}],75:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -9107,7 +10069,7 @@ exports["default"] = {
   }
 };
 
-},{}],76:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -9122,7 +10084,7 @@ function jsonIsEqual(json1, json2) {
   return json1 === json2;
 }
 
-},{}],77:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -9182,7 +10144,7 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":81,"async":1}],78:[function(require,module,exports){
+},{"./scriptOnLoad.js":84,"async":1}],81:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -9218,7 +10180,7 @@ function error(fn, message, img) {
   };
 }
 
-},{}],79:[function(require,module,exports){
+},{}],82:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -9277,14 +10239,14 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":81,"async":1}],80:[function(require,module,exports){
+},{"./scriptOnLoad.js":84,"async":1}],83:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
 
 exports["default"] = function () {};
 
-},{}],81:[function(require,module,exports){
+},{}],84:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -9339,7 +10301,7 @@ function attachEvent(el, fn) {
   });
 }
 
-},{}],82:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -9360,7 +10322,7 @@ function cmp(a, b) {
 
 exports['default'] = { cmp: cmp };
 
-},{}],83:[function(require,module,exports){
+},{}],86:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -9373,7 +10335,7 @@ exports["default"] = function (obj) {
   return size;
 };
 
-},{}],84:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -9400,7 +10362,7 @@ function throwError(code, message) {
   throw error;
 }
 
-},{"debug":55}],85:[function(require,module,exports){
+},{"debug":55}],88:[function(require,module,exports){
 'use strict';
 
 require('./polyfill.js');
@@ -9423,7 +10385,7 @@ window.ddManager = _ddManager2['default'];
 _ddManager2['default'].setAvailableIntegrations(_availableIntegrations2['default']);
 _ddManager2['default'].processEarlyStubCalls(earlyStubsQueue);
 
-},{"./availableIntegrations.js":67,"./ddManager.js":68,"./polyfill.js":100}],86:[function(require,module,exports){
+},{"./availableIntegrations.js":71,"./ddManager.js":72,"./polyfill.js":103}],89:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -9692,7 +10654,7 @@ var Criteo = function (_Integration) {
 
 exports['default'] = Criteo;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty":70,"./../functions/semver":82}],87:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty":74,"./../functions/semver":85}],90:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -9798,7 +10760,7 @@ var Driveback = function (_Integration) {
 
 exports['default'] = Driveback;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":70,"./../functions/noop.js":80}],88:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty.js":74,"./../functions/noop.js":83}],91:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -10011,7 +10973,7 @@ var Emarsys = function (_Integration) {
 
 exports['default'] = Emarsys;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":70}],89:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty.js":74}],92:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -10216,7 +11178,7 @@ var FacebookPixel = function (_Integration) {
 
 exports['default'] = FacebookPixel;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":70,"component-type":4}],90:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty.js":74,"component-type":4}],93:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -10447,7 +11409,7 @@ var GoogleAdWords = function (_Integration) {
 
 exports['default'] = GoogleAdWords;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":70}],91:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty.js":74}],94:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -10462,9 +11424,9 @@ var _deleteProperty = require('./../functions/deleteProperty.js');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
-var _getProperty = require('./../functions/getProperty.js');
+var _dotObject = require('dot-object');
 
-var _getProperty2 = _interopRequireDefault(_getProperty);
+var _dotObject2 = _interopRequireDefault(_dotObject);
 
 var _each = require('./../functions/each.js');
 
@@ -10528,7 +11490,7 @@ function getCheckoutOptions(event, checkoutOptions) {
 
     var optionName = _ref;
 
-    var optionValue = (0, _getProperty2['default'])(event, optionName);
+    var optionValue = _dotObject2['default'].pick(optionName, event);
     if (optionValue) {
       options.push(optionValue);
     }
@@ -10681,7 +11643,7 @@ var GoogleAnalytics = function (_Integration) {
     }
     var custom = {};
     (0, _each2['default'])(settings, function (key, value) {
-      var dimensionVal = (0, _getProperty2['default'])(source, value);
+      var dimensionVal = _dotObject2['default'].pick(value, source);
       if (dimensionVal !== undefined) {
         if (typeof dimensionVal === 'boolean') dimensionVal = dimensionVal.toString();
         custom[key] = dimensionVal;
@@ -10920,7 +11882,7 @@ var GoogleAnalytics = function (_Integration) {
       var product = lineItem.product;
       if (product) {
         _this3.ga('ecommerce:addItem', {
-          id: transaction.orderId,
+          id: product.id,
           category: getProductCategory(product),
           quantity: lineItem.quantity,
           price: product.unitSalePrice || product.unitPrice,
@@ -11147,7 +12109,7 @@ var GoogleAnalytics = function (_Integration) {
 
 exports['default'] = GoogleAnalytics;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":70,"./../functions/each.js":71,"./../functions/getProperty.js":73,"./../functions/size.js":83,"component-clone":2}],92:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty.js":74,"./../functions/each.js":75,"./../functions/size.js":86,"component-clone":2,"dot-object":57}],95:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -11214,7 +12176,6 @@ var GoogleTagManager = function (_Integration) {
     this.ddManager.on('load', function () {
       window.dataLayer.push({ event: 'DDManager Loaded' });
     });
-
     if (this.getOption('containerId') && this.getOption('noConflict') === false) {
       window.dataLayer.push({ 'gtm.start': Number(new Date()), event: 'gtm.js' });
       this.load(this.onLoad);
@@ -11247,7 +12208,7 @@ var GoogleTagManager = function (_Integration) {
 
 exports['default'] = GoogleTagManager;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":70}],93:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty.js":74}],96:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -11480,7 +12441,7 @@ var MyTarget = function (_Integration) {
 
 exports['default'] = MyTarget;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":70}],94:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty.js":74}],97:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -11583,7 +12544,7 @@ var OWOXBIStreaming = function (_Integration) {
 
 exports['default'] = OWOXBIStreaming;
 
-},{"./../Integration.js":65}],95:[function(require,module,exports){
+},{"./../Integration.js":68}],98:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -11598,9 +12559,9 @@ var _deleteProperty = require('./../functions/deleteProperty');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
-var _getProperty = require('./../../src/functions/getProperty');
+var _dotObject = require('dot-object');
 
-var _getProperty2 = _interopRequireDefault(_getProperty);
+var _dotObject2 = _interopRequireDefault(_dotObject);
 
 var _throwError = require('./../functions/throwError');
 
@@ -11692,7 +12653,7 @@ var RetailRocket = function (_Integration) {
   RetailRocket.prototype.initialize = function initialize() {
     if (this.getOption('partnerId')) {
       window.rrPartnerId = this.getOption('partnerId');
-      var userId = (0, _getProperty2['default'])(this.digitalData, this.getOption('userIdProperty'));
+      var userId = _dotObject2['default'].pick(this.getOption('userIdProperty'), this.digitalData);
       if (userId) {
         window.rrPartnerUserId = userId;
       }
@@ -11900,7 +12861,7 @@ var RetailRocket = function (_Integration) {
     if (customs) {
       var settings = this.getOption('customVariables');
       (0, _each2['default'])(settings, function (key, value) {
-        var dimensionVal = (0, _getProperty2['default'])(customs, value);
+        var dimensionVal = _dotObject2['default'].pick(value, customs);
         if (dimensionVal !== undefined) {
           if ((0, _componentType2['default'])(dimensionVal) === 'boolean') dimensionVal = dimensionVal.toString();
           rrCustoms[key] = dimensionVal;
@@ -12013,7 +12974,7 @@ var RetailRocket = function (_Integration) {
 
 exports['default'] = RetailRocket;
 
-},{"./../../src/functions/getProperty":73,"./../Integration.js":65,"./../functions/deleteProperty":70,"./../functions/each":71,"./../functions/format":72,"./../functions/getQueryParam":74,"./../functions/throwError":84,"component-clone":2,"component-type":4}],96:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty":74,"./../functions/each":75,"./../functions/format":76,"./../functions/getQueryParam":77,"./../functions/throwError":87,"component-clone":2,"component-type":4,"dot-object":57}],99:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -12187,7 +13148,7 @@ var SegmentStream = function (_Integration) {
 
 exports['default'] = SegmentStream;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":70,"./../functions/each.js":71}],97:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty.js":74,"./../functions/each.js":75}],100:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -12202,9 +13163,9 @@ var _deleteProperty = require('./../functions/deleteProperty.js');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
-var _getProperty = require('./../functions/getProperty.js');
+var _dotObject = require('dot-object');
 
-var _getProperty2 = _interopRequireDefault(_getProperty);
+var _dotObject2 = _interopRequireDefault(_dotObject);
 
 var _componentType = require('component-type');
 
@@ -12380,8 +13341,8 @@ var SendPulse = function (_Integration) {
 
       var userVar = _ref;
 
-      var value = (0, _getProperty2['default'])(newUser, userVar);
-      if (value !== undefined && (0, _componentType2['default'])(value) !== 'object' && (!oldUser || value !== (0, _getProperty2['default'])(oldUser, userVar))) {
+      var value = _dotObject2['default'].pick(userVar, newUser);
+      if (value !== undefined && (0, _componentType2['default'])(value) !== 'object' && (!oldUser || value !== _dotObject2['default'].pick(userVar, oldUser))) {
         window.oSpP.push(userVar, String(value));
       }
     }
@@ -12422,7 +13383,7 @@ var SendPulse = function (_Integration) {
 
 exports['default'] = SendPulse;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":70,"./../functions/getProperty.js":73,"component-type":4}],98:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty.js":74,"component-type":4,"dot-object":57}],101:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -12501,7 +13462,7 @@ var Vkontakte = function (_Integration) {
 
 exports['default'] = Vkontakte;
 
-},{"./../Integration.js":65}],99:[function(require,module,exports){
+},{"./../Integration.js":68}],102:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -12736,7 +13697,7 @@ var YandexMetrica = function (_Integration) {
 
 exports['default'] = YandexMetrica;
 
-},{"./../Integration.js":65,"./../functions/deleteProperty.js":70}],100:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty.js":74}],103:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es6.object.create');
@@ -12751,4 +13712,4 @@ require('core-js/modules/es6.object.assign');
 
 require('core-js/modules/es6.string.trim');
 
-},{"core-js/modules/es6.array.index-of":49,"core-js/modules/es6.array.is-array":50,"core-js/modules/es6.function.bind":51,"core-js/modules/es6.object.assign":52,"core-js/modules/es6.object.create":53,"core-js/modules/es6.string.trim":54}]},{},[85]);
+},{"core-js/modules/es6.array.index-of":49,"core-js/modules/es6.array.is-array":50,"core-js/modules/es6.function.bind":51,"core-js/modules/es6.object.assign":52,"core-js/modules/es6.object.create":53,"core-js/modules/es6.string.trim":54}]},{},[88]);

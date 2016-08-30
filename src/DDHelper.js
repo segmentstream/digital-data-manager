@@ -1,10 +1,10 @@
-import getProperty from './functions/getProperty.js';
+import dot from 'dot-object';
 import clone from 'component-clone';
 
 class DDHelper {
 
   static get(key, digitalData) {
-    const value = getProperty(digitalData, key);
+    const value = dot.pick(key, digitalData);
     return clone(value);
   }
 

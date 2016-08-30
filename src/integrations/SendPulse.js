@@ -1,6 +1,6 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
-import getProperty from './../functions/getProperty.js';
+import dot from 'dot-object';
 import type from 'component-type';
 
 class SendPulse extends Integration {
@@ -128,11 +128,11 @@ class SendPulse extends Integration {
   sendUserAttributes(newUser, oldUser) {
     const userVariables = this.getOption('userVariables');
     for (const userVar of userVariables) {
-      const value = getProperty(newUser, userVar);
+      const value = dot.pick(userVar, newUser);
       if (
         value !== undefined &&
         type(value) !== 'object' &&
-        (!oldUser || value !== getProperty(oldUser, userVar))
+        (!oldUser || value !== dot.pick(userVar, oldUser))
       ) {
         window.oSpP.push(userVar, String(value));
       }

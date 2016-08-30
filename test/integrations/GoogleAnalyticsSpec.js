@@ -503,6 +503,7 @@ describe('Integrations: GoogleAnalytics', () => {
               lineItems: [
                 {
                   product: {
+                    id: '123',
                     unitPrice: 24.75,
                     unitSalePrice: 24.75,
                     name: 'my product',
@@ -532,7 +533,7 @@ describe('Integrations: GoogleAnalytics', () => {
               }]);
 
               assert.deepEqual(window.ga.args[2], ['ecommerce:addItem', {
-                id: '780bc55',
+                id: '123',
                 category: undefined,
                 name: 'my product',
                 price: 24.75,
@@ -542,7 +543,7 @@ describe('Integrations: GoogleAnalytics', () => {
               }]);
 
               assert.deepEqual(window.ga.args[3], ['ecommerce:addItem', {
-                id: '780bc55',
+                id: undefined,
                 category: undefined,
                 name: 'other product',
                 price: 24.75,

@@ -1,11 +1,13 @@
 import htmlGlobals from './functions/htmlGlobals.js';
 import semver from './functions/semver.js';
+import dot from 'dot-object';
 
 class DigitalDataEnricher
 {
-  constructor(digitalData, ddListener) {
+  constructor(digitalData, ddListener, ddStorage) {
     this.digitalData = digitalData;
     this.ddListener = ddListener;
+    this.ddStorage = ddStorage;
   }
 
   setDigitalData(digitalData) {
@@ -16,10 +18,100 @@ class DigitalDataEnricher
     this.ddListener = ddListener;
   }
 
+  setDDStorage(ddStorage) {
+    this.ddStorage = ddStorage;
+  }
+
   enrichDigitalData() {
+    // define required digitalData structure
+    this.enrichStructure();
+
+    // persist some default behaviours
+    this.persistUserData();
+
+    // enrich with default context data
     this.enrichPageData();
     this.enrichContextData();
+    this.enrichDDStorageData();
     this.enrichLegacyVersions();
+
+    // when all enrichments are done
+    this.listenToUserDataChanges();
+    this.listenToSemanticEvents();
+  }
+
+  listenToSemanticEvents() {
+    this.ddListener.push(['on', 'event', (event) => {
+      if (event.name === 'Subscribed') {
+        const email = dot.pick('user.email', event);
+        this.enrichHasSubscribed(email);
+      } else if (event.name === 'Completed Transaction') {
+        this.enrichHasTransacted();
+      }
+    }]);
+  }
+
+  listenToUserDataChanges() {
+    this.ddListener.push(['on', 'change:user', () => {
+      this.persistUserData();
+    }]);
+  }
+
+  persistUserData() {
+    const user = this.digitalData.user;
+
+    // persist user.everLoggedIn
+    if (user.isLoggedIn && !user.everLoggedIn) {
+      user.everLoggedIn = true;
+      this.ddStorage.persist('user.everLoggedIn');
+    }
+    // persist user.email
+    if (user.email) {
+      this.ddStorage.persist('user.email');
+    }
+    // persist user.isSubscribed
+    if (user.isSubscribed) {
+      this.ddStorage.persist('user.isSubscribed');
+    }
+    // persist user.hasTransacted
+    if (user.hasTransacted) {
+      this.ddStorage.persist('user.hasTransacted');
+    }
+    // persist user.lastTransactionDate
+    if (user.lastTransactionDate) {
+      this.ddStorage.persist('user.lastTransactionDate');
+    }
+  }
+
+  enrichHasSubscribed(email) {
+    const user = this.digitalData.user;
+    if (!user.isSubscribed) {
+      user.isSubscribed = true;
+    }
+    if (!user.email && email) {
+      user.email = email;
+    }
+  }
+
+  enrichHasTransacted() {
+    const user = this.digitalData.user;
+    if (!user.hasTransacted) {
+      user.hasTransacted = true;
+    }
+    if (!user.lastTransactionDate) {
+      user.lastTransactionDate = (new Date()).toISOString();
+    }
+  }
+
+  enrichStructure() {
+    this.digitalData.website = this.digitalData.website || {};
+    this.digitalData.page = this.digitalData.page || {};
+    this.digitalData.user = this.digitalData.user || {};
+    this.digitalData.context = this.digitalData.context || {};
+    this.digitalData.integrations = this.digitalData.integrations || {};
+    if (!this.digitalData.page.type || this.digitalData.page.type !== 'confirmation') {
+      this.digitalData.cart = this.digitalData.cart || {};
+    }
   }
 
   enrichPageData() {
@@ -36,6 +128,16 @@ class DigitalDataEnricher
   enrichContextData() {
     const context = this.digitalData.context;
     context.userAgent = this.getHtmlGlobals().getNavigator().userAgent;
+  }
+
+  enrichDDStorageData() {
+    const persistedKeys = this.ddStorage.getPersistedKeys();
+    for (const key of persistedKeys) {
+      const value = this.ddStorage.get(key);
+      if (value !== undefined && dot.pick(key, this.digitalData) !== value) {
+        dot.str(key, value, this.digitalData);
+      }
+    }
   }
 
   enrichLegacyVersions() {

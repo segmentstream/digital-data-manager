@@ -187,6 +187,40 @@ describe('DDManager', () => {
       }
     });
 
+    it('should enrich digitalData based on semantic events', (done) => {
+      window.digitalData = {
+        user: {
+          isSubscribed: false,
+          isLoggedIn: true,
+          hasTransacted: false
+        }
+      };
+
+      ddManager.once('ready', () => {
+        window.digitalData.events.push({
+          name: 'Completed Transaction'
+        });
+
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          user: {
+            email: 'test@email.com'
+          }
+        });
+
+        setTimeout(() => {
+          assert.ok(window.digitalData.user.isLoggedIn);
+          assert.ok(window.digitalData.user.everLoggedIn);
+          assert.ok(window.digitalData.user.hasTransacted);
+          assert.ok(window.digitalData.user.isSubscribed);
+          assert.equal(window.digitalData.user.email, 'test@email.com');
+          assert.ok(window.digitalData.user.lastTransactionDate);
+          done();
+        }, 101);
+      });
+      ddManager.initialize();
+    });
+
     it('it should send Viewed Page event once', (done) => {
       ddManager.on('ready', () => {
         setTimeout(() => {

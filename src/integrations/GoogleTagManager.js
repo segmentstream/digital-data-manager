@@ -25,7 +25,6 @@ class GoogleTagManager extends Integration {
     this.ddManager.on('load', () => {
       window.dataLayer.push({ event: 'DDManager Loaded' });
     });
-    
     if (this.getOption('containerId') && this.getOption('noConflict') === false) {
       window.dataLayer.push({ 'gtm.start': Number(new Date()), event: 'gtm.js' });
       this.load(this.onLoad);

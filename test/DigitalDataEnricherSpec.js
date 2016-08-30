@@ -2,6 +2,8 @@ import assert from 'assert';
 import sinon from 'sinon';
 import deleteProperty from './../src/functions/deleteProperty.js';
 import DigitalDataEnricher from './../src/DigitalDataEnricher.js';
+import Storage from './../src/Storage.js';
+import DDStorage from './../src/DDStorage.js';
 
 describe('DigitalDataEnricher', () => {
 
@@ -153,6 +155,87 @@ describe('DigitalDataEnricher', () => {
       assert.ok(_digitalData.recommendation[1].listId === 'recom2');
     });
 
+  });
+
+  describe('#enrichDDStorageData', () => {
+    it('should enrich data from local storage', () => {
+      _digitalData = {
+        user: {
+          userId: '123',
+          hasCoffeeMachine: true,
+          visitedContactPageTimes: 20,
+          segments: ['segment1', 'segment2']
+        },
+        listing: {
+          listId: 'test'
+        }
+      };
+      const _ddStorage = new DDStorage(_digitalData, new Storage());
+      _ddStorage.persist('user.hasCoffeeMachine');
+      _ddStorage.persist('user.visitedContactPageTimes');
+      _ddStorage.persist('user.segments');
+      _ddStorage.persist('listing.listId');
+
+      _digitalData = {
+        user: {
+          userId: '123',
+          isSubscribed: true,
+          hasCoffeeMachine: false
+        }
+      };
+      _digitalDataEnricher.setDigitalData(_digitalData);
+      _digitalDataEnricher.setDDStorage(_ddStorage);
+      _digitalDataEnricher.enrichDDStorageData();
+
+      assert.deepEqual(_digitalData, {
+        user: {
+          userId: '123',
+          isSubscribed: true,
+          hasCoffeeMachine: true,
+          visitedContactPageTimes: 20,
+          segments: ['segment1', 'segment2']
+        },
+        listing: {
+          listId: 'test'
+        }
+      });
+    })
+  });
+
+
+  describe('default enrichments', () => {
+    function enirch() {
+      const _ddStorage = new DDStorage(_digitalData, new Storage());
+      _digitalDataEnricher.setDigitalData(_digitalData);
+      _digitalDataEnricher.setDDStorage(_ddStorage);
+      _digitalDataEnricher.enrichDigitalData();
+    }
+
+    it('should enrich user data', () => {
+      _digitalData = {
+        user: {
+          isSubscribed: true,
+          isLoggedIn: true,
+          email: 'test@email.com',
+          hasTransacted: true,
+          lastTransactionDate: '2016-03-30T10:05:26.041Z'
+        }
+      };
+      enirch();
+
+      _digitalData = {
+        user: {
+          isLoggedIn: false
+        }
+      };
+      enirch();
+      assert.ok(!_digitalData.user.isLoggedIn);
+      assert.ok(_digitalData.user.everLoggedIn);
+      assert.ok(_digitalData.user.hasTransacted);
+      assert.ok(_digitalData.user.isSubscribed);
+      assert.equal(_digitalData.user.email, 'test@email.com');
+      assert.equal(_digitalData.user.lastTransactionDate, '2016-03-30T10:05:26.041Z');
+    });
   });
 
 });

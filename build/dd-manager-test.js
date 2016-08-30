@@ -359,7 +359,7 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":90}],2:[function(require,module,exports){
+},{"util/":92}],2:[function(require,module,exports){
 (function (process,global){
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -5578,7 +5578,7 @@ var objectKeys = Object.keys || function (obj) {
 }));
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"_process":62}],3:[function(require,module,exports){
+},{"_process":63}],3:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -6774,7 +6774,492 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":61}],58:[function(require,module,exports){
+},{"ms":62}],58:[function(require,module,exports){
+'use strict'
+
+function _process (v, mod) {
+  var i
+  var r
+
+  if (typeof mod === 'function') {
+    r = mod(v)
+    if (r !== undefined) {
+      v = r
+    }
+  } else if (Array.isArray(mod)) {
+    for (i = 0; i < mod.length; i++) {
+      r = mod[i](v)
+      if (r !== undefined) {
+        v = r
+      }
+    }
+  }
+
+  return v
+}
+
+function parseKey (key, val) {
+  // detect negative index notation
+  if (key[0] === '-' && Array.isArray(val) && /^-\d+$/.test(key)) {
+    return val.length + parseInt(key, 10)
+  }
+  return key
+}
+
+function isIndex (k) {
+  return /^\d+/.test(k)
+}
+
+function parsePath (path, sep) {
+  if (path.indexOf('[') >= 0) {
+    path = path.replace(/\[/g, '.').replace(/]/g, '')
+  }
+  return path.split(sep)
+}
+
+function DotObject (seperator, override, useArray) {
+  if (!(this instanceof DotObject)) {
+    return new DotObject(seperator, override, useArray)
+  }
+
+  if (typeof seperator === 'undefined') seperator = '.'
+  if (typeof override === 'undefined') override = false
+  if (typeof useArray === 'undefined') useArray = true
+  this.seperator = seperator
+  this.override = override
+  this.useArray = useArray
+
+  // contains touched arrays
+  this.cleanup = []
+}
+
+var dotDefault = new DotObject('.', false, true)
+function wrap (method) {
+  return function () {
+    return dotDefault[method].apply(dotDefault, arguments)
+  }
+}
+
+DotObject.prototype._fill = function (a, obj, v, mod) {
+  var k = a.shift()
+
+  if (a.length > 0) {
+    obj[k] = obj[k] ||
+      (this.useArray && isIndex(a[0]) ? [] : {})
+
+    if (obj[k] !== Object(obj[k])) {
+      if (this.override) {
+        obj[k] = {}
+      } else {
+        throw new Error(
+          'Trying to redefine `' + k + '` which is a ' + typeof obj[k]
+        )
+      }
+    }
+
+    this._fill(a, obj[k], v, mod)
+  } else {
+    if (!this.override &&
+      obj[k] === Object(obj[k]) && Object.keys(obj[k]).length) {
+      throw new Error("Trying to redefine non-empty obj['" + k + "']")
+    }
+
+    obj[k] = _process(v, mod)
+  }
+}
+
+/**
+ *
+ * Converts an object with dotted-key/value pairs to it's expanded version
+ *
+ * Optionally transformed by a set of modifiers.
+ *
+ * Usage:
+ *
+ *   var row = {
+ *     'nr': 200,
+ *     'doc.name': '  My Document  '
+ *   }
+ *
+ *   var mods = {
+ *     'doc.name': [_s.trim, _s.underscored]
+ *   }
+ *
+ *   dot.object(row, mods)
+ *
+ * @param {Object} obj
+ * @param {Object} mods
+ */
+DotObject.prototype.object = function (obj, mods) {
+  var self = this
+
+  Object.keys(obj).forEach(function (k) {
+    var mod = mods === undefined ? null : mods[k]
+    // normalize array notation.
+    var ok = parsePath(k, self.seperator).join(self.seperator)
+
+    if (ok.indexOf(self.seperator) !== -1) {
+      self._fill(ok.split(self.seperator), obj, obj[k], mod)
+      delete obj[k]
+    } else if (self.override) {
+      obj[k] = _process(obj[k], mod)
+    }
+  })
+
+  return obj
+}
+
+/**
+ * @param {String} path dotted path
+ * @param {String} v value to be set
+ * @param {Object} obj object to be modified
+ * @param {Function|Array} mod optional modifier
+ */
+DotObject.prototype.str = function (path, v, obj, mod) {
+  if (path.indexOf(this.seperator) !== -1) {
+    this._fill(path.split(this.seperator), obj, v, mod)
+  } else if (this.override) {
+    obj[path] = _process(v, mod)
+  }
+
+  return obj
+}
+
+/**
+ *
+ * Pick a value from an object using dot notation.
+ *
+ * Optionally remove the value
+ *
+ * @param {String} path
+ * @param {Object} obj
+ * @param {Boolean} remove
+ */
+DotObject.prototype.pick = function (path, obj, remove) {
+  var i
+  var keys
+  var val
+  var key
+  var cp
+
+  keys = parsePath(path, this.seperator)
+  for (i = 0; i < keys.length; i++) {
+    key = parseKey(keys[i], obj)
+    if (obj && typeof obj === 'object' && key in obj) {
+      if (i === (keys.length - 1)) {
+        if (remove) {
+          val = obj[key]
+          delete obj[key]
+          if (Array.isArray(obj)) {
+            cp = keys.slice(0, -1).join('.')
+            if (this.cleanup.indexOf(cp) === -1) {
+              this.cleanup.push(cp)
+            }
+          }
+          return val
+        } else {
+          return obj[key]
+        }
+      } else {
+        obj = obj[key]
+      }
+    } else {
+      return undefined
+    }
+  }
+  if (remove && Array.isArray(obj)) {
+    obj = obj.filter(function (n) { return n !== undefined })
+  }
+  return obj
+}
+
+/**
+ *
+ * Remove value from an object using dot notation.
+ *
+ * @param {String} path
+ * @param {Object} obj
+ * @return {Mixed} The removed value
+ */
+DotObject.prototype.remove = function (path, obj) {
+  var i
+
+  this.cleanup = []
+  if (Array.isArray(path)) {
+    for (i = 0; i < path.length; i++) {
+      this.pick(path[i], obj, true)
+    }
+    this._cleanup(obj)
+    return obj
+  } else {
+    return this.pick(path, obj, true)
+  }
+}
+
+DotObject.prototype._cleanup = function (obj) {
+  var ret
+  var i
+  var keys
+  var root
+  if (this.cleanup.length) {
+    for (i = 0; i < this.cleanup.length; i++) {
+      keys = this.cleanup[i].split('.')
+      root = keys.splice(0, -1).join('.')
+      ret = root ? this.pick(root, obj) : obj
+      ret = ret[keys[0]].filter(function (v) { return v !== undefined })
+      this.set(this.cleanup[i], ret, obj)
+    }
+    this.cleanup = []
+  }
+}
+
+// alias method
+DotObject.prototype.del = DotObject.prototype.remove
+
+/**
+ *
+ * Move a property from one place to the other.
+ *
+ * If the source path does not exist (undefined)
+ * the target property will not be set.
+ *
+ * @param {String} source
+ * @param {String} target
+ * @param {Object} obj
+ * @param {Function|Array} mods
+ * @param {Boolean} merge
+ */
+DotObject.prototype.move = function (source, target, obj, mods, merge) {
+  if (typeof mods === 'function' || Array.isArray(mods)) {
+    this.set(target, _process(this.pick(source, obj, true), mods), obj, merge)
+  } else {
+    merge = mods
+    this.set(target, this.pick(source, obj, true), obj, merge)
+  }
+
+  return obj
+}
+
+/**
+ *
+ * Transfer a property from one object to another object.
+ *
+ * If the source path does not exist (undefined)
+ * the property on the other object will not be set.
+ *
+ * @param {String} source
+ * @param {String} target
+ * @param {Object} obj1
+ * @param {Object} obj2
+ * @param {Function|Array} mods
+ * @param {Boolean} merge
+ */
+DotObject.prototype.transfer = function (source, target, obj1, obj2, mods, merge) {
+  if (typeof mods === 'function' || Array.isArray(mods)) {
+    this.set(target,
+      _process(
+        this.pick(source, obj1, true),
+        mods
+      ), obj2, merge)
+  } else {
+    merge = mods
+    this.set(target, this.pick(source, obj1, true), obj2, merge)
+  }
+
+  return obj2
+}
+
+/**
+ *
+ * Copy a property from one object to another object.
+ *
+ * If the source path does not exist (undefined)
+ * the property on the other object will not be set.
+ *
+ * @param {String} source
+ * @param {String} target
+ * @param {Object} obj1
+ * @param {Object} obj2
+ * @param {Function|Array} mods
+ * @param {Boolean} merge
+ */
+DotObject.prototype.copy = function (source, target, obj1, obj2, mods, merge) {
+  if (typeof mods === 'function' || Array.isArray(mods)) {
+    this.set(target,
+      _process(
+        // clone what is picked
+        JSON.parse(
+          JSON.stringify(
+            this.pick(source, obj1, false)
+          )
+        ),
+        mods
+      ), obj2, merge)
+  } else {
+    merge = mods
+    this.set(target, this.pick(source, obj1, false), obj2, merge)
+  }
+
+  return obj2
+}
+
+function isObject (val) {
+  return Object.prototype.toString.call(val) === '[object Object]'
+}
+
+/**
+ *
+ * Set a property on an object using dot notation.
+ *
+ * @param {String} path
+ * @param {Mixed} val
+ * @param {Object} obj
+ * @param {Boolean} merge
+ */
+DotObject.prototype.set = function (path, val, obj, merge) {
+  var i
+  var k
+  var keys
+  var key
+
+  // Do not operate if the value is undefined.
+  if (typeof val === 'undefined') {
+    return obj
+  }
+  keys = parsePath(path, this.seperator)
+
+  for (i = 0; i < keys.length; i++) {
+    key = keys[i]
+    if (i === (keys.length - 1)) {
+      if (merge && isObject(val) && isObject(obj[key])) {
+        for (k in val) {
+          if (val.hasOwnProperty(k)) {
+            obj[key][k] = val[k]
+          }
+        }
+      } else if (merge && Array.isArray(obj[key]) && Array.isArray(val)) {
+        for (var j = 0; j < val.length; j++) {
+          obj[keys[i]].push(val[j])
+        }
+      } else {
+        obj[key] = val
+      }
+    } else if (
+      // force the value to be an object
+      !obj.hasOwnProperty(key) ||
+      (!isObject(obj[key]) && !Array.isArray(obj[key]))
+    ) {
+      // initialize as array if next key is numeric
+      if (/^\d+$/.test(keys[i + 1])) {
+        obj[key] = []
+      } else {
+        obj[key] = {}
+      }
+    }
+    obj = obj[key]
+  }
+  return obj
+}
+
+/**
+ *
+ * Transform an object
+ *
+ * Usage:
+ *
+ *   var obj = {
+ *     "id": 1,
+  *    "some": {
+  *      "thing": "else"
+  *    }
+ *   }
+ *
+ *   var transform = {
+ *     "id": "nr",
+  *    "some.thing": "name"
+ *   }
+ *
+ *   var tgt = dot.transform(transform, obj)
+ *
+ * @param {Object} recipe Transform recipe
+ * @param {Object} obj Object to be transformed
+ * @param {Array} mods modifiers for the target
+ */
+DotObject.prototype.transform = function (recipe, obj, tgt) {
+  obj = obj || {}
+  tgt = tgt || {}
+  Object.keys(recipe).forEach(function (key) {
+    this.set(recipe[key], this.pick(key, obj), tgt)
+  }.bind(this))
+  return tgt
+}
+
+/**
+ *
+ * Convert object to dotted-key/value pair
+ *
+ * Usage:
+ *
+ *   var tgt = dot.dot(obj)
+ *
+ *   or
+ *
+ *   var tgt = {}
+ *   dot.dot(obj, tgt)
+ *
+ * @param {Object} obj source object
+ * @param {Object} tgt target object
+ * @param {Array} path path array (internal)
+ */
+DotObject.prototype.dot = function (obj, tgt, path) {
+  tgt = tgt || {}
+  path = path || []
+  Object.keys(obj).forEach(function (key) {
+    if (Object(obj[key]) === obj[key] && (Object.prototype.toString.call(obj[key]) === '[object Object]') || Object.prototype.toString.call(obj[key]) === '[object Array]') {
+      return this.dot(obj[key], tgt, path.concat(key))
+    } else {
+      tgt[path.concat(key).join(this.seperator)] = obj[key]
+    }
+  }.bind(this))
+  return tgt
+}
+
+DotObject.pick = wrap('pick')
+DotObject.move = wrap('move')
+DotObject.transfer = wrap('transfer')
+DotObject.transform = wrap('transform')
+DotObject.copy = wrap('copy')
+DotObject.object = wrap('object')
+DotObject.str = wrap('str')
+DotObject.set = wrap('set')
+DotObject.del = DotObject.remove = wrap('remove')
+DotObject.dot = wrap('dot')
+
+;['override', 'overwrite'].forEach(function (prop) {
+  Object.defineProperty(DotObject, prop, {
+    get: function () {
+      return dotDefault.override
+    },
+    set: function (val) {
+      dotDefault.override = !!val
+    }
+  })
+})
+
+Object.defineProperty(DotObject, 'useArray', {
+  get: function () {
+    return dotDefault.useArray
+  },
+  set: function (val) {
+    dotDefault.useArray = val
+  }
+})
+
+DotObject._process = _process
+
+module.exports = DotObject;
+
+},{}],59:[function(require,module,exports){
 (function (global){
 ((typeof define === "function" && define.amd && function (m) {
     define("formatio", ["samsam"], m);
@@ -6992,7 +7477,7 @@ function coerce(val) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"samsam":63}],59:[function(require,module,exports){
+},{"samsam":64}],60:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -7017,7 +7502,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],60:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 (function (global){
 /*global global, window*/
 /**
@@ -7541,7 +8026,7 @@ if (typeof Object.create === 'function') {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],61:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -7668,7 +8153,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],62:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -7789,7 +8274,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],63:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 ((typeof define === "function" && define.amd && function (m) { define("samsam", m); }) ||
  (typeof module === "object" &&
       function (m) { module.exports = m(); }) || // Node
@@ -8190,7 +8675,7 @@ process.umask = function() { return 0; };
     };
 });
 
-},{}],64:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 /**
  * Sinon core utilities. For internal use only.
  *
@@ -8239,7 +8724,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     return sinonModule;
 }());
 
-},{"./sinon/assert":65,"./sinon/behavior":66,"./sinon/call":67,"./sinon/collection":68,"./sinon/extend":69,"./sinon/format":70,"./sinon/log_error":71,"./sinon/match":72,"./sinon/mock":73,"./sinon/sandbox":74,"./sinon/spy":75,"./sinon/stub":76,"./sinon/test":77,"./sinon/test_case":78,"./sinon/times_in_words":79,"./sinon/typeOf":80,"./sinon/util/core":81,"./sinon/walk":88}],65:[function(require,module,exports){
+},{"./sinon/assert":66,"./sinon/behavior":67,"./sinon/call":68,"./sinon/collection":69,"./sinon/extend":70,"./sinon/format":71,"./sinon/log_error":72,"./sinon/match":73,"./sinon/mock":74,"./sinon/sandbox":75,"./sinon/spy":76,"./sinon/stub":77,"./sinon/test":78,"./sinon/test_case":79,"./sinon/times_in_words":80,"./sinon/typeOf":81,"./sinon/util/core":82,"./sinon/walk":89}],66:[function(require,module,exports){
 (function (global){
 /**
  * @depend times_in_words.js
@@ -8490,7 +8975,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./format":70,"./match":72,"./util/core":81}],66:[function(require,module,exports){
+},{"./format":71,"./match":73,"./util/core":82}],67:[function(require,module,exports){
 (function (process){
 /**
  * @depend util/core.js
@@ -8866,7 +9351,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
 
 }).call(this,require('_process'))
 
-},{"./extend":69,"./util/core":81,"_process":62}],67:[function(require,module,exports){
+},{"./extend":70,"./util/core":82,"_process":63}],68:[function(require,module,exports){
 /**
   * @depend util/core.js
   * @depend match.js
@@ -9107,7 +9592,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./format":70,"./match":72,"./util/core":81}],68:[function(require,module,exports){
+},{"./format":71,"./match":73,"./util/core":82}],69:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend spy.js
@@ -9282,7 +9767,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./mock":73,"./spy":75,"./stub":76,"./util/core":81}],69:[function(require,module,exports){
+},{"./mock":74,"./spy":76,"./stub":77,"./util/core":82}],70:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -9395,7 +9880,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":81}],70:[function(require,module,exports){
+},{"./util/core":82}],71:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -9491,7 +9976,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof formatio === "object" && formatio // eslint-disable-line no-undef
 ));
 
-},{"./util/core":81,"formatio":58,"util":90}],71:[function(require,module,exports){
+},{"./util/core":82,"formatio":59,"util":92}],72:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -9577,7 +10062,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":81}],72:[function(require,module,exports){
+},{"./util/core":82}],73:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend typeOf.js
@@ -9840,7 +10325,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./typeOf":80,"./util/core":81}],73:[function(require,module,exports){
+},{"./typeOf":81,"./util/core":82}],74:[function(require,module,exports){
 /**
  * @depend times_in_words.js
  * @depend util/core.js
@@ -10333,7 +10818,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./call":67,"./extend":69,"./format":70,"./match":72,"./spy":75,"./stub":76,"./times_in_words":79,"./util/core":81}],74:[function(require,module,exports){
+},{"./call":68,"./extend":70,"./format":71,"./match":73,"./spy":76,"./stub":77,"./times_in_words":80,"./util/core":82}],75:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend extend.js
@@ -10505,7 +10990,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./collection":68,"./extend":69,"./util/core":81,"./util/fake_server_with_clock":84,"./util/fake_timers":85}],75:[function(require,module,exports){
+},{"./collection":69,"./extend":70,"./util/core":82,"./util/fake_server_with_clock":85,"./util/fake_timers":86}],76:[function(require,module,exports){
 /**
   * @depend times_in_words.js
   * @depend util/core.js
@@ -10970,7 +11455,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./call":67,"./extend":69,"./format":70,"./times_in_words":79,"./util/core":81}],76:[function(require,module,exports){
+},{"./call":68,"./extend":70,"./format":71,"./times_in_words":80,"./util/core":82}],77:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend extend.js
@@ -11172,7 +11657,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./behavior":66,"./extend":69,"./spy":75,"./util/core":81}],77:[function(require,module,exports){
+},{"./behavior":67,"./extend":70,"./spy":76,"./util/core":82}],78:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend sandbox.js
@@ -11272,7 +11757,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     }
 }(typeof sinon === "object" && sinon || null)); // eslint-disable-line no-undef
 
-},{"./sandbox":74,"./util/core":81}],78:[function(require,module,exports){
+},{"./sandbox":75,"./util/core":82}],79:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend test.js
@@ -11380,7 +11865,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./test":77,"./util/core":81}],79:[function(require,module,exports){
+},{"./test":78,"./util/core":82}],80:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -11431,7 +11916,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":81}],80:[function(require,module,exports){
+},{"./util/core":82}],81:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -11486,7 +11971,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":81}],81:[function(require,module,exports){
+},{"./util/core":82}],82:[function(require,module,exports){
 /**
  * @depend ../../sinon.js
  */
@@ -11889,7 +12374,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{}],82:[function(require,module,exports){
+},{}],83:[function(require,module,exports){
 /**
  * Minimal Event interface implementation
  *
@@ -12002,7 +12487,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"./core":81}],83:[function(require,module,exports){
+},{"./core":82}],84:[function(require,module,exports){
 /**
  * @depend fake_xdomain_request.js
  * @depend fake_xml_http_request.js
@@ -12251,7 +12736,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"../format":70,"./core":81,"./fake_xdomain_request":86,"./fake_xml_http_request":87}],84:[function(require,module,exports){
+},{"../format":71,"./core":82,"./fake_xdomain_request":87,"./fake_xml_http_request":88}],85:[function(require,module,exports){
 /**
  * @depend fake_server.js
  * @depend fake_timers.js
@@ -12354,7 +12839,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"./core":81,"./fake_server":83,"./fake_timers":85}],85:[function(require,module,exports){
+},{"./core":82,"./fake_server":84,"./fake_timers":86}],86:[function(require,module,exports){
 /**
  * Fake timer API
  * setTimeout
@@ -12429,7 +12914,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"./core":81,"lolex":60}],86:[function(require,module,exports){
+},{"./core":82,"lolex":61}],87:[function(require,module,exports){
 (function (global){
 /**
  * @depend core.js
@@ -12673,7 +13158,7 @@ if (typeof sinon === "undefined") {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"../extend":69,"../log_error":71,"./core":81,"./event":82}],87:[function(require,module,exports){
+},{"../extend":70,"../log_error":72,"./core":82,"./event":83}],88:[function(require,module,exports){
 (function (global){
 /**
  * @depend core.js
@@ -13417,7 +13902,7 @@ if (typeof sinon === "undefined") {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"../extend":69,"../log_error":71,"./core":81,"./event":82}],88:[function(require,module,exports){
+},{"../extend":70,"../log_error":72,"./core":82,"./event":83}],89:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -13498,14 +13983,210 @@ if (typeof sinon === "undefined") {
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":81}],89:[function(require,module,exports){
+},{"./util/core":82}],90:[function(require,module,exports){
+(function (global){
+"use strict"
+// Module export pattern from
+// https://github.com/umdjs/umd/blob/master/returnExports.js
+;(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define([], factory);
+    } else if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = factory();
+    } else {
+        // Browser globals (root is window)
+        root.store = factory();
+  }
+}(this, function () {
+	
+	// Store.js
+	var store = {},
+		win = (typeof window != 'undefined' ? window : global),
+		doc = win.document,
+		localStorageName = 'localStorage',
+		scriptTag = 'script',
+		storage
+
+	store.disabled = false
+	store.version = '1.3.20'
+	store.set = function(key, value) {}
+	store.get = function(key, defaultVal) {}
+	store.has = function(key) { return store.get(key) !== undefined }
+	store.remove = function(key) {}
+	store.clear = function() {}
+	store.transact = function(key, defaultVal, transactionFn) {
+		if (transactionFn == null) {
+			transactionFn = defaultVal
+			defaultVal = null
+		}
+		if (defaultVal == null) {
+			defaultVal = {}
+		}
+		var val = store.get(key, defaultVal)
+		transactionFn(val)
+		store.set(key, val)
+	}
+	store.getAll = function() {}
+	store.forEach = function() {}
+
+	store.serialize = function(value) {
+		return JSON.stringify(value)
+	}
+	store.deserialize = function(value) {
+		if (typeof value != 'string') { return undefined }
+		try { return JSON.parse(value) }
+		catch(e) { return value || undefined }
+	}
+
+	// Functions to encapsulate questionable FireFox 3.6.13 behavior
+	// when about.config::dom.storage.enabled === false
+	// See https://github.com/marcuswestin/store.js/issues#issue/13
+	function isLocalStorageNameSupported() {
+		try { return (localStorageName in win && win[localStorageName]) }
+		catch(err) { return false }
+	}
+
+	if (isLocalStorageNameSupported()) {
+		storage = win[localStorageName]
+		store.set = function(key, val) {
+			if (val === undefined) { return store.remove(key) }
+			storage.setItem(key, store.serialize(val))
+			return val
+		}
+		store.get = function(key, defaultVal) {
+			var val = store.deserialize(storage.getItem(key))
+			return (val === undefined ? defaultVal : val)
+		}
+		store.remove = function(key) { storage.removeItem(key) }
+		store.clear = function() { storage.clear() }
+		store.getAll = function() {
+			var ret = {}
+			store.forEach(function(key, val) {
+				ret[key] = val
+			})
+			return ret
+		}
+		store.forEach = function(callback) {
+			for (var i=0; i<storage.length; i++) {
+				var key = storage.key(i)
+				callback(key, store.get(key))
+			}
+		}
+	} else if (doc && doc.documentElement.addBehavior) {
+		var storageOwner,
+			storageContainer
+		// Since #userData storage applies only to specific paths, we need to
+		// somehow link our data to a specific path.  We choose /favicon.ico
+		// as a pretty safe option, since all browsers already make a request to
+		// this URL anyway and being a 404 will not hurt us here.  We wrap an
+		// iframe pointing to the favicon in an ActiveXObject(htmlfile) object
+		// (see: http://msdn.microsoft.com/en-us/library/aa752574(v=VS.85).aspx)
+		// since the iframe access rules appear to allow direct access and
+		// manipulation of the document element, even for a 404 page.  This
+		// document can be used instead of the current document (which would
+		// have been limited to the current path) to perform #userData storage.
+		try {
+			storageContainer = new ActiveXObject('htmlfile')
+			storageContainer.open()
+			storageContainer.write('<'+scriptTag+'>document.w=window</'+scriptTag+'><iframe src="/favicon.ico"></iframe>')
+			storageContainer.close()
+			storageOwner = storageContainer.w.frames[0].document
+			storage = storageOwner.createElement('div')
+		} catch(e) {
+			// somehow ActiveXObject instantiation failed (perhaps some special
+			// security settings or otherwse), fall back to per-path storage
+			storage = doc.createElement('div')
+			storageOwner = doc.body
+		}
+		var withIEStorage = function(storeFunction) {
+			return function() {
+				var args = Array.prototype.slice.call(arguments, 0)
+				args.unshift(storage)
+				// See http://msdn.microsoft.com/en-us/library/ms531081(v=VS.85).aspx
+				// and http://msdn.microsoft.com/en-us/library/ms531424(v=VS.85).aspx
+				storageOwner.appendChild(storage)
+				storage.addBehavior('#default#userData')
+				storage.load(localStorageName)
+				var result = storeFunction.apply(store, args)
+				storageOwner.removeChild(storage)
+				return result
+			}
+		}
+
+		// In IE7, keys cannot start with a digit or contain certain chars.
+		// See https://github.com/marcuswestin/store.js/issues/40
+		// See https://github.com/marcuswestin/store.js/issues/83
+		var forbiddenCharsRegex = new RegExp("[!\"#$%&'()*+,/\\\\:;<=>?@[\\]^`{|}~]", "g")
+		var ieKeyFix = function(key) {
+			return key.replace(/^d/, '___$&').replace(forbiddenCharsRegex, '___')
+		}
+		store.set = withIEStorage(function(storage, key, val) {
+			key = ieKeyFix(key)
+			if (val === undefined) { return store.remove(key) }
+			storage.setAttribute(key, store.serialize(val))
+			storage.save(localStorageName)
+			return val
+		})
+		store.get = withIEStorage(function(storage, key, defaultVal) {
+			key = ieKeyFix(key)
+			var val = store.deserialize(storage.getAttribute(key))
+			return (val === undefined ? defaultVal : val)
+		})
+		store.remove = withIEStorage(function(storage, key) {
+			key = ieKeyFix(key)
+			storage.removeAttribute(key)
+			storage.save(localStorageName)
+		})
+		store.clear = withIEStorage(function(storage) {
+			var attributes = storage.XMLDocument.documentElement.attributes
+			storage.load(localStorageName)
+			for (var i=attributes.length-1; i>=0; i--) {
+				storage.removeAttribute(attributes[i].name)
+			}
+			storage.save(localStorageName)
+		})
+		store.getAll = function(storage) {
+			var ret = {}
+			store.forEach(function(key, val) {
+				ret[key] = val
+			})
+			return ret
+		}
+		store.forEach = withIEStorage(function(storage, callback) {
+			var attributes = storage.XMLDocument.documentElement.attributes
+			for (var i=0, attr; attr=attributes[i]; ++i) {
+				callback(attr.name, store.deserialize(storage.getAttribute(attr.name)))
+			}
+		})
+	}
+
+	try {
+		var testKey = '__storejs__'
+		store.set(testKey, testKey)
+		if (store.get(testKey) != testKey) { store.disabled = true }
+		store.remove(testKey)
+	} catch(e) {
+		store.disabled = true
+	}
+	store.enabled = !store.disabled
+	
+	return store
+}));
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+
+},{}],91:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],90:[function(require,module,exports){
+},{}],92:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -14096,7 +14777,7 @@ function hasOwnProperty(obj, prop) {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./support/isBuffer":89,"_process":62,"inherits":59}],91:[function(require,module,exports){
+},{"./support/isBuffer":91,"_process":63,"inherits":60}],93:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -14285,14 +14966,14 @@ var AutoEvents = function () {
 
 exports['default'] = AutoEvents;
 
-},{"./DOMComponentsTracking.js":93,"component-type":5}],92:[function(require,module,exports){
+},{"./DOMComponentsTracking.js":96,"component-type":5}],94:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
 
-var _getProperty = require('./functions/getProperty.js');
+var _dotObject = require('dot-object');
 
-var _getProperty2 = _interopRequireDefault(_getProperty);
+var _dotObject2 = _interopRequireDefault(_dotObject);
 
 var _componentClone = require('component-clone');
 
@@ -14314,7 +14995,7 @@ var DDHelper = function () {
   }
 
   DDHelper.get = function get(key, digitalData) {
-    var value = (0, _getProperty2['default'])(digitalData, key);
+    var value = _dotObject2['default'].pick(key, digitalData);
     return (0, _componentClone2['default'])(value);
   };
 
@@ -14448,7 +15129,100 @@ var DDHelper = function () {
 
 exports['default'] = DDHelper;
 
-},{"./functions/getProperty.js":105,"component-clone":3}],93:[function(require,module,exports){
+},{"component-clone":3,"dot-object":58}],95:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+var _dotObject = require('dot-object');
+
+var _dotObject2 = _interopRequireDefault(_dotObject);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+var keyPersistedKeys = '_persistedKeys';
+
+var DDStorage = function () {
+  function DDStorage(digitalData, storage) {
+    _classCallCheck(this, DDStorage);
+
+    this.digitalData = digitalData;
+    this.storage = storage;
+  }
+
+  DDStorage.prototype.persist = function persist(key, exp) {
+    var value = _dotObject2['default'].pick(key, this.digitalData);
+    if (value !== undefined) {
+      var persistedKeys = this.getPersistedKeys();
+      if (persistedKeys.indexOf(key) < 0) {
+        persistedKeys.push(key);
+        this.storage.set(keyPersistedKeys, persistedKeys);
+      }
+      return this.storage.set(key, value, exp);
+    }
+  };
+
+  DDStorage.prototype.getPersistedKeys = function getPersistedKeys() {
+    var persistedKeys = this.storage.get(keyPersistedKeys) || [];
+    return persistedKeys;
+  };
+
+  DDStorage.prototype.removePersistedKey = function removePersistedKey(key) {
+    var persistedKeys = this.getPersistedKeys();
+    var index = persistedKeys.indexOf(key);
+    if (index > -1) {
+      persistedKeys.splice(index, 1);
+    }
+    this.savePersistedKeys(persistedKeys);
+  };
+
+  DDStorage.prototype.updatePersistedKeys = function updatePersistedKeys(persistedKeys) {
+    this.storage.set(keyPersistedKeys, persistedKeys);
+  };
+
+  DDStorage.prototype.get = function get(key) {
+    var value = this.storage.get(key);
+    if (value === undefined) {
+      this.removePersistedKey(key);
+    }
+    return value;
+  };
+
+  DDStorage.prototype.clearPersistedData = function clearPersistedData() {
+    var persistedKeys = this.getPersistedKeys();
+    for (var _iterator = persistedKeys, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+      var _ref;
+
+      if (_isArray) {
+        if (_i >= _iterator.length) break;
+        _ref = _iterator[_i++];
+      } else {
+        _i = _iterator.next();
+        if (_i.done) break;
+        _ref = _i.value;
+      }
+
+      var key = _ref;
+
+      this.storage.remove(key);
+    }
+    this.storage.remove(keyPersistedKeys);
+  };
+
+  return DDStorage;
+}();
+
+exports['default'] = DDStorage;
+
+},{"dot-object":58}],96:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -14744,7 +15518,7 @@ var DOMComponentsTracking = function () {
 
 exports['default'] = DOMComponentsTracking;
 
-},{}],94:[function(require,module,exports){
+},{}],97:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -14757,6 +15531,10 @@ var _semver = require('./functions/semver.js');
 
 var _semver2 = _interopRequireDefault(_semver);
 
+var _dotObject = require('dot-object');
+
+var _dotObject2 = _interopRequireDefault(_dotObject);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -14768,11 +15546,12 @@ function _classCallCheck(instance, Constructor) {
 }
 
 var DigitalDataEnricher = function () {
-  function DigitalDataEnricher(digitalData, ddListener) {
+  function DigitalDataEnricher(digitalData, ddListener, ddStorage) {
     _classCallCheck(this, DigitalDataEnricher);
 
     this.digitalData = digitalData;
     this.ddListener = ddListener;
+    this.ddStorage = ddStorage;
   }
 
   DigitalDataEnricher.prototype.setDigitalData = function setDigitalData(digitalData) {
@@ -14783,10 +15562,104 @@ var DigitalDataEnricher = function () {
     this.ddListener = ddListener;
   };
 
+  DigitalDataEnricher.prototype.setDDStorage = function setDDStorage(ddStorage) {
+    this.ddStorage = ddStorage;
+  };
+
   DigitalDataEnricher.prototype.enrichDigitalData = function enrichDigitalData() {
+    // define required digitalData structure
+    this.enrichStructure();
+
+    // persist some default behaviours
+    this.persistUserData();
+
+    // enrich with default context data
     this.enrichPageData();
     this.enrichContextData();
+    this.enrichDDStorageData();
     this.enrichLegacyVersions();
+
+    // when all enrichments are done
+    this.listenToUserDataChanges();
+    this.listenToSemanticEvents();
+  };
+
+  DigitalDataEnricher.prototype.listenToSemanticEvents = function listenToSemanticEvents() {
+    var _this = this;
+
+    this.ddListener.push(['on', 'event', function (event) {
+      if (event.name === 'Subscribed') {
+        var email = _dotObject2['default'].pick('user.email', event);
+        _this.enrichHasSubscribed(email);
+      } else if (event.name === 'Completed Transaction') {
+        _this.enrichHasTransacted();
+      }
+    }]);
+  };
+
+  DigitalDataEnricher.prototype.listenToUserDataChanges = function listenToUserDataChanges() {
+    var _this2 = this;
+
+    this.ddListener.push(['on', 'change:user', function () {
+      _this2.persistUserData();
+    }]);
+  };
+
+  DigitalDataEnricher.prototype.persistUserData = function persistUserData() {
+    var user = this.digitalData.user;
+
+    // persist user.everLoggedIn
+    if (user.isLoggedIn && !user.everLoggedIn) {
+      user.everLoggedIn = true;
+      this.ddStorage.persist('user.everLoggedIn');
+    }
+    // persist user.email
+    if (user.email) {
+      this.ddStorage.persist('user.email');
+    }
+    // persist user.isSubscribed
+    if (user.isSubscribed) {
+      this.ddStorage.persist('user.isSubscribed');
+    }
+    // persist user.hasTransacted
+    if (user.hasTransacted) {
+      this.ddStorage.persist('user.hasTransacted');
+    }
+    // persist user.lastTransactionDate
+    if (user.lastTransactionDate) {
+      this.ddStorage.persist('user.lastTransactionDate');
+    }
+  };
+
+  DigitalDataEnricher.prototype.enrichHasSubscribed = function enrichHasSubscribed(email) {
+    var user = this.digitalData.user;
+    if (!user.isSubscribed) {
+      user.isSubscribed = true;
+    }
+    if (!user.email && email) {
+      user.email = email;
+    }
+  };
+
+  DigitalDataEnricher.prototype.enrichHasTransacted = function enrichHasTransacted() {
+    var user = this.digitalData.user;
+    if (!user.hasTransacted) {
+      user.hasTransacted = true;
+    }
+    if (!user.lastTransactionDate) {
+      user.lastTransactionDate = new Date().toISOString();
+    }
+  };
+
+  DigitalDataEnricher.prototype.enrichStructure = function enrichStructure() {
+    this.digitalData.website = this.digitalData.website || {};
+    this.digitalData.page = this.digitalData.page || {};
+    this.digitalData.user = this.digitalData.user || {};
+    this.digitalData.context = this.digitalData.context || {};
+    this.digitalData.integrations = this.digitalData.integrations || {};
+    if (!this.digitalData.page.type || this.digitalData.page.type !== 'confirmation') {
+      this.digitalData.cart = this.digitalData.cart || {};
+    }
   };
 
   DigitalDataEnricher.prototype.enrichPageData = function enrichPageData() {
@@ -14805,8 +15678,31 @@ var DigitalDataEnricher = function () {
     context.userAgent = this.getHtmlGlobals().getNavigator().userAgent;
   };
 
+  DigitalDataEnricher.prototype.enrichDDStorageData = function enrichDDStorageData() {
+    var persistedKeys = this.ddStorage.getPersistedKeys();
+    for (var _iterator = persistedKeys, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+      var _ref;
+
+      if (_isArray) {
+        if (_i >= _iterator.length) break;
+        _ref = _iterator[_i++];
+      } else {
+        _i = _iterator.next();
+        if (_i.done) break;
+        _ref = _i.value;
+      }
+
+      var key = _ref;
+
+      var value = this.ddStorage.get(key);
+      if (value !== undefined && _dotObject2['default'].pick(key, this.digitalData) !== value) {
+        _dotObject2['default'].str(key, value, this.digitalData);
+      }
+    }
+  };
+
   DigitalDataEnricher.prototype.enrichLegacyVersions = function enrichLegacyVersions() {
-    var _this = this;
+    var _this3 = this;
 
     // compatibility with version <1.1.1
     if (this.digitalData.version && _semver2['default'].cmp(this.digitalData.version, '1.1.1') < 0) {
@@ -14820,19 +15716,19 @@ var DigitalDataEnricher = function () {
       if (!Array.isArray(recommendations)) {
         recommendations = [recommendations];
       }
-      for (var _iterator = recommendations, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
-        var _ref;
+      for (var _iterator2 = recommendations, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+        var _ref2;
 
-        if (_isArray) {
-          if (_i >= _iterator.length) break;
-          _ref = _iterator[_i++];
+        if (_isArray2) {
+          if (_i2 >= _iterator2.length) break;
+          _ref2 = _iterator2[_i2++];
         } else {
-          _i = _iterator.next();
-          if (_i.done) break;
-          _ref = _i.value;
+          _i2 = _iterator2.next();
+          if (_i2.done) break;
+          _ref2 = _i2.value;
         }
 
-        var recommendation = _ref;
+        var recommendation = _ref2;
 
         if (recommendation && recommendation.listName && !recommendation.listId) {
           recommendation.listId = recommendation.listName;
@@ -14848,7 +15744,7 @@ var DigitalDataEnricher = function () {
         var _listing = this.digitalData.listing = this.digitalData.listing || {};
         _listing.categoryId = page.categoryId;
         this.ddListener.push(['on', 'change:page.categoryId', function () {
-          _this.digitalData.listing.categoryId = _this.digitalData.page.categoryId;
+          _this3.digitalData.listing.categoryId = _this3.digitalData.page.categoryId;
         }]);
       }
     }
@@ -14868,7 +15764,7 @@ var DigitalDataEnricher = function () {
 
 exports['default'] = DigitalDataEnricher;
 
-},{"./functions/htmlGlobals.js":107,"./functions/semver.js":114}],95:[function(require,module,exports){
+},{"./functions/htmlGlobals.js":110,"./functions/semver.js":117,"dot-object":58}],98:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -15040,7 +15936,7 @@ var EventDataEnricher = function () {
 
 exports['default'] = EventDataEnricher;
 
-},{"./DDHelper.js":92,"component-type":5}],96:[function(require,module,exports){
+},{"./DDHelper.js":94,"component-type":5}],99:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -15487,7 +16383,7 @@ var EventManager = function () {
 
 exports['default'] = EventManager;
 
-},{"./DDHelper.js":92,"./EventDataEnricher.js":95,"./functions/after.js":101,"./functions/deleteProperty.js":102,"./functions/jsonIsEqual.js":108,"./functions/noop.js":112,"./functions/size.js":115,"async":2,"component-clone":3,"debug":56}],97:[function(require,module,exports){
+},{"./DDHelper.js":94,"./EventDataEnricher.js":98,"./functions/after.js":105,"./functions/deleteProperty.js":106,"./functions/jsonIsEqual.js":111,"./functions/noop.js":115,"./functions/size.js":118,"async":2,"component-clone":3,"debug":56}],100:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -15706,7 +16602,83 @@ var Integration = function (_EventEmitter) {
 
 exports['default'] = Integration;
 
-},{"./DDHelper.js":92,"./functions/deleteProperty.js":102,"./functions/each.js":103,"./functions/format.js":104,"./functions/loadIframe.js":109,"./functions/loadPixel.js":110,"./functions/loadScript.js":111,"./functions/noop.js":112,"async":2,"component-emitter":4,"debug":56}],98:[function(require,module,exports){
+},{"./DDHelper.js":94,"./functions/deleteProperty.js":106,"./functions/each.js":107,"./functions/format.js":108,"./functions/loadIframe.js":112,"./functions/loadPixel.js":113,"./functions/loadScript.js":114,"./functions/noop.js":115,"async":2,"component-emitter":4,"debug":56}],101:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+var _store = require('store');
+
+var _store2 = _interopRequireDefault(_store);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+var Storage = function () {
+  function Storage() {
+    var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+    _classCallCheck(this, Storage);
+
+    this.options = Object.assign({
+      prefix: 'ddl:'
+    }, options);
+  }
+
+  Storage.prototype.set = function set(key, val, exp) {
+    key = this.getOption('prefix') + key;
+    if (exp !== undefined) {
+      _store2['default'].set(key, {
+        val: val,
+        exp: exp,
+        time: Date.now()
+      });
+    } else {
+      _store2['default'].set(key, val);
+    }
+  };
+
+  Storage.prototype.get = function get(key) {
+    key = this.getOption('prefix') + key;
+    var info = _store2['default'].get(key);
+    if (info !== undefined) {
+      if (info.val !== undefined && info.exp && info.time) {
+        if (Date.now() - info.time > info.exp) {
+          _store2['default'].remove(key);
+          return undefined;
+        }
+        return info.val;
+      }
+    }
+    return info;
+  };
+
+  Storage.prototype.remove = function remove(key) {
+    key = this.getOption('prefix') + key;
+    return _store2['default'].remove(key);
+  };
+
+  Storage.prototype.isEnabled = function isEnabled() {
+    return _store2['default'].enabled;
+  };
+
+  Storage.prototype.getOption = function getOption(name) {
+    return this.options[name];
+  };
+
+  return Storage;
+}();
+
+exports['default'] = Storage;
+
+},{"store":90}],102:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -15943,7 +16915,7 @@ var ViewabilityTracker = function () {
 
 exports['default'] = ViewabilityTracker;
 
-},{"./functions/noop.js":112}],99:[function(require,module,exports){
+},{"./functions/noop.js":115}],103:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16027,7 +16999,7 @@ var integrations = {
 
 exports['default'] = integrations;
 
-},{"./integrations/Criteo.js":117,"./integrations/Driveback.js":118,"./integrations/Emarsys.js":119,"./integrations/FacebookPixel.js":120,"./integrations/GoogleAdWords.js":121,"./integrations/GoogleAnalytics.js":122,"./integrations/GoogleTagManager.js":123,"./integrations/MyTarget.js":124,"./integrations/OWOXBIStreaming.js":125,"./integrations/RetailRocket.js":126,"./integrations/SegmentStream.js":127,"./integrations/SendPulse.js":128,"./integrations/Vkontakte.js":129,"./integrations/YandexMetrica.js":130}],100:[function(require,module,exports){
+},{"./integrations/Criteo.js":120,"./integrations/Driveback.js":121,"./integrations/Emarsys.js":122,"./integrations/FacebookPixel.js":123,"./integrations/GoogleAdWords.js":124,"./integrations/GoogleAnalytics.js":125,"./integrations/GoogleTagManager.js":126,"./integrations/MyTarget.js":127,"./integrations/OWOXBIStreaming.js":128,"./integrations/RetailRocket.js":129,"./integrations/SegmentStream.js":130,"./integrations/SendPulse.js":131,"./integrations/Vkontakte.js":132,"./integrations/YandexMetrica.js":133}],104:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -16088,6 +17060,14 @@ var _DigitalDataEnricher = require('./DigitalDataEnricher.js');
 
 var _DigitalDataEnricher2 = _interopRequireDefault(_DigitalDataEnricher);
 
+var _Storage = require('./Storage.js');
+
+var _Storage2 = _interopRequireDefault(_Storage);
+
+var _DDStorage = require('./DDStorage.js');
+
+var _DDStorage2 = _interopRequireDefault(_DDStorage);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -16119,6 +17099,18 @@ var _availableIntegrations = void 0;
 var _eventManager = void 0;
 
 /**
+ * @type {Storage}
+ * @private
+ */
+var _storage = void 0;
+
+/**
+ * @type {DDStorage}
+ * @private
+ */
+var _ddStorage = void 0;
+
+/**
  * @type {Object}
  * @private
  */
@@ -16141,15 +17133,6 @@ function _prepareGlobals() {
     _digitalData = window.digitalData;
   } else {
     window.digitalData = _digitalData;
-  }
-
-  _digitalData.website = _digitalData.website || {};
-  _digitalData.page = _digitalData.page || {};
-  _digitalData.user = _digitalData.user || {};
-  _digitalData.context = _digitalData.context || {};
-  _digitalData.integrations = _digitalData.integrations || {};
-  if (!_digitalData.page.type || _digitalData.page.type !== 'confirmation') {
-    _digitalData.cart = _digitalData.cart || {};
   }
 
   if (Array.isArray(window.ddListener)) {
@@ -16266,6 +17249,7 @@ ddManager = {
    *    },
    *    domain: 'example.com',
    *    sessionLength: 3600,
+   *    persistVars: ['user.hasCoffeeMachine', 'user.everLoggedIn', 'user.email']
    *    integrations: [
    *      {
    *        'name': 'Google Tag Manager',
@@ -16298,8 +17282,11 @@ ddManager = {
 
     _prepareGlobals();
 
+    _storage = new _Storage2['default']();
+    _ddStorage = new _DDStorage2['default'](_digitalData, _storage);
+
     // initialize digital data enricher
-    var digitalDataEnricher = new _DigitalDataEnricher2['default'](_digitalData, _ddListener);
+    var digitalDataEnricher = new _DigitalDataEnricher2['default'](_digitalData, _ddListener, _ddStorage);
     digitalDataEnricher.enrichDigitalData();
 
     // initialize event manager
@@ -16349,6 +17336,10 @@ ddManager = {
     return _DDHelper2['default'].get(key, _digitalData);
   },
 
+  persist: function persist(key, exp) {
+    return _ddStorage.persist(key, exp);
+  },
+
   getProduct: function getProduct(id) {
     return _DDHelper2['default'].getProduct(id, _digitalData);
   },
@@ -16362,6 +17353,7 @@ ddManager = {
   },
 
   reset: function reset() {
+    _ddStorage.clearPersistedData();
     if (_eventManager instanceof _EventManager2['default']) {
       _eventManager.reset();
     }
@@ -16402,7 +17394,7 @@ ddManager.on = ddManager.addEventListener = function (event, handler) {
 
 exports['default'] = ddManager;
 
-},{"./AutoEvents.js":91,"./DDHelper.js":92,"./DigitalDataEnricher.js":94,"./EventManager.js":96,"./Integration.js":97,"./ViewabilityTracker.js":98,"./functions/after.js":101,"./functions/each.js":103,"./functions/size.js":115,"async":2,"component-clone":3,"component-emitter":4}],101:[function(require,module,exports){
+},{"./AutoEvents.js":93,"./DDHelper.js":94,"./DDStorage.js":95,"./DigitalDataEnricher.js":97,"./EventManager.js":99,"./Integration.js":100,"./Storage.js":101,"./ViewabilityTracker.js":102,"./functions/after.js":105,"./functions/each.js":107,"./functions/size.js":118,"async":2,"component-clone":3,"component-emitter":4}],105:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -16416,7 +17408,7 @@ exports["default"] = function (times, fn) {
   };
 };
 
-},{}],102:[function(require,module,exports){
+},{}],106:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -16429,7 +17421,7 @@ exports["default"] = function (obj, prop) {
   }
 };
 
-},{}],103:[function(require,module,exports){
+},{}],107:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -16442,7 +17434,7 @@ exports["default"] = function (obj, fn) {
   }
 };
 
-},{}],104:[function(require,module,exports){
+},{}],108:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -16481,36 +17473,7 @@ function format(str) {
   });
 }
 
-},{}],105:[function(require,module,exports){
-'use strict';
-
-exports.__esModule = true;
-
-exports['default'] = function (obj, prop) {
-  var keyParts = _keyToArray(prop);
-  var nestedVar = obj;
-  while (keyParts.length > 0) {
-    var childKey = keyParts.shift();
-    if (nestedVar.hasOwnProperty(childKey)) {
-      nestedVar = nestedVar[childKey];
-    } else {
-      return undefined;
-    }
-  }
-  return nestedVar;
-};
-
-function _keyToArray(key) {
-  key = key.trim();
-  if (key === '') {
-    return [];
-  }
-  key = key.replace(/\[(\w+)\]/g, '.$1');
-  key = key.replace(/^\./, '');
-  return key.split('.');
-}
-
-},{}],106:[function(require,module,exports){
+},{}],109:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16525,7 +17488,7 @@ function getQueryParam(name, queryString) {
   return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
 }
 
-},{}],107:[function(require,module,exports){
+},{}],110:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -16543,7 +17506,7 @@ exports["default"] = {
   }
 };
 
-},{}],108:[function(require,module,exports){
+},{}],111:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16558,7 +17521,7 @@ function jsonIsEqual(json1, json2) {
   return json1 === json2;
 }
 
-},{}],109:[function(require,module,exports){
+},{}],112:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16618,7 +17581,7 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":113,"async":2}],110:[function(require,module,exports){
+},{"./scriptOnLoad.js":116,"async":2}],113:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16654,7 +17617,7 @@ function error(fn, message, img) {
   };
 }
 
-},{}],111:[function(require,module,exports){
+},{}],114:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16713,14 +17676,14 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":113,"async":2}],112:[function(require,module,exports){
+},{"./scriptOnLoad.js":116,"async":2}],115:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
 
 exports["default"] = function () {};
 
-},{}],113:[function(require,module,exports){
+},{}],116:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16775,7 +17738,7 @@ function attachEvent(el, fn) {
   });
 }
 
-},{}],114:[function(require,module,exports){
+},{}],117:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16796,7 +17759,7 @@ function cmp(a, b) {
 
 exports['default'] = { cmp: cmp };
 
-},{}],115:[function(require,module,exports){
+},{}],118:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -16809,7 +17772,7 @@ exports["default"] = function (obj) {
   return size;
 };
 
-},{}],116:[function(require,module,exports){
+},{}],119:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16836,7 +17799,7 @@ function throwError(code, message) {
   throw error;
 }
 
-},{"debug":56}],117:[function(require,module,exports){
+},{"debug":56}],120:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -17105,7 +18068,7 @@ var Criteo = function (_Integration) {
 
 exports['default'] = Criteo;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty":102,"./../functions/semver":114}],118:[function(require,module,exports){
+},{"./../Integration.js":100,"./../functions/deleteProperty":106,"./../functions/semver":117}],121:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -17211,7 +18174,7 @@ var Driveback = function (_Integration) {
 
 exports['default'] = Driveback;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"./../functions/noop.js":112}],119:[function(require,module,exports){
+},{"./../Integration.js":100,"./../functions/deleteProperty.js":106,"./../functions/noop.js":115}],122:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -17424,7 +18387,7 @@ var Emarsys = function (_Integration) {
 
 exports['default'] = Emarsys;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102}],120:[function(require,module,exports){
+},{"./../Integration.js":100,"./../functions/deleteProperty.js":106}],123:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -17629,7 +18592,7 @@ var FacebookPixel = function (_Integration) {
 
 exports['default'] = FacebookPixel;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"component-type":5}],121:[function(require,module,exports){
+},{"./../Integration.js":100,"./../functions/deleteProperty.js":106,"component-type":5}],124:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -17860,7 +18823,7 @@ var GoogleAdWords = function (_Integration) {
 
 exports['default'] = GoogleAdWords;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102}],122:[function(require,module,exports){
+},{"./../Integration.js":100,"./../functions/deleteProperty.js":106}],125:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -17875,9 +18838,9 @@ var _deleteProperty = require('./../functions/deleteProperty.js');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
-var _getProperty = require('./../functions/getProperty.js');
+var _dotObject = require('dot-object');
 
-var _getProperty2 = _interopRequireDefault(_getProperty);
+var _dotObject2 = _interopRequireDefault(_dotObject);
 
 var _each = require('./../functions/each.js');
 
@@ -17941,7 +18904,7 @@ function getCheckoutOptions(event, checkoutOptions) {
 
     var optionName = _ref;
 
-    var optionValue = (0, _getProperty2['default'])(event, optionName);
+    var optionValue = _dotObject2['default'].pick(optionName, event);
     if (optionValue) {
       options.push(optionValue);
     }
@@ -18094,7 +19057,7 @@ var GoogleAnalytics = function (_Integration) {
     }
     var custom = {};
     (0, _each2['default'])(settings, function (key, value) {
-      var dimensionVal = (0, _getProperty2['default'])(source, value);
+      var dimensionVal = _dotObject2['default'].pick(value, source);
       if (dimensionVal !== undefined) {
         if (typeof dimensionVal === 'boolean') dimensionVal = dimensionVal.toString();
         custom[key] = dimensionVal;
@@ -18560,7 +19523,7 @@ var GoogleAnalytics = function (_Integration) {
 
 exports['default'] = GoogleAnalytics;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"./../functions/each.js":103,"./../functions/getProperty.js":105,"./../functions/size.js":115,"component-clone":3}],123:[function(require,module,exports){
+},{"./../Integration.js":100,"./../functions/deleteProperty.js":106,"./../functions/each.js":107,"./../functions/size.js":118,"component-clone":3,"dot-object":58}],126:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -18627,7 +19590,6 @@ var GoogleTagManager = function (_Integration) {
     this.ddManager.on('load', function () {
       window.dataLayer.push({ event: 'DDManager Loaded' });
     });
-
     if (this.getOption('containerId') && this.getOption('noConflict') === false) {
       window.dataLayer.push({ 'gtm.start': Number(new Date()), event: 'gtm.js' });
       this.load(this.onLoad);
@@ -18660,7 +19622,7 @@ var GoogleTagManager = function (_Integration) {
 
 exports['default'] = GoogleTagManager;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102}],124:[function(require,module,exports){
+},{"./../Integration.js":100,"./../functions/deleteProperty.js":106}],127:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -18893,7 +19855,7 @@ var MyTarget = function (_Integration) {
 
 exports['default'] = MyTarget;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102}],125:[function(require,module,exports){
+},{"./../Integration.js":100,"./../functions/deleteProperty.js":106}],128:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -18996,7 +19958,7 @@ var OWOXBIStreaming = function (_Integration) {
 
 exports['default'] = OWOXBIStreaming;
 
-},{"./../Integration.js":97}],126:[function(require,module,exports){
+},{"./../Integration.js":100}],129:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -19011,9 +19973,9 @@ var _deleteProperty = require('./../functions/deleteProperty');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
-var _getProperty = require('./../../src/functions/getProperty');
+var _dotObject = require('dot-object');
 
-var _getProperty2 = _interopRequireDefault(_getProperty);
+var _dotObject2 = _interopRequireDefault(_dotObject);
 
 var _throwError = require('./../functions/throwError');
 
@@ -19105,7 +20067,7 @@ var RetailRocket = function (_Integration) {
   RetailRocket.prototype.initialize = function initialize() {
     if (this.getOption('partnerId')) {
       window.rrPartnerId = this.getOption('partnerId');
-      var userId = (0, _getProperty2['default'])(this.digitalData, this.getOption('userIdProperty'));
+      var userId = _dotObject2['default'].pick(this.getOption('userIdProperty'), this.digitalData);
       if (userId) {
         window.rrPartnerUserId = userId;
       }
@@ -19313,7 +20275,7 @@ var RetailRocket = function (_Integration) {
     if (customs) {
       var settings = this.getOption('customVariables');
       (0, _each2['default'])(settings, function (key, value) {
-        var dimensionVal = (0, _getProperty2['default'])(customs, value);
+        var dimensionVal = _dotObject2['default'].pick(value, customs);
         if (dimensionVal !== undefined) {
           if ((0, _componentType2['default'])(dimensionVal) === 'boolean') dimensionVal = dimensionVal.toString();
           rrCustoms[key] = dimensionVal;
@@ -19426,7 +20388,7 @@ var RetailRocket = function (_Integration) {
 
 exports['default'] = RetailRocket;
 
-},{"./../../src/functions/getProperty":105,"./../Integration.js":97,"./../functions/deleteProperty":102,"./../functions/each":103,"./../functions/format":104,"./../functions/getQueryParam":106,"./../functions/throwError":116,"component-clone":3,"component-type":5}],127:[function(require,module,exports){
+},{"./../Integration.js":100,"./../functions/deleteProperty":106,"./../functions/each":107,"./../functions/format":108,"./../functions/getQueryParam":109,"./../functions/throwError":119,"component-clone":3,"component-type":5,"dot-object":58}],130:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -19600,7 +20562,7 @@ var SegmentStream = function (_Integration) {
 
 exports['default'] = SegmentStream;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"./../functions/each.js":103}],128:[function(require,module,exports){
+},{"./../Integration.js":100,"./../functions/deleteProperty.js":106,"./../functions/each.js":107}],131:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -19615,9 +20577,9 @@ var _deleteProperty = require('./../functions/deleteProperty.js');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
-var _getProperty = require('./../functions/getProperty.js');
+var _dotObject = require('dot-object');
 
-var _getProperty2 = _interopRequireDefault(_getProperty);
+var _dotObject2 = _interopRequireDefault(_dotObject);
 
 var _componentType = require('component-type');
 
@@ -19793,8 +20755,8 @@ var SendPulse = function (_Integration) {
 
       var userVar = _ref;
 
-      var value = (0, _getProperty2['default'])(newUser, userVar);
-      if (value !== undefined && (0, _componentType2['default'])(value) !== 'object' && (!oldUser || value !== (0, _getProperty2['default'])(oldUser, userVar))) {
+      var value = _dotObject2['default'].pick(userVar, newUser);
+      if (value !== undefined && (0, _componentType2['default'])(value) !== 'object' && (!oldUser || value !== _dotObject2['default'].pick(userVar, oldUser))) {
         window.oSpP.push(userVar, String(value));
       }
     }
@@ -19835,7 +20797,7 @@ var SendPulse = function (_Integration) {
 
 exports['default'] = SendPulse;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"./../functions/getProperty.js":105,"component-type":5}],129:[function(require,module,exports){
+},{"./../Integration.js":100,"./../functions/deleteProperty.js":106,"component-type":5,"dot-object":58}],132:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -19914,7 +20876,7 @@ var Vkontakte = function (_Integration) {
 
 exports['default'] = Vkontakte;
 
-},{"./../Integration.js":97}],130:[function(require,module,exports){
+},{"./../Integration.js":100}],133:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -20149,7 +21111,7 @@ var YandexMetrica = function (_Integration) {
 
 exports['default'] = YandexMetrica;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102}],131:[function(require,module,exports){
+},{"./../Integration.js":100,"./../functions/deleteProperty.js":106}],134:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es6.object.create');
@@ -20164,7 +21126,7 @@ require('core-js/modules/es6.object.assign');
 
 require('core-js/modules/es6.string.trim');
 
-},{"core-js/modules/es6.array.index-of":50,"core-js/modules/es6.array.is-array":51,"core-js/modules/es6.function.bind":52,"core-js/modules/es6.object.assign":53,"core-js/modules/es6.object.create":54,"core-js/modules/es6.string.trim":55}],132:[function(require,module,exports){
+},{"core-js/modules/es6.array.index-of":50,"core-js/modules/es6.array.is-array":51,"core-js/modules/es6.function.bind":52,"core-js/modules/es6.object.assign":53,"core-js/modules/es6.object.create":54,"core-js/modules/es6.string.trim":55}],135:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -20389,7 +21351,7 @@ describe('AutoEvents', function () {
   });
 });
 
-},{"./../src/AutoEvents.js":91,"./../src/functions/deleteProperty.js":102,"assert":1}],133:[function(require,module,exports){
+},{"./../src/AutoEvents.js":93,"./../src/functions/deleteProperty.js":106,"assert":1}],136:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -20595,7 +21557,7 @@ describe('DDHelper', function () {
   });
 });
 
-},{"./../src/DDHelper.js":92,"assert":1}],134:[function(require,module,exports){
+},{"./../src/DDHelper.js":94,"assert":1}],137:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -20613,6 +21575,14 @@ var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 var _DigitalDataEnricher = require('./../src/DigitalDataEnricher.js');
 
 var _DigitalDataEnricher2 = _interopRequireDefault(_DigitalDataEnricher);
+
+var _Storage = require('./../src/Storage.js');
+
+var _Storage2 = _interopRequireDefault(_Storage);
+
+var _DDStorage = require('./../src/DDStorage.js');
+
+var _DDStorage2 = _interopRequireDefault(_DDStorage);
 
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
@@ -20763,9 +21733,89 @@ describe('DigitalDataEnricher', function () {
       _assert2['default'].ok(_digitalData.recommendation[1].listId === 'recom2');
     });
   });
+
+  describe('#enrichDDStorageData', function () {
+    it('should enrich data from local storage', function () {
+      _digitalData = {
+        user: {
+          userId: '123',
+          hasCoffeeMachine: true,
+          visitedContactPageTimes: 20,
+          segments: ['segment1', 'segment2']
+        },
+        listing: {
+          listId: 'test'
+        }
+      };
+      var _ddStorage = new _DDStorage2['default'](_digitalData, new _Storage2['default']());
+      _ddStorage.persist('user.hasCoffeeMachine');
+      _ddStorage.persist('user.visitedContactPageTimes');
+      _ddStorage.persist('user.segments');
+      _ddStorage.persist('listing.listId');
+
+      _digitalData = {
+        user: {
+          userId: '123',
+          isSubscribed: true,
+          hasCoffeeMachine: false
+        }
+      };
+      _digitalDataEnricher.setDigitalData(_digitalData);
+      _digitalDataEnricher.setDDStorage(_ddStorage);
+      _digitalDataEnricher.enrichDDStorageData();
+
+      _assert2['default'].deepEqual(_digitalData, {
+        user: {
+          userId: '123',
+          isSubscribed: true,
+          hasCoffeeMachine: true,
+          visitedContactPageTimes: 20,
+          segments: ['segment1', 'segment2']
+        },
+        listing: {
+          listId: 'test'
+        }
+      });
+    });
+  });
+
+  describe('default enrichments', function () {
+    function enirch() {
+      var _ddStorage = new _DDStorage2['default'](_digitalData, new _Storage2['default']());
+      _digitalDataEnricher.setDigitalData(_digitalData);
+      _digitalDataEnricher.setDDStorage(_ddStorage);
+      _digitalDataEnricher.enrichDigitalData();
+    }
+
+    it('should enrich user data', function () {
+      _digitalData = {
+        user: {
+          isSubscribed: true,
+          isLoggedIn: true,
+          email: 'test@email.com',
+          hasTransacted: true,
+          lastTransactionDate: '2016-03-30T10:05:26.041Z'
+        }
+      };
+      enirch();
+
+      _digitalData = {
+        user: {
+          isLoggedIn: false
+        }
+      };
+      enirch();
+      _assert2['default'].ok(!_digitalData.user.isLoggedIn);
+      _assert2['default'].ok(_digitalData.user.everLoggedIn);
+      _assert2['default'].ok(_digitalData.user.hasTransacted);
+      _assert2['default'].ok(_digitalData.user.isSubscribed);
+      _assert2['default'].equal(_digitalData.user.email, 'test@email.com');
+      _assert2['default'].equal(_digitalData.user.lastTransactionDate, '2016-03-30T10:05:26.041Z');
+    });
+  });
 });
 
-},{"./../src/DigitalDataEnricher.js":94,"./../src/functions/deleteProperty.js":102,"assert":1,"sinon":64}],135:[function(require,module,exports){
+},{"./../src/DDStorage.js":95,"./../src/DigitalDataEnricher.js":97,"./../src/Storage.js":101,"./../src/functions/deleteProperty.js":106,"assert":1,"sinon":65}],138:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -21368,7 +22418,7 @@ describe('EventDataEnricher', function () {
   });
 });
 
-},{"./../src/EventDataEnricher.js":95,"./../src/functions/deleteProperty.js":102,"assert":1}],136:[function(require,module,exports){
+},{"./../src/EventDataEnricher.js":98,"./../src/functions/deleteProperty.js":106,"assert":1}],139:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -21984,7 +23034,7 @@ describe('EventManager', function () {
   });
 });
 
-},{"./../src/AutoEvents.js":91,"./../src/EventManager.js":96,"./reset.js":154,"assert":1}],137:[function(require,module,exports){
+},{"./../src/AutoEvents.js":93,"./../src/EventManager.js":99,"./reset.js":157,"assert":1}],140:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -22193,6 +23243,40 @@ describe('DDManager', function () {
       }
     });
 
+    it('should enrich digitalData based on semantic events', function (done) {
+      window.digitalData = {
+        user: {
+          isSubscribed: false,
+          isLoggedIn: true,
+          hasTransacted: false
+        }
+      };
+
+      _ddManager2['default'].once('ready', function () {
+        window.digitalData.events.push({
+          name: 'Completed Transaction'
+        });
+
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          user: {
+            email: 'test@email.com'
+          }
+        });
+
+        setTimeout(function () {
+          _assert2['default'].ok(window.digitalData.user.isLoggedIn);
+          _assert2['default'].ok(window.digitalData.user.everLoggedIn);
+          _assert2['default'].ok(window.digitalData.user.hasTransacted);
+          _assert2['default'].ok(window.digitalData.user.isSubscribed);
+          _assert2['default'].equal(window.digitalData.user.email, 'test@email.com');
+          _assert2['default'].ok(window.digitalData.user.lastTransactionDate);
+          done();
+        }, 101);
+      });
+      _ddManager2['default'].initialize();
+    });
+
     it('it should send Viewed Page event once', function (done) {
       _ddManager2['default'].on('ready', function () {
         setTimeout(function () {
@@ -22220,7 +23304,7 @@ describe('DDManager', function () {
   });
 });
 
-},{"../src/Integration.js":97,"../src/availableIntegrations.js":99,"../src/ddManager.js":100,"./reset.js":154,"./snippet.js":155,"assert":1}],138:[function(require,module,exports){
+},{"../src/Integration.js":100,"../src/availableIntegrations.js":103,"../src/ddManager.js":104,"./reset.js":157,"./snippet.js":158,"assert":1}],141:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -22232,7 +23316,7 @@ function argumentsToArray(args) {
   return Array.prototype.slice.call(args);
 }
 
-},{}],139:[function(require,module,exports){
+},{}],142:[function(require,module,exports){
 'use strict';
 
 require('./../src/polyfill.js');
@@ -22277,7 +23361,7 @@ require('./integrations/VkontakteSpec.js');
 
 require('./integrations/EmarsysSpec.js');
 
-},{"./../src/polyfill.js":131,"./AutoEventsSpec.js":132,"./DDHelperSpec.js":133,"./DigitalDataEnricherSpec.js":134,"./EventDataEnricherSpec.js":135,"./EventManagerSpec.js":136,"./ddManagerSpec.js":137,"./integrations/CriteoSpec.js":140,"./integrations/DrivebackSpec.js":141,"./integrations/EmarsysSpec.js":142,"./integrations/FacebookPixelSpec.js":143,"./integrations/GoogleAdWordsSpec.js":144,"./integrations/GoogleAnalyticsSpec.js":145,"./integrations/GoogleTagManagerSpec.js":146,"./integrations/MyTargetSpec.js":147,"./integrations/OWOXBIStreamingSpec.js":148,"./integrations/RetailRocketSpec.js":149,"./integrations/SegmentStreamSpec.js":150,"./integrations/SendPulseSpec.js":151,"./integrations/VkontakteSpec.js":152,"./integrations/YandexMetricaSpec.js":153}],140:[function(require,module,exports){
+},{"./../src/polyfill.js":134,"./AutoEventsSpec.js":135,"./DDHelperSpec.js":136,"./DigitalDataEnricherSpec.js":137,"./EventDataEnricherSpec.js":138,"./EventManagerSpec.js":139,"./ddManagerSpec.js":140,"./integrations/CriteoSpec.js":143,"./integrations/DrivebackSpec.js":144,"./integrations/EmarsysSpec.js":145,"./integrations/FacebookPixelSpec.js":146,"./integrations/GoogleAdWordsSpec.js":147,"./integrations/GoogleAnalyticsSpec.js":148,"./integrations/GoogleTagManagerSpec.js":149,"./integrations/MyTargetSpec.js":150,"./integrations/OWOXBIStreamingSpec.js":151,"./integrations/RetailRocketSpec.js":152,"./integrations/SegmentStreamSpec.js":153,"./integrations/SendPulseSpec.js":154,"./integrations/VkontakteSpec.js":155,"./integrations/YandexMetricaSpec.js":156}],143:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -23015,7 +24099,7 @@ describe('Integrations: Criteo', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/Criteo.js":117,"./../reset.js":154,"assert":1,"sinon":64}],141:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/integrations/Criteo.js":120,"./../reset.js":157,"assert":1,"sinon":65}],144:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -23105,7 +24189,7 @@ describe('Integrations: Driveback', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/Driveback.js":118,"./../reset.js":154,"assert":1}],142:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/integrations/Driveback.js":121,"./../reset.js":157,"assert":1}],145:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -23500,7 +24584,7 @@ describe('Integrations: Emarsys', function () {
   });
 });
 
-},{"./../../src/ddManager":100,"./../../src/integrations/Emarsys":119,"./../reset":154,"assert":1,"sinon":64}],143:[function(require,module,exports){
+},{"./../../src/ddManager":104,"./../../src/integrations/Emarsys":122,"./../reset":157,"assert":1,"sinon":65}],146:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -24040,7 +25124,7 @@ describe('Integrations: FacebookPixel', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/FacebookPixel.js":120,"./../reset.js":154,"assert":1,"sinon":64}],144:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/integrations/FacebookPixel.js":123,"./../reset.js":157,"assert":1,"sinon":65}],147:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -24458,7 +25542,7 @@ describe('Integrations: GoogleAdWords', function () {
   });
 });
 
-},{"./../../src/ddManager":100,"./../../src/integrations/GoogleAdWords":121,"./../reset":154,"assert":1,"sinon":64}],145:[function(require,module,exports){
+},{"./../../src/ddManager":104,"./../../src/integrations/GoogleAdWords":124,"./../reset":157,"assert":1,"sinon":65}],148:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -24995,6 +26079,7 @@ describe('Integrations: GoogleAnalytics', function () {
               currency: 'USD',
               lineItems: [{
                 product: {
+                  id: '123',
                   unitPrice: 24.75,
                   unitSalePrice: 24.75,
                   name: 'my product',
@@ -25022,7 +26107,7 @@ describe('Integrations: GoogleAnalytics', function () {
               }]);
 
               _assert2['default'].deepEqual(window.ga.args[2], ['ecommerce:addItem', {
-                id: '780bc55',
+                id: '123',
                 category: undefined,
                 name: 'my product',
                 price: 24.75,
@@ -25032,7 +26117,7 @@ describe('Integrations: GoogleAnalytics', function () {
               }]);
 
               _assert2['default'].deepEqual(window.ga.args[3], ['ecommerce:addItem', {
-                id: '780bc55',
+                id: undefined,
                 category: undefined,
                 name: 'other product',
                 price: 24.75,
@@ -26522,7 +27607,7 @@ describe('Integrations: GoogleAnalytics', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/functions/after.js":101,"./../../src/integrations/GoogleAnalytics.js":122,"./../functions/argumentsToArray.js":138,"./../reset.js":154,"assert":1,"sinon":64}],146:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/functions/after.js":105,"./../../src/integrations/GoogleAnalytics.js":125,"./../functions/argumentsToArray.js":141,"./../reset.js":157,"assert":1,"sinon":65}],149:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -26702,7 +27787,7 @@ describe('Integrations: GoogleTagManager', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/GoogleTagManager.js":123,"./../reset.js":154,"assert":1}],147:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/integrations/GoogleTagManager.js":126,"./../reset.js":157,"assert":1}],150:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -27158,7 +28243,7 @@ describe('Integrations: MyTarget', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/MyTarget.js":124,"./../reset.js":154,"assert":1,"sinon":64}],148:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/integrations/MyTarget.js":127,"./../reset.js":157,"assert":1,"sinon":65}],151:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -27259,7 +28344,7 @@ describe('Integrations: OWOXBIStreaming', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/GoogleAnalytics.js":122,"./../../src/integrations/OWOXBIStreaming.js":125,"./../functions/argumentsToArray.js":138,"./../reset.js":154,"assert":1,"sinon":64}],149:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/integrations/GoogleAnalytics.js":125,"./../../src/integrations/OWOXBIStreaming.js":128,"./../functions/argumentsToArray.js":141,"./../reset.js":157,"assert":1,"sinon":65}],152:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -28100,7 +29185,7 @@ describe('Integrations: RetailRocket', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/functions/deleteProperty.js":102,"./../../src/integrations/RetailRocket.js":126,"./../reset.js":154,"assert":1,"sinon":64}],150:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/functions/deleteProperty.js":106,"./../../src/integrations/RetailRocket.js":129,"./../reset.js":157,"assert":1,"sinon":65}],153:[function(require,module,exports){
 'use strict';
 
 var _SegmentStream = require('./../../src/integrations/SegmentStream.js');
@@ -28256,7 +29341,7 @@ describe('SegmentStream', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/SegmentStream.js":127,"./../reset.js":154,"assert":1,"sinon":64}],151:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/integrations/SegmentStream.js":130,"./../reset.js":157,"assert":1,"sinon":65}],154:[function(require,module,exports){
 'use strict';
 
 var _SendPulse = require('./../../src/integrations/SendPulse.js');
@@ -28523,7 +29608,7 @@ describe('SendPulse', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/functions/after.js":101,"./../../src/functions/deleteProperty.js":102,"./../../src/integrations/SendPulse.js":128,"./../reset.js":154,"assert":1,"sinon":64}],152:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/functions/after.js":105,"./../../src/functions/deleteProperty.js":106,"./../../src/integrations/SendPulse.js":131,"./../reset.js":157,"assert":1,"sinon":65}],155:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -28647,7 +29732,7 @@ describe('Integrations: Vkontakte', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/Vkontakte.js":129,"./../reset.js":154,"assert":1,"sinon":64}],153:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/integrations/Vkontakte.js":132,"./../reset.js":157,"assert":1,"sinon":65}],156:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -29170,7 +30255,7 @@ describe('Integrations: Yandex Metrica', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/YandexMetrica.js":130,"./../reset.js":154,"assert":1,"sinon":64}],154:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/integrations/YandexMetrica.js":133,"./../reset.js":157,"assert":1,"sinon":65}],157:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -29181,7 +30266,7 @@ function reset() {
   window.ddManager = undefined;
 }
 
-},{}],155:[function(require,module,exports){
+},{}],158:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -29230,5 +30315,5 @@ exports['default'] = function () {
   }
 };
 
-},{}]},{},[139])
+},{}]},{},[142])
 //# sourceMappingURL=dd-manager-test.js.map
