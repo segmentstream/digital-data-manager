@@ -390,7 +390,7 @@ class GoogleAnalytics extends Integration {
       const product = lineItem.product;
       if (product) {
         this.ga('ecommerce:addItem', {
-          id: transaction.orderId,
+          id: product.id,
           category: getProductCategory(product),
           quantity: lineItem.quantity,
           price: product.unitSalePrice || product.unitPrice,

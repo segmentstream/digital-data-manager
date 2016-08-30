@@ -18333,7 +18333,7 @@ var GoogleAnalytics = function (_Integration) {
       var product = lineItem.product;
       if (product) {
         _this3.ga('ecommerce:addItem', {
-          id: transaction.orderId,
+          id: product.id,
           category: getProductCategory(product),
           quantity: lineItem.quantity,
           price: product.unitSalePrice || product.unitPrice,
