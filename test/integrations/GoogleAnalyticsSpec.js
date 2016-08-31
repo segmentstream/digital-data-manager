@@ -1879,25 +1879,6 @@ describe('Integrations: GoogleAnalytics', () => {
       noConflict: true
     };
 
-    function loadGA(callback) {
-      //load GA
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-      window.ga('create', 'UA-51485228-7', {
-        // Fall back on default to protect against empty string
-        cookieDomain: 'auto',
-        name: 'gtm.123',
-      });
-      window.ga('send', 'pageview');
-
-      window.ga(() => {
-        callback();
-      });
-    }
-
     beforeEach(() => {
       window.digitalData = {
         events: []
@@ -1914,11 +1895,11 @@ describe('Integrations: GoogleAnalytics', () => {
 
     describe('after loading', function () {
       beforeEach((done) => {
-        loadGA(() => {
-          ddManager.once('ready', done);
-          ddManager.initialize({
-            autoEvents: false
-          });
+        window.ga = function() {};
+        window.gaplugins = {};
+        ddManager.once('ready', done);
+        ddManager.initialize({
+          autoEvents: false
         });
       });
 
@@ -1937,8 +1918,13 @@ describe('Integrations: GoogleAnalytics', () => {
             name: 'Test',
             category: 'Test',
             callback: () => {
-              assert.equal(2, window.ga.getAll().length);
-              assert.ok(window.ga.calledOnce);
+              assert.ok(window.ga.calledWith('ddl.send', 'event', {
+                eventAction: 'Test',
+                eventCategory: 'Test',
+                eventLabel: undefined,
+                eventValue: 0,
+                nonInteraction: false
+              }));
               done();
             }
           });
