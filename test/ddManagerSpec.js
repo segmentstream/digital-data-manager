@@ -7,6 +7,10 @@ import availableIntegrations from '../src/availableIntegrations.js';
 
 describe('DDManager', () => {
 
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
   afterEach(() => {
     ddManager.reset();
     reset();
@@ -219,6 +223,53 @@ describe('DDManager', () => {
         }, 101);
       });
       ddManager.initialize();
+    });
+
+    it('should update user.isReturning status', (done) => {
+      ddManager.once('ready', () => {
+        window.digitalData.events.push({
+          name: 'Viewed Page'
+        });
+
+        assert.ok(!window.digitalData.user.isReturning);
+
+        setTimeout(() => {
+          window.digitalData.events.push({
+            name: 'Viewed Page'
+          });
+          setTimeout(() => {
+            assert.ok(window.digitalData.user.isReturning);
+            done();
+          }, 101);
+        }, 101);
+      });
+      ddManager.initialize({
+        sessionLength: 0.1,
+        autoEvents: false
+      });
+    });
+
+    it('should not update user.isReturning status', (done) => {
+      ddManager.once('ready', () => {
+        window.digitalData.events.push({
+          name: 'Viewed Page'
+        });
+
+        assert.ok(!window.digitalData.user.isReturning);
+        setTimeout(() => {
+          window.digitalData.events.push({
+            name: 'Viewed Page'
+          });
+          setTimeout(() => {
+            assert.ok(!window.digitalData.user.isReturning);
+            done();
+          }, 101);
+        }, 101);
+      });
+      ddManager.initialize({
+        sessionLength: 1,
+        autoEvents: false
+      });
     });
 
     it('it should send Viewed Page event once', (done) => {

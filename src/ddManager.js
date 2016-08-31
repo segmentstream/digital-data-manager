@@ -175,7 +175,6 @@ ddManager = {
    *    },
    *    domain: 'example.com',
    *    sessionLength: 3600,
-   *    persistVars: ['user.hasCoffeeMachine', 'user.everLoggedIn', 'user.email']
    *    integrations: [
    *      {
    *        'name': 'Google Tag Manager',
@@ -212,7 +211,9 @@ ddManager = {
     _ddStorage = new DDStorage(_digitalData, _storage);
 
     // initialize digital data enricher
-    const digitalDataEnricher = new DigitalDataEnricher(_digitalData, _ddListener, _ddStorage);
+    const digitalDataEnricher = new DigitalDataEnricher(_digitalData, _ddListener, _ddStorage, {
+      sessionLength: settings.sessionLength,
+    });
     digitalDataEnricher.enrichDigitalData();
 
     // initialize event manager
@@ -279,7 +280,7 @@ ddManager = {
   },
 
   reset: () => {
-    _ddStorage.clearPersistedData();
+    _ddStorage.clear();
     if (_eventManager instanceof EventManager) {
       _eventManager.reset();
     }

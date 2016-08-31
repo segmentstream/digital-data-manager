@@ -13,7 +13,7 @@ class Storage
     if (exp !== undefined) {
       store.set(key, {
         val: val,
-        exp: exp,
+        exp: exp * 1000,
         time: Date.now(),
       });
     } else {

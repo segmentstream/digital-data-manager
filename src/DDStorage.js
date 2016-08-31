@@ -31,7 +31,7 @@ class DDStorage
     if (index > -1) {
       persistedKeys.splice(index, 1);
     }
-    this.savePersistedKeys(persistedKeys);
+    this.updatePersistedKeys(persistedKeys);
   }
 
   updatePersistedKeys(persistedKeys) {
@@ -46,7 +46,12 @@ class DDStorage
     return value;
   }
 
-  clearPersistedData() {
+  remove(key) {
+    this.removePersistedKey(key);
+    return this.storage.remove(key);
+  }
+
+  clear() {
     const persistedKeys = this.getPersistedKeys();
     for (const key of persistedKeys) {
       this.storage.remove(key);

@@ -8,6 +8,7 @@ import DDStorage from './../src/DDStorage.js';
 describe('DigitalDataEnricher', () => {
 
   let _ddListener = [];
+  let _ddStorage;
   let _digitalData;
   let _htmlGlobals;
   let _digitalDataEnricher;
@@ -44,6 +45,10 @@ describe('DigitalDataEnricher', () => {
     _htmlGlobals.getLocation.restore();
     _htmlGlobals.getDocument.restore();
     _htmlGlobals.getNavigator.restore();
+    if (_ddStorage) {
+      _ddStorage.clear();
+      _ddStorage = undefined;
+    }
   });
 
   describe('#enrichPageData', () => {
@@ -163,6 +168,8 @@ describe('DigitalDataEnricher', () => {
         user: {
           userId: '123',
           hasCoffeeMachine: true,
+          hasFerrari: true,
+          isSubscribed: true,
           visitedContactPageTimes: 20,
           segments: ['segment1', 'segment2']
         },
@@ -170,43 +177,48 @@ describe('DigitalDataEnricher', () => {
           listId: 'test'
         }
       };
-      const _ddStorage = new DDStorage(_digitalData, new Storage());
+      _ddStorage = new DDStorage(_digitalData, new Storage());
       _ddStorage.persist('user.hasCoffeeMachine');
+      _ddStorage.persist('user.hasFerrari');
       _ddStorage.persist('user.visitedContactPageTimes');
       _ddStorage.persist('user.segments');
+      _ddStorage.persist('user.isSubscribed');
       _ddStorage.persist('listing.listId');
 
       _digitalData = {
         user: {
           userId: '123',
-          isSubscribed: true,
-          hasCoffeeMachine: false
+          isSubscribed: false,
+          hasFerrari: false
         }
       };
       _digitalDataEnricher.setDigitalData(_digitalData);
+      _ddStorage = new DDStorage(_digitalData, new Storage());
       _digitalDataEnricher.setDDStorage(_ddStorage);
-      _digitalDataEnricher.enrichDDStorageData();
+      _digitalDataEnricher.enrichDigitalData();
 
-      assert.deepEqual(_digitalData, {
-        user: {
-          userId: '123',
-          isSubscribed: true,
-          hasCoffeeMachine: true,
-          visitedContactPageTimes: 20,
-          segments: ['segment1', 'segment2']
-        },
-        listing: {
-          listId: 'test'
-        }
+      assert.deepEqual(_digitalData.user, {
+        userId: '123',
+        isSubscribed: true,
+        hasCoffeeMachine: true,
+        hasFerrari: false,
+        visitedContactPageTimes: 20,
+        segments: ['segment1', 'segment2'],
+        isReturning: false
       });
+
+      assert.ok(_ddStorage.get('user.hasCoffeeMachine'));
+      assert.ok(_ddStorage.get('user.isSubscribed'));
+      assert.ok(_ddStorage.get('user.hasFerrari') === undefined);
     })
   });
 
 
   describe('default enrichments', () => {
-    function enirch() {
-      const _ddStorage = new DDStorage(_digitalData, new Storage());
-      _digitalDataEnricher.setDigitalData(_digitalData);
+
+    function enirch(digitalData) {
+      _ddStorage = new DDStorage(digitalData, new Storage());
+      _digitalDataEnricher.setDigitalData(digitalData);
       _digitalDataEnricher.setDDStorage(_ddStorage);
       _digitalDataEnricher.enrichDigitalData();
     }
@@ -221,14 +233,14 @@ describe('DigitalDataEnricher', () => {
           lastTransactionDate: '2016-03-30T10:05:26.041Z'
         }
       };
-      enirch();
+      enirch(_digitalData);
 
       _digitalData = {
         user: {
-          isLoggedIn: false
+          isLoggedIn: false,
         }
       };
-      enirch();
+      enirch(_digitalData);
       assert.ok(!_digitalData.user.isLoggedIn);
       assert.ok(_digitalData.user.everLoggedIn);
       assert.ok(_digitalData.user.hasTransacted);

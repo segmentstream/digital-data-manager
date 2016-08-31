@@ -7280,7 +7280,7 @@ var DDStorage = function () {
     if (index > -1) {
       persistedKeys.splice(index, 1);
     }
-    this.savePersistedKeys(persistedKeys);
+    this.updatePersistedKeys(persistedKeys);
   };
 
   DDStorage.prototype.updatePersistedKeys = function updatePersistedKeys(persistedKeys) {
@@ -7295,7 +7295,12 @@ var DDStorage = function () {
     return value;
   };
 
-  DDStorage.prototype.clearPersistedData = function clearPersistedData() {
+  DDStorage.prototype.remove = function remove(key) {
+    this.removePersistedKey(key);
+    return this.storage.remove(key);
+  };
+
+  DDStorage.prototype.clear = function clear() {
     var persistedKeys = this.getPersistedKeys();
     for (var _iterator = persistedKeys, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
       var _ref;
@@ -7642,13 +7647,33 @@ function _classCallCheck(instance, Constructor) {
   }
 }
 
+/**
+ * fields which will be overriden even
+ * if server returned other values in DDL
+ */
+var ddStorageForcedFields = ['user.isSubscribed', 'user.hasTransacted', 'user.everLoggedIn', 'user.isReturning', 'context.lastEventTimestamp'];
+
+/**
+ * this fields are always persisted if were set in DDL
+ */
+var ddStorageAlwaysPersistedFields = ['user.email', 'user.lastTransactionDate'];
+
+function isForcedField(field) {
+  return ddStorageForcedFields.indexOf(field) >= 0;
+}
+
+function isAlwaysPersistedField(field) {
+  return ddStorageAlwaysPersistedFields.indexOf(field) >= 0;
+}
+
 var DigitalDataEnricher = function () {
-  function DigitalDataEnricher(digitalData, ddListener, ddStorage) {
+  function DigitalDataEnricher(digitalData, ddListener, ddStorage, options) {
     _classCallCheck(this, DigitalDataEnricher);
 
     this.digitalData = digitalData;
     this.ddListener = ddListener;
     this.ddStorage = ddStorage;
+    this.options = options;
   }
 
   DigitalDataEnricher.prototype.setDigitalData = function setDigitalData(digitalData) {
@@ -7668,23 +7693,41 @@ var DigitalDataEnricher = function () {
     this.enrichStructure();
 
     // persist some default behaviours
+    this.enrichDefaultUserData();
     this.persistUserData();
 
     // enrich with default context data
     this.enrichPageData();
+    this.enrichTransactionData();
     this.enrichContextData();
-    this.enrichDDStorageData();
     this.enrichLegacyVersions();
+
+    // should be after all default enrichments
+    this.enrichDDStorageData();
 
     // when all enrichments are done
     this.listenToUserDataChanges();
-    this.listenToSemanticEvents();
+    this.listenToEvents();
   };
 
-  DigitalDataEnricher.prototype.listenToSemanticEvents = function listenToSemanticEvents() {
+  DigitalDataEnricher.prototype.listenToEvents = function listenToEvents() {
     var _this = this;
 
+    // enrich Completed Transction event with "transaction.isFirst"
+    this.ddListener.push(['on', 'beforeEvent', function (event) {
+      if (event.name === 'Completed Transction') {
+        var transaction = event.transaction;
+        var user = _this.digitalData.user;
+        if (transaction.isFirst === undefined) {
+          transaction.isFirst = !user.hasTransacted;
+        }
+      }
+    }]);
+
+    // enrich DDL based on semantic events
     this.ddListener.push(['on', 'event', function (event) {
+      _this.enrichIsReturningStatus();
+
       if (event.name === 'Subscribed') {
         var email = (0, _dotProp.getProp)(event, 'user.email');
         _this.enrichHasSubscribed(email);
@@ -7700,6 +7743,14 @@ var DigitalDataEnricher = function () {
     this.ddListener.push(['on', 'change:user', function () {
       _this2.persistUserData();
     }]);
+  };
+
+  DigitalDataEnricher.prototype.enrichDefaultUserData = function enrichDefaultUserData() {
+    var user = this.digitalData.user;
+
+    if (user.isReturning === undefined) {
+      user.isReturning = false;
+    }
   };
 
   DigitalDataEnricher.prototype.persistUserData = function persistUserData() {
@@ -7726,6 +7777,18 @@ var DigitalDataEnricher = function () {
     if (user.lastTransactionDate) {
       this.ddStorage.persist('user.lastTransactionDate');
     }
+  };
+
+  DigitalDataEnricher.prototype.enrichIsReturningStatus = function enrichIsReturningStatus() {
+    var context = this.digitalData.context;
+    var user = this.digitalData.user;
+    var now = Date.now();
+    if (!user.isReturning && context.lastEventTimestamp && now - context.lastEventTimestamp > this.options.sessionLength * 1000) {
+      this.digitalData.user.isReturning = true;
+      this.ddManager.persist('user.isReturning');
+    }
+    context.lastEventTimestamp = now;
+    this.ddStorage.persist('context.lastEventTimestamp');
   };
 
   DigitalDataEnricher.prototype.enrichHasSubscribed = function enrichHasSubscribed(email) {
@@ -7756,6 +7819,8 @@ var DigitalDataEnricher = function () {
     this.digitalData.integrations = this.digitalData.integrations || {};
     if (!this.digitalData.page.type || this.digitalData.page.type !== 'confirmation') {
       this.digitalData.cart = this.digitalData.cart || {};
+    } else {
+      this.digitalData.transaction = this.digitalData.transaction || {};
     }
   };
 
@@ -7768,6 +7833,20 @@ var DigitalDataEnricher = function () {
     page.title = page.title || this.getHtmlGlobals().getDocument().title;
     page.url = page.url || this.getHtmlGlobals().getLocation().href;
     page.hash = page.hash || this.getHtmlGlobals().getLocation().hash;
+  };
+
+  DigitalDataEnricher.prototype.enrichTransactionData = function enrichTransactionData() {
+    var page = this.digitalData.page;
+    var user = this.digitalData.user;
+    var transaction = this.digitalData.transaction;
+
+    if (page.type === 'confirmation' && transaction && !transaction.isReturning) {
+      // check if never transacted before
+      if (transaction.isFirst === undefined) {
+        transaction.isFirst = !user.hasTransacted;
+      }
+      this.enrichHasTransacted();
+    }
   };
 
   DigitalDataEnricher.prototype.enrichContextData = function enrichContextData() {
@@ -7792,8 +7871,14 @@ var DigitalDataEnricher = function () {
       var key = _ref;
 
       var value = this.ddStorage.get(key);
-      if (value !== undefined && (0, _dotProp.getProp)(this.digitalData, key) !== value) {
+      if (value === undefined) {
+        continue;
+      }
+      if ((0, _dotProp.getProp)(this.digitalData, key) === undefined || isForcedField(key)) {
         (0, _dotProp.setProp)(this.digitalData, key, value);
+      } else if (!isAlwaysPersistedField(key)) {
+        // remove persistance if server defined it's own value
+        this.ddStorage.remove(key);
       }
     }
   };
@@ -8294,7 +8379,7 @@ var EventManager = function () {
     var _this2 = this;
 
     var eventCallback = void 0;
-    event.timestamp = new Date().getTime();
+    event.timestamp = Date.now();
 
     if (!this.beforeFireEvent(event)) {
       return false;
@@ -8734,7 +8819,7 @@ var Storage = function () {
     if (exp !== undefined) {
       _store2['default'].set(key, {
         val: val,
-        exp: exp,
+        exp: exp * 1000,
         time: Date.now()
       });
     } else {
@@ -9346,7 +9431,6 @@ ddManager = {
    *    },
    *    domain: 'example.com',
    *    sessionLength: 3600,
-   *    persistVars: ['user.hasCoffeeMachine', 'user.everLoggedIn', 'user.email']
    *    integrations: [
    *      {
    *        'name': 'Google Tag Manager',
@@ -9383,7 +9467,9 @@ ddManager = {
     _ddStorage = new _DDStorage2['default'](_digitalData, _storage);
 
     // initialize digital data enricher
-    var digitalDataEnricher = new _DigitalDataEnricher2['default'](_digitalData, _ddListener, _ddStorage);
+    var digitalDataEnricher = new _DigitalDataEnricher2['default'](_digitalData, _ddListener, _ddStorage, {
+      sessionLength: settings.sessionLength
+    });
     digitalDataEnricher.enrichDigitalData();
 
     // initialize event manager
@@ -9450,7 +9536,7 @@ ddManager = {
   },
 
   reset: function reset() {
-    _ddStorage.clearPersistedData();
+    _ddStorage.clear();
     if (_eventManager instanceof _EventManager2['default']) {
       _eventManager.reset();
     }

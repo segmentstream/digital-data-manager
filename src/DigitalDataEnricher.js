@@ -2,12 +2,41 @@ import htmlGlobals from './functions/htmlGlobals.js';
 import semver from './functions/semver.js';
 import { getProp, setProp } from './functions/dotProp';
 
+/**
+ * fields which will be overriden even
+ * if server returned other values in DDL
+ */
+const ddStorageForcedFields = [
+  'user.isSubscribed',
+  'user.hasTransacted',
+  'user.everLoggedIn',
+  'user.isReturning',
+  'context.lastEventTimestamp',
+];
+
+/**
+ * this fields are always persisted if were set in DDL
+ */
+const ddStorageAlwaysPersistedFields = [
+  'user.email',
+  'user.lastTransactionDate',
+];
+
+function isForcedField(field) {
+  return (ddStorageForcedFields.indexOf(field) >= 0);
+}
+
+function isAlwaysPersistedField(field) {
+  return (ddStorageAlwaysPersistedFields.indexOf(field) >= 0);
+}
+
 class DigitalDataEnricher
 {
-  constructor(digitalData, ddListener, ddStorage) {
+  constructor(digitalData, ddListener, ddStorage, options) {
     this.digitalData = digitalData;
     this.ddListener = ddListener;
     this.ddStorage = ddStorage;
+    this.options = options;
   }
 
   setDigitalData(digitalData) {
@@ -27,21 +56,39 @@ class DigitalDataEnricher
     this.enrichStructure();
 
     // persist some default behaviours
+    this.enrichDefaultUserData();
     this.persistUserData();
 
     // enrich with default context data
     this.enrichPageData();
+    this.enrichTransactionData();
     this.enrichContextData();
-    this.enrichDDStorageData();
     this.enrichLegacyVersions();
+
+    // should be after all default enrichments
+    this.enrichDDStorageData();
 
     // when all enrichments are done
     this.listenToUserDataChanges();
-    this.listenToSemanticEvents();
+    this.listenToEvents();
   }
 
-  listenToSemanticEvents() {
+  listenToEvents() {
+    // enrich Completed Transction event with "transaction.isFirst"
+    this.ddListener.push(['on', 'beforeEvent', (event) => {
+      if (event.name === 'Completed Transction') {
+        const transaction = event.transaction;
+        const user = this.digitalData.user;
+        if (transaction.isFirst === undefined) {
+          transaction.isFirst = !user.hasTransacted;
+        }
+      }
+    }]);
+
+    // enrich DDL based on semantic events
     this.ddListener.push(['on', 'event', (event) => {
+      this.enrichIsReturningStatus();
+
       if (event.name === 'Subscribed') {
         const email = getProp(event, 'user.email');
         this.enrichHasSubscribed(email);
@@ -55,6 +102,14 @@ class DigitalDataEnricher
     this.ddListener.push(['on', 'change:user', () => {
       this.persistUserData();
     }]);
+  }
+
+  enrichDefaultUserData() {
+    const user = this.digitalData.user;
+
+    if (user.isReturning === undefined) {
+      user.isReturning = false;
+    }
   }
 
   persistUserData() {
@@ -81,6 +136,22 @@ class DigitalDataEnricher
     if (user.lastTransactionDate) {
       this.ddStorage.persist('user.lastTransactionDate');
     }
+  }
+
+  enrichIsReturningStatus() {
+    const context = this.digitalData.context;
+    const user = this.digitalData.user;
+    const now = Date.now();
+    if (
+      !user.isReturning &&
+      context.lastEventTimestamp &&
+      (now - context.lastEventTimestamp) > this.options.sessionLength * 1000
+    ) {
+      this.digitalData.user.isReturning = true;
+      this.ddManager.persist('user.isReturning');
+    }
+    context.lastEventTimestamp = now;
+    this.ddStorage.persist('context.lastEventTimestamp');
   }
 
   enrichHasSubscribed(email) {
@@ -111,6 +182,8 @@ class DigitalDataEnricher
     this.digitalData.integrations = this.digitalData.integrations || {};
     if (!this.digitalData.page.type || this.digitalData.page.type !== 'confirmation') {
       this.digitalData.cart = this.digitalData.cart || {};
+    } else {
+      this.digitalData.transaction = this.digitalData.transaction || {};
     }
   }
 
@@ -125,6 +198,24 @@ class DigitalDataEnricher
     page.hash = page.hash || this.getHtmlGlobals().getLocation().hash;
   }
 
+  enrichTransactionData() {
+    const page = this.digitalData.page;
+    const user = this.digitalData.user;
+    const transaction = this.digitalData.transaction;
+
+    if (
+      page.type === 'confirmation' &&
+      transaction &&
+      !transaction.isReturning
+    ) {
+      // check if never transacted before
+      if (transaction.isFirst === undefined) {
+        transaction.isFirst = !user.hasTransacted;
+      }
+      this.enrichHasTransacted();
+    }
+  }
+
   enrichContextData() {
     const context = this.digitalData.context;
     context.userAgent = this.getHtmlGlobals().getNavigator().userAgent;
@@ -134,8 +225,14 @@ class DigitalDataEnricher
     const persistedKeys = this.ddStorage.getPersistedKeys();
     for (const key of persistedKeys) {
       const value = this.ddStorage.get(key);
-      if (value !== undefined && getProp(this.digitalData, key) !== value) {
+      if (value === undefined) {
+        continue;
+      }
+      if (getProp(this.digitalData, key) === undefined || isForcedField(key)) {
         setProp(this.digitalData, key, value);
+      } else if (!isAlwaysPersistedField(key)) {
+        // remove persistance if server defined it's own value
+        this.ddStorage.remove(key);
       }
     }
   }

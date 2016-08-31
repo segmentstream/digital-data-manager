@@ -14717,7 +14717,7 @@ var DDStorage = function () {
     if (index > -1) {
       persistedKeys.splice(index, 1);
     }
-    this.savePersistedKeys(persistedKeys);
+    this.updatePersistedKeys(persistedKeys);
   };
 
   DDStorage.prototype.updatePersistedKeys = function updatePersistedKeys(persistedKeys) {
@@ -14732,7 +14732,12 @@ var DDStorage = function () {
     return value;
   };
 
-  DDStorage.prototype.clearPersistedData = function clearPersistedData() {
+  DDStorage.prototype.remove = function remove(key) {
+    this.removePersistedKey(key);
+    return this.storage.remove(key);
+  };
+
+  DDStorage.prototype.clear = function clear() {
     var persistedKeys = this.getPersistedKeys();
     for (var _iterator = persistedKeys, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
       var _ref;
@@ -15079,13 +15084,33 @@ function _classCallCheck(instance, Constructor) {
   }
 }
 
+/**
+ * fields which will be overriden even
+ * if server returned other values in DDL
+ */
+var ddStorageForcedFields = ['user.isSubscribed', 'user.hasTransacted', 'user.everLoggedIn', 'user.isReturning', 'context.lastEventTimestamp'];
+
+/**
+ * this fields are always persisted if were set in DDL
+ */
+var ddStorageAlwaysPersistedFields = ['user.email', 'user.lastTransactionDate'];
+
+function isForcedField(field) {
+  return ddStorageForcedFields.indexOf(field) >= 0;
+}
+
+function isAlwaysPersistedField(field) {
+  return ddStorageAlwaysPersistedFields.indexOf(field) >= 0;
+}
+
 var DigitalDataEnricher = function () {
-  function DigitalDataEnricher(digitalData, ddListener, ddStorage) {
+  function DigitalDataEnricher(digitalData, ddListener, ddStorage, options) {
     _classCallCheck(this, DigitalDataEnricher);
 
     this.digitalData = digitalData;
     this.ddListener = ddListener;
     this.ddStorage = ddStorage;
+    this.options = options;
   }
 
   DigitalDataEnricher.prototype.setDigitalData = function setDigitalData(digitalData) {
@@ -15105,23 +15130,41 @@ var DigitalDataEnricher = function () {
     this.enrichStructure();
 
     // persist some default behaviours
+    this.enrichDefaultUserData();
     this.persistUserData();
 
     // enrich with default context data
     this.enrichPageData();
+    this.enrichTransactionData();
     this.enrichContextData();
-    this.enrichDDStorageData();
     this.enrichLegacyVersions();
+
+    // should be after all default enrichments
+    this.enrichDDStorageData();
 
     // when all enrichments are done
     this.listenToUserDataChanges();
-    this.listenToSemanticEvents();
+    this.listenToEvents();
   };
 
-  DigitalDataEnricher.prototype.listenToSemanticEvents = function listenToSemanticEvents() {
+  DigitalDataEnricher.prototype.listenToEvents = function listenToEvents() {
     var _this = this;
 
+    // enrich Completed Transction event with "transaction.isFirst"
+    this.ddListener.push(['on', 'beforeEvent', function (event) {
+      if (event.name === 'Completed Transction') {
+        var transaction = event.transaction;
+        var user = _this.digitalData.user;
+        if (transaction.isFirst === undefined) {
+          transaction.isFirst = !user.hasTransacted;
+        }
+      }
+    }]);
+
+    // enrich DDL based on semantic events
     this.ddListener.push(['on', 'event', function (event) {
+      _this.enrichIsReturningStatus();
+
       if (event.name === 'Subscribed') {
         var email = (0, _dotProp.getProp)(event, 'user.email');
         _this.enrichHasSubscribed(email);
@@ -15137,6 +15180,14 @@ var DigitalDataEnricher = function () {
     this.ddListener.push(['on', 'change:user', function () {
       _this2.persistUserData();
     }]);
+  };
+
+  DigitalDataEnricher.prototype.enrichDefaultUserData = function enrichDefaultUserData() {
+    var user = this.digitalData.user;
+
+    if (user.isReturning === undefined) {
+      user.isReturning = false;
+    }
   };
 
   DigitalDataEnricher.prototype.persistUserData = function persistUserData() {
@@ -15163,6 +15214,18 @@ var DigitalDataEnricher = function () {
     if (user.lastTransactionDate) {
       this.ddStorage.persist('user.lastTransactionDate');
     }
+  };
+
+  DigitalDataEnricher.prototype.enrichIsReturningStatus = function enrichIsReturningStatus() {
+    var context = this.digitalData.context;
+    var user = this.digitalData.user;
+    var now = Date.now();
+    if (!user.isReturning && context.lastEventTimestamp && now - context.lastEventTimestamp > this.options.sessionLength * 1000) {
+      this.digitalData.user.isReturning = true;
+      this.ddManager.persist('user.isReturning');
+    }
+    context.lastEventTimestamp = now;
+    this.ddStorage.persist('context.lastEventTimestamp');
   };
 
   DigitalDataEnricher.prototype.enrichHasSubscribed = function enrichHasSubscribed(email) {
@@ -15193,6 +15256,8 @@ var DigitalDataEnricher = function () {
     this.digitalData.integrations = this.digitalData.integrations || {};
     if (!this.digitalData.page.type || this.digitalData.page.type !== 'confirmation') {
       this.digitalData.cart = this.digitalData.cart || {};
+    } else {
+      this.digitalData.transaction = this.digitalData.transaction || {};
     }
   };
 
@@ -15205,6 +15270,20 @@ var DigitalDataEnricher = function () {
     page.title = page.title || this.getHtmlGlobals().getDocument().title;
     page.url = page.url || this.getHtmlGlobals().getLocation().href;
     page.hash = page.hash || this.getHtmlGlobals().getLocation().hash;
+  };
+
+  DigitalDataEnricher.prototype.enrichTransactionData = function enrichTransactionData() {
+    var page = this.digitalData.page;
+    var user = this.digitalData.user;
+    var transaction = this.digitalData.transaction;
+
+    if (page.type === 'confirmation' && transaction && !transaction.isReturning) {
+      // check if never transacted before
+      if (transaction.isFirst === undefined) {
+        transaction.isFirst = !user.hasTransacted;
+      }
+      this.enrichHasTransacted();
+    }
   };
 
   DigitalDataEnricher.prototype.enrichContextData = function enrichContextData() {
@@ -15229,8 +15308,14 @@ var DigitalDataEnricher = function () {
       var key = _ref;
 
       var value = this.ddStorage.get(key);
-      if (value !== undefined && (0, _dotProp.getProp)(this.digitalData, key) !== value) {
+      if (value === undefined) {
+        continue;
+      }
+      if ((0, _dotProp.getProp)(this.digitalData, key) === undefined || isForcedField(key)) {
         (0, _dotProp.setProp)(this.digitalData, key, value);
+      } else if (!isAlwaysPersistedField(key)) {
+        // remove persistance if server defined it's own value
+        this.ddStorage.remove(key);
       }
     }
   };
@@ -15731,7 +15816,7 @@ var EventManager = function () {
     var _this2 = this;
 
     var eventCallback = void 0;
-    event.timestamp = new Date().getTime();
+    event.timestamp = Date.now();
 
     if (!this.beforeFireEvent(event)) {
       return false;
@@ -16171,7 +16256,7 @@ var Storage = function () {
     if (exp !== undefined) {
       _store2['default'].set(key, {
         val: val,
-        exp: exp,
+        exp: exp * 1000,
         time: Date.now()
       });
     } else {
@@ -16783,7 +16868,6 @@ ddManager = {
    *    },
    *    domain: 'example.com',
    *    sessionLength: 3600,
-   *    persistVars: ['user.hasCoffeeMachine', 'user.everLoggedIn', 'user.email']
    *    integrations: [
    *      {
    *        'name': 'Google Tag Manager',
@@ -16820,7 +16904,9 @@ ddManager = {
     _ddStorage = new _DDStorage2['default'](_digitalData, _storage);
 
     // initialize digital data enricher
-    var digitalDataEnricher = new _DigitalDataEnricher2['default'](_digitalData, _ddListener, _ddStorage);
+    var digitalDataEnricher = new _DigitalDataEnricher2['default'](_digitalData, _ddListener, _ddStorage, {
+      sessionLength: settings.sessionLength
+    });
     digitalDataEnricher.enrichDigitalData();
 
     // initialize event manager
@@ -16887,7 +16973,7 @@ ddManager = {
   },
 
   reset: function reset() {
-    _ddStorage.clearPersistedData();
+    _ddStorage.clear();
     if (_eventManager instanceof _EventManager2['default']) {
       _eventManager.reset();
     }
@@ -21152,6 +21238,70 @@ var _assert = require('assert');
 
 var _assert2 = _interopRequireDefault(_assert);
 
+var _Storage = require('./../src/Storage.js');
+
+var _Storage2 = _interopRequireDefault(_Storage);
+
+var _DDStorage = require('./../src/DDStorage.js');
+
+var _DDStorage2 = _interopRequireDefault(_DDStorage);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+describe('DDStorage', function () {
+
+  var _digitalData = void 0;
+  var _storage = new _Storage2['default']();
+  var _ddStorage = void 0;
+
+  describe('#persist', function () {
+
+    beforeEach(function () {
+      _digitalData = {
+        user: {
+          isSubscribed: true,
+          email: 'test@email.com',
+          temp: 'test'
+        }
+      };
+      _ddStorage = new _DDStorage2['default'](_digitalData, _storage);
+    });
+
+    afterEach(function () {
+      _ddStorage.clear();
+      _ddStorage = undefined;
+    });
+
+    it('should persist fields with and without exp dates', function (done) {
+      _ddStorage.persist('user.isSubscribed');
+      _ddStorage.persist('user.email', 1);
+      _ddStorage.persist('user.temp', 0.01);
+
+      _assert2['default'].deepEqual(_ddStorage.getPersistedKeys(), ['user.isSubscribed', 'user.email', 'user.temp']);
+      _assert2['default'].ok(_ddStorage.get('user.isSubscribed'));
+      _assert2['default'].ok(_ddStorage.get('user.email'));
+      _assert2['default'].ok(_ddStorage.get('user.temp'));
+
+      setTimeout(function () {
+        _assert2['default'].ok(_ddStorage.get('user.isSubscribed'));
+        _assert2['default'].ok(_ddStorage.get('user.email'));
+        _assert2['default'].ok(!_ddStorage.get('user.temp'));
+        _assert2['default'].deepEqual(_ddStorage.getPersistedKeys(), ['user.isSubscribed', 'user.email']);
+        done();
+      }, 101);
+    });
+  });
+});
+
+},{"./../src/DDStorage.js":95,"./../src/Storage.js":101,"assert":1}],139:[function(require,module,exports){
+'use strict';
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
 var _sinon = require('sinon');
 
 var _sinon2 = _interopRequireDefault(_sinon);
@@ -21179,6 +21329,7 @@ function _interopRequireDefault(obj) {
 describe('DigitalDataEnricher', function () {
 
   var _ddListener = [];
+  var _ddStorage = void 0;
   var _digitalData = void 0;
   var _htmlGlobals = void 0;
   var _digitalDataEnricher = void 0;
@@ -21215,6 +21366,10 @@ describe('DigitalDataEnricher', function () {
     _htmlGlobals.getLocation.restore();
     _htmlGlobals.getDocument.restore();
     _htmlGlobals.getNavigator.restore();
+    if (_ddStorage) {
+      _ddStorage.clear();
+      _ddStorage = undefined;
+    }
   });
 
   describe('#enrichPageData', function () {
@@ -21328,6 +21483,8 @@ describe('DigitalDataEnricher', function () {
         user: {
           userId: '123',
           hasCoffeeMachine: true,
+          hasFerrari: true,
+          isSubscribed: true,
           visitedContactPageTimes: 20,
           segments: ['segment1', 'segment2']
         },
@@ -21335,42 +21492,47 @@ describe('DigitalDataEnricher', function () {
           listId: 'test'
         }
       };
-      var _ddStorage = new _DDStorage2['default'](_digitalData, new _Storage2['default']());
+      _ddStorage = new _DDStorage2['default'](_digitalData, new _Storage2['default']());
       _ddStorage.persist('user.hasCoffeeMachine');
+      _ddStorage.persist('user.hasFerrari');
       _ddStorage.persist('user.visitedContactPageTimes');
       _ddStorage.persist('user.segments');
+      _ddStorage.persist('user.isSubscribed');
       _ddStorage.persist('listing.listId');
 
       _digitalData = {
         user: {
           userId: '123',
-          isSubscribed: true,
-          hasCoffeeMachine: false
+          isSubscribed: false,
+          hasFerrari: false
         }
       };
       _digitalDataEnricher.setDigitalData(_digitalData);
+      _ddStorage = new _DDStorage2['default'](_digitalData, new _Storage2['default']());
       _digitalDataEnricher.setDDStorage(_ddStorage);
-      _digitalDataEnricher.enrichDDStorageData();
+      _digitalDataEnricher.enrichDigitalData();
 
-      _assert2['default'].deepEqual(_digitalData, {
-        user: {
-          userId: '123',
-          isSubscribed: true,
-          hasCoffeeMachine: true,
-          visitedContactPageTimes: 20,
-          segments: ['segment1', 'segment2']
-        },
-        listing: {
-          listId: 'test'
-        }
+      _assert2['default'].deepEqual(_digitalData.user, {
+        userId: '123',
+        isSubscribed: true,
+        hasCoffeeMachine: true,
+        hasFerrari: false,
+        visitedContactPageTimes: 20,
+        segments: ['segment1', 'segment2'],
+        isReturning: false
       });
+
+      _assert2['default'].ok(_ddStorage.get('user.hasCoffeeMachine'));
+      _assert2['default'].ok(_ddStorage.get('user.isSubscribed'));
+      _assert2['default'].ok(_ddStorage.get('user.hasFerrari') === undefined);
     });
   });
 
   describe('default enrichments', function () {
-    function enirch() {
-      var _ddStorage = new _DDStorage2['default'](_digitalData, new _Storage2['default']());
-      _digitalDataEnricher.setDigitalData(_digitalData);
+
+    function enirch(digitalData) {
+      _ddStorage = new _DDStorage2['default'](digitalData, new _Storage2['default']());
+      _digitalDataEnricher.setDigitalData(digitalData);
       _digitalDataEnricher.setDDStorage(_ddStorage);
       _digitalDataEnricher.enrichDigitalData();
     }
@@ -21385,14 +21547,14 @@ describe('DigitalDataEnricher', function () {
           lastTransactionDate: '2016-03-30T10:05:26.041Z'
         }
       };
-      enirch();
+      enirch(_digitalData);
 
       _digitalData = {
         user: {
           isLoggedIn: false
         }
       };
-      enirch();
+      enirch(_digitalData);
       _assert2['default'].ok(!_digitalData.user.isLoggedIn);
       _assert2['default'].ok(_digitalData.user.everLoggedIn);
       _assert2['default'].ok(_digitalData.user.hasTransacted);
@@ -21403,7 +21565,7 @@ describe('DigitalDataEnricher', function () {
   });
 });
 
-},{"./../src/DDStorage.js":95,"./../src/DigitalDataEnricher.js":97,"./../src/Storage.js":101,"./../src/functions/deleteProperty.js":106,"assert":1,"sinon":65}],139:[function(require,module,exports){
+},{"./../src/DDStorage.js":95,"./../src/DigitalDataEnricher.js":97,"./../src/Storage.js":101,"./../src/functions/deleteProperty.js":106,"assert":1,"sinon":65}],140:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -22006,7 +22168,7 @@ describe('EventDataEnricher', function () {
   });
 });
 
-},{"./../src/EventDataEnricher.js":98,"./../src/functions/deleteProperty.js":106,"assert":1}],140:[function(require,module,exports){
+},{"./../src/EventDataEnricher.js":98,"./../src/functions/deleteProperty.js":106,"assert":1}],141:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -22622,7 +22784,7 @@ describe('EventManager', function () {
   });
 });
 
-},{"./../src/AutoEvents.js":93,"./../src/EventManager.js":99,"./reset.js":158,"assert":1}],141:[function(require,module,exports){
+},{"./../src/AutoEvents.js":93,"./../src/EventManager.js":99,"./reset.js":159,"assert":1}],142:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -22654,6 +22816,10 @@ function _interopRequireDefault(obj) {
 }
 
 describe('DDManager', function () {
+
+  beforeEach(function () {
+    window.localStorage.clear();
+  });
 
   afterEach(function () {
     _ddManager2['default'].reset();
@@ -22865,6 +23031,53 @@ describe('DDManager', function () {
       _ddManager2['default'].initialize();
     });
 
+    it('should update user.isReturning status', function (done) {
+      _ddManager2['default'].once('ready', function () {
+        window.digitalData.events.push({
+          name: 'Viewed Page'
+        });
+
+        _assert2['default'].ok(!window.digitalData.user.isReturning);
+
+        setTimeout(function () {
+          window.digitalData.events.push({
+            name: 'Viewed Page'
+          });
+          setTimeout(function () {
+            _assert2['default'].ok(window.digitalData.user.isReturning);
+            done();
+          }, 101);
+        }, 101);
+      });
+      _ddManager2['default'].initialize({
+        sessionLength: 0.1,
+        autoEvents: false
+      });
+    });
+
+    it('should not update user.isReturning status', function (done) {
+      _ddManager2['default'].once('ready', function () {
+        window.digitalData.events.push({
+          name: 'Viewed Page'
+        });
+
+        _assert2['default'].ok(!window.digitalData.user.isReturning);
+        setTimeout(function () {
+          window.digitalData.events.push({
+            name: 'Viewed Page'
+          });
+          setTimeout(function () {
+            _assert2['default'].ok(!window.digitalData.user.isReturning);
+            done();
+          }, 101);
+        }, 101);
+      });
+      _ddManager2['default'].initialize({
+        sessionLength: 1,
+        autoEvents: false
+      });
+    });
+
     it('it should send Viewed Page event once', function (done) {
       _ddManager2['default'].on('ready', function () {
         setTimeout(function () {
@@ -22892,7 +23105,7 @@ describe('DDManager', function () {
   });
 });
 
-},{"../src/Integration.js":100,"../src/availableIntegrations.js":103,"../src/ddManager.js":104,"./reset.js":158,"./snippet.js":159,"assert":1}],142:[function(require,module,exports){
+},{"../src/Integration.js":100,"../src/availableIntegrations.js":103,"../src/ddManager.js":104,"./reset.js":159,"./snippet.js":160,"assert":1}],143:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -22904,7 +23117,7 @@ function argumentsToArray(args) {
   return Array.prototype.slice.call(args);
 }
 
-},{}],143:[function(require,module,exports){
+},{}],144:[function(require,module,exports){
 'use strict';
 
 require('./../src/polyfill.js');
@@ -22914,6 +23127,8 @@ require('./ddManagerSpec.js');
 require('./AutoEventsSpec.js');
 
 require('./DDHelperSpec.js');
+
+require('./DDStorageSpec.js');
 
 require('./EventManagerSpec.js');
 
@@ -22949,7 +23164,7 @@ require('./integrations/VkontakteSpec.js');
 
 require('./integrations/EmarsysSpec.js');
 
-},{"./../src/polyfill.js":135,"./AutoEventsSpec.js":136,"./DDHelperSpec.js":137,"./DigitalDataEnricherSpec.js":138,"./EventDataEnricherSpec.js":139,"./EventManagerSpec.js":140,"./ddManagerSpec.js":141,"./integrations/CriteoSpec.js":144,"./integrations/DrivebackSpec.js":145,"./integrations/EmarsysSpec.js":146,"./integrations/FacebookPixelSpec.js":147,"./integrations/GoogleAdWordsSpec.js":148,"./integrations/GoogleAnalyticsSpec.js":149,"./integrations/GoogleTagManagerSpec.js":150,"./integrations/MyTargetSpec.js":151,"./integrations/OWOXBIStreamingSpec.js":152,"./integrations/RetailRocketSpec.js":153,"./integrations/SegmentStreamSpec.js":154,"./integrations/SendPulseSpec.js":155,"./integrations/VkontakteSpec.js":156,"./integrations/YandexMetricaSpec.js":157}],144:[function(require,module,exports){
+},{"./../src/polyfill.js":135,"./AutoEventsSpec.js":136,"./DDHelperSpec.js":137,"./DDStorageSpec.js":138,"./DigitalDataEnricherSpec.js":139,"./EventDataEnricherSpec.js":140,"./EventManagerSpec.js":141,"./ddManagerSpec.js":142,"./integrations/CriteoSpec.js":145,"./integrations/DrivebackSpec.js":146,"./integrations/EmarsysSpec.js":147,"./integrations/FacebookPixelSpec.js":148,"./integrations/GoogleAdWordsSpec.js":149,"./integrations/GoogleAnalyticsSpec.js":150,"./integrations/GoogleTagManagerSpec.js":151,"./integrations/MyTargetSpec.js":152,"./integrations/OWOXBIStreamingSpec.js":153,"./integrations/RetailRocketSpec.js":154,"./integrations/SegmentStreamSpec.js":155,"./integrations/SendPulseSpec.js":156,"./integrations/VkontakteSpec.js":157,"./integrations/YandexMetricaSpec.js":158}],145:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -23687,7 +23902,7 @@ describe('Integrations: Criteo', function () {
   });
 });
 
-},{"./../../src/ddManager.js":104,"./../../src/integrations/Criteo.js":121,"./../reset.js":158,"assert":1,"sinon":65}],145:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/integrations/Criteo.js":121,"./../reset.js":159,"assert":1,"sinon":65}],146:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -23777,7 +23992,7 @@ describe('Integrations: Driveback', function () {
   });
 });
 
-},{"./../../src/ddManager.js":104,"./../../src/integrations/Driveback.js":122,"./../reset.js":158,"assert":1}],146:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/integrations/Driveback.js":122,"./../reset.js":159,"assert":1}],147:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -24172,7 +24387,7 @@ describe('Integrations: Emarsys', function () {
   });
 });
 
-},{"./../../src/ddManager":104,"./../../src/integrations/Emarsys":123,"./../reset":158,"assert":1,"sinon":65}],147:[function(require,module,exports){
+},{"./../../src/ddManager":104,"./../../src/integrations/Emarsys":123,"./../reset":159,"assert":1,"sinon":65}],148:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -24712,7 +24927,7 @@ describe('Integrations: FacebookPixel', function () {
   });
 });
 
-},{"./../../src/ddManager.js":104,"./../../src/integrations/FacebookPixel.js":124,"./../reset.js":158,"assert":1,"sinon":65}],148:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/integrations/FacebookPixel.js":124,"./../reset.js":159,"assert":1,"sinon":65}],149:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -25130,7 +25345,7 @@ describe('Integrations: GoogleAdWords', function () {
   });
 });
 
-},{"./../../src/ddManager":104,"./../../src/integrations/GoogleAdWords":125,"./../reset":158,"assert":1,"sinon":65}],149:[function(require,module,exports){
+},{"./../../src/ddManager":104,"./../../src/integrations/GoogleAdWords":125,"./../reset":159,"assert":1,"sinon":65}],150:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -27194,7 +27409,7 @@ describe('Integrations: GoogleAnalytics', function () {
   });
 });
 
-},{"./../../src/ddManager.js":104,"./../../src/functions/after.js":105,"./../../src/integrations/GoogleAnalytics.js":126,"./../functions/argumentsToArray.js":142,"./../reset.js":158,"assert":1,"sinon":65}],150:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/functions/after.js":105,"./../../src/integrations/GoogleAnalytics.js":126,"./../functions/argumentsToArray.js":143,"./../reset.js":159,"assert":1,"sinon":65}],151:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -27374,7 +27589,7 @@ describe('Integrations: GoogleTagManager', function () {
   });
 });
 
-},{"./../../src/ddManager.js":104,"./../../src/integrations/GoogleTagManager.js":127,"./../reset.js":158,"assert":1}],151:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/integrations/GoogleTagManager.js":127,"./../reset.js":159,"assert":1}],152:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -27830,7 +28045,7 @@ describe('Integrations: MyTarget', function () {
   });
 });
 
-},{"./../../src/ddManager.js":104,"./../../src/integrations/MyTarget.js":128,"./../reset.js":158,"assert":1,"sinon":65}],152:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/integrations/MyTarget.js":128,"./../reset.js":159,"assert":1,"sinon":65}],153:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -27931,7 +28146,7 @@ describe('Integrations: OWOXBIStreaming', function () {
   });
 });
 
-},{"./../../src/ddManager.js":104,"./../../src/integrations/GoogleAnalytics.js":126,"./../../src/integrations/OWOXBIStreaming.js":129,"./../functions/argumentsToArray.js":142,"./../reset.js":158,"assert":1,"sinon":65}],153:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/integrations/GoogleAnalytics.js":126,"./../../src/integrations/OWOXBIStreaming.js":129,"./../functions/argumentsToArray.js":143,"./../reset.js":159,"assert":1,"sinon":65}],154:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -28772,7 +28987,7 @@ describe('Integrations: RetailRocket', function () {
   });
 });
 
-},{"./../../src/ddManager.js":104,"./../../src/functions/deleteProperty.js":106,"./../../src/integrations/RetailRocket.js":130,"./../reset.js":158,"assert":1,"sinon":65}],154:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/functions/deleteProperty.js":106,"./../../src/integrations/RetailRocket.js":130,"./../reset.js":159,"assert":1,"sinon":65}],155:[function(require,module,exports){
 'use strict';
 
 var _SegmentStream = require('./../../src/integrations/SegmentStream.js');
@@ -28928,7 +29143,7 @@ describe('SegmentStream', function () {
   });
 });
 
-},{"./../../src/ddManager.js":104,"./../../src/integrations/SegmentStream.js":131,"./../reset.js":158,"assert":1,"sinon":65}],155:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/integrations/SegmentStream.js":131,"./../reset.js":159,"assert":1,"sinon":65}],156:[function(require,module,exports){
 'use strict';
 
 var _SendPulse = require('./../../src/integrations/SendPulse.js');
@@ -29195,7 +29410,7 @@ describe('SendPulse', function () {
   });
 });
 
-},{"./../../src/ddManager.js":104,"./../../src/functions/after.js":105,"./../../src/functions/deleteProperty.js":106,"./../../src/integrations/SendPulse.js":132,"./../reset.js":158,"assert":1,"sinon":65}],156:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/functions/after.js":105,"./../../src/functions/deleteProperty.js":106,"./../../src/integrations/SendPulse.js":132,"./../reset.js":159,"assert":1,"sinon":65}],157:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -29319,7 +29534,7 @@ describe('Integrations: Vkontakte', function () {
   });
 });
 
-},{"./../../src/ddManager.js":104,"./../../src/integrations/Vkontakte.js":133,"./../reset.js":158,"assert":1,"sinon":65}],157:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/integrations/Vkontakte.js":133,"./../reset.js":159,"assert":1,"sinon":65}],158:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -29842,7 +30057,7 @@ describe('Integrations: Yandex Metrica', function () {
   });
 });
 
-},{"./../../src/ddManager.js":104,"./../../src/integrations/YandexMetrica.js":134,"./../reset.js":158,"assert":1,"sinon":65}],158:[function(require,module,exports){
+},{"./../../src/ddManager.js":104,"./../../src/integrations/YandexMetrica.js":134,"./../reset.js":159,"assert":1,"sinon":65}],159:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -29853,7 +30068,7 @@ function reset() {
   window.ddManager = undefined;
 }
 
-},{}],159:[function(require,module,exports){
+},{}],160:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -29902,5 +30117,5 @@ exports['default'] = function () {
   }
 };
 
-},{}]},{},[143])
+},{}]},{},[144])
 //# sourceMappingURL=dd-manager-test.js.map
