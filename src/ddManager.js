@@ -267,6 +267,10 @@ ddManager = {
     return _ddStorage.persist(key, exp);
   },
 
+  unpersist: (key) => {
+    return _ddStorage.unpersist(key);
+  },
+
   getProduct: (id) => {
     return DDHelper.getProduct(id, _digitalData);
   },

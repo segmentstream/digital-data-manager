@@ -14737,7 +14737,7 @@ var DDStorage = function () {
     return value;
   };
 
-  DDStorage.prototype.remove = function remove(key) {
+  DDStorage.prototype.unpersist = function unpersist(key) {
     this.removePersistedKey(key);
     return this.storage.remove(key);
   };
@@ -15320,7 +15320,7 @@ var DigitalDataEnricher = function () {
         (0, _dotProp.setProp)(this.digitalData, key, value);
       } else if (!isAlwaysPersistedField(key)) {
         // remove persistance if server defined it's own value
-        this.ddStorage.remove(key);
+        this.ddStorage.unpersist(key);
       }
     }
   };
@@ -16963,6 +16963,10 @@ ddManager = {
 
   persist: function persist(key, exp) {
     return _ddStorage.persist(key, exp);
+  },
+
+  unpersist: function unpersist(key) {
+    return _ddStorage.unpersist(key);
   },
 
   getProduct: function getProduct(id) {

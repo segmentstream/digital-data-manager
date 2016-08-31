@@ -46,7 +46,7 @@ class DDStorage
     return value;
   }
 
-  remove(key) {
+  unpersist(key) {
     this.removePersistedKey(key);
     return this.storage.remove(key);
   }

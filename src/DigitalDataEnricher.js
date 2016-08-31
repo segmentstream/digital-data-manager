@@ -232,7 +232,7 @@ class DigitalDataEnricher
         setProp(this.digitalData, key, value);
       } else if (!isAlwaysPersistedField(key)) {
         // remove persistance if server defined it's own value
-        this.ddStorage.remove(key);
+        this.ddStorage.unpersist(key);
       }
     }
   }
