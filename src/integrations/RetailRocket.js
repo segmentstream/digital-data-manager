@@ -1,6 +1,6 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty';
-import dot from 'dottie';
+import { getProp } from './../functions/dotProp';
 import throwError from './../functions/throwError';
 import each from './../functions/each';
 import clone from 'component-clone';
@@ -47,7 +47,7 @@ class RetailRocket extends Integration {
   initialize() {
     if (this.getOption('partnerId')) {
       window.rrPartnerId = this.getOption('partnerId');
-      const userId = dot.get(this.digitalData, this.getOption('userIdProperty'));
+      const userId = getProp(this.digitalData, this.getOption('userIdProperty'));
       if (userId) {
         window.rrPartnerUserId = userId;
       }
@@ -243,7 +243,7 @@ class RetailRocket extends Integration {
     if (customs) {
       const settings = this.getOption('customVariables');
       each(settings, (key, value) => {
-        let dimensionVal = dot.get(customs, value);
+        let dimensionVal = getProp(customs, value);
         if (dimensionVal !== undefined) {
           if (type(dimensionVal) === 'boolean') dimensionVal = dimensionVal.toString();
           rrCustoms[key] = dimensionVal;

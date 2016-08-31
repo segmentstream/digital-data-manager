@@ -1,6 +1,6 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
-import dot from 'dottie';
+import { getProp } from './../functions/dotProp';
 import each from './../functions/each.js';
 import size from './../functions/size.js';
 import clone from 'component-clone';
@@ -20,7 +20,7 @@ function getCheckoutOptions(event, checkoutOptions) {
   const optionNames = checkoutOptions;
   const options = [];
   for (const optionName of optionNames) {
-    const optionValue = dot.get(event, optionName);
+    const optionValue = getProp(event, optionName);
     if (optionValue) {
       options.push(optionValue);
     }
@@ -174,7 +174,7 @@ class GoogleAnalytics extends Integration {
     }
     const custom = {};
     each(settings, (key, value) => {
-      let dimensionVal = dot.get(source, value);
+      let dimensionVal = getProp(source, value);
       if (dimensionVal !== undefined) {
         if (typeof dimensionVal === 'boolean') dimensionVal = dimensionVal.toString();
         custom[key] = dimensionVal;

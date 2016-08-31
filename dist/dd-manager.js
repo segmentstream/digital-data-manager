@@ -5216,7 +5216,7 @@
 
 }));
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":60}],2:[function(require,module,exports){
+},{"_process":59}],2:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -6441,251 +6441,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":59}],58:[function(require,module,exports){
-(function(undefined) {
-  var root = this;
-
-  // Weird IE shit, objects do not have hasOwn, but the prototype does...
-  var hasOwnProp = Object.prototype.hasOwnProperty;
-
-  // Object cloning function, uses jQuery/Underscore/Object.create depending on what's available
-
-  var clone = function (object) {
-    if (typeof Object.hasOwnProperty !== 'undefined') {
-      var target = {};
-      for (var i in object) {
-        if (hasOwnProp.call(object, i)) {
-          target[i] = object[i];
-        }
-      }
-      return target;
-    }
-    if (typeof jQuery !== 'undefined') {
-      return jQuery.extend({}, object);
-    }
-    if (typeof _ !== 'undefined') {
-      return _.extend({}, object);
-    }
-  };
-
-  var reverseDupArray = function (array) {
-    var result = new Array(array.length);
-    var index  = array.length;
-    var arrayMaxIndex = index - 1;
-
-    while (index--) {
-      result[arrayMaxIndex - index] = array[index];
-    }
-
-    return result;
-  };
-
-  var Dottie = function() {
-    var args = Array.prototype.slice.call(arguments);
-
-    if (args.length == 2) {
-      return Dottie.find.apply(this, args);
-    }
-    return Dottie.transform.apply(this, args);
-  };
-
-  // Legacy syntax, changed syntax to have get/set be similar in arg order
-  Dottie.find = function(path, object) {
-    return Dottie.get(object, path);
-  };
-
-  // Dottie memoization flag
-  Dottie.memoizePath = true;
-  var memoized = {};
-
-  // Traverse object according to path, return value if found - Return undefined if destination is unreachable
-  Dottie.get = function(object, path, defaultVal) {
-    if ((object === undefined) || (object === null)) return defaultVal;
-
-    var names;
-
-    if (typeof path === "string") {
-      if (Dottie.memoizePath) {
-        if (memoized[path]) {
-          names = memoized[path].slice(0);
-        } else {
-          names = path.split('.').reverse();
-          memoized[path] = names.slice(0);
-        }
-      } else {
-        names = path.split('.').reverse();
-      }
-    } else if (Array.isArray(path)) {
-      names = reverseDupArray(path);
-    }
-
-    while (names.length && (object = object[names.pop()]) !== undefined && object !== null);
-
-    // Handle cases where accessing a childprop of a null value
-    if (object === null && names.length) object = undefined;
-
-    return (object === undefined ? defaultVal : object);
-  };
-
-  Dottie.exists = function(object, path) {
-    return Dottie.get(object, path) !== undefined;
-  };
-
-  // Set nested value
-  Dottie.set = function(object, path, value, options) {
-    var pieces = Array.isArray(path) ? path : path.split('.'), current = object, piece, length = pieces.length;
-
-    if (typeof current !== 'object') {
-        throw new Error('Parent is not an object.');
-    }
-
-    for (var index = 0; index < length; index++) {
-      piece = pieces[index];
-
-      // Create namespace (object) where none exists.
-      // If `force === true`, bruteforce the path without throwing errors.
-      if (!hasOwnProp.call(current, piece) || current[piece] === undefined || (typeof current[piece] !== 'object' && options && options.force === true)) {
-        current[piece] = {};
-      }
-
-      if (index == (length - 1)) {
-        // Set final value
-        current[piece] = value;
-      } else {
-        // We do not overwrite existing path pieces by default
-        if (typeof current[piece] !== 'object') {
-          throw new Error('Target key "' + piece + '" is not suitable for a nested value. (It is in use as non-object. Set `force` to `true` to override.)');
-        }
-
-        // Traverse next in path
-        current = current[piece];
-      }
-    }
-
-    // Is there any case when this is relevant? It's also the last line in the above for-loop
-    current[piece] = value;
-  };
-
-  // Set default nested value
-  Dottie['default'] = function(object, path, value) {
-    if (Dottie.get(object, path) === undefined) {
-      Dottie.set(object, path, value);
-    }
-  };
-
-  // Transform unnested object with .-seperated keys into a nested object.
-  Dottie.transform = function Dottie$transformfunction(object, options) {
-    if (Array.isArray(object)) {
-      return object.map(function(o) {
-        return Dottie.transform(o, options);
-      });
-    }
-
-    options = options || {};
-    options.delimiter = options.delimiter || '.';
-
-    var pieces
-      , piecesLength
-      , piece
-      , current
-      , transformed = {}
-      , key
-      , keys = Object.keys(object)
-      , length = keys.length
-      , i;
-
-    for (i = 0; i < length; i++) {
-      key = keys[i];
-
-      if (key.indexOf(options.delimiter) !== -1) {
-        pieces = key.split(options.delimiter);
-        piecesLength = pieces.length;
-        current = transformed;
-
-        for (var index = 0; index < piecesLength; index++) {
-          piece = pieces[index];
-          if (index != (piecesLength - 1) && !current.hasOwnProperty(piece)) {
-            current[piece] = {};
-          }
-
-          if (index == (piecesLength - 1)) {
-            current[piece] = object[key];
-          }
-
-          current = current[piece];
-          if (current === null) {
-            break;
-          }
-        }
-      } else {
-        transformed[key] = object[key];
-      }
-    }
-
-    return transformed;
-  };
-
-  Dottie.flatten = function(object, seperator) {
-    if (typeof seperator === "undefined") seperator = '.';
-    var flattened = {}
-      , current
-      , nested;
-
-    for (var key in object) {
-      if (hasOwnProp.call(object, key)) {
-        current = object[key];
-        if (Object.prototype.toString.call(current) === "[object Object]") {
-          nested = Dottie.flatten(current, seperator);
-
-          for (var _key in nested) {
-            flattened[key+seperator+_key] = nested[_key];
-          }
-        } else {
-          flattened[key] = current;
-        }
-      }
-    }
-
-    return flattened;
-  };
-
-  Dottie.paths = function(object, prefixes) {
-    var paths = [];
-    var value;
-    var key;
-
-    prefixes = prefixes || [];
-
-    if (typeof object === 'object') {
-      for (key in object) {
-        value = object[key];
-
-        if (typeof value === 'object') {
-          paths = paths.concat(Dottie.paths(value, prefixes.concat([key])));
-        } else {
-          paths.push(prefixes.concat(key).join('.'));
-        }
-      }
-    } else {
-      throw new Error('Paths was called with non-object argument.');
-    }
-
-    return paths;
-  };
-
-  if (typeof module !== 'undefined' && module.exports) {
-    exports = module.exports = Dottie;
-  } else {
-    root['Dottie'] = Dottie;
-    root['Dot'] = Dottie; //BC
-
-    if (typeof define === "function") {
-      define([], function () { return Dottie; });
-    }
-  }
-})();
-
-},{}],59:[function(require,module,exports){
+},{"ms":58}],58:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -6812,7 +6568,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],60:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -6933,7 +6689,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],61:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 (function (global){
 "use strict"
 // Module export pattern from
@@ -7128,7 +6884,7 @@ process.umask = function() { return 0; };
 }));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],62:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7317,14 +7073,12 @@ var AutoEvents = function () {
 
 exports['default'] = AutoEvents;
 
-},{"./DOMComponentsTracking.js":65,"component-type":4}],63:[function(require,module,exports){
+},{"./DOMComponentsTracking.js":64,"component-type":4}],62:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
 
-var _dottie = require('dottie');
-
-var _dottie2 = _interopRequireDefault(_dottie);
+var _dotProp = require('./functions/dotProp');
 
 var _componentClone = require('component-clone');
 
@@ -7346,7 +7100,7 @@ var DDHelper = function () {
   }
 
   DDHelper.get = function get(key, digitalData) {
-    var value = _dottie2['default'].get(digitalData, key);
+    var value = (0, _dotProp.getProp)(digitalData, key);
     return (0, _componentClone2['default'])(value);
   };
 
@@ -7480,18 +7234,12 @@ var DDHelper = function () {
 
 exports['default'] = DDHelper;
 
-},{"component-clone":2,"dottie":58}],64:[function(require,module,exports){
+},{"./functions/dotProp":75,"component-clone":2}],63:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
 
-var _dottie = require('dottie');
-
-var _dottie2 = _interopRequireDefault(_dottie);
-
-function _interopRequireDefault(obj) {
-  return obj && obj.__esModule ? obj : { 'default': obj };
-}
+var _dotProp = require('./functions/dotProp');
 
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
@@ -7510,7 +7258,7 @@ var DDStorage = function () {
   }
 
   DDStorage.prototype.persist = function persist(key, exp) {
-    var value = _dottie2['default'].get(this.digitalData, key);
+    var value = (0, _dotProp.getProp)(this.digitalData, key);
     if (value !== undefined) {
       var persistedKeys = this.getPersistedKeys();
       if (persistedKeys.indexOf(key) < 0) {
@@ -7573,7 +7321,7 @@ var DDStorage = function () {
 
 exports['default'] = DDStorage;
 
-},{"dottie":58}],65:[function(require,module,exports){
+},{"./functions/dotProp":75}],64:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7869,7 +7617,7 @@ var DOMComponentsTracking = function () {
 
 exports['default'] = DOMComponentsTracking;
 
-},{}],66:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -7882,9 +7630,7 @@ var _semver = require('./functions/semver.js');
 
 var _semver2 = _interopRequireDefault(_semver);
 
-var _dottie = require('dottie');
-
-var _dottie2 = _interopRequireDefault(_dottie);
+var _dotProp = require('./functions/dotProp');
 
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
@@ -7940,7 +7686,7 @@ var DigitalDataEnricher = function () {
 
     this.ddListener.push(['on', 'event', function (event) {
       if (event.name === 'Subscribed') {
-        var email = _dottie2['default'].get(event, 'user.email');
+        var email = (0, _dotProp.getProp)(event, 'user.email');
         _this.enrichHasSubscribed(email);
       } else if (event.name === 'Completed Transaction') {
         _this.enrichHasTransacted();
@@ -8046,8 +7792,8 @@ var DigitalDataEnricher = function () {
       var key = _ref;
 
       var value = this.ddStorage.get(key);
-      if (value !== undefined && _dottie2['default'].get(this.digitalData, key) !== value) {
-        _dottie2['default'].set(this.digitalData, key, value);
+      if (value !== undefined && (0, _dotProp.getProp)(this.digitalData, key) !== value) {
+        (0, _dotProp.setProp)(this.digitalData, key, value);
       }
     }
   };
@@ -8115,7 +7861,7 @@ var DigitalDataEnricher = function () {
 
 exports['default'] = DigitalDataEnricher;
 
-},{"./functions/htmlGlobals.js":79,"./functions/semver.js":86,"dottie":58}],67:[function(require,module,exports){
+},{"./functions/dotProp":75,"./functions/htmlGlobals.js":79,"./functions/semver.js":86}],66:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -8287,7 +8033,7 @@ var EventDataEnricher = function () {
 
 exports['default'] = EventDataEnricher;
 
-},{"./DDHelper.js":63,"component-type":4}],68:[function(require,module,exports){
+},{"./DDHelper.js":62,"component-type":4}],67:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -8734,7 +8480,7 @@ var EventManager = function () {
 
 exports['default'] = EventManager;
 
-},{"./DDHelper.js":63,"./EventDataEnricher.js":67,"./functions/after.js":74,"./functions/deleteProperty.js":75,"./functions/jsonIsEqual.js":80,"./functions/noop.js":84,"./functions/size.js":87,"async":1,"component-clone":2,"debug":56}],69:[function(require,module,exports){
+},{"./DDHelper.js":62,"./EventDataEnricher.js":66,"./functions/after.js":73,"./functions/deleteProperty.js":74,"./functions/jsonIsEqual.js":80,"./functions/noop.js":84,"./functions/size.js":87,"async":1,"component-clone":2,"debug":56}],68:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -8953,7 +8699,7 @@ var Integration = function (_EventEmitter) {
 
 exports['default'] = Integration;
 
-},{"./DDHelper.js":63,"./functions/deleteProperty.js":75,"./functions/each.js":76,"./functions/format.js":77,"./functions/loadIframe.js":81,"./functions/loadPixel.js":82,"./functions/loadScript.js":83,"./functions/noop.js":84,"async":1,"component-emitter":3,"debug":56}],70:[function(require,module,exports){
+},{"./DDHelper.js":62,"./functions/deleteProperty.js":74,"./functions/each.js":76,"./functions/format.js":77,"./functions/loadIframe.js":81,"./functions/loadPixel.js":82,"./functions/loadScript.js":83,"./functions/noop.js":84,"async":1,"component-emitter":3,"debug":56}],69:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -9029,7 +8775,7 @@ var Storage = function () {
 
 exports['default'] = Storage;
 
-},{"store":61}],71:[function(require,module,exports){
+},{"store":60}],70:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -9266,7 +9012,7 @@ var ViewabilityTracker = function () {
 
 exports['default'] = ViewabilityTracker;
 
-},{"./functions/noop.js":84}],72:[function(require,module,exports){
+},{"./functions/noop.js":84}],71:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -9350,7 +9096,7 @@ var integrations = {
 
 exports['default'] = integrations;
 
-},{"./integrations/Criteo.js":90,"./integrations/Driveback.js":91,"./integrations/Emarsys.js":92,"./integrations/FacebookPixel.js":93,"./integrations/GoogleAdWords.js":94,"./integrations/GoogleAnalytics.js":95,"./integrations/GoogleTagManager.js":96,"./integrations/MyTarget.js":97,"./integrations/OWOXBIStreaming.js":98,"./integrations/RetailRocket.js":99,"./integrations/SegmentStream.js":100,"./integrations/SendPulse.js":101,"./integrations/Vkontakte.js":102,"./integrations/YandexMetrica.js":103}],73:[function(require,module,exports){
+},{"./integrations/Criteo.js":90,"./integrations/Driveback.js":91,"./integrations/Emarsys.js":92,"./integrations/FacebookPixel.js":93,"./integrations/GoogleAdWords.js":94,"./integrations/GoogleAnalytics.js":95,"./integrations/GoogleTagManager.js":96,"./integrations/MyTarget.js":97,"./integrations/OWOXBIStreaming.js":98,"./integrations/RetailRocket.js":99,"./integrations/SegmentStream.js":100,"./integrations/SendPulse.js":101,"./integrations/Vkontakte.js":102,"./integrations/YandexMetrica.js":103}],72:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -9745,7 +9491,7 @@ ddManager.on = ddManager.addEventListener = function (event, handler) {
 
 exports['default'] = ddManager;
 
-},{"./AutoEvents.js":62,"./DDHelper.js":63,"./DDStorage.js":64,"./DigitalDataEnricher.js":66,"./EventManager.js":68,"./Integration.js":69,"./Storage.js":70,"./ViewabilityTracker.js":71,"./functions/after.js":74,"./functions/each.js":76,"./functions/size.js":87,"async":1,"component-clone":2,"component-emitter":3}],74:[function(require,module,exports){
+},{"./AutoEvents.js":61,"./DDHelper.js":62,"./DDStorage.js":63,"./DigitalDataEnricher.js":65,"./EventManager.js":67,"./Integration.js":68,"./Storage.js":69,"./ViewabilityTracker.js":70,"./functions/after.js":73,"./functions/each.js":76,"./functions/size.js":87,"async":1,"component-clone":2,"component-emitter":3}],73:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -9759,7 +9505,7 @@ exports["default"] = function (times, fn) {
   };
 };
 
-},{}],75:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -9771,6 +9517,64 @@ exports["default"] = function (obj, prop) {
     obj[prop] = undefined;
   }
 };
+
+},{}],75:[function(require,module,exports){
+'use strict';
+
+var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+exports.__esModule = true;
+
+var _typeof = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
+  return typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+} : function (obj) {
+  return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+};
+
+exports.getProp = getProp;
+exports.setProp = setProp;
+function _keyToArray(key) {
+  key = key.trim();
+  if (key === '') {
+    return [];
+  }
+  key = key.replace(/\[(\w+)\]/g, '.$1');
+  key = key.replace(/^\./, '');
+  return key.split('.');
+}
+
+function getProp(obj, prop) {
+  var keyParts = _keyToArray(prop);
+  var nestedVar = obj;
+  while (keyParts.length > 0) {
+    var childKey = keyParts.shift();
+    if (nestedVar.hasOwnProperty(childKey)) {
+      nestedVar = nestedVar[childKey];
+    } else {
+      return undefined;
+    }
+  }
+  return nestedVar;
+}
+
+function setProp(obj, prop, value) {
+  if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) !== 'object' || typeof prop !== 'string') {
+    return;
+  }
+  var keyParts = _keyToArray(prop);
+  for (var i = 0; i < keyParts.length; i++) {
+    var p = keyParts[i];
+    if (_typeof(obj[p]) !== 'object') {
+      obj[p] = {};
+    }
+    if (i === keyParts.length - 1) {
+      obj[p] = value;
+    }
+    obj = obj[p];
+  }
+}
+
+exports['default'] = { getProp: getProp, setProp: setProp };
 
 },{}],76:[function(require,module,exports){
 "use strict";
@@ -10173,7 +9977,7 @@ window.ddManager = _ddManager2['default'];
 _ddManager2['default'].setAvailableIntegrations(_availableIntegrations2['default']);
 _ddManager2['default'].processEarlyStubCalls(earlyStubsQueue);
 
-},{"./availableIntegrations.js":72,"./ddManager.js":73,"./polyfill.js":104}],90:[function(require,module,exports){
+},{"./availableIntegrations.js":71,"./ddManager.js":72,"./polyfill.js":104}],90:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -10442,7 +10246,7 @@ var Criteo = function (_Integration) {
 
 exports['default'] = Criteo;
 
-},{"./../Integration.js":69,"./../functions/deleteProperty":75,"./../functions/semver":86}],91:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty":74,"./../functions/semver":86}],91:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -10548,7 +10352,7 @@ var Driveback = function (_Integration) {
 
 exports['default'] = Driveback;
 
-},{"./../Integration.js":69,"./../functions/deleteProperty.js":75,"./../functions/noop.js":84}],92:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty.js":74,"./../functions/noop.js":84}],92:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -10761,7 +10565,7 @@ var Emarsys = function (_Integration) {
 
 exports['default'] = Emarsys;
 
-},{"./../Integration.js":69,"./../functions/deleteProperty.js":75}],93:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty.js":74}],93:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -10966,7 +10770,7 @@ var FacebookPixel = function (_Integration) {
 
 exports['default'] = FacebookPixel;
 
-},{"./../Integration.js":69,"./../functions/deleteProperty.js":75,"component-type":4}],94:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty.js":74,"component-type":4}],94:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -11197,7 +11001,7 @@ var GoogleAdWords = function (_Integration) {
 
 exports['default'] = GoogleAdWords;
 
-},{"./../Integration.js":69,"./../functions/deleteProperty.js":75}],95:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty.js":74}],95:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -11212,9 +11016,7 @@ var _deleteProperty = require('./../functions/deleteProperty.js');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
-var _dottie = require('dottie');
-
-var _dottie2 = _interopRequireDefault(_dottie);
+var _dotProp = require('./../functions/dotProp');
 
 var _each = require('./../functions/each.js');
 
@@ -11278,7 +11080,7 @@ function getCheckoutOptions(event, checkoutOptions) {
 
     var optionName = _ref;
 
-    var optionValue = _dottie2['default'].get(event, optionName);
+    var optionValue = (0, _dotProp.getProp)(event, optionName);
     if (optionValue) {
       options.push(optionValue);
     }
@@ -11431,7 +11233,7 @@ var GoogleAnalytics = function (_Integration) {
     }
     var custom = {};
     (0, _each2['default'])(settings, function (key, value) {
-      var dimensionVal = _dottie2['default'].get(source, value);
+      var dimensionVal = (0, _dotProp.getProp)(source, value);
       if (dimensionVal !== undefined) {
         if (typeof dimensionVal === 'boolean') dimensionVal = dimensionVal.toString();
         custom[key] = dimensionVal;
@@ -11897,7 +11699,7 @@ var GoogleAnalytics = function (_Integration) {
 
 exports['default'] = GoogleAnalytics;
 
-},{"./../Integration.js":69,"./../functions/deleteProperty.js":75,"./../functions/each.js":76,"./../functions/size.js":87,"component-clone":2,"dottie":58}],96:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty.js":74,"./../functions/dotProp":75,"./../functions/each.js":76,"./../functions/size.js":87,"component-clone":2}],96:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -11996,7 +11798,7 @@ var GoogleTagManager = function (_Integration) {
 
 exports['default'] = GoogleTagManager;
 
-},{"./../Integration.js":69,"./../functions/deleteProperty.js":75}],97:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty.js":74}],97:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -12229,7 +12031,7 @@ var MyTarget = function (_Integration) {
 
 exports['default'] = MyTarget;
 
-},{"./../Integration.js":69,"./../functions/deleteProperty.js":75}],98:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty.js":74}],98:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -12332,7 +12134,7 @@ var OWOXBIStreaming = function (_Integration) {
 
 exports['default'] = OWOXBIStreaming;
 
-},{"./../Integration.js":69}],99:[function(require,module,exports){
+},{"./../Integration.js":68}],99:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -12347,9 +12149,7 @@ var _deleteProperty = require('./../functions/deleteProperty');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
-var _dottie = require('dottie');
-
-var _dottie2 = _interopRequireDefault(_dottie);
+var _dotProp = require('./../functions/dotProp');
 
 var _throwError = require('./../functions/throwError');
 
@@ -12441,7 +12241,7 @@ var RetailRocket = function (_Integration) {
   RetailRocket.prototype.initialize = function initialize() {
     if (this.getOption('partnerId')) {
       window.rrPartnerId = this.getOption('partnerId');
-      var userId = _dottie2['default'].get(this.digitalData, this.getOption('userIdProperty'));
+      var userId = (0, _dotProp.getProp)(this.digitalData, this.getOption('userIdProperty'));
       if (userId) {
         window.rrPartnerUserId = userId;
       }
@@ -12649,7 +12449,7 @@ var RetailRocket = function (_Integration) {
     if (customs) {
       var settings = this.getOption('customVariables');
       (0, _each2['default'])(settings, function (key, value) {
-        var dimensionVal = _dottie2['default'].get(customs, value);
+        var dimensionVal = (0, _dotProp.getProp)(customs, value);
         if (dimensionVal !== undefined) {
           if ((0, _componentType2['default'])(dimensionVal) === 'boolean') dimensionVal = dimensionVal.toString();
           rrCustoms[key] = dimensionVal;
@@ -12762,7 +12562,7 @@ var RetailRocket = function (_Integration) {
 
 exports['default'] = RetailRocket;
 
-},{"./../Integration.js":69,"./../functions/deleteProperty":75,"./../functions/each":76,"./../functions/format":77,"./../functions/getQueryParam":78,"./../functions/throwError":88,"component-clone":2,"component-type":4,"dottie":58}],100:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty":74,"./../functions/dotProp":75,"./../functions/each":76,"./../functions/format":77,"./../functions/getQueryParam":78,"./../functions/throwError":88,"component-clone":2,"component-type":4}],100:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -12936,7 +12736,7 @@ var SegmentStream = function (_Integration) {
 
 exports['default'] = SegmentStream;
 
-},{"./../Integration.js":69,"./../functions/deleteProperty.js":75,"./../functions/each.js":76}],101:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty.js":74,"./../functions/each.js":76}],101:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -12951,9 +12751,7 @@ var _deleteProperty = require('./../functions/deleteProperty.js');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
-var _dottie = require('dottie');
-
-var _dottie2 = _interopRequireDefault(_dottie);
+var _dotProp = require('./../functions/dotProp');
 
 var _componentType = require('component-type');
 
@@ -13129,8 +12927,8 @@ var SendPulse = function (_Integration) {
 
       var userVar = _ref;
 
-      var value = _dottie2['default'].get(newUser, userVar);
-      if (value !== undefined && (0, _componentType2['default'])(value) !== 'object' && (!oldUser || value !== _dottie2['default'].get(oldUser, userVar))) {
+      var value = (0, _dotProp.getProp)(newUser, userVar);
+      if (value !== undefined && (0, _componentType2['default'])(value) !== 'object' && (!oldUser || value !== (0, _dotProp.getProp)(oldUser, userVar))) {
         window.oSpP.push(userVar, String(value));
       }
     }
@@ -13171,7 +12969,7 @@ var SendPulse = function (_Integration) {
 
 exports['default'] = SendPulse;
 
-},{"./../Integration.js":69,"./../functions/deleteProperty.js":75,"component-type":4,"dottie":58}],102:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty.js":74,"./../functions/dotProp":75,"component-type":4}],102:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -13250,7 +13048,7 @@ var Vkontakte = function (_Integration) {
 
 exports['default'] = Vkontakte;
 
-},{"./../Integration.js":69}],103:[function(require,module,exports){
+},{"./../Integration.js":68}],103:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -13485,7 +13283,7 @@ var YandexMetrica = function (_Integration) {
 
 exports['default'] = YandexMetrica;
 
-},{"./../Integration.js":69,"./../functions/deleteProperty.js":75}],104:[function(require,module,exports){
+},{"./../Integration.js":68,"./../functions/deleteProperty.js":74}],104:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es6.object.create');

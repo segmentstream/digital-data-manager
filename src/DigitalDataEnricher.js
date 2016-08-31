@@ -1,6 +1,6 @@
 import htmlGlobals from './functions/htmlGlobals.js';
 import semver from './functions/semver.js';
-import dot from 'dottie';
+import { getProp, setProp } from './functions/dotProp';
 
 class DigitalDataEnricher
 {
@@ -43,7 +43,7 @@ class DigitalDataEnricher
   listenToSemanticEvents() {
     this.ddListener.push(['on', 'event', (event) => {
       if (event.name === 'Subscribed') {
-        const email = dot.get(event, 'user.email');
+        const email = getProp(event, 'user.email');
         this.enrichHasSubscribed(email);
       } else if (event.name === 'Completed Transaction') {
         this.enrichHasTransacted();
@@ -134,8 +134,8 @@ class DigitalDataEnricher
     const persistedKeys = this.ddStorage.getPersistedKeys();
     for (const key of persistedKeys) {
       const value = this.ddStorage.get(key);
-      if (value !== undefined && dot.get(this.digitalData, key) !== value) {
-        dot.set(this.digitalData, key, value);
+      if (value !== undefined && getProp(this.digitalData, key) !== value) {
+        setProp(this.digitalData, key, value);
       }
     }
   }
