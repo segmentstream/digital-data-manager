@@ -26028,6 +26028,10 @@ describe('Integrations: GoogleAnalytics', function () {
 
     describe('after loading', function () {
       beforeEach(function (done) {
+        _sinon2['default'].stub(ga, 'load', function () {
+          _sinon2['default'].stub(window, 'ga');
+          ga.onLoad();
+        });
         _ddManager2['default'].once('ready', done);
         _ddManager2['default'].initialize({
           autoEvents: false
@@ -26035,9 +26039,6 @@ describe('Integrations: GoogleAnalytics', function () {
       });
 
       describe('enhanced ecommerce', function () {
-        beforeEach(function () {
-          _sinon2['default'].stub(window, 'ga');
-        });
 
         it('should require ec.js', function () {
           window.digitalData.events.push({
@@ -26048,7 +26049,7 @@ describe('Integrations: GoogleAnalytics', function () {
             },
             callback: function callback() {
               _assert2['default'].ok(window.ga.args.length > 0);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[0]), ['require', 'ec']);
+              _assert2['default'].ok(window.ga.calledWith('require', 'ec'));
             }
           });
         });
@@ -26062,8 +26063,7 @@ describe('Integrations: GoogleAnalytics', function () {
               orderId: 'ee099bf7'
             },
             callback: function callback() {
-              _assert2['default'].ok(window.ga.args.length > 0);
-              _assert2['default'].notDeepEqual((0, _argumentsToArray2['default'])(window.ga.args[0]), ['require', 'ec']);
+              _assert2['default'].ok(!window.ga.calledWith('require', 'ec'));
             }
           });
         });
@@ -26076,7 +26076,7 @@ describe('Integrations: GoogleAnalytics', function () {
               orderId: 'ee099bf7'
             },
             callback: function callback() {
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'USD']);
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'USD'));
             }
           });
         });
@@ -26090,7 +26090,7 @@ describe('Integrations: GoogleAnalytics', function () {
               currency: 'EUR'
             },
             callback: function callback() {
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'EUR']);
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'EUR'));
             }
           });
         });
@@ -26108,8 +26108,8 @@ describe('Integrations: GoogleAnalytics', function () {
             },
             quantity: 1,
             callback: function callback() {
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -26118,9 +26118,9 @@ describe('Integrations: GoogleAnalytics', function () {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'add', {}]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'add', {}));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }));
             }
           });
         });
@@ -26140,8 +26140,8 @@ describe('Integrations: GoogleAnalytics', function () {
             },
             quantity: 1,
             callback: function callback() {
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -26152,9 +26152,9 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 dimension10: 25,
                 metric10: 100
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'add', {}]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'add', {}));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }));
             }
           });
         });
@@ -26174,8 +26174,8 @@ describe('Integrations: GoogleAnalytics', function () {
             product: 'p-298',
             quantity: 1,
             callback: function callback() {
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -26184,9 +26184,9 @@ describe('Integrations: GoogleAnalytics', function () {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'add', {}]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'add', {}));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }));
             }
           });
         });
@@ -26205,9 +26205,8 @@ describe('Integrations: GoogleAnalytics', function () {
             },
             quantity: 1,
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 5);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -26216,9 +26215,9 @@ describe('Integrations: GoogleAnalytics', function () {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'add', {}]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Added Product', 'sample label', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'add', {}));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', 'sample label', { nonInteraction: 1 }));
             }
           });
         });
@@ -26236,9 +26235,8 @@ describe('Integrations: GoogleAnalytics', function () {
             },
             quantity: 1,
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 5);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -26247,9 +26245,9 @@ describe('Integrations: GoogleAnalytics', function () {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'remove', {}]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'remove', {}));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: 1 }));
             }
           });
         });
@@ -26269,9 +26267,8 @@ describe('Integrations: GoogleAnalytics', function () {
             },
             quantity: 1,
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 5);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -26282,9 +26279,9 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 dimension10: 25,
                 metric10: 100
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'remove', {}]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'remove', {}));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: 1 }));
             }
           });
         });
@@ -26300,9 +26297,8 @@ describe('Integrations: GoogleAnalytics', function () {
               skuCode: 'p-298'
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 5);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -26310,9 +26306,9 @@ describe('Integrations: GoogleAnalytics', function () {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'detail', {}]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'detail', {}));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }));
             }
           });
         });
@@ -26328,9 +26324,8 @@ describe('Integrations: GoogleAnalytics', function () {
               skuCode: 'p-298'
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 5);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1/cat 2',
@@ -26338,9 +26333,9 @@ describe('Integrations: GoogleAnalytics', function () {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'detail', {}]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'detail', {}));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }));
             }
           });
         });
@@ -26358,9 +26353,8 @@ describe('Integrations: GoogleAnalytics', function () {
               weight: 100
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 5);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -26370,9 +26364,9 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 dimension10: 25,
                 metric10: 100
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'detail', {}]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'detail', {}));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }));
             }
           });
         });
@@ -26393,9 +26387,8 @@ describe('Integrations: GoogleAnalytics', function () {
               listId: 'search results'
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 5);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -26405,11 +26398,11 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 dimension10: 25,
                 metric10: 100
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'click', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'click', {
                 list: 'search results'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: 1 }));
             }
           });
         });
@@ -26433,9 +26426,8 @@ describe('Integrations: GoogleAnalytics', function () {
               listId: 'search results'
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 5);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -26444,11 +26436,11 @@ describe('Integrations: GoogleAnalytics', function () {
                 variant: undefined,
                 currency: 'CAD',
                 position: 1
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'click', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'click', {
                 list: 'search results'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: 1 }));
             }
           });
         });
@@ -26471,9 +26463,8 @@ describe('Integrations: GoogleAnalytics', function () {
               position: 2
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 4);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addImpression', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-298',
                 name: 'my product',
                 list: 'search results',
@@ -26485,8 +26476,8 @@ describe('Integrations: GoogleAnalytics', function () {
                 position: 2,
                 dimension10: 25,
                 metric10: 100
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }));
             }
           });
         });
@@ -26518,9 +26509,8 @@ describe('Integrations: GoogleAnalytics', function () {
             }],
             listId: 'search results',
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 6);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addImpression', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-298',
                 name: 'my product',
                 list: 'search results',
@@ -26530,9 +26520,9 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 variant: undefined,
                 position: 2
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[4]), ['ec:addImpression', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-299',
                 name: 'my product',
                 list: 'search results',
@@ -26542,8 +26532,8 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 variant: undefined,
                 position: 2
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[5], ['send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }));
             }
           });
         });
@@ -26575,9 +26565,8 @@ describe('Integrations: GoogleAnalytics', function () {
               listId: 'search results'
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 4);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addImpression', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-299',
                 name: 'my other product',
                 list: 'search results',
@@ -26587,8 +26576,8 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 variant: undefined,
                 position: 2
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }));
             }
           });
         });
@@ -26623,9 +26612,8 @@ describe('Integrations: GoogleAnalytics', function () {
               listId: 'search results'
             }],
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 6);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addImpression', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-298',
                 name: 'my product',
                 list: 'search results',
@@ -26635,9 +26623,9 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 variant: undefined,
                 position: 1
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[4]), ['ec:addImpression', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-299',
                 name: 'my other product',
                 list: 'search results',
@@ -26647,8 +26635,8 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 variant: undefined,
                 position: 2
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[5], ['send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }));
             }
           });
         });
@@ -26664,15 +26652,14 @@ describe('Integrations: GoogleAnalytics', function () {
               position: 'banner_slot1'
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 4);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'USD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addPromo', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'USD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addPromo', {
                 id: 'PROMO_1234',
                 name: 'Summer Sale',
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }));
             }
           });
         });
@@ -26693,21 +26680,20 @@ describe('Integrations: GoogleAnalytics', function () {
               position: 'banner_slot1'
             }],
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 5);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'USD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addPromo', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'USD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addPromo', {
                 id: 'PROMO_1234',
                 name: 'Summer Sale',
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['ec:addPromo', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:addPromo', {
                 id: 'PROMO_2345',
                 name: 'Summer Sale',
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }));
             }
           });
         });
@@ -26724,15 +26710,14 @@ describe('Integrations: GoogleAnalytics', function () {
             category: 'Promo',
             campaign: 'PROMO_1234',
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 4);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'USD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addPromo', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'USD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addPromo', {
                 id: 'PROMO_1234',
                 name: 'Summer Sale',
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }));
             }
           });
         });
@@ -26754,21 +26739,20 @@ describe('Integrations: GoogleAnalytics', function () {
             category: 'Promo',
             campaigns: ['PROMO_1234', 'PROMO_2345'],
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 5);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'USD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addPromo', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'USD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addPromo', {
                 id: 'PROMO_1234',
                 name: 'Summer Sale',
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['ec:addPromo', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:addPromo', {
                 id: 'PROMO_2345',
                 name: 'Summer Sale',
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }));
             }
           });
         });
@@ -26784,16 +26768,15 @@ describe('Integrations: GoogleAnalytics', function () {
               position: 'banner_slot1'
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 5);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'USD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addPromo', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'USD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addPromo', {
                 id: 'PROMO_1234',
                 name: 'Summer Sale',
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'promo_click', {}]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Promo', 'Clicked Campaign', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'promo_click', {}));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Promo', 'Clicked Campaign', { nonInteraction: 1 }));
             }
           });
         });
@@ -26828,9 +26811,8 @@ describe('Integrations: GoogleAnalytics', function () {
             step: 1,
             paymentMethod: 'Visa',
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 6);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: undefined,
@@ -26841,8 +26823,8 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 dimension10: 25,
                 metric10: 100
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['ec:addProduct', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-299',
                 name: 'other product',
                 category: undefined,
@@ -26853,12 +26835,12 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 dimension10: 30,
                 metric10: 200
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[4]), ['ec:setAction', 'checkout', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'checkout', {
                 step: 1,
                 option: 'Visa'
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[5]), ['send', 'event', 'Ecommerce', 'Viewed Checkout Step', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Checkout Step', { nonInteraction: 1 }));
             }
           });
         });
@@ -26894,13 +26876,12 @@ describe('Integrations: GoogleAnalytics', function () {
             step: 2,
             shippingMethod: 'FedEx',
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 4);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:setAction', 'checkout_option', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'checkout_option', {
                 step: 2,
                 option: 'FedEx'
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }));
             }
           });
         });
@@ -26933,13 +26914,12 @@ describe('Integrations: GoogleAnalytics', function () {
             paymentMethod: 'Visa',
             shippingMethod: 'FedEx',
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 4);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:setAction', 'checkout_option', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'checkout_option', {
                 step: 2,
                 option: 'Visa, FedEx'
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }));
             }
           });
         });
@@ -26950,7 +26930,7 @@ describe('Integrations: GoogleAnalytics', function () {
             category: 'Ecommerce',
             paymentMethod: 'Visa',
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 0);
+              _assert2['default'].ok(!window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }));
             }
           });
         });
@@ -26961,7 +26941,7 @@ describe('Integrations: GoogleAnalytics', function () {
             category: 'Ecommerce',
             step: 2,
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 0);
+              _assert2['default'].ok(!window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }));
             }
           });
         });
@@ -26974,16 +26954,15 @@ describe('Integrations: GoogleAnalytics', function () {
               orderId: '7306cc06'
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 4);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:setAction', 'purchase', {
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'purchase', {
                 id: '7306cc06',
                 affiliation: undefined,
                 revenue: 0.0,
                 tax: undefined,
                 shipping: undefined,
                 coupon: undefined
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }));
             }
           });
         });
@@ -27026,9 +27005,8 @@ describe('Integrations: GoogleAnalytics', function () {
 
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 6);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -27039,8 +27017,8 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 dimension10: 25,
                 metric10: 100
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['ec:addProduct', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-299',
                 name: 'other product',
                 category: 'cat 2',
@@ -27051,16 +27029,16 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'EUR',
                 dimension10: 30,
                 metric10: 200
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[4]), ['ec:setAction', 'purchase', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'purchase', {
                 id: '780bc55',
                 affiliation: 'affiliation',
                 revenue: 99.9,
                 tax: 20.99,
                 shipping: 13.99,
                 coupon: 'coupon'
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[5]), ['send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }));
             }
           });
         });
@@ -27100,9 +27078,8 @@ describe('Integrations: GoogleAnalytics', function () {
 
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 6);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -27112,8 +27089,8 @@ describe('Integrations: GoogleAnalytics', function () {
                 variant: undefined,
                 currency: 'CAD',
                 coupon: 'promo'
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['ec:addProduct', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-299',
                 name: 'other product',
                 category: 'cat 2',
@@ -27122,16 +27099,16 @@ describe('Integrations: GoogleAnalytics', function () {
                 brand: undefined,
                 variant: undefined,
                 currency: 'EUR'
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[4]), ['ec:setAction', 'purchase', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'purchase', {
                 id: '780bc55',
                 affiliation: 'affiliation',
                 revenue: 99.9,
                 tax: 20.99,
                 shipping: 13.99,
                 coupon: 'coupon'
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[5]), ['send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }));
             }
           });
         });
@@ -27149,14 +27126,14 @@ describe('Integrations: GoogleAnalytics', function () {
               lineItems: []
             },
             callback: function callback() {
-              _assert2['default'].deepEqual(window.ga.args[2], ['ec:setAction', 'purchase', {
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'purchase', {
                 id: '5d4c7cb5',
                 affiliation: undefined,
                 revenue: 99.9,
                 tax: 20.99,
                 shipping: 13.99,
                 coupon: undefined
-              }]);
+              }));
             }
           });
         });
@@ -27174,11 +27151,10 @@ describe('Integrations: GoogleAnalytics', function () {
               lineItems: []
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 4);
-              _assert2['default'].deepEqual(window.ga.args[2], ['ec:setAction', 'refund', {
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'refund', {
                 id: '780bc55'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: 1 }));
             }
           });
         });
@@ -27206,8 +27182,7 @@ describe('Integrations: GoogleAnalytics', function () {
               }]
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 6);
-              _assert2['default'].deepEqual(window.ga.args[2], ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: undefined,
                 category: undefined,
@@ -27215,8 +27190,8 @@ describe('Integrations: GoogleAnalytics', function () {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:addProduct', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-299',
                 name: undefined,
                 category: undefined,
@@ -27225,11 +27200,11 @@ describe('Integrations: GoogleAnalytics', function () {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['ec:setAction', 'refund', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'refund', {
                 id: '780bc55'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[5], ['send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: 1 }));
             }
           });
         });
