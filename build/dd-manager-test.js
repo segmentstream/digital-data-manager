@@ -26038,6 +26038,12 @@ describe('Integrations: GoogleAnalytics', function () {
         });
       });
 
+      afterEach(function () {
+        if (window.ga.restore) {
+          window.ga.restore();
+        }
+      });
+
       describe('enhanced ecommerce', function () {
 
         it('should require ec.js', function () {

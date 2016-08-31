@@ -655,6 +655,12 @@ describe('Integrations: GoogleAnalytics', () => {
         });
       });
 
+      afterEach(() => {
+        if (window.ga.restore) {
+          window.ga.restore();
+        }
+      });
+
       describe('enhanced ecommerce', function() {
 
         it('should require ec.js', function() {
