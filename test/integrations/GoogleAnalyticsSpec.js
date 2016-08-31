@@ -208,6 +208,16 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
       });
+    });
+
+    describe('after ready', () => {
+      beforeEach((done) => {
+        sinon.stub(ga, 'load');
+        ddManager.once('ready', done);
+        ddManager.initialize({
+          autoEvents: false
+        });
+      });
 
       describe('#page', () => {
         beforeEach(() => {
@@ -356,6 +366,10 @@ describe('Integrations: GoogleAnalytics', () => {
           sinon.stub(window, 'ga');
         });
 
+        afterEach(() => {
+          window.ga.restore();
+        });
+
         it('should send an event', function () {
           window.digitalData.events.push({
             callback: () => {
@@ -460,6 +474,10 @@ describe('Integrations: GoogleAnalytics', () => {
 
         beforeEach(function () {
           sinon.stub(window, 'ga');
+        });
+
+        afterEach(() => {
+          window.ga.restore();
         });
 
         it('should require ecommerce.js', function () {
@@ -645,23 +663,22 @@ describe('Integrations: GoogleAnalytics', () => {
 
     describe('after loading', function() {
       beforeEach((done) => {
-        sinon.stub(ga, 'load', () => {
-          sinon.stub(window, 'ga');
-          ga.onLoad();
-        });
+        sinon.stub(ga, 'load');
         ddManager.once('ready', done);
         ddManager.initialize({
           autoEvents: false
         });
       });
 
-      afterEach(() => {
-        if (window.ga.restore) {
-          window.ga.restore();
-        }
-      });
-
       describe('enhanced ecommerce', function() {
+
+        beforeEach(() => {
+          sinon.stub(window, 'ga');
+        });
+
+        afterEach(() => {
+          window.ga.restore();
+        });
 
         it('should require ec.js', function() {
           window.digitalData.events.push({
@@ -1901,8 +1918,7 @@ describe('Integrations: GoogleAnalytics', () => {
 
     describe('after loading', function () {
       beforeEach((done) => {
-        window.ga = function() {};
-        window.gaplugins = {};
+        sinon.stub(ga, 'load');
         ddManager.once('ready', done);
         ddManager.initialize({
           autoEvents: false
@@ -1912,7 +1928,7 @@ describe('Integrations: GoogleAnalytics', () => {
       describe('enhanced ecommerce', function () {
 
         beforeEach(() => {
-          sinon.spy(window, 'ga');
+          sinon.stub(window, 'ga');
         });
 
         afterEach(() => {
@@ -1993,12 +2009,13 @@ describe('Integrations: GoogleAnalytics', () => {
 
     describe('after loading', function () {
       beforeEach((done) => {
+        sinon.stub(ga, 'load');
         ddManager.once('ready', done);
         ddManager.initialize({
           autoEvents: false
         });
       });
-
+      
       describe('enhanced ecommerce', function () {
 
         beforeEach(() => {
