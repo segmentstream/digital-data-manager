@@ -7671,6 +7671,10 @@ var DigitalDataEnricher = function () {
     this.ddStorage = ddStorage;
   };
 
+  DigitalDataEnricher.prototype.setOption = function setOption(key, value) {
+    this.options[key] = value;
+  };
+
   DigitalDataEnricher.prototype.enrichDigitalData = function enrichDigitalData() {
     // define required digitalData structure
     this.enrichStructure();
@@ -7775,7 +7779,7 @@ var DigitalDataEnricher = function () {
     var now = Date.now();
     if (!user.isReturning && context.lastEventTimestamp && now - context.lastEventTimestamp > this.options.sessionLength * 1000) {
       this.digitalData.user.isReturning = true;
-      this.ddManager.persist('user.isReturning');
+      this.ddStorage.persist('user.isReturning');
     }
     context.lastEventTimestamp = now;
     this.ddStorage.persist('context.lastEventTimestamp');
