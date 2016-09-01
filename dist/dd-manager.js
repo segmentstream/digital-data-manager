@@ -5216,7 +5216,7 @@
 
 }));
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":60}],2:[function(require,module,exports){
+},{"_process":61}],2:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -6446,7 +6446,178 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":59}],59:[function(require,module,exports){
+},{"ms":60}],59:[function(require,module,exports){
+(function(root, factory) {
+
+  if (typeof exports !== 'undefined') {
+    if (typeof module !== 'undefined' && module.exports) {
+      exports = module.exports = factory(root, exports);
+    }
+  } else if (typeof define === 'function' && define.amd) {
+    define(['exports'], function(exports) {
+      root.Lockr = factory(root, exports);
+    });
+  } else {
+    root.Lockr = factory(root, {});
+  }
+
+}(this, function(root, Lockr) {
+  'use strict';
+
+  if (!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function(elt /*, from*/)
+    {
+      var len = this.length >>> 0;
+
+      var from = Number(arguments[1]) || 0;
+      from = (from < 0)
+      ? Math.ceil(from)
+      : Math.floor(from);
+      if (from < 0)
+        from += len;
+
+      for (; from < len; from++)
+      {
+        if (from in this &&
+            this[from] === elt)
+          return from;
+      }
+      return -1;
+    };
+  }
+
+  Lockr.prefix = "";
+
+  Lockr._getPrefixedKey = function(key, options) {
+    options = options || {};
+
+    if (options.noPrefix) {
+      return key;
+    } else {
+      return this.prefix + key;
+    }
+
+  };
+
+  Lockr.set = function (key, value, options) {
+    var query_key = this._getPrefixedKey(key, options);
+
+    try {
+      localStorage.setItem(query_key, JSON.stringify({"data": value}));
+    } catch (e) {
+      if (console) console.warn("Lockr didn't successfully save the '{"+ key +": "+ value +"}' pair, because the localStorage is full.");
+    }
+  };
+
+  Lockr.get = function (key, missing, options) {
+    var query_key = this._getPrefixedKey(key, options),
+        value;
+
+    try {
+      value = JSON.parse(localStorage.getItem(query_key));
+    } catch (e) {
+        try {
+            if(localStorage[query_key]) {
+                value = JSON.parse('{"data":"' + localStorage.getItem(query_key) + '"}');
+            } else{
+                value = null;
+            }
+        } catch (e) {
+            if (console) console.warn("Lockr could not load the item with key " + key);
+        }
+    }
+    if(value === null) {
+      return missing;
+    } else if (typeof value.data !== 'undefined') {
+      return value.data;
+    } else {
+      return missing;
+    }
+  };
+
+  Lockr.sadd = function(key, value, options) {
+    var query_key = this._getPrefixedKey(key, options),
+        json;
+
+    var values = Lockr.smembers(key);
+
+    if (values.indexOf(value) > -1) {
+      return null;
+    }
+
+    try {
+      values.push(value);
+      json = JSON.stringify({"data": values});
+      localStorage.setItem(query_key, json);
+    } catch (e) {
+      console.log(e);
+      if (console) console.warn("Lockr didn't successfully add the "+ value +" to "+ key +" set, because the localStorage is full.");
+    }
+  };
+
+  Lockr.smembers = function(key, options) {
+    var query_key = this._getPrefixedKey(key, options),
+        value;
+
+    try {
+      value = JSON.parse(localStorage.getItem(query_key));
+    } catch (e) {
+      value = null;
+    }
+
+    if (value === null)
+      return [];
+    else
+      return (value.data || []);
+  };
+
+  Lockr.sismember = function(key, value, options) {
+    var query_key = this._getPrefixedKey(key, options);
+
+    return Lockr.smembers(key).indexOf(value) > -1;
+  };
+
+  Lockr.getAll = function () {
+    var keys = Object.keys(localStorage);
+
+    return keys.map(function (key) {
+      return Lockr.get(key);
+    });
+  };
+
+  Lockr.srem = function(key, value, options) {
+    var query_key = this._getPrefixedKey(key, options),
+        json,
+        index;
+
+    var values = Lockr.smembers(key, value);
+
+    index = values.indexOf(value);
+
+    if (index > -1)
+      values.splice(index, 1);
+
+    json = JSON.stringify({"data": values});
+
+    try {
+      localStorage.setItem(query_key, json);
+    } catch (e) {
+      if (console) console.warn("Lockr couldn't remove the "+ value +" from the set "+ key);
+    }
+  };
+
+  Lockr.rm =  function (key) {
+    localStorage.removeItem(key);
+  };
+
+  Lockr.flush = function () {
+    localStorage.clear();
+  };
+  return Lockr;
+
+}));
+
+},{}],60:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -6573,7 +6744,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],60:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -6694,201 +6865,6 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],61:[function(require,module,exports){
-(function (global){
-"use strict"
-// Module export pattern from
-// https://github.com/umdjs/umd/blob/master/returnExports.js
-;(function (root, factory) {
-    if (typeof define === 'function' && define.amd) {
-        // AMD. Register as an anonymous module.
-        define([], factory);
-    } else if (typeof exports === 'object') {
-        // Node. Does not work with strict CommonJS, but
-        // only CommonJS-like environments that support module.exports,
-        // like Node.
-        module.exports = factory();
-    } else {
-        // Browser globals (root is window)
-        root.store = factory();
-  }
-}(this, function () {
-	
-	// Store.js
-	var store = {},
-		win = (typeof window != 'undefined' ? window : global),
-		doc = win.document,
-		localStorageName = 'localStorage',
-		scriptTag = 'script',
-		storage
-
-	store.disabled = false
-	store.version = '1.3.20'
-	store.set = function(key, value) {}
-	store.get = function(key, defaultVal) {}
-	store.has = function(key) { return store.get(key) !== undefined }
-	store.remove = function(key) {}
-	store.clear = function() {}
-	store.transact = function(key, defaultVal, transactionFn) {
-		if (transactionFn == null) {
-			transactionFn = defaultVal
-			defaultVal = null
-		}
-		if (defaultVal == null) {
-			defaultVal = {}
-		}
-		var val = store.get(key, defaultVal)
-		transactionFn(val)
-		store.set(key, val)
-	}
-	store.getAll = function() {}
-	store.forEach = function() {}
-
-	store.serialize = function(value) {
-		return JSON.stringify(value)
-	}
-	store.deserialize = function(value) {
-		if (typeof value != 'string') { return undefined }
-		try { return JSON.parse(value) }
-		catch(e) { return value || undefined }
-	}
-
-	// Functions to encapsulate questionable FireFox 3.6.13 behavior
-	// when about.config::dom.storage.enabled === false
-	// See https://github.com/marcuswestin/store.js/issues#issue/13
-	function isLocalStorageNameSupported() {
-		try { return (localStorageName in win && win[localStorageName]) }
-		catch(err) { return false }
-	}
-
-	if (isLocalStorageNameSupported()) {
-		storage = win[localStorageName]
-		store.set = function(key, val) {
-			if (val === undefined) { return store.remove(key) }
-			storage.setItem(key, store.serialize(val))
-			return val
-		}
-		store.get = function(key, defaultVal) {
-			var val = store.deserialize(storage.getItem(key))
-			return (val === undefined ? defaultVal : val)
-		}
-		store.remove = function(key) { storage.removeItem(key) }
-		store.clear = function() { storage.clear() }
-		store.getAll = function() {
-			var ret = {}
-			store.forEach(function(key, val) {
-				ret[key] = val
-			})
-			return ret
-		}
-		store.forEach = function(callback) {
-			for (var i=0; i<storage.length; i++) {
-				var key = storage.key(i)
-				callback(key, store.get(key))
-			}
-		}
-	} else if (doc && doc.documentElement.addBehavior) {
-		var storageOwner,
-			storageContainer
-		// Since #userData storage applies only to specific paths, we need to
-		// somehow link our data to a specific path.  We choose /favicon.ico
-		// as a pretty safe option, since all browsers already make a request to
-		// this URL anyway and being a 404 will not hurt us here.  We wrap an
-		// iframe pointing to the favicon in an ActiveXObject(htmlfile) object
-		// (see: http://msdn.microsoft.com/en-us/library/aa752574(v=VS.85).aspx)
-		// since the iframe access rules appear to allow direct access and
-		// manipulation of the document element, even for a 404 page.  This
-		// document can be used instead of the current document (which would
-		// have been limited to the current path) to perform #userData storage.
-		try {
-			storageContainer = new ActiveXObject('htmlfile')
-			storageContainer.open()
-			storageContainer.write('<'+scriptTag+'>document.w=window</'+scriptTag+'><iframe src="/favicon.ico"></iframe>')
-			storageContainer.close()
-			storageOwner = storageContainer.w.frames[0].document
-			storage = storageOwner.createElement('div')
-		} catch(e) {
-			// somehow ActiveXObject instantiation failed (perhaps some special
-			// security settings or otherwse), fall back to per-path storage
-			storage = doc.createElement('div')
-			storageOwner = doc.body
-		}
-		var withIEStorage = function(storeFunction) {
-			return function() {
-				var args = Array.prototype.slice.call(arguments, 0)
-				args.unshift(storage)
-				// See http://msdn.microsoft.com/en-us/library/ms531081(v=VS.85).aspx
-				// and http://msdn.microsoft.com/en-us/library/ms531424(v=VS.85).aspx
-				storageOwner.appendChild(storage)
-				storage.addBehavior('#default#userData')
-				storage.load(localStorageName)
-				var result = storeFunction.apply(store, args)
-				storageOwner.removeChild(storage)
-				return result
-			}
-		}
-
-		// In IE7, keys cannot start with a digit or contain certain chars.
-		// See https://github.com/marcuswestin/store.js/issues/40
-		// See https://github.com/marcuswestin/store.js/issues/83
-		var forbiddenCharsRegex = new RegExp("[!\"#$%&'()*+,/\\\\:;<=>?@[\\]^`{|}~]", "g")
-		var ieKeyFix = function(key) {
-			return key.replace(/^d/, '___$&').replace(forbiddenCharsRegex, '___')
-		}
-		store.set = withIEStorage(function(storage, key, val) {
-			key = ieKeyFix(key)
-			if (val === undefined) { return store.remove(key) }
-			storage.setAttribute(key, store.serialize(val))
-			storage.save(localStorageName)
-			return val
-		})
-		store.get = withIEStorage(function(storage, key, defaultVal) {
-			key = ieKeyFix(key)
-			var val = store.deserialize(storage.getAttribute(key))
-			return (val === undefined ? defaultVal : val)
-		})
-		store.remove = withIEStorage(function(storage, key) {
-			key = ieKeyFix(key)
-			storage.removeAttribute(key)
-			storage.save(localStorageName)
-		})
-		store.clear = withIEStorage(function(storage) {
-			var attributes = storage.XMLDocument.documentElement.attributes
-			storage.load(localStorageName)
-			for (var i=attributes.length-1; i>=0; i--) {
-				storage.removeAttribute(attributes[i].name)
-			}
-			storage.save(localStorageName)
-		})
-		store.getAll = function(storage) {
-			var ret = {}
-			store.forEach(function(key, val) {
-				ret[key] = val
-			})
-			return ret
-		}
-		store.forEach = withIEStorage(function(storage, callback) {
-			var attributes = storage.XMLDocument.documentElement.attributes
-			for (var i=0, attr; attr=attributes[i]; ++i) {
-				callback(attr.name, store.deserialize(storage.getAttribute(attr.name)))
-			}
-		})
-	}
-
-	try {
-		var testKey = '__storejs__'
-		store.set(testKey, testKey)
-		if (store.get(testKey) != testKey) { store.disabled = true }
-		store.remove(testKey)
-	} catch(e) {
-		store.disabled = true
-	}
-	store.enabled = !store.disabled
-	
-	return store
-}));
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],62:[function(require,module,exports){
 'use strict';
 
@@ -7300,7 +7276,7 @@ var DDStorage = function () {
     return value;
   };
 
-  DDStorage.prototype.remove = function remove(key) {
+  DDStorage.prototype.unpersist = function unpersist(key) {
     this.removePersistedKey(key);
     return this.storage.remove(key);
   };
@@ -7883,7 +7859,7 @@ var DigitalDataEnricher = function () {
         (0, _dotProp.setProp)(this.digitalData, key, value);
       } else if (!isAlwaysPersistedField(key)) {
         // remove persistance if server defined it's own value
-        this.ddStorage.remove(key);
+        this.ddStorage.unpersist(key);
       }
     }
   };
@@ -8794,9 +8770,9 @@ exports['default'] = Integration;
 
 exports.__esModule = true;
 
-var _store = require('store');
+var _lockr = require('lockr');
 
-var _store2 = _interopRequireDefault(_store);
+var _lockr2 = _interopRequireDefault(_lockr);
 
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
@@ -8822,23 +8798,23 @@ var Storage = function () {
   Storage.prototype.set = function set(key, val, exp) {
     key = this.getOption('prefix') + key;
     if (exp !== undefined) {
-      _store2['default'].set(key, {
+      _lockr2['default'].set(key, {
         val: val,
         exp: exp * 1000,
         time: Date.now()
       });
     } else {
-      _store2['default'].set(key, val);
+      _lockr2['default'].set(key, val);
     }
   };
 
   Storage.prototype.get = function get(key) {
     key = this.getOption('prefix') + key;
-    var info = _store2['default'].get(key);
+    var info = _lockr2['default'].get(key);
     if (info !== undefined) {
       if (info.val !== undefined && info.exp && info.time) {
         if (Date.now() - info.time > info.exp) {
-          _store2['default'].remove(key);
+          _lockr2['default'].rm(key);
           return undefined;
         }
         return info.val;
@@ -8849,11 +8825,11 @@ var Storage = function () {
 
   Storage.prototype.remove = function remove(key) {
     key = this.getOption('prefix') + key;
-    return _store2['default'].remove(key);
+    return _lockr2['default'].rm(key);
   };
 
   Storage.prototype.isEnabled = function isEnabled() {
-    return _store2['default'].enabled;
+    return _lockr2['default'].enabled;
   };
 
   Storage.prototype.getOption = function getOption(name) {
@@ -8865,7 +8841,7 @@ var Storage = function () {
 
 exports['default'] = Storage;
 
-},{"store":61}],71:[function(require,module,exports){
+},{"lockr":59}],71:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -9526,6 +9502,10 @@ ddManager = {
 
   persist: function persist(key, exp) {
     return _ddStorage.persist(key, exp);
+  },
+
+  unpersist: function unpersist(key) {
+    return _ddStorage.unpersist(key);
   },
 
   getProduct: function getProduct(id) {

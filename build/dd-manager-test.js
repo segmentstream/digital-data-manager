@@ -5578,7 +5578,7 @@ var objectKeys = Object.keys || function (obj) {
 }));
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"_process":64}],3:[function(require,module,exports){
+},{"_process":65}],3:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -6808,7 +6808,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":63}],60:[function(require,module,exports){
+},{"ms":64}],60:[function(require,module,exports){
 (function (global){
 ((typeof define === "function" && define.amd && function (m) {
     define("formatio", ["samsam"], m);
@@ -7026,7 +7026,7 @@ function coerce(val) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"samsam":65}],61:[function(require,module,exports){
+},{"samsam":66}],61:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -7052,6 +7052,177 @@ if (typeof Object.create === 'function') {
 }
 
 },{}],62:[function(require,module,exports){
+(function(root, factory) {
+
+  if (typeof exports !== 'undefined') {
+    if (typeof module !== 'undefined' && module.exports) {
+      exports = module.exports = factory(root, exports);
+    }
+  } else if (typeof define === 'function' && define.amd) {
+    define(['exports'], function(exports) {
+      root.Lockr = factory(root, exports);
+    });
+  } else {
+    root.Lockr = factory(root, {});
+  }
+
+}(this, function(root, Lockr) {
+  'use strict';
+
+  if (!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function(elt /*, from*/)
+    {
+      var len = this.length >>> 0;
+
+      var from = Number(arguments[1]) || 0;
+      from = (from < 0)
+      ? Math.ceil(from)
+      : Math.floor(from);
+      if (from < 0)
+        from += len;
+
+      for (; from < len; from++)
+      {
+        if (from in this &&
+            this[from] === elt)
+          return from;
+      }
+      return -1;
+    };
+  }
+
+  Lockr.prefix = "";
+
+  Lockr._getPrefixedKey = function(key, options) {
+    options = options || {};
+
+    if (options.noPrefix) {
+      return key;
+    } else {
+      return this.prefix + key;
+    }
+
+  };
+
+  Lockr.set = function (key, value, options) {
+    var query_key = this._getPrefixedKey(key, options);
+
+    try {
+      localStorage.setItem(query_key, JSON.stringify({"data": value}));
+    } catch (e) {
+      if (console) console.warn("Lockr didn't successfully save the '{"+ key +": "+ value +"}' pair, because the localStorage is full.");
+    }
+  };
+
+  Lockr.get = function (key, missing, options) {
+    var query_key = this._getPrefixedKey(key, options),
+        value;
+
+    try {
+      value = JSON.parse(localStorage.getItem(query_key));
+    } catch (e) {
+        try {
+            if(localStorage[query_key]) {
+                value = JSON.parse('{"data":"' + localStorage.getItem(query_key) + '"}');
+            } else{
+                value = null;
+            }
+        } catch (e) {
+            if (console) console.warn("Lockr could not load the item with key " + key);
+        }
+    }
+    if(value === null) {
+      return missing;
+    } else if (typeof value.data !== 'undefined') {
+      return value.data;
+    } else {
+      return missing;
+    }
+  };
+
+  Lockr.sadd = function(key, value, options) {
+    var query_key = this._getPrefixedKey(key, options),
+        json;
+
+    var values = Lockr.smembers(key);
+
+    if (values.indexOf(value) > -1) {
+      return null;
+    }
+
+    try {
+      values.push(value);
+      json = JSON.stringify({"data": values});
+      localStorage.setItem(query_key, json);
+    } catch (e) {
+      console.log(e);
+      if (console) console.warn("Lockr didn't successfully add the "+ value +" to "+ key +" set, because the localStorage is full.");
+    }
+  };
+
+  Lockr.smembers = function(key, options) {
+    var query_key = this._getPrefixedKey(key, options),
+        value;
+
+    try {
+      value = JSON.parse(localStorage.getItem(query_key));
+    } catch (e) {
+      value = null;
+    }
+
+    if (value === null)
+      return [];
+    else
+      return (value.data || []);
+  };
+
+  Lockr.sismember = function(key, value, options) {
+    var query_key = this._getPrefixedKey(key, options);
+
+    return Lockr.smembers(key).indexOf(value) > -1;
+  };
+
+  Lockr.getAll = function () {
+    var keys = Object.keys(localStorage);
+
+    return keys.map(function (key) {
+      return Lockr.get(key);
+    });
+  };
+
+  Lockr.srem = function(key, value, options) {
+    var query_key = this._getPrefixedKey(key, options),
+        json,
+        index;
+
+    var values = Lockr.smembers(key, value);
+
+    index = values.indexOf(value);
+
+    if (index > -1)
+      values.splice(index, 1);
+
+    json = JSON.stringify({"data": values});
+
+    try {
+      localStorage.setItem(query_key, json);
+    } catch (e) {
+      if (console) console.warn("Lockr couldn't remove the "+ value +" from the set "+ key);
+    }
+  };
+
+  Lockr.rm =  function (key) {
+    localStorage.removeItem(key);
+  };
+
+  Lockr.flush = function () {
+    localStorage.clear();
+  };
+  return Lockr;
+
+}));
+
+},{}],63:[function(require,module,exports){
 (function (global){
 /*global global, window*/
 /**
@@ -7575,7 +7746,7 @@ if (typeof Object.create === 'function') {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],63:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -7702,7 +7873,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],64:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -7823,7 +7994,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],65:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 ((typeof define === "function" && define.amd && function (m) { define("samsam", m); }) ||
  (typeof module === "object" &&
       function (m) { module.exports = m(); }) || // Node
@@ -8224,7 +8395,7 @@ process.umask = function() { return 0; };
     };
 });
 
-},{}],66:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 /**
  * Sinon core utilities. For internal use only.
  *
@@ -8273,7 +8444,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     return sinonModule;
 }());
 
-},{"./sinon/assert":67,"./sinon/behavior":68,"./sinon/call":69,"./sinon/collection":70,"./sinon/extend":71,"./sinon/format":72,"./sinon/log_error":73,"./sinon/match":74,"./sinon/mock":75,"./sinon/sandbox":76,"./sinon/spy":77,"./sinon/stub":78,"./sinon/test":79,"./sinon/test_case":80,"./sinon/times_in_words":81,"./sinon/typeOf":82,"./sinon/util/core":83,"./sinon/walk":90}],67:[function(require,module,exports){
+},{"./sinon/assert":68,"./sinon/behavior":69,"./sinon/call":70,"./sinon/collection":71,"./sinon/extend":72,"./sinon/format":73,"./sinon/log_error":74,"./sinon/match":75,"./sinon/mock":76,"./sinon/sandbox":77,"./sinon/spy":78,"./sinon/stub":79,"./sinon/test":80,"./sinon/test_case":81,"./sinon/times_in_words":82,"./sinon/typeOf":83,"./sinon/util/core":84,"./sinon/walk":91}],68:[function(require,module,exports){
 (function (global){
 /**
  * @depend times_in_words.js
@@ -8524,7 +8695,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./format":72,"./match":74,"./util/core":83}],68:[function(require,module,exports){
+},{"./format":73,"./match":75,"./util/core":84}],69:[function(require,module,exports){
 (function (process){
 /**
  * @depend util/core.js
@@ -8900,7 +9071,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
 
 }).call(this,require('_process'))
 
-},{"./extend":71,"./util/core":83,"_process":64}],69:[function(require,module,exports){
+},{"./extend":72,"./util/core":84,"_process":65}],70:[function(require,module,exports){
 /**
   * @depend util/core.js
   * @depend match.js
@@ -9141,7 +9312,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./format":72,"./match":74,"./util/core":83}],70:[function(require,module,exports){
+},{"./format":73,"./match":75,"./util/core":84}],71:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend spy.js
@@ -9316,7 +9487,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./mock":75,"./spy":77,"./stub":78,"./util/core":83}],71:[function(require,module,exports){
+},{"./mock":76,"./spy":78,"./stub":79,"./util/core":84}],72:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -9429,7 +9600,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":83}],72:[function(require,module,exports){
+},{"./util/core":84}],73:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -9525,7 +9696,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof formatio === "object" && formatio // eslint-disable-line no-undef
 ));
 
-},{"./util/core":83,"formatio":60,"util":93}],73:[function(require,module,exports){
+},{"./util/core":84,"formatio":60,"util":93}],74:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -9611,7 +9782,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":83}],74:[function(require,module,exports){
+},{"./util/core":84}],75:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend typeOf.js
@@ -9874,7 +10045,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./typeOf":82,"./util/core":83}],75:[function(require,module,exports){
+},{"./typeOf":83,"./util/core":84}],76:[function(require,module,exports){
 /**
  * @depend times_in_words.js
  * @depend util/core.js
@@ -10367,7 +10538,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./call":69,"./extend":71,"./format":72,"./match":74,"./spy":77,"./stub":78,"./times_in_words":81,"./util/core":83}],76:[function(require,module,exports){
+},{"./call":70,"./extend":72,"./format":73,"./match":75,"./spy":78,"./stub":79,"./times_in_words":82,"./util/core":84}],77:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend extend.js
@@ -10539,7 +10710,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./collection":70,"./extend":71,"./util/core":83,"./util/fake_server_with_clock":86,"./util/fake_timers":87}],77:[function(require,module,exports){
+},{"./collection":71,"./extend":72,"./util/core":84,"./util/fake_server_with_clock":87,"./util/fake_timers":88}],78:[function(require,module,exports){
 /**
   * @depend times_in_words.js
   * @depend util/core.js
@@ -11004,7 +11175,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./call":69,"./extend":71,"./format":72,"./times_in_words":81,"./util/core":83}],78:[function(require,module,exports){
+},{"./call":70,"./extend":72,"./format":73,"./times_in_words":82,"./util/core":84}],79:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend extend.js
@@ -11206,7 +11377,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./behavior":68,"./extend":71,"./spy":77,"./util/core":83}],79:[function(require,module,exports){
+},{"./behavior":69,"./extend":72,"./spy":78,"./util/core":84}],80:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend sandbox.js
@@ -11306,7 +11477,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     }
 }(typeof sinon === "object" && sinon || null)); // eslint-disable-line no-undef
 
-},{"./sandbox":76,"./util/core":83}],80:[function(require,module,exports){
+},{"./sandbox":77,"./util/core":84}],81:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend test.js
@@ -11414,7 +11585,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./test":79,"./util/core":83}],81:[function(require,module,exports){
+},{"./test":80,"./util/core":84}],82:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -11465,7 +11636,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":83}],82:[function(require,module,exports){
+},{"./util/core":84}],83:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -11520,7 +11691,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":83}],83:[function(require,module,exports){
+},{"./util/core":84}],84:[function(require,module,exports){
 /**
  * @depend ../../sinon.js
  */
@@ -11923,7 +12094,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{}],84:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 /**
  * Minimal Event interface implementation
  *
@@ -12036,7 +12207,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"./core":83}],85:[function(require,module,exports){
+},{"./core":84}],86:[function(require,module,exports){
 /**
  * @depend fake_xdomain_request.js
  * @depend fake_xml_http_request.js
@@ -12285,7 +12456,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"../format":72,"./core":83,"./fake_xdomain_request":88,"./fake_xml_http_request":89}],86:[function(require,module,exports){
+},{"../format":73,"./core":84,"./fake_xdomain_request":89,"./fake_xml_http_request":90}],87:[function(require,module,exports){
 /**
  * @depend fake_server.js
  * @depend fake_timers.js
@@ -12388,7 +12559,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"./core":83,"./fake_server":85,"./fake_timers":87}],87:[function(require,module,exports){
+},{"./core":84,"./fake_server":86,"./fake_timers":88}],88:[function(require,module,exports){
 /**
  * Fake timer API
  * setTimeout
@@ -12463,7 +12634,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"./core":83,"lolex":62}],88:[function(require,module,exports){
+},{"./core":84,"lolex":63}],89:[function(require,module,exports){
 (function (global){
 /**
  * @depend core.js
@@ -12707,7 +12878,7 @@ if (typeof sinon === "undefined") {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"../extend":71,"../log_error":73,"./core":83,"./event":84}],89:[function(require,module,exports){
+},{"../extend":72,"../log_error":74,"./core":84,"./event":85}],90:[function(require,module,exports){
 (function (global){
 /**
  * @depend core.js
@@ -13451,7 +13622,7 @@ if (typeof sinon === "undefined") {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"../extend":71,"../log_error":73,"./core":83,"./event":84}],90:[function(require,module,exports){
+},{"../extend":72,"../log_error":74,"./core":84,"./event":85}],91:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -13532,203 +13703,7 @@ if (typeof sinon === "undefined") {
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":83}],91:[function(require,module,exports){
-(function (global){
-"use strict"
-// Module export pattern from
-// https://github.com/umdjs/umd/blob/master/returnExports.js
-;(function (root, factory) {
-    if (typeof define === 'function' && define.amd) {
-        // AMD. Register as an anonymous module.
-        define([], factory);
-    } else if (typeof exports === 'object') {
-        // Node. Does not work with strict CommonJS, but
-        // only CommonJS-like environments that support module.exports,
-        // like Node.
-        module.exports = factory();
-    } else {
-        // Browser globals (root is window)
-        root.store = factory();
-  }
-}(this, function () {
-	
-	// Store.js
-	var store = {},
-		win = (typeof window != 'undefined' ? window : global),
-		doc = win.document,
-		localStorageName = 'localStorage',
-		scriptTag = 'script',
-		storage
-
-	store.disabled = false
-	store.version = '1.3.20'
-	store.set = function(key, value) {}
-	store.get = function(key, defaultVal) {}
-	store.has = function(key) { return store.get(key) !== undefined }
-	store.remove = function(key) {}
-	store.clear = function() {}
-	store.transact = function(key, defaultVal, transactionFn) {
-		if (transactionFn == null) {
-			transactionFn = defaultVal
-			defaultVal = null
-		}
-		if (defaultVal == null) {
-			defaultVal = {}
-		}
-		var val = store.get(key, defaultVal)
-		transactionFn(val)
-		store.set(key, val)
-	}
-	store.getAll = function() {}
-	store.forEach = function() {}
-
-	store.serialize = function(value) {
-		return JSON.stringify(value)
-	}
-	store.deserialize = function(value) {
-		if (typeof value != 'string') { return undefined }
-		try { return JSON.parse(value) }
-		catch(e) { return value || undefined }
-	}
-
-	// Functions to encapsulate questionable FireFox 3.6.13 behavior
-	// when about.config::dom.storage.enabled === false
-	// See https://github.com/marcuswestin/store.js/issues#issue/13
-	function isLocalStorageNameSupported() {
-		try { return (localStorageName in win && win[localStorageName]) }
-		catch(err) { return false }
-	}
-
-	if (isLocalStorageNameSupported()) {
-		storage = win[localStorageName]
-		store.set = function(key, val) {
-			if (val === undefined) { return store.remove(key) }
-			storage.setItem(key, store.serialize(val))
-			return val
-		}
-		store.get = function(key, defaultVal) {
-			var val = store.deserialize(storage.getItem(key))
-			return (val === undefined ? defaultVal : val)
-		}
-		store.remove = function(key) { storage.removeItem(key) }
-		store.clear = function() { storage.clear() }
-		store.getAll = function() {
-			var ret = {}
-			store.forEach(function(key, val) {
-				ret[key] = val
-			})
-			return ret
-		}
-		store.forEach = function(callback) {
-			for (var i=0; i<storage.length; i++) {
-				var key = storage.key(i)
-				callback(key, store.get(key))
-			}
-		}
-	} else if (doc && doc.documentElement.addBehavior) {
-		var storageOwner,
-			storageContainer
-		// Since #userData storage applies only to specific paths, we need to
-		// somehow link our data to a specific path.  We choose /favicon.ico
-		// as a pretty safe option, since all browsers already make a request to
-		// this URL anyway and being a 404 will not hurt us here.  We wrap an
-		// iframe pointing to the favicon in an ActiveXObject(htmlfile) object
-		// (see: http://msdn.microsoft.com/en-us/library/aa752574(v=VS.85).aspx)
-		// since the iframe access rules appear to allow direct access and
-		// manipulation of the document element, even for a 404 page.  This
-		// document can be used instead of the current document (which would
-		// have been limited to the current path) to perform #userData storage.
-		try {
-			storageContainer = new ActiveXObject('htmlfile')
-			storageContainer.open()
-			storageContainer.write('<'+scriptTag+'>document.w=window</'+scriptTag+'><iframe src="/favicon.ico"></iframe>')
-			storageContainer.close()
-			storageOwner = storageContainer.w.frames[0].document
-			storage = storageOwner.createElement('div')
-		} catch(e) {
-			// somehow ActiveXObject instantiation failed (perhaps some special
-			// security settings or otherwse), fall back to per-path storage
-			storage = doc.createElement('div')
-			storageOwner = doc.body
-		}
-		var withIEStorage = function(storeFunction) {
-			return function() {
-				var args = Array.prototype.slice.call(arguments, 0)
-				args.unshift(storage)
-				// See http://msdn.microsoft.com/en-us/library/ms531081(v=VS.85).aspx
-				// and http://msdn.microsoft.com/en-us/library/ms531424(v=VS.85).aspx
-				storageOwner.appendChild(storage)
-				storage.addBehavior('#default#userData')
-				storage.load(localStorageName)
-				var result = storeFunction.apply(store, args)
-				storageOwner.removeChild(storage)
-				return result
-			}
-		}
-
-		// In IE7, keys cannot start with a digit or contain certain chars.
-		// See https://github.com/marcuswestin/store.js/issues/40
-		// See https://github.com/marcuswestin/store.js/issues/83
-		var forbiddenCharsRegex = new RegExp("[!\"#$%&'()*+,/\\\\:;<=>?@[\\]^`{|}~]", "g")
-		var ieKeyFix = function(key) {
-			return key.replace(/^d/, '___$&').replace(forbiddenCharsRegex, '___')
-		}
-		store.set = withIEStorage(function(storage, key, val) {
-			key = ieKeyFix(key)
-			if (val === undefined) { return store.remove(key) }
-			storage.setAttribute(key, store.serialize(val))
-			storage.save(localStorageName)
-			return val
-		})
-		store.get = withIEStorage(function(storage, key, defaultVal) {
-			key = ieKeyFix(key)
-			var val = store.deserialize(storage.getAttribute(key))
-			return (val === undefined ? defaultVal : val)
-		})
-		store.remove = withIEStorage(function(storage, key) {
-			key = ieKeyFix(key)
-			storage.removeAttribute(key)
-			storage.save(localStorageName)
-		})
-		store.clear = withIEStorage(function(storage) {
-			var attributes = storage.XMLDocument.documentElement.attributes
-			storage.load(localStorageName)
-			for (var i=attributes.length-1; i>=0; i--) {
-				storage.removeAttribute(attributes[i].name)
-			}
-			storage.save(localStorageName)
-		})
-		store.getAll = function(storage) {
-			var ret = {}
-			store.forEach(function(key, val) {
-				ret[key] = val
-			})
-			return ret
-		}
-		store.forEach = withIEStorage(function(storage, callback) {
-			var attributes = storage.XMLDocument.documentElement.attributes
-			for (var i=0, attr; attr=attributes[i]; ++i) {
-				callback(attr.name, store.deserialize(storage.getAttribute(attr.name)))
-			}
-		})
-	}
-
-	try {
-		var testKey = '__storejs__'
-		store.set(testKey, testKey)
-		if (store.get(testKey) != testKey) { store.disabled = true }
-		store.remove(testKey)
-	} catch(e) {
-		store.disabled = true
-	}
-	store.enabled = !store.disabled
-	
-	return store
-}));
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-
-},{}],92:[function(require,module,exports){
+},{"./util/core":84}],92:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
@@ -14326,7 +14301,7 @@ function hasOwnProperty(obj, prop) {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./support/isBuffer":92,"_process":64,"inherits":61}],94:[function(require,module,exports){
+},{"./support/isBuffer":92,"_process":65,"inherits":61}],94:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16231,9 +16206,9 @@ exports['default'] = Integration;
 
 exports.__esModule = true;
 
-var _store = require('store');
+var _lockr = require('lockr');
 
-var _store2 = _interopRequireDefault(_store);
+var _lockr2 = _interopRequireDefault(_lockr);
 
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
@@ -16259,23 +16234,23 @@ var Storage = function () {
   Storage.prototype.set = function set(key, val, exp) {
     key = this.getOption('prefix') + key;
     if (exp !== undefined) {
-      _store2['default'].set(key, {
+      _lockr2['default'].set(key, {
         val: val,
         exp: exp * 1000,
         time: Date.now()
       });
     } else {
-      _store2['default'].set(key, val);
+      _lockr2['default'].set(key, val);
     }
   };
 
   Storage.prototype.get = function get(key) {
     key = this.getOption('prefix') + key;
-    var info = _store2['default'].get(key);
+    var info = _lockr2['default'].get(key);
     if (info !== undefined) {
       if (info.val !== undefined && info.exp && info.time) {
         if (Date.now() - info.time > info.exp) {
-          _store2['default'].remove(key);
+          _lockr2['default'].rm(key);
           return undefined;
         }
         return info.val;
@@ -16286,11 +16261,11 @@ var Storage = function () {
 
   Storage.prototype.remove = function remove(key) {
     key = this.getOption('prefix') + key;
-    return _store2['default'].remove(key);
+    return _lockr2['default'].rm(key);
   };
 
   Storage.prototype.isEnabled = function isEnabled() {
-    return _store2['default'].enabled;
+    return _lockr2['default'].enabled;
   };
 
   Storage.prototype.getOption = function getOption(name) {
@@ -16302,7 +16277,7 @@ var Storage = function () {
 
 exports['default'] = Storage;
 
-},{"store":91}],103:[function(require,module,exports){
+},{"lockr":62}],103:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -21576,7 +21551,7 @@ describe('DigitalDataEnricher', function () {
   });
 });
 
-},{"./../src/DDStorage.js":96,"./../src/DigitalDataEnricher.js":98,"./../src/Storage.js":102,"./../src/functions/deleteProperty.js":107,"assert":1,"sinon":66}],141:[function(require,module,exports){
+},{"./../src/DDStorage.js":96,"./../src/DigitalDataEnricher.js":98,"./../src/Storage.js":102,"./../src/functions/deleteProperty.js":107,"assert":1,"sinon":67}],141:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -23913,7 +23888,7 @@ describe('Integrations: Criteo', function () {
   });
 });
 
-},{"./../../src/ddManager.js":105,"./../../src/integrations/Criteo.js":122,"./../reset.js":160,"assert":1,"sinon":66}],147:[function(require,module,exports){
+},{"./../../src/ddManager.js":105,"./../../src/integrations/Criteo.js":122,"./../reset.js":160,"assert":1,"sinon":67}],147:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -24398,7 +24373,7 @@ describe('Integrations: Emarsys', function () {
   });
 });
 
-},{"./../../src/ddManager":105,"./../../src/integrations/Emarsys":124,"./../reset":160,"assert":1,"sinon":66}],149:[function(require,module,exports){
+},{"./../../src/ddManager":105,"./../../src/integrations/Emarsys":124,"./../reset":160,"assert":1,"sinon":67}],149:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -24938,7 +24913,7 @@ describe('Integrations: FacebookPixel', function () {
   });
 });
 
-},{"./../../src/ddManager.js":105,"./../../src/integrations/FacebookPixel.js":125,"./../reset.js":160,"assert":1,"sinon":66}],150:[function(require,module,exports){
+},{"./../../src/ddManager.js":105,"./../../src/integrations/FacebookPixel.js":125,"./../reset.js":160,"assert":1,"sinon":67}],150:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -25356,7 +25331,7 @@ describe('Integrations: GoogleAdWords', function () {
   });
 });
 
-},{"./../../src/ddManager":105,"./../../src/integrations/GoogleAdWords":126,"./../reset":160,"assert":1,"sinon":66}],151:[function(require,module,exports){
+},{"./../../src/ddManager":105,"./../../src/integrations/GoogleAdWords":126,"./../reset":160,"assert":1,"sinon":67}],151:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -27403,7 +27378,7 @@ describe('Integrations: GoogleAnalytics', function () {
   });
 });
 
-},{"./../../src/ddManager.js":105,"./../../src/functions/after.js":106,"./../../src/integrations/GoogleAnalytics.js":127,"./../functions/argumentsToArray.js":144,"./../reset.js":160,"assert":1,"sinon":66}],152:[function(require,module,exports){
+},{"./../../src/ddManager.js":105,"./../../src/functions/after.js":106,"./../../src/integrations/GoogleAnalytics.js":127,"./../functions/argumentsToArray.js":144,"./../reset.js":160,"assert":1,"sinon":67}],152:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -28039,7 +28014,7 @@ describe('Integrations: MyTarget', function () {
   });
 });
 
-},{"./../../src/ddManager.js":105,"./../../src/integrations/MyTarget.js":129,"./../reset.js":160,"assert":1,"sinon":66}],154:[function(require,module,exports){
+},{"./../../src/ddManager.js":105,"./../../src/integrations/MyTarget.js":129,"./../reset.js":160,"assert":1,"sinon":67}],154:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -28140,7 +28115,7 @@ describe('Integrations: OWOXBIStreaming', function () {
   });
 });
 
-},{"./../../src/ddManager.js":105,"./../../src/integrations/GoogleAnalytics.js":127,"./../../src/integrations/OWOXBIStreaming.js":130,"./../functions/argumentsToArray.js":144,"./../reset.js":160,"assert":1,"sinon":66}],155:[function(require,module,exports){
+},{"./../../src/ddManager.js":105,"./../../src/integrations/GoogleAnalytics.js":127,"./../../src/integrations/OWOXBIStreaming.js":130,"./../functions/argumentsToArray.js":144,"./../reset.js":160,"assert":1,"sinon":67}],155:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -28981,7 +28956,7 @@ describe('Integrations: RetailRocket', function () {
   });
 });
 
-},{"./../../src/ddManager.js":105,"./../../src/functions/deleteProperty.js":107,"./../../src/integrations/RetailRocket.js":131,"./../reset.js":160,"assert":1,"sinon":66}],156:[function(require,module,exports){
+},{"./../../src/ddManager.js":105,"./../../src/functions/deleteProperty.js":107,"./../../src/integrations/RetailRocket.js":131,"./../reset.js":160,"assert":1,"sinon":67}],156:[function(require,module,exports){
 'use strict';
 
 var _SegmentStream = require('./../../src/integrations/SegmentStream.js');
@@ -29137,7 +29112,7 @@ describe('SegmentStream', function () {
   });
 });
 
-},{"./../../src/ddManager.js":105,"./../../src/integrations/SegmentStream.js":132,"./../reset.js":160,"assert":1,"sinon":66}],157:[function(require,module,exports){
+},{"./../../src/ddManager.js":105,"./../../src/integrations/SegmentStream.js":132,"./../reset.js":160,"assert":1,"sinon":67}],157:[function(require,module,exports){
 'use strict';
 
 var _SendPulse = require('./../../src/integrations/SendPulse.js');
@@ -29404,7 +29379,7 @@ describe('SendPulse', function () {
   });
 });
 
-},{"./../../src/ddManager.js":105,"./../../src/functions/after.js":106,"./../../src/functions/deleteProperty.js":107,"./../../src/integrations/SendPulse.js":133,"./../reset.js":160,"assert":1,"sinon":66}],158:[function(require,module,exports){
+},{"./../../src/ddManager.js":105,"./../../src/functions/after.js":106,"./../../src/functions/deleteProperty.js":107,"./../../src/integrations/SendPulse.js":133,"./../reset.js":160,"assert":1,"sinon":67}],158:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -29528,7 +29503,7 @@ describe('Integrations: Vkontakte', function () {
   });
 });
 
-},{"./../../src/ddManager.js":105,"./../../src/integrations/Vkontakte.js":134,"./../reset.js":160,"assert":1,"sinon":66}],159:[function(require,module,exports){
+},{"./../../src/ddManager.js":105,"./../../src/integrations/Vkontakte.js":134,"./../reset.js":160,"assert":1,"sinon":67}],159:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -30051,7 +30026,7 @@ describe('Integrations: Yandex Metrica', function () {
   });
 });
 
-},{"./../../src/ddManager.js":105,"./../../src/integrations/YandexMetrica.js":135,"./../reset.js":160,"assert":1,"sinon":66}],160:[function(require,module,exports){
+},{"./../../src/ddManager.js":105,"./../../src/integrations/YandexMetrica.js":135,"./../reset.js":160,"assert":1,"sinon":67}],160:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;

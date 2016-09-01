@@ -1,4 +1,4 @@
-import store from 'store';
+import store from 'lockr';
 
 class Storage
 {
@@ -27,7 +27,7 @@ class Storage
     if (info !== undefined) {
       if (info.val !== undefined && info.exp && info.time) {
         if (Date.now() - info.time > info.exp) {
-          store.remove(key);
+          store.rm(key);
           return undefined;
         }
         return info.val;
@@ -38,7 +38,7 @@ class Storage
 
   remove(key) {
     key = this.getOption('prefix') + key;
-    return store.remove(key);
+    return store.rm(key);
   }
 
   isEnabled() {
