@@ -18,8 +18,14 @@ class GoogleTagManager extends Integration {
   }
 
   initialize() {
+    window.dataLayer = window.dataLayer || [];
+    this.ddManager.on('ready', () => {
+      window.dataLayer.push({ event: 'DDManager Ready' });
+    });
+    this.ddManager.on('load', () => {
+      window.dataLayer.push({ event: 'DDManager Loaded' });
+    });
     if (this.getOption('containerId') && this.getOption('noConflict') === false) {
-      window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({ 'gtm.start': Number(new Date()), event: 'gtm.js' });
       this.load(this.onLoad);
     } else {

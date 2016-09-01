@@ -1,6 +1,6 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
-import getProperty from './../functions/getProperty.js';
+import { getProp } from './../functions/dotProp';
 import each from './../functions/each.js';
 import size from './../functions/size.js';
 import clone from 'component-clone';
@@ -20,7 +20,7 @@ function getCheckoutOptions(event, checkoutOptions) {
   const optionNames = checkoutOptions;
   const options = [];
   for (const optionName of optionNames) {
-    const optionValue = getProperty(event, optionName);
+    const optionValue = getProp(event, optionName);
     if (optionValue) {
       options.push(optionValue);
     }
@@ -121,7 +121,7 @@ class GoogleAnalytics extends Integration {
     }
 
     // send global id
-    const userId = this.get('user.id');
+    const userId = this.get('user.userId');
     if (this.getOption('sendUserId') && userId) {
       this.ga('set', 'userId', userId);
     }
@@ -174,7 +174,7 @@ class GoogleAnalytics extends Integration {
     }
     const custom = {};
     each(settings, (key, value) => {
-      let dimensionVal = getProperty(source, value);
+      let dimensionVal = getProp(source, value);
       if (dimensionVal !== undefined) {
         if (typeof dimensionVal === 'boolean') dimensionVal = dimensionVal.toString();
         custom[key] = dimensionVal;
@@ -317,7 +317,7 @@ class GoogleAnalytics extends Integration {
       const gaProduct = Object.assign({
         id: product.id || product.skuCode,
         name: product.name,
-        list: listItem.listName,
+        list: listItem.listId,
         category: getProductCategory(product),
         brand: product.brand || product.manufacturer,
         price: product.unitSalePrice || product.unitPrice,
@@ -338,7 +338,7 @@ class GoogleAnalytics extends Integration {
     const product = event.listItem.product;
     this.loadEnhancedEcommerce(product.currency);
     this.enhancedEcommerceProductAction(event, 'click', {
-      list: event.listItem.listName,
+      list: event.listItem.listId,
     });
     this.pushEnhancedEcommerce(event);
   }
@@ -390,7 +390,7 @@ class GoogleAnalytics extends Integration {
       const product = lineItem.product;
       if (product) {
         this.ga('ecommerce:addItem', {
-          id: transaction.orderId,
+          id: product.id,
           category: getProductCategory(product),
           quantity: lineItem.quantity,
           price: product.unitSalePrice || product.unitPrice,

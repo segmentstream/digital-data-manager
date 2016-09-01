@@ -8,7 +8,7 @@ function _keyToArray(key) {
   return key.split('.');
 }
 
-export default function(obj, prop) {
+export function getProp(obj, prop) {
   const keyParts = _keyToArray(prop);
   let nestedVar = obj;
   while (keyParts.length > 0) {
@@ -21,3 +21,22 @@ export default function(obj, prop) {
   }
   return nestedVar;
 }
+
+export function setProp(obj, prop, value) {
+  if (typeof obj !== 'object' || typeof prop !== 'string') {
+    return;
+  }
+  const keyParts = _keyToArray(prop);
+  for (let i = 0; i < keyParts.length; i++) {
+    const p = keyParts[i];
+    if (typeof obj[p] !== 'object') {
+      obj[p] = {};
+    }
+    if (i === keyParts.length - 1) {
+      obj[p] = value;
+    }
+    obj = obj[p];
+  }
+}
+
+export default { getProp, setProp };

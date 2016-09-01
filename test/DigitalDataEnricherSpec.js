@@ -2,9 +2,13 @@ import assert from 'assert';
 import sinon from 'sinon';
 import deleteProperty from './../src/functions/deleteProperty.js';
 import DigitalDataEnricher from './../src/DigitalDataEnricher.js';
+import Storage from './../src/Storage.js';
+import DDStorage from './../src/DDStorage.js';
 
 describe('DigitalDataEnricher', () => {
 
+  let _ddListener = [];
+  let _ddStorage;
   let _digitalData;
   let _htmlGlobals;
   let _digitalDataEnricher;
@@ -23,7 +27,8 @@ describe('DigitalDataEnricher', () => {
   };
 
   before(() => {
-    _digitalDataEnricher = new DigitalDataEnricher(_digitalData);
+    _ddListener = [];
+    _digitalDataEnricher = new DigitalDataEnricher(_digitalData, _ddListener);
     _htmlGlobals = _digitalDataEnricher.getHtmlGlobals();
     sinon.stub(_htmlGlobals, 'getDocument', () => {
       return _document;
@@ -40,6 +45,10 @@ describe('DigitalDataEnricher', () => {
     _htmlGlobals.getLocation.restore();
     _htmlGlobals.getDocument.restore();
     _htmlGlobals.getNavigator.restore();
+    if (_ddStorage) {
+      _ddStorage.clear();
+      _ddStorage = undefined;
+    }
   });
 
   describe('#enrichPageData', () => {
@@ -151,6 +160,114 @@ describe('DigitalDataEnricher', () => {
       assert.ok(_digitalData.recommendation[1].listId === 'recom2');
     });
 
+  });
+
+  describe('#enrichDDStorageData', () => {
+    it('should enrich data from local storage', () => {
+      _digitalData = {
+        user: {
+          userId: '123',
+          hasCoffeeMachine: true,
+          hasFerrari: true,
+          isSubscribed: true,
+          visitedContactPageTimes: 20,
+          segments: ['segment1', 'segment2']
+        },
+        listing: {
+          listId: 'test'
+        }
+      };
+      _ddStorage = new DDStorage(_digitalData, new Storage());
+      _ddStorage.persist('user.hasCoffeeMachine');
+      _ddStorage.persist('user.hasFerrari');
+      _ddStorage.persist('user.visitedContactPageTimes');
+      _ddStorage.persist('user.segments');
+      _ddStorage.persist('user.isSubscribed');
+      _ddStorage.persist('listing.listId');
+
+      _digitalData = {
+        user: {
+          userId: '123',
+          isSubscribed: false,
+          hasFerrari: false
+        }
+      };
+      _digitalDataEnricher.setDigitalData(_digitalData);
+      _ddStorage = new DDStorage(_digitalData, new Storage());
+      _digitalDataEnricher.setDDStorage(_ddStorage);
+      _digitalDataEnricher.enrichDigitalData();
+
+      assert.deepEqual(_digitalData.user, {
+        userId: '123',
+        isSubscribed: true,
+        hasCoffeeMachine: true,
+        hasFerrari: false,
+        visitedContactPageTimes: 20,
+        segments: ['segment1', 'segment2'],
+        isReturning: false
+      });
+
+      assert.ok(_ddStorage.get('user.hasCoffeeMachine'));
+      assert.ok(_ddStorage.get('user.isSubscribed'));
+      assert.ok(_ddStorage.get('user.hasFerrari') === undefined);
+    })
+  });
+
+
+  describe('default enrichments', () => {
+
+    function enirch(digitalData) {
+      _ddStorage = new DDStorage(digitalData, new Storage());
+      _digitalDataEnricher.setDigitalData(digitalData);
+      _digitalDataEnricher.setDDStorage(_ddStorage);
+      _digitalDataEnricher.enrichDigitalData();
+    }
+
+    it('should enrich user data', () => {
+      _digitalData = {
+        user: {
+          isSubscribed: true,
+          isLoggedIn: true,
+          email: 'test@email.com',
+          hasTransacted: true,
+          lastTransactionDate: '2016-03-30T10:05:26.041Z'
+        }
+      };
+      enirch(_digitalData);
+
+      _digitalData = {
+        user: {
+          isLoggedIn: false,
+        }
+      };
+      enirch(_digitalData);
+      assert.ok(!_digitalData.user.isLoggedIn);
+      assert.ok(_digitalData.user.everLoggedIn);
+      assert.ok(_digitalData.user.hasTransacted);
+      assert.ok(_digitalData.user.isSubscribed);
+      assert.equal(_digitalData.user.email, 'test@email.com');
+      assert.equal(_digitalData.user.lastTransactionDate, '2016-03-30T10:05:26.041Z');
+    });
+
+    it('should update user.isReturning status', (done) => {
+      _digitalData = {};
+      _ddStorage = new DDStorage(_digitalData, new Storage());
+      _ddStorage.clear(); // to prevent using previous lastEventTimestamp value
+      _digitalDataEnricher.setDigitalData(_digitalData);
+      _digitalDataEnricher.setDDStorage(_ddStorage);
+      _digitalDataEnricher.setOption('sessionLength', 0.1);
+      _digitalDataEnricher.enrichDigitalData();
+
+      assert.ok(!_digitalData.user.isReturning);
+
+      setTimeout(() => {
+        _digitalDataEnricher.enrichDigitalData();
+        setTimeout(() => {
+          assert.ok(_digitalData.user.isReturning);
+          done();
+        }, 101);
+      }, 101);
+    });
   });
 
 });

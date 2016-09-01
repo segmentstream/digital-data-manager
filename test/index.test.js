@@ -4,6 +4,7 @@ import './../src/polyfill.js';
 import './ddManagerSpec.js';
 import './AutoEventsSpec.js';
 import './DDHelperSpec.js';
+import './DDStorageSpec.js';
 import './EventManagerSpec.js';
 import './EventDataEnricherSpec.js';
 import './DigitalDataEnricherSpec.js';

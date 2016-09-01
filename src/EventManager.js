@@ -183,7 +183,7 @@ class EventManager {
 
   fireEvent(event) {
     let eventCallback;
-    event.timestamp = (new Date()).getTime();
+    event.timestamp = Date.now();
 
     if (!this.beforeFireEvent(event)) {
       return false;

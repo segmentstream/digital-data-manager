@@ -11,26 +11,10 @@ import AutoEvents from './AutoEvents.js';
 import ViewabilityTracker from './ViewabilityTracker.js';
 import DDHelper from './DDHelper.js';
 import DigitalDataEnricher from './DigitalDataEnricher.js';
+import Storage from './Storage.js';
+import DDStorage from './DDStorage.js';
 
 let ddManager;
-
-/**
- * @type {string}
- * @private
- */
-const _digitalDataNamespace = 'digitalData';
-
-/**
- * @type {string}
- * @private
- */
-const _ddListenerNamespace = 'ddListener';
-
-/**
- * @type {string}
- * @private
- */
-const _ddManagerNamespace = 'ddManager';
 
 /**
  * @type {Object}
@@ -57,6 +41,18 @@ let _availableIntegrations;
 let _eventManager;
 
 /**
+ * @type {Storage}
+ * @private
+ */
+let _storage;
+
+/**
+ * @type {DDStorage}
+ * @private
+ */
+let _ddStorage;
+
+/**
  * @type {Object}
  * @private
  */
@@ -76,25 +72,16 @@ let _isLoaded = false;
 let _isReady = false;
 
 function _prepareGlobals() {
-  if (typeof window[_digitalDataNamespace] === 'object') {
-    _digitalData = window[_digitalDataNamespace];
+  if (typeof window.digitalData === 'object') {
+    _digitalData = window.digitalData;
   } else {
-    window[_digitalDataNamespace] = _digitalData;
+    window.digitalData = _digitalData;
   }
 
-  _digitalData.website = _digitalData.website || {};
-  _digitalData.page = _digitalData.page || {};
-  _digitalData.user = _digitalData.user || {};
-  _digitalData.context = _digitalData.context || {};
-  _digitalData.integrations = _digitalData.integrations || {};
-  if (!_digitalData.page.type || _digitalData.page.type !== 'confirmation') {
-    _digitalData.cart = _digitalData.cart || {};
-  }
-
-  if (Array.isArray(window[_ddListenerNamespace])) {
-    _ddListener = window[_ddListenerNamespace];
+  if (Array.isArray(window.ddListener)) {
+    _ddListener = window.ddListener;
   } else {
-    window[_ddListenerNamespace] = _ddListener;
+    window.ddListener = _ddListener;
   }
 }
 
@@ -146,14 +133,14 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.1.6',
+  VERSION: '1.2.0',
 
   setAvailableIntegrations: (availableIntegrations) => {
     _availableIntegrations = availableIntegrations;
   },
 
-  processEarlyStubCalls: () => {
-    const earlyStubCalls = window[_ddManagerNamespace] || [];
+  processEarlyStubCalls: (earlyStubsQueue) => {
+    const earlyStubCalls = earlyStubsQueue || [];
     const methodCallPromise = (method, args) => {
       return () => {
         ddManager[method].apply(ddManager, args);
@@ -220,8 +207,13 @@ ddManager = {
 
     _prepareGlobals();
 
+    _storage = new Storage();
+    _ddStorage = new DDStorage(_digitalData, _storage);
+
     // initialize digital data enricher
-    const digitalDataEnricher = new DigitalDataEnricher(_digitalData);
+    const digitalDataEnricher = new DigitalDataEnricher(_digitalData, _ddListener, _ddStorage, {
+      sessionLength: settings.sessionLength,
+    });
     digitalDataEnricher.enrichDigitalData();
 
     // initialize event manager
@@ -260,6 +252,7 @@ ddManager = {
       throw new TypeError('attempted to add an invalid integration');
     }
     _integrations[name] = integration;
+    integration.setDDManager(ddManager);
   },
 
   getIntegration: (name) => {
@@ -268,6 +261,14 @@ ddManager = {
 
   get: (key) => {
     return DDHelper.get(key, _digitalData);
+  },
+
+  persist: (key, exp) => {
+    return _ddStorage.persist(key, exp);
+  },
+
+  unpersist: (key) => {
+    return _ddStorage.unpersist(key);
   },
 
   getProduct: (id) => {
@@ -283,6 +284,7 @@ ddManager = {
   },
 
   reset: () => {
+    _ddStorage.clear();
     if (_eventManager instanceof EventManager) {
       _eventManager.reset();
     }

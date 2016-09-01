@@ -7,6 +7,10 @@ import availableIntegrations from '../src/availableIntegrations.js';
 
 describe('DDManager', () => {
 
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
   afterEach(() => {
     ddManager.reset();
     reset();
@@ -30,7 +34,7 @@ describe('DDManager', () => {
     it('should work well with async load using stubs from the snippet', () => {
       snippet();
       window.ddManager.initialize();
-      ddManager.processEarlyStubCalls();
+      ddManager.processEarlyStubCalls(window.ddManager);
 
       assert.ok(ddManager.isReady());
       assert.ok(Array.isArray(window.digitalData.events));
@@ -43,7 +47,7 @@ describe('DDManager', () => {
       window.ddManager.on('ready', () => {
         done();
       });
-      ddManager.processEarlyStubCalls();
+      ddManager.processEarlyStubCalls(window.ddManager);
     });
 
     it('should initialize DDManager instance', () => {
@@ -185,6 +189,87 @@ describe('DDManager', () => {
       } else {
         assert.ok(false);
       }
+    });
+
+    it('should enrich digitalData based on semantic events', (done) => {
+      window.digitalData = {
+        user: {
+          isSubscribed: false,
+          isLoggedIn: true,
+          hasTransacted: false
+        }
+      };
+
+      ddManager.once('ready', () => {
+        window.digitalData.events.push({
+          name: 'Completed Transaction'
+        });
+
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          user: {
+            email: 'test@email.com'
+          }
+        });
+
+        setTimeout(() => {
+          assert.ok(window.digitalData.user.isLoggedIn);
+          assert.ok(window.digitalData.user.everLoggedIn);
+          assert.ok(window.digitalData.user.hasTransacted);
+          assert.ok(window.digitalData.user.isSubscribed);
+          assert.equal(window.digitalData.user.email, 'test@email.com');
+          assert.ok(window.digitalData.user.lastTransactionDate);
+          done();
+        }, 101);
+      });
+      ddManager.initialize();
+    });
+
+    it('should update user.isReturning status', (done) => {
+      ddManager.once('ready', () => {
+        window.digitalData.events.push({
+          name: 'Viewed Page'
+        });
+
+        assert.ok(!window.digitalData.user.isReturning);
+
+        setTimeout(() => {
+          window.digitalData.events.push({
+            name: 'Viewed Page'
+          });
+          setTimeout(() => {
+            assert.ok(window.digitalData.user.isReturning);
+            done();
+          }, 101);
+        }, 101);
+      });
+      ddManager.initialize({
+        sessionLength: 0.1,
+        autoEvents: false
+      });
+    });
+
+    it('should not update user.isReturning status', (done) => {
+      ddManager.once('ready', () => {
+        window.digitalData.events.push({
+          name: 'Viewed Page'
+        });
+
+        assert.ok(!window.digitalData.user.isReturning);
+        setTimeout(() => {
+          window.digitalData.events.push({
+            name: 'Viewed Page'
+          });
+          setTimeout(() => {
+            assert.ok(!window.digitalData.user.isReturning);
+            done();
+          }, 101);
+        }, 101);
+      });
+      ddManager.initialize({
+        sessionLength: 1,
+        autoEvents: false
+      });
     });
 
     it('it should send Viewed Page event once', (done) => {

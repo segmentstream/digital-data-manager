@@ -359,7 +359,7 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":90}],2:[function(require,module,exports){
+},{"util/":93}],2:[function(require,module,exports){
 (function (process,global){
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -5578,7 +5578,7 @@ var objectKeys = Object.keys || function (obj) {
 }));
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"_process":62}],3:[function(require,module,exports){
+},{"_process":65}],3:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -6384,20 +6384,54 @@ var $export = require('./_export');
 
 $export($export.S, 'Array', {isArray: require('./_is-array')});
 },{"./_export":17,"./_is-array":26}],52:[function(require,module,exports){
+// 20.3.3.1 / 15.9.4.4 Date.now()
+var $export = require('./_export');
+
+$export($export.S, 'Date', {now: function(){ return new Date().getTime(); }});
+},{"./_export":17}],53:[function(require,module,exports){
+'use strict';
+// 20.3.4.36 / 15.9.5.43 Date.prototype.toISOString()
+var $export = require('./_export')
+  , fails   = require('./_fails')
+  , getTime = Date.prototype.getTime;
+
+var lz = function(num){
+  return num > 9 ? num : '0' + num;
+};
+
+// PhantomJS / old WebKit has a broken implementations
+$export($export.P + $export.F * (fails(function(){
+  return new Date(-5e13 - 1).toISOString() != '0385-07-25T07:06:39.999Z';
+}) || !fails(function(){
+  new Date(NaN).toISOString();
+})), 'Date', {
+  toISOString: function toISOString(){
+    if(!isFinite(getTime.call(this)))throw RangeError('Invalid time value');
+    var d = this
+      , y = d.getUTCFullYear()
+      , m = d.getUTCMilliseconds()
+      , s = y < 0 ? '-' : y > 9999 ? '+' : '';
+    return s + ('00000' + Math.abs(y)).slice(s ? -6 : -4) +
+      '-' + lz(d.getUTCMonth() + 1) + '-' + lz(d.getUTCDate()) +
+      'T' + lz(d.getUTCHours()) + ':' + lz(d.getUTCMinutes()) +
+      ':' + lz(d.getUTCSeconds()) + '.' + (m > 99 ? m : '0' + lz(m)) + 'Z';
+  }
+});
+},{"./_export":17,"./_fails":18}],54:[function(require,module,exports){
 // 19.2.3.2 / 15.3.4.5 Function.prototype.bind(thisArg, args...)
 var $export = require('./_export');
 
 $export($export.P, 'Function', {bind: require('./_bind')});
-},{"./_bind":9,"./_export":17}],53:[function(require,module,exports){
+},{"./_bind":9,"./_export":17}],55:[function(require,module,exports){
 // 19.1.3.1 Object.assign(target, source)
 var $export = require('./_export');
 
 $export($export.S + $export.F, 'Object', {assign: require('./_object-assign')});
-},{"./_export":17,"./_object-assign":28}],54:[function(require,module,exports){
+},{"./_export":17,"./_object-assign":28}],56:[function(require,module,exports){
 var $export = require('./_export')
 // 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
 $export($export.S, 'Object', {create: require('./_object-create')});
-},{"./_export":17,"./_object-create":29}],55:[function(require,module,exports){
+},{"./_export":17,"./_object-create":29}],57:[function(require,module,exports){
 'use strict';
 // 21.1.3.25 String.prototype.trim()
 require('./_string-trim')('trim', function($trim){
@@ -6405,7 +6439,7 @@ require('./_string-trim')('trim', function($trim){
     return $trim(this, 3);
   };
 });
-},{"./_string-trim":41}],56:[function(require,module,exports){
+},{"./_string-trim":41}],58:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -6575,7 +6609,7 @@ function localstorage(){
   } catch (e) {}
 }
 
-},{"./debug":57}],57:[function(require,module,exports){
+},{"./debug":59}],59:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -6774,7 +6808,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":61}],58:[function(require,module,exports){
+},{"ms":64}],60:[function(require,module,exports){
 (function (global){
 ((typeof define === "function" && define.amd && function (m) {
     define("formatio", ["samsam"], m);
@@ -6992,7 +7026,7 @@ function coerce(val) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"samsam":63}],59:[function(require,module,exports){
+},{"samsam":66}],61:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -7017,7 +7051,178 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],60:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
+(function(root, factory) {
+
+  if (typeof exports !== 'undefined') {
+    if (typeof module !== 'undefined' && module.exports) {
+      exports = module.exports = factory(root, exports);
+    }
+  } else if (typeof define === 'function' && define.amd) {
+    define(['exports'], function(exports) {
+      root.Lockr = factory(root, exports);
+    });
+  } else {
+    root.Lockr = factory(root, {});
+  }
+
+}(this, function(root, Lockr) {
+  'use strict';
+
+  if (!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function(elt /*, from*/)
+    {
+      var len = this.length >>> 0;
+
+      var from = Number(arguments[1]) || 0;
+      from = (from < 0)
+      ? Math.ceil(from)
+      : Math.floor(from);
+      if (from < 0)
+        from += len;
+
+      for (; from < len; from++)
+      {
+        if (from in this &&
+            this[from] === elt)
+          return from;
+      }
+      return -1;
+    };
+  }
+
+  Lockr.prefix = "";
+
+  Lockr._getPrefixedKey = function(key, options) {
+    options = options || {};
+
+    if (options.noPrefix) {
+      return key;
+    } else {
+      return this.prefix + key;
+    }
+
+  };
+
+  Lockr.set = function (key, value, options) {
+    var query_key = this._getPrefixedKey(key, options);
+
+    try {
+      localStorage.setItem(query_key, JSON.stringify({"data": value}));
+    } catch (e) {
+      if (console) console.warn("Lockr didn't successfully save the '{"+ key +": "+ value +"}' pair, because the localStorage is full.");
+    }
+  };
+
+  Lockr.get = function (key, missing, options) {
+    var query_key = this._getPrefixedKey(key, options),
+        value;
+
+    try {
+      value = JSON.parse(localStorage.getItem(query_key));
+    } catch (e) {
+        try {
+            if(localStorage[query_key]) {
+                value = JSON.parse('{"data":"' + localStorage.getItem(query_key) + '"}');
+            } else{
+                value = null;
+            }
+        } catch (e) {
+            if (console) console.warn("Lockr could not load the item with key " + key);
+        }
+    }
+    if(value === null) {
+      return missing;
+    } else if (typeof value.data !== 'undefined') {
+      return value.data;
+    } else {
+      return missing;
+    }
+  };
+
+  Lockr.sadd = function(key, value, options) {
+    var query_key = this._getPrefixedKey(key, options),
+        json;
+
+    var values = Lockr.smembers(key);
+
+    if (values.indexOf(value) > -1) {
+      return null;
+    }
+
+    try {
+      values.push(value);
+      json = JSON.stringify({"data": values});
+      localStorage.setItem(query_key, json);
+    } catch (e) {
+      console.log(e);
+      if (console) console.warn("Lockr didn't successfully add the "+ value +" to "+ key +" set, because the localStorage is full.");
+    }
+  };
+
+  Lockr.smembers = function(key, options) {
+    var query_key = this._getPrefixedKey(key, options),
+        value;
+
+    try {
+      value = JSON.parse(localStorage.getItem(query_key));
+    } catch (e) {
+      value = null;
+    }
+
+    if (value === null)
+      return [];
+    else
+      return (value.data || []);
+  };
+
+  Lockr.sismember = function(key, value, options) {
+    var query_key = this._getPrefixedKey(key, options);
+
+    return Lockr.smembers(key).indexOf(value) > -1;
+  };
+
+  Lockr.getAll = function () {
+    var keys = Object.keys(localStorage);
+
+    return keys.map(function (key) {
+      return Lockr.get(key);
+    });
+  };
+
+  Lockr.srem = function(key, value, options) {
+    var query_key = this._getPrefixedKey(key, options),
+        json,
+        index;
+
+    var values = Lockr.smembers(key, value);
+
+    index = values.indexOf(value);
+
+    if (index > -1)
+      values.splice(index, 1);
+
+    json = JSON.stringify({"data": values});
+
+    try {
+      localStorage.setItem(query_key, json);
+    } catch (e) {
+      if (console) console.warn("Lockr couldn't remove the "+ value +" from the set "+ key);
+    }
+  };
+
+  Lockr.rm =  function (key) {
+    localStorage.removeItem(key);
+  };
+
+  Lockr.flush = function () {
+    localStorage.clear();
+  };
+  return Lockr;
+
+}));
+
+},{}],63:[function(require,module,exports){
 (function (global){
 /*global global, window*/
 /**
@@ -7541,7 +7746,7 @@ if (typeof Object.create === 'function') {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],61:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -7668,7 +7873,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],62:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -7789,7 +7994,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],63:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 ((typeof define === "function" && define.amd && function (m) { define("samsam", m); }) ||
  (typeof module === "object" &&
       function (m) { module.exports = m(); }) || // Node
@@ -8190,7 +8395,7 @@ process.umask = function() { return 0; };
     };
 });
 
-},{}],64:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 /**
  * Sinon core utilities. For internal use only.
  *
@@ -8239,7 +8444,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     return sinonModule;
 }());
 
-},{"./sinon/assert":65,"./sinon/behavior":66,"./sinon/call":67,"./sinon/collection":68,"./sinon/extend":69,"./sinon/format":70,"./sinon/log_error":71,"./sinon/match":72,"./sinon/mock":73,"./sinon/sandbox":74,"./sinon/spy":75,"./sinon/stub":76,"./sinon/test":77,"./sinon/test_case":78,"./sinon/times_in_words":79,"./sinon/typeOf":80,"./sinon/util/core":81,"./sinon/walk":88}],65:[function(require,module,exports){
+},{"./sinon/assert":68,"./sinon/behavior":69,"./sinon/call":70,"./sinon/collection":71,"./sinon/extend":72,"./sinon/format":73,"./sinon/log_error":74,"./sinon/match":75,"./sinon/mock":76,"./sinon/sandbox":77,"./sinon/spy":78,"./sinon/stub":79,"./sinon/test":80,"./sinon/test_case":81,"./sinon/times_in_words":82,"./sinon/typeOf":83,"./sinon/util/core":84,"./sinon/walk":91}],68:[function(require,module,exports){
 (function (global){
 /**
  * @depend times_in_words.js
@@ -8490,7 +8695,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./format":70,"./match":72,"./util/core":81}],66:[function(require,module,exports){
+},{"./format":73,"./match":75,"./util/core":84}],69:[function(require,module,exports){
 (function (process){
 /**
  * @depend util/core.js
@@ -8866,7 +9071,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
 
 }).call(this,require('_process'))
 
-},{"./extend":69,"./util/core":81,"_process":62}],67:[function(require,module,exports){
+},{"./extend":72,"./util/core":84,"_process":65}],70:[function(require,module,exports){
 /**
   * @depend util/core.js
   * @depend match.js
@@ -9107,7 +9312,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./format":70,"./match":72,"./util/core":81}],68:[function(require,module,exports){
+},{"./format":73,"./match":75,"./util/core":84}],71:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend spy.js
@@ -9282,7 +9487,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./mock":73,"./spy":75,"./stub":76,"./util/core":81}],69:[function(require,module,exports){
+},{"./mock":76,"./spy":78,"./stub":79,"./util/core":84}],72:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -9395,7 +9600,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":81}],70:[function(require,module,exports){
+},{"./util/core":84}],73:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -9491,7 +9696,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof formatio === "object" && formatio // eslint-disable-line no-undef
 ));
 
-},{"./util/core":81,"formatio":58,"util":90}],71:[function(require,module,exports){
+},{"./util/core":84,"formatio":60,"util":93}],74:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -9577,7 +9782,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":81}],72:[function(require,module,exports){
+},{"./util/core":84}],75:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend typeOf.js
@@ -9840,7 +10045,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./typeOf":80,"./util/core":81}],73:[function(require,module,exports){
+},{"./typeOf":83,"./util/core":84}],76:[function(require,module,exports){
 /**
  * @depend times_in_words.js
  * @depend util/core.js
@@ -10333,7 +10538,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./call":67,"./extend":69,"./format":70,"./match":72,"./spy":75,"./stub":76,"./times_in_words":79,"./util/core":81}],74:[function(require,module,exports){
+},{"./call":70,"./extend":72,"./format":73,"./match":75,"./spy":78,"./stub":79,"./times_in_words":82,"./util/core":84}],77:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend extend.js
@@ -10505,7 +10710,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./collection":68,"./extend":69,"./util/core":81,"./util/fake_server_with_clock":84,"./util/fake_timers":85}],75:[function(require,module,exports){
+},{"./collection":71,"./extend":72,"./util/core":84,"./util/fake_server_with_clock":87,"./util/fake_timers":88}],78:[function(require,module,exports){
 /**
   * @depend times_in_words.js
   * @depend util/core.js
@@ -10970,7 +11175,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./call":67,"./extend":69,"./format":70,"./times_in_words":79,"./util/core":81}],76:[function(require,module,exports){
+},{"./call":70,"./extend":72,"./format":73,"./times_in_words":82,"./util/core":84}],79:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend extend.js
@@ -11172,7 +11377,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./behavior":66,"./extend":69,"./spy":75,"./util/core":81}],77:[function(require,module,exports){
+},{"./behavior":69,"./extend":72,"./spy":78,"./util/core":84}],80:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend sandbox.js
@@ -11272,7 +11477,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     }
 }(typeof sinon === "object" && sinon || null)); // eslint-disable-line no-undef
 
-},{"./sandbox":74,"./util/core":81}],78:[function(require,module,exports){
+},{"./sandbox":77,"./util/core":84}],81:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend test.js
@@ -11380,7 +11585,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./test":77,"./util/core":81}],79:[function(require,module,exports){
+},{"./test":80,"./util/core":84}],82:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -11431,7 +11636,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":81}],80:[function(require,module,exports){
+},{"./util/core":84}],83:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -11486,7 +11691,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":81}],81:[function(require,module,exports){
+},{"./util/core":84}],84:[function(require,module,exports){
 /**
  * @depend ../../sinon.js
  */
@@ -11889,7 +12094,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{}],82:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 /**
  * Minimal Event interface implementation
  *
@@ -12002,7 +12207,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"./core":81}],83:[function(require,module,exports){
+},{"./core":84}],86:[function(require,module,exports){
 /**
  * @depend fake_xdomain_request.js
  * @depend fake_xml_http_request.js
@@ -12251,7 +12456,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"../format":70,"./core":81,"./fake_xdomain_request":86,"./fake_xml_http_request":87}],84:[function(require,module,exports){
+},{"../format":73,"./core":84,"./fake_xdomain_request":89,"./fake_xml_http_request":90}],87:[function(require,module,exports){
 /**
  * @depend fake_server.js
  * @depend fake_timers.js
@@ -12354,7 +12559,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"./core":81,"./fake_server":83,"./fake_timers":85}],85:[function(require,module,exports){
+},{"./core":84,"./fake_server":86,"./fake_timers":88}],88:[function(require,module,exports){
 /**
  * Fake timer API
  * setTimeout
@@ -12429,7 +12634,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"./core":81,"lolex":60}],86:[function(require,module,exports){
+},{"./core":84,"lolex":63}],89:[function(require,module,exports){
 (function (global){
 /**
  * @depend core.js
@@ -12673,7 +12878,7 @@ if (typeof sinon === "undefined") {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"../extend":69,"../log_error":71,"./core":81,"./event":82}],87:[function(require,module,exports){
+},{"../extend":72,"../log_error":74,"./core":84,"./event":85}],90:[function(require,module,exports){
 (function (global){
 /**
  * @depend core.js
@@ -13417,7 +13622,7 @@ if (typeof sinon === "undefined") {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"../extend":69,"../log_error":71,"./core":81,"./event":82}],88:[function(require,module,exports){
+},{"../extend":72,"../log_error":74,"./core":84,"./event":85}],91:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -13498,14 +13703,14 @@ if (typeof sinon === "undefined") {
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":81}],89:[function(require,module,exports){
+},{"./util/core":84}],92:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],90:[function(require,module,exports){
+},{}],93:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -14096,7 +14301,7 @@ function hasOwnProperty(obj, prop) {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./support/isBuffer":89,"_process":62,"inherits":59}],91:[function(require,module,exports){
+},{"./support/isBuffer":92,"_process":65,"inherits":61}],94:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -14285,14 +14490,12 @@ var AutoEvents = function () {
 
 exports['default'] = AutoEvents;
 
-},{"./DOMComponentsTracking.js":93,"component-type":5}],92:[function(require,module,exports){
+},{"./DOMComponentsTracking.js":97,"component-type":5}],95:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
 
-var _getProperty = require('./functions/getProperty.js');
-
-var _getProperty2 = _interopRequireDefault(_getProperty);
+var _dotProp = require('./functions/dotProp');
 
 var _componentClone = require('component-clone');
 
@@ -14314,7 +14517,7 @@ var DDHelper = function () {
   }
 
   DDHelper.get = function get(key, digitalData) {
-    var value = (0, _getProperty2['default'])(digitalData, key);
+    var value = (0, _dotProp.getProp)(digitalData, key);
     return (0, _componentClone2['default'])(value);
   };
 
@@ -14448,7 +14651,99 @@ var DDHelper = function () {
 
 exports['default'] = DDHelper;
 
-},{"./functions/getProperty.js":105,"component-clone":3}],93:[function(require,module,exports){
+},{"./functions/dotProp":108,"component-clone":3}],96:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+var _dotProp = require('./functions/dotProp');
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+var keyPersistedKeys = '_persistedKeys';
+
+var DDStorage = function () {
+  function DDStorage(digitalData, storage) {
+    _classCallCheck(this, DDStorage);
+
+    this.digitalData = digitalData;
+    this.storage = storage;
+  }
+
+  DDStorage.prototype.persist = function persist(key, exp) {
+    var value = (0, _dotProp.getProp)(this.digitalData, key);
+    if (value !== undefined) {
+      var persistedKeys = this.getPersistedKeys();
+      if (persistedKeys.indexOf(key) < 0) {
+        persistedKeys.push(key);
+        this.storage.set(keyPersistedKeys, persistedKeys);
+      }
+      return this.storage.set(key, value, exp);
+    }
+  };
+
+  DDStorage.prototype.getPersistedKeys = function getPersistedKeys() {
+    var persistedKeys = this.storage.get(keyPersistedKeys) || [];
+    return persistedKeys;
+  };
+
+  DDStorage.prototype.removePersistedKey = function removePersistedKey(key) {
+    var persistedKeys = this.getPersistedKeys();
+    var index = persistedKeys.indexOf(key);
+    if (index > -1) {
+      persistedKeys.splice(index, 1);
+    }
+    this.updatePersistedKeys(persistedKeys);
+  };
+
+  DDStorage.prototype.updatePersistedKeys = function updatePersistedKeys(persistedKeys) {
+    this.storage.set(keyPersistedKeys, persistedKeys);
+  };
+
+  DDStorage.prototype.get = function get(key) {
+    var value = this.storage.get(key);
+    if (value === undefined) {
+      this.removePersistedKey(key);
+    }
+    return value;
+  };
+
+  DDStorage.prototype.unpersist = function unpersist(key) {
+    this.removePersistedKey(key);
+    return this.storage.remove(key);
+  };
+
+  DDStorage.prototype.clear = function clear() {
+    var persistedKeys = this.getPersistedKeys();
+    for (var _iterator = persistedKeys, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+      var _ref;
+
+      if (_isArray) {
+        if (_i >= _iterator.length) break;
+        _ref = _iterator[_i++];
+      } else {
+        _i = _iterator.next();
+        if (_i.done) break;
+        _ref = _i.value;
+      }
+
+      var key = _ref;
+
+      this.storage.remove(key);
+    }
+    this.storage.remove(keyPersistedKeys);
+  };
+
+  return DDStorage;
+}();
+
+exports['default'] = DDStorage;
+
+},{"./functions/dotProp":108}],97:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -14744,7 +15039,7 @@ var DOMComponentsTracking = function () {
 
 exports['default'] = DOMComponentsTracking;
 
-},{}],94:[function(require,module,exports){
+},{}],98:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -14757,6 +15052,8 @@ var _semver = require('./functions/semver.js');
 
 var _semver2 = _interopRequireDefault(_semver);
 
+var _dotProp = require('./functions/dotProp');
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -14767,21 +15064,194 @@ function _classCallCheck(instance, Constructor) {
   }
 }
 
+/**
+ * fields which will be overriden even
+ * if server returned other values in DDL
+ */
+var ddStorageForcedFields = ['user.isSubscribed', 'user.hasTransacted', 'user.everLoggedIn', 'user.isReturning', 'context.lastEventTimestamp'];
+
+/**
+ * this fields are always persisted if were set in DDL
+ */
+var ddStorageAlwaysPersistedFields = ['user.email', 'user.lastTransactionDate'];
+
+function isForcedField(field) {
+  return ddStorageForcedFields.indexOf(field) >= 0;
+}
+
+function isAlwaysPersistedField(field) {
+  return ddStorageAlwaysPersistedFields.indexOf(field) >= 0;
+}
+
 var DigitalDataEnricher = function () {
-  function DigitalDataEnricher(digitalData) {
+  function DigitalDataEnricher(digitalData, ddListener, ddStorage, options) {
     _classCallCheck(this, DigitalDataEnricher);
 
     this.digitalData = digitalData;
+    this.ddListener = ddListener;
+    this.ddStorage = ddStorage;
+    this.options = Object.assign({
+      sessionLength: 3600
+    }, options);
   }
 
   DigitalDataEnricher.prototype.setDigitalData = function setDigitalData(digitalData) {
     this.digitalData = digitalData;
   };
 
+  DigitalDataEnricher.prototype.setDDListener = function setDDListener(ddListener) {
+    this.ddListener = ddListener;
+  };
+
+  DigitalDataEnricher.prototype.setDDStorage = function setDDStorage(ddStorage) {
+    this.ddStorage = ddStorage;
+  };
+
+  DigitalDataEnricher.prototype.setOption = function setOption(key, value) {
+    this.options[key] = value;
+  };
+
   DigitalDataEnricher.prototype.enrichDigitalData = function enrichDigitalData() {
+    // define required digitalData structure
+    this.enrichStructure();
+
+    // persist some default behaviours
+    this.persistUserData();
+
+    // enrich with default context data
     this.enrichPageData();
+    this.enrichTransactionData();
     this.enrichContextData();
     this.enrichLegacyVersions();
+
+    // should be after all default enrichments
+    this.enrichDDStorageData();
+
+    // enrich required fields if still not defined
+    this.enrichDefaultUserData();
+    this.enrichIsReturningStatus();
+
+    // when all enrichments are done
+    this.listenToUserDataChanges();
+    this.listenToEvents();
+  };
+
+  DigitalDataEnricher.prototype.listenToEvents = function listenToEvents() {
+    var _this = this;
+
+    // enrich Completed Transction event with "transaction.isFirst"
+    this.ddListener.push(['on', 'beforeEvent', function (event) {
+      if (event.name === 'Completed Transction') {
+        var transaction = event.transaction;
+        var user = _this.digitalData.user;
+        if (transaction.isFirst === undefined) {
+          transaction.isFirst = !user.hasTransacted;
+        }
+      }
+    }]);
+
+    // enrich DDL based on semantic events
+    this.ddListener.push(['on', 'event', function (event) {
+      _this.enrichIsReturningStatus();
+
+      if (event.name === 'Subscribed') {
+        var email = (0, _dotProp.getProp)(event, 'user.email');
+        _this.enrichHasSubscribed(email);
+      } else if (event.name === 'Completed Transaction') {
+        _this.enrichHasTransacted();
+      }
+    }]);
+  };
+
+  DigitalDataEnricher.prototype.listenToUserDataChanges = function listenToUserDataChanges() {
+    var _this2 = this;
+
+    this.ddListener.push(['on', 'change:user', function () {
+      _this2.persistUserData();
+    }]);
+  };
+
+  DigitalDataEnricher.prototype.enrichDefaultUserData = function enrichDefaultUserData() {
+    var user = this.digitalData.user;
+
+    if (user.isReturning === undefined) {
+      user.isReturning = false;
+    }
+
+    if (user.isLoggedIn !== undefined && user.everLoggedIn === undefined) {
+      user.everLoggedIn = false;
+    }
+  };
+
+  DigitalDataEnricher.prototype.persistUserData = function persistUserData() {
+    var user = this.digitalData.user;
+
+    // persist user.everLoggedIn
+    if (user.isLoggedIn && !user.everLoggedIn) {
+      user.everLoggedIn = true;
+      this.ddStorage.persist('user.everLoggedIn');
+    }
+    // persist user.email
+    if (user.email) {
+      this.ddStorage.persist('user.email');
+    }
+    // persist user.isSubscribed
+    if (user.isSubscribed) {
+      this.ddStorage.persist('user.isSubscribed');
+    }
+    // persist user.hasTransacted
+    if (user.hasTransacted) {
+      this.ddStorage.persist('user.hasTransacted');
+    }
+    // persist user.lastTransactionDate
+    if (user.lastTransactionDate) {
+      this.ddStorage.persist('user.lastTransactionDate');
+    }
+  };
+
+  DigitalDataEnricher.prototype.enrichIsReturningStatus = function enrichIsReturningStatus() {
+    var context = this.digitalData.context;
+    var user = this.digitalData.user;
+    var now = Date.now();
+    if (!user.isReturning && context.lastEventTimestamp && now - context.lastEventTimestamp > this.options.sessionLength * 1000) {
+      this.digitalData.user.isReturning = true;
+      this.ddStorage.persist('user.isReturning');
+    }
+    context.lastEventTimestamp = now;
+    this.ddStorage.persist('context.lastEventTimestamp');
+  };
+
+  DigitalDataEnricher.prototype.enrichHasSubscribed = function enrichHasSubscribed(email) {
+    var user = this.digitalData.user;
+    if (!user.isSubscribed) {
+      user.isSubscribed = true;
+    }
+    if (!user.email && email) {
+      user.email = email;
+    }
+  };
+
+  DigitalDataEnricher.prototype.enrichHasTransacted = function enrichHasTransacted() {
+    var user = this.digitalData.user;
+    if (!user.hasTransacted) {
+      user.hasTransacted = true;
+    }
+    if (!user.lastTransactionDate) {
+      user.lastTransactionDate = new Date().toISOString();
+    }
+  };
+
+  DigitalDataEnricher.prototype.enrichStructure = function enrichStructure() {
+    this.digitalData.website = this.digitalData.website || {};
+    this.digitalData.page = this.digitalData.page || {};
+    this.digitalData.user = this.digitalData.user || {};
+    this.digitalData.context = this.digitalData.context || {};
+    this.digitalData.integrations = this.digitalData.integrations || {};
+    if (!this.digitalData.page.type || this.digitalData.page.type !== 'confirmation') {
+      this.digitalData.cart = this.digitalData.cart || {};
+    } else {
+      this.digitalData.transaction = this.digitalData.transaction || {};
+    }
   };
 
   DigitalDataEnricher.prototype.enrichPageData = function enrichPageData() {
@@ -14795,12 +15265,57 @@ var DigitalDataEnricher = function () {
     page.hash = page.hash || this.getHtmlGlobals().getLocation().hash;
   };
 
+  DigitalDataEnricher.prototype.enrichTransactionData = function enrichTransactionData() {
+    var page = this.digitalData.page;
+    var user = this.digitalData.user;
+    var transaction = this.digitalData.transaction;
+
+    if (page.type === 'confirmation' && transaction && !transaction.isReturning) {
+      // check if never transacted before
+      if (transaction.isFirst === undefined) {
+        transaction.isFirst = !user.hasTransacted;
+      }
+      this.enrichHasTransacted();
+    }
+  };
+
   DigitalDataEnricher.prototype.enrichContextData = function enrichContextData() {
     var context = this.digitalData.context;
     context.userAgent = this.getHtmlGlobals().getNavigator().userAgent;
   };
 
+  DigitalDataEnricher.prototype.enrichDDStorageData = function enrichDDStorageData() {
+    var persistedKeys = this.ddStorage.getPersistedKeys();
+    for (var _iterator = persistedKeys, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+      var _ref;
+
+      if (_isArray) {
+        if (_i >= _iterator.length) break;
+        _ref = _iterator[_i++];
+      } else {
+        _i = _iterator.next();
+        if (_i.done) break;
+        _ref = _i.value;
+      }
+
+      var key = _ref;
+
+      var value = this.ddStorage.get(key);
+      if (value === undefined) {
+        continue;
+      }
+      if ((0, _dotProp.getProp)(this.digitalData, key) === undefined || isForcedField(key)) {
+        (0, _dotProp.setProp)(this.digitalData, key, value);
+      } else if (!isAlwaysPersistedField(key)) {
+        // remove persistance if server defined it's own value
+        this.ddStorage.unpersist(key);
+      }
+    }
+  };
+
   DigitalDataEnricher.prototype.enrichLegacyVersions = function enrichLegacyVersions() {
+    var _this3 = this;
+
     // compatibility with version <1.1.1
     if (this.digitalData.version && _semver2['default'].cmp(this.digitalData.version, '1.1.1') < 0) {
       // enrich listing.listId
@@ -14813,19 +15328,19 @@ var DigitalDataEnricher = function () {
       if (!Array.isArray(recommendations)) {
         recommendations = [recommendations];
       }
-      for (var _iterator = recommendations, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
-        var _ref;
+      for (var _iterator2 = recommendations, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+        var _ref2;
 
-        if (_isArray) {
-          if (_i >= _iterator.length) break;
-          _ref = _iterator[_i++];
+        if (_isArray2) {
+          if (_i2 >= _iterator2.length) break;
+          _ref2 = _iterator2[_i2++];
         } else {
-          _i = _iterator.next();
-          if (_i.done) break;
-          _ref = _i.value;
+          _i2 = _iterator2.next();
+          if (_i2.done) break;
+          _ref2 = _i2.value;
         }
 
-        var recommendation = _ref;
+        var recommendation = _ref2;
 
         if (recommendation && recommendation.listName && !recommendation.listId) {
           recommendation.listId = recommendation.listName;
@@ -14840,6 +15355,9 @@ var DigitalDataEnricher = function () {
       if (page.type === 'category' && page.categoryId) {
         var _listing = this.digitalData.listing = this.digitalData.listing || {};
         _listing.categoryId = page.categoryId;
+        this.ddListener.push(['on', 'change:page.categoryId', function () {
+          _this3.digitalData.listing.categoryId = _this3.digitalData.page.categoryId;
+        }]);
       }
     }
   };
@@ -14858,7 +15376,7 @@ var DigitalDataEnricher = function () {
 
 exports['default'] = DigitalDataEnricher;
 
-},{"./functions/htmlGlobals.js":107,"./functions/semver.js":114}],95:[function(require,module,exports){
+},{"./functions/dotProp":108,"./functions/htmlGlobals.js":112,"./functions/semver.js":119}],99:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -15030,7 +15548,7 @@ var EventDataEnricher = function () {
 
 exports['default'] = EventDataEnricher;
 
-},{"./DDHelper.js":92,"component-type":5}],96:[function(require,module,exports){
+},{"./DDHelper.js":95,"component-type":5}],100:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -15291,7 +15809,7 @@ var EventManager = function () {
     var _this2 = this;
 
     var eventCallback = void 0;
-    event.timestamp = new Date().getTime();
+    event.timestamp = Date.now();
 
     if (!this.beforeFireEvent(event)) {
       return false;
@@ -15477,7 +15995,7 @@ var EventManager = function () {
 
 exports['default'] = EventManager;
 
-},{"./DDHelper.js":92,"./EventDataEnricher.js":95,"./functions/after.js":101,"./functions/deleteProperty.js":102,"./functions/jsonIsEqual.js":108,"./functions/noop.js":112,"./functions/size.js":115,"async":2,"component-clone":3,"debug":56}],97:[function(require,module,exports){
+},{"./DDHelper.js":95,"./EventDataEnricher.js":99,"./functions/after.js":106,"./functions/deleteProperty.js":107,"./functions/jsonIsEqual.js":113,"./functions/noop.js":117,"./functions/size.js":120,"async":2,"component-clone":3,"debug":58}],101:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -15683,6 +16201,10 @@ var Integration = function (_EventEmitter) {
     return this._isEnriched;
   };
 
+  Integration.prototype.setDDManager = function setDDManager(ddManager) {
+    this.ddManager = ddManager;
+  };
+
   Integration.prototype.trackEvent = function trackEvent() {
     // abstract
   };
@@ -15692,7 +16214,83 @@ var Integration = function (_EventEmitter) {
 
 exports['default'] = Integration;
 
-},{"./DDHelper.js":92,"./functions/deleteProperty.js":102,"./functions/each.js":103,"./functions/format.js":104,"./functions/loadIframe.js":109,"./functions/loadPixel.js":110,"./functions/loadScript.js":111,"./functions/noop.js":112,"async":2,"component-emitter":4,"debug":56}],98:[function(require,module,exports){
+},{"./DDHelper.js":95,"./functions/deleteProperty.js":107,"./functions/each.js":109,"./functions/format.js":110,"./functions/loadIframe.js":114,"./functions/loadPixel.js":115,"./functions/loadScript.js":116,"./functions/noop.js":117,"async":2,"component-emitter":4,"debug":58}],102:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+var _lockr = require('lockr');
+
+var _lockr2 = _interopRequireDefault(_lockr);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+var Storage = function () {
+  function Storage() {
+    var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+    _classCallCheck(this, Storage);
+
+    this.options = Object.assign({
+      prefix: 'ddl:'
+    }, options);
+  }
+
+  Storage.prototype.set = function set(key, val, exp) {
+    key = this.getOption('prefix') + key;
+    if (exp !== undefined) {
+      _lockr2['default'].set(key, {
+        val: val,
+        exp: exp * 1000,
+        time: Date.now()
+      });
+    } else {
+      _lockr2['default'].set(key, val);
+    }
+  };
+
+  Storage.prototype.get = function get(key) {
+    key = this.getOption('prefix') + key;
+    var info = _lockr2['default'].get(key);
+    if (info !== undefined) {
+      if (info.val !== undefined && info.exp && info.time) {
+        if (Date.now() - info.time > info.exp) {
+          _lockr2['default'].rm(key);
+          return undefined;
+        }
+        return info.val;
+      }
+    }
+    return info;
+  };
+
+  Storage.prototype.remove = function remove(key) {
+    key = this.getOption('prefix') + key;
+    return _lockr2['default'].rm(key);
+  };
+
+  Storage.prototype.isEnabled = function isEnabled() {
+    return _lockr2['default'].enabled;
+  };
+
+  Storage.prototype.getOption = function getOption(name) {
+    return this.options[name];
+  };
+
+  return Storage;
+}();
+
+exports['default'] = Storage;
+
+},{"lockr":62}],103:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -15929,7 +16527,7 @@ var ViewabilityTracker = function () {
 
 exports['default'] = ViewabilityTracker;
 
-},{"./functions/noop.js":112}],99:[function(require,module,exports){
+},{"./functions/noop.js":117}],104:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16013,7 +16611,7 @@ var integrations = {
 
 exports['default'] = integrations;
 
-},{"./integrations/Criteo.js":117,"./integrations/Driveback.js":118,"./integrations/Emarsys.js":119,"./integrations/FacebookPixel.js":120,"./integrations/GoogleAdWords.js":121,"./integrations/GoogleAnalytics.js":122,"./integrations/GoogleTagManager.js":123,"./integrations/MyTarget.js":124,"./integrations/OWOXBIStreaming.js":125,"./integrations/RetailRocket.js":126,"./integrations/SegmentStream.js":127,"./integrations/SendPulse.js":128,"./integrations/Vkontakte.js":129,"./integrations/YandexMetrica.js":130}],100:[function(require,module,exports){
+},{"./integrations/Criteo.js":122,"./integrations/Driveback.js":123,"./integrations/Emarsys.js":124,"./integrations/FacebookPixel.js":125,"./integrations/GoogleAdWords.js":126,"./integrations/GoogleAnalytics.js":127,"./integrations/GoogleTagManager.js":128,"./integrations/MyTarget.js":129,"./integrations/OWOXBIStreaming.js":130,"./integrations/RetailRocket.js":131,"./integrations/SegmentStream.js":132,"./integrations/SendPulse.js":133,"./integrations/Vkontakte.js":134,"./integrations/YandexMetrica.js":135}],105:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -16074,29 +16672,19 @@ var _DigitalDataEnricher = require('./DigitalDataEnricher.js');
 
 var _DigitalDataEnricher2 = _interopRequireDefault(_DigitalDataEnricher);
 
+var _Storage = require('./Storage.js');
+
+var _Storage2 = _interopRequireDefault(_Storage);
+
+var _DDStorage = require('./DDStorage.js');
+
+var _DDStorage2 = _interopRequireDefault(_DDStorage);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
 var ddManager = void 0;
-
-/**
- * @type {string}
- * @private
- */
-var _digitalDataNamespace = 'digitalData';
-
-/**
- * @type {string}
- * @private
- */
-var _ddListenerNamespace = 'ddListener';
-
-/**
- * @type {string}
- * @private
- */
-var _ddManagerNamespace = 'ddManager';
 
 /**
  * @type {Object}
@@ -16123,6 +16711,18 @@ var _availableIntegrations = void 0;
 var _eventManager = void 0;
 
 /**
+ * @type {Storage}
+ * @private
+ */
+var _storage = void 0;
+
+/**
+ * @type {DDStorage}
+ * @private
+ */
+var _ddStorage = void 0;
+
+/**
  * @type {Object}
  * @private
  */
@@ -16141,25 +16741,16 @@ var _isLoaded = false;
 var _isReady = false;
 
 function _prepareGlobals() {
-  if (_typeof(window[_digitalDataNamespace]) === 'object') {
-    _digitalData = window[_digitalDataNamespace];
+  if (_typeof(window.digitalData) === 'object') {
+    _digitalData = window.digitalData;
   } else {
-    window[_digitalDataNamespace] = _digitalData;
+    window.digitalData = _digitalData;
   }
 
-  _digitalData.website = _digitalData.website || {};
-  _digitalData.page = _digitalData.page || {};
-  _digitalData.user = _digitalData.user || {};
-  _digitalData.context = _digitalData.context || {};
-  _digitalData.integrations = _digitalData.integrations || {};
-  if (!_digitalData.page.type || _digitalData.page.type !== 'confirmation') {
-    _digitalData.cart = _digitalData.cart || {};
-  }
-
-  if (Array.isArray(window[_ddListenerNamespace])) {
-    _ddListener = window[_ddListenerNamespace];
+  if (Array.isArray(window.ddListener)) {
+    _ddListener = window.ddListener;
   } else {
-    window[_ddListenerNamespace] = _ddListener;
+    window.ddListener = _ddListener;
   }
 }
 
@@ -16228,14 +16819,14 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.1.6',
+  VERSION: '1.2.0',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
   },
 
-  processEarlyStubCalls: function processEarlyStubCalls() {
-    var earlyStubCalls = window[_ddManagerNamespace] || [];
+  processEarlyStubCalls: function processEarlyStubCalls(earlyStubsQueue) {
+    var earlyStubCalls = earlyStubsQueue || [];
     var methodCallPromise = function methodCallPromise(method, args) {
       return function () {
         ddManager[method].apply(ddManager, args);
@@ -16302,8 +16893,13 @@ ddManager = {
 
     _prepareGlobals();
 
+    _storage = new _Storage2['default']();
+    _ddStorage = new _DDStorage2['default'](_digitalData, _storage);
+
     // initialize digital data enricher
-    var digitalDataEnricher = new _DigitalDataEnricher2['default'](_digitalData);
+    var digitalDataEnricher = new _DigitalDataEnricher2['default'](_digitalData, _ddListener, _ddStorage, {
+      sessionLength: settings.sessionLength
+    });
     digitalDataEnricher.enrichDigitalData();
 
     // initialize event manager
@@ -16342,6 +16938,7 @@ ddManager = {
       throw new TypeError('attempted to add an invalid integration');
     }
     _integrations[name] = integration;
+    integration.setDDManager(ddManager);
   },
 
   getIntegration: function getIntegration(name) {
@@ -16350,6 +16947,14 @@ ddManager = {
 
   get: function get(key) {
     return _DDHelper2['default'].get(key, _digitalData);
+  },
+
+  persist: function persist(key, exp) {
+    return _ddStorage.persist(key, exp);
+  },
+
+  unpersist: function unpersist(key) {
+    return _ddStorage.unpersist(key);
   },
 
   getProduct: function getProduct(id) {
@@ -16365,6 +16970,7 @@ ddManager = {
   },
 
   reset: function reset() {
+    _ddStorage.clear();
     if (_eventManager instanceof _EventManager2['default']) {
       _eventManager.reset();
     }
@@ -16405,7 +17011,7 @@ ddManager.on = ddManager.addEventListener = function (event, handler) {
 
 exports['default'] = ddManager;
 
-},{"./AutoEvents.js":91,"./DDHelper.js":92,"./DigitalDataEnricher.js":94,"./EventManager.js":96,"./Integration.js":97,"./ViewabilityTracker.js":98,"./functions/after.js":101,"./functions/each.js":103,"./functions/size.js":115,"async":2,"component-clone":3,"component-emitter":4}],101:[function(require,module,exports){
+},{"./AutoEvents.js":94,"./DDHelper.js":95,"./DDStorage.js":96,"./DigitalDataEnricher.js":98,"./EventManager.js":100,"./Integration.js":101,"./Storage.js":102,"./ViewabilityTracker.js":103,"./functions/after.js":106,"./functions/each.js":109,"./functions/size.js":120,"async":2,"component-clone":3,"component-emitter":4}],106:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -16419,7 +17025,7 @@ exports["default"] = function (times, fn) {
   };
 };
 
-},{}],102:[function(require,module,exports){
+},{}],107:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -16432,7 +17038,65 @@ exports["default"] = function (obj, prop) {
   }
 };
 
-},{}],103:[function(require,module,exports){
+},{}],108:[function(require,module,exports){
+'use strict';
+
+var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+exports.__esModule = true;
+
+var _typeof = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
+  return typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+} : function (obj) {
+  return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+};
+
+exports.getProp = getProp;
+exports.setProp = setProp;
+function _keyToArray(key) {
+  key = key.trim();
+  if (key === '') {
+    return [];
+  }
+  key = key.replace(/\[(\w+)\]/g, '.$1');
+  key = key.replace(/^\./, '');
+  return key.split('.');
+}
+
+function getProp(obj, prop) {
+  var keyParts = _keyToArray(prop);
+  var nestedVar = obj;
+  while (keyParts.length > 0) {
+    var childKey = keyParts.shift();
+    if (nestedVar.hasOwnProperty(childKey)) {
+      nestedVar = nestedVar[childKey];
+    } else {
+      return undefined;
+    }
+  }
+  return nestedVar;
+}
+
+function setProp(obj, prop, value) {
+  if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) !== 'object' || typeof prop !== 'string') {
+    return;
+  }
+  var keyParts = _keyToArray(prop);
+  for (var i = 0; i < keyParts.length; i++) {
+    var p = keyParts[i];
+    if (_typeof(obj[p]) !== 'object') {
+      obj[p] = {};
+    }
+    if (i === keyParts.length - 1) {
+      obj[p] = value;
+    }
+    obj = obj[p];
+  }
+}
+
+exports['default'] = { getProp: getProp, setProp: setProp };
+
+},{}],109:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -16445,7 +17109,7 @@ exports["default"] = function (obj, fn) {
   }
 };
 
-},{}],104:[function(require,module,exports){
+},{}],110:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -16484,36 +17148,7 @@ function format(str) {
   });
 }
 
-},{}],105:[function(require,module,exports){
-'use strict';
-
-exports.__esModule = true;
-
-exports['default'] = function (obj, prop) {
-  var keyParts = _keyToArray(prop);
-  var nestedVar = obj;
-  while (keyParts.length > 0) {
-    var childKey = keyParts.shift();
-    if (nestedVar.hasOwnProperty(childKey)) {
-      nestedVar = nestedVar[childKey];
-    } else {
-      return undefined;
-    }
-  }
-  return nestedVar;
-};
-
-function _keyToArray(key) {
-  key = key.trim();
-  if (key === '') {
-    return [];
-  }
-  key = key.replace(/\[(\w+)\]/g, '.$1');
-  key = key.replace(/^\./, '');
-  return key.split('.');
-}
-
-},{}],106:[function(require,module,exports){
+},{}],111:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16528,7 +17163,7 @@ function getQueryParam(name, queryString) {
   return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
 }
 
-},{}],107:[function(require,module,exports){
+},{}],112:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -16546,7 +17181,7 @@ exports["default"] = {
   }
 };
 
-},{}],108:[function(require,module,exports){
+},{}],113:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16561,7 +17196,7 @@ function jsonIsEqual(json1, json2) {
   return json1 === json2;
 }
 
-},{}],109:[function(require,module,exports){
+},{}],114:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16621,7 +17256,7 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":113,"async":2}],110:[function(require,module,exports){
+},{"./scriptOnLoad.js":118,"async":2}],115:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16657,7 +17292,7 @@ function error(fn, message, img) {
   };
 }
 
-},{}],111:[function(require,module,exports){
+},{}],116:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16716,14 +17351,14 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":113,"async":2}],112:[function(require,module,exports){
+},{"./scriptOnLoad.js":118,"async":2}],117:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
 
 exports["default"] = function () {};
 
-},{}],113:[function(require,module,exports){
+},{}],118:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16778,7 +17413,7 @@ function attachEvent(el, fn) {
   });
 }
 
-},{}],114:[function(require,module,exports){
+},{}],119:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16799,7 +17434,7 @@ function cmp(a, b) {
 
 exports['default'] = { cmp: cmp };
 
-},{}],115:[function(require,module,exports){
+},{}],120:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -16812,7 +17447,7 @@ exports["default"] = function (obj) {
   return size;
 };
 
-},{}],116:[function(require,module,exports){
+},{}],121:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16839,7 +17474,7 @@ function throwError(code, message) {
   throw error;
 }
 
-},{"debug":56}],117:[function(require,module,exports){
+},{"debug":58}],122:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -16989,6 +17624,7 @@ var Criteo = function (_Integration) {
       'Completed Transaction': 'onCompletedTransaction',
       'Viewed Product Category': 'onViewedProductListing',
       'Viewed Cart': 'onViewedCart',
+      'Searched': 'onViewedProductListing',
       'Searched Products': 'onViewedProductListing',
       'Subscribed': 'onSubscribed'
     };
@@ -17107,7 +17743,7 @@ var Criteo = function (_Integration) {
 
 exports['default'] = Criteo;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty":102,"./../functions/semver":114}],118:[function(require,module,exports){
+},{"./../Integration.js":101,"./../functions/deleteProperty":107,"./../functions/semver":119}],123:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -17213,7 +17849,7 @@ var Driveback = function (_Integration) {
 
 exports['default'] = Driveback;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"./../functions/noop.js":112}],119:[function(require,module,exports){
+},{"./../Integration.js":101,"./../functions/deleteProperty.js":107,"./../functions/noop.js":117}],124:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -17426,7 +18062,7 @@ var Emarsys = function (_Integration) {
 
 exports['default'] = Emarsys;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102}],120:[function(require,module,exports){
+},{"./../Integration.js":101,"./../functions/deleteProperty.js":107}],125:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -17631,7 +18267,7 @@ var FacebookPixel = function (_Integration) {
 
 exports['default'] = FacebookPixel;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"component-type":5}],121:[function(require,module,exports){
+},{"./../Integration.js":101,"./../functions/deleteProperty.js":107,"component-type":5}],126:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -17862,7 +18498,7 @@ var GoogleAdWords = function (_Integration) {
 
 exports['default'] = GoogleAdWords;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102}],122:[function(require,module,exports){
+},{"./../Integration.js":101,"./../functions/deleteProperty.js":107}],127:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -17877,9 +18513,7 @@ var _deleteProperty = require('./../functions/deleteProperty.js');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
-var _getProperty = require('./../functions/getProperty.js');
-
-var _getProperty2 = _interopRequireDefault(_getProperty);
+var _dotProp = require('./../functions/dotProp');
 
 var _each = require('./../functions/each.js');
 
@@ -17943,7 +18577,7 @@ function getCheckoutOptions(event, checkoutOptions) {
 
     var optionName = _ref;
 
-    var optionValue = (0, _getProperty2['default'])(event, optionName);
+    var optionValue = (0, _dotProp.getProp)(event, optionName);
     if (optionValue) {
       options.push(optionValue);
     }
@@ -18048,7 +18682,7 @@ var GoogleAnalytics = function (_Integration) {
     }
 
     // send global id
-    var userId = this.get('user.id');
+    var userId = this.get('user.userId');
     if (this.getOption('sendUserId') && userId) {
       this.ga('set', 'userId', userId);
     }
@@ -18096,7 +18730,7 @@ var GoogleAnalytics = function (_Integration) {
     }
     var custom = {};
     (0, _each2['default'])(settings, function (key, value) {
-      var dimensionVal = (0, _getProperty2['default'])(source, value);
+      var dimensionVal = (0, _dotProp.getProp)(source, value);
       if (dimensionVal !== undefined) {
         if (typeof dimensionVal === 'boolean') dimensionVal = dimensionVal.toString();
         custom[key] = dimensionVal;
@@ -18260,7 +18894,7 @@ var GoogleAnalytics = function (_Integration) {
       var gaProduct = Object.assign({
         id: product.id || product.skuCode,
         name: product.name,
-        list: listItem.listName,
+        list: listItem.listId,
         category: getProductCategory(product),
         brand: product.brand || product.manufacturer,
         price: product.unitSalePrice || product.unitPrice,
@@ -18281,7 +18915,7 @@ var GoogleAnalytics = function (_Integration) {
     var product = event.listItem.product;
     this.loadEnhancedEcommerce(product.currency);
     this.enhancedEcommerceProductAction(event, 'click', {
-      list: event.listItem.listName
+      list: event.listItem.listId
     });
     this.pushEnhancedEcommerce(event);
   };
@@ -18335,7 +18969,7 @@ var GoogleAnalytics = function (_Integration) {
       var product = lineItem.product;
       if (product) {
         _this3.ga('ecommerce:addItem', {
-          id: transaction.orderId,
+          id: product.id,
           category: getProductCategory(product),
           quantity: lineItem.quantity,
           price: product.unitSalePrice || product.unitPrice,
@@ -18562,7 +19196,7 @@ var GoogleAnalytics = function (_Integration) {
 
 exports['default'] = GoogleAnalytics;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"./../functions/each.js":103,"./../functions/getProperty.js":105,"./../functions/size.js":115,"component-clone":3}],123:[function(require,module,exports){
+},{"./../Integration.js":101,"./../functions/deleteProperty.js":107,"./../functions/dotProp":108,"./../functions/each.js":109,"./../functions/size.js":120,"component-clone":3}],128:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -18622,8 +19256,14 @@ var GoogleTagManager = function (_Integration) {
   }
 
   GoogleTagManager.prototype.initialize = function initialize() {
+    window.dataLayer = window.dataLayer || [];
+    this.ddManager.on('ready', function () {
+      window.dataLayer.push({ event: 'DDManager Ready' });
+    });
+    this.ddManager.on('load', function () {
+      window.dataLayer.push({ event: 'DDManager Loaded' });
+    });
     if (this.getOption('containerId') && this.getOption('noConflict') === false) {
-      window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({ 'gtm.start': Number(new Date()), event: 'gtm.js' });
       this.load(this.onLoad);
     } else {
@@ -18655,7 +19295,7 @@ var GoogleTagManager = function (_Integration) {
 
 exports['default'] = GoogleTagManager;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102}],124:[function(require,module,exports){
+},{"./../Integration.js":101,"./../functions/deleteProperty.js":107}],129:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -18888,7 +19528,7 @@ var MyTarget = function (_Integration) {
 
 exports['default'] = MyTarget;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102}],125:[function(require,module,exports){
+},{"./../Integration.js":101,"./../functions/deleteProperty.js":107}],130:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -18991,7 +19631,7 @@ var OWOXBIStreaming = function (_Integration) {
 
 exports['default'] = OWOXBIStreaming;
 
-},{"./../Integration.js":97}],126:[function(require,module,exports){
+},{"./../Integration.js":101}],131:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -19006,9 +19646,7 @@ var _deleteProperty = require('./../functions/deleteProperty');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
-var _getProperty = require('./../../src/functions/getProperty');
-
-var _getProperty2 = _interopRequireDefault(_getProperty);
+var _dotProp = require('./../functions/dotProp');
 
 var _throwError = require('./../functions/throwError');
 
@@ -19100,7 +19738,7 @@ var RetailRocket = function (_Integration) {
   RetailRocket.prototype.initialize = function initialize() {
     if (this.getOption('partnerId')) {
       window.rrPartnerId = this.getOption('partnerId');
-      var userId = (0, _getProperty2['default'])(this.digitalData, this.getOption('userIdProperty'));
+      var userId = (0, _dotProp.getProp)(this.digitalData, this.getOption('userIdProperty'));
       if (userId) {
         window.rrPartnerUserId = userId;
       }
@@ -19308,7 +19946,7 @@ var RetailRocket = function (_Integration) {
     if (customs) {
       var settings = this.getOption('customVariables');
       (0, _each2['default'])(settings, function (key, value) {
-        var dimensionVal = (0, _getProperty2['default'])(customs, value);
+        var dimensionVal = (0, _dotProp.getProp)(customs, value);
         if (dimensionVal !== undefined) {
           if ((0, _componentType2['default'])(dimensionVal) === 'boolean') dimensionVal = dimensionVal.toString();
           rrCustoms[key] = dimensionVal;
@@ -19421,7 +20059,7 @@ var RetailRocket = function (_Integration) {
 
 exports['default'] = RetailRocket;
 
-},{"./../../src/functions/getProperty":105,"./../Integration.js":97,"./../functions/deleteProperty":102,"./../functions/each":103,"./../functions/format":104,"./../functions/getQueryParam":106,"./../functions/throwError":116,"component-clone":3,"component-type":5}],127:[function(require,module,exports){
+},{"./../Integration.js":101,"./../functions/deleteProperty":107,"./../functions/dotProp":108,"./../functions/each":109,"./../functions/format":110,"./../functions/getQueryParam":111,"./../functions/throwError":121,"component-clone":3,"component-type":5}],132:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -19595,7 +20233,7 @@ var SegmentStream = function (_Integration) {
 
 exports['default'] = SegmentStream;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"./../functions/each.js":103}],128:[function(require,module,exports){
+},{"./../Integration.js":101,"./../functions/deleteProperty.js":107,"./../functions/each.js":109}],133:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -19610,9 +20248,7 @@ var _deleteProperty = require('./../functions/deleteProperty.js');
 
 var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
-var _getProperty = require('./../functions/getProperty.js');
-
-var _getProperty2 = _interopRequireDefault(_getProperty);
+var _dotProp = require('./../functions/dotProp');
 
 var _componentType = require('component-type');
 
@@ -19788,8 +20424,8 @@ var SendPulse = function (_Integration) {
 
       var userVar = _ref;
 
-      var value = (0, _getProperty2['default'])(newUser, userVar);
-      if (value !== undefined && (0, _componentType2['default'])(value) !== 'object' && (!oldUser || value !== (0, _getProperty2['default'])(oldUser, userVar))) {
+      var value = (0, _dotProp.getProp)(newUser, userVar);
+      if (value !== undefined && (0, _componentType2['default'])(value) !== 'object' && (!oldUser || value !== (0, _dotProp.getProp)(oldUser, userVar))) {
         window.oSpP.push(userVar, String(value));
       }
     }
@@ -19830,7 +20466,7 @@ var SendPulse = function (_Integration) {
 
 exports['default'] = SendPulse;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102,"./../functions/getProperty.js":105,"component-type":5}],129:[function(require,module,exports){
+},{"./../Integration.js":101,"./../functions/deleteProperty.js":107,"./../functions/dotProp":108,"component-type":5}],134:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -19909,7 +20545,7 @@ var Vkontakte = function (_Integration) {
 
 exports['default'] = Vkontakte;
 
-},{"./../Integration.js":97}],130:[function(require,module,exports){
+},{"./../Integration.js":101}],135:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -20144,7 +20780,7 @@ var YandexMetrica = function (_Integration) {
 
 exports['default'] = YandexMetrica;
 
-},{"./../Integration.js":97,"./../functions/deleteProperty.js":102}],131:[function(require,module,exports){
+},{"./../Integration.js":101,"./../functions/deleteProperty.js":107}],136:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es6.object.create');
@@ -20159,7 +20795,11 @@ require('core-js/modules/es6.object.assign');
 
 require('core-js/modules/es6.string.trim');
 
-},{"core-js/modules/es6.array.index-of":50,"core-js/modules/es6.array.is-array":51,"core-js/modules/es6.function.bind":52,"core-js/modules/es6.object.assign":53,"core-js/modules/es6.object.create":54,"core-js/modules/es6.string.trim":55}],132:[function(require,module,exports){
+require('core-js/modules/es6.date.to-iso-string');
+
+require('core-js/modules/es6.date.now');
+
+},{"core-js/modules/es6.array.index-of":50,"core-js/modules/es6.array.is-array":51,"core-js/modules/es6.date.now":52,"core-js/modules/es6.date.to-iso-string":53,"core-js/modules/es6.function.bind":54,"core-js/modules/es6.object.assign":55,"core-js/modules/es6.object.create":56,"core-js/modules/es6.string.trim":57}],137:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -20384,7 +21024,7 @@ describe('AutoEvents', function () {
   });
 });
 
-},{"./../src/AutoEvents.js":91,"./../src/functions/deleteProperty.js":102,"assert":1}],133:[function(require,module,exports){
+},{"./../src/AutoEvents.js":94,"./../src/functions/deleteProperty.js":107,"assert":1}],138:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -20590,7 +21230,71 @@ describe('DDHelper', function () {
   });
 });
 
-},{"./../src/DDHelper.js":92,"assert":1}],134:[function(require,module,exports){
+},{"./../src/DDHelper.js":95,"assert":1}],139:[function(require,module,exports){
+'use strict';
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _Storage = require('./../src/Storage.js');
+
+var _Storage2 = _interopRequireDefault(_Storage);
+
+var _DDStorage = require('./../src/DDStorage.js');
+
+var _DDStorage2 = _interopRequireDefault(_DDStorage);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+describe('DDStorage', function () {
+
+  var _digitalData = void 0;
+  var _storage = new _Storage2['default']();
+  var _ddStorage = void 0;
+
+  describe('#persist', function () {
+
+    beforeEach(function () {
+      _digitalData = {
+        user: {
+          isSubscribed: true,
+          email: 'test@email.com',
+          temp: 'test'
+        }
+      };
+      _ddStorage = new _DDStorage2['default'](_digitalData, _storage);
+    });
+
+    afterEach(function () {
+      _ddStorage.clear();
+      _ddStorage = undefined;
+    });
+
+    it('should persist fields with and without exp dates', function (done) {
+      _ddStorage.persist('user.isSubscribed');
+      _ddStorage.persist('user.email', 1);
+      _ddStorage.persist('user.temp', 0.01);
+
+      _assert2['default'].deepEqual(_ddStorage.getPersistedKeys(), ['user.isSubscribed', 'user.email', 'user.temp']);
+      _assert2['default'].ok(_ddStorage.get('user.isSubscribed'));
+      _assert2['default'].ok(_ddStorage.get('user.email'));
+      _assert2['default'].ok(_ddStorage.get('user.temp'));
+
+      setTimeout(function () {
+        _assert2['default'].ok(_ddStorage.get('user.isSubscribed'));
+        _assert2['default'].ok(_ddStorage.get('user.email'));
+        _assert2['default'].ok(!_ddStorage.get('user.temp'));
+        _assert2['default'].deepEqual(_ddStorage.getPersistedKeys(), ['user.isSubscribed', 'user.email']);
+        done();
+      }, 110);
+    });
+  });
+});
+
+},{"./../src/DDStorage.js":96,"./../src/Storage.js":102,"assert":1}],140:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -20609,12 +21313,22 @@ var _DigitalDataEnricher = require('./../src/DigitalDataEnricher.js');
 
 var _DigitalDataEnricher2 = _interopRequireDefault(_DigitalDataEnricher);
 
+var _Storage = require('./../src/Storage.js');
+
+var _Storage2 = _interopRequireDefault(_Storage);
+
+var _DDStorage = require('./../src/DDStorage.js');
+
+var _DDStorage2 = _interopRequireDefault(_DDStorage);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
 describe('DigitalDataEnricher', function () {
 
+  var _ddListener = [];
+  var _ddStorage = void 0;
   var _digitalData = void 0;
   var _htmlGlobals = void 0;
   var _digitalDataEnricher = void 0;
@@ -20633,7 +21347,8 @@ describe('DigitalDataEnricher', function () {
   };
 
   before(function () {
-    _digitalDataEnricher = new _DigitalDataEnricher2['default'](_digitalData);
+    _ddListener = [];
+    _digitalDataEnricher = new _DigitalDataEnricher2['default'](_digitalData, _ddListener);
     _htmlGlobals = _digitalDataEnricher.getHtmlGlobals();
     _sinon2['default'].stub(_htmlGlobals, 'getDocument', function () {
       return _document;
@@ -20650,6 +21365,10 @@ describe('DigitalDataEnricher', function () {
     _htmlGlobals.getLocation.restore();
     _htmlGlobals.getDocument.restore();
     _htmlGlobals.getNavigator.restore();
+    if (_ddStorage) {
+      _ddStorage.clear();
+      _ddStorage = undefined;
+    }
   });
 
   describe('#enrichPageData', function () {
@@ -20756,9 +21475,116 @@ describe('DigitalDataEnricher', function () {
       _assert2['default'].ok(_digitalData.recommendation[1].listId === 'recom2');
     });
   });
+
+  describe('#enrichDDStorageData', function () {
+    it('should enrich data from local storage', function () {
+      _digitalData = {
+        user: {
+          userId: '123',
+          hasCoffeeMachine: true,
+          hasFerrari: true,
+          isSubscribed: true,
+          visitedContactPageTimes: 20,
+          segments: ['segment1', 'segment2']
+        },
+        listing: {
+          listId: 'test'
+        }
+      };
+      _ddStorage = new _DDStorage2['default'](_digitalData, new _Storage2['default']());
+      _ddStorage.persist('user.hasCoffeeMachine');
+      _ddStorage.persist('user.hasFerrari');
+      _ddStorage.persist('user.visitedContactPageTimes');
+      _ddStorage.persist('user.segments');
+      _ddStorage.persist('user.isSubscribed');
+      _ddStorage.persist('listing.listId');
+
+      _digitalData = {
+        user: {
+          userId: '123',
+          isSubscribed: false,
+          hasFerrari: false
+        }
+      };
+      _digitalDataEnricher.setDigitalData(_digitalData);
+      _ddStorage = new _DDStorage2['default'](_digitalData, new _Storage2['default']());
+      _digitalDataEnricher.setDDStorage(_ddStorage);
+      _digitalDataEnricher.enrichDigitalData();
+
+      _assert2['default'].deepEqual(_digitalData.user, {
+        userId: '123',
+        isSubscribed: true,
+        hasCoffeeMachine: true,
+        hasFerrari: false,
+        visitedContactPageTimes: 20,
+        segments: ['segment1', 'segment2'],
+        isReturning: false
+      });
+
+      _assert2['default'].ok(_ddStorage.get('user.hasCoffeeMachine'));
+      _assert2['default'].ok(_ddStorage.get('user.isSubscribed'));
+      _assert2['default'].ok(_ddStorage.get('user.hasFerrari') === undefined);
+    });
+  });
+
+  describe('default enrichments', function () {
+
+    function enirch(digitalData) {
+      _ddStorage = new _DDStorage2['default'](digitalData, new _Storage2['default']());
+      _digitalDataEnricher.setDigitalData(digitalData);
+      _digitalDataEnricher.setDDStorage(_ddStorage);
+      _digitalDataEnricher.enrichDigitalData();
+    }
+
+    it('should enrich user data', function () {
+      _digitalData = {
+        user: {
+          isSubscribed: true,
+          isLoggedIn: true,
+          email: 'test@email.com',
+          hasTransacted: true,
+          lastTransactionDate: '2016-03-30T10:05:26.041Z'
+        }
+      };
+      enirch(_digitalData);
+
+      _digitalData = {
+        user: {
+          isLoggedIn: false
+        }
+      };
+      enirch(_digitalData);
+      _assert2['default'].ok(!_digitalData.user.isLoggedIn);
+      _assert2['default'].ok(_digitalData.user.everLoggedIn);
+      _assert2['default'].ok(_digitalData.user.hasTransacted);
+      _assert2['default'].ok(_digitalData.user.isSubscribed);
+      _assert2['default'].equal(_digitalData.user.email, 'test@email.com');
+      _assert2['default'].equal(_digitalData.user.lastTransactionDate, '2016-03-30T10:05:26.041Z');
+    });
+
+    it('should update user.isReturning status', function (done) {
+      _digitalData = {};
+      _ddStorage = new _DDStorage2['default'](_digitalData, new _Storage2['default']());
+      _ddStorage.clear(); // to prevent using previous lastEventTimestamp value
+      _digitalDataEnricher.setDigitalData(_digitalData);
+      _digitalDataEnricher.setDDStorage(_ddStorage);
+      _digitalDataEnricher.setOption('sessionLength', 0.1);
+      _digitalDataEnricher.enrichDigitalData();
+
+      _assert2['default'].ok(!_digitalData.user.isReturning);
+
+      setTimeout(function () {
+        _digitalDataEnricher.enrichDigitalData();
+        setTimeout(function () {
+          _assert2['default'].ok(_digitalData.user.isReturning);
+          done();
+        }, 101);
+      }, 101);
+    });
+  });
 });
 
-},{"./../src/DigitalDataEnricher.js":94,"./../src/functions/deleteProperty.js":102,"assert":1,"sinon":64}],135:[function(require,module,exports){
+},{"./../src/DDStorage.js":96,"./../src/DigitalDataEnricher.js":98,"./../src/Storage.js":102,"./../src/functions/deleteProperty.js":107,"assert":1,"sinon":67}],141:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -21361,7 +22187,7 @@ describe('EventDataEnricher', function () {
   });
 });
 
-},{"./../src/EventDataEnricher.js":95,"./../src/functions/deleteProperty.js":102,"assert":1}],136:[function(require,module,exports){
+},{"./../src/EventDataEnricher.js":99,"./../src/functions/deleteProperty.js":107,"assert":1}],142:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -21977,7 +22803,7 @@ describe('EventManager', function () {
   });
 });
 
-},{"./../src/AutoEvents.js":91,"./../src/EventManager.js":96,"./reset.js":154,"assert":1}],137:[function(require,module,exports){
+},{"./../src/AutoEvents.js":94,"./../src/EventManager.js":100,"./reset.js":160,"assert":1}],143:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -22010,6 +22836,10 @@ function _interopRequireDefault(obj) {
 
 describe('DDManager', function () {
 
+  beforeEach(function () {
+    window.localStorage.clear();
+  });
+
   afterEach(function () {
     _ddManager2['default'].reset();
     (0, _reset2['default'])();
@@ -22033,7 +22863,7 @@ describe('DDManager', function () {
     it('should work well with async load using stubs from the snippet', function () {
       (0, _snippet2['default'])();
       window.ddManager.initialize();
-      _ddManager2['default'].processEarlyStubCalls();
+      _ddManager2['default'].processEarlyStubCalls(window.ddManager);
 
       _assert2['default'].ok(_ddManager2['default'].isReady());
       _assert2['default'].ok(Array.isArray(window.digitalData.events));
@@ -22046,7 +22876,7 @@ describe('DDManager', function () {
       window.ddManager.on('ready', function () {
         done();
       });
-      _ddManager2['default'].processEarlyStubCalls();
+      _ddManager2['default'].processEarlyStubCalls(window.ddManager);
     });
 
     it('should initialize DDManager instance', function () {
@@ -22186,6 +23016,87 @@ describe('DDManager', function () {
       }
     });
 
+    it('should enrich digitalData based on semantic events', function (done) {
+      window.digitalData = {
+        user: {
+          isSubscribed: false,
+          isLoggedIn: true,
+          hasTransacted: false
+        }
+      };
+
+      _ddManager2['default'].once('ready', function () {
+        window.digitalData.events.push({
+          name: 'Completed Transaction'
+        });
+
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          user: {
+            email: 'test@email.com'
+          }
+        });
+
+        setTimeout(function () {
+          _assert2['default'].ok(window.digitalData.user.isLoggedIn);
+          _assert2['default'].ok(window.digitalData.user.everLoggedIn);
+          _assert2['default'].ok(window.digitalData.user.hasTransacted);
+          _assert2['default'].ok(window.digitalData.user.isSubscribed);
+          _assert2['default'].equal(window.digitalData.user.email, 'test@email.com');
+          _assert2['default'].ok(window.digitalData.user.lastTransactionDate);
+          done();
+        }, 101);
+      });
+      _ddManager2['default'].initialize();
+    });
+
+    it('should update user.isReturning status', function (done) {
+      _ddManager2['default'].once('ready', function () {
+        window.digitalData.events.push({
+          name: 'Viewed Page'
+        });
+
+        _assert2['default'].ok(!window.digitalData.user.isReturning);
+
+        setTimeout(function () {
+          window.digitalData.events.push({
+            name: 'Viewed Page'
+          });
+          setTimeout(function () {
+            _assert2['default'].ok(window.digitalData.user.isReturning);
+            done();
+          }, 101);
+        }, 101);
+      });
+      _ddManager2['default'].initialize({
+        sessionLength: 0.1,
+        autoEvents: false
+      });
+    });
+
+    it('should not update user.isReturning status', function (done) {
+      _ddManager2['default'].once('ready', function () {
+        window.digitalData.events.push({
+          name: 'Viewed Page'
+        });
+
+        _assert2['default'].ok(!window.digitalData.user.isReturning);
+        setTimeout(function () {
+          window.digitalData.events.push({
+            name: 'Viewed Page'
+          });
+          setTimeout(function () {
+            _assert2['default'].ok(!window.digitalData.user.isReturning);
+            done();
+          }, 101);
+        }, 101);
+      });
+      _ddManager2['default'].initialize({
+        sessionLength: 1,
+        autoEvents: false
+      });
+    });
+
     it('it should send Viewed Page event once', function (done) {
       _ddManager2['default'].on('ready', function () {
         setTimeout(function () {
@@ -22213,7 +23124,7 @@ describe('DDManager', function () {
   });
 });
 
-},{"../src/Integration.js":97,"../src/availableIntegrations.js":99,"../src/ddManager.js":100,"./reset.js":154,"./snippet.js":155,"assert":1}],138:[function(require,module,exports){
+},{"../src/Integration.js":101,"../src/availableIntegrations.js":104,"../src/ddManager.js":105,"./reset.js":160,"./snippet.js":161,"assert":1}],144:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -22225,7 +23136,7 @@ function argumentsToArray(args) {
   return Array.prototype.slice.call(args);
 }
 
-},{}],139:[function(require,module,exports){
+},{}],145:[function(require,module,exports){
 'use strict';
 
 require('./../src/polyfill.js');
@@ -22235,6 +23146,8 @@ require('./ddManagerSpec.js');
 require('./AutoEventsSpec.js');
 
 require('./DDHelperSpec.js');
+
+require('./DDStorageSpec.js');
 
 require('./EventManagerSpec.js');
 
@@ -22270,7 +23183,7 @@ require('./integrations/VkontakteSpec.js');
 
 require('./integrations/EmarsysSpec.js');
 
-},{"./../src/polyfill.js":131,"./AutoEventsSpec.js":132,"./DDHelperSpec.js":133,"./DigitalDataEnricherSpec.js":134,"./EventDataEnricherSpec.js":135,"./EventManagerSpec.js":136,"./ddManagerSpec.js":137,"./integrations/CriteoSpec.js":140,"./integrations/DrivebackSpec.js":141,"./integrations/EmarsysSpec.js":142,"./integrations/FacebookPixelSpec.js":143,"./integrations/GoogleAdWordsSpec.js":144,"./integrations/GoogleAnalyticsSpec.js":145,"./integrations/GoogleTagManagerSpec.js":146,"./integrations/MyTargetSpec.js":147,"./integrations/OWOXBIStreamingSpec.js":148,"./integrations/RetailRocketSpec.js":149,"./integrations/SegmentStreamSpec.js":150,"./integrations/SendPulseSpec.js":151,"./integrations/VkontakteSpec.js":152,"./integrations/YandexMetricaSpec.js":153}],140:[function(require,module,exports){
+},{"./../src/polyfill.js":136,"./AutoEventsSpec.js":137,"./DDHelperSpec.js":138,"./DDStorageSpec.js":139,"./DigitalDataEnricherSpec.js":140,"./EventDataEnricherSpec.js":141,"./EventManagerSpec.js":142,"./ddManagerSpec.js":143,"./integrations/CriteoSpec.js":146,"./integrations/DrivebackSpec.js":147,"./integrations/EmarsysSpec.js":148,"./integrations/FacebookPixelSpec.js":149,"./integrations/GoogleAdWordsSpec.js":150,"./integrations/GoogleAnalyticsSpec.js":151,"./integrations/GoogleTagManagerSpec.js":152,"./integrations/MyTargetSpec.js":153,"./integrations/OWOXBIStreamingSpec.js":154,"./integrations/RetailRocketSpec.js":155,"./integrations/SegmentStreamSpec.js":156,"./integrations/SendPulseSpec.js":157,"./integrations/VkontakteSpec.js":158,"./integrations/YandexMetricaSpec.js":159}],146:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -23008,7 +23921,7 @@ describe('Integrations: Criteo', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/Criteo.js":117,"./../reset.js":154,"assert":1,"sinon":64}],141:[function(require,module,exports){
+},{"./../../src/ddManager.js":105,"./../../src/integrations/Criteo.js":122,"./../reset.js":160,"assert":1,"sinon":67}],147:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -23098,7 +24011,7 @@ describe('Integrations: Driveback', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/Driveback.js":118,"./../reset.js":154,"assert":1}],142:[function(require,module,exports){
+},{"./../../src/ddManager.js":105,"./../../src/integrations/Driveback.js":123,"./../reset.js":160,"assert":1}],148:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -23493,7 +24406,7 @@ describe('Integrations: Emarsys', function () {
   });
 });
 
-},{"./../../src/ddManager":100,"./../../src/integrations/Emarsys":119,"./../reset":154,"assert":1,"sinon":64}],143:[function(require,module,exports){
+},{"./../../src/ddManager":105,"./../../src/integrations/Emarsys":124,"./../reset":160,"assert":1,"sinon":67}],149:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -24033,7 +24946,7 @@ describe('Integrations: FacebookPixel', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/FacebookPixel.js":120,"./../reset.js":154,"assert":1,"sinon":64}],144:[function(require,module,exports){
+},{"./../../src/ddManager.js":105,"./../../src/integrations/FacebookPixel.js":125,"./../reset.js":160,"assert":1,"sinon":67}],150:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -24451,7 +25364,7 @@ describe('Integrations: GoogleAdWords', function () {
   });
 });
 
-},{"./../../src/ddManager":100,"./../../src/integrations/GoogleAdWords":121,"./../reset":154,"assert":1,"sinon":64}],145:[function(require,module,exports){
+},{"./../../src/ddManager":105,"./../../src/integrations/GoogleAdWords":126,"./../reset":160,"assert":1,"sinon":67}],151:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -24598,7 +25511,7 @@ describe('Integrations: GoogleAnalytics', function () {
 
         it('should not send universal user id by default', function () {
           window.digitalData.user = {
-            id: 'baz'
+            userId: 'baz'
           };
           _ddManager2['default'].initialize({
             autoEvents: false
@@ -24608,7 +25521,7 @@ describe('Integrations: GoogleAnalytics', function () {
 
         it('should send universal user id if sendUserId option is true and user.id is truthy', function () {
           window.digitalData.user = {
-            id: 'baz'
+            userId: 'baz'
           };
           ga.setOption('sendUserId', true);
           _ddManager2['default'].initialize({
@@ -24693,6 +25606,16 @@ describe('Integrations: GoogleAnalytics', function () {
             _assert2['default'].ok(window.digitalData.integrations.googleAnalytics.clientId);
             done();
           });
+        });
+      });
+    });
+
+    describe('after ready', function () {
+      beforeEach(function (done) {
+        _sinon2['default'].stub(ga, 'load');
+        _ddManager2['default'].once('ready', done);
+        _ddManager2['default'].initialize({
+          autoEvents: false
         });
       });
 
@@ -24842,6 +25765,10 @@ describe('Integrations: GoogleAnalytics', function () {
           _sinon2['default'].stub(window, 'ga');
         });
 
+        afterEach(function () {
+          window.ga.restore();
+        });
+
         it('should send an event', function () {
           window.digitalData.events.push({
             callback: function callback() {
@@ -24948,6 +25875,10 @@ describe('Integrations: GoogleAnalytics', function () {
           _sinon2['default'].stub(window, 'ga');
         });
 
+        afterEach(function () {
+          window.ga.restore();
+        });
+
         it('should require ecommerce.js', function () {
           window.digitalData.events.push({
             name: 'Completed Transaction',
@@ -24988,6 +25919,7 @@ describe('Integrations: GoogleAnalytics', function () {
               currency: 'USD',
               lineItems: [{
                 product: {
+                  id: '123',
                   unitPrice: 24.75,
                   unitSalePrice: 24.75,
                   name: 'my product',
@@ -25015,7 +25947,7 @@ describe('Integrations: GoogleAnalytics', function () {
               }]);
 
               _assert2['default'].deepEqual(window.ga.args[2], ['ecommerce:addItem', {
-                id: '780bc55',
+                id: '123',
                 category: undefined,
                 name: 'my product',
                 price: 24.75,
@@ -25025,7 +25957,7 @@ describe('Integrations: GoogleAnalytics', function () {
               }]);
 
               _assert2['default'].deepEqual(window.ga.args[3], ['ecommerce:addItem', {
-                id: '780bc55',
+                id: undefined,
                 category: undefined,
                 name: 'other product',
                 price: 24.75,
@@ -25126,6 +26058,7 @@ describe('Integrations: GoogleAnalytics', function () {
 
     describe('after loading', function () {
       beforeEach(function (done) {
+        _sinon2['default'].stub(ga, 'load');
         _ddManager2['default'].once('ready', done);
         _ddManager2['default'].initialize({
           autoEvents: false
@@ -25133,8 +26066,13 @@ describe('Integrations: GoogleAnalytics', function () {
       });
 
       describe('enhanced ecommerce', function () {
+
         beforeEach(function () {
           _sinon2['default'].stub(window, 'ga');
+        });
+
+        afterEach(function () {
+          window.ga.restore();
         });
 
         it('should require ec.js', function () {
@@ -25146,7 +26084,7 @@ describe('Integrations: GoogleAnalytics', function () {
             },
             callback: function callback() {
               _assert2['default'].ok(window.ga.args.length > 0);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[0]), ['require', 'ec']);
+              _assert2['default'].ok(window.ga.calledWith('require', 'ec'));
             }
           });
         });
@@ -25160,8 +26098,7 @@ describe('Integrations: GoogleAnalytics', function () {
               orderId: 'ee099bf7'
             },
             callback: function callback() {
-              _assert2['default'].ok(window.ga.args.length > 0);
-              _assert2['default'].notDeepEqual((0, _argumentsToArray2['default'])(window.ga.args[0]), ['require', 'ec']);
+              _assert2['default'].ok(!window.ga.calledWith('require', 'ec'));
             }
           });
         });
@@ -25174,7 +26111,7 @@ describe('Integrations: GoogleAnalytics', function () {
               orderId: 'ee099bf7'
             },
             callback: function callback() {
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'USD']);
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'USD'));
             }
           });
         });
@@ -25188,7 +26125,7 @@ describe('Integrations: GoogleAnalytics', function () {
               currency: 'EUR'
             },
             callback: function callback() {
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'EUR']);
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'EUR'));
             }
           });
         });
@@ -25206,8 +26143,8 @@ describe('Integrations: GoogleAnalytics', function () {
             },
             quantity: 1,
             callback: function callback() {
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -25216,9 +26153,9 @@ describe('Integrations: GoogleAnalytics', function () {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'add', {}]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'add', {}));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }));
             }
           });
         });
@@ -25238,8 +26175,8 @@ describe('Integrations: GoogleAnalytics', function () {
             },
             quantity: 1,
             callback: function callback() {
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -25250,9 +26187,9 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 dimension10: 25,
                 metric10: 100
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'add', {}]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'add', {}));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }));
             }
           });
         });
@@ -25272,8 +26209,8 @@ describe('Integrations: GoogleAnalytics', function () {
             product: 'p-298',
             quantity: 1,
             callback: function callback() {
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -25282,9 +26219,9 @@ describe('Integrations: GoogleAnalytics', function () {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'add', {}]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'add', {}));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }));
             }
           });
         });
@@ -25303,9 +26240,8 @@ describe('Integrations: GoogleAnalytics', function () {
             },
             quantity: 1,
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 5);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -25314,9 +26250,9 @@ describe('Integrations: GoogleAnalytics', function () {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'add', {}]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Added Product', 'sample label', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'add', {}));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', 'sample label', { nonInteraction: 1 }));
             }
           });
         });
@@ -25334,9 +26270,8 @@ describe('Integrations: GoogleAnalytics', function () {
             },
             quantity: 1,
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 5);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -25345,9 +26280,9 @@ describe('Integrations: GoogleAnalytics', function () {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'remove', {}]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'remove', {}));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: 1 }));
             }
           });
         });
@@ -25367,9 +26302,8 @@ describe('Integrations: GoogleAnalytics', function () {
             },
             quantity: 1,
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 5);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -25380,9 +26314,9 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 dimension10: 25,
                 metric10: 100
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'remove', {}]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'remove', {}));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: 1 }));
             }
           });
         });
@@ -25398,9 +26332,8 @@ describe('Integrations: GoogleAnalytics', function () {
               skuCode: 'p-298'
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 5);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -25408,9 +26341,9 @@ describe('Integrations: GoogleAnalytics', function () {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'detail', {}]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'detail', {}));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }));
             }
           });
         });
@@ -25426,9 +26359,8 @@ describe('Integrations: GoogleAnalytics', function () {
               skuCode: 'p-298'
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 5);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1/cat 2',
@@ -25436,9 +26368,9 @@ describe('Integrations: GoogleAnalytics', function () {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'detail', {}]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'detail', {}));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }));
             }
           });
         });
@@ -25456,9 +26388,8 @@ describe('Integrations: GoogleAnalytics', function () {
               weight: 100
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 5);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -25468,9 +26399,9 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 dimension10: 25,
                 metric10: 100
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'detail', {}]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'detail', {}));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }));
             }
           });
         });
@@ -25485,16 +26416,14 @@ describe('Integrations: GoogleAnalytics', function () {
                 name: 'my product',
                 category: 'cat 1',
                 skuCode: 'p-298',
-                listName: 'search results',
                 stock: 25,
                 weight: 100
               },
-              listName: 'search results'
+              listId: 'search results'
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 5);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -25504,18 +26433,18 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 dimension10: 25,
                 metric10: 100
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'click', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'click', {
                 list: 'search results'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: 1 }));
             }
           });
         });
 
         it('should send clicked product data with data from DDL', function () {
           window.digitalData.listing = {
-            listName: 'search results',
+            listId: 'search results',
             items: [{
               id: 'p-298',
               currency: 'CAD',
@@ -25529,12 +26458,11 @@ describe('Integrations: GoogleAnalytics', function () {
             name: 'Clicked Product',
             listItem: {
               product: 'p-298',
-              listName: 'search results'
+              listId: 'search results'
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 5);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -25543,11 +26471,11 @@ describe('Integrations: GoogleAnalytics', function () {
                 variant: undefined,
                 currency: 'CAD',
                 position: 1
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'click', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'click', {
                 list: 'search results'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: 1 }));
             }
           });
         });
@@ -25566,13 +26494,12 @@ describe('Integrations: GoogleAnalytics', function () {
                 stock: 25,
                 weight: 100
               },
-              listName: 'search results',
+              listId: 'search results',
               position: 2
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 4);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addImpression', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-298',
                 name: 'my product',
                 list: 'search results',
@@ -25584,8 +26511,8 @@ describe('Integrations: GoogleAnalytics', function () {
                 position: 2,
                 dimension10: 25,
                 metric10: 100
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }));
             }
           });
         });
@@ -25602,7 +26529,7 @@ describe('Integrations: GoogleAnalytics', function () {
                 category: 'cat 1',
                 skuCode: 'p-298'
               },
-              listName: 'search results',
+              listId: 'search results',
               position: 2
             }, {
               product: {
@@ -25612,14 +26539,13 @@ describe('Integrations: GoogleAnalytics', function () {
                 category: 'cat 1',
                 skuCode: 'p-299'
               },
-              listName: 'search results',
+              listId: 'search results',
               position: 2
             }],
-            listName: 'search results',
+            listId: 'search results',
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 6);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addImpression', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-298',
                 name: 'my product',
                 list: 'search results',
@@ -25629,9 +26555,9 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 variant: undefined,
                 position: 2
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[4]), ['ec:addImpression', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-299',
                 name: 'my product',
                 list: 'search results',
@@ -25641,15 +26567,15 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 variant: undefined,
                 position: 2
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[5], ['send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }));
             }
           });
         });
 
         it('should send viewed product data from DDL', function () {
           window.digitalData.listing = {
-            listName: 'search results',
+            listId: 'search results',
             items: [{
               id: 'p-298',
               currency: 'CAD',
@@ -25671,12 +26597,11 @@ describe('Integrations: GoogleAnalytics', function () {
             category: 'Ecommerce',
             listItem: {
               product: 'p-299',
-              listName: 'search results'
+              listId: 'search results'
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 4);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addImpression', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-299',
                 name: 'my other product',
                 list: 'search results',
@@ -25686,15 +26611,15 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 variant: undefined,
                 position: 2
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }));
             }
           });
         });
 
         it('should send viewed product with multiple products data from DDL', function () {
           window.digitalData.listing = {
-            listName: 'search results',
+            listId: 'search results',
             items: [{
               id: 'p-298',
               currency: 'CAD',
@@ -25716,15 +26641,14 @@ describe('Integrations: GoogleAnalytics', function () {
             category: 'Ecommerce',
             listItems: [{
               product: 'p-298',
-              listName: 'search results'
+              listId: 'search results'
             }, {
               product: 'p-299',
-              listName: 'search results'
+              listId: 'search results'
             }],
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 6);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addImpression', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-298',
                 name: 'my product',
                 list: 'search results',
@@ -25734,9 +26658,9 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 variant: undefined,
                 position: 1
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[4]), ['ec:addImpression', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-299',
                 name: 'my other product',
                 list: 'search results',
@@ -25746,8 +26670,8 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 variant: undefined,
                 position: 2
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[5], ['send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }));
             }
           });
         });
@@ -25763,15 +26687,14 @@ describe('Integrations: GoogleAnalytics', function () {
               position: 'banner_slot1'
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 4);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'USD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addPromo', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'USD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addPromo', {
                 id: 'PROMO_1234',
                 name: 'Summer Sale',
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }));
             }
           });
         });
@@ -25792,21 +26715,20 @@ describe('Integrations: GoogleAnalytics', function () {
               position: 'banner_slot1'
             }],
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 5);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'USD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addPromo', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'USD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addPromo', {
                 id: 'PROMO_1234',
                 name: 'Summer Sale',
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['ec:addPromo', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:addPromo', {
                 id: 'PROMO_2345',
                 name: 'Summer Sale',
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }));
             }
           });
         });
@@ -25823,15 +26745,14 @@ describe('Integrations: GoogleAnalytics', function () {
             category: 'Promo',
             campaign: 'PROMO_1234',
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 4);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'USD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addPromo', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'USD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addPromo', {
                 id: 'PROMO_1234',
                 name: 'Summer Sale',
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }));
             }
           });
         });
@@ -25853,21 +26774,20 @@ describe('Integrations: GoogleAnalytics', function () {
             category: 'Promo',
             campaigns: ['PROMO_1234', 'PROMO_2345'],
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 5);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'USD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addPromo', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'USD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addPromo', {
                 id: 'PROMO_1234',
                 name: 'Summer Sale',
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['ec:addPromo', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:addPromo', {
                 id: 'PROMO_2345',
                 name: 'Summer Sale',
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }));
             }
           });
         });
@@ -25883,16 +26803,15 @@ describe('Integrations: GoogleAnalytics', function () {
               position: 'banner_slot1'
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 5);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'USD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addPromo', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'USD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addPromo', {
                 id: 'PROMO_1234',
                 name: 'Summer Sale',
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:setAction', 'promo_click', {}]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['send', 'event', 'Promo', 'Clicked Campaign', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'promo_click', {}));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Promo', 'Clicked Campaign', { nonInteraction: 1 }));
             }
           });
         });
@@ -25927,9 +26846,8 @@ describe('Integrations: GoogleAnalytics', function () {
             step: 1,
             paymentMethod: 'Visa',
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 6);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: undefined,
@@ -25940,8 +26858,8 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 dimension10: 25,
                 metric10: 100
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['ec:addProduct', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-299',
                 name: 'other product',
                 category: undefined,
@@ -25952,12 +26870,12 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 dimension10: 30,
                 metric10: 200
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[4]), ['ec:setAction', 'checkout', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'checkout', {
                 step: 1,
                 option: 'Visa'
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[5]), ['send', 'event', 'Ecommerce', 'Viewed Checkout Step', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Checkout Step', { nonInteraction: 1 }));
             }
           });
         });
@@ -25993,13 +26911,12 @@ describe('Integrations: GoogleAnalytics', function () {
             step: 2,
             shippingMethod: 'FedEx',
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 4);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:setAction', 'checkout_option', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'checkout_option', {
                 step: 2,
                 option: 'FedEx'
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }));
             }
           });
         });
@@ -26032,13 +26949,12 @@ describe('Integrations: GoogleAnalytics', function () {
             paymentMethod: 'Visa',
             shippingMethod: 'FedEx',
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 4);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:setAction', 'checkout_option', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'checkout_option', {
                 step: 2,
                 option: 'Visa, FedEx'
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }));
             }
           });
         });
@@ -26049,7 +26965,7 @@ describe('Integrations: GoogleAnalytics', function () {
             category: 'Ecommerce',
             paymentMethod: 'Visa',
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 0);
+              _assert2['default'].ok(!window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }));
             }
           });
         });
@@ -26060,7 +26976,7 @@ describe('Integrations: GoogleAnalytics', function () {
             category: 'Ecommerce',
             step: 2,
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 0);
+              _assert2['default'].ok(!window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }));
             }
           });
         });
@@ -26073,16 +26989,15 @@ describe('Integrations: GoogleAnalytics', function () {
               orderId: '7306cc06'
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 4);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:setAction', 'purchase', {
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'purchase', {
                 id: '7306cc06',
                 affiliation: undefined,
                 revenue: 0.0,
                 tax: undefined,
                 shipping: undefined,
                 coupon: undefined
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }));
             }
           });
         });
@@ -26125,9 +27040,8 @@ describe('Integrations: GoogleAnalytics', function () {
 
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 6);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -26138,8 +27052,8 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'CAD',
                 dimension10: 25,
                 metric10: 100
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['ec:addProduct', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-299',
                 name: 'other product',
                 category: 'cat 2',
@@ -26150,16 +27064,16 @@ describe('Integrations: GoogleAnalytics', function () {
                 currency: 'EUR',
                 dimension10: 30,
                 metric10: 200
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[4]), ['ec:setAction', 'purchase', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'purchase', {
                 id: '780bc55',
                 affiliation: 'affiliation',
                 revenue: 99.9,
                 tax: 20.99,
                 shipping: 13.99,
                 coupon: 'coupon'
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[5]), ['send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }));
             }
           });
         });
@@ -26199,9 +27113,8 @@ describe('Integrations: GoogleAnalytics', function () {
 
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 6);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[2]), ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -26211,8 +27124,8 @@ describe('Integrations: GoogleAnalytics', function () {
                 variant: undefined,
                 currency: 'CAD',
                 coupon: 'promo'
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[3]), ['ec:addProduct', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-299',
                 name: 'other product',
                 category: 'cat 2',
@@ -26221,16 +27134,16 @@ describe('Integrations: GoogleAnalytics', function () {
                 brand: undefined,
                 variant: undefined,
                 currency: 'EUR'
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[4]), ['ec:setAction', 'purchase', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'purchase', {
                 id: '780bc55',
                 affiliation: 'affiliation',
                 revenue: 99.9,
                 tax: 20.99,
                 shipping: 13.99,
                 coupon: 'coupon'
-              }]);
-              _assert2['default'].deepEqual((0, _argumentsToArray2['default'])(window.ga.args[5]), ['send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }));
             }
           });
         });
@@ -26248,14 +27161,14 @@ describe('Integrations: GoogleAnalytics', function () {
               lineItems: []
             },
             callback: function callback() {
-              _assert2['default'].deepEqual(window.ga.args[2], ['ec:setAction', 'purchase', {
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'purchase', {
                 id: '5d4c7cb5',
                 affiliation: undefined,
                 revenue: 99.9,
                 tax: 20.99,
                 shipping: 13.99,
                 coupon: undefined
-              }]);
+              }));
             }
           });
         });
@@ -26273,11 +27186,10 @@ describe('Integrations: GoogleAnalytics', function () {
               lineItems: []
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 4);
-              _assert2['default'].deepEqual(window.ga.args[2], ['ec:setAction', 'refund', {
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'refund', {
                 id: '780bc55'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: 1 }));
             }
           });
         });
@@ -26305,8 +27217,7 @@ describe('Integrations: GoogleAnalytics', function () {
               }]
             },
             callback: function callback() {
-              _assert2['default'].equal(window.ga.args.length, 6);
-              _assert2['default'].deepEqual(window.ga.args[2], ['ec:addProduct', {
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: undefined,
                 category: undefined,
@@ -26314,8 +27225,8 @@ describe('Integrations: GoogleAnalytics', function () {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[3], ['ec:addProduct', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-299',
                 name: undefined,
                 category: undefined,
@@ -26324,11 +27235,11 @@ describe('Integrations: GoogleAnalytics', function () {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[4], ['ec:setAction', 'refund', {
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'refund', {
                 id: '780bc55'
-              }]);
-              _assert2['default'].deepEqual(window.ga.args[5], ['send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: 1 }]);
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: 1 }));
             }
           });
         });
@@ -26348,26 +27259,6 @@ describe('Integrations: GoogleAnalytics', function () {
       noConflict: true
     };
 
-    function loadGA(callback) {
-      //load GA
-      (function (i, s, o, g, r, a, m) {
-        i['GoogleAnalyticsObject'] = r;i[r] = i[r] || function () {
-          (i[r].q = i[r].q || []).push(arguments);
-        }, i[r].l = 1 * new Date();a = s.createElement(o), m = s.getElementsByTagName(o)[0];a.async = 1;a.src = g;m.parentNode.insertBefore(a, m);
-      })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
-
-      window.ga('create', 'UA-51485228-7', {
-        // Fall back on default to protect against empty string
-        cookieDomain: 'auto',
-        name: 'gtm.123'
-      });
-      window.ga('send', 'pageview');
-
-      window.ga(function () {
-        callback();
-      });
-    }
-
     beforeEach(function () {
       window.digitalData = {
         events: []
@@ -26384,18 +27275,17 @@ describe('Integrations: GoogleAnalytics', function () {
 
     describe('after loading', function () {
       beforeEach(function (done) {
-        loadGA(function () {
-          _ddManager2['default'].once('ready', done);
-          _ddManager2['default'].initialize({
-            autoEvents: false
-          });
+        _sinon2['default'].stub(ga, 'load');
+        _ddManager2['default'].once('ready', done);
+        _ddManager2['default'].initialize({
+          autoEvents: false
         });
       });
 
       describe('enhanced ecommerce', function () {
 
         beforeEach(function () {
-          _sinon2['default'].spy(window, 'ga');
+          _sinon2['default'].stub(window, 'ga');
         });
 
         afterEach(function () {
@@ -26407,8 +27297,13 @@ describe('Integrations: GoogleAnalytics', function () {
             name: 'Test',
             category: 'Test',
             callback: function callback() {
-              _assert2['default'].equal(2, window.ga.getAll().length);
-              _assert2['default'].ok(window.ga.calledOnce);
+              _assert2['default'].ok(window.ga.calledWith('ddl.send', 'event', {
+                eventAction: 'Test',
+                eventCategory: 'Test',
+                eventLabel: undefined,
+                eventValue: 0,
+                nonInteraction: false
+              }));
               done();
             }
           });
@@ -26470,6 +27365,7 @@ describe('Integrations: GoogleAnalytics', function () {
 
     describe('after loading', function () {
       beforeEach(function (done) {
+        _sinon2['default'].stub(ga, 'load');
         _ddManager2['default'].once('ready', done);
         _ddManager2['default'].initialize({
           autoEvents: false
@@ -26515,7 +27411,7 @@ describe('Integrations: GoogleAnalytics', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/functions/after.js":101,"./../../src/integrations/GoogleAnalytics.js":122,"./../functions/argumentsToArray.js":138,"./../reset.js":154,"assert":1,"sinon":64}],146:[function(require,module,exports){
+},{"./../../src/ddManager.js":105,"./../../src/functions/after.js":106,"./../../src/integrations/GoogleAnalytics.js":127,"./../functions/argumentsToArray.js":144,"./../reset.js":160,"assert":1,"sinon":67}],152:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -26593,16 +27489,24 @@ describe('Integrations: GoogleTagManager', function () {
 
     describe('after loading', function () {
       beforeEach(function (done) {
-        _ddManager2['default'].once('ready', done);
-        _ddManager2['default'].initialize();
+        _ddManager2['default'].once('load', done);
+        _ddManager2['default'].initialize({
+          autoEvents: false
+        });
       });
 
-      it('should update dataLayer', function () {
+      it('should update dataLayer', function (done) {
         var dl = window.dataLayer;
-
         _assert2['default'].ok(dl);
-        _assert2['default'].ok(dl[0].event === 'gtm.js');
-        _assert2['default'].ok(typeof dl[0]['gtm.start'] === 'number');
+        setTimeout(function () {
+          _assert2['default'].ok(dl[0].event === 'gtm.js');
+          _assert2['default'].ok(typeof dl[0]['gtm.start'] === 'number');
+          _assert2['default'].ok(dl[1].event === 'DDManager Ready');
+          _assert2['default'].ok(dl[2].event === 'gtm.dom');
+          _assert2['default'].ok(dl[3].event === 'gtm.load');
+          _assert2['default'].ok(dl[4].event === 'DDManager Loaded');
+          done();
+        }, 10);
       });
 
       describe('#trackEvent', function () {
@@ -26645,9 +27549,9 @@ describe('Integrations: GoogleTagManager', function () {
 
     beforeEach(function () {
       window.dataLayer = [];
-      window.dataLayer.push = function () {
-        window.dataLayer.prototype.apply(this, arguments);
-      };
+      // window.dataLayer.push = function() {
+      //   window.dataLayer.prototype.apply(this,arguments);
+      // };
       gtm = new _GoogleTagManager2['default'](window.digitalData, {
         noConflict: true
       });
@@ -26663,14 +27567,12 @@ describe('Integrations: GoogleTagManager', function () {
     describe('after loading', function () {
       beforeEach(function (done) {
         _ddManager2['default'].once('ready', done);
-        _ddManager2['default'].initialize();
+        _ddManager2['default'].initialize({
+          autoEvents: false
+        });
       });
 
       describe('#trackEvent', function () {
-
-        beforeEach(function () {
-          window.dataLayer = [];
-        });
 
         it('should send event with additional parameters to existing GTM', function () {
           window.digitalData.events.push({
@@ -26681,15 +27583,15 @@ describe('Integrations: GoogleTagManager', function () {
 
           var dl = window.dataLayer;
 
-          _assert2['default'].ok(dl[0].event === 'some-event');
-          _assert2['default'].ok(dl[0].additionalParam === true);
+          _assert2['default'].ok(dl[2].event === 'some-event');
+          _assert2['default'].ok(dl[2].additionalParam === true);
         });
       });
     });
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/GoogleTagManager.js":123,"./../reset.js":154,"assert":1}],147:[function(require,module,exports){
+},{"./../../src/ddManager.js":105,"./../../src/integrations/GoogleTagManager.js":128,"./../reset.js":160,"assert":1}],153:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -27145,7 +28047,7 @@ describe('Integrations: MyTarget', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/MyTarget.js":124,"./../reset.js":154,"assert":1,"sinon":64}],148:[function(require,module,exports){
+},{"./../../src/ddManager.js":105,"./../../src/integrations/MyTarget.js":129,"./../reset.js":160,"assert":1,"sinon":67}],154:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -27246,7 +28148,7 @@ describe('Integrations: OWOXBIStreaming', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/GoogleAnalytics.js":122,"./../../src/integrations/OWOXBIStreaming.js":125,"./../functions/argumentsToArray.js":138,"./../reset.js":154,"assert":1,"sinon":64}],149:[function(require,module,exports){
+},{"./../../src/ddManager.js":105,"./../../src/integrations/GoogleAnalytics.js":127,"./../../src/integrations/OWOXBIStreaming.js":130,"./../functions/argumentsToArray.js":144,"./../reset.js":160,"assert":1,"sinon":67}],155:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -28087,7 +28989,7 @@ describe('Integrations: RetailRocket', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/functions/deleteProperty.js":102,"./../../src/integrations/RetailRocket.js":126,"./../reset.js":154,"assert":1,"sinon":64}],150:[function(require,module,exports){
+},{"./../../src/ddManager.js":105,"./../../src/functions/deleteProperty.js":107,"./../../src/integrations/RetailRocket.js":131,"./../reset.js":160,"assert":1,"sinon":67}],156:[function(require,module,exports){
 'use strict';
 
 var _SegmentStream = require('./../../src/integrations/SegmentStream.js');
@@ -28243,7 +29145,7 @@ describe('SegmentStream', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/SegmentStream.js":127,"./../reset.js":154,"assert":1,"sinon":64}],151:[function(require,module,exports){
+},{"./../../src/ddManager.js":105,"./../../src/integrations/SegmentStream.js":132,"./../reset.js":160,"assert":1,"sinon":67}],157:[function(require,module,exports){
 'use strict';
 
 var _SendPulse = require('./../../src/integrations/SendPulse.js');
@@ -28510,7 +29412,7 @@ describe('SendPulse', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/functions/after.js":101,"./../../src/functions/deleteProperty.js":102,"./../../src/integrations/SendPulse.js":128,"./../reset.js":154,"assert":1,"sinon":64}],152:[function(require,module,exports){
+},{"./../../src/ddManager.js":105,"./../../src/functions/after.js":106,"./../../src/functions/deleteProperty.js":107,"./../../src/integrations/SendPulse.js":133,"./../reset.js":160,"assert":1,"sinon":67}],158:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -28634,7 +29536,7 @@ describe('Integrations: Vkontakte', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/Vkontakte.js":129,"./../reset.js":154,"assert":1,"sinon":64}],153:[function(require,module,exports){
+},{"./../../src/ddManager.js":105,"./../../src/integrations/Vkontakte.js":134,"./../reset.js":160,"assert":1,"sinon":67}],159:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -29157,7 +30059,7 @@ describe('Integrations: Yandex Metrica', function () {
   });
 });
 
-},{"./../../src/ddManager.js":100,"./../../src/integrations/YandexMetrica.js":130,"./../reset.js":154,"assert":1,"sinon":64}],154:[function(require,module,exports){
+},{"./../../src/ddManager.js":105,"./../../src/integrations/YandexMetrica.js":135,"./../reset.js":160,"assert":1,"sinon":67}],160:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -29168,7 +30070,7 @@ function reset() {
   window.ddManager = undefined;
 }
 
-},{}],155:[function(require,module,exports){
+},{}],161:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -29217,5 +30119,5 @@ exports['default'] = function () {
   }
 };
 
-},{}]},{},[139])
+},{}]},{},[145])
 //# sourceMappingURL=dd-manager-test.js.map
