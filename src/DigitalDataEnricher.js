@@ -36,7 +36,9 @@ class DigitalDataEnricher
     this.digitalData = digitalData;
     this.ddListener = ddListener;
     this.ddStorage = ddStorage;
-    this.options = options;
+    this.options = Object.assign({
+      sessionLength: 3600,
+    }, options);
   }
 
   setDigitalData(digitalData) {
@@ -69,6 +71,7 @@ class DigitalDataEnricher
 
     // enrich required fields if still not defined
     this.enrichDefaultUserData();
+    this.enrichIsReturningStatus();
 
     // when all enrichments are done
     this.listenToUserDataChanges();
