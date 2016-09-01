@@ -15107,6 +15107,10 @@ var DigitalDataEnricher = function () {
     this.ddStorage = ddStorage;
   };
 
+  DigitalDataEnricher.prototype.setOption = function setOption(key, value) {
+    this.options[key] = value;
+  };
+
   DigitalDataEnricher.prototype.enrichDigitalData = function enrichDigitalData() {
     // define required digitalData structure
     this.enrichStructure();
@@ -15211,7 +15215,7 @@ var DigitalDataEnricher = function () {
     var now = Date.now();
     if (!user.isReturning && context.lastEventTimestamp && now - context.lastEventTimestamp > this.options.sessionLength * 1000) {
       this.digitalData.user.isReturning = true;
-      this.ddManager.persist('user.isReturning');
+      this.ddStorage.persist('user.isReturning');
     }
     context.lastEventTimestamp = now;
     this.ddStorage.persist('context.lastEventTimestamp');
@@ -21556,6 +21560,26 @@ describe('DigitalDataEnricher', function () {
       _assert2['default'].ok(_digitalData.user.isSubscribed);
       _assert2['default'].equal(_digitalData.user.email, 'test@email.com');
       _assert2['default'].equal(_digitalData.user.lastTransactionDate, '2016-03-30T10:05:26.041Z');
+    });
+
+    it('should update user.isReturning status', function (done) {
+      _digitalData = {};
+      _ddStorage = new _DDStorage2['default'](_digitalData, new _Storage2['default']());
+      _ddStorage.clear(); // to prevent using previous lastEventTimestamp value
+      _digitalDataEnricher.setDigitalData(_digitalData);
+      _digitalDataEnricher.setDDStorage(_ddStorage);
+      _digitalDataEnricher.setOption('sessionLength', 0.1);
+      _digitalDataEnricher.enrichDigitalData();
+
+      _assert2['default'].ok(!_digitalData.user.isReturning);
+
+      setTimeout(function () {
+        _digitalDataEnricher.enrichDigitalData();
+        setTimeout(function () {
+          _assert2['default'].ok(_digitalData.user.isReturning);
+          done();
+        }, 101);
+      }, 101);
     });
   });
 });

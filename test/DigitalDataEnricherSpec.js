@@ -248,6 +248,26 @@ describe('DigitalDataEnricher', () => {
       assert.equal(_digitalData.user.email, 'test@email.com');
       assert.equal(_digitalData.user.lastTransactionDate, '2016-03-30T10:05:26.041Z');
     });
+
+    it('should update user.isReturning status', (done) => {
+      _digitalData = {};
+      _ddStorage = new DDStorage(_digitalData, new Storage());
+      _ddStorage.clear(); // to prevent using previous lastEventTimestamp value
+      _digitalDataEnricher.setDigitalData(_digitalData);
+      _digitalDataEnricher.setDDStorage(_ddStorage);
+      _digitalDataEnricher.setOption('sessionLength', 0.1);
+      _digitalDataEnricher.enrichDigitalData();
+
+      assert.ok(!_digitalData.user.isReturning);
+
+      setTimeout(() => {
+        _digitalDataEnricher.enrichDigitalData();
+        setTimeout(() => {
+          assert.ok(_digitalData.user.isReturning);
+          done();
+        }, 101);
+      }, 101);
+    });
   });
 
 });

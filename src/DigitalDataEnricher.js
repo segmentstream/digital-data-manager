@@ -53,6 +53,10 @@ class DigitalDataEnricher
     this.ddStorage = ddStorage;
   }
 
+  setOption(key, value) {
+    this.options[key] = value;
+  }
+
   enrichDigitalData() {
     // define required digitalData structure
     this.enrichStructure();
@@ -157,7 +161,7 @@ class DigitalDataEnricher
       (now - context.lastEventTimestamp) > this.options.sessionLength * 1000
     ) {
       this.digitalData.user.isReturning = true;
-      this.ddManager.persist('user.isReturning');
+      this.ddStorage.persist('user.isReturning');
     }
     context.lastEventTimestamp = now;
     this.ddStorage.persist('context.lastEventTimestamp');
