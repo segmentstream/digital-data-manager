@@ -15110,7 +15110,6 @@ var DigitalDataEnricher = function () {
     this.enrichStructure();
 
     // persist some default behaviours
-    this.enrichDefaultUserData();
     this.persistUserData();
 
     // enrich with default context data
@@ -15121,6 +15120,9 @@ var DigitalDataEnricher = function () {
 
     // should be after all default enrichments
     this.enrichDDStorageData();
+
+    // enrich required fields if still not defined
+    this.enrichDefaultUserData();
 
     // when all enrichments are done
     this.listenToUserDataChanges();
@@ -15167,6 +15169,10 @@ var DigitalDataEnricher = function () {
 
     if (user.isReturning === undefined) {
       user.isReturning = false;
+    }
+
+    if (user.isLoggedIn !== undefined && user.everLoggedIn === undefined) {
+      user.everLoggedIn = false;
     }
   };
 
@@ -21263,7 +21269,7 @@ describe('DDStorage', function () {
     it('should persist fields with and without exp dates', function (done) {
       _ddStorage.persist('user.isSubscribed');
       _ddStorage.persist('user.email', 1);
-      _ddStorage.persist('user.temp', 0.02);
+      _ddStorage.persist('user.temp', 0.01);
 
       _assert2['default'].deepEqual(_ddStorage.getPersistedKeys(), ['user.isSubscribed', 'user.email', 'user.temp']);
       _assert2['default'].ok(_ddStorage.get('user.isSubscribed'));
@@ -21276,7 +21282,7 @@ describe('DDStorage', function () {
         _assert2['default'].ok(!_ddStorage.get('user.temp'));
         _assert2['default'].deepEqual(_ddStorage.getPersistedKeys(), ['user.isSubscribed', 'user.email']);
         done();
-      }, 201);
+      }, 110);
     });
   });
 });

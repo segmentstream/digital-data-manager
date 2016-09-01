@@ -7674,7 +7674,6 @@ var DigitalDataEnricher = function () {
     this.enrichStructure();
 
     // persist some default behaviours
-    this.enrichDefaultUserData();
     this.persistUserData();
 
     // enrich with default context data
@@ -7685,6 +7684,9 @@ var DigitalDataEnricher = function () {
 
     // should be after all default enrichments
     this.enrichDDStorageData();
+
+    // enrich required fields if still not defined
+    this.enrichDefaultUserData();
 
     // when all enrichments are done
     this.listenToUserDataChanges();
@@ -7731,6 +7733,10 @@ var DigitalDataEnricher = function () {
 
     if (user.isReturning === undefined) {
       user.isReturning = false;
+    }
+
+    if (user.isLoggedIn !== undefined && user.everLoggedIn === undefined) {
+      user.everLoggedIn = false;
     }
   };
 
