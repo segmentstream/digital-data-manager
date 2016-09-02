@@ -178,6 +178,7 @@ describe('DigitalDataEnricher', () => {
         }
       };
       _ddStorage = new DDStorage(_digitalData, new Storage());
+      _ddStorage.clear(); // just to be sure
       _ddStorage.persist('user.hasCoffeeMachine');
       _ddStorage.persist('user.hasFerrari');
       _ddStorage.persist('user.visitedContactPageTimes');
@@ -265,8 +266,8 @@ describe('DigitalDataEnricher', () => {
         setTimeout(() => {
           assert.ok(_digitalData.user.isReturning);
           done();
-        }, 101);
-      }, 101);
+        }, 202);
+      }, 110);
     });
   });
 

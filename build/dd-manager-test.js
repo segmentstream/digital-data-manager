@@ -15763,19 +15763,13 @@ var EventManager = function () {
         if (callback.key) {
           var key = callback.key;
           var newKeyValue = _DDHelper2['default'].get(key, newValue);
-          var previousKeyValue = callback.snapshot || _DDHelper2['default'].get(key, previousValue);
+          var previousKeyValue = _DDHelper2['default'].get(key, previousValue);
           if (!(0, _jsonIsEqual2['default'])(newKeyValue, previousKeyValue)) {
             callback.handler(newKeyValue, previousKeyValue, _callbackOnComplete);
           }
         } else {
-          callback.handler(newValue, callback.snapshot || previousValue, _callbackOnComplete);
+          callback.handler(newValue, previousValue, _callbackOnComplete);
         }
-      }
-      if (callback.snapshot) {
-        // remove DDL snapshot after first change fire
-        // because now normal setInterval and _previousDigitalData will do the job
-        // TODO: test performance using snapshots insted of _previousDigitalData
-        (0, _deleteProperty2['default'])(callback, 'snapshot');
       }
     }
   };
@@ -15869,15 +15863,7 @@ var EventManager = function () {
     var type = _eventInfo$split[0];
     var key = _eventInfo$split[1];
 
-    var snapshot = void 0;
-
-    if (type === 'change') {
-      if (key) {
-        snapshot = (0, _componentClone2['default'])(_DDHelper2['default'].get(key, _digitalData));
-      } else {
-        snapshot = (0, _componentClone2['default'])(_getCopyWithoutEvents(_digitalData));
-      }
-    } else if (type === 'view') {
+    if (type === 'view') {
       _viewabilityTracker.addTracker(key, handler);
       return; // delegate view tracking to ViewabilityTracker
     }
@@ -15885,8 +15871,7 @@ var EventManager = function () {
     _callbacks[type] = _callbacks[type] || [];
     _callbacks[type].push({
       key: key,
-      handler: handler,
-      snapshot: snapshot
+      handler: handler
     });
     if (_isInitialized && type === 'event' && processPastEvents) {
       this.applyCallbackForPastEvents(handler);
@@ -21492,6 +21477,7 @@ describe('DigitalDataEnricher', function () {
         }
       };
       _ddStorage = new _DDStorage2['default'](_digitalData, new _Storage2['default']());
+      _ddStorage.clear(); // just to be sure
       _ddStorage.persist('user.hasCoffeeMachine');
       _ddStorage.persist('user.hasFerrari');
       _ddStorage.persist('user.visitedContactPageTimes');
@@ -21578,8 +21564,8 @@ describe('DigitalDataEnricher', function () {
         setTimeout(function () {
           _assert2['default'].ok(_digitalData.user.isReturning);
           done();
-        }, 101);
-      }, 101);
+        }, 202);
+      }, 110);
     });
   });
 });
@@ -22233,6 +22219,9 @@ describe('EventManager', function () {
 
     beforeEach(function () {
       _digitalData = {
+        page: {
+          categoryId: 1
+        },
         events: []
       };
       _ddListener = [];
@@ -22449,6 +22438,9 @@ describe('EventManager', function () {
         user: {
           returning: false
         },
+        page: {
+          categoryId: 1
+        },
         listing: {
           items: [{ id: 1 }, { id: 2 }]
         },
@@ -22579,6 +22571,51 @@ describe('EventManager', function () {
         name: 'Test Event'
       });
     });
+
+    it('should fire change key callback for chaining listeners', function (done) {
+      var counter = 0;
+      _ddListener.push(['on', 'change:listing.categoryId', function (newValue, previousValue) {
+        counter++;
+        _assert2['default'].equal(newValue, counter + 1);
+        _digitalData.page.categoryId = counter + 2;
+        if (counter = 3) {
+          done();
+        }
+      }]);
+      _ddListener.push(['on', 'change:page.categoryId', function (newValue, previousValue) {
+        _digitalData.listing.categoryId = _digitalData.page.categoryId;
+      }]);
+      _digitalData.page.categoryId = 2;
+    });
+
+    // it('should fire change key callback for chaining listeners ommiting first change', (done) => {
+    //   let counter = 0;
+    //   let firstNewValue;
+    //   setTimeout(() => {
+    //     _digitalData.page.categoryId = 2;
+    //     _ddListener.push(['on', 'change:listing.categoryId', (newValue, previousValue) => {
+    //       counter++;
+    //       if (!firstNewValue) {
+    //         firstNewValue = newValue;
+    //       }
+    //       assert.equal(newValue, counter + 2);
+    //       if (counter < 2) {
+    //         _digitalData.page.categoryId = (counter + 3);
+    //       }
+    //     }]);
+    //     _ddListener.push(['on', 'change:page.categoryId', (newValue, previousValue) => {
+    //       _digitalData.listing.categoryId = _digitalData.page.categoryId;
+    //     }]);
+    //     setTimeout(() => {
+    //       _digitalData.page.categoryId = 3;
+    //       setTimeout(() => {
+    //         assert.ok(firstNewValue > 2, 'should fire listener starting from categoriID = 3');
+    //         assert.equal(counter, 2);
+    //         done();
+    //       }, 550);
+    //     }, 110);
+    //   }, 3);
+    // });
   });
 
   describe(': listening for digitalData define events', function () {
@@ -23065,8 +23102,8 @@ describe('DDManager', function () {
           setTimeout(function () {
             _assert2['default'].ok(window.digitalData.user.isReturning);
             done();
-          }, 101);
-        }, 101);
+          }, 110);
+        }, 110);
       });
       _ddManager2['default'].initialize({
         sessionLength: 0.1,
@@ -23088,11 +23125,11 @@ describe('DDManager', function () {
           setTimeout(function () {
             _assert2['default'].ok(!window.digitalData.user.isReturning);
             done();
-          }, 101);
-        }, 101);
+          }, 110);
+        }, 110);
       });
       _ddManager2['default'].initialize({
-        sessionLength: 1,
+        sessionLength: 20,
         autoEvents: false
       });
     });
