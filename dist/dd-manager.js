@@ -8327,19 +8327,13 @@ var EventManager = function () {
         if (callback.key) {
           var key = callback.key;
           var newKeyValue = _DDHelper2['default'].get(key, newValue);
-          var previousKeyValue = callback.snapshot || _DDHelper2['default'].get(key, previousValue);
+          var previousKeyValue = _DDHelper2['default'].get(key, previousValue);
           if (!(0, _jsonIsEqual2['default'])(newKeyValue, previousKeyValue)) {
             callback.handler(newKeyValue, previousKeyValue, _callbackOnComplete);
           }
         } else {
-          callback.handler(newValue, callback.snapshot || previousValue, _callbackOnComplete);
+          callback.handler(newValue, previousValue, _callbackOnComplete);
         }
-      }
-      if (callback.snapshot) {
-        // remove DDL snapshot after first change fire
-        // because now normal setInterval and _previousDigitalData will do the job
-        // TODO: test performance using snapshots insted of _previousDigitalData
-        (0, _deleteProperty2['default'])(callback, 'snapshot');
       }
     }
   };
@@ -8433,15 +8427,7 @@ var EventManager = function () {
     var type = _eventInfo$split[0];
     var key = _eventInfo$split[1];
 
-    var snapshot = void 0;
-
-    if (type === 'change') {
-      if (key) {
-        snapshot = (0, _componentClone2['default'])(_DDHelper2['default'].get(key, _digitalData));
-      } else {
-        snapshot = (0, _componentClone2['default'])(_getCopyWithoutEvents(_digitalData));
-      }
-    } else if (type === 'view') {
+    if (type === 'view') {
       _viewabilityTracker.addTracker(key, handler);
       return; // delegate view tracking to ViewabilityTracker
     }
@@ -8449,8 +8435,7 @@ var EventManager = function () {
     _callbacks[type] = _callbacks[type] || [];
     _callbacks[type].push({
       key: key,
-      handler: handler,
-      snapshot: snapshot
+      handler: handler
     });
     if (_isInitialized && type === 'event' && processPastEvents) {
       this.applyCallbackForPastEvents(handler);

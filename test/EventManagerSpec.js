@@ -26,6 +26,9 @@ describe('EventManager', () => {
 
     beforeEach(() => {
       _digitalData = {
+        page: {
+          categoryId: 1
+        },
         events: []
       };
       _ddListener = [];
@@ -243,6 +246,9 @@ describe('EventManager', () => {
         user: {
           returning: false
         },
+        page: {
+          categoryId: 1
+        },
         listing: {
           items: [
             {id: 1},
@@ -376,6 +382,51 @@ describe('EventManager', () => {
         name: 'Test Event'
       });
     });
+
+    it('should fire change key callback for chaining listeners', (done) => {
+      let counter = 0;
+      _ddListener.push(['on', 'change:listing.categoryId', (newValue, previousValue) => {
+        counter++;
+        assert.equal(newValue, counter + 1);
+        _digitalData.page.categoryId = (counter + 2);
+        if (counter = 3) {
+          done();
+        }
+      }]);
+      _ddListener.push(['on', 'change:page.categoryId', (newValue, previousValue) => {
+        _digitalData.listing.categoryId = _digitalData.page.categoryId;
+      }]);
+      _digitalData.page.categoryId = 2;
+    });
+
+    // it('should fire change key callback for chaining listeners ommiting first change', (done) => {
+    //   let counter = 0;
+    //   let firstNewValue;
+    //   setTimeout(() => {
+    //     _digitalData.page.categoryId = 2;
+    //     _ddListener.push(['on', 'change:listing.categoryId', (newValue, previousValue) => {
+    //       counter++;
+    //       if (!firstNewValue) {
+    //         firstNewValue = newValue;
+    //       }
+    //       assert.equal(newValue, counter + 2);
+    //       if (counter < 2) {
+    //         _digitalData.page.categoryId = (counter + 3);
+    //       }
+    //     }]);
+    //     _ddListener.push(['on', 'change:page.categoryId', (newValue, previousValue) => {
+    //       _digitalData.listing.categoryId = _digitalData.page.categoryId;
+    //     }]);
+    //     setTimeout(() => {
+    //       _digitalData.page.categoryId = 3;
+    //       setTimeout(() => {
+    //         assert.ok(firstNewValue > 2, 'should fire listener starting from categoriID = 3');
+    //         assert.equal(counter, 2);
+    //         done();
+    //       }, 550);
+    //     }, 110);
+    //   }, 3);
+    // });
 
   });
 

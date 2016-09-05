@@ -240,8 +240,8 @@ describe('DDManager', () => {
           setTimeout(() => {
             assert.ok(window.digitalData.user.isReturning);
             done();
-          }, 101);
-        }, 101);
+          }, 110);
+        }, 110);
       });
       ddManager.initialize({
         sessionLength: 0.1,
@@ -263,11 +263,11 @@ describe('DDManager', () => {
           setTimeout(() => {
             assert.ok(!window.digitalData.user.isReturning);
             done();
-          }, 101);
-        }, 101);
+          }, 110);
+        }, 110);
       });
       ddManager.initialize({
-        sessionLength: 1,
+        sessionLength: 20,
         autoEvents: false
       });
     });
