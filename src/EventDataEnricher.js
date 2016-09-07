@@ -57,16 +57,6 @@ class EventDataEnricher
     return result;
   }
 
-  static transaction(transaction, digitalData) {
-    transaction = transaction || {};
-    const ddlTransaction = DDHelper.get('transaction', digitalData) || {};
-    if (ddlTransaction) {
-      transaction = Object.assign(ddlTransaction, transaction);
-    }
-
-    return transaction;
-  }
-
   static campaign(campaign, digitalData) {
     let campaignId;
     if (type(campaign) === 'object') {
@@ -94,26 +84,6 @@ class EventDataEnricher
       result.push(EventDataEnricher.campaign(campaign, digitalData));
     }
     return result;
-  }
-
-  static user(user, digitalData) {
-    user = user || {};
-    const ddlUser = DDHelper.get('user', digitalData) || {};
-    if (ddlUser) {
-      user = Object.assign(ddlUser, user);
-    }
-
-    return user;
-  }
-
-  static page(page, digitalData) {
-    page = page || {};
-    const ddlPage = DDHelper.get('page', digitalData) || {};
-    if (ddlPage) {
-      page = Object.assign(ddlPage, page);
-    }
-
-    return page;
   }
 }
 

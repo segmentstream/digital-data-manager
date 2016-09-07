@@ -7178,6 +7178,7 @@ var DDHelper = function () {
                 listingItem.product = product;
                 listingItem.position = i + 1;
                 listingItem.listId = listId || listing.listId;
+                listingItem.listName = listing.listName;
                 return listingItem;
               }
             }
@@ -8035,16 +8036,6 @@ var EventDataEnricher = function () {
     return result;
   };
 
-  EventDataEnricher.transaction = function transaction(_transaction, digitalData) {
-    _transaction = _transaction || {};
-    var ddlTransaction = _DDHelper2['default'].get('transaction', digitalData) || {};
-    if (ddlTransaction) {
-      _transaction = Object.assign(ddlTransaction, _transaction);
-    }
-
-    return _transaction;
-  };
-
   EventDataEnricher.campaign = function campaign(_campaign, digitalData) {
     var campaignId = void 0;
     if ((0, _componentType2['default'])(_campaign) === 'object') {
@@ -8085,26 +8076,6 @@ var EventDataEnricher = function () {
       result.push(EventDataEnricher.campaign(campaign, digitalData));
     }
     return result;
-  };
-
-  EventDataEnricher.user = function user(_user, digitalData) {
-    _user = _user || {};
-    var ddlUser = _DDHelper2['default'].get('user', digitalData) || {};
-    if (ddlUser) {
-      _user = Object.assign(ddlUser, _user);
-    }
-
-    return _user;
-  };
-
-  EventDataEnricher.page = function page(_page, digitalData) {
-    _page = _page || {};
-    var ddlPage = _DDHelper2['default'].get('page', digitalData) || {};
-    if (ddlPage) {
-      _page = Object.assign(ddlPage, _page);
-    }
-
-    return _page;
   };
 
   return EventDataEnricher;
