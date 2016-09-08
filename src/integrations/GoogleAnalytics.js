@@ -317,7 +317,7 @@ class GoogleAnalytics extends Integration {
       const gaProduct = Object.assign({
         id: product.id || product.skuCode,
         name: product.name,
-        list: listItem.listId,
+        list: listItem.listName,
         category: getProductCategory(product),
         brand: product.brand || product.manufacturer,
         price: product.unitSalePrice || product.unitPrice,
@@ -338,7 +338,7 @@ class GoogleAnalytics extends Integration {
     const product = event.listItem.product;
     this.loadEnhancedEcommerce(product.currency);
     this.enhancedEcommerceProductAction(event, 'click', {
-      list: event.listItem.listId,
+      list: event.listItem.listName,
     });
     this.pushEnhancedEcommerce(event);
   }

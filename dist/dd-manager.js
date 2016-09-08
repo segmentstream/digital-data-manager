@@ -11437,7 +11437,7 @@ var GoogleAnalytics = function (_Integration) {
       var gaProduct = Object.assign({
         id: product.id || product.skuCode,
         name: product.name,
-        list: listItem.listId,
+        list: listItem.listName,
         category: getProductCategory(product),
         brand: product.brand || product.manufacturer,
         price: product.unitSalePrice || product.unitPrice,
@@ -11458,7 +11458,7 @@ var GoogleAnalytics = function (_Integration) {
     var product = event.listItem.product;
     this.loadEnhancedEcommerce(product.currency);
     this.enhancedEcommerceProductAction(event, 'click', {
-      list: event.listItem.listId
+      list: event.listItem.listName
     });
     this.pushEnhancedEcommerce(event);
   };
