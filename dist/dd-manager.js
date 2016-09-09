@@ -11350,12 +11350,33 @@ var GoogleAnalytics = function (_Integration) {
     });
   };
 
-  GoogleAnalytics.prototype.trackEvent = function trackEvent(event) {
+  GoogleAnalytics.prototype.isEventFiltered = function isEventFiltered(eventName) {
     var filterEvents = this.getOption('filterEvents') || [];
-    if (filterEvents.indexOf(event.name) >= 0) {
+    if (filterEvents.indexOf(eventName) >= 0) {
+      return true;
+    }
+    return false;
+  };
+
+  GoogleAnalytics.prototype.isPageviewDelayed = function isPageviewDelayed(pageType) {
+    var map = {
+      'category': 'Viewed Product Category',
+      'product': 'Viewed Product Detail',
+      'cart': 'Viewed Cart',
+      'confirmation': 'Completed Transaction',
+      'search': 'Searched Product'
+    };
+    var eventName = map[pageType];
+    if (eventName && !this.isEventFiltered(eventName)) {
+      return true;
+    }
+    return false;
+  };
+
+  GoogleAnalytics.prototype.trackEvent = function trackEvent(event) {
+    if (this.isEventFiltered(event.name)) {
       return;
     }
-
     if (event.name === 'Viewed Page') {
       if (!this.getOption('noConflict')) {
         this.onViewedPage(event);
@@ -11372,8 +11393,9 @@ var GoogleAnalytics = function (_Integration) {
         'Viewed Campaign': this.onViewedCampaign,
         'Clicked Campaign': this.onClickedCampaign,
         'Viewed Checkout Step': this.onViewedCheckoutStep,
-        'Completed Checkout Step': this.onCompletedCheckoutStep
-      };
+        'Completed Checkout Step': this.onCompletedCheckoutStep,
+        'Viewed Product Category': this.onViewedProductCategory, // stub
+        'Viewed Cart': this.onViewedCart };
       var method = methods[event.name];
       if (method) {
         method.bind(this)(event);
@@ -11432,11 +11454,14 @@ var GoogleAnalytics = function (_Integration) {
 
     // send
     this.setEventCustomDimensions(event);
-    if (!this.getOption('enhancedEcommerce') || ['product', 'transaction'].indexOf(page.type) < 0) {
+
+    if (!this.isPageviewDelayed(page.type)) {
       this.flushPageview();
     } else {
       setTimeout(function () {
-        if (_this3.isLoaded()) _this3.flushPageview(); // flush anyway in 500ms
+        if (_this3.isLoaded() && _this3.getPageview()) {
+          _this3.flushPageview(); // flush anyway in 500ms
+        }
       }, 500);
     }
   };
@@ -11708,6 +11733,14 @@ var GoogleAnalytics = function (_Integration) {
       option: options
     });
 
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onViewedProductCategory = function onViewedProductCategory(event) {
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onViewedCart = function onViewedCart(event) {
     this.pushEnhancedEcommerce(event);
   };
 

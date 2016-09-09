@@ -235,12 +235,33 @@ class GoogleAnalytics extends Integration {
     });
   }
 
-  trackEvent(event) {
+  isEventFiltered(eventName) {
     const filterEvents = this.getOption('filterEvents') || [];
-    if (filterEvents.indexOf(event.name) >= 0) {
+    if (filterEvents.indexOf(eventName) >= 0) {
+      return true;
+    }
+    return false;
+  }
+
+  isPageviewDelayed(pageType) {
+    const map = {
+      'category': 'Viewed Product Category',
+      'product': 'Viewed Product Detail',
+      'cart': 'Viewed Cart',
+      'confirmation': 'Completed Transaction',
+      'search': 'Searched Product'
+    };
+    const eventName = map[pageType];
+    if (eventName && !this.isEventFiltered(eventName)) {
+      return true;
+    }
+    return false;
+  }
+
+  trackEvent(event) {
+    if (this.isEventFiltered(event.name)) {
       return;
     }
-
     if (event.name === 'Viewed Page') {
       if (!this.getOption('noConflict')) {
         this.onViewedPage(event);
@@ -258,6 +279,8 @@ class GoogleAnalytics extends Integration {
         'Clicked Campaign': this.onClickedCampaign,
         'Viewed Checkout Step': this.onViewedCheckoutStep,
         'Completed Checkout Step': this.onCompletedCheckoutStep,
+        'Viewed Product Category': this.onViewedProductCategory, // stub
+        'Viewed Cart': this.onViewedCart, // stub
       };
       const method = methods[event.name];
       if (method) {
@@ -315,11 +338,14 @@ class GoogleAnalytics extends Integration {
 
     // send
     this.setEventCustomDimensions(event);
-    if (!this.getOption('enhancedEcommerce') || ['product', 'transaction'].indexOf(page.type) < 0) {
+
+    if (!this.isPageviewDelayed(page.type)) {
       this.flushPageview();
     } else {
       setTimeout(() => {
-        if (this.isLoaded()) this.flushPageview(); // flush anyway in 500ms
+        if (this.isLoaded() && this.getPageview()) {
+          this.flushPageview(); // flush anyway in 500ms
+        }
       }, 500);
     }
   }
@@ -557,6 +583,14 @@ class GoogleAnalytics extends Integration {
       option: options,
     });
 
+    this.pushEnhancedEcommerce(event);
+  }
+
+  onViewedProductCategory(event) {
+    this.pushEnhancedEcommerce(event);
+  }
+
+  onViewedCart(event) {
     this.pushEnhancedEcommerce(event);
   }
 

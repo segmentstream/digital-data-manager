@@ -435,7 +435,7 @@ describe('Integrations: GoogleAnalytics', () => {
 
         it('should send a label property', function () {
           window.digitalData.events.push({
-            name: "event",
+            name: 'event',
             label: 'label',
             callback: () => {
               assert.ok(window.ga.calledWith('send', 'event', {
