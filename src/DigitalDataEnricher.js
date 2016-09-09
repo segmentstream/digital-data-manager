@@ -11,7 +11,6 @@ const ddStorageForcedFields = [
   'user.hasTransacted',
   'user.everLoggedIn',
   'user.isReturning',
-  'context.lastEventTimestamp',
 ];
 
 /**
@@ -152,19 +151,17 @@ class DigitalDataEnricher
   }
 
   enrichIsReturningStatus() {
-    const context = this.digitalData.context;
+    const lastEventTimestamp = this.ddStorage.getLastEventTimestamp();
     const user = this.digitalData.user;
     const now = Date.now();
     if (
-      !user.isReturning &&
-      context.lastEventTimestamp &&
-      (now - context.lastEventTimestamp) > this.options.sessionLength * 1000
+      !user.isReturning && lastEventTimestamp &&
+      (now - lastEventTimestamp) > this.options.sessionLength * 1000
     ) {
       this.digitalData.user.isReturning = true;
       this.ddStorage.persist('user.isReturning');
     }
-    context.lastEventTimestamp = now;
-    this.ddStorage.persist('context.lastEventTimestamp');
+    this.ddStorage.setLastEventTimestamp(now);
   }
 
   enrichHasSubscribed(email) {

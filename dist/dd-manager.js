@@ -7230,6 +7230,7 @@ function _classCallCheck(instance, Constructor) {
 }
 
 var keyPersistedKeys = '_persistedKeys';
+var keyLastEventTimestamp = '_lastEventTimestamp';
 
 var DDStorage = function () {
   function DDStorage(digitalData, storage) {
@@ -7263,6 +7264,14 @@ var DDStorage = function () {
       persistedKeys.splice(index, 1);
     }
     this.updatePersistedKeys(persistedKeys);
+  };
+
+  DDStorage.prototype.getLastEventTimestamp = function getLastEventTimestamp() {
+    return this.storage.get(keyLastEventTimestamp);
+  };
+
+  DDStorage.prototype.setLastEventTimestamp = function setLastEventTimestamp(timestamp) {
+    return this.storage.set(keyLastEventTimestamp, timestamp);
   };
 
   DDStorage.prototype.updatePersistedKeys = function updatePersistedKeys(persistedKeys) {
@@ -7633,7 +7642,7 @@ function _classCallCheck(instance, Constructor) {
  * fields which will be overriden even
  * if server returned other values in DDL
  */
-var ddStorageForcedFields = ['user.isSubscribed', 'user.hasTransacted', 'user.everLoggedIn', 'user.isReturning', 'context.lastEventTimestamp'];
+var ddStorageForcedFields = ['user.isSubscribed', 'user.hasTransacted', 'user.everLoggedIn', 'user.isReturning'];
 
 /**
  * this fields are always persisted if were set in DDL
@@ -7775,15 +7784,14 @@ var DigitalDataEnricher = function () {
   };
 
   DigitalDataEnricher.prototype.enrichIsReturningStatus = function enrichIsReturningStatus() {
-    var context = this.digitalData.context;
+    var lastEventTimestamp = this.ddStorage.getLastEventTimestamp();
     var user = this.digitalData.user;
     var now = Date.now();
-    if (!user.isReturning && context.lastEventTimestamp && now - context.lastEventTimestamp > this.options.sessionLength * 1000) {
+    if (!user.isReturning && lastEventTimestamp && now - lastEventTimestamp > this.options.sessionLength * 1000) {
       this.digitalData.user.isReturning = true;
       this.ddStorage.persist('user.isReturning');
     }
-    context.lastEventTimestamp = now;
-    this.ddStorage.persist('context.lastEventTimestamp');
+    this.ddStorage.setLastEventTimestamp(now);
   };
 
   DigitalDataEnricher.prototype.enrichHasSubscribed = function enrichHasSubscribed(email) {
