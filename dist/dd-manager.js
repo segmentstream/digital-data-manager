@@ -11364,7 +11364,7 @@ var GoogleAnalytics = function (_Integration) {
       'product': 'Viewed Product Detail',
       'cart': 'Viewed Cart',
       'confirmation': 'Completed Transaction',
-      'search': 'Searched Product'
+      'search': 'Searched Products'
     };
     var eventName = map[pageType];
     if (eventName && !this.isEventFiltered(eventName)) {
@@ -11395,7 +11395,8 @@ var GoogleAnalytics = function (_Integration) {
         'Viewed Checkout Step': this.onViewedCheckoutStep,
         'Completed Checkout Step': this.onCompletedCheckoutStep,
         'Viewed Product Category': this.onViewedProductCategory, // stub
-        'Viewed Cart': this.onViewedCart };
+        'Viewed Cart': this.onViewedCart, // stub
+        'Searched Products': this.onSearchedProducts };
       var method = methods[event.name];
       if (method) {
         method.bind(this)(event);
@@ -11741,6 +11742,10 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onViewedCart = function onViewedCart(event) {
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onSearchedProducts = function onSearchedProducts(event) {
     this.pushEnhancedEcommerce(event);
   };
 

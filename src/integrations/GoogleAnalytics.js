@@ -249,7 +249,7 @@ class GoogleAnalytics extends Integration {
       'product': 'Viewed Product Detail',
       'cart': 'Viewed Cart',
       'confirmation': 'Completed Transaction',
-      'search': 'Searched Product'
+      'search': 'Searched Products',
     };
     const eventName = map[pageType];
     if (eventName && !this.isEventFiltered(eventName)) {
@@ -281,6 +281,7 @@ class GoogleAnalytics extends Integration {
         'Completed Checkout Step': this.onCompletedCheckoutStep,
         'Viewed Product Category': this.onViewedProductCategory, // stub
         'Viewed Cart': this.onViewedCart, // stub
+        'Searched Products': this.onSearchedProducts, // stub
       };
       const method = methods[event.name];
       if (method) {
@@ -591,6 +592,10 @@ class GoogleAnalytics extends Integration {
   }
 
   onViewedCart(event) {
+    this.pushEnhancedEcommerce(event);
+  }
+
+  onSearchedProducts(event) {
     this.pushEnhancedEcommerce(event);
   }
 
