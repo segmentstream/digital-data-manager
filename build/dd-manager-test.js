@@ -14614,6 +14614,7 @@ var DDHelper = function () {
                 listingItem.product = product;
                 listingItem.position = i + 1;
                 listingItem.listId = listId || listing.listId;
+                listingItem.listName = listing.listName;
                 return listingItem;
               }
             }
@@ -15471,16 +15472,6 @@ var EventDataEnricher = function () {
     return result;
   };
 
-  EventDataEnricher.transaction = function transaction(_transaction, digitalData) {
-    _transaction = _transaction || {};
-    var ddlTransaction = _DDHelper2['default'].get('transaction', digitalData) || {};
-    if (ddlTransaction) {
-      _transaction = Object.assign(ddlTransaction, _transaction);
-    }
-
-    return _transaction;
-  };
-
   EventDataEnricher.campaign = function campaign(_campaign, digitalData) {
     var campaignId = void 0;
     if ((0, _componentType2['default'])(_campaign) === 'object') {
@@ -15521,26 +15512,6 @@ var EventDataEnricher = function () {
       result.push(EventDataEnricher.campaign(campaign, digitalData));
     }
     return result;
-  };
-
-  EventDataEnricher.user = function user(_user, digitalData) {
-    _user = _user || {};
-    var ddlUser = _DDHelper2['default'].get('user', digitalData) || {};
-    if (ddlUser) {
-      _user = Object.assign(ddlUser, _user);
-    }
-
-    return _user;
-  };
-
-  EventDataEnricher.page = function page(_page, digitalData) {
-    _page = _page || {};
-    var ddlPage = _DDHelper2['default'].get('page', digitalData) || {};
-    if (ddlPage) {
-      _page = Object.assign(ddlPage, _page);
-    }
-
-    return _page;
   };
 
   return EventDataEnricher;
@@ -18879,7 +18850,7 @@ var GoogleAnalytics = function (_Integration) {
       var gaProduct = Object.assign({
         id: product.id || product.skuCode,
         name: product.name,
-        list: listItem.listId,
+        list: listItem.listName,
         category: getProductCategory(product),
         brand: product.brand || product.manufacturer,
         price: product.unitSalePrice || product.unitPrice,
@@ -18900,7 +18871,7 @@ var GoogleAnalytics = function (_Integration) {
     var product = event.listItem.product;
     this.loadEnhancedEcommerce(product.currency);
     this.enhancedEcommerceProductAction(event, 'click', {
-      list: event.listItem.listId
+      list: event.listItem.listName
     });
     this.pushEnhancedEcommerce(event);
   };
@@ -21902,64 +21873,6 @@ describe('EventDataEnricher', function () {
     });
   });
 
-  describe('#transaction', function () {
-
-    before(function () {
-      _digitalData = {
-        page: {
-          type: 'home'
-        },
-        transaction: {
-          orderId: '123',
-          lineItems: [{
-            product: {
-              id: '123'
-            },
-            quantity: 2
-          }],
-          total: 10000,
-          subtotal: 10000
-        },
-        events: []
-      };
-    });
-
-    it('should enrich transaction when transaction is empty', function () {
-      var event = {
-        name: 'Completed Transaction',
-        category: 'Ecommerce'
-      };
-
-      event.transaction = _EventDataEnricher2['default'].transaction(event.transaction, _digitalData);
-
-      _assert2['default'].ok(event.name);
-      _assert2['default'].ok(event.category);
-      _assert2['default'].ok(event.transaction);
-      _assert2['default'].ok(event.transaction.orderId === '123', 'transaction.orderId is is not equal to "123"');
-      _assert2['default'].ok(event.transaction.lineItems.length === 1, 'transaction.lineItemsLength is is not equal to 1');
-    });
-
-    it('should enrich transaction when transaction is not empty', function () {
-      var event = {
-        name: 'Completed Transaction',
-        category: 'Ecommerce',
-        transaction: {
-          oderId: '123',
-          subtotal: 11000
-        }
-      };
-
-      event.transaction = _EventDataEnricher2['default'].transaction(event.transaction, _digitalData);
-
-      _assert2['default'].ok(event.name);
-      _assert2['default'].ok(event.category);
-      _assert2['default'].ok(event.transaction);
-      _assert2['default'].ok(event.transaction.orderId === '123', 'transaction.orderId is is not equal to "123"');
-      _assert2['default'].ok(event.transaction.subtotal === 11000, 'transaction.subtital is is not equal to 11000');
-      _assert2['default'].ok(event.transaction.lineItems.length === 1, 'transaction.lineItemsLength is is not equal to 1');
-    });
-  });
-
   describe('#campaign', function () {
 
     before(function () {
@@ -22066,109 +21979,6 @@ describe('EventDataEnricher', function () {
       _assert2['default'].ok(event.campaigns[1].category === 'Banner 2', 'campaign.category is not equal to "Banner 2"');
       _assert2['default'].ok(event.campaigns[1].description === 'Lorem ipsum', 'campaign.category is not equal to "Lorem ipsum"');
       _assert2['default'].ok(_digitalData.campaigns[0].category === 'Banner', 'digitalData.campaigns[0].category is not equal to "Banner"');
-    });
-  });
-
-  describe('#user', function () {
-
-    before(function () {
-      _digitalData = {
-        page: {
-          type: 'home'
-        },
-        user: {
-          firstName: 'John',
-          lastName: 'Dow',
-          isLoggedIn: true,
-          email: 'example@driveback.ru'
-        },
-        events: []
-      };
-    });
-
-    it('should enrich user when user is empty', function () {
-      var event = {
-        name: 'Subscribed',
-        category: 'Email'
-      };
-
-      event.user = _EventDataEnricher2['default'].user(event.user, _digitalData);
-
-      _assert2['default'].ok(event.name);
-      _assert2['default'].ok(event.category);
-      _assert2['default'].ok(event.user);
-      _assert2['default'].ok(event.user.isLoggedIn === true, 'user.isLoggedIn is not equal to TRUE');
-      _assert2['default'].ok(event.user.firstName === 'John', 'user.firstName is not equal to "John"');
-      _assert2['default'].ok(event.user.lastName === 'Dow', 'user.lastName is not equal to "Dow"');
-      _assert2['default'].ok(event.user.email === 'example@driveback.ru', 'user.email is is not equal to "example@driveback.ru"');
-    });
-
-    it('should enrich user when user is not empty', function () {
-      var event = {
-        name: 'Subscribed',
-        category: 'Email',
-        user: {
-          email: 'example2@driveback.ru'
-        }
-      };
-
-      event.user = _EventDataEnricher2['default'].user(event.user, _digitalData);
-
-      _assert2['default'].ok(event.name);
-      _assert2['default'].ok(event.category);
-      _assert2['default'].ok(event.user);
-      _assert2['default'].ok(event.user.isLoggedIn === true, 'user.isLoggedIn is not equal to TRUE');
-      _assert2['default'].ok(event.user.firstName === 'John', 'user.firstName is not equal to "John"');
-      _assert2['default'].ok(event.user.lastName === 'Dow', 'user.lastName is not equal to "Dow"');
-      _assert2['default'].ok(event.user.email === 'example2@driveback.ru', 'user.email is is not equal to "example2@driveback.ru"');
-    });
-  });
-
-  describe('#page', function () {
-
-    before(function () {
-      _digitalData = {
-        page: {
-          type: 'category',
-          categoryId: '123'
-        },
-        events: []
-      };
-    });
-
-    it('should enrich user when user is empty', function () {
-      var event = {
-        name: 'Viewed Page',
-        category: 'Content'
-      };
-
-      event.page = _EventDataEnricher2['default'].page(event.page, _digitalData);
-
-      _assert2['default'].ok(event.name);
-      _assert2['default'].ok(event.category);
-      _assert2['default'].ok(event.page);
-      _assert2['default'].ok(event.page.type === 'category', 'page.type is not equal to "category"');
-      _assert2['default'].ok(event.page.categoryId === '123', 'page.categoryId is not equal to "123"');
-    });
-
-    it('should enrich user when user is not empty', function () {
-      var event = {
-        name: 'Subscribed',
-        category: 'Email',
-        page: {
-          categoryId: '234',
-          url: 'http://example.com'
-        }
-      };
-
-      event.page = _EventDataEnricher2['default'].page(event.page, _digitalData);
-
-      _assert2['default'].ok(event.name);
-      _assert2['default'].ok(event.category);
-      _assert2['default'].ok(event.page);
-      _assert2['default'].ok(event.page.type === 'category', 'page.type is not equal to "category"');
-      _assert2['default'].ok(event.page.categoryId === '234', 'page.categoryId is not equal to "234"');
-      _assert2['default'].ok(event.page.url === 'http://example.com', 'page.categoryId is not equal to "http://example.com"');
     });
   });
 });
@@ -26456,7 +26266,8 @@ describe('Integrations: GoogleAnalytics', function () {
                 stock: 25,
                 weight: 100
               },
-              listId: 'search results'
+              listId: 'search results',
+              listName: 'Search Results'
             },
             callback: function callback() {
               _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
@@ -26472,7 +26283,7 @@ describe('Integrations: GoogleAnalytics', function () {
                 metric10: 100
               }));
               _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'click', {
-                list: 'search results'
+                list: 'Search Results'
               }));
               _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: 1 }));
             }
@@ -26481,7 +26292,8 @@ describe('Integrations: GoogleAnalytics', function () {
 
         it('should send clicked product data with data from DDL', function () {
           window.digitalData.listing = {
-            listId: 'search results',
+            listId: 'search_results',
+            listName: 'Search Results',
             items: [{
               id: 'p-298',
               currency: 'CAD',
@@ -26495,7 +26307,7 @@ describe('Integrations: GoogleAnalytics', function () {
             name: 'Clicked Product',
             listItem: {
               product: 'p-298',
-              listId: 'search results'
+              listId: 'search_results'
             },
             callback: function callback() {
               _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
@@ -26510,7 +26322,7 @@ describe('Integrations: GoogleAnalytics', function () {
                 position: 1
               }));
               _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'click', {
-                list: 'search results'
+                list: 'Search Results'
               }));
               _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: 1 }));
             }
@@ -26532,6 +26344,7 @@ describe('Integrations: GoogleAnalytics', function () {
                 weight: 100
               },
               listId: 'search results',
+              listName: 'Search Results',
               position: 2
             },
             callback: function callback() {
@@ -26539,7 +26352,7 @@ describe('Integrations: GoogleAnalytics', function () {
               _assert2['default'].ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-298',
                 name: 'my product',
-                list: 'search results',
+                list: 'Search Results',
                 category: 'cat 1',
                 brand: undefined,
                 price: 24.75,
@@ -26566,7 +26379,8 @@ describe('Integrations: GoogleAnalytics', function () {
                 category: 'cat 1',
                 skuCode: 'p-298'
               },
-              listId: 'search results',
+              listId: 'search_results',
+              listName: 'Search Results',
               position: 2
             }, {
               product: {
@@ -26576,16 +26390,16 @@ describe('Integrations: GoogleAnalytics', function () {
                 category: 'cat 1',
                 skuCode: 'p-299'
               },
-              listId: 'search results',
+              listId: 'search_results',
+              listName: 'Search Results',
               position: 2
             }],
-            listId: 'search results',
             callback: function callback() {
               _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
               _assert2['default'].ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-298',
                 name: 'my product',
-                list: 'search results',
+                list: 'Search Results',
                 category: 'cat 1',
                 brand: undefined,
                 price: 24.75,
@@ -26597,7 +26411,7 @@ describe('Integrations: GoogleAnalytics', function () {
               _assert2['default'].ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-299',
                 name: 'my product',
-                list: 'search results',
+                list: 'Search Results',
                 category: 'cat 1',
                 brand: undefined,
                 price: 24.75,
@@ -26612,7 +26426,8 @@ describe('Integrations: GoogleAnalytics', function () {
 
         it('should send viewed product data from DDL', function () {
           window.digitalData.listing = {
-            listId: 'search results',
+            listId: 'search_results',
+            listName: 'Search Results',
             items: [{
               id: 'p-298',
               currency: 'CAD',
@@ -26634,14 +26449,14 @@ describe('Integrations: GoogleAnalytics', function () {
             category: 'Ecommerce',
             listItem: {
               product: 'p-299',
-              listId: 'search results'
+              listId: 'search_results'
             },
             callback: function callback() {
               _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
               _assert2['default'].ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-299',
                 name: 'my other product',
-                list: 'search results',
+                list: 'Search Results',
                 category: 'cat 1',
                 brand: undefined,
                 price: 24.75,
@@ -26656,7 +26471,8 @@ describe('Integrations: GoogleAnalytics', function () {
 
         it('should send viewed product with multiple products data from DDL', function () {
           window.digitalData.listing = {
-            listId: 'search results',
+            listId: 'search_results',
+            listName: 'Search Results',
             items: [{
               id: 'p-298',
               currency: 'CAD',
@@ -26678,17 +26494,17 @@ describe('Integrations: GoogleAnalytics', function () {
             category: 'Ecommerce',
             listItems: [{
               product: 'p-298',
-              listId: 'search results'
+              listId: 'search_results'
             }, {
               product: 'p-299',
-              listId: 'search results'
+              listId: 'search_results'
             }],
             callback: function callback() {
               _assert2['default'].ok(window.ga.calledWith('set', '&cu', 'CAD'));
               _assert2['default'].ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-298',
                 name: 'my product',
-                list: 'search results',
+                list: 'Search Results',
                 category: 'cat 1',
                 brand: undefined,
                 price: 24.75,
@@ -26700,7 +26516,7 @@ describe('Integrations: GoogleAnalytics', function () {
               _assert2['default'].ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-299',
                 name: 'my other product',
-                list: 'search results',
+                list: 'Search Results',
                 category: 'cat 1',
                 brand: undefined,
                 price: 24.75,

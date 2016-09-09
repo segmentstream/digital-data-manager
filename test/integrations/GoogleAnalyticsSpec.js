@@ -1025,6 +1025,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 weight: 100
               },
               listId: 'search results',
+              listName: 'Search Results'
             },
             callback: () => {
               assert.ok(window.ga.calledWith('set', '&cu', 'CAD'));
@@ -1040,7 +1041,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 metric10: 100
               }));
               assert.ok(window.ga.calledWith('ec:setAction', 'click', {
-                list: 'search results'
+                list: 'Search Results'
               }));
               assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: 1 }));
             }
@@ -1049,7 +1050,8 @@ describe('Integrations: GoogleAnalytics', () => {
 
         it('should send clicked product data with data from DDL', () => {
           window.digitalData.listing = {
-            listId: 'search results',
+            listId: 'search_results',
+            listName: 'Search Results',
             items: [
               {
                 id: 'p-298',
@@ -1065,7 +1067,7 @@ describe('Integrations: GoogleAnalytics', () => {
             name: 'Clicked Product',
             listItem: {
               product: 'p-298',
-              listId: 'search results',
+              listId: 'search_results'
             },
             callback: () => {
               assert.ok(window.ga.calledWith('set', '&cu', 'CAD'));
@@ -1080,7 +1082,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 position: 1
               }));
               assert.ok(window.ga.calledWith('ec:setAction', 'click', {
-                list: 'search results'
+                list: 'Search Results'
               }));
               assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: 1 }));
             }
@@ -1102,6 +1104,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 weight: 100
               },
               listId: 'search results',
+              listName: 'Search Results',
               position: 2,
             },
             callback: () => {
@@ -1109,7 +1112,7 @@ describe('Integrations: GoogleAnalytics', () => {
               assert.ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-298',
                 name: 'my product',
-                list: 'search results',
+                list: 'Search Results',
                 category: 'cat 1',
                 brand: undefined,
                 price: 24.75,
@@ -1137,7 +1140,8 @@ describe('Integrations: GoogleAnalytics', () => {
                   category: 'cat 1',
                   skuCode: 'p-298',
                 },
-                listId: 'search results',
+                listId: 'search_results',
+                listName: 'Search Results',
                 position: 2
               },
               {
@@ -1148,17 +1152,17 @@ describe('Integrations: GoogleAnalytics', () => {
                   category: 'cat 1',
                   skuCode: 'p-299',
                 },
-                listId: 'search results',
+                listId: 'search_results',
+                listName: 'Search Results',
                 position: 2
               }
             ],
-            listId: 'search results',
             callback: () => {
               assert.ok(window.ga.calledWith('set', '&cu', 'CAD'));
               assert.ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-298',
                 name: 'my product',
-                list: 'search results',
+                list: 'Search Results',
                 category: 'cat 1',
                 brand: undefined,
                 price: 24.75,
@@ -1170,7 +1174,7 @@ describe('Integrations: GoogleAnalytics', () => {
               assert.ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-299',
                 name: 'my product',
-                list: 'search results',
+                list: 'Search Results',
                 category: 'cat 1',
                 brand: undefined,
                 price: 24.75,
@@ -1185,7 +1189,8 @@ describe('Integrations: GoogleAnalytics', () => {
 
         it('should send viewed product data from DDL', function() {
           window.digitalData.listing = {
-            listId: 'search results',
+            listId: 'search_results',
+            listName: 'Search Results',
             items: [
               {
                 id: 'p-298',
@@ -1210,14 +1215,14 @@ describe('Integrations: GoogleAnalytics', () => {
             category: 'Ecommerce',
             listItem: {
               product: 'p-299',
-              listId: 'search results',
+              listId: 'search_results',
             },
             callback: () => {
               assert.ok(window.ga.calledWith('set', '&cu', 'CAD'));
               assert.ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-299',
                 name: 'my other product',
-                list: 'search results',
+                list: 'Search Results',
                 category: 'cat 1',
                 brand: undefined,
                 price: 24.75,
@@ -1232,7 +1237,8 @@ describe('Integrations: GoogleAnalytics', () => {
 
         it('should send viewed product with multiple products data from DDL', function() {
           window.digitalData.listing = {
-            listId: 'search results',
+            listId: 'search_results',
+            listName: 'Search Results',
             items: [
               {
                 id: 'p-298',
@@ -1258,11 +1264,11 @@ describe('Integrations: GoogleAnalytics', () => {
             listItems: [
               {
                 product: 'p-298',
-                listId: 'search results',
+                listId: 'search_results',
               },
               {
                 product: 'p-299',
-                listId: 'search results',
+                listId: 'search_results',
               }
             ],
             callback: () => {
@@ -1270,7 +1276,7 @@ describe('Integrations: GoogleAnalytics', () => {
               assert.ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-298',
                 name: 'my product',
-                list: 'search results',
+                list: 'Search Results',
                 category: 'cat 1',
                 brand: undefined,
                 price: 24.75,
@@ -1282,7 +1288,7 @@ describe('Integrations: GoogleAnalytics', () => {
               assert.ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-299',
                 name: 'my other product',
-                list: 'search results',
+                list: 'Search Results',
                 category: 'cat 1',
                 brand: undefined,
                 price: 24.75,
@@ -2015,7 +2021,7 @@ describe('Integrations: GoogleAnalytics', () => {
           autoEvents: false
         });
       });
-      
+
       describe('enhanced ecommerce', function () {
 
         beforeEach(() => {

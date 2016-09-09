@@ -58,6 +58,7 @@ class DDHelper {
                 listingItem.product = product;
                 listingItem.position = (i + 1);
                 listingItem.listId = listId || listing.listId;
+                listingItem.listName = listing.listName;
                 return listingItem;
               }
             }
