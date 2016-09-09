@@ -194,28 +194,33 @@ class GoogleAnalytics extends Integration {
   }
 
   pushEnhancedEcommerce(event) {
-    // Send a custom non-interaction event to ensure all EE data is pushed.
-    // Without doing this we'd need to require page display after setting EE data.
-    const cleanedArgs = [];
-    const args = [
-      'send',
-      'event',
-      event.category || 'Ecommerce',
-      event.name || 'not defined',
-      event.label,
-      {
-        nonInteraction: 1,
-      },
-    ];
-
-    for (const arg of args) {
-      if (arg !== undefined) {
-        cleanedArgs.push(arg);
-      }
-    }
-
     this.setEventCustomDimensions(event);
-    this.ga.apply(this, cleanedArgs);
+
+    if (this.getPageview()) {
+      this.flushPageview();
+    } else {
+      // Send a custom non-interaction event to ensure all EE data is pushed.
+      // Without doing this we'd need to require page display after setting EE data.
+      const cleanedArgs = [];
+      const args = [
+        'send',
+        'event',
+        event.category || 'Ecommerce',
+        event.name || 'not defined',
+        event.label,
+        {
+          nonInteraction: 1,
+        },
+      ];
+
+      for (const arg of args) {
+        if (arg !== undefined) {
+          cleanedArgs.push(arg);
+        }
+      }
+
+      this.ga.apply(this, cleanedArgs);
+    }
   }
 
   enrichDigitalData() {
@@ -269,6 +274,20 @@ class GoogleAnalytics extends Integration {
     }
   }
 
+  setPageview(pageview) {
+    this.pageview = pageview;
+  }
+
+  getPageview() {
+    return this.pageview;
+  }
+
+  flushPageview() {
+    this.ga('send', 'pageview', this.pageview);
+    this.pageCalled = true;
+    this.pageview = null;
+  }
+
   onViewedPage(event) {
     const page = event.page;
     const pageview = {};
@@ -283,21 +302,26 @@ class GoogleAnalytics extends Integration {
     pageview.title = pageTitle;
     pageview.location = pageUrl;
 
+    if (this.pageCalled) {
+      deleteProperty(pageview, 'location');
+    }
+    this.setPageview(pageview);
+
     // set
     this.ga('set', {
       page: pagePath,
       title: pageTitle,
     });
 
-    if (this.pageCalled) {
-      deleteProperty(pageview, 'location');
-    }
-
     // send
     this.setEventCustomDimensions(event);
-    this.ga('send', 'pageview', pageview);
-
-    this.pageCalled = true;
+    if (!this.getOption('enhancedEcommerce') || ['product', 'transaction'].indexOf(page.type) < 0) {
+      this.flushPageview();
+    } else {
+      setTimeout(() => {
+        if (this.isLoaded()) this.flushPageview(); // flush anyway in 500ms
+      }, 500);
+    }
   }
 
   onViewedProduct(event) {
