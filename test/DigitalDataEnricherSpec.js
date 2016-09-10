@@ -51,6 +51,10 @@ describe('DigitalDataEnricher', () => {
     }
   });
 
+  afterEach(() => {
+    window.localStorage.clear();
+  });
+
   describe('#enrichPageData', () => {
 
     before(() => {
@@ -259,12 +263,12 @@ describe('DigitalDataEnricher', () => {
       _digitalDataEnricher.setOption('sessionLength', 0.1);
       _digitalDataEnricher.enrichDigitalData();
 
-      assert.ok(!_digitalData.user.isReturning);
+      assert.ok(!_digitalData.user.isReturning, 'isReturning should be false');
 
       setTimeout(() => {
         _digitalDataEnricher.enrichDigitalData();
         setTimeout(() => {
-          assert.ok(_digitalData.user.isReturning);
+          assert.ok(_digitalData.user.isReturning, 'isReturning should be true');
           done();
         }, 202);
       }, 110);

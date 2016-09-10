@@ -244,16 +244,31 @@ class GoogleAnalytics extends Integration {
   }
 
   isPageviewDelayed(pageType) {
+    if (!this.getOption('enhancedEcommerce')) {
+      return false;
+    }
     const map = {
       'category': 'Viewed Product Category',
       'product': 'Viewed Product Detail',
-      'cart': 'Viewed Cart',
+      'cart': ['Viewed Cart', 'Viewed Checkout Step'],
       'confirmation': 'Completed Transaction',
       'search': 'Searched Products',
+      'checkout': 'Viewed Checkout Step',
     };
-    const eventName = map[pageType];
-    if (eventName && !this.isEventFiltered(eventName)) {
-      return true;
+
+    let eventNames = map[pageType];
+    if (!eventNames) {
+      return false;
+    }
+
+    if (!Array.isArray(eventNames)) {
+      eventNames = [eventNames];
+    }
+    for (const eventName of eventNames) {
+      if (!this.isEventFiltered(eventName)) {
+        // if at least on of events is not filtered
+        return true;
+      }
     }
     return false;
   }
@@ -345,9 +360,9 @@ class GoogleAnalytics extends Integration {
     } else {
       setTimeout(() => {
         if (this.isLoaded() && this.getPageview()) {
-          this.flushPageview(); // flush anyway in 500ms
+          this.flushPageview(); // flush anyway in 100ms
         }
-      }, 500);
+      }, 100);
     }
   }
 

@@ -1,4 +1,5 @@
 import { getProp } from './functions/dotProp';
+
 const keyPersistedKeys = '_persistedKeys';
 const keyLastEventTimestamp = '_lastEventTimestamp';
 
@@ -66,6 +67,7 @@ class DDStorage
       this.storage.remove(key);
     }
     this.storage.remove(keyPersistedKeys);
+    this.storage.remove(keyLastEventTimestamp);
   }
 }
 

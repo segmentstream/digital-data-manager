@@ -22,6 +22,7 @@ describe('DDStorage', () => {
     });
 
     afterEach(() => {
+      window.localStorage.clear();
       _ddStorage.clear();
       _ddStorage = undefined;
     });

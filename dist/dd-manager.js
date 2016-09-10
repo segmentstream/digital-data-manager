@@ -7310,6 +7310,7 @@ var DDStorage = function () {
       this.storage.remove(key);
     }
     this.storage.remove(keyPersistedKeys);
+    this.storage.remove(keyLastEventTimestamp);
   };
 
   return DDStorage;
@@ -11359,16 +11360,44 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.isPageviewDelayed = function isPageviewDelayed(pageType) {
+    if (!this.getOption('enhancedEcommerce')) {
+      return false;
+    }
     var map = {
       'category': 'Viewed Product Category',
       'product': 'Viewed Product Detail',
-      'cart': 'Viewed Cart',
+      'cart': ['Viewed Cart', 'Viewed Checkout Step'],
       'confirmation': 'Completed Transaction',
-      'search': 'Searched Products'
+      'search': 'Searched Products',
+      'checkout': 'Viewed Checkout Step'
     };
-    var eventName = map[pageType];
-    if (eventName && !this.isEventFiltered(eventName)) {
-      return true;
+
+    var eventNames = map[pageType];
+    if (!eventNames) {
+      return false;
+    }
+
+    if (!Array.isArray(eventNames)) {
+      eventNames = [eventNames];
+    }
+    for (var _iterator3 = eventNames, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
+      var _ref3;
+
+      if (_isArray3) {
+        if (_i3 >= _iterator3.length) break;
+        _ref3 = _iterator3[_i3++];
+      } else {
+        _i3 = _iterator3.next();
+        if (_i3.done) break;
+        _ref3 = _i3.value;
+      }
+
+      var eventName = _ref3;
+
+      if (!this.isEventFiltered(eventName)) {
+        // if at least on of events is not filtered
+        return true;
+      }
     }
     return false;
   };
@@ -11461,9 +11490,9 @@ var GoogleAnalytics = function (_Integration) {
     } else {
       setTimeout(function () {
         if (_this3.isLoaded() && _this3.getPageview()) {
-          _this3.flushPageview(); // flush anyway in 500ms
+          _this3.flushPageview(); // flush anyway in 100ms
         }
-      }, 500);
+      }, 100);
     }
   };
 
@@ -11473,19 +11502,19 @@ var GoogleAnalytics = function (_Integration) {
       listItems = [event.listItem];
     }
 
-    for (var _iterator3 = listItems, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
-      var _ref3;
+    for (var _iterator4 = listItems, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
+      var _ref4;
 
-      if (_isArray3) {
-        if (_i3 >= _iterator3.length) break;
-        _ref3 = _iterator3[_i3++];
+      if (_isArray4) {
+        if (_i4 >= _iterator4.length) break;
+        _ref4 = _iterator4[_i4++];
       } else {
-        _i3 = _iterator3.next();
-        if (_i3.done) break;
-        _ref3 = _i3.value;
+        _i4 = _iterator4.next();
+        if (_i4.done) break;
+        _ref4 = _i4.value;
       }
 
-      var listItem = _ref3;
+      var listItem = _ref4;
 
       var product = listItem.product;
       if (!product.id && !product.skuCode && !product.name) {
@@ -11650,19 +11679,19 @@ var GoogleAnalytics = function (_Integration) {
 
     this.loadEnhancedEcommerce();
 
-    for (var _iterator4 = campaigns, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
-      var _ref4;
+    for (var _iterator5 = campaigns, _isArray5 = Array.isArray(_iterator5), _i5 = 0, _iterator5 = _isArray5 ? _iterator5 : _iterator5[Symbol.iterator]();;) {
+      var _ref5;
 
-      if (_isArray4) {
-        if (_i4 >= _iterator4.length) break;
-        _ref4 = _iterator4[_i4++];
+      if (_isArray5) {
+        if (_i5 >= _iterator5.length) break;
+        _ref5 = _iterator5[_i5++];
       } else {
-        _i4 = _iterator4.next();
-        if (_i4.done) break;
-        _ref4 = _i4.value;
+        _i5 = _iterator5.next();
+        if (_i5.done) break;
+        _ref5 = _i5.value;
       }
 
-      var campaign = _ref4;
+      var campaign = _ref5;
 
       if (!campaign || !campaign.id) {
         continue;
@@ -11766,8 +11795,8 @@ var GoogleAnalytics = function (_Integration) {
     // custom dimensions & metrics
     var source = (0, _componentClone2['default'])(event);
     var _arr = ['name', 'category', 'label', 'nonInteraction', 'value'];
-    for (var _i5 = 0; _i5 < _arr.length; _i5++) {
-      var prop = _arr[_i5];
+    for (var _i6 = 0; _i6 < _arr.length; _i6++) {
+      var prop = _arr[_i6];
       (0, _deleteProperty2['default'])(source, prop);
     }
     var custom = this.getCustomDimensions(source);
