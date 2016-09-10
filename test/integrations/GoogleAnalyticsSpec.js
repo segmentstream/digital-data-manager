@@ -243,6 +243,40 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
+        it('should send only one pageview using pageviewFlush', (done) => {
+          ga.setOption('enhancedEcommerce', true);
+          window.digitalData.events.push({
+            name: 'Viewed Page',
+            page: {
+              type: 'product',
+              path: window.location.pathname,
+              url: window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '') + window.location.pathname + window.location.search,
+              title: document.title,
+            },
+            callback: () => {
+              assert.ok(!window.ga.calledWith('send', 'pageview', {
+                page: window.location.pathname,
+                title: document.title,
+                location: window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '') + window.location.pathname + window.location.search
+              }));
+              window.digitalData.events.push({
+                name: 'Viewed Product Detail',
+                product: {
+                  id: '123'
+                },
+                callback: () => {
+                  assert.ok(window.ga.calledWith('send', 'pageview', {
+                    page: window.location.pathname,
+                    title: document.title,
+                    location: window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '') + window.location.pathname + window.location.search
+                  }));
+                  done();
+                }
+              });
+            }
+          });
+        });
+
         it('should omit location on subsequent page views', (done) => {
           window.digitalData.events.push({
             name: 'Viewed Page',
@@ -401,7 +435,7 @@ describe('Integrations: GoogleAnalytics', () => {
 
         it('should send a label property', function () {
           window.digitalData.events.push({
-            name: "event",
+            name: 'event',
             label: 'label',
             callback: () => {
               assert.ok(window.ga.calledWith('send', 'event', {

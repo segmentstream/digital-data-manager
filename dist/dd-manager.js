@@ -7230,6 +7230,7 @@ function _classCallCheck(instance, Constructor) {
 }
 
 var keyPersistedKeys = '_persistedKeys';
+var keyLastEventTimestamp = '_lastEventTimestamp';
 
 var DDStorage = function () {
   function DDStorage(digitalData, storage) {
@@ -7263,6 +7264,14 @@ var DDStorage = function () {
       persistedKeys.splice(index, 1);
     }
     this.updatePersistedKeys(persistedKeys);
+  };
+
+  DDStorage.prototype.getLastEventTimestamp = function getLastEventTimestamp() {
+    return this.storage.get(keyLastEventTimestamp);
+  };
+
+  DDStorage.prototype.setLastEventTimestamp = function setLastEventTimestamp(timestamp) {
+    return this.storage.set(keyLastEventTimestamp, timestamp);
   };
 
   DDStorage.prototype.updatePersistedKeys = function updatePersistedKeys(persistedKeys) {
@@ -7301,6 +7310,7 @@ var DDStorage = function () {
       this.storage.remove(key);
     }
     this.storage.remove(keyPersistedKeys);
+    this.storage.remove(keyLastEventTimestamp);
   };
 
   return DDStorage;
@@ -7633,7 +7643,7 @@ function _classCallCheck(instance, Constructor) {
  * fields which will be overriden even
  * if server returned other values in DDL
  */
-var ddStorageForcedFields = ['user.isSubscribed', 'user.hasTransacted', 'user.everLoggedIn', 'user.isReturning', 'context.lastEventTimestamp'];
+var ddStorageForcedFields = ['user.isSubscribed', 'user.hasTransacted', 'user.everLoggedIn', 'user.isReturning'];
 
 /**
  * this fields are always persisted if were set in DDL
@@ -7775,15 +7785,14 @@ var DigitalDataEnricher = function () {
   };
 
   DigitalDataEnricher.prototype.enrichIsReturningStatus = function enrichIsReturningStatus() {
-    var context = this.digitalData.context;
+    var lastEventTimestamp = this.ddStorage.getLastEventTimestamp();
     var user = this.digitalData.user;
     var now = Date.now();
-    if (!user.isReturning && context.lastEventTimestamp && now - context.lastEventTimestamp > this.options.sessionLength * 1000) {
+    if (!user.isReturning && lastEventTimestamp && now - lastEventTimestamp > this.options.sessionLength * 1000) {
       this.digitalData.user.isReturning = true;
       this.ddStorage.persist('user.isReturning');
     }
-    context.lastEventTimestamp = now;
-    this.ddStorage.persist('context.lastEventTimestamp');
+    this.ddStorage.setLastEventTimestamp(now);
   };
 
   DigitalDataEnricher.prototype.enrichHasSubscribed = function enrichHasSubscribed(email) {
@@ -9339,7 +9348,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.2.1',
+  VERSION: '1.2.2',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -11293,34 +11302,39 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.pushEnhancedEcommerce = function pushEnhancedEcommerce(event) {
-    // Send a custom non-interaction event to ensure all EE data is pushed.
-    // Without doing this we'd need to require page display after setting EE data.
-    var cleanedArgs = [];
-    var args = ['send', 'event', event.category || 'Ecommerce', event.name || 'not defined', event.label, {
-      nonInteraction: 1
-    }];
-
-    for (var _iterator2 = args, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
-      var _ref2;
-
-      if (_isArray2) {
-        if (_i2 >= _iterator2.length) break;
-        _ref2 = _iterator2[_i2++];
-      } else {
-        _i2 = _iterator2.next();
-        if (_i2.done) break;
-        _ref2 = _i2.value;
-      }
-
-      var arg = _ref2;
-
-      if (arg !== undefined) {
-        cleanedArgs.push(arg);
-      }
-    }
-
     this.setEventCustomDimensions(event);
-    this.ga.apply(this, cleanedArgs);
+
+    if (this.getPageview()) {
+      this.flushPageview();
+    } else {
+      // Send a custom non-interaction event to ensure all EE data is pushed.
+      // Without doing this we'd need to require page display after setting EE data.
+      var cleanedArgs = [];
+      var args = ['send', 'event', event.category || 'Ecommerce', event.name || 'not defined', event.label, {
+        nonInteraction: 1
+      }];
+
+      for (var _iterator2 = args, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+        var _ref2;
+
+        if (_isArray2) {
+          if (_i2 >= _iterator2.length) break;
+          _ref2 = _iterator2[_i2++];
+        } else {
+          _i2 = _iterator2.next();
+          if (_i2.done) break;
+          _ref2 = _i2.value;
+        }
+
+        var arg = _ref2;
+
+        if (arg !== undefined) {
+          cleanedArgs.push(arg);
+        }
+      }
+
+      this.ga.apply(this, cleanedArgs);
+    }
   };
 
   GoogleAnalytics.prototype.enrichDigitalData = function enrichDigitalData() {
@@ -11337,12 +11351,61 @@ var GoogleAnalytics = function (_Integration) {
     });
   };
 
-  GoogleAnalytics.prototype.trackEvent = function trackEvent(event) {
+  GoogleAnalytics.prototype.isEventFiltered = function isEventFiltered(eventName) {
     var filterEvents = this.getOption('filterEvents') || [];
-    if (filterEvents.indexOf(event.name) >= 0) {
-      return;
+    if (filterEvents.indexOf(eventName) >= 0) {
+      return true;
+    }
+    return false;
+  };
+
+  GoogleAnalytics.prototype.isPageviewDelayed = function isPageviewDelayed(pageType) {
+    if (!this.getOption('enhancedEcommerce')) {
+      return false;
+    }
+    var map = {
+      'category': 'Viewed Product Category',
+      'product': 'Viewed Product Detail',
+      'cart': ['Viewed Cart', 'Viewed Checkout Step'],
+      'confirmation': 'Completed Transaction',
+      'search': 'Searched Products',
+      'checkout': 'Viewed Checkout Step'
+    };
+
+    var eventNames = map[pageType];
+    if (!eventNames) {
+      return false;
     }
 
+    if (!Array.isArray(eventNames)) {
+      eventNames = [eventNames];
+    }
+    for (var _iterator3 = eventNames, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
+      var _ref3;
+
+      if (_isArray3) {
+        if (_i3 >= _iterator3.length) break;
+        _ref3 = _iterator3[_i3++];
+      } else {
+        _i3 = _iterator3.next();
+        if (_i3.done) break;
+        _ref3 = _i3.value;
+      }
+
+      var eventName = _ref3;
+
+      if (!this.isEventFiltered(eventName)) {
+        // if at least on of events is not filtered
+        return true;
+      }
+    }
+    return false;
+  };
+
+  GoogleAnalytics.prototype.trackEvent = function trackEvent(event) {
+    if (this.isEventFiltered(event.name)) {
+      return;
+    }
     if (event.name === 'Viewed Page') {
       if (!this.getOption('noConflict')) {
         this.onViewedPage(event);
@@ -11359,8 +11422,10 @@ var GoogleAnalytics = function (_Integration) {
         'Viewed Campaign': this.onViewedCampaign,
         'Clicked Campaign': this.onClickedCampaign,
         'Viewed Checkout Step': this.onViewedCheckoutStep,
-        'Completed Checkout Step': this.onCompletedCheckoutStep
-      };
+        'Completed Checkout Step': this.onCompletedCheckoutStep,
+        'Viewed Product Category': this.onViewedProductCategory, // stub
+        'Viewed Cart': this.onViewedCart, // stub
+        'Searched Products': this.onSearchedProducts };
       var method = methods[event.name];
       if (method) {
         method.bind(this)(event);
@@ -11376,7 +11441,23 @@ var GoogleAnalytics = function (_Integration) {
     }
   };
 
+  GoogleAnalytics.prototype.setPageview = function setPageview(pageview) {
+    this.pageview = pageview;
+  };
+
+  GoogleAnalytics.prototype.getPageview = function getPageview() {
+    return this.pageview;
+  };
+
+  GoogleAnalytics.prototype.flushPageview = function flushPageview() {
+    this.ga('send', 'pageview', this.pageview);
+    this.pageCalled = true;
+    this.pageview = null;
+  };
+
   GoogleAnalytics.prototype.onViewedPage = function onViewedPage(event) {
+    var _this3 = this;
+
     var page = event.page;
     var pageview = {};
     var pageUrl = page.url;
@@ -11390,21 +11471,29 @@ var GoogleAnalytics = function (_Integration) {
     pageview.title = pageTitle;
     pageview.location = pageUrl;
 
+    if (this.pageCalled) {
+      (0, _deleteProperty2['default'])(pageview, 'location');
+    }
+    this.setPageview(pageview);
+
     // set
     this.ga('set', {
       page: pagePath,
       title: pageTitle
     });
 
-    if (this.pageCalled) {
-      (0, _deleteProperty2['default'])(pageview, 'location');
-    }
-
     // send
     this.setEventCustomDimensions(event);
-    this.ga('send', 'pageview', pageview);
 
-    this.pageCalled = true;
+    if (!this.isPageviewDelayed(page.type)) {
+      this.flushPageview();
+    } else {
+      setTimeout(function () {
+        if (_this3.isLoaded() && _this3.getPageview()) {
+          _this3.flushPageview(); // flush anyway in 100ms
+        }
+      }, 100);
+    }
   };
 
   GoogleAnalytics.prototype.onViewedProduct = function onViewedProduct(event) {
@@ -11413,19 +11502,19 @@ var GoogleAnalytics = function (_Integration) {
       listItems = [event.listItem];
     }
 
-    for (var _iterator3 = listItems, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
-      var _ref3;
+    for (var _iterator4 = listItems, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
+      var _ref4;
 
-      if (_isArray3) {
-        if (_i3 >= _iterator3.length) break;
-        _ref3 = _iterator3[_i3++];
+      if (_isArray4) {
+        if (_i4 >= _iterator4.length) break;
+        _ref4 = _iterator4[_i4++];
       } else {
-        _i3 = _iterator3.next();
-        if (_i3.done) break;
-        _ref3 = _i3.value;
+        _i4 = _iterator4.next();
+        if (_i4.done) break;
+        _ref4 = _i4.value;
       }
 
-      var listItem = _ref3;
+      var listItem = _ref4;
 
       var product = listItem.product;
       if (!product.id && !product.skuCode && !product.name) {
@@ -11485,7 +11574,7 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onCompletedTransaction = function onCompletedTransaction(event) {
-    var _this3 = this;
+    var _this4 = this;
 
     var transaction = event.transaction;
     // orderId is required.
@@ -11511,7 +11600,7 @@ var GoogleAnalytics = function (_Integration) {
     (0, _each2['default'])(transaction.lineItems, function (key, lineItem) {
       var product = lineItem.product;
       if (product) {
-        _this3.ga('ecommerce:addItem', {
+        _this4.ga('ecommerce:addItem', {
           id: product.id,
           category: getProductCategory(product),
           quantity: lineItem.quantity,
@@ -11528,7 +11617,7 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onCompletedTransactionEnhanced = function onCompletedTransactionEnhanced(event) {
-    var _this4 = this;
+    var _this5 = this;
 
     var transaction = event.transaction;
 
@@ -11540,8 +11629,8 @@ var GoogleAnalytics = function (_Integration) {
     (0, _each2['default'])(transaction.lineItems, function (key, lineItem) {
       var product = lineItem.product;
       if (product) {
-        product.currency = product.currency || transaction.currency || _this4.getOption('defaultCurrency');
-        _this4.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
+        product.currency = product.currency || transaction.currency || _this5.getOption('defaultCurrency');
+        _this5.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
       }
     });
 
@@ -11559,7 +11648,7 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onRefundedTransaction = function onRefundedTransaction(event) {
-    var _this5 = this;
+    var _this6 = this;
 
     var transaction = event.transaction;
 
@@ -11570,8 +11659,8 @@ var GoogleAnalytics = function (_Integration) {
     (0, _each2['default'])(transaction.lineItems, function (key, lineItem) {
       var product = lineItem.product;
       if (product) {
-        product.currency = product.currency || transaction.currency || _this5.getOption('defaultCurrency');
-        _this5.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
+        product.currency = product.currency || transaction.currency || _this6.getOption('defaultCurrency');
+        _this6.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
       }
     });
 
@@ -11590,19 +11679,19 @@ var GoogleAnalytics = function (_Integration) {
 
     this.loadEnhancedEcommerce();
 
-    for (var _iterator4 = campaigns, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
-      var _ref4;
+    for (var _iterator5 = campaigns, _isArray5 = Array.isArray(_iterator5), _i5 = 0, _iterator5 = _isArray5 ? _iterator5 : _iterator5[Symbol.iterator]();;) {
+      var _ref5;
 
-      if (_isArray4) {
-        if (_i4 >= _iterator4.length) break;
-        _ref4 = _iterator4[_i4++];
+      if (_isArray5) {
+        if (_i5 >= _iterator5.length) break;
+        _ref5 = _iterator5[_i5++];
       } else {
-        _i4 = _iterator4.next();
-        if (_i4.done) break;
-        _ref4 = _i4.value;
+        _i5 = _iterator5.next();
+        if (_i5.done) break;
+        _ref5 = _i5.value;
       }
 
-      var campaign = _ref4;
+      var campaign = _ref5;
 
       if (!campaign || !campaign.id) {
         continue;
@@ -11638,7 +11727,7 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onViewedCheckoutStep = function onViewedCheckoutStep(event) {
-    var _this6 = this;
+    var _this7 = this;
 
     var cartOrTransaction = this.get('cart') || this.get('transaction');
 
@@ -11647,8 +11736,8 @@ var GoogleAnalytics = function (_Integration) {
     (0, _each2['default'])(cartOrTransaction.lineItems, function (key, lineItem) {
       var product = lineItem.product;
       if (product) {
-        product.currency = product.currency || cartOrTransaction.currency || _this6.getOption('defaultCurrency');
-        _this6.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
+        product.currency = product.currency || cartOrTransaction.currency || _this7.getOption('defaultCurrency');
+        _this7.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
       }
     });
 
@@ -11677,6 +11766,18 @@ var GoogleAnalytics = function (_Integration) {
     this.pushEnhancedEcommerce(event);
   };
 
+  GoogleAnalytics.prototype.onViewedProductCategory = function onViewedProductCategory(event) {
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onViewedCart = function onViewedCart(event) {
+    this.pushEnhancedEcommerce(event);
+  };
+
+  GoogleAnalytics.prototype.onSearchedProducts = function onSearchedProducts(event) {
+    this.pushEnhancedEcommerce(event);
+  };
+
   GoogleAnalytics.prototype.onCustomEvent = function onCustomEvent(event) {
     var payload = {
       eventAction: event.name || 'event',
@@ -11694,8 +11795,8 @@ var GoogleAnalytics = function (_Integration) {
     // custom dimensions & metrics
     var source = (0, _componentClone2['default'])(event);
     var _arr = ['name', 'category', 'label', 'nonInteraction', 'value'];
-    for (var _i5 = 0; _i5 < _arr.length; _i5++) {
-      var prop = _arr[_i5];
+    for (var _i6 = 0; _i6 < _arr.length; _i6++) {
+      var prop = _arr[_i6];
       (0, _deleteProperty2['default'])(source, prop);
     }
     var custom = this.getCustomDimensions(source);

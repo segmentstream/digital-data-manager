@@ -1,5 +1,7 @@
 import { getProp } from './functions/dotProp';
+
 const keyPersistedKeys = '_persistedKeys';
+const keyLastEventTimestamp = '_lastEventTimestamp';
 
 class DDStorage
 {
@@ -34,6 +36,14 @@ class DDStorage
     this.updatePersistedKeys(persistedKeys);
   }
 
+  getLastEventTimestamp() {
+    return this.storage.get(keyLastEventTimestamp);
+  }
+
+  setLastEventTimestamp(timestamp) {
+    return this.storage.set(keyLastEventTimestamp, timestamp);
+  }
+
   updatePersistedKeys(persistedKeys) {
     this.storage.set(keyPersistedKeys, persistedKeys);
   }
@@ -57,6 +67,7 @@ class DDStorage
       this.storage.remove(key);
     }
     this.storage.remove(keyPersistedKeys);
+    this.storage.remove(keyLastEventTimestamp);
   }
 }
 

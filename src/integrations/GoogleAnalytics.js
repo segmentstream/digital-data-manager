@@ -194,28 +194,33 @@ class GoogleAnalytics extends Integration {
   }
 
   pushEnhancedEcommerce(event) {
-    // Send a custom non-interaction event to ensure all EE data is pushed.
-    // Without doing this we'd need to require page display after setting EE data.
-    const cleanedArgs = [];
-    const args = [
-      'send',
-      'event',
-      event.category || 'Ecommerce',
-      event.name || 'not defined',
-      event.label,
-      {
-        nonInteraction: 1,
-      },
-    ];
-
-    for (const arg of args) {
-      if (arg !== undefined) {
-        cleanedArgs.push(arg);
-      }
-    }
-
     this.setEventCustomDimensions(event);
-    this.ga.apply(this, cleanedArgs);
+
+    if (this.getPageview()) {
+      this.flushPageview();
+    } else {
+      // Send a custom non-interaction event to ensure all EE data is pushed.
+      // Without doing this we'd need to require page display after setting EE data.
+      const cleanedArgs = [];
+      const args = [
+        'send',
+        'event',
+        event.category || 'Ecommerce',
+        event.name || 'not defined',
+        event.label,
+        {
+          nonInteraction: 1,
+        },
+      ];
+
+      for (const arg of args) {
+        if (arg !== undefined) {
+          cleanedArgs.push(arg);
+        }
+      }
+
+      this.ga.apply(this, cleanedArgs);
+    }
   }
 
   enrichDigitalData() {
@@ -230,12 +235,48 @@ class GoogleAnalytics extends Integration {
     });
   }
 
-  trackEvent(event) {
+  isEventFiltered(eventName) {
     const filterEvents = this.getOption('filterEvents') || [];
-    if (filterEvents.indexOf(event.name) >= 0) {
-      return;
+    if (filterEvents.indexOf(eventName) >= 0) {
+      return true;
+    }
+    return false;
+  }
+
+  isPageviewDelayed(pageType) {
+    if (!this.getOption('enhancedEcommerce')) {
+      return false;
+    }
+    const map = {
+      'category': 'Viewed Product Category',
+      'product': 'Viewed Product Detail',
+      'cart': ['Viewed Cart', 'Viewed Checkout Step'],
+      'confirmation': 'Completed Transaction',
+      'search': 'Searched Products',
+      'checkout': 'Viewed Checkout Step',
+    };
+
+    let eventNames = map[pageType];
+    if (!eventNames) {
+      return false;
     }
 
+    if (!Array.isArray(eventNames)) {
+      eventNames = [eventNames];
+    }
+    for (const eventName of eventNames) {
+      if (!this.isEventFiltered(eventName)) {
+        // if at least on of events is not filtered
+        return true;
+      }
+    }
+    return false;
+  }
+
+  trackEvent(event) {
+    if (this.isEventFiltered(event.name)) {
+      return;
+    }
     if (event.name === 'Viewed Page') {
       if (!this.getOption('noConflict')) {
         this.onViewedPage(event);
@@ -253,6 +294,9 @@ class GoogleAnalytics extends Integration {
         'Clicked Campaign': this.onClickedCampaign,
         'Viewed Checkout Step': this.onViewedCheckoutStep,
         'Completed Checkout Step': this.onCompletedCheckoutStep,
+        'Viewed Product Category': this.onViewedProductCategory, // stub
+        'Viewed Cart': this.onViewedCart, // stub
+        'Searched Products': this.onSearchedProducts, // stub
       };
       const method = methods[event.name];
       if (method) {
@@ -269,6 +313,20 @@ class GoogleAnalytics extends Integration {
     }
   }
 
+  setPageview(pageview) {
+    this.pageview = pageview;
+  }
+
+  getPageview() {
+    return this.pageview;
+  }
+
+  flushPageview() {
+    this.ga('send', 'pageview', this.pageview);
+    this.pageCalled = true;
+    this.pageview = null;
+  }
+
   onViewedPage(event) {
     const page = event.page;
     const pageview = {};
@@ -283,21 +341,29 @@ class GoogleAnalytics extends Integration {
     pageview.title = pageTitle;
     pageview.location = pageUrl;
 
+    if (this.pageCalled) {
+      deleteProperty(pageview, 'location');
+    }
+    this.setPageview(pageview);
+
     // set
     this.ga('set', {
       page: pagePath,
       title: pageTitle,
     });
 
-    if (this.pageCalled) {
-      deleteProperty(pageview, 'location');
-    }
-
     // send
     this.setEventCustomDimensions(event);
-    this.ga('send', 'pageview', pageview);
 
-    this.pageCalled = true;
+    if (!this.isPageviewDelayed(page.type)) {
+      this.flushPageview();
+    } else {
+      setTimeout(() => {
+        if (this.isLoaded() && this.getPageview()) {
+          this.flushPageview(); // flush anyway in 100ms
+        }
+      }, 100);
+    }
   }
 
   onViewedProduct(event) {
@@ -533,6 +599,18 @@ class GoogleAnalytics extends Integration {
       option: options,
     });
 
+    this.pushEnhancedEcommerce(event);
+  }
+
+  onViewedProductCategory(event) {
+    this.pushEnhancedEcommerce(event);
+  }
+
+  onViewedCart(event) {
+    this.pushEnhancedEcommerce(event);
+  }
+
+  onSearchedProducts(event) {
     this.pushEnhancedEcommerce(event);
   }
 

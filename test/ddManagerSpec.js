@@ -8,10 +8,11 @@ import availableIntegrations from '../src/availableIntegrations.js';
 describe('DDManager', () => {
 
   beforeEach(() => {
-    window.localStorage.clear();
+    // 
   });
 
   afterEach(() => {
+    window.localStorage.clear();
     ddManager.reset();
     reset();
   });
@@ -226,19 +227,20 @@ describe('DDManager', () => {
     });
 
     it('should update user.isReturning status', (done) => {
+      window.localStorage.clear(); // just to be sure
       ddManager.once('ready', () => {
         window.digitalData.events.push({
           name: 'Viewed Page'
         });
 
-        assert.ok(!window.digitalData.user.isReturning);
+        assert.ok(!window.digitalData.user.isReturning, 'isReturning should be false');
 
         setTimeout(() => {
           window.digitalData.events.push({
             name: 'Viewed Page'
           });
           setTimeout(() => {
-            assert.ok(window.digitalData.user.isReturning);
+            assert.ok(window.digitalData.user.isReturning, 'isReturning should be true');
             done();
           }, 110);
         }, 110);
