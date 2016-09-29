@@ -15235,9 +15235,11 @@ var DigitalDataEnricher = function () {
     var user = this.digitalData.user;
     if (!user.isSubscribed) {
       user.isSubscribed = true;
+      this.ddStorage.persist('user.isSubscribed');
     }
     if (!user.email && email) {
       user.email = email;
+      this.ddStorage.persist('user.email');
     }
   };
 
@@ -15245,9 +15247,11 @@ var DigitalDataEnricher = function () {
     var user = this.digitalData.user;
     if (!user.hasTransacted) {
       user.hasTransacted = true;
+      this.ddStorage.persist('user.hasTransacted');
     }
     if (!user.lastTransactionDate) {
       user.lastTransactionDate = new Date().toISOString();
+      this.ddStorage.persist('user.lastTransactionDate');
     }
   };
 
@@ -16784,7 +16788,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.2.2',
+  VERSION: '1.2.4',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -19833,7 +19837,7 @@ var RetailRocket = function (_Integration) {
     if (this.getOption('noConflict') !== true) {
       if (event.name === 'Viewed Product Category') {
         this.onViewedProductCategory(event.listing);
-      } else if (event.name === 'Added Product' || event.name === 'Added Product to Wishlist') {
+      } else if (event.name === 'Added Product') {
         this.onAddedProduct(event.product);
       } else if (event.name === 'Viewed Product Detail') {
         this.onViewedProductDetail(event.product);
@@ -21593,7 +21597,12 @@ describe('DigitalDataEnricher', function () {
   describe('default enrichments', function () {
 
     function enirch(digitalData) {
+      var clear = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+
       _ddStorage = new _DDStorage2['default'](digitalData, new _Storage2['default']());
+      if (clear) {
+        _ddStorage.clear();
+      }
       _digitalDataEnricher.setDigitalData(digitalData);
       _digitalDataEnricher.setDDStorage(_ddStorage);
       _digitalDataEnricher.enrichDigitalData();
@@ -21643,6 +21652,33 @@ describe('DigitalDataEnricher', function () {
           done();
         }, 202);
       }, 110);
+    });
+
+    it.only('should update user.hasTransacted and user.lastTransactionDate', function () {
+      _digitalData = {
+        user: {
+          isSubscribed: true,
+          isLoggedIn: true,
+          email: 'test@email.com'
+        },
+        page: {
+          type: 'confirmation'
+        },
+        transaction: {
+          orderId: '123'
+        }
+      };
+      enirch(_digitalData, true);
+
+      _digitalData = {
+        user: {
+          isLoggedIn: false
+        }
+      };
+      enirch(_digitalData);
+
+      _assert2['default'].ok(_digitalData.user.hasTransacted);
+      _assert2['default'].ok(_digitalData.user.lastTransactionDate);
     });
   });
 });

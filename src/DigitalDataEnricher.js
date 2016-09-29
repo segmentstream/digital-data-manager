@@ -168,9 +168,11 @@ class DigitalDataEnricher
     const user = this.digitalData.user;
     if (!user.isSubscribed) {
       user.isSubscribed = true;
+      this.ddStorage.persist('user.isSubscribed');
     }
     if (!user.email && email) {
       user.email = email;
+      this.ddStorage.persist('user.email');
     }
   }
 
@@ -178,9 +180,11 @@ class DigitalDataEnricher
     const user = this.digitalData.user;
     if (!user.hasTransacted) {
       user.hasTransacted = true;
+      this.ddStorage.persist('user.hasTransacted');
     }
     if (!user.lastTransactionDate) {
       user.lastTransactionDate = (new Date()).toISOString();
+      this.ddStorage.persist('user.lastTransactionDate');
     }
   }
 

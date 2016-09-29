@@ -7799,9 +7799,11 @@ var DigitalDataEnricher = function () {
     var user = this.digitalData.user;
     if (!user.isSubscribed) {
       user.isSubscribed = true;
+      this.ddStorage.persist('user.isSubscribed');
     }
     if (!user.email && email) {
       user.email = email;
+      this.ddStorage.persist('user.email');
     }
   };
 
@@ -7809,9 +7811,11 @@ var DigitalDataEnricher = function () {
     var user = this.digitalData.user;
     if (!user.hasTransacted) {
       user.hasTransacted = true;
+      this.ddStorage.persist('user.hasTransacted');
     }
     if (!user.lastTransactionDate) {
       user.lastTransactionDate = new Date().toISOString();
+      this.ddStorage.persist('user.lastTransactionDate');
     }
   };
 
@@ -9348,7 +9352,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.2.2',
+  VERSION: '1.2.4',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -12420,7 +12424,7 @@ var RetailRocket = function (_Integration) {
     if (this.getOption('noConflict') !== true) {
       if (event.name === 'Viewed Product Category') {
         this.onViewedProductCategory(event.listing);
-      } else if (event.name === 'Added Product' || event.name === 'Added Product to Wishlist') {
+      } else if (event.name === 'Added Product') {
         this.onAddedProduct(event.product);
       } else if (event.name === 'Viewed Product Detail') {
         this.onViewedProductDetail(event.product);
