@@ -302,6 +302,8 @@ describe('Integrations: FacebookPixel', () => {
         });
       });
 
+
+
       it('should call fbq track AddToCart' , (done) => {
         window.digitalData.events.push({
           name: 'Added Product',
@@ -358,6 +360,152 @@ describe('Integrations: FacebookPixel', () => {
             }), 'fbq("track", "AddToCart") was not called');
             const productArg = fbPixel.onAddedProduct.getCall(0).args[0];
             const quantityArg = fbPixel.onAddedProduct.getCall(0).args[1];
+            assert.ok(productArg.id, 'product.id is not defined');
+            assert.ok(productArg.name, 'product.name is not defined');
+            assert.ok(productArg.category, 'product.category is not defined');
+            assert.ok(productArg.currency, 'product.currency is not defined');
+            assert.ok(productArg.unitSalePrice, 'product.unitSalePrice is not defined');
+            assert.ok(!quantityArg);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onLead', () => {
+      beforeEach(() => {
+        sinon.spy(fbPixel, 'onLead');
+      });
+
+      afterEach(() => {
+        fbPixel.onLead.restore();
+      });
+
+      it('should call fbq track Lead (legacy product.category format)', done => {
+        window.digitalData.events.push({
+          name: 'Lead',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            category: 'Category 1',
+            currency: 'USD',
+            unitSalePrice: 10000
+          },
+          quantity: 2,
+          callback: () => {
+            assert.ok(window.fbq.calledWith('track', 'onLead', {
+              content_ids: ['123'],
+              content_type: 'product',
+              content_name: 'Test Product',
+              content_category: 'Category 1',
+              currency: 'USD',
+              value: 20000
+            }), 'fbq("track", "onLead") was not called');
+            const productArg = fbPixel.onLead.getCall(0).args[0];
+            const quantityArg = fbPixel.onLead.getCall(0).args[1];
+            assert.ok(productArg.id, 'product.id is not defined');
+            assert.ok(productArg.name, 'product.name is not defined');
+            assert.ok(productArg.category, 'product.category is not defined');
+            assert.ok(productArg.currency, 'product.currency is not defined');
+            assert.ok(productArg.unitSalePrice, 'product.unitSalePrice is not defined');
+            assert.ok(quantityArg === 2);
+            done();
+          }
+        });
+      });
+
+      it('should call fbq track Lead (legacy product.category format with product.subcategory)', done => {
+        window.digitalData.events.push({
+          name: 'Lead',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            category: 'Category 1',
+            subcategory: 'Subcategory 1',
+            currency: 'USD',
+            unitSalePrice: 10000
+          },
+          quantity: 2,
+          callback: () => {
+            assert.ok(window.fbq.calledWith('track', 'Lead', {
+              content_ids: ['123'],
+              content_type: 'product',
+              content_name: 'Test Product',
+              content_category: 'Category 1/Subcategory 1',
+              currency: 'USD',
+              value: 20000
+            }), 'fbq("track", "Lead") was not called');
+            const productArg = fbPixel.Lead.getCall(0).args[0];
+            const quantityArg = fbPixel.Lead.getCall(0).args[1];
+            assert.ok(productArg.id, 'product.id is not defined');
+            assert.ok(productArg.name, 'product.name is not defined');
+            assert.ok(productArg.category, 'product.category is not defined');
+            assert.ok(productArg.currency, 'product.currency is not defined');
+            assert.ok(productArg.unitSalePrice, 'product.unitSalePrice is not defined');
+            assert.ok(quantityArg === 2);
+            done();
+          }
+        });
+      });
+
+      it('should call fbq track Lead', done => {
+        window.digitalData.events.push({
+          name: 'Added Product',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            category: ['Category 1', 'Subcategory 1'],
+            currency: 'USD',
+            unitSalePrice: 10000
+          },
+          quantity: 2,
+          callback: () => {
+            assert.ok(window.fbq.calledWith('track', 'Lead', {
+              content_ids: ['123'],
+              content_type: 'product',
+              content_name: 'Test Product',
+              content_category: 'Category 1/Subcategory 1',
+              currency: 'USD',
+              value: 20000
+            }), 'fbq("track", "Lead") was not called');
+            const productArg = fbPixel.Lead.getCall(0).args[0];
+            const quantityArg = fbPixel.Lead.getCall(0).args[1];
+            assert.ok(productArg.id, 'product.id is not defined');
+            assert.ok(productArg.name, 'product.name is not defined');
+            assert.ok(productArg.category, 'product.category is not defined');
+            assert.ok(productArg.currency, 'product.currency is not defined');
+            assert.ok(productArg.unitSalePrice, 'product.unitSalePrice is not defined');
+            assert.ok(quantityArg === 2);
+            done();
+          }
+        });
+      });
+
+      it('should call fbq track Lead even without quantity param', done => {
+        window.digitalData.events.push({
+          name: 'Added Product',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            category: 'Category 1',
+            currency: 'USD',
+            unitSalePrice: 10000
+          },
+          callback: () => {
+            assert.ok(window.fbq.calledWith('track', 'Lead', {
+              content_ids: ['123'],
+              content_type: 'product',
+              content_name: 'Test Product',
+              content_category: 'Category 1',
+              currency: 'USD',
+              value: 10000
+            }), 'fbq("track", "Lead") was not called');
+            const productArg = fbPixel.Lead.getCall(0).args[0];
+            const quantityArg = fbPixel.Lead.getCall(0).args[1];
             assert.ok(productArg.id, 'product.id is not defined');
             assert.ok(productArg.name, 'product.name is not defined');
             assert.ok(productArg.category, 'product.category is not defined');
