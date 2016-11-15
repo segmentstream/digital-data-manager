@@ -277,7 +277,7 @@ describe('DigitalDataEnricher', () => {
       }, 110);
     });
 
-    it.only('should update user.hasTransacted and user.lastTransactionDate', () => {
+    it('should update user.hasTransacted and user.lastTransactionDate', () => {
       _digitalData = {
         user: {
           isSubscribed: true,

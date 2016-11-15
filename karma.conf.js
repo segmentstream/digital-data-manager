@@ -94,6 +94,13 @@ module.exports = function(config) {
         platform: 'Linux',
         version: '5.1',
         deviceName: 'Android Emulator'
+      },
+      slAndroid4: {
+        base: 'SauceLabs',
+        browserName: 'android',
+        platform: 'Linux',
+        version: '4',
+        deviceName: 'Android Emulator'
       }
     };
     browsers = Object.keys(customLaunchers);

@@ -3,6 +3,35 @@ import DDHelper from './DDHelper.js';
 
 class EventDataEnricher
 {
+  static enrichCommonData(event, digitalData) {
+    const enrichableVars = [
+      'product',
+      'listItem',
+      'listItems',
+      'campaign',
+      'campaigns',
+    ];
+
+    for (const enrichableVar of enrichableVars) {
+      if (event[enrichableVar]) {
+        const enricherMethod = EventDataEnricher[enrichableVar];
+        const eventVar = event[enrichableVar];
+        event[enrichableVar] = enricherMethod(eventVar, digitalData);
+      }
+    }
+
+    // enrich digitalData version
+    if (!event.version && digitalData.version) {
+      event.version = digitalData.version;
+    }
+
+    return event;
+  }
+
+  static enrichIntegrationData(event, digitalData, integration) {
+
+  }
+
   static product(product, digitalData) {
     let productId;
 

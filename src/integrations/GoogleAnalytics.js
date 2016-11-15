@@ -60,7 +60,7 @@ class GoogleAnalytics extends Integration {
       productMetrics: {},
       namespace: 'ddl',
       noConflict: false,
-      checkoutOptions: ['paymentMethod', 'shippingMethod'],
+      checkoutOptions: ['option', 'paymentMethod', 'shippingMethod'],
       filterEvents: [],
     }, options);
 

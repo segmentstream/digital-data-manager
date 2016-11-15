@@ -85,6 +85,65 @@ function _prepareGlobals() {
   }
 }
 
+function _addIntegrations(integrationSettings) {
+  if (integrationSettings) {
+    if (Array.isArray(integrationSettings)) {
+      for (const integrationSetting of integrationSettings) {
+        const name = integrationSetting.name;
+        const options = clone(integrationSetting.options);
+        if (typeof _availableIntegrations[name] === 'function') {
+          const integration = new _availableIntegrations[name](_digitalData, options || {});
+          ddManager.addIntegration(name, integration);
+        }
+      }
+    } else {
+      each(integrationSettings, (name, options) => {
+        if (typeof _availableIntegrations[name] === 'function') {
+          const integration = new _availableIntegrations[name](_digitalData, clone(options));
+          ddManager.addIntegration(name, integration);
+        }
+      });
+    }
+  }
+}
+
+function _addIntegrationsEventTracking() {
+  _eventManager.addCallback(['on', 'event', (event) => {
+    each(_integrations, (integrationName, integration) => {
+      // TODO: add EventValidator library
+      let trackEvent = false;
+      const ex = event.excludeIntegrations;
+      const inc = event.includeIntegrations;
+      if (ex && inc) {
+        return; // TODO: error
+      }
+      if ((ex && !Array.isArray(ex)) || (inc && !Array.isArray(inc))) {
+        return; // TODO: error
+      }
+
+      if (inc) {
+        if (inc.indexOf(integrationName) >= 0) {
+          trackEvent = true;
+        } else {
+          trackEvent = false;
+        }
+      } else if (ex) {
+        if (ex.indexOf(integrationName) < 0) {
+          trackEvent = true;
+        } else {
+          trackEvent = false;
+        }
+      } else {
+        trackEvent = true;
+      }
+      if (trackEvent) {
+        const eventClone = clone(event); // important to prevent changes in original event!!!
+        integration.trackEvent(eventClone);
+      }
+    });
+  }], true);
+}
+
 function _initializeIntegrations(settings) {
   const onLoad = () => {
     _isLoaded = true;
@@ -92,35 +151,17 @@ function _initializeIntegrations(settings) {
   };
 
   if (settings && typeof settings === 'object') {
+    // add integrations
     const integrationSettings = settings.integrations;
-    if (integrationSettings) {
-      if (Array.isArray(integrationSettings)) {
-        for (const integrationSetting of integrationSettings) {
-          const name = integrationSetting.name;
-          const options = clone(integrationSetting.options);
-          if (typeof _availableIntegrations[name] === 'function') {
-            const integration = new _availableIntegrations[name](_digitalData, options || {});
-            ddManager.addIntegration(name, integration);
-          }
-        }
-      } else {
-        each(integrationSettings, (name, options) => {
-          if (typeof _availableIntegrations[name] === 'function') {
-            const integration = new _availableIntegrations[name](_digitalData, clone(options));
-            ddManager.addIntegration(name, integration);
-          }
-        });
-      }
-    }
+    _addIntegrations(integrationSettings);
 
+    // initialize and load integrations
     const loaded = after(size(_integrations), onLoad);
-
     if (size(_integrations) > 0) {
       each(_integrations, (name, integration) => {
         if (!integration.isLoaded() || integration.getOption('noConflict')) {
           integration.once('load', loaded);
           integration.initialize();
-          _eventManager.addCallback(['on', 'event', event => integration.trackEvent(event)], true);
         } else {
           loaded();
         }
@@ -128,12 +169,15 @@ function _initializeIntegrations(settings) {
     } else {
       loaded();
     }
+
+    // add event tracking
+    _addIntegrationsEventTracking();
   }
 }
 
 ddManager = {
 
-  VERSION: '1.2.4',
+  VERSION: '1.2.5',
 
   setAvailableIntegrations: (availableIntegrations) => {
     _availableIntegrations = availableIntegrations;
