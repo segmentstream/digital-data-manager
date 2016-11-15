@@ -59,7 +59,7 @@
     "uglifyify": "^3.0.1"
   },
   "dependencies": {
-    "async": "^2.0.0",
+    "async": "2.1.1",
     "component-clone": "^0.2.2",
     "debug": "^2.2.0",
     "lockr": "^0.8.4",
