@@ -29,24 +29,24 @@ module.exports = function(config) {
         browserName: 'chrome',
         platform: 'Windows XP'
       },
-      // slIe10Win7: {
-      //   base: 'SauceLabs',
-      //   browserName: 'internet explorer',
-      //   platform: 'Windows 7',
-      //   version: '10'
-      // },
-      // slIe9Win7: {
-      //   base: 'SauceLabs',
-      //   browserName: 'internet explorer',
-      //   platform: 'Windows 7',
-      //   version: '9'
-      // },
-      // slIe11Win10: {
-      //   base: 'SauceLabs',
-      //   browserName: 'internet explorer',
-      //   platform: 'Windows 10',
-      //   version: '11'
-      // },
+      slIe10Win7: {
+        base: 'SauceLabs',
+        browserName: 'internet explorer',
+        platform: 'Windows 7',
+        version: '10'
+      },
+      slIe9Win7: {
+        base: 'SauceLabs',
+        browserName: 'internet explorer',
+        platform: 'Windows 7',
+        version: '9'
+      },
+      slIe11Win10: {
+        base: 'SauceLabs',
+        browserName: 'internet explorer',
+        platform: 'Windows 10',
+        version: '11'
+      },
       // slME25Win10: {
       //   base: 'SauceLabs',
       //   browserName: 'microsoftedge',
