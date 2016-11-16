@@ -10364,7 +10364,7 @@ var Criteo = function (_Integration) {
     var optionsWithDefaults = Object.assign({
       account: '',
       noConflict: false,
-      userSegmentVar: 'user.criteoSegment'
+      userSegmentVar: undefined
     }, options);
 
     var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
@@ -10380,8 +10380,10 @@ var Criteo = function (_Integration) {
 
   Criteo.prototype.defineUserSegment = function defineUserSegment(event) {
     var userSegmentVar = this.getOption('userSegmentVar');
-    var userSegment = (0, _dotProp.getProp)(event, userSegmentVar);
-    this.userSegment = userSegment;
+    if (userSegmentVar) {
+      var userSegment = (0, _dotProp.getProp)(event, userSegmentVar);
+      this.userSegment = userSegment;
+    }
   };
 
   Criteo.prototype.getUserSegment = function getUserSegment() {

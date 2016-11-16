@@ -249,7 +249,27 @@ describe('Integrations: Criteo', () => {
         });
       });
 
+      it('should send viewHome event without segment if userSegment option is not defined', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          category: 'Content',
+          page: {
+            type: 'home'
+          },
+          user: {
+            criteoSegment: '2'
+          },
+          callback: () => {
+            assert.deepEqual(window.criteo_q[0][2], {
+              event: 'viewHome',
+            });
+            done();
+          }
+        });
+      });
+
       it('should send viewHome event with segment if user visits home page', (done) => {
+        criteo.setOption('userSegmentVar', 'user.criteoSegment');
         window.digitalData.events.push({
           name: 'Viewed Page',
           category: 'Content',
@@ -342,6 +362,7 @@ describe('Integrations: Criteo', () => {
       });
 
       it('should send viewList event with user_segment if user visits listing page with more than 3 items', (done) => {
+        criteo.setOption('userSegmentVar', 'user.criteoSegment');
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {

@@ -28,7 +28,7 @@ class Criteo extends Integration {
     const optionsWithDefaults = Object.assign({
       account: '',
       noConflict: false,
-      userSegmentVar: 'user.criteoSegment'
+      userSegmentVar: undefined
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -43,8 +43,10 @@ class Criteo extends Integration {
 
   defineUserSegment(event) {
     const userSegmentVar = this.getOption('userSegmentVar');
-    const userSegment = getProp(event, userSegmentVar);
-    this.userSegment = userSegment;
+    if (userSegmentVar) {
+      const userSegment = getProp(event, userSegmentVar);
+      this.userSegment = userSegment;
+    }  
   }
 
   getUserSegment() {

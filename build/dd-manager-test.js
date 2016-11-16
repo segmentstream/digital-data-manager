@@ -17795,7 +17795,7 @@ var Criteo = function (_Integration) {
     var optionsWithDefaults = Object.assign({
       account: '',
       noConflict: false,
-      userSegmentVar: 'user.criteoSegment'
+      userSegmentVar: undefined
     }, options);
 
     var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
@@ -17811,8 +17811,10 @@ var Criteo = function (_Integration) {
 
   Criteo.prototype.defineUserSegment = function defineUserSegment(event) {
     var userSegmentVar = this.getOption('userSegmentVar');
-    var userSegment = (0, _dotProp.getProp)(event, userSegmentVar);
-    this.userSegment = userSegment;
+    if (userSegmentVar) {
+      var userSegment = (0, _dotProp.getProp)(event, userSegmentVar);
+      this.userSegment = userSegment;
+    }
   };
 
   Criteo.prototype.getUserSegment = function getUserSegment() {
@@ -23818,7 +23820,27 @@ describe('Integrations: Criteo', function () {
         });
       });
 
+      it('should send viewHome event without segment if userSegment option is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          category: 'Content',
+          page: {
+            type: 'home'
+          },
+          user: {
+            criteoSegment: '2'
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window.criteo_q[0][2], {
+              event: 'viewHome'
+            });
+            done();
+          }
+        });
+      });
+
       it('should send viewHome event with segment if user visits home page', function (done) {
+        criteo.setOption('userSegmentVar', 'user.criteoSegment');
         window.digitalData.events.push({
           name: 'Viewed Page',
           category: 'Content',
@@ -23906,6 +23928,7 @@ describe('Integrations: Criteo', function () {
       });
 
       it('should send viewList event with user_segment if user visits listing page with more than 3 items', function (done) {
+        criteo.setOption('userSegmentVar', 'user.criteoSegment');
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {
