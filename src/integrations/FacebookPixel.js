@@ -1,6 +1,23 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
+import contains from './../functions/contains.js';
 import type from 'component-type';
+import {
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_CATEGORY,
+  VIEWED_PRODUCT_DETAIL,
+  ADDED_PRODUCT,
+  COMPLETE_TRANSACTION,
+  VIEWWED_PRODUCT,
+  CLICKED_PRODUCT,
+  VIEWED_CAMPAIGN,
+  CLICKED_CAMPAIGN,
+  REMOVED_PRODUCT,
+  VIEWED_CHECKOUT_STEP,
+  COMPLETED_CHECKOUT_STEP,
+  REFUNDED_TRANSACTION,
+  SUBSCRIBED
+} from '../const'
 
 function getProductCategory(product) {
   let category = product.category;
@@ -58,26 +75,30 @@ class FacebookPixel extends Integration {
   }
 
   trackEvent(event) {
-    if (event.name === 'Viewed Page') {
+    const { name } = event;
+    
+    if (name === VIEWED_PAGE) {
       this.onViewedPage();
-    } else if (event.name === 'Viewed Product Category') {
+    } else if (name === VIEWED_PRODUCT_CATEGORY) {
       this.onViewedProductCategory(event.listing);
-    } else if (event.name === 'Viewed Product Detail') {
+    } else if (name === VIEWED_PRODUCT_DETAIL) {
       this.onViewedProductDetail(event.product);
-    } else if (event.name === 'Added Product') {
+    } else if (name === ADDED_PRODUCT) {
       this.onAddedProduct(event.product, event.quantity);
-    } else if (event.name === 'Completed Transaction') {
+    } else if (name === COMPLETE_TRANSACTION) {
       this.onCompletedTransaction(event.transaction);
-    } else if ([
-      'Viewed Product',
-      'Clicked Product',
-      'Viewed Campaign',
-      'Clicked Campaign',
-      'Removed Product',
-      'Viewed Checkout Step',
-      'Completed Checkout Step',
-      'Refunded Transaction',
-    ].indexOf(event.name) < 0) {
+    } else if (name === SUBSCRIBED) {
+      this.onSubscribed(event.user);
+    } else if (!contains([
+        VIEWWED_PRODUCT,
+        CLICKED_PRODUCT,
+        VIEWED_CAMPAIGN,
+        CLICKED_CAMPAIGN,
+        REMOVED_PRODUCT,
+        VIEWED_CHECKOUT_STEP,
+        COMPLETED_CHECKOUT_STEP,
+        REFUNDED_TRANSACTION,
+    ], name)) {
       this.onCustomEvent(event);
     }
   }
@@ -149,9 +170,37 @@ class FacebookPixel extends Integration {
     }
   }
 
+  onSubscribed({ email }) {
+    if (email) {
+      window.fbq('track', 'Lead', {
+        value: email
+      });
+    }
+  }
+
   onCustomEvent(event) {
     window.fbq('trackCustom', event.name);
   }
 }
 
 export default FacebookPixel;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
