@@ -520,6 +520,24 @@ describe('Integrations: FacebookPixel', () => {
 
     });
 
+    describe('#onSubscribed', () => {
+      it('should set email if user email was acquired', (done) => {
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          category: 'Email',
+          user: {
+            email: 'test@driveback.ru'
+          },
+          callback: () => {
+            assert.ok(window.fbq.calledWith('track', 'Lead', {
+              value: 'test@driveback.ru'
+            }), 'fbq("track", "Lead") was not called');
+            done();
+          }
+        });
+      });
+    });
+
 
     describe('#onCustomEvent', () => {
       it('should call fbq track for custom event', (done) => {
