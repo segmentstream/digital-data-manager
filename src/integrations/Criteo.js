@@ -1,5 +1,6 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty';
+import { getProp } from './../functions/dotProp';
 import semver from './../functions/semver';
 
 function lineItemsToCriteoItems(lineItems) {
@@ -26,8 +27,8 @@ class Criteo extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       account: '',
-      deduplication: undefined,
       noConflict: false,
+      userSegmentVar: undefined
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -40,54 +41,41 @@ class Criteo extends Integration {
     });
   }
 
+  defineUserSegment(event) {
+    const userSegmentVar = this.getOption('userSegmentVar');
+    if (userSegmentVar) {
+      const userSegment = getProp(event, userSegmentVar);
+      this.userSegment = userSegment;
+    }  
+  }
+
+  getUserSegment() {
+    return this.userSegment;
+  }
+
+  pushCriteoQueue(criteoEvent) {
+    if (criteoEvent) {
+      const userSegment = this.getUserSegment();
+      if (userSegment) {
+        criteoEvent.user_segment = userSegment;
+      }
+      this.criteo_q.push(criteoEvent);
+    }
+
+    // final push to criteo in signle hit
+    if (this.criteo_q.length === 1) {
+      window.criteo_q.push(this.criteo_q[0]);
+    } else {
+      window.criteo_q.push(this.criteo_q);
+    }
+    this.criteo_q = [];
+  }
+
   initialize() {
     window.criteo_q = window.criteo_q || [];
+    this.criteo_q = [];
 
     if (this.getOption('account') && !this.getOption('noConflict')) {
-      const email = this.digitalData.user.email;
-      let siteType;
-      if (this.digitalData.version && semver.cmp(this.digitalData.version, '1.1.0') < 0) {
-        siteType = this.digitalData.page.siteType;
-      } else {
-        siteType = this.digitalData.website.type;
-      }
-
-      if (siteType) {
-        siteType = siteType.toLocaleLowerCase();
-      }
-
-      if (['desktop', 'tablet', 'mobile'].indexOf(siteType) < 0) {
-        siteType = 'desktop';
-      }
-
-      window.criteo_q.push(
-        {
-          event: 'setAccount',
-          account: this.getOption('account'),
-        },
-        {
-          event: 'setSiteType',
-          type: siteType.charAt(0), // "d", "m", "t"
-        }
-      );
-
-      if (email) {
-        window.criteo_q.push(
-          {
-            event: 'setEmail',
-            email: email,
-          }
-        );
-      } else {
-        window.ddListener.push(['on', 'change:user.email', (newValue) => {
-          window.criteo_q.push(
-            {
-              event: 'setEmail',
-              email: newValue,
-            }
-          );
-        }]);
-      }
       this.load(this.onLoad);
     } else {
       this.onLoad();
@@ -124,19 +112,58 @@ class Criteo extends Integration {
 
   onViewedPage(event) {
     const page = event.page;
+    let siteType;
+    if (event.version && page && semver.cmp(event.version, '1.1.0') < 0) {
+      siteType = page.siteType;
+    } else if (event.website) {
+      siteType = event.website.type;
+    }
+
+    if (siteType) {
+      siteType = siteType.toLocaleLowerCase();
+    }
+
+    if (['desktop', 'tablet', 'mobile'].indexOf(siteType) < 0) {
+      siteType = 'desktop';
+    }
+
+    this.criteo_q.push({
+      event: 'setAccount',
+      account: this.getOption('account'),
+    });
+    this.criteo_q.push({
+      event: 'setSiteType',
+      type: siteType.charAt(0), // "d", "m", "t"
+    });
+
+    if (event.user && event.user.email) {
+      this.criteo_q.push({
+        event: 'setEmail',
+        email: event.user.email,
+      });
+    }
+
+    this.defineUserSegment(event);
+
     if (page) {
       if (page.type === 'home') {
         this.onViewedHome();
+      } else if (
+        !page.type ||
+        ['category', 'product', 'search', 'cart', 'confirmation'].indexOf(page.type) < 0
+      ) {
+        this.pushCriteoQueue();
       }
+    } else {
+      this.pushCriteoQueue();
     }
   }
 
   onViewedHome() {
-    window.criteo_q.push(
-      {
-        event: 'viewHome',
-      }
-    );
+    const criteoEvent = {
+      event: 'viewHome',
+    };
+    this.pushCriteoQueue(criteoEvent);
   }
 
   onViewedProductListing(event) {
@@ -156,7 +183,7 @@ class Criteo extends Integration {
       }
     }
     if (productIds.length > 0) {
-      window.criteo_q.push(
+      this.pushCriteoQueue(
         {
           event: 'viewList',
           item: productIds,
@@ -172,7 +199,7 @@ class Criteo extends Integration {
       productId = product.id || product.skuCode;
     }
     if (productId) {
-      window.criteo_q.push(
+      this.pushCriteoQueue(
         {
           event: 'viewItem',
           item: productId,
@@ -186,7 +213,7 @@ class Criteo extends Integration {
     if (cart && cart.lineItems && cart.lineItems.length > 0) {
       const products = lineItemsToCriteoItems(cart.lineItems);
       if (products.length > 0) {
-        window.criteo_q.push(
+        this.pushCriteoQueue(
           {
             event: 'viewBasket',
             item: products,
@@ -202,23 +229,22 @@ class Criteo extends Integration {
       const products = lineItemsToCriteoItems(transaction.lineItems);
       if (products.length > 0) {
         let deduplication = 0;
-        if (this.getOption('deduplication') !== undefined) {
-          deduplication = this.getOption('deduplication') ? 1 : 0;
-        } else {
-          const context = this.digitalData.context;
-          if (context.campaign && context.campaign.source && context.campaign.source.toLocaleLowerCase() === 'criteo') {
-            deduplication = 1;
-          }
+        const context = event.context;
+        if (
+          context
+          && context.campaign
+          && context.campaign.source
+          && context.campaign.source.toLocaleLowerCase().indexOf('criteo') >= 0
+        ) {
+          deduplication = 1;
         }
-        window.criteo_q.push(
-          {
-            event: 'trackTransaction',
-            id: transaction.orderId,
-            new_customer: (transaction.isFirst) ? 1 : 0,
-            deduplication: deduplication,
-            item: products,
-          }
-        );
+        this.pushCriteoQueue({
+          event: 'trackTransaction',
+          id: transaction.orderId,
+          new_customer: (transaction.isFirst) ? 1 : 0,
+          deduplication: deduplication,
+          item: products,
+        });
       }
     }
   }

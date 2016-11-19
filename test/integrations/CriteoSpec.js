@@ -4,6 +4,15 @@ import reset from './../reset.js';
 import Criteo from './../../src/integrations/Criteo.js';
 import ddManager from './../../src/ddManager.js';
 
+function viewedPage(eventData, callback) {
+  window.digitalData.events.push(Object.assign({
+    name: 'Viewed Page',
+    callback: () => {
+      callback();
+    }
+  }, eventData));
+}
+
 describe('Integrations: Criteo', () => {
   let criteo;
   const options = {
@@ -56,80 +65,9 @@ describe('Integrations: Criteo', () => {
         ddManager.initialize();
         assert.ok(criteo.load.calledOnce);
       });
-
-      it('should define account id', () => {
-        ddManager.initialize();
-        assert.deepEqual(window.criteo_q[0], { event: 'setAccount', account: options.account });
-      });
-
-      it('should define "d" site type if other option is not specified', () => {
-        ddManager.initialize();
-        assert.deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "d" });
-      });
-
-      it('should define "d" site type if digitalData.website.type is not one of: "desktop", "tablet" or "mobile"', () => {
-        window.digitalData.website.type = "test";
-        ddManager.initialize();
-        assert.deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "d" });
-      });
-
-      it('should define "d" site type if digitalData.website.type is "desktop"', () => {
-        window.digitalData.website.type = "desktop";
-        ddManager.initialize();
-        assert.deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "d" });
-      });
-
-      it('should define "t" site type if digitalData.website.type is "tablet"', () => {
-        window.digitalData.website.type = "tablet";
-        ddManager.initialize();
-        assert.deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "t" });
-      });
-
-      it('should define "m" site type if digitalData.website.type is "mobile"', () => {
-        window.digitalData.website.type = "mobile";
-        ddManager.initialize();
-        assert.deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "m" });
-      });
-
-      it('should set email if digitalData.user.email is defined', () => {
-        window.digitalData.user.email = 'test@driveback.ru';
-        ddManager.initialize();
-        assert.deepEqual(window.criteo_q[2], { event: 'setEmail', email: window.digitalData.user.email });
-      });
     });
-
-
-    describe('#initialize version <1.1.0', () => {
-      it('should define "d" site type if digitalData.page.siteType is not one of: "desktop", "tablet" or "mobile"', () => {
-        window.digitalData.version = '1.0.11';
-        window.digitalData.page.siteType = "test";
-        ddManager.initialize();
-        assert.deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "d" });
-      });
-
-      it('should define "d" site type if digitalData.page.siteType is "desktop"', () => {
-        window.digitalData.version = '1.0.11';
-        window.digitalData.page.siteType = "desktop";
-        ddManager.initialize();
-        assert.deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "d" });
-      });
-
-      it('should define "t" site type if digitalData.page.siteType is "tablet"', () => {
-        window.digitalData.version = '1.0.11';
-        window.digitalData.page.siteType = "tablet";
-        ddManager.initialize();
-        assert.deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "t" });
-      });
-
-      it('should define "m" site type if digitalData.page.siteType is "mobile"', () => {
-        window.digitalData.version = '1.0.11';
-        window.digitalData.page.siteType = "mobile";
-        ddManager.initialize();
-        assert.deepEqual(window.criteo_q[1], { event: 'setSiteType', type: "m" });
-      });
-    });
-
   });
+
 
   describe('loading', function () {
     beforeEach(() => {
@@ -174,13 +112,126 @@ describe('Integrations: Criteo', () => {
       criteo.load.restore();
     });
 
-    it('should set email if digitalData.user.email is changed at any time', (done) => {
-      assert.ok(!window.criteo_q[2]);
-      window.digitalData.user.email = 'test@driveback.ru';
-      setTimeout(() => {
-        assert.deepEqual(window.criteo_q[2], {event: 'setEmail', email: window.digitalData.user.email});
-        done();
-      }, 111);
+    describe('#Viewed Page', () => {
+
+      it('should define account id', (done) => {
+        viewedPage({}, () => {
+          assert.deepEqual(window.criteo_q[0][0], { event: 'setAccount', account: options.account });
+          done();
+        });
+      });
+
+      it('should define "d" site type if other option is not specified', (done) => {
+        viewedPage({}, () => {
+          assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "d" });
+          done();
+        });
+      });
+
+      it('should define "d" site type if digitalData.website.type is not one of: "desktop", "tablet" or "mobile"', (done) => {
+        viewedPage({
+          website: {
+            type: "test"
+          }
+        }, () => {
+          assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "d" });
+          done();
+        });
+      });
+
+      it('should define "d" site type if digitalData.website.type is "desktop"', (done) => {
+        viewedPage({
+          website: {
+            type: "desktop"
+          }
+        }, () => {
+          assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "d" });
+          done();
+        });
+      });
+
+      it('should define "t" site type if digitalData.website.type is "tablet"', (done) => {
+        viewedPage({
+          website: {
+            type: "tablet"
+          }
+        }, () => {
+          assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "t" });
+          done();
+        });
+      });
+
+      it('should define "m" site type if digitalData.website.type is "mobile"', (done) => {
+        viewedPage({
+          website: {
+            type: "mobile"
+          }
+        }, () => {
+          assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "m" });
+          done();
+        });
+      });
+
+      it('should set email if digitalData.user.email is defined', (done) => {
+        viewedPage({
+          user: {
+            email: 'test@driveback.ru'
+          }
+        }, () => {
+          assert.deepEqual(window.criteo_q[0][2], { event: 'setEmail', email: 'test@driveback.ru' });
+          done();
+        });
+      });
+    });
+
+    describe('#Viewed Page version <1.1.0', () => {
+      it('should define "d" site type if digitalData.page.siteType is not one of: "desktop", "tablet" or "mobile"', (done) => {
+        viewedPage({
+          page: {
+            siteType: "test"
+          },
+          version: '1.0.11'
+        }, () => {
+          assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "d" });
+          done();
+        });
+      });
+
+      it('should define "d" site type if digitalData.page.siteType is "desktop"', (done) => {
+        viewedPage({
+          page: {
+            siteType: "desktop"
+          },
+          version: '1.0.11'
+        }, () => {
+          assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "d" });
+          done();
+        });
+      });
+
+      it('should define "t" site type if digitalData.page.siteType is "tablet"', (done) => {
+        viewedPage({
+          page: {
+            siteType: "tablet"
+          },
+          version: '1.0.11'
+        }, () => {
+          assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "t" });
+          done();
+        });
+      });
+
+      it('should define "m" site type if digitalData.page.siteType is "mobile"', (done) => {
+        viewedPage({
+          page: {
+            siteType: "mobile"
+          },
+          version: '1.0.11'
+        }, () => {
+          assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "m" });
+          done();
+        });
+      });
     });
 
     describe('#onViewedHome', () => {
@@ -192,7 +243,47 @@ describe('Integrations: Criteo', () => {
             type: 'home'
           },
           callback: () => {
-            assert.deepEqual(window.criteo_q[2], {event: 'viewHome'})
+            assert.deepEqual(window.criteo_q[0][2], {event: 'viewHome'})
+            done();
+          }
+        });
+      });
+
+      it('should send viewHome event without segment if userSegment option is not defined', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          category: 'Content',
+          page: {
+            type: 'home'
+          },
+          user: {
+            criteoSegment: '2'
+          },
+          callback: () => {
+            assert.deepEqual(window.criteo_q[0][2], {
+              event: 'viewHome',
+            });
+            done();
+          }
+        });
+      });
+
+      it('should send viewHome event with segment if user visits home page', (done) => {
+        criteo.setOption('userSegmentVar', 'user.criteoSegment');
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          category: 'Content',
+          page: {
+            type: 'home'
+          },
+          user: {
+            criteoSegment: '2'
+          },
+          callback: () => {
+            assert.deepEqual(window.criteo_q[0][2], {
+              event: 'viewHome',
+              user_segment: '2'
+            });
             done();
           }
         });
@@ -203,10 +294,24 @@ describe('Integrations: Criteo', () => {
           name: 'Viewed Page',
           category: 'Content',
           page: {
+            type: 'content'
+          },
+          callback: () => {
+            assert.ok(!window.criteo_q[0][2]);
+            done();
+          }
+        });
+      });
+
+      it('should not send any hit if user visits specific pages', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          category: 'Content',
+          page: {
             type: 'product'
           },
           callback: () => {
-            assert.ok(!window.criteo_q[2]);
+            assert.ok(!window.criteo_q[0]);
             done();
           }
         });
@@ -221,7 +326,7 @@ describe('Integrations: Criteo', () => {
             type: 'home'
           },
           callback: () => {
-            assert.ok(!window.criteo_q[2]);
+            assert.ok(!window.criteo_q[0]);
             done();
           }
         });
@@ -250,7 +355,47 @@ describe('Integrations: Criteo', () => {
             ]
           },
           callback: () => {
-            assert.deepEqual(window.criteo_q[2], {event: 'viewList', item: ['123', '234', '345']});
+            assert.deepEqual(window.criteo_q[0], {event: 'viewList', item: ['123', '234', '345']});
+            done();
+          }
+        });
+      });
+
+      it('should send viewList event with user_segment if user visits listing page with more than 3 items', (done) => {
+        criteo.setOption('userSegmentVar', 'user.criteoSegment');
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'category'
+          },
+          user: {
+            criteoSegment: '2'
+          }
+        });
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          listing: {
+            items: [
+              {
+                id: '123'
+              },
+              {
+                id: '234'
+              },
+              {
+                id: '345'
+              },
+              {
+                id: '456'
+              }
+            ]
+          },
+          callback: () => {
+            assert.deepEqual(window.criteo_q[0][2], {
+              event: 'viewList',
+              user_segment: '2',
+              item: ['123', '234', '345']
+            });
             done();
           }
         });
@@ -271,7 +416,7 @@ describe('Integrations: Criteo', () => {
             ]
           },
           callback: () => {
-            assert.deepEqual(window.criteo_q[2], {event: 'viewList', item: ['123', '234']});
+            assert.deepEqual(window.criteo_q[0], {event: 'viewList', item: ['123', '234']});
             done();
           }
         });
@@ -282,7 +427,7 @@ describe('Integrations: Criteo', () => {
           name: 'Viewed Product Category',
           category: 'Ecommerce',
           callback: () => {
-            assert.ok(!window.criteo_q[2]);
+            assert.ok(!window.criteo_q[0]);
             done();
           }
         });
@@ -301,7 +446,7 @@ describe('Integrations: Criteo', () => {
             ]
           },
           callback: () => {
-            assert.ok(!window.criteo_q[2]);
+            assert.ok(!window.criteo_q[0]);
             done();
           }
         });
@@ -330,7 +475,7 @@ describe('Integrations: Criteo', () => {
             ]
           },
           callback: () => {
-            assert.deepEqual(window.criteo_q[2], {event: 'viewList', item: ['123', '234', '345']});
+            assert.deepEqual(window.criteo_q[0], {event: 'viewList', item: ['123', '234', '345']});
             done();
           }
         });
@@ -351,7 +496,7 @@ describe('Integrations: Criteo', () => {
             ]
           },
           callback: () => {
-            assert.deepEqual(window.criteo_q[2], {event: 'viewList', item: ['123', '234']});
+            assert.deepEqual(window.criteo_q[0], {event: 'viewList', item: ['123', '234']});
             done();
           }
         });
@@ -362,7 +507,7 @@ describe('Integrations: Criteo', () => {
           name: 'Searched Products',
           category: 'Ecommerce',
           callback: () => {
-            assert.ok(!window.criteo_q[2]);
+            assert.ok(!window.criteo_q[0]);
             done();
           }
         });
@@ -381,7 +526,7 @@ describe('Integrations: Criteo', () => {
             ]
           },
           callback: () => {
-            assert.ok(!window.criteo_q[2]);
+            assert.ok(!window.criteo_q[0]);
             done();
           }
         });
@@ -397,7 +542,7 @@ describe('Integrations: Criteo', () => {
             id: '123'
           },
           callback: () => {
-            assert.deepEqual(window.criteo_q[2], {event: 'viewItem', item: '123'});
+            assert.deepEqual(window.criteo_q[0], {event: 'viewItem', item: '123'});
             done();
           }
         });
@@ -408,7 +553,7 @@ describe('Integrations: Criteo', () => {
           name: 'Viewed Product Detail',
           category: 'Ecommerce',
           callback: () => {
-            assert.ok(!window.criteo_q[2]);
+            assert.ok(!window.criteo_q[0]);
             done();
           }
         });
@@ -423,7 +568,7 @@ describe('Integrations: Criteo', () => {
             id: '123'
           },
           callback: () => {
-            assert.ok(!window.criteo_q[2]);
+            assert.ok(!window.criteo_q[0]);
             done();
           }
         });
@@ -469,7 +614,7 @@ describe('Integrations: Criteo', () => {
             ]
           },
           callback: () => {
-            assert.deepEqual(window.criteo_q[2], {event: 'viewBasket', item: [
+            assert.deepEqual(window.criteo_q[0], {event: 'viewBasket', item: [
               { id: '123', price: 100, quantity: 1 },
               { id: '234', price: 50, quantity: 2 },
               { id: '345', price: 30, quantity: 1 },
@@ -485,7 +630,7 @@ describe('Integrations: Criteo', () => {
           name: 'Viewed Cart',
           category: 'Ecommerce',
           callback: () => {
-            assert.ok(!window.criteo_q[2]);
+            assert.ok(!window.criteo_q[0]);
             done();
           }
         });
@@ -499,7 +644,7 @@ describe('Integrations: Criteo', () => {
             lineItems: []
           },
           callback: () => {
-            assert.ok(!window.criteo_q[2]);
+            assert.ok(!window.criteo_q[0]);
             done();
           }
         });
@@ -522,7 +667,7 @@ describe('Integrations: Criteo', () => {
             ]
           },
           callback: () => {
-            assert.ok(!window.criteo_q[2]);
+            assert.ok(!window.criteo_q[0]);
             done();
           }
         });
@@ -572,7 +717,7 @@ describe('Integrations: Criteo', () => {
             lineItems: lineItems
           },
           callback: () => {
-            assert.deepEqual(window.criteo_q[2], {
+            assert.deepEqual(window.criteo_q[0], {
               event: 'trackTransaction',
               id: '123',
               new_customer: 1,
@@ -599,7 +744,7 @@ describe('Integrations: Criteo', () => {
             lineItems: lineItems
           },
           callback: () => {
-            assert.deepEqual(window.criteo_q[2], {
+            assert.deepEqual(window.criteo_q[0], {
               event: 'trackTransaction',
               id: '123',
               new_customer: 0,
@@ -617,47 +762,20 @@ describe('Integrations: Criteo', () => {
       });
 
       it('should send trackTransaction event if transaction is completed (deduplication = 1)', (done) => {
-        criteo.setOption('deduplication', true);
         window.digitalData.events.push({
           name: 'Completed Transaction',
           category: 'Ecommerce',
+          context: {
+            campaign: {
+              source: 'CriTeO'
+            }
+          },
           transaction: {
             orderId: '123',
             lineItems: lineItems
           },
           callback: () => {
-            assert.deepEqual(window.criteo_q[2], {
-              event: 'trackTransaction',
-              id: '123',
-              new_customer: 0,
-              deduplication: 1,
-              item: [
-                { id: '123', price: 100, quantity: 1 },
-                { id: '234', price: 50, quantity: 2 },
-                { id: '345', price: 30, quantity: 1 },
-                { id: '456', price: 0, quantity: 1 }
-              ]
-            });
-            done();
-          }
-        });
-      });
-
-      it('should send trackTransaction event if transaction is completed (deduplication = 1)', (done) => {
-        window.digitalData.context = {
-          campaign: {
-            source: 'CriTeO'
-          }
-        };
-        window.digitalData.events.push({
-          name: 'Completed Transaction',
-          category: 'Ecommerce',
-          transaction: {
-            orderId: '123',
-            lineItems: lineItems
-          },
-          callback: () => {
-            assert.deepEqual(window.criteo_q[2], {
+            assert.deepEqual(window.criteo_q[0], {
               event: 'trackTransaction',
               id: '123',
               new_customer: 0,
@@ -689,7 +807,7 @@ describe('Integrations: Criteo', () => {
             lineItems: lineItems
           },
           callback: () => {
-            assert.deepEqual(window.criteo_q[2], {
+            assert.deepEqual(window.criteo_q[0], {
               event: 'trackTransaction',
               id: '123',
               new_customer: 0,
@@ -711,7 +829,7 @@ describe('Integrations: Criteo', () => {
           name: 'Completed Transaction',
           category: 'Ecommerce',
           callback: () => {
-            assert.ok(!window.criteo_q[2]);
+            assert.ok(!window.criteo_q[0]);
             done();
           }
         });
@@ -725,7 +843,7 @@ describe('Integrations: Criteo', () => {
             lineItems: []
           },
           callback: () => {
-            assert.ok(!window.criteo_q[2]);
+            assert.ok(!window.criteo_q[0]);
             done();
           }
         });
@@ -741,7 +859,7 @@ describe('Integrations: Criteo', () => {
             lineItems: lineItems
           },
           callback: () => {
-            assert.ok(!window.criteo_q[2]);
+            assert.ok(!window.criteo_q[0]);
             done();
           }
         });
@@ -757,7 +875,7 @@ describe('Integrations: Criteo', () => {
             email: 'test@driveback.ru'
           },
           callback: () => {
-            assert.deepEqual(window.criteo_q[2], { event: 'setEmail', email: 'test@driveback.ru' });
+            assert.deepEqual(window.criteo_q[0], { event: 'setEmail', email: 'test@driveback.ru' });
             done();
           }
         });
@@ -772,7 +890,7 @@ describe('Integrations: Criteo', () => {
             email: 'test@driveback.ru'
           },
           callback: () => {
-            assert.deepEqual(window.criteo_q[2], { event: 'setEmail', email: 'test@driveback.ru' });
+            assert.deepEqual(window.criteo_q[0], { event: 'setEmail', email: 'test@driveback.ru' });
             done();
           }
         });

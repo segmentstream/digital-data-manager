@@ -271,23 +271,7 @@ class EventManager {
   }
 
   enrichEventWithData(event) {
-    const enrichableVars = [
-      'product',
-      'listItem',
-      'listItems',
-      'campaign',
-      'campaigns',
-    ];
-
-    for (const enrichableVar of enrichableVars) {
-      if (event[enrichableVar]) {
-        const enricherMethod = EventDataEnricher[enrichableVar];
-        const eventVar = event[enrichableVar];
-        event[enrichableVar] = enricherMethod(eventVar, _digitalData);
-      }
-    }
-
-    return event;
+    return EventDataEnricher.enrichCommonData(event, _digitalData);
   }
 
   reset() {

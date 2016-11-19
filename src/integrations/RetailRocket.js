@@ -87,7 +87,7 @@ class RetailRocket extends Integration {
     if (this.getOption('noConflict') !== true) {
       if (event.name === 'Viewed Product Category') {
         this.onViewedProductCategory(event.listing);
-      } else if (event.name === 'Added Product' || event.name === 'Added Product to Wishlist') {
+      } else if (event.name === 'Added Product') {
         this.onAddedProduct(event.product);
       } else if (event.name === 'Viewed Product Detail') {
         this.onViewedProductDetail(event.product);

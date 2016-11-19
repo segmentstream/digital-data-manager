@@ -1,5 +1,6 @@
 import assert from 'assert';
 import reset from './reset.js';
+import sinon from 'sinon';
 import snippet from './snippet.js';
 import ddManager from '../src/ddManager.js';
 import Integration from '../src/Integration.js';
@@ -8,7 +9,7 @@ import availableIntegrations from '../src/availableIntegrations.js';
 describe('DDManager', () => {
 
   beforeEach(() => {
-    // 
+    //
   });
 
   afterEach(() => {
@@ -299,6 +300,73 @@ describe('DDManager', () => {
       });
 
     });
+  });
+
+  describe('exclude/include tracking', () => {
+
+    const integration1 = new Integration(window.digitalData);
+    const integration2 = new Integration(window.digitalData);
+    const integration3 = new Integration(window.digitalData);
+
+    beforeEach(() => {
+      sinon.stub(integration1, 'trackEvent');
+      sinon.stub(integration2, 'trackEvent');
+      sinon.stub(integration3, 'trackEvent');
+
+      ddManager.addIntegration('integration1', integration1);
+      ddManager.addIntegration('integration2', integration2);
+      ddManager.addIntegration('integration3', integration3);
+      ddManager.initialize({
+        autoEvents: false,
+      });
+    });
+
+    afterEach(() => {
+      integration1.trackEvent.restore();
+      integration2.trackEvent.restore();
+      integration3.trackEvent.restore();
+    });
+
+    it('should not send event to integration1', (done) => {
+      window.digitalData.events.push({
+        name: 'Test',
+        excludeIntegrations: ['integration1'],
+        callback: () => {
+          assert.ok(!integration1.trackEvent.called);
+          assert.ok(integration2.trackEvent.called);
+          assert.ok(integration3.trackEvent.called);
+          done();
+        }
+      });
+    });
+
+    it('should not send event to integration1', (done) => {
+      window.digitalData.events.push({
+        name: 'Test',
+        includeIntegrations: ['integration2', 'integration3'],
+        callback: () => {
+          assert.ok(!integration1.trackEvent.called);
+          assert.ok(integration2.trackEvent.called);
+          assert.ok(integration2.trackEvent.called);
+          done();
+        }
+      });
+    });
+
+    it('should not send event at all', (done) => {
+      window.digitalData.events.push({
+        name: 'Test',
+        includeIntegrations: ['integration2', 'integration3'],
+        excludeIntegrations: ['integration1'],
+        callback: () => {
+          assert.ok(!integration1.trackEvent.called);
+          assert.ok(!integration2.trackEvent.called);
+          assert.ok(!integration2.trackEvent.called);
+          done();
+        }
+      });
+    });
+
   });
 
 });
