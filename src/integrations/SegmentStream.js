@@ -55,9 +55,6 @@ class SegmentStream extends Integration {
     }
 
     ssApi.initialize(this._options);
-    ssApi.pushOnReady(() => {
-      this.enrichDigitalData();
-    });
     this.load(this.onLoad);
   }
 
@@ -74,14 +71,19 @@ class SegmentStream extends Integration {
     function lowercaseFirstLetter(string) {
       return string.charAt(0).toLowerCase() + string.slice(1);
     }
-    const attributes = window.ssApi.getData().attributes;
-    this.digitalData.user.ssAttributes = {};
-    this.digitalData.user.anonymousId = window.ssApi.getAnonymousId();
-    each(attributes, (name, value) => {
-      const key = lowercaseFirstLetter(name);
-      this.digitalData.user.ssAttributes[key] = value;
+
+    window.ssApi.pushOnReady(() => {
+      const attributes = window.ssApi.getData().attributes;
+      const ssAttributes = {};
+      each(attributes, (name, value) => {
+        const key = lowercaseFirstLetter(name);
+        ssAttributes[key] = value;
+      });
+
+      this.digitalData.user.anonymousId = window.ssApi.getAnonymousId();
+      this.digitalData.user.ssAttributes = ssAttributes;
+      this.onEnrich();
     });
-    this.onEnrich();
   }
 
   trackEvent(event) {

@@ -73,7 +73,6 @@ describe('SendPulse', function() {
         sinon.stub(window.oSpP, 'push');
         callback();
       });
-
       ddManager.once('ready', done);
       ddManager.initialize({
         autoEvents: false

@@ -53,6 +53,45 @@ class Emarsys extends Integration {
     }
   }
 
+  getEnrichableEventProps(event) {
+    let enrichableProps = [];
+    switch (event.name) {
+    case 'Viewed Page':
+      enrichableProps = [
+        'page.type',
+        'user.email',
+        'user.userId',
+        'cart',
+      ];
+      break;
+    case 'Viewed Product Detail':
+      enrichableProps = [
+        'product.id',
+        'product.skuCode',
+      ];
+      break;
+    case 'Viewed Product Category':
+      enrichableProps = [
+        'listing.category',
+      ];
+      break;
+    case 'Searched Products':
+      enrichableProps = [
+        'listing.query',
+      ];
+      break;
+    case 'Completed Transaction':
+      enrichableProps = [
+        'transaction',
+      ];
+      break;
+    default:
+      // do nothing
+    }
+
+    return enrichableProps;
+  }
+
   isLoaded() {
     return (typeof ScarabQueue === 'object');
   }
@@ -61,7 +100,7 @@ class Emarsys extends Integration {
     deleteProperty(window, 'ScarabQueue');
   }
 
-  enrichDigitalData(done) {
+  enrichDigitalData() {
     // TODO
     /*
     ScarabQueue.push(['recommend', {
@@ -77,7 +116,6 @@ class Emarsys extends Integration {
     }]);
     ScarabQueue.push(['go']);
     */
-    done();
   }
 
   trackEvent(event) {
@@ -99,9 +137,11 @@ class Emarsys extends Integration {
     }
   }
 
-  sendCommonData() {
-    const user = this.digitalData.user || {};
-    const cart = this.digitalData.cart || {};
+  onViewedPage(event) {
+    const user = event.user || {};
+    const cart = event.cart || {};
+    const page = event.page;
+
     if (user.email) {
       window.ScarabQueue.push(['setEmail', user.email]);
     } else if (user.userId) {
@@ -112,11 +152,7 @@ class Emarsys extends Integration {
     } else {
       window.ScarabQueue.push(['cart', []]);
     }
-  }
 
-  onViewedPage(event) {
-    const page = event.page;
-    this.sendCommonData();
     // product, category, search and confirmation pages are tracked separately
     if (['product', 'category', 'search', 'confirmation'].indexOf(page.type) < 0) {
       go();

@@ -40,6 +40,41 @@ class GoogleAdWords extends Integration {
     });
   }
 
+  getEnrichableEventProps(event) {
+    let enrichableProps = [];
+    switch (event.name) {
+    case 'Viewed Page':
+      enrichableProps = [
+        'page.type',
+      ];
+      break;
+    case 'Viewed Product Detail':
+      enrichableProps = [
+        'product',
+      ];
+      break;
+    case 'Viewed Product Category':
+      enrichableProps = [
+        'listing.category',
+      ];
+      break;
+    case 'Viewed Cart':
+      enrichableProps = [
+        'cart',
+      ];
+      break;
+    case 'Completed Transaction':
+      enrichableProps = [
+        'transaction',
+      ];
+      break;
+    default:
+      // do nothing
+    }
+
+    return enrichableProps;
+  }
+
   initialize() {
     this.asyncQueue = [];
 

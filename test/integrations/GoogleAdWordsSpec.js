@@ -31,12 +31,15 @@ function viewedPageOfType(type, callback) {
 }
 
 function viewedProductCategory(category, callback) {
-  window.digitalData.events.push({
+  const event = {
     name: 'Viewed Product Category',
     category: 'Ecommerce',
-    listing: { category },
     callback: asyncCallback(callback),
-  });
+  };
+  if (category) {
+    event.listing = { category };
+  }
+  window.digitalData.events.push(event);
 }
 
 function searched(query, callback) {
@@ -172,6 +175,14 @@ describe('Integrations: GoogleAdWords', () => {
         });
       });
 
+      it('should not track conversion for page.type = product (digitalData)', (done) => {
+        window.digitalData.page.type = 'product';
+        viewedPage(() => {
+          assert.ok(!window.google_trackConversion.called);
+          done();
+        });
+      });
+
       it('should not track conversion for page.type = category', (done) => {
         viewedPageOfType('category', () => {
           assert.ok(!window.google_trackConversion.called);
@@ -188,6 +199,22 @@ describe('Integrations: GoogleAdWords', () => {
 
       it('should track conversion for home page', (done) => {
         viewedPageOfType('home', () => {
+          assert.ok(window.google_trackConversion.calledWith({
+            google_conversion_id: adwords.getOption('conversionId'),
+            google_custom_params: {
+              ecomm_prodid: '',
+              ecomm_pagetype: 'home',
+              ecomm_totalvalue: ''
+            },
+            google_remarketing_only: adwords.getOption('remarketingOnly'),
+          }));
+          done();
+        });
+      });
+
+      it('should track conversion for home page (digitalData)', (done) => {
+        window.digitalData.page.type = 'home';
+        viewedPage(() => {
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
@@ -264,6 +291,26 @@ describe('Integrations: GoogleAdWords', () => {
         });
       });
 
+      it('should send category with default separator (digitalData)', (done) => {
+        window.digitalData.listing = {
+          category: ['Category', 'Subcategory 1', 'Subcategory 2']
+        };
+        viewedProductCategory(undefined, () => {
+          assert.ok(window.google_trackConversion.calledWith({
+            google_conversion_id: adwords.getOption('conversionId'),
+            google_custom_params: {
+              ecomm_prodid: '',
+              ecomm_pagetype: 'category',
+              ecomm_totalvalue: '',
+              ecomm_category: 'Category/Subcategory 1/Subcategory 2',
+            },
+            google_remarketing_only: adwords.getOption('remarketingOnly'),
+          }));
+          done();
+        });
+      });
+
+
       it('should send "category" without separator', (done) => {
         viewedProductCategory('Category 1', () => {
           assert.ok(window.google_trackConversion.calledWith({
@@ -282,12 +329,34 @@ describe('Integrations: GoogleAdWords', () => {
     });
 
     describe('#onViewedProductDetail', () => {
+
       it('should send product id, value and category', (done) => {
         viewedProductDetail({
           id: '123',
           unitSalePrice: 100,
           category: ['Category', 'Subcategory']
         }, () => {
+          assert.ok(window.google_trackConversion.calledWith({
+            google_conversion_id: adwords.getOption('conversionId'),
+            google_custom_params: {
+              ecomm_prodid: '123',
+              ecomm_totalvalue: 100,
+              ecomm_pagetype: 'product',
+              ecomm_category: 'Category/Subcategory'
+            },
+            google_remarketing_only: adwords.getOption('remarketingOnly'),
+          }));
+          done();
+        });
+      });
+
+      it('should send product id, value and category (digitalData)', (done) => {
+        window.digitalData.product = {
+          id: '123',
+          unitSalePrice: 100,
+          category: ['Category', 'Subcategory']
+        };
+        viewedProductDetail(undefined, () => {
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
@@ -325,27 +394,45 @@ describe('Integrations: GoogleAdWords', () => {
     });
 
     describe('#onViewedCart', () => {
-      it('should send product ids, value and pagetype', (done) => {
-        viewedCart({
-          lineItems: [
-            {
-              product: {
-                id: '123',
-                unitSalePrice: 100
-              },
-              quantity: 2,
-              subtotal: 180
+      const cart = {
+        lineItems: [
+          {
+            product: {
+              id: '123',
+              unitSalePrice: 100
             },
-            {
-              product: {
-                id: '234',
-                unitSalePrice: 100
-              },
-              quantity: 2
-            }
-          ],
-          subtotal: 300
-        }, () => {
+            quantity: 2,
+            subtotal: 180
+          },
+          {
+            product: {
+              id: '234',
+              unitSalePrice: 100
+            },
+            quantity: 2
+          }
+        ],
+        subtotal: 300
+      };
+
+      it('should send product ids, value and pagetype', (done) => {
+        viewedCart(cart , () => {
+          assert.ok(window.google_trackConversion.calledWith({
+            google_conversion_id: adwords.getOption('conversionId'),
+            google_custom_params: {
+              ecomm_prodid: ['123', '234'],
+              ecomm_totalvalue: 300,
+              ecomm_pagetype: 'cart',
+            },
+            google_remarketing_only: adwords.getOption('remarketingOnly'),
+          }));
+          done();
+        })
+      });
+
+      it('should send product ids, value and pagetype (digitalData)', (done) => {
+        window.digitalData.cart = cart;
+        viewedCart(undefined , () => {
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
@@ -361,28 +448,31 @@ describe('Integrations: GoogleAdWords', () => {
     });
 
     describe('#onCompletedTransaction', () => {
-      it('should send product ids, value and pagetype', (done) => {
-        completedTransaction({
-          orderId: '123',
-          lineItems: [
-            {
-              product: {
-                id: '123',
-                unitSalePrice: 100
-              },
-              quantity: 2,
-              subtotal: 180
+
+      const transaction = {
+        orderId: '123',
+        lineItems: [
+          {
+            product: {
+              id: '123',
+              unitSalePrice: 100
             },
-            {
-              product: {
-                id: '234',
-                unitSalePrice: 100
-              },
-              quantity: 2
-            }
-          ],
-          subtotal: 300
-        }, () => {
+            quantity: 2,
+            subtotal: 180
+          },
+          {
+            product: {
+              id: '234',
+              unitSalePrice: 100
+            },
+            quantity: 2
+          }
+        ],
+        subtotal: 300
+      };
+
+      it('should send product ids, value and pagetype', (done) => {
+        completedTransaction(transaction, () => {
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
@@ -395,6 +485,23 @@ describe('Integrations: GoogleAdWords', () => {
           done();
         })
       });
+
+      it('should send product ids, value and pagetype (digitalData)', (done) => {
+        window.digitalData.transaction = transaction;
+        completedTransaction(undefined, () => {
+          assert.ok(window.google_trackConversion.calledWith({
+            google_conversion_id: adwords.getOption('conversionId'),
+            google_custom_params: {
+              ecomm_prodid: ['123', '234'],
+              ecomm_totalvalue: 300,
+              ecomm_pagetype: 'purchase',
+            },
+            google_remarketing_only: adwords.getOption('remarketingOnly'),
+          }));
+          done();
+        })
+      });
+
     });
 
   });

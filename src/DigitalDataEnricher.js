@@ -81,6 +81,10 @@ class DigitalDataEnricher
     this.listenToEvents();
   }
 
+  enrichIntegrationData(integration) {
+    integration.enrichDigitalData(this.digitalData);
+  }
+
   listenToEvents() {
     // enrich Completed Transction event with "transaction.isFirst"
     this.ddListener.push(['on', 'beforeEvent', (event) => {

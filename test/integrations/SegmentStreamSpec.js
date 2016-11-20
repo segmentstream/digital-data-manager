@@ -71,13 +71,14 @@ describe('SegmentStream', function() {
 
     describe('#enrichDigitalData', function () {
 
-      it('should enrich digitalData.user', () => {
+      it('should enrich digitalData.user', (done) => {
         window.ssApi.pushOnReady(() => {
           assert.equal(window.digitalData.user.test, 'test');
           assert.equal(window.digitalData.user.lifetimeVisitCount, 5);
           assert.equal(window.digitalData.user.ssAttributes.lifetimeVisitCount, 0);
           assert.ok(window.digitalData.user.ssAttributes.firstVisit !== undefined);
           assert.ok(window.digitalData.user.anonymousId);
+          done();
         });
       });
 

@@ -128,7 +128,7 @@ describe('Integrations: Criteo', () => {
         });
       });
 
-      it('should define "d" site type if digitalData.website.type is not one of: "desktop", "tablet" or "mobile"', (done) => {
+      it('should define "d" site type if website.type is not one of: "desktop", "tablet" or "mobile"', (done) => {
         viewedPage({
           website: {
             type: "test"
@@ -178,6 +178,20 @@ describe('Integrations: Criteo', () => {
             email: 'test@driveback.ru'
           }
         }, () => {
+          assert.deepEqual(window.criteo_q[0][2], { event: 'setEmail', email: 'test@driveback.ru' });
+          done();
+        });
+      });
+
+      it('should set email and website type from digitalData', (done) => {
+        window.digitalData.website = {
+          type: 'mobile'
+        };
+        window.digitalData.user = {
+          email: 'test@driveback.ru'
+        }
+        viewedPage({}, () => {
+          assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "m" });
           assert.deepEqual(window.criteo_q[0][2], { event: 'setEmail', email: 'test@driveback.ru' });
           done();
         });
@@ -235,10 +249,17 @@ describe('Integrations: Criteo', () => {
     });
 
     describe('#onViewedHome', () => {
+      it('should send viewHome event if digitalData.page.type is "home"', (done) => {
+        window.digitalData.page.type = 'home';
+        viewedPage({}, () => {
+          assert.deepEqual(window.criteo_q[0][2], {event: 'viewHome'})
+          done();
+        });
+      });
+
       it('should send viewHome event if user visits home page', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
-          category: 'Content',
           page: {
             type: 'home'
           },
@@ -252,7 +273,6 @@ describe('Integrations: Criteo', () => {
       it('should send viewHome event without segment if userSegment option is not defined', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
-          category: 'Content',
           page: {
             type: 'home'
           },
@@ -270,14 +290,11 @@ describe('Integrations: Criteo', () => {
 
       it('should send viewHome event with segment if user visits home page', (done) => {
         criteo.setOption('userSegmentVar', 'user.criteoSegment');
+        window.digitalData.user.criteoSegment = '2';
         window.digitalData.events.push({
           name: 'Viewed Page',
-          category: 'Content',
           page: {
             type: 'home'
-          },
-          user: {
-            criteoSegment: '2'
           },
           callback: () => {
             assert.deepEqual(window.criteo_q[0][2], {
@@ -292,7 +309,6 @@ describe('Integrations: Criteo', () => {
       it('should not send viewHome event if user visits other pages', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
-          category: 'Content',
           page: {
             type: 'content'
           },
@@ -306,7 +322,6 @@ describe('Integrations: Criteo', () => {
       it('should not send any hit if user visits specific pages', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
-          category: 'Content',
           page: {
             type: 'product'
           },
@@ -321,7 +336,6 @@ describe('Integrations: Criteo', () => {
         criteo.setOption('noConflict', true);
         window.digitalData.events.push({
           name: 'Viewed Page',
-          category: 'Content',
           page: {
             type: 'home'
           },
@@ -334,10 +348,35 @@ describe('Integrations: Criteo', () => {
     });
 
     describe('#onViewedProductCategory', () => {
+      it('should send viewList event if user visits listing page with more than 3 items (digitalData)', (done) => {
+        window.digitalData.listing = {
+          items: [
+            {
+              id: '123'
+            },
+            {
+              id: '234'
+            },
+            {
+              id: '345'
+            },
+            {
+              id: '456'
+            }
+          ]
+        };
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          callback: () => {
+            assert.deepEqual(window.criteo_q[0], {event: 'viewList', item: ['123', '234', '345']});
+            done();
+          }
+        });
+      });
+
       it('should send viewList event if user visits listing page with more than 3 items', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Product Category',
-          category: 'Ecommerce',
           listing: {
             items: [
               {
@@ -361,16 +400,42 @@ describe('Integrations: Criteo', () => {
         });
       });
 
+      it('should send viewList event if user visits listing page with more than 3 items (enrichment)', (done) => {
+        window.digitalData.listing = {
+          items: [
+            {
+              id: '123'
+            },
+            {
+              id: '234'
+            },
+            {
+              id: '345'
+            },
+            {
+              id: '456'
+            }
+          ]
+        };
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          callback: () => {
+            assert.deepEqual(window.criteo_q[0], {event: 'viewList', item: ['123', '234', '345']});
+            done();
+          }
+        });
+      });
+
       it('should send viewList event with user_segment if user visits listing page with more than 3 items', (done) => {
         criteo.setOption('userSegmentVar', 'user.criteoSegment');
+        window.digitalData.user = {
+          criteoSegment: '2'
+        };
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {
             type: 'category'
           },
-          user: {
-            criteoSegment: '2'
-          }
         });
         window.digitalData.events.push({
           name: 'Viewed Product Category',
@@ -404,7 +469,6 @@ describe('Integrations: Criteo', () => {
       it('should send viewList event if user visits listing page with less than 3 items', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Product Category',
-          category: 'Ecommerce',
           listing: {
             items: [
               {
@@ -422,10 +486,9 @@ describe('Integrations: Criteo', () => {
         });
       });
 
-      it('should not send viewList event if digitalData.listing obejct is not defined', (done) => {
+      it('should not send viewList event if digitalData.listing object is not defined', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Product Category',
-          category: 'Ecommerce',
           callback: () => {
             assert.ok(!window.criteo_q[0]);
             done();
@@ -437,7 +500,6 @@ describe('Integrations: Criteo', () => {
         criteo.setOption('noConflict', true);
         window.digitalData.events.push({
           name: 'Viewed Product Category',
-          category: 'Ecommerce',
           listing: {
             items: [
               {
@@ -454,10 +516,36 @@ describe('Integrations: Criteo', () => {
     });
 
     describe('#onSearchedProducts', () => {
+
+      it('should send viewList event if user visits listing page with more than 3 items (digitalData)', (done) => {
+        window.digitalData.listing = {
+          items: [
+            {
+              id: '123'
+            },
+            {
+              id: '234'
+            },
+            {
+              id: '345'
+            },
+            {
+              id: '456'
+            }
+          ]
+        };
+        window.digitalData.events.push({
+          name: 'Searched Products',
+          callback: () => {
+            assert.deepEqual(window.criteo_q[0], {event: 'viewList', item: ['123', '234', '345']});
+            done();
+          }
+        });
+      });
+
       it('should send viewList event if user visits listing page with more than 3 items', (done) => {
         window.digitalData.events.push({
           name: 'Searched Products',
-          category: 'Content',
           listing: {
             items: [
               {
@@ -484,7 +572,6 @@ describe('Integrations: Criteo', () => {
       it('should send viewList event if user visits listing page with less than 3 items', (done) => {
         window.digitalData.events.push({
           name: 'Searched Products',
-          category: 'Ecommerce',
           listing: {
             items: [
               {
@@ -505,7 +592,6 @@ describe('Integrations: Criteo', () => {
       it('should not send viewList event if digitalData.listing obejct is not defined', (done) => {
         window.digitalData.events.push({
           name: 'Searched Products',
-          category: 'Ecommerce',
           callback: () => {
             assert.ok(!window.criteo_q[0]);
             done();
@@ -517,7 +603,6 @@ describe('Integrations: Criteo', () => {
         criteo.setOption('noConflict', true);
         window.digitalData.events.push({
           name: 'Searched Products',
-          category: 'Ecommerce',
           listing: {
             items: [
               {
@@ -534,10 +619,22 @@ describe('Integrations: Criteo', () => {
     });
 
     describe('#onViewedProductDetail', () => {
+      it('should send viewItem event if user visits product detail page (digitalData)', (done) => {
+        window.digitalData.product = {
+          id: '123'
+        };
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          callback: () => {
+            assert.deepEqual(window.criteo_q[0], {event: 'viewItem', item: '123'});
+            done();
+          }
+        });
+      });
+
       it('should send viewItem event if user visits product detail page', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
-          category: 'Ecommerce',
           product: {
             id: '123'
           },
@@ -551,7 +648,6 @@ describe('Integrations: Criteo', () => {
       it('should not send viewItem event if product ID is not defined', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
-          category: 'Ecommerce',
           callback: () => {
             assert.ok(!window.criteo_q[0]);
             done();
@@ -563,7 +659,6 @@ describe('Integrations: Criteo', () => {
         criteo.setOption('noConflict', true);
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
-          category: 'Ecommerce',
           product: {
             id: '123'
           },
@@ -576,10 +671,58 @@ describe('Integrations: Criteo', () => {
     });
 
     describe('#onViewedCart', () => {
+
+      it('should send viewBasket event if user visits cart page (digitalData)', (done) => {
+        window.digitalData.cart = {
+          lineItems: [
+            {
+              product: {
+                id: '123',
+                unitSalePrice: 100
+              },
+              quantity: 1
+            },
+            {
+              product: {
+                id: '234',
+                unitPrice: 100,
+                unitSalePrice: 50
+              },
+              quantity: 2
+            },
+            {
+              product: {
+                id: '345',
+                unitPrice: 30
+              }
+            },
+            {
+              product: {
+                id: '456',
+              }
+            },
+            {
+              product: {}
+            }
+          ]
+        };
+        window.digitalData.events.push({
+          name: 'Viewed Cart',
+          callback: () => {
+            assert.deepEqual(window.criteo_q[0], {event: 'viewBasket', item: [
+              { id: '123', price: 100, quantity: 1 },
+              { id: '234', price: 50, quantity: 2 },
+              { id: '345', price: 30, quantity: 1 },
+              { id: '456', price: 0, quantity: 1 }
+            ]});
+            done();
+          }
+        });
+      });
+
       it('should send viewBasket event if user visits cart page', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Cart',
-          category: 'Ecommerce',
           cart: {
             lineItems: [
               {
@@ -628,7 +771,6 @@ describe('Integrations: Criteo', () => {
       it('should not send viewBasket event if cart object is not defined', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Cart',
-          category: 'Ecommerce',
           callback: () => {
             assert.ok(!window.criteo_q[0]);
             done();
@@ -639,7 +781,6 @@ describe('Integrations: Criteo', () => {
       it('should not send viewBasket event if cart is empty', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Cart',
-          category: 'Ecommerce',
           cart: {
             lineItems: []
           },
@@ -654,7 +795,6 @@ describe('Integrations: Criteo', () => {
         criteo.setOption('noConflict', true);
         window.digitalData.events.push({
           name: 'Viewed Cart',
-          category: 'Ecommerce',
           cart: {
             lineItems: [
               {
@@ -707,10 +847,35 @@ describe('Integrations: Criteo', () => {
         }
       ];
 
+      it('should send trackTransaction event if transaction is completed (digitalData)', (done) => {
+        window.digitalData.transaction = {
+          orderId: '123',
+          isFirst: true,
+          lineItems: lineItems
+        };
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          callback: () => {
+            assert.deepEqual(window.criteo_q[0], {
+              event: 'trackTransaction',
+              id: '123',
+              new_customer: 1,
+              deduplication: 0,
+              item: [
+                { id: '123', price: 100, quantity: 1 },
+                { id: '234', price: 50, quantity: 2 },
+                { id: '345', price: 30, quantity: 1 },
+                { id: '456', price: 0, quantity: 1 }
+              ]
+            });
+            done();
+          }
+        });
+      });
+
       it('should send trackTransaction event if transaction is completed (new_customer = 1)', (done) => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
-          category: 'Ecommerce',
           transaction: {
             orderId: '123',
             isFirst: true,
@@ -737,7 +902,6 @@ describe('Integrations: Criteo', () => {
       it('should send trackTransaction event if transaction is completed (new_customer = 0)', (done) => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
-          category: 'Ecommerce',
           transaction: {
             orderId: '123',
             isFirst: false,
@@ -764,7 +928,6 @@ describe('Integrations: Criteo', () => {
       it('should send trackTransaction event if transaction is completed (deduplication = 1)', (done) => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
-          category: 'Ecommerce',
           context: {
             campaign: {
               source: 'CriTeO'
@@ -801,7 +964,6 @@ describe('Integrations: Criteo', () => {
         };
         window.digitalData.events.push({
           name: 'Completed Transaction',
-          category: 'Ecommerce',
           transaction: {
             orderId: '123',
             lineItems: lineItems
@@ -827,7 +989,6 @@ describe('Integrations: Criteo', () => {
       it('should not send trackTransaction event if transaction object is not defined', (done) => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
-          category: 'Ecommerce',
           callback: () => {
             assert.ok(!window.criteo_q[0]);
             done();
@@ -838,7 +999,6 @@ describe('Integrations: Criteo', () => {
       it('should not send trackTransaction event if transaction object has no LineItems', (done) => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
-          category: 'Ecommerce',
           transaction: {
             lineItems: []
           },
@@ -853,7 +1013,6 @@ describe('Integrations: Criteo', () => {
         criteo.setOption('noConflict', true);
         window.digitalData.events.push({
           name: 'Completed Transaction',
-          category: 'Ecommerce',
           transaction: {
             orderId: '123',
             lineItems: lineItems
@@ -870,7 +1029,6 @@ describe('Integrations: Criteo', () => {
       it('should set email if user email was acquired', (done) => {
         window.digitalData.events.push({
           name: 'Subscribed',
-          category: 'Email',
           user: {
             email: 'test@driveback.ru'
           },
@@ -885,7 +1043,6 @@ describe('Integrations: Criteo', () => {
         criteo.setOption('noConflict', true);
         window.digitalData.events.push({
           name: 'Subscribed',
-          category: 'Email',
           user: {
             email: 'test@driveback.ru'
           },

@@ -47,32 +47,6 @@ describe('Integrations: MyTarget', () => {
       });
     });
 
-    describe('#getList', () => {
-      it('should return default list', () => {
-        assert.equal(myTarget.getList(), '1');
-      });
-
-      it('should return defined list', () => {
-        myTarget.setOption('list', '5');
-        assert.equal(myTarget.getList(), '5');
-      });
-
-      it('should return list defined in DDL', () => {
-        window.digitalData.page.list = '5';
-        myTarget.setOption('listProperty', 'page.list');
-        assert.equal(myTarget.getList(), '5');
-      });
-
-      it('should return list defined in DDL using mapping', () => {
-        window.digitalData.website.region = 'New York';
-        myTarget.setOption('listProperty', 'website.region');
-        myTarget.setOption('listPropertyMapping', {
-          'New York': '5'
-        });
-        assert.equal(myTarget.getList(), '5');
-      });
-    });
-
     describe('#initialize', () => {
       it('should initialize mytarget queue object', () => {
         ddManager.initialize();
@@ -147,7 +121,6 @@ describe('Integrations: MyTarget', () => {
         myTarget.setOption('noConflict', true);
         window.digitalData.events.push({
           name: 'Viewed Page',
-          category: 'Content',
           page: {
             type: 'home'
           },
@@ -163,7 +136,6 @@ describe('Integrations: MyTarget', () => {
       it('should send viewHome event if user visits home page', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
-          category: 'Content',
           page: {
             type: 'home'
           },
@@ -176,6 +148,59 @@ describe('Integrations: MyTarget', () => {
               totalvalue: '',
               list: myTarget.getList(),
             });
+            done();
+          }
+        });
+      });
+
+      it('should send viewHome event with default list value', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'home'
+          },
+          callback: () => {
+            assert.equal(window._tmr.length, 2);
+            assert.equal(window._tmr[1].list, '1');
+            done();
+          }
+        });
+      });
+
+      it('should send viewHome event using defined list value', (done) => {
+        myTarget.setOption('listVar', {
+          type: 'constant',
+          value: '5'
+        });
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'home'
+          },
+          callback: () => {
+            assert.equal(window._tmr.length, 2);
+            assert.equal(window._tmr[1].list, '5');
+            done();
+          }
+        });
+      });
+
+      it('should send viewHome event using list value defined in digitalData', (done) => {
+        window.digitalData.website = {
+          myTargetList: '3'
+        };
+        myTarget.setOption('listVar', {
+          type: 'digitalData',
+          value: 'website.myTargetList'
+        });
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'home'
+          },
+          callback: () => {
+            assert.equal(window._tmr.length, 2);
+            assert.equal(window._tmr[1].list, '3');
             done();
           }
         });
@@ -289,13 +314,9 @@ describe('Integrations: MyTarget', () => {
           total: 230
         };
         window.digitalData.events.push({
-          name: 'Viewed Page',
-          category: 'Content',
-          page: {
-            type: 'cart'
-          },
+          name: 'Viewed Cart',
           callback: () => {
-            assert.deepEqual(window._tmr[1], {
+            assert.deepEqual(window._tmr[0], {
               type: 'itemView',
               productid: ['123', '234', '345', '456'],
               pagetype: 'cart',

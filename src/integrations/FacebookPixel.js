@@ -49,6 +49,31 @@ class FacebookPixel extends Integration {
     }
   }
 
+  getEnrichableEventProps(event) {
+    let enrichableProps = [];
+    switch (event.name) {
+    case 'Viewed Product Detail':
+      enrichableProps = [
+        'product',
+      ];
+      break;
+    case 'Viewed Product Category':
+      enrichableProps = [
+        'listing.categoryId',
+      ];
+      break;
+    case 'Completed Transaction':
+      enrichableProps = [
+        'transaction',
+      ];
+      break;
+    default:
+      // do nothing
+    }
+
+    return enrichableProps;
+  }
+
   isLoaded() {
     return !!(window.fbq && window.fbq.callMethod);
   }

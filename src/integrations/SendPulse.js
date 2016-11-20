@@ -34,7 +34,6 @@ class SendPulse extends Integration {
           this.sendUserAttributes(this.digitalData.user);
         }
       };
-      this.enrichDigitalData();
       this.onLoad();
     });
   }

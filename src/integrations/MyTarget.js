@@ -1,5 +1,6 @@
-import Integration from './../Integration.js';
-import deleteProperty from './../functions/deleteProperty.js';
+import Integration from './../Integration';
+import deleteProperty from './../functions/deleteProperty';
+import getVarValue from './../functions/getVarValue';
 
 function lineItemsToProductIds(lineItems) {
   const productIds = lineItems.filter((lineItem) => {
@@ -15,9 +16,10 @@ class MyTarget extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       counterId: '',
-      list: '1',
-      listProperty: undefined,
-      listPropertyMapping: undefined,
+      listVar: {
+        'type': 'constant',
+        'value': '1',
+      },
       noConflict: false,
     }, options);
 
@@ -41,6 +43,40 @@ class MyTarget extends Integration {
     }
   }
 
+  getEnrichableEventProps(event) {
+    let enrichableProps = [];
+    switch (event.name) {
+    case 'Viewed Page':
+      enrichableProps = [
+        'page.type',
+      ];
+      break;
+    case 'Viewed Product Detail':
+      enrichableProps = [
+        'product',
+      ];
+      break;
+    case 'Completed Transaction':
+      enrichableProps = [
+        'transaction',
+      ];
+      break;
+    case 'Viewed Cart':
+      enrichableProps = [
+        'cart',
+      ];
+      break;
+    default:
+      // do nothing
+    }
+
+    const listVar = this.getOption('listVar');
+    if (listVar.type === 'digitalData') {
+      enrichableProps.push(listVar.value);
+    }
+    return enrichableProps;
+  }
+
   isLoaded() {
     return !!(window._tmr && window._tmr.unload);
   }
@@ -49,21 +85,11 @@ class MyTarget extends Integration {
     deleteProperty(window, '_tmr');
   }
 
-  getList() {
-    let list = this.getOption('list');
-    const listProperty = this.getOption('listProperty');
-    if (listProperty) {
-      const listPropertyValue = this.get(listProperty);
-      if (listPropertyValue) {
-        const listPropertyMapping = this.getOption('listPropertyMapping');
-        if (listPropertyMapping && listPropertyMapping[listPropertyValue]) {
-          list = listPropertyMapping[listPropertyValue];
-        } else {
-          if (parseInt(listPropertyValue, 10)) {
-            list = listPropertyValue;
-          }
-        }
-      }
+  getList(event) {
+    const listVar = this.getOption('listVar');
+    let list;
+    if (listVar) {
+      list = getVarValue(listVar, event);
     }
     return list;
   }
@@ -73,6 +99,7 @@ class MyTarget extends Integration {
       'Viewed Page': 'onViewedPage',
       'Viewed Product Category': 'onViewedProductCategory',
       'Viewed Product Detail': 'onViewedProductDetail',
+      'Viewed Cart': 'onViewedCart',
       'Completed Transaction': 'onCompletedTransaction',
     };
 
@@ -96,32 +123,30 @@ class MyTarget extends Integration {
     const page = event.page;
     if (page) {
       if (page.type === 'home') {
-        this.onViewedHome();
-      } else if (page.type === 'cart') {
-        this.onViewedCart();
-      } else if (['product', 'category', 'checkout', 'confirmation'].indexOf(page.type) < 0) {
-        this.onViewedOtherPage();
+        this.onViewedHome(event);
+      } else if (['product', 'category', 'checkout', 'confirmation', 'cart'].indexOf(page.type) < 0) {
+        this.onViewedOtherPage(event);
       }
     }
   }
 
-  onViewedHome() {
+  onViewedHome(event) {
     window._tmr.push({
       type: 'itemView',
       productid: '',
       pagetype: 'home',
       totalvalue: '',
-      list: this.getList(),
+      list: this.getList(event),
     });
   }
 
-  onViewedProductCategory() {
+  onViewedProductCategory(event) {
     window._tmr.push({
       type: 'itemView',
       productid: '',
       pagetype: 'category',
       totalvalue: '',
-      list: this.getList(),
+      list: this.getList(event),
     });
   }
 
@@ -129,15 +154,15 @@ class MyTarget extends Integration {
     const product = event.product;
     window._tmr.push({
       type: 'itemView',
-      productid: product.id || product.skuCode || '',
+      productid: product.id || '',
       pagetype: 'product',
       totalvalue: product.unitSalePrice || product.unitPrice || '',
-      list: this.getList(),
+      list: this.getList(event),
     });
   }
 
-  onViewedCart() {
-    const cart = this.digitalData.cart;
+  onViewedCart(event) {
+    const cart = event.cart;
     let productIds;
 
     if (cart.lineItems || cart.lineItems.length > 0) {
@@ -149,17 +174,17 @@ class MyTarget extends Integration {
       productid: productIds || '',
       pagetype: 'cart',
       totalvalue: cart.total || cart.subtotal || '',
-      list: this.getList(),
+      list: this.getList(event),
     });
   }
 
-  onViewedOtherPage() {
+  onViewedOtherPage(event) {
     window._tmr.push({
       type: 'itemView',
       productid: '',
       pagetype: 'other',
       totalvalue: '',
-      list: this.getList(),
+      list: this.getList(event),
     });
   }
 
@@ -170,13 +195,12 @@ class MyTarget extends Integration {
     if (transaction.lineItems || transaction.lineItems.length > 0) {
       productIds = lineItemsToProductIds(transaction.lineItems);
     }
-
     window._tmr.push({
       type: 'itemView',
       productid: productIds || '',
       pagetype: 'purchase',
       totalvalue: transaction.total || transaction.subtotal || '',
-      list: this.getList(),
+      list: this.getList(event),
     });
   }
 

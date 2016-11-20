@@ -28,7 +28,7 @@ class Criteo extends Integration {
     const optionsWithDefaults = Object.assign({
       account: '',
       noConflict: false,
-      userSegmentVar: undefined
+      userSegmentVar: undefined,
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -41,21 +41,61 @@ class Criteo extends Integration {
     });
   }
 
-  defineUserSegment(event) {
+  getEnrichableEventProps(event) {
+    let enrichableProps = [];
+    switch (event.name) {
+    case 'Viewed Page':
+      enrichableProps = [
+        'website.type',
+        'user.email',
+        'page.type',
+      ];
+      break;
+    case 'Viewed Product Detail':
+      enrichableProps = [
+        'product.id',
+      ];
+      break;
+    case 'Viewed Product Category':
+    case 'Searched Products':
+      enrichableProps = [
+        'listing.items',
+      ];
+      break;
+    case 'Viewed Cart':
+      enrichableProps = [
+        'cart',
+      ];
+      break;
+    case 'Completed Transaction':
+      enrichableProps = [
+        'context.campaign',
+        'transaction',
+      ];
+      break;
+    default:
+      // do nothing
+    }
+
     const userSegmentVar = this.getOption('userSegmentVar');
     if (userSegmentVar) {
-      const userSegment = getProp(event, userSegmentVar);
-      this.userSegment = userSegment;
-    }  
+      enrichableProps.push(userSegmentVar);
+    }
+
+    return enrichableProps;
   }
 
-  getUserSegment() {
-    return this.userSegment;
+  getUserSegment(event) {
+    const userSegmentVar = this.getOption('userSegmentVar');
+    let userSegment;
+    if (userSegmentVar) {
+      userSegment = getProp(event, userSegmentVar);
+    }
+    return userSegment;
   }
 
-  pushCriteoQueue(criteoEvent) {
+  pushCriteoQueue(criteoEvent, userSegment) {
     if (criteoEvent) {
-      const userSegment = this.getUserSegment();
       if (userSegment) {
         criteoEvent.user_segment = userSegment;
       }
@@ -74,7 +114,6 @@ class Criteo extends Integration {
   initialize() {
     window.criteo_q = window.criteo_q || [];
     this.criteo_q = [];
-
     if (this.getOption('account') && !this.getOption('noConflict')) {
       this.load(this.onLoad);
     } else {
@@ -143,11 +182,9 @@ class Criteo extends Integration {
       });
     }
 
-    this.defineUserSegment(event);
-
     if (page) {
       if (page.type === 'home') {
-        this.onViewedHome();
+        this.onViewedHome(event);
       } else if (
         !page.type ||
         ['category', 'product', 'search', 'cart', 'confirmation'].indexOf(page.type) < 0
@@ -159,11 +196,11 @@ class Criteo extends Integration {
     }
   }
 
-  onViewedHome() {
+  onViewedHome(event) {
     const criteoEvent = {
       event: 'viewHome',
     };
-    this.pushCriteoQueue(criteoEvent);
+    this.pushCriteoQueue(criteoEvent, this.getUserSegment(event));
   }
 
   onViewedProductListing(event) {
@@ -187,7 +224,8 @@ class Criteo extends Integration {
         {
           event: 'viewList',
           item: productIds,
-        }
+        },
+        this.getUserSegment(event)
       );
     }
   }
@@ -203,7 +241,8 @@ class Criteo extends Integration {
         {
           event: 'viewItem',
           item: productId,
-        }
+        },
+        this.getUserSegment(event)
       );
     }
   }
@@ -217,7 +256,8 @@ class Criteo extends Integration {
           {
             event: 'viewBasket',
             item: products,
-          }
+          },
+          this.getUserSegment(event)
         );
       }
     }
@@ -238,13 +278,16 @@ class Criteo extends Integration {
         ) {
           deduplication = 1;
         }
-        this.pushCriteoQueue({
-          event: 'trackTransaction',
-          id: transaction.orderId,
-          new_customer: (transaction.isFirst) ? 1 : 0,
-          deduplication: deduplication,
-          item: products,
-        });
+        this.pushCriteoQueue(
+          {
+            event: 'trackTransaction',
+            id: transaction.orderId,
+            new_customer: (transaction.isFirst) ? 1 : 0,
+            deduplication: deduplication,
+            item: products,
+          },
+          this.getUserSegment(event)
+        );
       }
     }
   }
