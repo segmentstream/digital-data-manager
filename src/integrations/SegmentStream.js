@@ -21,6 +21,20 @@ class SegmentStream extends Integration {
     });
   }
 
+  getEnrichableEventProps(event) {
+    let enrichableProps = [];
+    switch (event.name) {
+    case 'Viewed Product Detail':
+      enrichableProps = [
+        'product',
+      ];
+      break;
+    default:
+      // do nothing
+    }
+    return enrichableProps;
+  }
+
   initialize() {
     const ssApi = window.ssApi = window.ssApi || [];
 

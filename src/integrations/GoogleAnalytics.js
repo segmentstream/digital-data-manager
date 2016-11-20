@@ -5,6 +5,23 @@ import type from 'component-type';
 import each from './../functions/each.js';
 import size from './../functions/size.js';
 import clone from 'component-clone';
+import {
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  VIEWED_PRODUCT_CATEGORY,
+  VIEWED_CART,
+  SEARCHED_PRODUCTS,
+  COMPLETED_TRANSACTION,
+  REFUNDED_TRANSACTION,
+  VIEWED_CHECKOUT_STEP,
+  COMPLETED_CHECKOUT_STEP,
+  VIEWED_PRODUCT,
+  CLICKED_PRODUCT,
+  ADDED_PRODUCT,
+  REMOVED_PRODUCT,
+  VIEWED_CAMPAIGN,
+  CLICKED_CAMPAIGN,
+} from './../events';
 
 function getTransactionVoucher(transaction) {
   let voucher;
@@ -77,7 +94,7 @@ class GoogleAnalytics extends Integration {
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case 'Viewed Page':
+    case VIEWED_PAGE:
       enrichableProps = [
         'user.userId',
         'website.currency',
@@ -94,19 +111,19 @@ class GoogleAnalytics extends Integration {
         }
       });
       break;
-    case 'Viewed Product Detail':
+    case VIEWED_PRODUCT_DETAIL:
       enrichableProps = [
         'product',
       ];
       break;
-    case 'Viewed Checkout Step':
+    case VIEWED_CHECKOUT_STEP:
       enrichableProps = [
         'cart',
         'transaction',
       ];
       break;
-    case 'Completed Transaction':
-    case 'Refunded Transaction':
+    case COMPLETED_TRANSACTION:
+    case REFUNDED_TRANSACTION:
       enrichableProps = [
         'transaction',
       ];
@@ -284,12 +301,12 @@ class GoogleAnalytics extends Integration {
       return false;
     }
     const map = {
-      'category': 'Viewed Product Category',
-      'product': 'Viewed Product Detail',
-      'cart': ['Viewed Cart', 'Viewed Checkout Step'],
-      'confirmation': 'Completed Transaction',
-      'search': 'Searched Products',
-      'checkout': 'Viewed Checkout Step',
+      'category': VIEWED_PRODUCT_CATEGORY,
+      'product': VIEWED_PRODUCT_DETAIL,
+      'cart': [VIEWED_CART, VIEWED_CHECKOUT_STEP],
+      'confirmation': COMPLETED_TRANSACTION,
+      'search': SEARCHED_PRODUCTS,
+      'checkout': VIEWED_CHECKOUT_STEP,
     };
 
     let eventNames = map[pageType];
@@ -305,26 +322,26 @@ class GoogleAnalytics extends Integration {
   }
 
   trackEvent(event) {
-    if (event.name === 'Viewed Page') {
+    if (event.name === VIEWED_PAGE) {
       if (!this.getOption('noConflict')) {
         this.onViewedPage(event);
       }
     } else if (this.getOption('enhancedEcommerce')) {
       const methods = {
-        'Viewed Product': this.onViewedProduct,
-        'Clicked Product': this.onClickedProduct,
-        'Viewed Product Detail': this.onViewedProductDetail,
-        'Added Product': this.onAddedProduct,
-        'Removed Product': this.onRemovedProduct,
-        'Completed Transaction': this.onCompletedTransactionEnhanced,
-        'Refunded Transaction': this.onRefundedTransaction,
-        'Viewed Campaign': this.onViewedCampaign,
-        'Clicked Campaign': this.onClickedCampaign,
-        'Viewed Checkout Step': this.onViewedCheckoutStep,
-        'Completed Checkout Step': this.onCompletedCheckoutStep,
-        'Viewed Product Category': this.onViewedProductCategory, // stub
-        'Viewed Cart': this.onViewedCart, // stub
-        'Searched Products': this.onSearchedProducts, // stub
+        [VIEWED_PRODUCT]: this.onViewedProduct,
+        [CLICKED_PRODUCT]: this.onClickedProduct,
+        [VIEWED_PRODUCT_DETAIL]: this.onViewedProductDetail,
+        [ADDED_PRODUCT]: this.onAddedProduct,
+        [REMOVED_PRODUCT]: this.onRemovedProduct,
+        [COMPLETED_TRANSACTION]: this.onCompletedTransactionEnhanced,
+        [REFUNDED_TRANSACTION]: this.onRefundedTransaction,
+        [VIEWED_CAMPAIGN]: this.onViewedCampaign,
+        [CLICKED_CAMPAIGN]: this.onClickedCampaign,
+        [VIEWED_CHECKOUT_STEP]: this.onViewedCheckoutStep,
+        [COMPLETED_CHECKOUT_STEP]: this.onCompletedCheckoutStep,
+        [VIEWED_PRODUCT_CATEGORY]: this.onViewedProductCategory, // stub
+        [VIEWED_CART]: this.onViewedCart, // stub
+        [SEARCHED_PRODUCTS]: this.onSearchedProducts, // stub
       };
       const method = methods[event.name];
       if (method) {
@@ -333,10 +350,18 @@ class GoogleAnalytics extends Integration {
         this.onCustomEvent(event);
       }
     } else {
-      if (event.name === 'Completed Transaction' && !this.getOption('noConflict')) {
+      if (event.name === COMPLETED_TRANSACTION && !this.getOption('noConflict')) {
         this.onCompletedTransaction(event);
       } else {
-        this.onCustomEvent(event);
+        if ([
+          VIEWED_PRODUCT_DETAIL,
+          VIEWED_PRODUCT_CATEGORY,
+          SEARCHED_PRODUCTS,
+          COMPLETED_TRANSACTION,
+          VIEWED_CART,
+        ].indexOf(event.name) < 0) {
+          this.onCustomEvent(event);
+        }
       }
     }
   }

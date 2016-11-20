@@ -56,14 +56,14 @@ class MyTarget extends Integration {
         'product',
       ];
       break;
-    case 'Completed Transaction':
-      enrichableProps = [
-        'transaction',
-      ];
-      break;
     case 'Viewed Cart':
       enrichableProps = [
         'cart',
+      ];
+      break;
+    case 'Completed Transaction':
+      enrichableProps = [
+        'transaction',
       ];
       break;
     default:

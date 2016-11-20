@@ -2111,7 +2111,7 @@ describe('Integrations: GoogleAnalytics', () => {
               orderId: '7306cc06'
             },
             callback: () => {
-              assert.equal(window.ga.args.length, 1);
+              assert.ok(!window.ga.called);
             }
           });
         });

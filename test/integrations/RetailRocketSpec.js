@@ -120,7 +120,7 @@ describe('Integrations: RetailRocket', () => {
     });
 
     describe('#onViewedProductCategory', () => {
-      it('should track "Viewed Product Category"', (done) => {
+      it('should track "Viewed Product Category" with categoryId param (digitalData)', (done) => {
         window.digitalData.listing = {
           categoryId: '28'
         };
@@ -176,7 +176,7 @@ describe('Integrations: RetailRocket', () => {
 
     describe('#onViewedProductDetail', () => {
 
-      it('should track "Viewed Product Detail"', (done) => {
+      it('should track "Viewed Product Detail" with product.id param (digitalData)', (done) => {
         window.digitalData.product = {
           id: '327'
         };
@@ -431,7 +431,7 @@ describe('Integrations: RetailRocket', () => {
 
     describe('#onCompletedTransaction', () => {
 
-      it('should track "Completed Transaction" with transaction param', (done) => {
+      it('should track "Completed Transaction" with transaction param (digitalData)', (done) => {
         window.digitalData.transaction = {
           orderId: '123',
           lineItems: [
