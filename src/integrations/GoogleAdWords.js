@@ -210,7 +210,6 @@ class GoogleAdWords extends Integration {
     if (!transaction) {
       return;
     }
-
     this.trackConversion({
       ecomm_prodid: lineItemsToProductIds(transaction.lineItems),
       ecomm_pagetype: 'purchase',

@@ -33,7 +33,6 @@ function viewedPageOfType(type, callback) {
 function viewedProductCategory(category, callback) {
   const event = {
     name: 'Viewed Product Category',
-    category: 'Ecommerce',
     callback: asyncCallback(callback),
   };
   if (category) {
@@ -42,19 +41,9 @@ function viewedProductCategory(category, callback) {
   window.digitalData.events.push(event);
 }
 
-function searched(query, callback) {
-  window.digitalData.events.push({
-    name: 'Searched Products',
-    category: 'Content',
-    listing: { query },
-    callback: asyncCallback(callback),
-  });
-}
-
 function viewedProductDetail(product, callback) {
   window.digitalData.events.push({
     name: 'Viewed Product Detail',
-    category: 'Ecommerce',
     product: product,
     callback: asyncCallback(callback),
   });
@@ -63,7 +52,6 @@ function viewedProductDetail(product, callback) {
 function completedTransaction(transaction, callback) {
   window.digitalData.events.push({
     name: 'Completed Transaction',
-    category: 'Ecommerce',
     transaction,
     callback: asyncCallback(callback),
   });
@@ -449,30 +437,28 @@ describe('Integrations: GoogleAdWords', () => {
 
     describe('#onCompletedTransaction', () => {
 
-      const transaction = {
-        orderId: '123',
-        lineItems: [
-          {
-            product: {
-              id: '123',
-              unitSalePrice: 100
-            },
-            quantity: 2,
-            subtotal: 180
-          },
-          {
-            product: {
-              id: '234',
-              unitSalePrice: 100
-            },
-            quantity: 2
-          }
-        ],
-        subtotal: 300
-      };
-
       it('should send product ids, value and pagetype', (done) => {
-        completedTransaction(transaction, () => {
+        completedTransaction({
+          orderId: '123',
+          lineItems: [
+            {
+              product: {
+                id: '123',
+                unitSalePrice: 100
+              },
+              quantity: 2,
+              subtotal: 180
+            },
+            {
+              product: {
+                id: '234',
+                unitSalePrice: 100
+              },
+              quantity: 2
+            }
+          ],
+          subtotal: 300
+        }, () => {
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
@@ -483,11 +469,31 @@ describe('Integrations: GoogleAdWords', () => {
             google_remarketing_only: adwords.getOption('remarketingOnly'),
           }));
           done();
-        })
+        });
       });
 
       it('should send product ids, value and pagetype (digitalData)', (done) => {
-        window.digitalData.transaction = transaction;
+        window.digitalData.transaction = {
+          orderId: '123',
+          lineItems: [
+            {
+              product: {
+                id: '123',
+                unitSalePrice: 100
+              },
+              quantity: 2,
+              subtotal: 180
+            },
+            {
+              product: {
+                id: '234',
+                unitSalePrice: 100
+              },
+              quantity: 2
+            }
+          ],
+          subtotal: 300
+        };
         completedTransaction(undefined, () => {
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
