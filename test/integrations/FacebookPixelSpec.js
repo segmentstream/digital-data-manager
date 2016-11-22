@@ -143,8 +143,6 @@ describe('Integrations: FacebookPixel', () => {
               content_type: 'product',
               content_name: 'Test Product',
               content_category: 'Category 1',
-              currency: 'USD',
-              value: 10000
             }), 'fbq("track", "ViewContent") was not called');
             done();
           }
@@ -168,8 +166,6 @@ describe('Integrations: FacebookPixel', () => {
               content_type: 'product',
               content_name: 'Test Product',
               content_category: 'Category 1/Subcategory 1',
-              currency: 'USD',
-              value: 10000
             }), 'fbq("track", "ViewContent") was not called with correct params');
             done();
           }
@@ -192,8 +188,6 @@ describe('Integrations: FacebookPixel', () => {
               content_type: 'product',
               content_name: 'Test Product',
               content_category: 'Category 1/Subcategory 1',
-              currency: 'USD',
-              value: 10000
             }), 'fbq("track", "ViewContent") was not called');
             done();
           }
@@ -216,8 +210,6 @@ describe('Integrations: FacebookPixel', () => {
               content_type: 'product',
               content_name: 'Test Product',
               content_category: 'Category 1/Subcategory 1',
-              currency: 'USD',
-              value: 10000
             }), 'fbq("track", "ViewContent") was not called');
             done();
           }
@@ -245,8 +237,6 @@ describe('Integrations: FacebookPixel', () => {
               content_type: 'product',
               content_name: 'Test Product',
               content_category: 'Category 1',
-              currency: 'USD',
-              value: 20000
             }), 'fbq("track", "AddToCart") was not called');
             done();
           }
@@ -271,8 +261,6 @@ describe('Integrations: FacebookPixel', () => {
               content_type: 'product',
               content_name: 'Test Product',
               content_category: 'Category 1/Subcategory 1',
-              currency: 'USD',
-              value: 20000
             }), 'fbq("track", "AddToCart") was not called');
             done();
           }
@@ -296,8 +284,6 @@ describe('Integrations: FacebookPixel', () => {
               content_type: 'product',
               content_name: 'Test Product',
               content_category: 'Category 1/Subcategory 1',
-              currency: 'USD',
-              value: 20000
             }), 'fbq("track", "AddToCart") was not called');
             done();
           }
@@ -321,8 +307,6 @@ describe('Integrations: FacebookPixel', () => {
               content_type: 'product',
               content_name: 'Test Product',
               content_category: 'Category 1',
-              currency: 'USD',
-              value: 10000
             }), 'fbq("track", "AddToCart") was not called');
             done();
           }

@@ -9272,7 +9272,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.2.5',
+  VERSION: '1.2.6',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -10755,9 +10755,7 @@ var FacebookPixel = function (_Integration) {
       content_ids: [product.id || product.skuCode || ''],
       content_type: 'product',
       content_name: product.name || '',
-      content_category: category || '',
-      currency: product.currency || '',
-      value: product.unitSalePrice || product.unitPrice || 0
+      content_category: category || ''
     });
   };
 
@@ -10769,9 +10767,7 @@ var FacebookPixel = function (_Integration) {
         content_ids: [product.id || product.skuCode || ''],
         content_type: 'product',
         content_name: product.name || '',
-        content_category: category || '',
-        currency: product.currency || '',
-        value: quantity * (product.unitSalePrice || product.unitPrice || 0)
+        content_category: category || ''
       });
     }
   };

@@ -125,8 +125,6 @@ class FacebookPixel extends Integration {
       content_type: 'product',
       content_name: product.name || '',
       content_category: category || '',
-      currency: product.currency || '',
-      value: product.unitSalePrice || product.unitPrice || 0,
     });
   }
 
@@ -139,8 +137,6 @@ class FacebookPixel extends Integration {
         content_type: 'product',
         content_name: product.name || '',
         content_category: category || '',
-        currency: product.currency || '',
-        value: quantity * (product.unitSalePrice || product.unitPrice || 0),
       });
     }
   }
