@@ -71,20 +71,20 @@ describe('SegmentStream', function() {
 
     describe('#enrichDigitalData', function () {
 
-      it('should enrich digitalData.user', () => {
+      it('should enrich digitalData.user', (done) => {
         window.ssApi.pushOnReady(() => {
           assert.equal(window.digitalData.user.test, 'test');
           assert.equal(window.digitalData.user.lifetimeVisitCount, 5);
           assert.equal(window.digitalData.user.ssAttributes.lifetimeVisitCount, 0);
           assert.ok(window.digitalData.user.ssAttributes.firstVisit !== undefined);
           assert.ok(window.digitalData.user.anonymousId);
+          done();
         });
       });
 
       it('should track Viewed Page semantic event', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
-          category: 'Content',
           callback: () => {
             window.ssApi.pushOnReady(() => {
               assert.equal(window.digitalData.user.ssAttributes.lifetimeVisitCount, 1);
@@ -97,11 +97,29 @@ describe('SegmentStream', function() {
       it('should track Viewed Product Detail semantic event', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
-          category: 'Ecommerce',
           product: {
             id: '123',
             unitSalePrice: 100
           },
+          callback: () => {
+            window.ssApi.pushOnReady(() => {
+              assert.equal(window.digitalData.user.ssAttributes.viewedProductsCount, 1);
+              assert.equal(window.digitalData.user.ssAttributes.lifetimeViewedProductsCount, 1);
+              assert.equal(window.digitalData.user.ssAttributes.lifetimeAverageViewedProductsPrice, 100);
+              assert.equal(window.digitalData.user.ssAttributes.averageViewedProductsPrice, 100);
+              done();
+            });
+          }
+        });
+      });
+
+      it('should track Viewed Product Detail semantic event (digitalData)', (done) => {
+        window.digitalData.product = {
+          id: '123',
+          unitSalePrice: 100
+        };
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
           callback: () => {
             window.ssApi.pushOnReady(() => {
               assert.equal(window.digitalData.user.ssAttributes.viewedProductsCount, 1);

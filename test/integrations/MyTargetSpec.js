@@ -47,32 +47,6 @@ describe('Integrations: MyTarget', () => {
       });
     });
 
-    describe('#getList', () => {
-      it('should return default list', () => {
-        assert.equal(myTarget.getList(), '1');
-      });
-
-      it('should return defined list', () => {
-        myTarget.setOption('list', '5');
-        assert.equal(myTarget.getList(), '5');
-      });
-
-      it('should return list defined in DDL', () => {
-        window.digitalData.page.list = '5';
-        myTarget.setOption('listProperty', 'page.list');
-        assert.equal(myTarget.getList(), '5');
-      });
-
-      it('should return list defined in DDL using mapping', () => {
-        window.digitalData.website.region = 'New York';
-        myTarget.setOption('listProperty', 'website.region');
-        myTarget.setOption('listPropertyMapping', {
-          'New York': '5'
-        });
-        assert.equal(myTarget.getList(), '5');
-      });
-    });
-
     describe('#initialize', () => {
       it('should initialize mytarget queue object', () => {
         ddManager.initialize();
@@ -133,7 +107,6 @@ describe('Integrations: MyTarget', () => {
       it('should send pageView for every "Viewed Page" event', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
-          category: 'Content',
           page: {},
           callback: () => {
             assert.equal(window._tmr[0].id, myTarget.getOption('counterId'));
@@ -147,7 +120,6 @@ describe('Integrations: MyTarget', () => {
         myTarget.setOption('noConflict', true);
         window.digitalData.events.push({
           name: 'Viewed Page',
-          category: 'Content',
           page: {
             type: 'home'
           },
@@ -163,7 +135,6 @@ describe('Integrations: MyTarget', () => {
       it('should send viewHome event if user visits home page', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
-          category: 'Content',
           page: {
             type: 'home'
           },
@@ -180,13 +151,85 @@ describe('Integrations: MyTarget', () => {
           }
         });
       });
+
+      it('should send viewHome event if user visits home page (digitalData)', (done) => {
+        window.digitalData.page = {
+          type: 'home'
+        };
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          callback: () => {
+            assert.equal(window._tmr.length, 2);
+            assert.deepEqual(window._tmr[1], {
+              type: 'itemView',
+              productid: '',
+              pagetype: 'home',
+              totalvalue: '',
+              list: myTarget.getList(),
+            });
+            done();
+          }
+        });
+      });
+
+      it('should send viewHome event with default list value', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'home'
+          },
+          callback: () => {
+            assert.equal(window._tmr.length, 2);
+            assert.equal(window._tmr[1].list, '1');
+            done();
+          }
+        });
+      });
+
+      it('should send viewHome event using defined list value', (done) => {
+        myTarget.setOption('listVar', {
+          type: 'constant',
+          value: '5'
+        });
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'home'
+          },
+          callback: () => {
+            assert.equal(window._tmr.length, 2);
+            assert.equal(window._tmr[1].list, '5');
+            done();
+          }
+        });
+      });
+
+      it('should send viewHome event using list value defined in digitalData', (done) => {
+        window.digitalData.website = {
+          myTargetList: '3'
+        };
+        myTarget.setOption('listVar', {
+          type: 'digitalData',
+          value: 'website.myTargetList'
+        });
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'home'
+          },
+          callback: () => {
+            assert.equal(window._tmr.length, 2);
+            assert.equal(window._tmr[1].list, '3');
+            done();
+          }
+        });
+      });
     });
 
     describe('#onViewedProductCategory', () => {
       it('should send itemView event for every "Viewed Product Category" event', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Product Category',
-          category: 'Content',
           callback: () => {
             assert.deepEqual(window._tmr[0], {
               type: 'itemView',
@@ -235,6 +278,25 @@ describe('Integrations: MyTarget', () => {
         });
       });
 
+      it('should send itemView event for every "Viewed Product Detail" event (digitalData)', (done) => {
+        window.digitalData.product = {
+          id: '123',
+          unitSalePrice: 150
+        };
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          callback: () => {
+            assert.deepEqual(window._tmr[0], {
+              type: 'itemView',
+              productid: '123',
+              pagetype: 'product',
+              totalvalue: 150,
+              list: myTarget.getList(),
+            });
+            done();
+          }
+        });
+      });
 
       it('should not send itemView event if noConflict option is true', (done) => {
         myTarget.setOption('noConflict', true);
@@ -253,49 +315,48 @@ describe('Integrations: MyTarget', () => {
     });
 
     describe('#onViewedCart', () => {
-      it('should send itemView event if user visits cart page', (done) => {
-        window.digitalData.cart = {
-          lineItems: [
-            {
-              product: {
-                id: '123',
-                unitSalePrice: 100
-              },
-              quantity: 1
+
+      const cart = {
+        lineItems: [
+          {
+            product: {
+              id: '123',
+              unitSalePrice: 100
             },
-            {
-              product: {
-                id: '234',
-                unitPrice: 100,
-                unitSalePrice: 50
-              },
-              quantity: 2
-            },
-            {
-              product: {
-                id: '345',
-                unitPrice: 30
-              }
-            },
-            {
-              product: {
-                id: '456',
-              }
-            },
-            {
-              product: {}
-            }
-          ],
-          total: 230
-        };
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          category: 'Content',
-          page: {
-            type: 'cart'
+            quantity: 1
           },
+          {
+            product: {
+              id: '234',
+              unitPrice: 100,
+              unitSalePrice: 50
+            },
+            quantity: 2
+          },
+          {
+            product: {
+              id: '345',
+              unitPrice: 30
+            }
+          },
+          {
+            product: {
+              id: '456',
+            }
+          },
+          {
+            product: {}
+          }
+        ],
+        total: 230
+      };
+
+      it('should send itemView event if user visits cart page (digitalData)', (done) => {
+        window.digitalData.cart = cart;
+        window.digitalData.events.push({
+          name: 'Viewed Cart',
           callback: () => {
-            assert.deepEqual(window._tmr[1], {
+            assert.deepEqual(window._tmr[0], {
               type: 'itemView',
               productid: ['123', '234', '345', '456'],
               pagetype: 'cart',
@@ -309,20 +370,9 @@ describe('Integrations: MyTarget', () => {
 
       it('should not send itemView event if noConflict option is true', (done) => {
         myTarget.setOption('noConflict', true);
-        window.digitalData.cart = {
-          lineItems: [
-            {
-              product: {
-                id: '123',
-                unitSalePrice: 100
-              },
-              quantity: 1
-            }
-          ]
-        };
+        window.digitalData.cart = cart;
         window.digitalData.events.push({
           name: 'Viewed Page',
-          category: 'Content',
           page: {
             type: 'cart'
           },
@@ -370,13 +420,34 @@ describe('Integrations: MyTarget', () => {
       it('should send itemView event if transaction is completed', (done) => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
-          category: 'Ecommerce',
           transaction: {
             orderId: '123',
             isFirst: true,
             lineItems: lineItems,
             total: 230,
           },
+          callback: () => {
+            assert.deepEqual(window._tmr[0], {
+              type: 'itemView',
+              productid: ['123', '234', '345', '456'],
+              pagetype: 'purchase',
+              totalvalue: 230,
+              list: myTarget.getList(),
+            });
+            done();
+          }
+        });
+      });
+
+      it('should send itemView event if transaction is completed (digitalData)', (done) => {
+        window.digitalData.transaction = {
+          orderId: '123',
+          isFirst: true,
+          lineItems: lineItems,
+          total: 230,
+        };
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
           callback: () => {
             assert.deepEqual(window._tmr[0], {
               type: 'itemView',
@@ -411,7 +482,6 @@ describe('Integrations: MyTarget', () => {
       it('should send reachGoal event for any other DDL event', (done) => {
         window.digitalData.events.push({
           name: 'Subscribed',
-          category: 'Email',
           user: {
             email: 'test@driveback.ru'
           },
@@ -430,7 +500,6 @@ describe('Integrations: MyTarget', () => {
         myTarget.setOption('noConflict', true);
         window.digitalData.events.push({
           name: 'Subscribed',
-          category: 'Email',
           user: {
             email: 'test@driveback.ru'
           },

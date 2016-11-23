@@ -1,9 +1,27 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
 import { getProp } from './../functions/dotProp';
+import type from 'component-type';
 import each from './../functions/each.js';
 import size from './../functions/size.js';
 import clone from 'component-clone';
+import {
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  VIEWED_PRODUCT_CATEGORY,
+  VIEWED_CART,
+  SEARCHED_PRODUCTS,
+  COMPLETED_TRANSACTION,
+  REFUNDED_TRANSACTION,
+  VIEWED_CHECKOUT_STEP,
+  COMPLETED_CHECKOUT_STEP,
+  VIEWED_PRODUCT,
+  CLICKED_PRODUCT,
+  ADDED_PRODUCT,
+  REMOVED_PRODUCT,
+  VIEWED_CAMPAIGN,
+  CLICKED_CAMPAIGN,
+} from './../events';
 
 function getTransactionVoucher(transaction) {
   let voucher;
@@ -43,7 +61,6 @@ class GoogleAnalytics extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       trackingId: '',
-      trackOnlyCustomEvents: false,
       doubleClick: false,
       enhancedLinkAttribution: false,
       enhancedEcommerce: false,
@@ -55,13 +72,13 @@ class GoogleAnalytics extends Integration {
       defaultCurrency: 'USD',
       metrics: {},
       dimensions: {},
-      contentGroupings: {},
+      contentGroupings: {}, // legacy version
+      contentGroups: {},
       productDimensions: {},
       productMetrics: {},
       namespace: 'ddl',
       noConflict: false,
       checkoutOptions: ['option', 'paymentMethod', 'shippingMethod'],
-      filterEvents: [],
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -72,6 +89,50 @@ class GoogleAnalytics extends Integration {
         src: '//www.google-analytics.com/analytics.js',
       },
     });
+  }
+
+  getEnrichableEventProps(event) {
+    let enrichableProps = [];
+    switch (event.name) {
+    case VIEWED_PAGE:
+      enrichableProps = [
+        'user.userId',
+        'website.currency',
+        'page',
+      ];
+      const settings = this.getCustomsSettings();
+      each(settings, (key, variable) => {
+        if (type(variable) === 'string') { // legacy version
+          enrichableProps.push(variable);
+        } else {
+          if (variable.type && variable.type === 'digitalData') {
+            enrichableProps.push(variable.value);
+          }
+        }
+      });
+      break;
+    case VIEWED_PRODUCT_DETAIL:
+      enrichableProps = [
+        'product',
+      ];
+      break;
+    case VIEWED_CHECKOUT_STEP:
+      enrichableProps = [
+        'cart',
+        'transaction',
+      ];
+      break;
+    case COMPLETED_TRANSACTION:
+    case REFUNDED_TRANSACTION:
+      enrichableProps = [
+        'transaction',
+      ];
+      break;
+    default:
+      // do nothing
+    }
+
+    return enrichableProps;
   }
 
   initialize() {
@@ -98,9 +159,8 @@ class GoogleAnalytics extends Integration {
         this.load(this.onLoad);
       }
     } else {
-      this.onLoad();
+      super.onLoad();
     }
-    this.enrichDigitalData();
   }
 
   initializeTracker() {
@@ -120,19 +180,9 @@ class GoogleAnalytics extends Integration {
       this.ga('require', 'linkid', 'linkid.js');
     }
 
-    // send global id
-    const userId = this.get('user.userId');
-    if (this.getOption('sendUserId') && userId) {
-      this.ga('set', 'userId', userId);
-    }
-
     // anonymize after initializing, otherwise a warning is shown
     // in google analytics debugger
     if (this.getOption('anonymizeIp')) this.ga('set', 'anonymizeIp', true);
-
-    // custom dimensions & metrics
-    const custom = this.getCustomDimensions();
-    if (size(custom)) this.ga('set', custom);
   }
 
   ga() {
@@ -157,29 +207,39 @@ class GoogleAnalytics extends Integration {
     this.pageCalled = false;
   }
 
-  getCustomDimensions(source, productScope = false) {
-    source = source || this.digitalData;
-    let settings;
+  getCustomsSettings(productScope = false) {
     if (!productScope) {
-      settings = Object.assign(
+      return Object.assign(
         this.getOption('metrics'),
         this.getOption('dimensions'),
-        this.getOption('contentGroupings')
-      );
-    } else {
-      settings = Object.assign(
-        this.getOption('productMetrics'),
-        this.getOption('productDimensions')
+        this.getOption('contentGroupings'), // legacy version
+        this.getOption('contentGroups')
       );
     }
+    return Object.assign(
+      this.getOption('productMetrics'),
+      this.getOption('productDimensions')
+    );
+  }
+
+  getCustomDimensions(event, productScope = false) {
+    const settings = this.getCustomsSettings(productScope);
     const custom = {};
-    each(settings, (key, value) => {
-      let dimensionVal = getProp(source, value);
+
+    each(settings, (key, variable) => {
+      let value;
+      if (type(variable) === 'string') { // legacy version
+        value = variable;
+      } else {
+        value = variable.value;
+      }
+      let dimensionVal = getProp(event, value);
       if (dimensionVal !== undefined) {
         if (typeof dimensionVal === 'boolean') dimensionVal = dimensionVal.toString();
         custom[key] = dimensionVal;
       }
     });
+
     return custom;
   }
 
@@ -228,19 +288,12 @@ class GoogleAnalytics extends Integration {
       const trackerName = this.getOption('namespace');
       tracker = tracker || window.ga.getByName(trackerName);
       if (tracker) {
-        const clientId = tracker.get('clientId');
-        this.digitalData.integrations.googleAnalytics = { clientId };
+        this.digitalData.integrations.googleAnalytics = {
+          clientId: tracker.get('clientId'),
+        };
       }
       this.onEnrich();
     });
-  }
-
-  isEventFiltered(eventName) {
-    const filterEvents = this.getOption('filterEvents') || [];
-    if (filterEvents.indexOf(eventName) >= 0) {
-      return true;
-    }
-    return false;
   }
 
   isPageviewDelayed(pageType) {
@@ -248,12 +301,12 @@ class GoogleAnalytics extends Integration {
       return false;
     }
     const map = {
-      'category': 'Viewed Product Category',
-      'product': 'Viewed Product Detail',
-      'cart': ['Viewed Cart', 'Viewed Checkout Step'],
-      'confirmation': 'Completed Transaction',
-      'search': 'Searched Products',
-      'checkout': 'Viewed Checkout Step',
+      'category': VIEWED_PRODUCT_CATEGORY,
+      'product': VIEWED_PRODUCT_DETAIL,
+      'cart': [VIEWED_CART, VIEWED_CHECKOUT_STEP],
+      'confirmation': COMPLETED_TRANSACTION,
+      'search': SEARCHED_PRODUCTS,
+      'checkout': VIEWED_CHECKOUT_STEP,
     };
 
     let eventNames = map[pageType];
@@ -264,39 +317,31 @@ class GoogleAnalytics extends Integration {
     if (!Array.isArray(eventNames)) {
       eventNames = [eventNames];
     }
-    for (const eventName of eventNames) {
-      if (!this.isEventFiltered(eventName)) {
-        // if at least on of events is not filtered
-        return true;
-      }
-    }
-    return false;
+
+    return true;
   }
 
   trackEvent(event) {
-    if (this.isEventFiltered(event.name)) {
-      return;
-    }
-    if (event.name === 'Viewed Page') {
+    if (event.name === VIEWED_PAGE) {
       if (!this.getOption('noConflict')) {
         this.onViewedPage(event);
       }
     } else if (this.getOption('enhancedEcommerce')) {
       const methods = {
-        'Viewed Product': this.onViewedProduct,
-        'Clicked Product': this.onClickedProduct,
-        'Viewed Product Detail': this.onViewedProductDetail,
-        'Added Product': this.onAddedProduct,
-        'Removed Product': this.onRemovedProduct,
-        'Completed Transaction': this.onCompletedTransactionEnhanced,
-        'Refunded Transaction': this.onRefundedTransaction,
-        'Viewed Campaign': this.onViewedCampaign,
-        'Clicked Campaign': this.onClickedCampaign,
-        'Viewed Checkout Step': this.onViewedCheckoutStep,
-        'Completed Checkout Step': this.onCompletedCheckoutStep,
-        'Viewed Product Category': this.onViewedProductCategory, // stub
-        'Viewed Cart': this.onViewedCart, // stub
-        'Searched Products': this.onSearchedProducts, // stub
+        [VIEWED_PRODUCT]: this.onViewedProduct,
+        [CLICKED_PRODUCT]: this.onClickedProduct,
+        [VIEWED_PRODUCT_DETAIL]: this.onViewedProductDetail,
+        [ADDED_PRODUCT]: this.onAddedProduct,
+        [REMOVED_PRODUCT]: this.onRemovedProduct,
+        [COMPLETED_TRANSACTION]: this.onCompletedTransactionEnhanced,
+        [REFUNDED_TRANSACTION]: this.onRefundedTransaction,
+        [VIEWED_CAMPAIGN]: this.onViewedCampaign,
+        [CLICKED_CAMPAIGN]: this.onClickedCampaign,
+        [VIEWED_CHECKOUT_STEP]: this.onViewedCheckoutStep,
+        [COMPLETED_CHECKOUT_STEP]: this.onCompletedCheckoutStep,
+        [VIEWED_PRODUCT_CATEGORY]: this.onViewedProductCategory, // stub
+        [VIEWED_CART]: this.onViewedCart, // stub
+        [SEARCHED_PRODUCTS]: this.onSearchedProducts, // stub
       };
       const method = methods[event.name];
       if (method) {
@@ -305,10 +350,18 @@ class GoogleAnalytics extends Integration {
         this.onCustomEvent(event);
       }
     } else {
-      if (event.name === 'Completed Transaction' && !this.getOption('noConflict')) {
+      if (event.name === COMPLETED_TRANSACTION && !this.getOption('noConflict')) {
         this.onCompletedTransaction(event);
       } else {
-        this.onCustomEvent(event);
+        if ([
+          VIEWED_PRODUCT_DETAIL,
+          VIEWED_PRODUCT_CATEGORY,
+          SEARCHED_PRODUCTS,
+          COMPLETED_TRANSACTION,
+          VIEWED_CART,
+        ].indexOf(event.name) < 0) {
+          this.onCustomEvent(event);
+        }
       }
     }
   }
@@ -328,15 +381,16 @@ class GoogleAnalytics extends Integration {
   }
 
   onViewedPage(event) {
+    // send global id
     const page = event.page;
     const pageview = {};
     const pageUrl = page.url;
     let pagePath = page.path;
+
     if (this.getOption('includeSearch') && page.queryString) {
       pagePath = pagePath + page.queryString;
     }
     const pageTitle = page.name || page.title;
-
     pageview.page = pagePath;
     pageview.title = pageTitle;
     pageview.location = pageUrl;
@@ -345,6 +399,20 @@ class GoogleAnalytics extends Integration {
       deleteProperty(pageview, 'location');
     }
     this.setPageview(pageview);
+
+    // set
+    if (this.getOption('sendUserId')) {
+      const userId = getProp(event, 'user.userId');
+      if (userId) {
+        this.ga('set', 'userId', userId);
+      }
+    }
+
+    // set
+    if (this.getOption('enhancedEcommerce')) {
+      const currency = getProp(event, 'website.currency');
+      this.loadEnhancedEcommerce(currency);
+    }
 
     // set
     this.ga('set', {
@@ -377,7 +445,6 @@ class GoogleAnalytics extends Integration {
       if (!product.id && !product.skuCode && !product.name) {
         continue;
       }
-      this.loadEnhancedEcommerce(product.currency);
 
       const custom = this.getCustomDimensions(product, true);
       const gaProduct = Object.assign({
@@ -401,8 +468,6 @@ class GoogleAnalytics extends Integration {
     if (!event.listItem) {
       return;
     }
-    const product = event.listItem.product;
-    this.loadEnhancedEcommerce(product.currency);
     this.enhancedEcommerceProductAction(event, 'click', {
       list: event.listItem.listName,
     });
@@ -410,22 +475,16 @@ class GoogleAnalytics extends Integration {
   }
 
   onViewedProductDetail(event) {
-    const product = event.product;
-    this.loadEnhancedEcommerce(product.currency);
     this.enhancedEcommerceProductAction(event, 'detail');
     this.pushEnhancedEcommerce(event);
   }
 
   onAddedProduct(event) {
-    const product = event.product;
-    this.loadEnhancedEcommerce(product.currency);
     this.enhancedEcommerceProductAction(event, 'add');
     this.pushEnhancedEcommerce(event);
   }
 
   onRemovedProduct(event) {
-    const product = event.product;
-    this.loadEnhancedEcommerce(product.currency);
     this.enhancedEcommerceProductAction(event, 'remove');
     this.pushEnhancedEcommerce(event);
   }
@@ -477,8 +536,6 @@ class GoogleAnalytics extends Integration {
     // orderId is required.
     if (!transaction || !transaction.orderId) return;
 
-    this.loadEnhancedEcommerce(transaction.currency);
-
     each(transaction.lineItems, (key, lineItem) => {
       const product = lineItem.product;
       if (product) {
@@ -505,7 +562,6 @@ class GoogleAnalytics extends Integration {
 
     // orderId is required.
     if (!transaction || !transaction.orderId) return;
-    this.loadEnhancedEcommerce(transaction.currency);
 
     each(transaction.lineItems, (key, lineItem) => {
       const product = lineItem.product;
@@ -527,8 +583,6 @@ class GoogleAnalytics extends Integration {
     if ((!campaigns || !Array.isArray(campaigns)) && event.campaign) {
       campaigns = [event.campaign];
     }
-
-    this.loadEnhancedEcommerce();
 
     for (const campaign of campaigns) {
       if (!campaign || !campaign.id) {
@@ -553,7 +607,6 @@ class GoogleAnalytics extends Integration {
       return;
     }
 
-    this.loadEnhancedEcommerce();
     this.ga('ec:addPromo', {
       id: campaign.id,
       name: campaign.name,
@@ -565,9 +618,7 @@ class GoogleAnalytics extends Integration {
   }
 
   onViewedCheckoutStep(event) {
-    const cartOrTransaction = this.get('cart') || this.get('transaction');
-
-    this.loadEnhancedEcommerce(cartOrTransaction.currency);
+    const cartOrTransaction = getProp(event, 'cart') || getProp(event, 'transaction');
 
     each(cartOrTransaction.lineItems, (key, lineItem) => {
       const product = lineItem.product;
@@ -586,13 +637,10 @@ class GoogleAnalytics extends Integration {
   }
 
   onCompletedCheckoutStep(event) {
-    const cartOrTransaction = this.get('cart') || this.get('transaction');
     const options = getCheckoutOptions(event, this.getOption('checkoutOptions'));
     if (!event.step || !options) {
       return;
     }
-
-    this.loadEnhancedEcommerce(cartOrTransaction.currency);
 
     this.ga('ec:setAction', 'checkout_option', {
       step: event.step,

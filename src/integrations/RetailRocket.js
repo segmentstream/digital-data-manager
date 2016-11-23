@@ -1,19 +1,11 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty';
 import { getProp } from './../functions/dotProp';
+import getVarValue from './../functions/getVarValue';
 import throwError from './../functions/throwError';
 import each from './../functions/each';
-import clone from 'component-clone';
 import type from 'component-type';
 import format from './../functions/format';
-import getQueryParam from './../functions/getQueryParam';
-
-function getEventVars(event) {
-  const eventVars = clone(event);
-  deleteProperty(event, 'name');
-  deleteProperty(event, 'category');
-  return eventVars;
-}
 
 class RetailRocket extends Integration {
 
@@ -44,6 +36,51 @@ class RetailRocket extends Integration {
     });
   }
 
+  getEnrichableEventProps(event) {
+    let enrichableProps = [];
+    switch (event.name) {
+    case 'Viewed Page':
+      enrichableProps = [
+        'user.email',
+        'user.isSubscribed',
+      ];
+      break;
+    case 'Viewed Product Detail':
+      enrichableProps = [
+        'product.id',
+      ];
+      break;
+    case 'Viewed Product Category':
+      enrichableProps = [
+        'listing.categoryId',
+      ];
+      break;
+    case 'Searched Products':
+      enrichableProps = [
+        'listing.query',
+      ];
+      break;
+    case 'Completed Transaction':
+      enrichableProps = [
+        'transaction',
+      ];
+      break;
+    default:
+      // do nothing
+    }
+
+    if (['Viewed Page', 'Subscribed'].indexOf(event.name) >= 0) {
+      const settings = this.getOption('customVariables');
+      each(settings, (key, variable) => {
+        if (variable.type === 'digitalData') {
+          enrichableProps.push(variable.value);
+        }
+      });
+    }
+
+    return enrichableProps;
+  }
+
   initialize() {
     if (this.getOption('partnerId')) {
       window.rrPartnerId = this.getOption('partnerId');
@@ -56,8 +93,6 @@ class RetailRocket extends Integration {
       window.rrApi.pageView = window.rrApi.addToBasket =
           window.rrApi.order = window.rrApi.categoryView = window.rrApi.setEmail = window.rrApi.view =
           window.rrApi.recomMouseDown = window.rrApi.recomAddToCart = window.rrApi.search = () => {};
-
-      this.trackEmail();
 
       this.load(this.onLoad);
     } else {
@@ -85,7 +120,9 @@ class RetailRocket extends Integration {
 
   trackEvent(event) {
     if (this.getOption('noConflict') !== true) {
-      if (event.name === 'Viewed Product Category') {
+      if (event.name === 'Viewed Page') {
+        this.onViewedPage(event);
+      } else if (event.name === 'Viewed Product Category') {
         this.onViewedProductCategory(event.listing);
       } else if (event.name === 'Added Product') {
         this.onAddedProduct(event.product);
@@ -96,33 +133,22 @@ class RetailRocket extends Integration {
       } else if (event.name === 'Completed Transaction') {
         this.onCompletedTransaction(event.transaction);
       } else if (event.name === 'Subscribed') {
-        this.onSubscribed(event.user, getEventVars(event));
-      } else if (event.name === 'Searched' || event.name === 'Searched Products') {
+        this.onSubscribed(event);
+      } else if (event.name === 'Searched Products') {
         this.onSearched(event.listing);
       }
     } else {
       if (event.name === 'Subscribed') {
-        this.onSubscribed(event.user, getEventVars(event));
+        this.onSubscribed(event);
       }
     }
   }
 
-  trackEmail() {
-    if (this.get('user.email')) {
-      if (this.getOption('trackAllEmails') === true || this.get('user.isSubscribed') === true) {
-        this.onSubscribed(this.get('user'));
-      }
-    } else {
-      const email = getQueryParam('rr_setemail', this.getQueryString());
-      if (email) {
-        this.digitalData.user.email = email;
-        // Retail Rocker will track this query param automatically
-      } else {
-        window.ddListener.push(['on', 'change:user.email', () => {
-          if (this.getOption('trackAllEmails') === true || this.get('user.isSubscribed') === true) {
-            this.onSubscribed(this.get('user'));
-          }
-        }]);
+  onViewedPage(event) {
+    const user = event.user;
+    if (user && user.email) {
+      if (this.getOption('trackAllEmails') === true || user.isSubscribed === true) {
+        this.onSubscribed(event);
       }
     }
   }
@@ -232,24 +258,27 @@ class RetailRocket extends Integration {
     });
   }
 
-  onSubscribed(user, customs) {
-    user = user || {};
+  onSubscribed(event) {
+    const user = event.user || {};
     if (!user.email) {
       this.onValidationError('user.email');
       return;
     }
 
     const rrCustoms = {};
-    if (customs) {
-      const settings = this.getOption('customVariables');
-      each(settings, (key, value) => {
-        let dimensionVal = getProp(customs, value);
-        if (dimensionVal !== undefined) {
-          if (type(dimensionVal) === 'boolean') dimensionVal = dimensionVal.toString();
-          rrCustoms[key] = dimensionVal;
-        }
-      });
-    }
+    const settings = this.getOption('customVariables');
+    each(settings, (key, variable) => {
+      let rrCustom;
+      if (type(variable) === 'string') { // TODO: remove backward compatibility in later versions
+        rrCustom = getProp(event, variable);
+      } else {
+        rrCustom = getVarValue(variable, event);
+      }
+      if (rrCustom !== undefined) {
+        if (type(rrCustom) === 'boolean') rrCustom = rrCustom.toString();
+        rrCustoms[key] = rrCustom;
+      }
+    });
 
     window.rrApiOnReady.push(() => {
       try {
@@ -341,14 +370,6 @@ class RetailRocket extends Integration {
         'validation_error',
         format('Retail Rocket integration error: DDL or event variable "%s" is not defined or empty', variableName)
     );
-  }
-
-  /**
-   * Can be stubbed in unit tests
-   * @returns string
-   */
-  getQueryString() {
-    return window.location.search;
   }
 }
 

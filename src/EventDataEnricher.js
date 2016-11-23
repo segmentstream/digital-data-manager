@@ -1,5 +1,7 @@
 import type from 'component-type';
+import clone from 'component-clone';
 import DDHelper from './DDHelper.js';
+import dotProp from './functions/dotProp';
 
 class EventDataEnricher
 {
@@ -29,7 +31,17 @@ class EventDataEnricher
   }
 
   static enrichIntegrationData(event, digitalData, integration) {
-
+    const enrichedEvent = clone(event);
+    const enrichableProps = integration.getEnrichableEventProps(event);
+    for (const prop of enrichableProps) {
+      if (!dotProp.getProp(event, prop)) {
+        const ddlPropValue = dotProp.getProp(digitalData, prop);
+        if (ddlPropValue !== undefined) {
+          dotProp.setProp(enrichedEvent, prop, ddlPropValue);
+        }
+      }
+    }
+    return enrichedEvent;
   }
 
   static product(product, digitalData) {

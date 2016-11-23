@@ -1,7 +1,6 @@
 import assert from 'assert';
 import reset from './reset.js';
 import EventManager from './../src/EventManager.js';
-import AutoEvents from './../src/AutoEvents.js';
 
 describe('EventManager', () => {
 
@@ -584,76 +583,6 @@ describe('EventManager', () => {
       }]);
     });
 
-  });
-
-
-  describe(': listening for autoEvents based on DDL changes', () => {
-
-    beforeEach(() => {
-      _digitalData = {
-        page: {
-          type: 'home'
-        }
-      };
-      _ddListener = [];
-      _eventManager = new EventManager(_digitalData, _ddListener);
-      _eventManager.setAutoEvents(new AutoEvents());
-      _eventManager.initialize();
-    });
-
-    it('should fire Viewed Page event', (done) => {
-      _digitalData.page = {
-        type: 'content'
-      };
-      setTimeout(() => {
-        assert.ok(_digitalData.events.length === 2);
-        assert.ok(_digitalData.events[1].name === 'Viewed Page');
-        assert.ok(_digitalData.events[1].page.type === 'content');
-        done();
-      }, 101)
-    });
-
-    it('should fire Viewed Page and Viewed Product Category events', (done) => {
-      _digitalData.page = {
-        type: 'category',
-      };
-      _digitalData.listing = {
-        categoryId: '123',
-      };
-      setTimeout(() => {
-        assert.ok(_digitalData.events.length === 3);
-        assert.ok(_digitalData.events[1].name === 'Viewed Page');
-        assert.ok(_digitalData.events[1].page.type === 'category');
-        assert.ok(_digitalData.events[2].name === 'Viewed Product Category');
-        assert.ok(_digitalData.events[2].listing.categoryId === '123');
-        done();
-      }, 101);
-    });
-
-    it('should fire Viewed Product Detail event', (done) => {
-      _digitalData.product = {
-        id: '123',
-        name: 'Test Product'
-      };
-      setTimeout(() => {
-        assert.ok(_digitalData.events.length === 2);
-        assert.ok(_digitalData.events[1].name === 'Viewed Product Detail');
-        assert.ok(_digitalData.events[1].product.id === '123');
-        done();
-      }, 101);
-    });
-
-    it('should fire Completed Transaction event', (done) => {
-      _digitalData.transaction = {
-        orderId: '123',
-      };
-      setTimeout(() => {
-        assert.ok(_digitalData.events.length === 2);
-        assert.ok(_digitalData.events[1].name === 'Completed Transaction');
-        assert.ok(_digitalData.events[1].transaction.orderId === '123');
-        done();
-      }, 101);
-    });
   });
 
 });

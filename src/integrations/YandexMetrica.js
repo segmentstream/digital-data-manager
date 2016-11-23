@@ -56,6 +56,25 @@ class YandexMetrica extends Integration {
     });
   }
 
+  getEnrichableEventProps(event) {
+    let enrichableProps = [];
+    switch (event.name) {
+    case 'Viewed Product Detail':
+      enrichableProps = [
+        'product',
+      ];
+      break;
+    case 'Completed Transaction':
+      enrichableProps = [
+        'transaction',
+      ];
+      break;
+    default:
+      // do nothing
+    }
+    return enrichableProps;
+  }
+
   initialize() {
     const id = this.getOption('counterId');
 
@@ -95,7 +114,6 @@ class YandexMetrica extends Integration {
       'Removed Product': 'onRemovedProduct',
       'Completed Transaction': 'onCompletedTransaction',
     };
-
     if (this.getOption('counterId')) {
       const method = methods[event.name];
       if (method && !this.getOption('noConflict')) {

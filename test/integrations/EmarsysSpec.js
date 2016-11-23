@@ -20,7 +20,6 @@ function viewedPageOfType(type, callback) {
 function viewedProductCategory(category, callback) {
   window.digitalData.events.push({
     name: 'Viewed Product Category',
-    category: 'Ecommerce',
     listing: { category },
     callback,
   });
@@ -29,7 +28,6 @@ function viewedProductCategory(category, callback) {
 function searched(query, callback) {
   window.digitalData.events.push({
     name: 'Searched Products',
-    category: 'Content',
     listing: { query },
     callback,
   })
@@ -38,7 +36,6 @@ function searched(query, callback) {
 function viewedProductDetail(productId, callback) {
   window.digitalData.events.push({
     name: 'Viewed Product Detail',
-    category: 'Ecommerce',
     product: {
       id: productId
     },
@@ -49,7 +46,6 @@ function viewedProductDetail(productId, callback) {
 function completedTransaction(transaction, callback) {
   window.digitalData.events.push({
     name: 'Completed Transaction',
-    category: 'Ecommerce',
     transaction,
     callback,
   })
@@ -265,8 +261,24 @@ describe('Integrations: Emarsys', () => {
         });
       });
 
+      it('should send "go" for page.type = confirmation (digitalData)', (done) => {
+        window.digitalData.page.type = 'confirmation';
+        viewedPage(() => {
+          assert.ok(!window.ScarabQueue.push.calledWith(['go']));
+          done();
+        });
+      });
+
       it('should send "go" for any other page', (done) => {
         viewedPageOfType('home', () => {
+          assert.ok(window.ScarabQueue.push.calledWith(['go']));
+          done();
+        });
+      });
+
+      it('should send "go" for any other page (digitalData)', (done) => {
+        window.digitalData.page.type = 'home';
+        viewedPage(() => {
           assert.ok(window.ScarabQueue.push.calledWith(['go']));
           done();
         });
@@ -276,6 +288,16 @@ describe('Integrations: Emarsys', () => {
     describe('#onViewedProductCategory', () => {
       it('should send category with default separator', (done) => {
         viewedProductCategory(['Category', 'Subcategory 1', 'Subcategory 2'], () => {
+          assert.ok(window.ScarabQueue.push.calledWith(['category', 'Category > Subcategory 1 > Subcategory 2']));
+          done();
+        });
+      });
+
+      it('should send category with default separator (digitalData)', (done) => {
+        window.digitalData.listing = {
+          category: ['Category', 'Subcategory 1', 'Subcategory 2']
+        };
+        viewedProductCategory(undefined, () => {
           assert.ok(window.ScarabQueue.push.calledWith(['category', 'Category > Subcategory 1 > Subcategory 2']));
           done();
         });
@@ -313,6 +335,16 @@ describe('Integrations: Emarsys', () => {
         });
       });
 
+      it('should send "view" (digitalData)', (done) => {
+        window.digitalData.product = {
+          id: '123'
+        };
+        viewedProductDetail(undefined, () => {
+          assert.ok(window.ScarabQueue.push.calledWith(['view', '123']));
+          done();
+        });
+      });
+
       it('should send "go"', (done) => {
         viewedProductDetail('123', () => {
           assert.ok(window.ScarabQueue.push.calledWith(['view', '123']));
@@ -329,6 +361,16 @@ describe('Integrations: Emarsys', () => {
         })
       });
 
+      it('should send "searchTerm" (digitalData)', (done) => {
+        window.digitalData.listing = {
+          query: 'test query'
+        }
+        searched(undefined, () => {
+          assert.ok(window.ScarabQueue.push.calledWith(['searchTerm', 'test query']));
+          done();
+        })
+      });
+
       it('should send "go"', (done) => {
         searched('test query', () => {
           assert.ok(window.ScarabQueue.push.calledWith(['go']));
@@ -338,27 +380,52 @@ describe('Integrations: Emarsys', () => {
     });
 
     describe('#onCompletedTransaction', () => {
-      it('should send "purchase" and "go"', (done) => {
-        completedTransaction({
-          orderId: '123',
-          lineItems: [
-            {
-              product: {
-                id: '123',
-                unitSalePrice: 100
-              },
-              quantity: 2,
-              subtotal: 180
+      const transaction = {
+        orderId: '123',
+        lineItems: [
+          {
+            product: {
+              id: '123',
+              unitSalePrice: 100
             },
-            {
-              product: {
-                id: '234',
-                unitSalePrice: 100
+            quantity: 2,
+            subtotal: 180
+          },
+          {
+            product: {
+              id: '234',
+              unitSalePrice: 100
+            },
+            quantity: 2
+          }
+        ]
+      };
+
+      it('should send "purchase" and "go"', (done) => {
+        completedTransaction(transaction, () => {
+          assert.ok(window.ScarabQueue.push.calledWith(['purchase', {
+            orderId: '123',
+            items: [
+              {
+                item: '123',
+                price: 180,
+                quantity: 2
               },
-              quantity: 2
-            }
-          ]
-        }, () => {
+              {
+                item: '234',
+                price: 200,
+                quantity: 2
+              }
+            ]
+          }]));
+          assert.ok(window.ScarabQueue.push.calledWith(['go']));
+          done();
+        })
+      });
+
+      it('should send "purchase" and "go"', (done) => {
+        window.digitalData.transaction = transaction;
+        completedTransaction(undefined, () => {
           assert.ok(window.ScarabQueue.push.calledWith(['purchase', {
             orderId: '123',
             items: [

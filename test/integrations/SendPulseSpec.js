@@ -73,7 +73,6 @@ describe('SendPulse', function() {
         sinon.stub(window.oSpP, 'push');
         callback();
       });
-
       ddManager.once('ready', done);
       ddManager.initialize({
         autoEvents: false
@@ -111,8 +110,21 @@ describe('SendPulse', function() {
         window.oSpP.push.restore();
       });
 
-      it('should add additional params to SendPulse once integration is initialized', () => {
+      it('should add additional params to SendPulse once integration is initialized (legacy version)', () => {
         _sp.setOption('userVariables', ['test']);
+        _sp.once('enrich', () => {
+          assert.ok(window.oSpP.push.calledWith('test', 'test'));
+        })
+      });
+
+      it('should not add additional params to SendPulse once integration is initialized (legacy version)', () => {
+        _sp.once('enrich', () => {
+          assert.ok(!window.oSpP.push.calledWith('test', 'test'));
+        })
+      });
+
+      it('should add additional params to SendPulse once integration is initialized', () => {
+        _sp.setOption('userVariables', ['user.test']);
         _sp.once('enrich', () => {
           assert.ok(window.oSpP.push.calledWith('test', 'test'));
         })
@@ -122,40 +134,6 @@ describe('SendPulse', function() {
         _sp.once('enrich', () => {
           assert.ok(!window.oSpP.push.calledWith('test', 'test'));
         })
-      });
-
-      it('should add additional params to SendPulse if user is subscribed', (done) => {
-        _sp.setOption('userVariables', ['city', 'isBoolean']);
-        _sp.once('enrich', () => {
-          window.digitalData.user.city = 'New York';
-          window.digitalData.user.isBoolean = true;
-          window.digitalData.user.test = 'test';
-          window.digitalData.user.test2 = 'test2';
-
-          window.oSpP.push.restore();
-          sinon.spy(window.oSpP, 'push');
-          setTimeout(() => {
-            assert.ok(window.oSpP.push.calledWith('city', 'New York'));
-            assert.ok(window.oSpP.push.calledWith('isBoolean', 'true'));
-            assert.ok(!window.oSpP.push.calledWith('test', 'test'));
-            assert.ok(!window.oSpP.push.calledWith('test2', 'test2'));
-            done();
-          }, 101);
-        });
-      });
-
-      it('should not add additional params to SendPulse if user is not subscribed', (done) => {
-        _sp.setOption('userVariables', ['city', 'isBoolean'])
-        _sp.once('enrich', () => {
-          window.digitalData.user.pushNotifications.isSubscribed = false;
-          window.oSpP.push.restore();
-          sinon.spy(window.oSpP, 'push');
-          window.digitalData.user.city = 'New York';
-          setTimeout(() => {
-            assert.ok(!window.oSpP.push.called);
-            done();
-          }, 101);
-        });
       });
     });
 

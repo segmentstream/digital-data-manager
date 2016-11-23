@@ -155,19 +155,6 @@ describe('DDManager', () => {
     });
 
     it('it should fire fire "Viewed Page" event if autoEvents == true', (done) => {
-      ddManager.initialize();
-      if (ddManager.isReady()) {
-        ddManager.once('ready', () => {
-          assert.ok(window.digitalData.events[0].name === 'Viewed Page');
-          assert.ok(window.digitalData.events.length === 1);
-          done();
-        });
-      } else {
-        assert.ok(false);
-      }
-    });
-
-    it('it should fire fire "Viewed Page" event if autoEvents == true', (done) => {
       ddManager.initialize({
         autoEvents: false
       });
@@ -231,19 +218,20 @@ describe('DDManager', () => {
       window.localStorage.clear(); // just to be sure
       ddManager.once('ready', () => {
         window.digitalData.events.push({
-          name: 'Viewed Page'
+          name: 'Viewed Page',
+          callback: () => {
+            assert.ok(!window.digitalData.user.isReturning, 'isReturning should be false');
+          }
         });
-
-        assert.ok(!window.digitalData.user.isReturning, 'isReturning should be false');
 
         setTimeout(() => {
           window.digitalData.events.push({
-            name: 'Viewed Page'
+            name: 'Viewed Page',
+            callback: () => {
+              assert.ok(window.digitalData.user.isReturning, 'isReturning should be true');
+              done();
+            }
           });
-          setTimeout(() => {
-            assert.ok(window.digitalData.user.isReturning, 'isReturning should be true');
-            done();
-          }, 110);
         }, 110);
       });
       ddManager.initialize({
@@ -273,32 +261,6 @@ describe('DDManager', () => {
         sessionLength: 20,
         autoEvents: false
       });
-    });
-
-    it('it should send Viewed Page event once', (done) => {
-      ddManager.on('ready', () => {
-        setTimeout(() => {
-          assert.equal(window.digitalData.events.length, 2);
-          done();
-        }, 1000);
-      });
-      window.digitalData = {
-        page: {
-          type: 'product'
-        },
-        product: {
-          id: '123'
-        }
-      };
-      ddManager.setAvailableIntegrations(availableIntegrations);
-      ddManager.initialize({
-        autoEvents: true,
-        integrations: {
-          'Google Tag Manager': true,
-          'SegmentStream': true,
-        }
-      });
-
     });
   });
 

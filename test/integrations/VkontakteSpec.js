@@ -77,7 +77,6 @@ describe('Integrations: Vkontakte', () => {
       it('should add pixel to the page', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
-          category: 'Ecommerce',
           page: {},
           callback: () => {
             assert.ok(vk.addPixel.called);
@@ -89,7 +88,6 @@ describe('Integrations: Vkontakte', () => {
       it('should not add pixel to the page', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Product',
-          category: 'Ecommerce',
           page: {},
           callback: () => {
             assert.ok(!vk.addPixel.called);

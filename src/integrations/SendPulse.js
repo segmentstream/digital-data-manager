@@ -31,10 +31,9 @@ class SendPulse extends Integration {
         original(value);
         if (value !== 'DENY') {
           this.digitalData.user.pushNotifications.isSubscribed = true;
-          this.sendUserAttributes(this.digitalData.user);
+          this.sendUserAttributes(this.digitalData);
         }
       };
-      this.enrichDigitalData();
       this.onLoad();
     });
   }
@@ -76,13 +75,8 @@ class SendPulse extends Integration {
 
   onSubscriptionStatusReceived() {
     if (this.digitalData.user.pushNotifications.isSubscribed) {
-      this.sendUserAttributes(this.digitalData.user);
+      this.sendUserAttributes(this.digitalData);
     }
-    window.ddListener.push(['on', 'change:user', (newUser, oldUser) => {
-      if (newUser.pushNotifications.isSubscribed && oldUser !== undefined) {
-        this.sendUserAttributes(newUser, oldUser);
-      }
-    }]);
   }
 
   checkPushNotificationsSupport() {
@@ -125,14 +119,18 @@ class SendPulse extends Integration {
     });
   }
 
-  sendUserAttributes(newUser, oldUser) {
+  sendUserAttributes(digitalData) {
     const userVariables = this.getOption('userVariables');
     for (const userVar of userVariables) {
-      const value = getProp(newUser, userVar);
+      let value;
+      if (userVar.indexOf('.') < 0) { // legacy version
+        value = getProp(digitalData.user, userVar);
+      } else {
+        value = getProp(digitalData, userVar);
+      }
       if (
         value !== undefined &&
-        type(value) !== 'object' &&
-        (!oldUser || value !== getProp(oldUser, userVar))
+        type(value) !== 'object'
       ) {
         window.oSpP.push(userVar, String(value));
       }

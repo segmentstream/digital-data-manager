@@ -7,7 +7,7 @@ import each from './functions/each.js';
 import emitter from 'component-emitter';
 import Integration from './Integration.js';
 import EventManager from './EventManager.js';
-import AutoEvents from './AutoEvents.js';
+import EventDataEnricher from './EventDataEnricher';
 import ViewabilityTracker from './ViewabilityTracker.js';
 import DDHelper from './DDHelper.js';
 import DigitalDataEnricher from './DigitalDataEnricher.js';
@@ -41,6 +41,12 @@ let _availableIntegrations;
 let _eventManager;
 
 /**
+ * @type {DigitalDataEnricher}
+ * @private
+ */
+let _digitalDataEnricher;
+
+/**
  * @type {Storage}
  * @private
  */
@@ -57,7 +63,6 @@ let _ddStorage;
  * @private
  */
 let _integrations = {};
-
 
 /**
  * @type {boolean}
@@ -137,8 +142,9 @@ function _addIntegrationsEventTracking() {
         trackEvent = true;
       }
       if (trackEvent) {
-        const eventClone = clone(event); // important to prevent changes in original event!!!
-        integration.trackEvent(eventClone);
+        // important! cloned object is returned (not link)
+        const enrichedEvent = EventDataEnricher.enrichIntegrationData(event, _digitalData, integration);
+        integration.trackEvent(enrichedEvent);
       }
     });
   }], true);
@@ -165,6 +171,7 @@ function _initializeIntegrations(settings) {
         } else {
           loaded();
         }
+        _digitalDataEnricher.enrichIntegrationData(integration);
       });
     } else {
       loaded();
@@ -177,7 +184,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.2.5',
+  VERSION: '1.2.6',
 
   setAvailableIntegrations: (availableIntegrations) => {
     _availableIntegrations = availableIntegrations;
@@ -208,39 +215,10 @@ ddManager = {
   /**
    * Initialize Digital Data Manager
    * @param settings
-   *
-   * Example:
-   *
-   * {
-   *    autoEvents: {
-   *      trackDOMComponents: {
-   *        maxWebsiteWidth: 1024
-   *      }
-   *    },
-   *    domain: 'example.com',
-   *    sessionLength: 3600,
-   *    integrations: [
-   *      {
-   *        'name': 'Google Tag Manager',
-   *        'options': {
-   *          'containerId': 'XXX'
-   *        }
-   *      },
-   *      {
-   *        'name': 'Google Analytics',
-   *        'options': {
-   *          'trackingId': 'XXX'
-   *        }
-   *      }
-   *    ]
-   * }
    */
   initialize: (settings) => {
     settings = Object.assign({
       domain: null,
-      autoEvents: {
-        trackDOMComponents: false,
-      },
       websiteMaxWidth: 'auto',
       sessionLength: 3600,
     }, settings);
@@ -255,24 +233,19 @@ ddManager = {
     _ddStorage = new DDStorage(_digitalData, _storage);
 
     // initialize digital data enricher
-    const digitalDataEnricher = new DigitalDataEnricher(_digitalData, _ddListener, _ddStorage, {
+    _digitalDataEnricher = new DigitalDataEnricher(_digitalData, _ddListener, _ddStorage, {
       sessionLength: settings.sessionLength,
     });
-    digitalDataEnricher.enrichDigitalData();
+    _digitalDataEnricher.enrichDigitalData();
 
     // initialize event manager
     _eventManager = new EventManager(_digitalData, _ddListener);
-    if (settings.autoEvents !== false) {
-      _eventManager.setAutoEvents(new AutoEvents(settings.autoEvents));
-    }
     _eventManager.setViewabilityTracker(new ViewabilityTracker({
       websiteMaxWidth: settings.websiteMaxWidth,
     }));
 
     _initializeIntegrations(settings);
 
-    // should be initialized after integrations, otherwise
-    // autoEvents will be fired immediately
     _eventManager.initialize();
 
     _isReady = true;
@@ -328,7 +301,10 @@ ddManager = {
   },
 
   reset: () => {
-    _ddStorage.clear();
+    if (_ddStorage) {
+      _ddStorage.clear();
+    }
+
     if (_eventManager instanceof EventManager) {
       _eventManager.reset();
     }

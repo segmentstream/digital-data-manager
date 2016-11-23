@@ -8,15 +8,14 @@ import deleteProperty from './functions/deleteProperty.js';
 import debug from 'debug';
 import async from 'async';
 import EventEmitter from 'component-emitter';
-import DDHelper from './DDHelper.js';
 
 class Integration extends EventEmitter
 {
   constructor(digitalData, options, tags) {
     super();
     this.options = options;
-    this.tags = tags || {};
     this.digitalData = digitalData;
+    this.tags = tags || {};
     this.onLoad = this.onLoad.bind(this);
     this._isEnriched = false;
   }
@@ -117,10 +116,6 @@ class Integration extends EventEmitter
     return this.options[name];
   }
 
-  get(key) {
-    return DDHelper.get(key, this.digitalData);
-  }
-
   reset() {
     // abstract
   }
@@ -128,6 +123,14 @@ class Integration extends EventEmitter
   onEnrich() {
     this._isEnriched = true;
     this.emit('enrich');
+  }
+
+  enrichDigitalData() {
+    // abstract
+  }
+
+  getEnrichableEventProps() {
+    return [];
   }
 
   isEnriched() {
