@@ -11379,7 +11379,7 @@ var GoogleAnalytics = function (_Integration) {
       // Send a custom non-interaction event to ensure all EE data is pushed.
       // Without doing this we'd need to require page display after setting EE data.
       var cleanedArgs = [];
-      var args = ['send', 'event', event.category || 'Ecommerce', event.name || 'not defined', event.label, {
+      var args = ['send', 'event', event.category || 'Ecommerce', event.action || event.name || 'not defined', event.label, {
         nonInteraction: 1
       }];
 
@@ -11806,7 +11806,7 @@ var GoogleAnalytics = function (_Integration) {
 
   GoogleAnalytics.prototype.onCustomEvent = function onCustomEvent(event) {
     var payload = {
-      eventAction: event.name || 'event',
+      eventAction: event.action || event.name || 'event',
       eventCategory: event.category || 'All',
       eventLabel: event.label,
       eventValue: Math.round(event.value) || 0,

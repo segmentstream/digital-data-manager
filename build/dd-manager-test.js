@@ -18810,7 +18810,7 @@ var GoogleAnalytics = function (_Integration) {
       // Send a custom non-interaction event to ensure all EE data is pushed.
       // Without doing this we'd need to require page display after setting EE data.
       var cleanedArgs = [];
-      var args = ['send', 'event', event.category || 'Ecommerce', event.name || 'not defined', event.label, {
+      var args = ['send', 'event', event.category || 'Ecommerce', event.action || event.name || 'not defined', event.label, {
         nonInteraction: 1
       }];
 
@@ -19237,7 +19237,7 @@ var GoogleAnalytics = function (_Integration) {
 
   GoogleAnalytics.prototype.onCustomEvent = function onCustomEvent(event) {
     var payload = {
-      eventAction: event.name || 'event',
+      eventAction: event.action || event.name || 'event',
       eventCategory: event.category || 'All',
       eventLabel: event.label,
       eventValue: Math.round(event.value) || 0,
@@ -26050,6 +26050,22 @@ describe('Integrations: GoogleAnalytics', function () {
           });
         });
 
+        it('should send a action property', function () {
+          window.digitalData.events.push({
+            name: 'Test',
+            action: 'test 123',
+            callback: function callback() {
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', {
+                eventCategory: 'All',
+                eventAction: 'test 123',
+                eventLabel: undefined,
+                eventValue: 0,
+                nonInteraction: false
+              }));
+            }
+          });
+        });
+
         it('should send a category property', function () {
           window.digitalData.events.push({
             category: 'category',
@@ -27030,6 +27046,29 @@ describe('Integrations: GoogleAnalytics', function () {
                 position: 'banner_slot1'
               }));
               _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }));
+            }
+          });
+        });
+
+        it('should send viewed promotion data with custom action', function () {
+          window.digitalData.events.push({
+            name: 'Viewed Campaign',
+            action: 'Viewed Campaign #123',
+            category: 'Promo',
+            campaign: {
+              id: 'PROMO_1234',
+              name: 'Summer Sale',
+              design: 'summer_banner2',
+              position: 'banner_slot1'
+            },
+            callback: function callback() {
+              _assert2['default'].ok(window.ga.calledWith('ec:addPromo', {
+                id: 'PROMO_1234',
+                name: 'Summer Sale',
+                creative: 'summer_banner2',
+                position: 'banner_slot1'
+              }));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign #123', { nonInteraction: 1 }));
             }
           });
         });
