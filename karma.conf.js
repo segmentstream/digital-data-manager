@@ -181,7 +181,7 @@ module.exports = function(config) {
     autoWatch: true,
 
     // Increase timeout in case connection in CI is slow
-    captureTimeout: 240000,
+    captureTimeout: 120000,
     customLaunchers: customLaunchers,
 
     // start these browsers
@@ -195,10 +195,10 @@ module.exports = function(config) {
 
     // Concurrency level
     // how many browser should be started simultanous
-    concurrency: Infinity,
-
-    browserDisconnectTimeout: 10000,
-    browserDisconnectTolerance: 10,
-    browserNoActivityTimeout: 20000,
+    // concurrency: Infinity,
+    //
+    // browserDisconnectTimeout: 10000,
+    // browserDisconnectTolerance: 10,
+    // browserNoActivityTimeout: 20000,
   });
 };
