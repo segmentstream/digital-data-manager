@@ -120,7 +120,9 @@ module.exports = function(config) {
 
     sauceLabs: {
       testName: 'Digital Data Manager Unit Tests',
+      tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
       recordScreenshots: false,
+      startConnect: false,
       connectOptions: {
         port: 5757,
         logfile: 'sauce_connect.log'
