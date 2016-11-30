@@ -179,7 +179,7 @@ module.exports = function(config) {
     autoWatch: true,
 
     // Increase timeout in case connection in CI is slow
-    captureTimeout: 120000,
+    captureTimeout: 240000,
     customLaunchers: customLaunchers,
 
     // start these browsers
