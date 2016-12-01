@@ -474,6 +474,22 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
+        it('should send a action property', function () {
+          window.digitalData.events.push({
+            name: 'Test',
+            action: 'test 123',
+            callback: () => {
+              assert.ok(window.ga.calledWith('send', 'event', {
+                eventCategory: 'All',
+                eventAction: 'test 123',
+                eventLabel: undefined,
+                eventValue: 0,
+                nonInteraction: false
+              }));
+            }
+          });
+        });
+
         it('should send a category property', function () {
           window.digitalData.events.push({
             category: 'category',
@@ -1472,6 +1488,29 @@ describe('Integrations: GoogleAnalytics', () => {
                 position: 'banner_slot1'
               }));
               assert.ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }));
+            }
+          });
+        });
+
+        it('should send viewed promotion data with custom action', function() {
+          window.digitalData.events.push({
+            name: 'Viewed Campaign',
+            action: 'Viewed Campaign #123',
+            category: 'Promo',
+            campaign: {
+              id: 'PROMO_1234',
+              name: 'Summer Sale',
+              design: 'summer_banner2',
+              position: 'banner_slot1'
+            },
+            callback: () => {
+              assert.ok(window.ga.calledWith('ec:addPromo', {
+                id: 'PROMO_1234',
+                name: 'Summer Sale',
+                creative: 'summer_banner2',
+                position: 'banner_slot1'
+              }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign #123', { nonInteraction: 1 }));
             }
           });
         });

@@ -266,7 +266,7 @@ class GoogleAnalytics extends Integration {
         'send',
         'event',
         event.category || 'Ecommerce',
-        event.name || 'not defined',
+        event.action || event.name || 'not defined',
         event.label,
         {
           nonInteraction: 1,
@@ -664,7 +664,7 @@ class GoogleAnalytics extends Integration {
 
   onCustomEvent(event) {
     const payload = {
-      eventAction: event.name || 'event',
+      eventAction: event.action || event.name || 'event',
       eventCategory: event.category || 'All',
       eventLabel: event.label,
       eventValue: Math.round(event.value) || 0,

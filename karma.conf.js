@@ -51,12 +51,7 @@ module.exports = function(config) {
         base: 'SauceLabs',
         browserName: 'microsoftedge',
         platform: 'Windows 10',
-        version: '20'
-      },
-      slFfLinux: {
-        base: 'SauceLabs',
-        browserName: 'firefox',
-        platform: 'Linux'
+        version: '13'
       },
       slSafariOsx: {
         base: 'SauceLabs',
@@ -120,7 +115,9 @@ module.exports = function(config) {
 
     sauceLabs: {
       testName: 'Digital Data Manager Unit Tests',
+      tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
       recordScreenshots: false,
+      startConnect: false,
       connectOptions: {
         port: 5757,
         logfile: 'sauce_connect.log'
@@ -172,7 +169,7 @@ module.exports = function(config) {
 
     // level of logging
     // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
-    logLevel: config.LOG_DISABLE,
+    logLevel: config.LOG_ERROR,
 
 
     // enable / disable watching file and executing tests whenever any file changes
@@ -193,10 +190,10 @@ module.exports = function(config) {
 
     // Concurrency level
     // how many browser should be started simultanous
-    concurrency: Infinity,
-
-    browserDisconnectTimeout: 10000,
-    browserDisconnectTolerance: 10,
-    browserNoActivityTimeout: 20000,
+    // concurrency: Infinity,
+    //
+    // browserDisconnectTimeout: 10000,
+    // browserDisconnectTolerance: 10,
+    // browserNoActivityTimeout: 20000,
   });
 };
