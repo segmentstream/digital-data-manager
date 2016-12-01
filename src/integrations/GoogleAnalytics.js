@@ -1,7 +1,6 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
 import { getProp } from './../functions/dotProp';
-import type from 'component-type';
 import each from './../functions/each.js';
 import size from './../functions/size.js';
 import clone from 'component-clone';
@@ -22,6 +21,11 @@ import {
   VIEWED_CAMPAIGN,
   CLICKED_CAMPAIGN,
 } from './../events';
+import {
+  EVENT_VAR,
+  DIGITALDATA_VAR,
+  PRODUCT_VAR,
+} from './../variableTypes';
 
 function getTransactionVoucher(transaction) {
   let voucher;
@@ -100,16 +104,10 @@ class GoogleAnalytics extends Integration {
         'website.currency',
         'page',
       ];
-      const settings = this.getCustomsSettings();
-      each(settings, (key, variable) => {
-        if (type(variable) === 'string') { // legacy version
-          enrichableProps.push(variable);
-        } else {
-          if (variable.type && variable.type === 'digitalData') {
-            enrichableProps.push(variable.value);
-          }
-        }
-      });
+      const enrichableDimensionsProps = this.getEnrichableDimensionsProps();
+      for (const enrichableDimensionsProp of enrichableDimensionsProps) {
+        enrichableProps.push(enrichableDimensionsProp);
+      }
       break;
     case VIEWED_PRODUCT_DETAIL:
       enrichableProps = [
@@ -135,7 +133,11 @@ class GoogleAnalytics extends Integration {
     return enrichableProps;
   }
 
-  initialize() {
+  initialize(version) {
+    this.initVersion = version;
+
+    this.prepareCustomDimensions();
+
     if (this.getOption('trackingId')) {
       this.pageCalled = false;
 
@@ -161,6 +163,58 @@ class GoogleAnalytics extends Integration {
     } else {
       super.onLoad();
     }
+  }
+
+  prepareCustomDimensions() {
+    this.enrichableDimensionsProps = [];
+    this.productLevelDimensions = {};
+    this.hitLevelDimentsions = {};
+
+    let settings = Object.assign(
+      this.getOption('metrics'),
+      this.getOption('dimensions'),
+      this.getOption('contentGroups')
+    );
+
+    if (!this.initVersion) {
+      settings = Object.assign(settings, this.getOption('contentGroupings'));
+      each(settings, (key, value) => {
+        this.enrichableDimensionsProps.push(value);
+        this.hitLevelDimentsions[key] = value;
+      });
+      const productSettings = Object.assign(
+        this.getOption('productMetrics'),
+        this.getOption('productDimensions')
+      );
+      each(productSettings, (key, value) => {
+        this.productLevelDimensions[key] = value;
+      });
+    } else {
+      each(settings, (key, variable) => {
+        if (variable.type === PRODUCT_VAR) {
+          this.productLevelDimensions[key] = variable.value;
+        } else {
+          if (variable.type === DIGITALDATA_VAR) {
+            this.enrichableDimensionsProps.push(variable.value);
+            this.hitLevelDimentsions[key] = variable.value;
+          } else if (variable.type === EVENT_VAR) {
+            this.hitLevelDimentsions[key] = variable.value;
+          }
+        }
+      });
+    }
+  }
+
+  getEnrichableDimensionsProps() {
+    return this.enrichableDimensionsProps;
+  }
+
+  getProductLevelDimensions() {
+    return this.productLevelDimensions;
+  }
+
+  getHitLevelDimensions() {
+    return this.hitLevelDimentsions;
   }
 
   initializeTracker() {
@@ -207,33 +261,16 @@ class GoogleAnalytics extends Integration {
     this.pageCalled = false;
   }
 
-  getCustomsSettings(productScope = false) {
-    if (!productScope) {
-      return Object.assign(
-        this.getOption('metrics'),
-        this.getOption('dimensions'),
-        this.getOption('contentGroupings'), // legacy version
-        this.getOption('contentGroups')
-      );
+  getCustomDimensions(source, productScope = false) {
+    let settings;
+    if (productScope) {
+      settings = this.getProductLevelDimensions();
+    } else {
+      settings = this.getHitLevelDimensions();
     }
-    return Object.assign(
-      this.getOption('productMetrics'),
-      this.getOption('productDimensions')
-    );
-  }
-
-  getCustomDimensions(event, productScope = false) {
-    const settings = this.getCustomsSettings(productScope);
     const custom = {};
-
-    each(settings, (key, variable) => {
-      let value;
-      if (type(variable) === 'string') { // legacy version
-        value = variable;
-      } else {
-        value = variable.value;
-      }
-      let dimensionVal = getProp(event, value);
+    each(settings, (key, value) => {
+      let dimensionVal = getProp(source, value);
       if (dimensionVal !== undefined) {
         if (typeof dimensionVal === 'boolean') dimensionVal = dimensionVal.toString();
         custom[key] = dimensionVal;

@@ -151,6 +151,7 @@ function _addIntegrationsEventTracking() {
 }
 
 function _initializeIntegrations(settings) {
+  const version = settings.version;
   const onLoad = () => {
     _isLoaded = true;
     ddManager.emit('load');
@@ -167,7 +168,7 @@ function _initializeIntegrations(settings) {
       each(_integrations, (name, integration) => {
         if (!integration.isLoaded() || integration.getOption('noConflict')) {
           integration.once('load', loaded);
-          integration.initialize();
+          integration.initialize(version);
         } else {
           loaded();
         }
@@ -184,7 +185,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.2.7',
+  VERSION: '1.2.8',
 
   setAvailableIntegrations: (availableIntegrations) => {
     _availableIntegrations = availableIntegrations;
