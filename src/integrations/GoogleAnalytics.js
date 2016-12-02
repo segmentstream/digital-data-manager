@@ -80,7 +80,7 @@ class GoogleAnalytics extends Integration {
       contentGroups: {},
       productDimensions: {},
       productMetrics: {},
-      namespace: 'ddl',
+      namespace: undefined,
       noConflict: false,
       checkoutOptions: ['option', 'paymentMethod', 'shippingMethod'],
     }, options);
@@ -135,6 +135,11 @@ class GoogleAnalytics extends Integration {
 
   initialize(version) {
     this.initVersion = version;
+
+    // support of legacy version
+    if (!this.initVersion && !this.getOption('namespace') && this.getOption('namespace') !== false) {
+      this.setOption('namespace', 'ddl');
+    }
 
     this.prepareCustomDimensions();
 
