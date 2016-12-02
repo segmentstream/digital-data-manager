@@ -11205,7 +11205,7 @@ var GoogleAnalytics = function (_Integration) {
       contentGroups: {},
       productDimensions: {},
       productMetrics: {},
-      namespace: 'ddl',
+      namespace: undefined,
       noConflict: false,
       checkoutOptions: ['option', 'paymentMethod', 'shippingMethod']
     }, options);
@@ -11263,6 +11263,11 @@ var GoogleAnalytics = function (_Integration) {
 
   GoogleAnalytics.prototype.initialize = function initialize(version) {
     this.initVersion = version;
+
+    // support of legacy version
+    if (!this.initVersion && !this.getOption('namespace') && this.getOption('namespace') !== false) {
+      this.setOption('namespace', 'ddl');
+    }
 
     this.prepareCustomDimensions();
 
@@ -12302,14 +12307,21 @@ var OWOXBIStreaming = function (_Integration) {
     _classCallCheck(this, OWOXBIStreaming);
 
     var optionsWithDefaults = Object.assign({
-      namespace: 'ddl',
-      sessionIdDimension: ''
+      namespace: undefined,
+      sessionIdDimension: undefined
     }, options);
 
     return _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
   }
 
-  OWOXBIStreaming.prototype.initialize = function initialize() {
+  OWOXBIStreaming.prototype.initialize = function initialize(version) {
+    this.initVersion = version;
+
+    // support of legacy version
+    if (!this.initVersion && !this.getOption('namespace') && this.getOption('namespace') !== false) {
+      this.setOption('namespace', 'ddl');
+    }
+
     this.ga('require', 'OWOXBIStreaming', {
       sessionIdDimension: this.getOption('sessionIdDimension')
     });
