@@ -314,6 +314,29 @@ describe('Integrations: FacebookPixel', () => {
       });
     });
 
+    describe('#onSubscribed', () => {
+
+      it('should call fbq track Lead', (done) => {
+        window.digitalData.events.push({
+          category: 'Email',
+          name: 'Subscribed',
+          user: {
+            email: 'email@example.com',
+            firstName: 'John',
+            lastName: 'Doe'
+          },
+          callback: () => {
+            assert.ok(window.fbq.calledWith('track', 'Lead', {
+              content_name: 'email@example.com',
+              content_category: 'User',
+            }), 'fbq("track", "Lead") was not called');
+            done();
+          }
+        });
+      });
+
+    });
+
     describe('#onCompletedTransaction', () => {
 
       const transaction = {
