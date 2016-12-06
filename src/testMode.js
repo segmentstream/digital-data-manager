@@ -31,20 +31,20 @@ export function logEnrichedIntegrationEvent(event, integrationName) {
   window.console.log = window.console.log || noop;
   const browserSupportsGroups = !!window.console.group;
 
+  function log(message) {
+    window.console.log(message);
+  }
+
   function group(message) {
     if (browserSupportsGroups) {
       window.console.group(message);
     } else {
       log(message);
     }
-  };
+  }
 
   function groupEnd() {
     if (browserSupportsGroups) window.console.groupEnd();
-  };
-
-  function log(message) {
-    window.console.log(message);
   }
 
   group(`${event.name} -> ${integrationName}`);

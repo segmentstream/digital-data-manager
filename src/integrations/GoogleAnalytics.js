@@ -168,6 +168,7 @@ class GoogleAnalytics extends Integration {
     } else {
       super.onLoad();
     }
+    this.enrichDigitalData();
   }
 
   prepareCustomDimensions() {

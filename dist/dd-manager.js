@@ -7536,10 +7536,6 @@ var DigitalDataEnricher = function () {
     this.listenToEvents();
   };
 
-  DigitalDataEnricher.prototype.enrichIntegrationData = function enrichIntegrationData(integration) {
-    integration.enrichDigitalData(this.digitalData);
-  };
-
   DigitalDataEnricher.prototype.listenToEvents = function listenToEvents() {
     var _this = this;
 
@@ -9266,7 +9262,6 @@ function _initializeIntegrations(settings) {
           } else {
             loaded();
           }
-          _digitalDataEnricher.enrichIntegrationData(integration);
         });
       } else {
         loaded();
@@ -11305,6 +11300,7 @@ var GoogleAnalytics = function (_Integration) {
     } else {
       _Integration.prototype.onLoad.call(this);
     }
+    this.enrichDigitalData();
   };
 
   GoogleAnalytics.prototype.prepareCustomDimensions = function prepareCustomDimensions() {
@@ -12925,6 +12921,7 @@ var SegmentStream = function (_Integration) {
 
     ssApi.initialize(this._options);
     this.load(this.onLoad);
+    this.enrichDigitalData();
   };
 
   SegmentStream.prototype.isLoaded = function isLoaded() {
@@ -13086,6 +13083,7 @@ var SendPulse = function (_Integration) {
           _this2.sendUserAttributes(_this2.digitalData);
         }
       };
+      _this2.enrichDigitalData();
       _this2.onLoad();
     });
   };
@@ -13446,7 +13444,7 @@ var YandexMetrica = function (_Integration) {
           webvisor: _this2.getOption('webvisor'),
           trackLinks: _this2.getOption('trackLinks'),
           trackHash: _this2.getOption('trackHash'),
-          ecommerce: _this2.getOption('dataLayer')
+          ecommerce: _this2.dataLayerName
         });
       });
       this.load(this.onLoad);
@@ -13625,20 +13623,20 @@ function logEnrichedIntegrationEvent(event, integrationName) {
   window.console.log = window.console.log || _noop2['default'];
   var browserSupportsGroups = !!window.console.group;
 
+  function log(message) {
+    window.console.log(message);
+  }
+
   function group(message) {
     if (browserSupportsGroups) {
       window.console.group(message);
     } else {
       log(message);
     }
-  };
+  }
 
   function groupEnd() {
     if (browserSupportsGroups) window.console.groupEnd();
-  };
-
-  function log(message) {
-    window.console.log(message);
   }
 
   group(event.name + ' -> ' + integrationName);

@@ -91,7 +91,7 @@ class YandexMetrica extends Integration {
           webvisor: this.getOption('webvisor'),
           trackLinks: this.getOption('trackLinks'),
           trackHash: this.getOption('trackHash'),
-          ecommerce: this.getOption('dataLayer'),
+          ecommerce: this.dataLayerName,
         });
       });
       this.load(this.onLoad);

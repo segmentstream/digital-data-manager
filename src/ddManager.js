@@ -176,7 +176,6 @@ function _initializeIntegrations(settings) {
         } else {
           loaded();
         }
-        _digitalDataEnricher.enrichIntegrationData(integration);
       });
     } else {
       loaded();
