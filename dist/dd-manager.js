@@ -9037,15 +9037,15 @@ var _async = require('async');
 
 var _async2 = _interopRequireDefault(_async);
 
-var _size = require('./functions/size.js');
+var _size = require('./functions/size');
 
 var _size2 = _interopRequireDefault(_size);
 
-var _after = require('./functions/after.js');
+var _after = require('./functions/after');
 
 var _after2 = _interopRequireDefault(_after);
 
-var _each = require('./functions/each.js');
+var _each = require('./functions/each');
 
 var _each2 = _interopRequireDefault(_each);
 
@@ -9053,11 +9053,11 @@ var _componentEmitter = require('component-emitter');
 
 var _componentEmitter2 = _interopRequireDefault(_componentEmitter);
 
-var _Integration = require('./Integration.js');
+var _Integration = require('./Integration');
 
 var _Integration2 = _interopRequireDefault(_Integration);
 
-var _EventManager = require('./EventManager.js');
+var _EventManager = require('./EventManager');
 
 var _EventManager2 = _interopRequireDefault(_EventManager);
 
@@ -9065,25 +9065,27 @@ var _EventDataEnricher = require('./EventDataEnricher');
 
 var _EventDataEnricher2 = _interopRequireDefault(_EventDataEnricher);
 
-var _ViewabilityTracker = require('./ViewabilityTracker.js');
+var _ViewabilityTracker = require('./ViewabilityTracker');
 
 var _ViewabilityTracker2 = _interopRequireDefault(_ViewabilityTracker);
 
-var _DDHelper = require('./DDHelper.js');
+var _DDHelper = require('./DDHelper');
 
 var _DDHelper2 = _interopRequireDefault(_DDHelper);
 
-var _DigitalDataEnricher = require('./DigitalDataEnricher.js');
+var _DigitalDataEnricher = require('./DigitalDataEnricher');
 
 var _DigitalDataEnricher2 = _interopRequireDefault(_DigitalDataEnricher);
 
-var _Storage = require('./Storage.js');
+var _Storage = require('./Storage');
 
 var _Storage2 = _interopRequireDefault(_Storage);
 
-var _DDStorage = require('./DDStorage.js');
+var _DDStorage = require('./DDStorage');
 
 var _DDStorage2 = _interopRequireDefault(_DDStorage);
+
+var _testMode = require('./testMode');
 
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
@@ -9232,6 +9234,9 @@ function _addIntegrationsEventTracking() {
       if (trackEvent) {
         // important! cloned object is returned (not link)
         var enrichedEvent = _EventDataEnricher2['default'].enrichIntegrationData(event, _digitalData, integration);
+        if ((0, _testMode.isTestMode)()) {
+          (0, _testMode.logEnrichedIntegrationEvent)(enrichedEvent, integrationName);
+        }
         integration.trackEvent(enrichedEvent);
       }
     });
@@ -9275,7 +9280,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.2.8',
+  VERSION: '1.2.9',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -9341,6 +9346,10 @@ ddManager = {
 
     _isReady = true;
     ddManager.emit('ready');
+
+    if ((0, _testMode.isTestMode)()) {
+      (0, _testMode.showTestModeOverlay)();
+    }
   },
 
   isLoaded: function isLoaded() {
@@ -9436,7 +9445,7 @@ ddManager.on = ddManager.addEventListener = function (event, handler) {
 
 exports['default'] = ddManager;
 
-},{"./DDHelper.js":68,"./DDStorage.js":69,"./DigitalDataEnricher.js":70,"./EventDataEnricher":71,"./EventManager.js":72,"./Integration.js":73,"./Storage.js":74,"./ViewabilityTracker.js":75,"./functions/after.js":79,"./functions/each.js":82,"./functions/size.js":93,"async":1,"component-clone":2,"component-emitter":3}],78:[function(require,module,exports){
+},{"./DDHelper":68,"./DDStorage":69,"./DigitalDataEnricher":70,"./EventDataEnricher":71,"./EventManager":72,"./Integration":73,"./Storage":74,"./ViewabilityTracker":75,"./functions/after":79,"./functions/each":82,"./functions/size":93,"./testMode":111,"async":1,"component-clone":2,"component-emitter":3}],78:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -11916,7 +11925,7 @@ var GoogleAnalytics = function (_Integration) {
 
 exports['default'] = GoogleAnalytics;
 
-},{"./../Integration.js":73,"./../events":78,"./../functions/deleteProperty.js":80,"./../functions/dotProp":81,"./../functions/each.js":82,"./../functions/size.js":93,"./../variableTypes":111,"component-clone":2}],102:[function(require,module,exports){
+},{"./../Integration.js":73,"./../events":78,"./../functions/deleteProperty.js":80,"./../functions/dotProp":81,"./../functions/each.js":82,"./../functions/size.js":93,"./../variableTypes":112,"component-clone":2}],102:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -12001,13 +12010,14 @@ var GoogleTagManager = function (_Integration) {
   };
 
   GoogleTagManager.prototype.trackEvent = function trackEvent(event) {
-    var name = event.name;
-    var category = event.category;
-    (0, _deleteProperty2['default'])(event, 'name');
-    (0, _deleteProperty2['default'])(event, 'category');
-    event.event = name;
-    event.eventCategory = category;
-    window.dataLayer.push(event);
+    var dlEvent = Object.assign({}, event);
+    var name = dlEvent.name;
+    var category = dlEvent.category;
+    (0, _deleteProperty2['default'])(dlEvent, 'name');
+    (0, _deleteProperty2['default'])(dlEvent, 'category');
+    dlEvent.event = name;
+    dlEvent.eventCategory = category;
+    window.dataLayer.push(dlEvent);
   };
 
   return GoogleTagManager;
@@ -13391,7 +13401,11 @@ var YandexMetrica = function (_Integration) {
       noConflict: false
     }, options);
 
+    // use custom dataLayer name to avoid conflicts
+
     var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this.dataLayerName = 'yandexDL';
 
     _this.addTag({
       type: 'script',
@@ -13423,7 +13437,7 @@ var YandexMetrica = function (_Integration) {
     var id = this.getOption('counterId');
 
     window.yandex_metrika_callbacks = window.yandex_metrika_callbacks || [];
-    this.dataLayer = window.dataLayer = window.dataLayer || [];
+    this.dataLayer = window[this.dataLayerName] = window[this.dataLayerName] || [];
     if (!this.getOption('noConflict') && id) {
       window.yandex_metrika_callbacks.push(function () {
         _this2.yaCounter = window['yaCounter' + id] = new window.Ya.Metrika({
@@ -13432,7 +13446,7 @@ var YandexMetrica = function (_Integration) {
           webvisor: _this2.getOption('webvisor'),
           trackLinks: _this2.getOption('trackLinks'),
           trackHash: _this2.getOption('trackHash'),
-          ecommerce: true
+          ecommerce: _this2.getOption('dataLayer')
         });
       });
       this.load(this.onLoad);
@@ -13448,7 +13462,7 @@ var YandexMetrica = function (_Integration) {
   YandexMetrica.prototype.reset = function reset() {
     (0, _deleteProperty2['default'])(window, 'Ya');
     (0, _deleteProperty2['default'])(window, 'yandex_metrika_callbacks');
-    (0, _deleteProperty2['default'])(window, 'dataLayer');
+    (0, _deleteProperty2['default'])(window, this.dataLayerName);
   };
 
   YandexMetrica.prototype.trackEvent = function trackEvent(event) {
@@ -13579,6 +13593,62 @@ require('core-js/modules/es6.date.to-iso-string');
 require('core-js/modules/es6.date.now');
 
 },{"core-js/modules/es6.array.filter":53,"core-js/modules/es6.array.index-of":54,"core-js/modules/es6.array.is-array":55,"core-js/modules/es6.array.map":56,"core-js/modules/es6.date.now":57,"core-js/modules/es6.date.to-iso-string":58,"core-js/modules/es6.function.bind":59,"core-js/modules/es6.object.assign":60,"core-js/modules/es6.object.create":61,"core-js/modules/es6.string.trim":62}],111:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+exports.isTestMode = isTestMode;
+exports.showTestModeOverlay = showTestModeOverlay;
+exports.logEnrichedIntegrationEvent = logEnrichedIntegrationEvent;
+
+var _noop = require('./functions/noop');
+
+var _noop2 = _interopRequireDefault(_noop);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function isTestMode() {
+  return window.localStorage.getItem('_ddm_test_mode') === '1';
+}
+
+function showTestModeOverlay() {
+  var css = ['position: fixed', 'width: 100%', 'bottom: 0', 'font-size: 15px', "font-family: 'Helvetica Neue',Helvetica, Arial", 'text-align: center', 'background-color: #1392e0', 'opacity: 0.5', 'color: #FFF !important', 'padding: 5px 0', 'z-index: 2147483646', 'line-height: 15px', '-webkit-transform: translate3d(0,0,0)'];
+  var overlayDiv = document.createElement('div');
+  overlayDiv.innerHTML = '<a style="color: #fff;" href="#" onclick="window.localStorage.removeItem(\'_ddm_test_mode\');location.reload();return false;">Выйти из превью</a>';
+
+  overlayDiv.style.cssText = css.join(';');
+  document.body.appendChild(overlayDiv);
+}
+
+function logEnrichedIntegrationEvent(event, integrationName) {
+  window.console.log = window.console.log || _noop2['default'];
+  var browserSupportsGroups = !!window.console.group;
+
+  function group(message) {
+    if (browserSupportsGroups) {
+      window.console.group(message);
+    } else {
+      log(message);
+    }
+  };
+
+  function groupEnd() {
+    if (browserSupportsGroups) window.console.groupEnd();
+  };
+
+  function log(message) {
+    window.console.log(message);
+  }
+
+  group(event.name + ' -> ' + integrationName);
+  log(event);
+  groupEnd();
+}
+
+exports['default'] = { isTestMode: isTestMode, showTestModeOverlay: showTestModeOverlay };
+
+},{"./functions/noop":90}],112:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
