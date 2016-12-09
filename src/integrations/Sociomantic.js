@@ -127,45 +127,19 @@ class Sociomantic extends Integration {
     const trackingObjectName = prefix + 'product';
     const product = event.product;
     if (product) {
-      if (product.id || product.skuCode) {
-        window[trackingObjectName] = {
-          identifier: product.id || product.skuCode
-        }
+      window[trackingObjectName] = {
+        identifier: product.id || product.skuCode,
+        quantity = product.stock,
+        fn = product.name,
+        description = product.description,
+        category = product.category,
+        brand = product.manufacturer,
+        price = product.unitSalePrice,
+        amount = product.unitPrice,
+        currency = product.currency,
+        url = product.url,
+        photo = product.imageUrl,
       }
-    }
-
-    if (product && product.id) {
-      if (product.stock) {
-        window[trackingObjectName].quantity = product.stock;
-      }
-      if (product.name) {
-        window[trackingObjectName].fn = product.name;
-      }
-      if (product.description) {
-        window[trackingObjectName].description = product.description;
-      }
-      if (product.category) {
-        window[trackingObjectName].category = product.category;
-      }
-      if (product.manufacturer) {
-        window[trackingObjectName].brand = product.manufacturer;
-      }
-      if (product.unitSalePrice) {
-        window[trackingObjectName].price = product.unitSalePrice;
-      }
-      if (product.unitPrice) {
-        window[trackingObjectName].amount = product.unitPrice;
-      }
-      if (product.currency) {
-        window[trackingObjectName].currency = product.currency;
-      }
-      if (product.url) {
-        window[trackingObjectName].url = product.url;
-      }
-      if (product.imageUrl) {
-        window[trackingObjectName].photo = product.imageUrl;
-      }
-
       loadTrackingScript();
     }
   }
