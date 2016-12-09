@@ -5,7 +5,7 @@ function lineItemsToSociomanticsItems(lineItems) {
   const products = [];
   for (let i = 0, length = lineItems.length; i < length; i++) {
     const lineItem = lineItems[i];
-    if (lineItem.product) {
+    if (lineItem && lineItem.product) {
       const productId = lineItem.product.id || lineItem.product.skuCode;
       if (productId) {
         const product = {
@@ -25,24 +25,36 @@ class Sociomantic extends Integration {
 
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
-      scriptURL: '',
+      region: '',
+      adpanId: '',
       prefix: ''
     }, options);
     super(digitalData, optionsWithDefaults);
-
-    const protocol = 'https:' === document.location.protocol ? 'https://' : 'http://';
-
-    this.addTag({
-      type: 'script',
-      attr: {
-        type: 'text/javascript',
-        async: true,
-        src: `${protocol}${options.scriptURL}`
-      },
-    });
   }
 
-  initialize() {
+  loadTrackingScript() {
+    const adpanId = this.getOption('adpanId');
+    if (window.sociomantic &&
+        window.sociomantic.sonar &&
+        window.sociomantic.sonar.adv[adpanId])
+    {
+      window.sociomantic.sonar.adv[adpanId].enable();
+    } else {
+      const protocol = 'https:' === document.location.protocol ? 'https://' : 'http://';
+      const region = `${this.getOption('region')}-` || '';
+      const scriptURL = region + 'sonar.sociomantic.com/js/2010-07-01/adpan/' + this.getOption('adpanId');
+      const src = protocol + scriptURL;
+
+      this.addTag({
+        type: 'script',
+        attr: {
+          type: 'text/javascript',
+          async: true,
+          src: src
+        },
+      });
+    }
+
     this.onLoad();
   }
 
@@ -54,14 +66,54 @@ class Sociomantic extends Integration {
     deleteProperty(window, 'sociomantic');
   }
 
+  getEnrichableEventProps(event) {
+    let enrichableProps = [];
+    switch (event.name) {
+      case 'Viewed Product Detail':
+        enrichableProps = [
+          'product',
+        ];
+        break;
+      case 'Viewed Product Category':
+        enrichableProps = [
+          'listing.category',
+        ];
+        break;
+      case 'Searched Products':
+        enrichableProps = [
+          'listing.category',
+        ];
+        break;
+      case 'Viewed Cart':
+        enrichableProps = [
+          'cart.lineItems',
+        ];
+        break;
+      case 'Completed Transaction':
+        enrichableProps = [
+          'transaction',
+        ];
+        break;
+      case 'Subscribed':
+        enrichableProps = [
+          'user.userId',
+        ];
+        break;
+      default:
+        // do nothing
+    }
+
+    return enrichableProps;
+  }
+
   trackEvent(event) {
     const methods = {
       'Viewed Product Detail': 'onViewedProductDetail',
-      'Completed Transaction': 'onCompletedTransaction',
-      'Viewed Product Category': 'onViewedProductCategory',
+      'Viewed Product Category': 'onViewedProductListing',
       'Viewed Cart': 'onViewedCart',
-      'Searched': 'onSearched',
+      'Completed Transaction': 'onCompletedTransaction',
       'Subscribed': 'onSubscribed',
+      'Searched Products': 'onViewedProductListing',
     };
 
     const method = methods[event.name];
@@ -72,83 +124,108 @@ class Sociomantic extends Integration {
 
   onViewedProductDetail(event) {
     const prefix = this.getOption('prefix');
-    const objectName = prefix + 'product';
-    const { product } = event.product;
+    const trackingObjectName = prefix + 'product';
+    const product = event.product;
     if (product) {
-      window[objectName] = {
-        identifier: product.id || product.skuCode || '',
-        quantity: product.stock || 1,
-        fn: product.name || '',
-        description: product.description || '',
-        category: product.category || '',
-        brand: product.manufacturer || '',
-        price: product.unitSalePrice || 0,
-        amount: product.unitPrice || 0,
-        currency: product.currency || '',
-        url: product.url || '',
-        photo: product.imageUrl || '',
+      if (product.id || product.skuCode) {
+        window[trackingObjectName] = {
+          identifier: product.id || product.skuCode
+        }
+      }
+    }
+
+    if (product && product.id) {
+      if (product.stock) {
+        window[trackingObjectName].quantity = product.stock;
+      }
+      if (product.name) {
+        window[trackingObjectName].fn = product.name;
+      }
+      if (product.description) {
+        window[trackingObjectName].description = product.description;
+      }
+      if (product.category) {
+        window[trackingObjectName].category = product.category;
+      }
+      if (product.manufacturer) {
+        window[trackingObjectName].brand = product.manufacturer;
+      }
+      if (product.unitSalePrice) {
+        window[trackingObjectName].price = product.unitSalePrice;
+      }
+      if (product.unitPrice) {
+        window[trackingObjectName].amount = product.unitPrice;
+      }
+      if (product.currency) {
+        window[trackingObjectName].currency = product.currency;
+      }
+      if (product.url) {
+        window[trackingObjectName].url = product.url;
+      }
+      if (product.imageUrl) {
+        window[trackingObjectName].photo = product.imageUrl;
+      }
+
+      loadTrackingScript();
+    }
+  }
+
+  onViewedProductListing(event) {
+    const prefix = this.getOption('prefix');
+    const trackingObjectName = prefix + 'product';
+    const listing = event.listing;
+    if (listing && listing.category) {
+      window[trackingObjectName] = {
+        category: listing.category
       };
+      loadTrackingScript();
     }
   }
 
   onViewedCart(event) {
     const prefix = this.getOption('prefix');
-    const objectName = prefix + 'basket';
+    const trackingObjectName = prefix + 'basket';
     const cart = event.cart;
     if (cart && cart.lineItems) {
-      const products = lineItemsToSociomanticsItems(event.cart.lineItems);
-      window[objectName] = {
+      const products = lineItemsToSociomanticsItems(cart.lineItems);
+      window[trackingObjectName] = {
         products: products
       }
+      loadTrackingScript();
     }
   }
 
   onCompletedTransaction(event) {
     const prefix = this.getOption('prefix');
-    const objectName = prefix + 'basket';
+    const trackingObjectSaleName = prefix + 'sale';
+    const trackingObjectBasketName = prefix + 'basket';
     const transaction = event.transaction;
-    if (transaction) {
+
+    window[trackingObjectSaleName] = {
+      confirmed: true
+    }
+
+    if (transaction && transaction.lineItems) {
       const products = lineItemsToSociomanticsItems(transaction.lineItems);
-      window[objectName] = {
+      window[trackingObjectBasketName] = {
         products: products,
         transaction: transaction.orderId,
         amount: transaction.total,
         currency: transaction.currency
       };
-    }
-  }
-
-  onViewedProductCategory(event) {
-    const prefix = this.getOption('prefix');
-    const objectName = prefix + 'product';
-    const listing = event.listing;
-    if (listing) {
-      window[objectName] = {
-        category: event.listing.category || ''
-      };
-    }
-  }
-
-  onSearched(event) {
-    const prefix = this.getOption('prefix');
-    const objectName = prefix + 'search';
-    const listing = event.listing;
-    if (listing) {
-      window[objectName] = {
-        query: event.listing.query,
-       type: 2 // 2 - retail products
-      };
+      loadTrackingScript();
     }
   }
 
   onSubscribed(event) {
     const prefix = this.getOption('prefix');
-    const objectName = prefix + 'lead';
+    const trackingObjectName = prefix + 'lead';
     const user = event.user;
-    if (user) {
-      window[objectName] = {
-        identifier: event.user.userId || ''
+    if (user && user.userId) {
+      window[trackingObjectName] = {
+        identifier: user.userId
       };
+      loadTrackingScript();
     }
   }
 }
