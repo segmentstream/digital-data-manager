@@ -12,6 +12,7 @@ import MyTarget from './integrations/MyTarget.js';
 import YandexMetrica from './integrations/YandexMetrica.js';
 import Vkontakte from './integrations/Vkontakte.js';
 import Emarsys from './integrations/Emarsys.js';
+import RockStat from './integrations/RockStat.js';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -28,6 +29,7 @@ const integrations = {
   'Yandex Metrica': YandexMetrica,
   'Vkontakte': Vkontakte,
   'Emarsys': Emarsys,
+  'RockStat': RockStat
 };
 
 export default integrations;
