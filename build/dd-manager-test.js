@@ -18139,9 +18139,6 @@ var FacebookPixel = function (_Integration) {
       case 'Viewed Product Detail':
         enrichableProps = ['product'];
         break;
-      case 'Viewed Product Category':
-        enrichableProps = ['listing.categoryId'];
-        break;
       case 'Completed Transaction':
         enrichableProps = ['transaction'];
         break;
@@ -18163,8 +18160,6 @@ var FacebookPixel = function (_Integration) {
   FacebookPixel.prototype.trackEvent = function trackEvent(event) {
     if (event.name === 'Viewed Page') {
       this.onViewedPage();
-    } else if (event.name === 'Viewed Product Category') {
-      this.onViewedProductCategory(event.listing);
     } else if (event.name === 'Viewed Product Detail') {
       this.onViewedProductDetail(event.product);
     } else if (event.name === 'Added Product') {
@@ -24765,41 +24760,6 @@ describe('Integrations: FacebookPixel', function () {
           },
           callback: function callback() {
             _assert2['default'].ok(window.fbq.calledWith('track', 'PageView'));
-            done();
-          }
-        });
-      });
-    });
-
-    describe('#onViewedProductCategory', function () {
-
-      it('should call fbq track ViewContent', function (done) {
-        window.digitalData.events.push({
-          name: 'Viewed Product Category',
-          listing: {
-            categoryId: '123'
-          },
-          callback: function callback() {
-            _assert2['default'].ok(window.fbq.calledWith('track', 'ViewContent', {
-              content_ids: ['123'],
-              content_type: 'product_group'
-            }), 'fbq("track", "ViewContent") was not called');
-            done();
-          }
-        });
-      });
-
-      it('should call fbq track ViewContent (digitalData)', function (done) {
-        window.digitalData.listing = {
-          categoryId: '123'
-        };
-        window.digitalData.events.push({
-          name: 'Viewed Product Category',
-          callback: function callback() {
-            _assert2['default'].ok(window.fbq.calledWith('track', 'ViewContent', {
-              content_ids: ['123'],
-              content_type: 'product_group'
-            }), 'fbq("track", "ViewContent") was not called');
             done();
           }
         });

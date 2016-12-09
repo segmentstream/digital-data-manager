@@ -86,44 +86,6 @@ describe('Integrations: FacebookPixel', () => {
 
     });
 
-
-    describe('#onViewedProductCategory', () => {
-
-      it('should call fbq track ViewContent', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Product Category',
-          listing: {
-            categoryId: '123',
-          },
-          callback: () => {
-            assert.ok(window.fbq.calledWith('track', 'ViewContent', {
-              content_ids: ['123'],
-              content_type: 'product_group'
-            }), 'fbq("track", "ViewContent") was not called');
-            done();
-          }
-        });
-      });
-
-      it('should call fbq track ViewContent (digitalData)', (done) => {
-        window.digitalData.listing = {
-          categoryId: '123'
-        };
-        window.digitalData.events.push({
-          name: 'Viewed Product Category',
-          callback: () => {
-            assert.ok(window.fbq.calledWith('track', 'ViewContent', {
-              content_ids: ['123'],
-              content_type: 'product_group'
-            }), 'fbq("track", "ViewContent") was not called');
-            done();
-          }
-        });
-      });
-
-    });
-
-
     describe('#onViewedProductDetail', () => {
 
       it('should call fbq track ViewContent (legacy product.category format)', (done) => {

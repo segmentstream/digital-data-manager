@@ -10708,9 +10708,6 @@ var FacebookPixel = function (_Integration) {
       case 'Viewed Product Detail':
         enrichableProps = ['product'];
         break;
-      case 'Viewed Product Category':
-        enrichableProps = ['listing.categoryId'];
-        break;
       case 'Completed Transaction':
         enrichableProps = ['transaction'];
         break;
@@ -10732,8 +10729,6 @@ var FacebookPixel = function (_Integration) {
   FacebookPixel.prototype.trackEvent = function trackEvent(event) {
     if (event.name === 'Viewed Page') {
       this.onViewedPage();
-    } else if (event.name === 'Viewed Product Category') {
-      this.onViewedProductCategory(event.listing);
     } else if (event.name === 'Viewed Product Detail') {
       this.onViewedProductDetail(event.product);
     } else if (event.name === 'Added Product') {
