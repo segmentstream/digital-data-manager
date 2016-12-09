@@ -21,6 +21,15 @@ function lineItemsToSociomanticsItems(lineItems) {
   return products;
 }
 
+function deleteEmptyProperties(objName) {
+  var keys = Object.keys(window[objName]);
+  keys.map(function(key) {
+    if (window[objName][key] === '') {
+      deleteProperty(window[objName], key);
+    }
+  });
+}
+
 class Sociomantic extends Integration {
 
   constructor(digitalData, options) {
@@ -126,20 +135,21 @@ class Sociomantic extends Integration {
     const prefix = this.getOption('prefix');
     const trackingObjectName = prefix + 'product';
     const product = event.product;
-    if (product) {
+    if (product && (product.id || product.skuCode)) {
       window[trackingObjectName] = {
-        identifier: product.id || product.skuCode,
-        quantity = product.stock,
-        fn = product.name,
-        description = product.description,
-        category = product.category,
-        brand = product.manufacturer,
-        price = product.unitSalePrice,
-        amount = product.unitPrice,
-        currency = product.currency,
-        url = product.url,
-        photo = product.imageUrl,
+        identifier: product.id || product.skuCode || '',
+        quantity: product.stock || '',
+        fn: product.name || '',
+        description: product.description || '',
+        category: product.category || '',
+        brand: product.manufacturer || '',
+        price: product.unitSalePrice || '',
+        amount: product.unitPrice || '',
+        currency: product.currency || '',
+        url: product.url || '',
+        photo: product.imageUrl || '',
       }
+      deleteEmptyProperties(trackingObjectName);
       loadTrackingScript();
     }
   }
@@ -183,10 +193,11 @@ class Sociomantic extends Integration {
       const products = lineItemsToSociomanticsItems(transaction.lineItems);
       window[trackingObjectBasketName] = {
         products: products,
-        transaction: transaction.orderId,
-        amount: transaction.total,
-        currency: transaction.currency
+        transaction: transaction.orderId || '',
+        amount: transaction.total || '',
+        currency: transaction.currency || ''
       };
+      deleteEmptyProperties(trackingObjectName);
       loadTrackingScript();
     }
   }
