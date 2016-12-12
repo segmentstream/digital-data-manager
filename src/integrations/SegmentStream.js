@@ -70,6 +70,7 @@ class SegmentStream extends Integration {
 
     ssApi.initialize(this._options);
     this.load(this.onLoad);
+    this.enrichDigitalData();
   }
 
   isLoaded() {

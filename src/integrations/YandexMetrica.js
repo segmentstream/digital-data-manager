@@ -48,6 +48,9 @@ class YandexMetrica extends Integration {
 
     super(digitalData, optionsWithDefaults);
 
+    // use custom dataLayer name to avoid conflicts
+    this.dataLayerName = 'yandexDL';
+
     this.addTag({
       type: 'script',
       attr: {
@@ -79,7 +82,7 @@ class YandexMetrica extends Integration {
     const id = this.getOption('counterId');
 
     window.yandex_metrika_callbacks = window.yandex_metrika_callbacks || [];
-    this.dataLayer = window.dataLayer = window.dataLayer || [];
+    this.dataLayer = window[this.dataLayerName] = window[this.dataLayerName] || [];
     if (!this.getOption('noConflict') && id) {
       window.yandex_metrika_callbacks.push(() => {
         this.yaCounter = window['yaCounter' + id] = new window.Ya.Metrika({
@@ -88,7 +91,7 @@ class YandexMetrica extends Integration {
           webvisor: this.getOption('webvisor'),
           trackLinks: this.getOption('trackLinks'),
           trackHash: this.getOption('trackHash'),
-          ecommerce: true,
+          ecommerce: this.dataLayerName,
         });
       });
       this.load(this.onLoad);
@@ -104,7 +107,7 @@ class YandexMetrica extends Integration {
   reset() {
     deleteProperty(window, 'Ya');
     deleteProperty(window, 'yandex_metrika_callbacks');
-    deleteProperty(window, 'dataLayer');
+    deleteProperty(window, this.dataLayerName);
   }
 
   trackEvent(event) {

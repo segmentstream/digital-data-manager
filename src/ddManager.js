@@ -1,18 +1,19 @@
 import clone from 'component-clone';
 import async from 'async';
 
-import size from './functions/size.js';
-import after from './functions/after.js';
-import each from './functions/each.js';
+import size from './functions/size';
+import after from './functions/after';
+import each from './functions/each';
 import emitter from 'component-emitter';
-import Integration from './Integration.js';
-import EventManager from './EventManager.js';
+import Integration from './Integration';
+import EventManager from './EventManager';
 import EventDataEnricher from './EventDataEnricher';
-import ViewabilityTracker from './ViewabilityTracker.js';
-import DDHelper from './DDHelper.js';
-import DigitalDataEnricher from './DigitalDataEnricher.js';
-import Storage from './Storage.js';
-import DDStorage from './DDStorage.js';
+import ViewabilityTracker from './ViewabilityTracker';
+import DDHelper from './DDHelper';
+import DigitalDataEnricher from './DigitalDataEnricher';
+import Storage from './Storage';
+import DDStorage from './DDStorage';
+import { isTestMode, logEnrichedIntegrationEvent, showTestModeOverlay } from './testMode';
 
 let ddManager;
 
@@ -144,6 +145,9 @@ function _addIntegrationsEventTracking() {
       if (trackEvent) {
         // important! cloned object is returned (not link)
         const enrichedEvent = EventDataEnricher.enrichIntegrationData(event, _digitalData, integration);
+        if (isTestMode()) {
+          logEnrichedIntegrationEvent(enrichedEvent, integrationName);
+        }
         integration.trackEvent(enrichedEvent);
       }
     });
@@ -151,6 +155,7 @@ function _addIntegrationsEventTracking() {
 }
 
 function _initializeIntegrations(settings) {
+  const version = settings.version;
   const onLoad = () => {
     _isLoaded = true;
     ddManager.emit('load');
@@ -167,11 +172,10 @@ function _initializeIntegrations(settings) {
       each(_integrations, (name, integration) => {
         if (!integration.isLoaded() || integration.getOption('noConflict')) {
           integration.once('load', loaded);
-          integration.initialize();
+          integration.initialize(version);
         } else {
           loaded();
         }
-        _digitalDataEnricher.enrichIntegrationData(integration);
       });
     } else {
       loaded();
@@ -184,7 +188,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.2.7',
+  VERSION: '1.2.9',
 
   setAvailableIntegrations: (availableIntegrations) => {
     _availableIntegrations = availableIntegrations;
@@ -250,6 +254,10 @@ ddManager = {
 
     _isReady = true;
     ddManager.emit('ready');
+
+    if (isTestMode()) {
+      showTestModeOverlay();
+    }
   },
 
   isLoaded: () => {

@@ -43,13 +43,14 @@ class GoogleTagManager extends Integration {
   }
 
   trackEvent(event) {
-    const name = event.name;
-    const category = event.category;
-    deleteProperty(event, 'name');
-    deleteProperty(event, 'category');
-    event.event = name;
-    event.eventCategory = category;
-    window.dataLayer.push(event);
+    const dlEvent = Object.assign({}, event);
+    const name = dlEvent.name;
+    const category = dlEvent.category;
+    deleteProperty(dlEvent, 'name');
+    deleteProperty(dlEvent, 'category');
+    dlEvent.event = name;
+    dlEvent.eventCategory = category;
+    window.dataLayer.push(dlEvent);
   }
 }
 

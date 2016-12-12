@@ -372,6 +372,7 @@ describe('Integrations: GoogleAnalytics', () => {
           ga.setOption('contentGroupings', {
             contentGroup1: 'page.section'
           });
+          ga.prepareCustomDimensions();
           window.digitalData.events.push({
             name: 'Viewed Page',
             page: {
@@ -396,6 +397,7 @@ describe('Integrations: GoogleAnalytics', () => {
         });
 
         it('should map custom dimensions, metrics & content groups using event properties or digitalData', (done) => {
+          ga.initVersion = '1.2.8';
           ga.setOption('metrics', {
             metric1: {
               type: 'digitalData',
@@ -426,6 +428,7 @@ describe('Integrations: GoogleAnalytics', () => {
               value: 'page.section'
             }
           });
+          ga.prepareCustomDimensions();
           window.digitalData.page = {
             score: 21,
             author: 'Author',
@@ -552,6 +555,7 @@ describe('Integrations: GoogleAnalytics', () => {
         });
 
         it('should map custom dimensions & metrics', function() {
+          ga.initVersion = '1.2.8';
           ga.setOption('metrics', {
             metric1: {
               type: 'event',
@@ -568,6 +572,7 @@ describe('Integrations: GoogleAnalytics', () => {
               value: 'referrer'
             }
           });
+          ga.prepareCustomDimensions();
 
           window.digitalData.events.push({
             name: 'Level Unlocked',
@@ -592,6 +597,7 @@ describe('Integrations: GoogleAnalytics', () => {
           ga.setOption('dimensions', {
             dimension2: 'referrer'
           });
+          ga.prepareCustomDimensions();
 
           window.digitalData.events.push({
             name: 'Level Unlocked',
@@ -817,12 +823,6 @@ describe('Integrations: GoogleAnalytics', () => {
       defaultCurrency: 'USD',
       siteSpeedSampleRate: 42,
       namespace: false,
-      productDimensions: {
-        'dimension10': 'stock'
-      },
-      productMetrics: {
-        'metric10': 'weight'
-      },
     };
 
     beforeEach(() => {
@@ -932,6 +932,13 @@ describe('Integrations: GoogleAnalytics', () => {
         });
 
         it('should send added product data with custom dimensions and metrics', function() {
+          ga.setOption('productDimensions', {
+            'dimension10': 'stock'
+          });
+          ga.setOption('productMetrics', {
+            'metric10': 'weight'
+          });
+          ga.prepareCustomDimensions();
           window.digitalData.events.push({
             name: 'Added Product',
             product: {
@@ -1051,6 +1058,13 @@ describe('Integrations: GoogleAnalytics', () => {
         });
 
         it('should send removed product data with custom dimensions and metrics', function() {
+          ga.setOption('productDimensions', {
+            'dimension10': 'stock'
+          });
+          ga.setOption('productMetrics', {
+            'metric10': 'weight'
+          });
+          ga.prepareCustomDimensions();
           window.digitalData.events.push({
             name: 'Removed Product',
             product: {
@@ -1161,6 +1175,57 @@ describe('Integrations: GoogleAnalytics', () => {
         });
 
         it('should send viewed product detail data with custom dimensions and metrics', function() {
+          ga.setOption('productDimensions', {
+            'dimension10': 'stock'
+          });
+          ga.setOption('productMetrics', {
+            'metric10': 'weight'
+          });
+          ga.prepareCustomDimensions();
+          window.digitalData.events.push({
+            name: 'Viewed Product Detail',
+            product: {
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298',
+              stock: 25,
+              weight: 100
+            },
+            callback: () => {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1',
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+                dimension10: 25,
+                metric10: 100
+              }));
+              assert.ok(window.ga.calledWith('ec:setAction', 'detail', {}));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }));
+            }
+          });
+        });
+
+        it('should send viewed product detail data with custom dimensions and metrics (new initVersion)', function() {
+          ga.initVersion = '1.2.8';
+          ga.setOption('dimensions', {
+            'dimension10': {
+              type: 'product',
+              value: 'stock'
+            }
+          });
+          ga.setOption('metrics', {
+            'metric10': {
+              type: 'product',
+              value: 'weight'
+            }
+          });
+          ga.prepareCustomDimensions();
           window.digitalData.events.push({
             name: 'Viewed Product Detail',
             product: {
@@ -1191,6 +1256,13 @@ describe('Integrations: GoogleAnalytics', () => {
         });
 
         it('should send clicked product data with custom dimensions and metrics', function() {
+          ga.setOption('productDimensions', {
+            'dimension10': 'stock'
+          });
+          ga.setOption('productMetrics', {
+            'metric10': 'weight'
+          });
+          ga.prepareCustomDimensions();
           window.digitalData.events.push({
             name: 'Clicked Product',
             listItem: {
@@ -1267,6 +1339,13 @@ describe('Integrations: GoogleAnalytics', () => {
         });
 
         it('should send viewed product data with custom dimensions and metrics', function() {
+          ga.setOption('productDimensions', {
+            'dimension10': 'stock'
+          });
+          ga.setOption('productMetrics', {
+            'metric10': 'weight'
+          });
+          ga.prepareCustomDimensions();
           window.digitalData.events.push({
             name: 'Viewed Product',
             listItem: {
@@ -1635,6 +1714,13 @@ describe('Integrations: GoogleAnalytics', () => {
         });
 
         it('should send started order data with custom dimensions and metrics', function() {
+          ga.setOption('productDimensions', {
+            'dimension10': 'stock'
+          });
+          ga.setOption('productMetrics', {
+            'metric10': 'weight'
+          });
+          ga.prepareCustomDimensions();
           window.digitalData.cart = {
             currency: 'CAD',
             lineItems: [
@@ -1798,6 +1884,13 @@ describe('Integrations: GoogleAnalytics', () => {
         });
 
         it('should send completed order data with custom dimensions and metrics', function() {
+          ga.setOption('productDimensions', {
+            'dimension10': 'stock'
+          });
+          ga.setOption('productMetrics', {
+            'metric10': 'weight'
+          });
+          ga.prepareCustomDimensions();
           window.digitalData.events.push({
             name: 'Completed Transaction',
             category: 'Ecommerce',

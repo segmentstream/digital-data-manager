@@ -4,14 +4,21 @@ class OWOXBIStreaming extends Integration {
 
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
-      namespace: 'ddl',
-      sessionIdDimension: '',
+      namespace: undefined,
+      sessionIdDimension: undefined,
     }, options);
 
     super(digitalData, optionsWithDefaults);
   }
 
-  initialize() {
+  initialize(version) {
+    this.initVersion = version;
+
+    // support of legacy version
+    if (!this.initVersion && !this.getOption('namespace') && this.getOption('namespace') !== false) {
+      this.setOption('namespace', 'ddl');
+    }
+
     this.ga('require', 'OWOXBIStreaming', {
       sessionIdDimension: this.getOption('sessionIdDimension'),
     });

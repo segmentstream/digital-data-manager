@@ -14990,10 +14990,6 @@ var DigitalDataEnricher = function () {
     this.listenToEvents();
   };
 
-  DigitalDataEnricher.prototype.enrichIntegrationData = function enrichIntegrationData(integration) {
-    integration.enrichDigitalData(this.digitalData);
-  };
-
   DigitalDataEnricher.prototype.listenToEvents = function listenToEvents() {
     var _this = this;
 
@@ -16491,15 +16487,15 @@ var _async = require('async');
 
 var _async2 = _interopRequireDefault(_async);
 
-var _size = require('./functions/size.js');
+var _size = require('./functions/size');
 
 var _size2 = _interopRequireDefault(_size);
 
-var _after = require('./functions/after.js');
+var _after = require('./functions/after');
 
 var _after2 = _interopRequireDefault(_after);
 
-var _each = require('./functions/each.js');
+var _each = require('./functions/each');
 
 var _each2 = _interopRequireDefault(_each);
 
@@ -16507,11 +16503,11 @@ var _componentEmitter = require('component-emitter');
 
 var _componentEmitter2 = _interopRequireDefault(_componentEmitter);
 
-var _Integration = require('./Integration.js');
+var _Integration = require('./Integration');
 
 var _Integration2 = _interopRequireDefault(_Integration);
 
-var _EventManager = require('./EventManager.js');
+var _EventManager = require('./EventManager');
 
 var _EventManager2 = _interopRequireDefault(_EventManager);
 
@@ -16519,25 +16515,27 @@ var _EventDataEnricher = require('./EventDataEnricher');
 
 var _EventDataEnricher2 = _interopRequireDefault(_EventDataEnricher);
 
-var _ViewabilityTracker = require('./ViewabilityTracker.js');
+var _ViewabilityTracker = require('./ViewabilityTracker');
 
 var _ViewabilityTracker2 = _interopRequireDefault(_ViewabilityTracker);
 
-var _DDHelper = require('./DDHelper.js');
+var _DDHelper = require('./DDHelper');
 
 var _DDHelper2 = _interopRequireDefault(_DDHelper);
 
-var _DigitalDataEnricher = require('./DigitalDataEnricher.js');
+var _DigitalDataEnricher = require('./DigitalDataEnricher');
 
 var _DigitalDataEnricher2 = _interopRequireDefault(_DigitalDataEnricher);
 
-var _Storage = require('./Storage.js');
+var _Storage = require('./Storage');
 
 var _Storage2 = _interopRequireDefault(_Storage);
 
-var _DDStorage = require('./DDStorage.js');
+var _DDStorage = require('./DDStorage');
 
 var _DDStorage2 = _interopRequireDefault(_DDStorage);
+
+var _testMode = require('./testMode');
 
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
@@ -16686,6 +16684,9 @@ function _addIntegrationsEventTracking() {
       if (trackEvent) {
         // important! cloned object is returned (not link)
         var enrichedEvent = _EventDataEnricher2['default'].enrichIntegrationData(event, _digitalData, integration);
+        if ((0, _testMode.isTestMode)()) {
+          (0, _testMode.logEnrichedIntegrationEvent)(enrichedEvent, integrationName);
+        }
         integration.trackEvent(enrichedEvent);
       }
     });
@@ -16693,6 +16694,7 @@ function _addIntegrationsEventTracking() {
 }
 
 function _initializeIntegrations(settings) {
+  var version = settings.version;
   var onLoad = function onLoad() {
     _isLoaded = true;
     ddManager.emit('load');
@@ -16710,11 +16712,10 @@ function _initializeIntegrations(settings) {
         (0, _each2['default'])(_integrations, function (name, integration) {
           if (!integration.isLoaded() || integration.getOption('noConflict')) {
             integration.once('load', loaded);
-            integration.initialize();
+            integration.initialize(version);
           } else {
             loaded();
           }
-          _digitalDataEnricher.enrichIntegrationData(integration);
         });
       } else {
         loaded();
@@ -16728,7 +16729,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.2.7',
+  VERSION: '1.2.9',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -16794,6 +16795,10 @@ ddManager = {
 
     _isReady = true;
     ddManager.emit('ready');
+
+    if ((0, _testMode.isTestMode)()) {
+      (0, _testMode.showTestModeOverlay)();
+    }
   },
 
   isLoaded: function isLoaded() {
@@ -16889,7 +16894,7 @@ ddManager.on = ddManager.addEventListener = function (event, handler) {
 
 exports['default'] = ddManager;
 
-},{"./DDHelper.js":100,"./DDStorage.js":101,"./DigitalDataEnricher.js":102,"./EventDataEnricher":103,"./EventManager.js":104,"./Integration.js":105,"./Storage.js":106,"./ViewabilityTracker.js":107,"./functions/after.js":111,"./functions/each.js":114,"./functions/size.js":125,"async":2,"component-clone":3,"component-emitter":4}],110:[function(require,module,exports){
+},{"./DDHelper":100,"./DDStorage":101,"./DigitalDataEnricher":102,"./EventDataEnricher":103,"./EventManager":104,"./Integration":105,"./Storage":106,"./ViewabilityTracker":107,"./functions/after":111,"./functions/each":114,"./functions/size":125,"./testMode":142,"async":2,"component-clone":3,"component-emitter":4}],110:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -18134,9 +18139,6 @@ var FacebookPixel = function (_Integration) {
       case 'Viewed Product Detail':
         enrichableProps = ['product'];
         break;
-      case 'Viewed Product Category':
-        enrichableProps = ['listing.categoryId'];
-        break;
       case 'Completed Transaction':
         enrichableProps = ['transaction'];
         break;
@@ -18158,8 +18160,6 @@ var FacebookPixel = function (_Integration) {
   FacebookPixel.prototype.trackEvent = function trackEvent(event) {
     if (event.name === 'Viewed Page') {
       this.onViewedPage();
-    } else if (event.name === 'Viewed Product Category') {
-      this.onViewedProductCategory(event.listing);
     } else if (event.name === 'Viewed Product Detail') {
       this.onViewedProductDetail(event.product);
     } else if (event.name === 'Added Product') {
@@ -18528,10 +18528,6 @@ var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 
 var _dotProp = require('./../functions/dotProp');
 
-var _componentType = require('component-type');
-
-var _componentType2 = _interopRequireDefault(_componentType);
-
 var _each = require('./../functions/each.js');
 
 var _each2 = _interopRequireDefault(_each);
@@ -18545,6 +18541,8 @@ var _componentClone = require('component-clone');
 var _componentClone2 = _interopRequireDefault(_componentClone);
 
 var _events = require('./../events');
+
+var _variableTypes = require('./../variableTypes');
 
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
@@ -18637,7 +18635,7 @@ var GoogleAnalytics = function (_Integration) {
       contentGroups: {},
       productDimensions: {},
       productMetrics: {},
-      namespace: 'ddl',
+      namespace: undefined,
       noConflict: false,
       checkoutOptions: ['option', 'paymentMethod', 'shippingMethod']
     }, options);
@@ -18658,17 +18656,23 @@ var GoogleAnalytics = function (_Integration) {
     switch (event.name) {
       case _events.VIEWED_PAGE:
         enrichableProps = ['user.userId', 'website.currency', 'page'];
-        var settings = this.getCustomsSettings();
-        (0, _each2['default'])(settings, function (key, variable) {
-          if ((0, _componentType2['default'])(variable) === 'string') {
-            // legacy version
-            enrichableProps.push(variable);
+        var enrichableDimensionsProps = this.getEnrichableDimensionsProps();
+        for (var _iterator2 = enrichableDimensionsProps, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+          var _ref2;
+
+          if (_isArray2) {
+            if (_i2 >= _iterator2.length) break;
+            _ref2 = _iterator2[_i2++];
           } else {
-            if (variable.type && variable.type === 'digitalData') {
-              enrichableProps.push(variable.value);
-            }
+            _i2 = _iterator2.next();
+            if (_i2.done) break;
+            _ref2 = _i2.value;
           }
-        });
+
+          var enrichableDimensionsProp = _ref2;
+
+          enrichableProps.push(enrichableDimensionsProp);
+        }
         break;
       case _events.VIEWED_PRODUCT_DETAIL:
         enrichableProps = ['product'];
@@ -18687,7 +18691,16 @@ var GoogleAnalytics = function (_Integration) {
     return enrichableProps;
   };
 
-  GoogleAnalytics.prototype.initialize = function initialize() {
+  GoogleAnalytics.prototype.initialize = function initialize(version) {
+    this.initVersion = version;
+
+    // support of legacy version
+    if (!this.initVersion && !this.getOption('namespace') && this.getOption('namespace') !== false) {
+      this.setOption('namespace', 'ddl');
+    }
+
+    this.prepareCustomDimensions();
+
     if (this.getOption('trackingId')) {
       this.pageCalled = false;
 
@@ -18713,6 +18726,54 @@ var GoogleAnalytics = function (_Integration) {
     } else {
       _Integration.prototype.onLoad.call(this);
     }
+    this.enrichDigitalData();
+  };
+
+  GoogleAnalytics.prototype.prepareCustomDimensions = function prepareCustomDimensions() {
+    var _this2 = this;
+
+    this.enrichableDimensionsProps = [];
+    this.productLevelDimensions = {};
+    this.hitLevelDimentsions = {};
+
+    var settings = Object.assign(this.getOption('metrics'), this.getOption('dimensions'), this.getOption('contentGroups'));
+
+    if (!this.initVersion) {
+      settings = Object.assign(settings, this.getOption('contentGroupings'));
+      (0, _each2['default'])(settings, function (key, value) {
+        _this2.enrichableDimensionsProps.push(value);
+        _this2.hitLevelDimentsions[key] = value;
+      });
+      var productSettings = Object.assign(this.getOption('productMetrics'), this.getOption('productDimensions'));
+      (0, _each2['default'])(productSettings, function (key, value) {
+        _this2.productLevelDimensions[key] = value;
+      });
+    } else {
+      (0, _each2['default'])(settings, function (key, variable) {
+        if (variable.type === _variableTypes.PRODUCT_VAR) {
+          _this2.productLevelDimensions[key] = variable.value;
+        } else {
+          if (variable.type === _variableTypes.DIGITALDATA_VAR) {
+            _this2.enrichableDimensionsProps.push(variable.value);
+            _this2.hitLevelDimentsions[key] = variable.value;
+          } else if (variable.type === _variableTypes.EVENT_VAR) {
+            _this2.hitLevelDimentsions[key] = variable.value;
+          }
+        }
+      });
+    }
+  };
+
+  GoogleAnalytics.prototype.getEnrichableDimensionsProps = function getEnrichableDimensionsProps() {
+    return this.enrichableDimensionsProps;
+  };
+
+  GoogleAnalytics.prototype.getProductLevelDimensions = function getProductLevelDimensions() {
+    return this.productLevelDimensions;
+  };
+
+  GoogleAnalytics.prototype.getHitLevelDimensions = function getHitLevelDimensions() {
+    return this.hitLevelDimentsions;
   };
 
   GoogleAnalytics.prototype.initializeTracker = function initializeTracker() {
@@ -18759,31 +18820,18 @@ var GoogleAnalytics = function (_Integration) {
     this.pageCalled = false;
   };
 
-  GoogleAnalytics.prototype.getCustomsSettings = function getCustomsSettings() {
-    var productScope = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-
-    if (!productScope) {
-      return Object.assign(this.getOption('metrics'), this.getOption('dimensions'), this.getOption('contentGroupings'), // legacy version
-      this.getOption('contentGroups'));
-    }
-    return Object.assign(this.getOption('productMetrics'), this.getOption('productDimensions'));
-  };
-
-  GoogleAnalytics.prototype.getCustomDimensions = function getCustomDimensions(event) {
+  GoogleAnalytics.prototype.getCustomDimensions = function getCustomDimensions(source) {
     var productScope = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
-    var settings = this.getCustomsSettings(productScope);
+    var settings = void 0;
+    if (productScope) {
+      settings = this.getProductLevelDimensions();
+    } else {
+      settings = this.getHitLevelDimensions();
+    }
     var custom = {};
-
-    (0, _each2['default'])(settings, function (key, variable) {
-      var value = void 0;
-      if ((0, _componentType2['default'])(variable) === 'string') {
-        // legacy version
-        value = variable;
-      } else {
-        value = variable.value;
-      }
-      var dimensionVal = (0, _dotProp.getProp)(event, value);
+    (0, _each2['default'])(settings, function (key, value) {
+      var dimensionVal = (0, _dotProp.getProp)(source, value);
       if (dimensionVal !== undefined) {
         if (typeof dimensionVal === 'boolean') dimensionVal = dimensionVal.toString();
         custom[key] = dimensionVal;
@@ -18816,19 +18864,19 @@ var GoogleAnalytics = function (_Integration) {
         nonInteraction: 1
       }];
 
-      for (var _iterator2 = args, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
-        var _ref2;
+      for (var _iterator3 = args, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
+        var _ref3;
 
-        if (_isArray2) {
-          if (_i2 >= _iterator2.length) break;
-          _ref2 = _iterator2[_i2++];
+        if (_isArray3) {
+          if (_i3 >= _iterator3.length) break;
+          _ref3 = _iterator3[_i3++];
         } else {
-          _i2 = _iterator2.next();
-          if (_i2.done) break;
-          _ref2 = _i2.value;
+          _i3 = _iterator3.next();
+          if (_i3.done) break;
+          _ref3 = _i3.value;
         }
 
-        var arg = _ref2;
+        var arg = _ref3;
 
         if (arg !== undefined) {
           cleanedArgs.push(arg);
@@ -18840,17 +18888,17 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.enrichDigitalData = function enrichDigitalData() {
-    var _this2 = this;
+    var _this3 = this;
 
     window.ga(function (tracker) {
-      var trackerName = _this2.getOption('namespace');
+      var trackerName = _this3.getOption('namespace');
       tracker = tracker || window.ga.getByName(trackerName);
       if (tracker) {
-        _this2.digitalData.integrations.googleAnalytics = {
+        _this3.digitalData.integrations.googleAnalytics = {
           clientId: tracker.get('clientId')
         };
       }
-      _this2.onEnrich();
+      _this3.onEnrich();
     });
   };
 
@@ -18920,7 +18968,7 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onViewedPage = function onViewedPage(event) {
-    var _this3 = this;
+    var _this4 = this;
 
     // send global id
     var page = event.page;
@@ -18968,8 +19016,8 @@ var GoogleAnalytics = function (_Integration) {
       this.flushPageview();
     } else {
       setTimeout(function () {
-        if (_this3.isLoaded() && _this3.getPageview()) {
-          _this3.flushPageview(); // flush anyway in 100ms
+        if (_this4.isLoaded() && _this4.getPageview()) {
+          _this4.flushPageview(); // flush anyway in 100ms
         }
       }, 100);
     }
@@ -18981,19 +19029,19 @@ var GoogleAnalytics = function (_Integration) {
       listItems = [event.listItem];
     }
 
-    for (var _iterator3 = listItems, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
-      var _ref3;
+    for (var _iterator4 = listItems, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
+      var _ref4;
 
-      if (_isArray3) {
-        if (_i3 >= _iterator3.length) break;
-        _ref3 = _iterator3[_i3++];
+      if (_isArray4) {
+        if (_i4 >= _iterator4.length) break;
+        _ref4 = _iterator4[_i4++];
       } else {
-        _i3 = _iterator3.next();
-        if (_i3.done) break;
-        _ref3 = _i3.value;
+        _i4 = _iterator4.next();
+        if (_i4.done) break;
+        _ref4 = _i4.value;
       }
 
-      var listItem = _ref3;
+      var listItem = _ref4;
 
       var product = listItem.product;
       if (!product.id && !product.skuCode && !product.name) {
@@ -19044,7 +19092,7 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onCompletedTransaction = function onCompletedTransaction(event) {
-    var _this4 = this;
+    var _this5 = this;
 
     var transaction = event.transaction;
     // orderId is required.
@@ -19070,7 +19118,7 @@ var GoogleAnalytics = function (_Integration) {
     (0, _each2['default'])(transaction.lineItems, function (key, lineItem) {
       var product = lineItem.product;
       if (product) {
-        _this4.ga('ecommerce:addItem', {
+        _this5.ga('ecommerce:addItem', {
           id: product.id,
           category: getProductCategory(product),
           quantity: lineItem.quantity,
@@ -19087,7 +19135,7 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onCompletedTransactionEnhanced = function onCompletedTransactionEnhanced(event) {
-    var _this5 = this;
+    var _this6 = this;
 
     var transaction = event.transaction;
 
@@ -19097,8 +19145,8 @@ var GoogleAnalytics = function (_Integration) {
     (0, _each2['default'])(transaction.lineItems, function (key, lineItem) {
       var product = lineItem.product;
       if (product) {
-        product.currency = product.currency || transaction.currency || _this5.getOption('defaultCurrency');
-        _this5.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
+        product.currency = product.currency || transaction.currency || _this6.getOption('defaultCurrency');
+        _this6.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
       }
     });
 
@@ -19116,7 +19164,7 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onRefundedTransaction = function onRefundedTransaction(event) {
-    var _this6 = this;
+    var _this7 = this;
 
     var transaction = event.transaction;
 
@@ -19126,8 +19174,8 @@ var GoogleAnalytics = function (_Integration) {
     (0, _each2['default'])(transaction.lineItems, function (key, lineItem) {
       var product = lineItem.product;
       if (product) {
-        product.currency = product.currency || transaction.currency || _this6.getOption('defaultCurrency');
-        _this6.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
+        product.currency = product.currency || transaction.currency || _this7.getOption('defaultCurrency');
+        _this7.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
       }
     });
 
@@ -19144,19 +19192,19 @@ var GoogleAnalytics = function (_Integration) {
       campaigns = [event.campaign];
     }
 
-    for (var _iterator4 = campaigns, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
-      var _ref4;
+    for (var _iterator5 = campaigns, _isArray5 = Array.isArray(_iterator5), _i5 = 0, _iterator5 = _isArray5 ? _iterator5 : _iterator5[Symbol.iterator]();;) {
+      var _ref5;
 
-      if (_isArray4) {
-        if (_i4 >= _iterator4.length) break;
-        _ref4 = _iterator4[_i4++];
+      if (_isArray5) {
+        if (_i5 >= _iterator5.length) break;
+        _ref5 = _iterator5[_i5++];
       } else {
-        _i4 = _iterator4.next();
-        if (_i4.done) break;
-        _ref4 = _i4.value;
+        _i5 = _iterator5.next();
+        if (_i5.done) break;
+        _ref5 = _i5.value;
       }
 
-      var campaign = _ref4;
+      var campaign = _ref5;
 
       if (!campaign || !campaign.id) {
         continue;
@@ -19191,15 +19239,15 @@ var GoogleAnalytics = function (_Integration) {
   };
 
   GoogleAnalytics.prototype.onViewedCheckoutStep = function onViewedCheckoutStep(event) {
-    var _this7 = this;
+    var _this8 = this;
 
     var cartOrTransaction = (0, _dotProp.getProp)(event, 'cart') || (0, _dotProp.getProp)(event, 'transaction');
 
     (0, _each2['default'])(cartOrTransaction.lineItems, function (key, lineItem) {
       var product = lineItem.product;
       if (product) {
-        product.currency = product.currency || cartOrTransaction.currency || _this7.getOption('defaultCurrency');
-        _this7.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
+        product.currency = product.currency || cartOrTransaction.currency || _this8.getOption('defaultCurrency');
+        _this8.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
       }
     });
 
@@ -19254,8 +19302,8 @@ var GoogleAnalytics = function (_Integration) {
     // custom dimensions & metrics
     var source = (0, _componentClone2['default'])(event);
     var _arr = ['name', 'category', 'label', 'nonInteraction', 'value'];
-    for (var _i5 = 0; _i5 < _arr.length; _i5++) {
-      var prop = _arr[_i5];
+    for (var _i6 = 0; _i6 < _arr.length; _i6++) {
+      var prop = _arr[_i6];
       (0, _deleteProperty2['default'])(source, prop);
     }
     var custom = this.getCustomDimensions(source);
@@ -19299,7 +19347,7 @@ var GoogleAnalytics = function (_Integration) {
 
 exports['default'] = GoogleAnalytics;
 
-},{"./../Integration.js":105,"./../events":110,"./../functions/deleteProperty.js":112,"./../functions/dotProp":113,"./../functions/each.js":114,"./../functions/size.js":125,"component-clone":3,"component-type":5}],133:[function(require,module,exports){
+},{"./../Integration.js":105,"./../events":110,"./../functions/deleteProperty.js":112,"./../functions/dotProp":113,"./../functions/each.js":114,"./../functions/size.js":125,"./../variableTypes":143,"component-clone":3}],133:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -19384,13 +19432,14 @@ var GoogleTagManager = function (_Integration) {
   };
 
   GoogleTagManager.prototype.trackEvent = function trackEvent(event) {
-    var name = event.name;
-    var category = event.category;
-    (0, _deleteProperty2['default'])(event, 'name');
-    (0, _deleteProperty2['default'])(event, 'category');
-    event.event = name;
-    event.eventCategory = category;
-    window.dataLayer.push(event);
+    var dlEvent = Object.assign({}, event);
+    var name = dlEvent.name;
+    var category = dlEvent.category;
+    (0, _deleteProperty2['default'])(dlEvent, 'name');
+    (0, _deleteProperty2['default'])(dlEvent, 'category');
+    dlEvent.event = name;
+    dlEvent.eventCategory = category;
+    window.dataLayer.push(dlEvent);
   };
 
   return GoogleTagManager;
@@ -19690,14 +19739,21 @@ var OWOXBIStreaming = function (_Integration) {
     _classCallCheck(this, OWOXBIStreaming);
 
     var optionsWithDefaults = Object.assign({
-      namespace: 'ddl',
-      sessionIdDimension: ''
+      namespace: undefined,
+      sessionIdDimension: undefined
     }, options);
 
     return _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
   }
 
-  OWOXBIStreaming.prototype.initialize = function initialize() {
+  OWOXBIStreaming.prototype.initialize = function initialize(version) {
+    this.initVersion = version;
+
+    // support of legacy version
+    if (!this.initVersion && !this.getOption('namespace') && this.getOption('namespace') !== false) {
+      this.setOption('namespace', 'ddl');
+    }
+
     this.ga('require', 'OWOXBIStreaming', {
       sessionIdDimension: this.getOption('sessionIdDimension')
     });
@@ -20291,6 +20347,7 @@ var SegmentStream = function (_Integration) {
 
     ssApi.initialize(this._options);
     this.load(this.onLoad);
+    this.enrichDigitalData();
   };
 
   SegmentStream.prototype.isLoaded = function isLoaded() {
@@ -20452,6 +20509,7 @@ var SendPulse = function (_Integration) {
           _this2.sendUserAttributes(_this2.digitalData);
         }
       };
+      _this2.enrichDigitalData();
       _this2.onLoad();
     });
   };
@@ -20767,7 +20825,11 @@ var YandexMetrica = function (_Integration) {
       noConflict: false
     }, options);
 
+    // use custom dataLayer name to avoid conflicts
+
     var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    _this.dataLayerName = 'yandexDL';
 
     _this.addTag({
       type: 'script',
@@ -20799,7 +20861,7 @@ var YandexMetrica = function (_Integration) {
     var id = this.getOption('counterId');
 
     window.yandex_metrika_callbacks = window.yandex_metrika_callbacks || [];
-    this.dataLayer = window.dataLayer = window.dataLayer || [];
+    this.dataLayer = window[this.dataLayerName] = window[this.dataLayerName] || [];
     if (!this.getOption('noConflict') && id) {
       window.yandex_metrika_callbacks.push(function () {
         _this2.yaCounter = window['yaCounter' + id] = new window.Ya.Metrika({
@@ -20808,7 +20870,7 @@ var YandexMetrica = function (_Integration) {
           webvisor: _this2.getOption('webvisor'),
           trackLinks: _this2.getOption('trackLinks'),
           trackHash: _this2.getOption('trackHash'),
-          ecommerce: true
+          ecommerce: _this2.dataLayerName
         });
       });
       this.load(this.onLoad);
@@ -20824,7 +20886,7 @@ var YandexMetrica = function (_Integration) {
   YandexMetrica.prototype.reset = function reset() {
     (0, _deleteProperty2['default'])(window, 'Ya');
     (0, _deleteProperty2['default'])(window, 'yandex_metrika_callbacks');
-    (0, _deleteProperty2['default'])(window, 'dataLayer');
+    (0, _deleteProperty2['default'])(window, this.dataLayerName);
   };
 
   YandexMetrica.prototype.trackEvent = function trackEvent(event) {
@@ -20955,6 +21017,71 @@ require('core-js/modules/es6.date.to-iso-string');
 require('core-js/modules/es6.date.now');
 
 },{"core-js/modules/es6.array.filter":54,"core-js/modules/es6.array.index-of":55,"core-js/modules/es6.array.is-array":56,"core-js/modules/es6.array.map":57,"core-js/modules/es6.date.now":58,"core-js/modules/es6.date.to-iso-string":59,"core-js/modules/es6.function.bind":60,"core-js/modules/es6.object.assign":61,"core-js/modules/es6.object.create":62,"core-js/modules/es6.string.trim":63}],142:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+exports.isTestMode = isTestMode;
+exports.showTestModeOverlay = showTestModeOverlay;
+exports.logEnrichedIntegrationEvent = logEnrichedIntegrationEvent;
+
+var _noop = require('./functions/noop');
+
+var _noop2 = _interopRequireDefault(_noop);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function isTestMode() {
+  return window.localStorage.getItem('_ddm_test_mode') === '1';
+}
+
+function showTestModeOverlay() {
+  var css = ['position: fixed', 'width: 100%', 'bottom: 0', 'font-size: 15px', "font-family: 'Helvetica Neue',Helvetica, Arial", 'text-align: center', 'background-color: #1392e0', 'opacity: 0.5', 'color: #FFF !important', 'padding: 5px 0', 'z-index: 2147483646', 'line-height: 15px', '-webkit-transform: translate3d(0,0,0)'];
+  var overlayDiv = document.createElement('div');
+  overlayDiv.innerHTML = '<a style="color: #fff;" href="#" onclick="window.localStorage.removeItem(\'_ddm_test_mode\');location.reload();return false;">Выйти из превью</a>';
+
+  overlayDiv.style.cssText = css.join(';');
+  document.body.appendChild(overlayDiv);
+}
+
+function logEnrichedIntegrationEvent(event, integrationName) {
+  window.console.log = window.console.log || _noop2['default'];
+  var browserSupportsGroups = !!window.console.group;
+
+  function log(message) {
+    window.console.log(message);
+  }
+
+  function group(message) {
+    if (browserSupportsGroups) {
+      window.console.group(message);
+    } else {
+      log(message);
+    }
+  }
+
+  function groupEnd() {
+    if (browserSupportsGroups) window.console.groupEnd();
+  }
+
+  group(event.name + ' -> ' + integrationName);
+  log(event);
+  groupEnd();
+}
+
+exports['default'] = { isTestMode: isTestMode, showTestModeOverlay: showTestModeOverlay };
+
+},{"./functions/noop":122}],143:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+var CONSTANT_VAR = exports.CONSTANT_VAR = 'constant';
+var DIGITALDATA_VAR = exports.DIGITALDATA_VAR = 'digitalData';
+var EVENT_VAR = exports.EVENT_VAR = 'event';
+var PRODUCT_VAR = exports.PRODUCT_VAR = 'product';
+
+},{}],144:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -21160,7 +21287,7 @@ describe('DDHelper', function () {
   });
 });
 
-},{"./../src/DDHelper.js":100,"assert":1}],143:[function(require,module,exports){
+},{"./../src/DDHelper.js":100,"assert":1}],145:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -21225,7 +21352,7 @@ describe('DDStorage', function () {
   });
 });
 
-},{"./../src/DDStorage.js":101,"./../src/Storage.js":106,"assert":1}],144:[function(require,module,exports){
+},{"./../src/DDStorage.js":101,"./../src/Storage.js":106,"assert":1}],146:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -21552,7 +21679,7 @@ describe('DigitalDataEnricher', function () {
   });
 });
 
-},{"./../src/DDStorage.js":101,"./../src/DigitalDataEnricher.js":102,"./../src/Storage.js":106,"./../src/functions/deleteProperty.js":112,"assert":1,"sinon":73}],145:[function(require,module,exports){
+},{"./../src/DDStorage.js":101,"./../src/DigitalDataEnricher.js":102,"./../src/Storage.js":106,"./../src/functions/deleteProperty.js":112,"assert":1,"sinon":73}],147:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -21994,7 +22121,7 @@ describe('EventDataEnricher', function () {
   });
 });
 
-},{"./../src/EventDataEnricher.js":103,"./../src/functions/deleteProperty.js":112,"assert":1}],146:[function(require,module,exports){
+},{"./../src/EventDataEnricher.js":103,"./../src/functions/deleteProperty.js":112,"assert":1}],148:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -22588,7 +22715,7 @@ describe('EventManager', function () {
   });
 });
 
-},{"./../src/EventManager.js":104,"./reset.js":164,"assert":1}],147:[function(require,module,exports){
+},{"./../src/EventManager.js":104,"./reset.js":166,"assert":1}],149:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -22944,7 +23071,7 @@ describe('DDManager', function () {
   });
 });
 
-},{"../src/Integration.js":105,"../src/availableIntegrations.js":108,"../src/ddManager.js":109,"./reset.js":164,"./snippet.js":165,"assert":1,"sinon":73}],148:[function(require,module,exports){
+},{"../src/Integration.js":105,"../src/availableIntegrations.js":108,"../src/ddManager.js":109,"./reset.js":166,"./snippet.js":167,"assert":1,"sinon":73}],150:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -22956,7 +23083,7 @@ function argumentsToArray(args) {
   return Array.prototype.slice.call(args);
 }
 
-},{}],149:[function(require,module,exports){
+},{}],151:[function(require,module,exports){
 'use strict';
 
 require('./../src/polyfill.js');
@@ -23001,7 +23128,7 @@ require('./integrations/VkontakteSpec.js');
 
 require('./integrations/EmarsysSpec.js');
 
-},{"./../src/polyfill.js":141,"./DDHelperSpec.js":142,"./DDStorageSpec.js":143,"./DigitalDataEnricherSpec.js":144,"./EventDataEnricherSpec.js":145,"./EventManagerSpec.js":146,"./ddManagerSpec.js":147,"./integrations/CriteoSpec.js":150,"./integrations/DrivebackSpec.js":151,"./integrations/EmarsysSpec.js":152,"./integrations/FacebookPixelSpec.js":153,"./integrations/GoogleAdWordsSpec.js":154,"./integrations/GoogleAnalyticsSpec.js":155,"./integrations/GoogleTagManagerSpec.js":156,"./integrations/MyTargetSpec.js":157,"./integrations/OWOXBIStreamingSpec.js":158,"./integrations/RetailRocketSpec.js":159,"./integrations/SegmentStreamSpec.js":160,"./integrations/SendPulseSpec.js":161,"./integrations/VkontakteSpec.js":162,"./integrations/YandexMetricaSpec.js":163}],150:[function(require,module,exports){
+},{"./../src/polyfill.js":141,"./DDHelperSpec.js":144,"./DDStorageSpec.js":145,"./DigitalDataEnricherSpec.js":146,"./EventDataEnricherSpec.js":147,"./EventManagerSpec.js":148,"./ddManagerSpec.js":149,"./integrations/CriteoSpec.js":152,"./integrations/DrivebackSpec.js":153,"./integrations/EmarsysSpec.js":154,"./integrations/FacebookPixelSpec.js":155,"./integrations/GoogleAdWordsSpec.js":156,"./integrations/GoogleAnalyticsSpec.js":157,"./integrations/GoogleTagManagerSpec.js":158,"./integrations/MyTargetSpec.js":159,"./integrations/OWOXBIStreamingSpec.js":160,"./integrations/RetailRocketSpec.js":161,"./integrations/SegmentStreamSpec.js":162,"./integrations/SendPulseSpec.js":163,"./integrations/VkontakteSpec.js":164,"./integrations/YandexMetricaSpec.js":165}],152:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -23984,7 +24111,7 @@ describe('Integrations: Criteo', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/Criteo.js":127,"./../reset.js":164,"assert":1,"sinon":73}],151:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/integrations/Criteo.js":127,"./../reset.js":166,"assert":1,"sinon":73}],153:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -24074,7 +24201,7 @@ describe('Integrations: Driveback', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/Driveback.js":128,"./../reset.js":164,"assert":1}],152:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/integrations/Driveback.js":128,"./../reset.js":166,"assert":1}],154:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -24533,7 +24660,7 @@ describe('Integrations: Emarsys', function () {
   });
 });
 
-},{"./../../src/ddManager":109,"./../../src/integrations/Emarsys":129,"./../reset":164,"assert":1,"sinon":73}],153:[function(require,module,exports){
+},{"./../../src/ddManager":109,"./../../src/integrations/Emarsys":129,"./../reset":166,"assert":1,"sinon":73}],155:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -24633,41 +24760,6 @@ describe('Integrations: FacebookPixel', function () {
           },
           callback: function callback() {
             _assert2['default'].ok(window.fbq.calledWith('track', 'PageView'));
-            done();
-          }
-        });
-      });
-    });
-
-    describe('#onViewedProductCategory', function () {
-
-      it('should call fbq track ViewContent', function (done) {
-        window.digitalData.events.push({
-          name: 'Viewed Product Category',
-          listing: {
-            categoryId: '123'
-          },
-          callback: function callback() {
-            _assert2['default'].ok(window.fbq.calledWith('track', 'ViewContent', {
-              content_ids: ['123'],
-              content_type: 'product_group'
-            }), 'fbq("track", "ViewContent") was not called');
-            done();
-          }
-        });
-      });
-
-      it('should call fbq track ViewContent (digitalData)', function (done) {
-        window.digitalData.listing = {
-          categoryId: '123'
-        };
-        window.digitalData.events.push({
-          name: 'Viewed Product Category',
-          callback: function callback() {
-            _assert2['default'].ok(window.fbq.calledWith('track', 'ViewContent', {
-              content_ids: ['123'],
-              content_type: 'product_group'
-            }), 'fbq("track", "ViewContent") was not called');
             done();
           }
         });
@@ -25018,7 +25110,7 @@ describe('Integrations: FacebookPixel', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/FacebookPixel.js":130,"./../reset.js":164,"assert":1,"sinon":73}],154:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/integrations/FacebookPixel.js":130,"./../reset.js":166,"assert":1,"sinon":73}],156:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -25544,7 +25636,7 @@ describe('Integrations: GoogleAdWords', function () {
   });
 });
 
-},{"./../../src/ddManager":109,"./../../src/integrations/GoogleAdWords":131,"./../reset":164,"assert":1,"sinon":73}],155:[function(require,module,exports){
+},{"./../../src/ddManager":109,"./../../src/integrations/GoogleAdWords":131,"./../reset":166,"assert":1,"sinon":73}],157:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -25951,6 +26043,7 @@ describe('Integrations: GoogleAnalytics', function () {
           ga.setOption('contentGroupings', {
             contentGroup1: 'page.section'
           });
+          ga.prepareCustomDimensions();
           window.digitalData.events.push({
             name: 'Viewed Page',
             page: {
@@ -25975,6 +26068,7 @@ describe('Integrations: GoogleAnalytics', function () {
         });
 
         it('should map custom dimensions, metrics & content groups using event properties or digitalData', function (done) {
+          ga.initVersion = '1.2.8';
           ga.setOption('metrics', {
             metric1: {
               type: 'digitalData',
@@ -26005,6 +26099,7 @@ describe('Integrations: GoogleAnalytics', function () {
               value: 'page.section'
             }
           });
+          ga.prepareCustomDimensions();
           window.digitalData.page = {
             score: 21,
             author: 'Author',
@@ -26130,6 +26225,7 @@ describe('Integrations: GoogleAnalytics', function () {
         });
 
         it('should map custom dimensions & metrics', function () {
+          ga.initVersion = '1.2.8';
           ga.setOption('metrics', {
             metric1: {
               type: 'event',
@@ -26146,6 +26242,7 @@ describe('Integrations: GoogleAnalytics', function () {
               value: 'referrer'
             }
           });
+          ga.prepareCustomDimensions();
 
           window.digitalData.events.push({
             name: 'Level Unlocked',
@@ -26170,6 +26267,7 @@ describe('Integrations: GoogleAnalytics', function () {
           ga.setOption('dimensions', {
             dimension2: 'referrer'
           });
+          ga.prepareCustomDimensions();
 
           window.digitalData.events.push({
             name: 'Level Unlocked',
@@ -26390,13 +26488,7 @@ describe('Integrations: GoogleAnalytics', function () {
       domain: 'none',
       defaultCurrency: 'USD',
       siteSpeedSampleRate: 42,
-      namespace: false,
-      productDimensions: {
-        'dimension10': 'stock'
-      },
-      productMetrics: {
-        'metric10': 'weight'
-      }
+      namespace: false
     };
 
     beforeEach(function () {
@@ -26506,6 +26598,13 @@ describe('Integrations: GoogleAnalytics', function () {
         });
 
         it('should send added product data with custom dimensions and metrics', function () {
+          ga.setOption('productDimensions', {
+            'dimension10': 'stock'
+          });
+          ga.setOption('productMetrics', {
+            'metric10': 'weight'
+          });
+          ga.prepareCustomDimensions();
           window.digitalData.events.push({
             name: 'Added Product',
             product: {
@@ -26625,6 +26724,13 @@ describe('Integrations: GoogleAnalytics', function () {
         });
 
         it('should send removed product data with custom dimensions and metrics', function () {
+          ga.setOption('productDimensions', {
+            'dimension10': 'stock'
+          });
+          ga.setOption('productMetrics', {
+            'metric10': 'weight'
+          });
+          ga.prepareCustomDimensions();
           window.digitalData.events.push({
             name: 'Removed Product',
             product: {
@@ -26735,6 +26841,57 @@ describe('Integrations: GoogleAnalytics', function () {
         });
 
         it('should send viewed product detail data with custom dimensions and metrics', function () {
+          ga.setOption('productDimensions', {
+            'dimension10': 'stock'
+          });
+          ga.setOption('productMetrics', {
+            'metric10': 'weight'
+          });
+          ga.prepareCustomDimensions();
+          window.digitalData.events.push({
+            name: 'Viewed Product Detail',
+            product: {
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298',
+              stock: 25,
+              weight: 100
+            },
+            callback: function callback() {
+              _assert2['default'].ok(window.ga.calledWith('ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1',
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+                dimension10: 25,
+                metric10: 100
+              }));
+              _assert2['default'].ok(window.ga.calledWith('ec:setAction', 'detail', {}));
+              _assert2['default'].ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }));
+            }
+          });
+        });
+
+        it('should send viewed product detail data with custom dimensions and metrics (new initVersion)', function () {
+          ga.initVersion = '1.2.8';
+          ga.setOption('dimensions', {
+            'dimension10': {
+              type: 'product',
+              value: 'stock'
+            }
+          });
+          ga.setOption('metrics', {
+            'metric10': {
+              type: 'product',
+              value: 'weight'
+            }
+          });
+          ga.prepareCustomDimensions();
           window.digitalData.events.push({
             name: 'Viewed Product Detail',
             product: {
@@ -26765,6 +26922,13 @@ describe('Integrations: GoogleAnalytics', function () {
         });
 
         it('should send clicked product data with custom dimensions and metrics', function () {
+          ga.setOption('productDimensions', {
+            'dimension10': 'stock'
+          });
+          ga.setOption('productMetrics', {
+            'metric10': 'weight'
+          });
+          ga.prepareCustomDimensions();
           window.digitalData.events.push({
             name: 'Clicked Product',
             listItem: {
@@ -26839,6 +27003,13 @@ describe('Integrations: GoogleAnalytics', function () {
         });
 
         it('should send viewed product data with custom dimensions and metrics', function () {
+          ga.setOption('productDimensions', {
+            'dimension10': 'stock'
+          });
+          ga.setOption('productMetrics', {
+            'metric10': 'weight'
+          });
+          ga.prepareCustomDimensions();
           window.digitalData.events.push({
             name: 'Viewed Product',
             listItem: {
@@ -27189,6 +27360,13 @@ describe('Integrations: GoogleAnalytics', function () {
         });
 
         it('should send started order data with custom dimensions and metrics', function () {
+          ga.setOption('productDimensions', {
+            'dimension10': 'stock'
+          });
+          ga.setOption('productMetrics', {
+            'metric10': 'weight'
+          });
+          ga.prepareCustomDimensions();
           window.digitalData.cart = {
             currency: 'CAD',
             lineItems: [{
@@ -27349,6 +27527,13 @@ describe('Integrations: GoogleAnalytics', function () {
         });
 
         it('should send completed order data with custom dimensions and metrics', function () {
+          ga.setOption('productDimensions', {
+            'dimension10': 'stock'
+          });
+          ga.setOption('productMetrics', {
+            'metric10': 'weight'
+          });
+          ga.prepareCustomDimensions();
           window.digitalData.events.push({
             name: 'Completed Transaction',
             category: 'Ecommerce',
@@ -27701,7 +27886,7 @@ describe('Integrations: GoogleAnalytics', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/functions/after.js":111,"./../../src/integrations/GoogleAnalytics.js":132,"./../functions/argumentsToArray.js":148,"./../reset.js":164,"assert":1,"sinon":73}],156:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/functions/after.js":111,"./../../src/integrations/GoogleAnalytics.js":132,"./../functions/argumentsToArray.js":150,"./../reset.js":166,"assert":1,"sinon":73}],158:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -27881,7 +28066,7 @@ describe('Integrations: GoogleTagManager', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/GoogleTagManager.js":133,"./../reset.js":164,"assert":1}],157:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/integrations/GoogleTagManager.js":133,"./../reset.js":166,"assert":1}],159:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -28409,7 +28594,7 @@ describe('Integrations: MyTarget', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/MyTarget.js":134,"./../reset.js":164,"assert":1,"sinon":73}],158:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/integrations/MyTarget.js":134,"./../reset.js":166,"assert":1,"sinon":73}],160:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -28510,7 +28695,7 @@ describe('Integrations: OWOXBIStreaming', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/GoogleAnalytics.js":132,"./../../src/integrations/OWOXBIStreaming.js":135,"./../functions/argumentsToArray.js":148,"./../reset.js":164,"assert":1,"sinon":73}],159:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/integrations/GoogleAnalytics.js":132,"./../../src/integrations/OWOXBIStreaming.js":135,"./../functions/argumentsToArray.js":150,"./../reset.js":166,"assert":1,"sinon":73}],161:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -29419,7 +29604,7 @@ describe('Integrations: RetailRocket', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/functions/deleteProperty.js":112,"./../../src/integrations/RetailRocket.js":136,"./../reset.js":164,"assert":1,"sinon":73}],160:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/functions/deleteProperty.js":112,"./../../src/integrations/RetailRocket.js":136,"./../reset.js":166,"assert":1,"sinon":73}],162:[function(require,module,exports){
 'use strict';
 
 var _SegmentStream = require('./../../src/integrations/SegmentStream.js');
@@ -29593,7 +29778,7 @@ describe('SegmentStream', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/SegmentStream.js":137,"./../reset.js":164,"assert":1,"sinon":73}],161:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/integrations/SegmentStream.js":137,"./../reset.js":166,"assert":1,"sinon":73}],163:[function(require,module,exports){
 'use strict';
 
 var _SendPulse = require('./../../src/integrations/SendPulse.js');
@@ -29838,7 +30023,7 @@ describe('SendPulse', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/functions/after.js":111,"./../../src/functions/deleteProperty.js":112,"./../../src/integrations/SendPulse.js":138,"./../reset.js":164,"assert":1,"sinon":73}],162:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/functions/after.js":111,"./../../src/functions/deleteProperty.js":112,"./../../src/integrations/SendPulse.js":138,"./../reset.js":166,"assert":1,"sinon":73}],164:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -29960,7 +30145,7 @@ describe('Integrations: Vkontakte', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/Vkontakte.js":139,"./../reset.js":164,"assert":1,"sinon":73}],163:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/integrations/Vkontakte.js":139,"./../reset.js":166,"assert":1,"sinon":73}],165:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -30124,7 +30309,7 @@ describe('Integrations: Yandex Metrica', function () {
             variant: 'Variant 1'
           },
           callback: function callback() {
-            _assert2['default'].deepEqual(window.dataLayer[0], {
+            _assert2['default'].deepEqual(window.yandexDL[0], {
               ecommerce: {
                 detail: {
                   products: [{
@@ -30157,7 +30342,7 @@ describe('Integrations: Yandex Metrica', function () {
             variant: 'Variant 1'
           },
           callback: function callback() {
-            _assert2['default'].deepEqual(window.dataLayer[0], {
+            _assert2['default'].deepEqual(window.yandexDL[0], {
               ecommerce: {
                 detail: {
                   products: [{
@@ -30190,7 +30375,7 @@ describe('Integrations: Yandex Metrica', function () {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           callback: function callback() {
-            _assert2['default'].deepEqual(window.dataLayer[0], {
+            _assert2['default'].deepEqual(window.yandexDL[0], {
               ecommerce: {
                 detail: {
                   products: [{
@@ -30217,7 +30402,7 @@ describe('Integrations: Yandex Metrica', function () {
             price: 1500
           },
           callback: function callback() {
-            _assert2['default'].ok(!window.dataLayer[0]);
+            _assert2['default'].ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -30231,7 +30416,7 @@ describe('Integrations: Yandex Metrica', function () {
             id: '123'
           },
           callback: function callback() {
-            _assert2['default'].ok(!window.dataLayer[0]);
+            _assert2['default'].ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -30254,7 +30439,7 @@ describe('Integrations: Yandex Metrica', function () {
           },
           quantity: 3,
           callback: function callback() {
-            _assert2['default'].deepEqual(window.dataLayer[0], {
+            _assert2['default'].deepEqual(window.yandexDL[0], {
               ecommerce: {
                 add: {
                   products: [{
@@ -30282,7 +30467,7 @@ describe('Integrations: Yandex Metrica', function () {
             price: 1500
           },
           callback: function callback() {
-            _assert2['default'].ok(!window.dataLayer[0]);
+            _assert2['default'].ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -30296,7 +30481,7 @@ describe('Integrations: Yandex Metrica', function () {
             id: '123'
           },
           callback: function callback() {
-            _assert2['default'].ok(!window.dataLayer[0]);
+            _assert2['default'].ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -30319,7 +30504,7 @@ describe('Integrations: Yandex Metrica', function () {
           },
           quantity: 3,
           callback: function callback() {
-            _assert2['default'].deepEqual(window.dataLayer[0], {
+            _assert2['default'].deepEqual(window.yandexDL[0], {
               ecommerce: {
                 remove: {
                   products: [{
@@ -30343,7 +30528,7 @@ describe('Integrations: Yandex Metrica', function () {
             price: 1500
           },
           callback: function callback() {
-            _assert2['default'].ok(!window.dataLayer[0]);
+            _assert2['default'].ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -30357,7 +30542,7 @@ describe('Integrations: Yandex Metrica', function () {
             id: '123'
           },
           callback: function callback() {
-            _assert2['default'].ok(!window.dataLayer[0]);
+            _assert2['default'].ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -30402,7 +30587,7 @@ describe('Integrations: Yandex Metrica', function () {
             total: 1500
           },
           callback: function callback() {
-            _assert2['default'].deepEqual(window.dataLayer[0], {
+            _assert2['default'].deepEqual(window.yandexDL[0], {
               ecommerce: {
                 purchase: {
                   actionField: {
@@ -30442,7 +30627,7 @@ describe('Integrations: Yandex Metrica', function () {
         window.digitalData.events.push({
           name: 'Completed Transaction',
           callback: function callback() {
-            _assert2['default'].deepEqual(window.dataLayer[0], {
+            _assert2['default'].deepEqual(window.yandexDL[0], {
               ecommerce: {
                 purchase: {
                   actionField: {
@@ -30476,7 +30661,7 @@ describe('Integrations: Yandex Metrica', function () {
         window.digitalData.events.push({
           name: 'Completed Transaction',
           callback: function callback() {
-            _assert2['default'].ok(!window.dataLayer[0]);
+            _assert2['default'].ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -30495,7 +30680,7 @@ describe('Integrations: Yandex Metrica', function () {
             }]
           },
           callback: function callback() {
-            _assert2['default'].ok(!window.dataLayer[0]);
+            _assert2['default'].ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -30510,7 +30695,7 @@ describe('Integrations: Yandex Metrica', function () {
             lineItems: lineItems
           },
           callback: function callback() {
-            _assert2['default'].ok(!window.dataLayer[0]);
+            _assert2['default'].ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -30543,7 +30728,7 @@ describe('Integrations: Yandex Metrica', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/YandexMetrica.js":140,"./../reset.js":164,"assert":1,"sinon":73}],164:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/integrations/YandexMetrica.js":140,"./../reset.js":166,"assert":1,"sinon":73}],166:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -30554,7 +30739,7 @@ function reset() {
   window.ddManager = undefined;
 }
 
-},{}],165:[function(require,module,exports){
+},{}],167:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -30603,5 +30788,5 @@ exports['default'] = function () {
   }
 };
 
-},{}]},{},[149])
+},{}]},{},[151])
 //# sourceMappingURL=dd-manager-test.js.map

@@ -141,7 +141,7 @@ describe('Integrations: Yandex Metrica', () => {
             variant: 'Variant 1'
           },
           callback: () => {
-            assert.deepEqual(window.dataLayer[0], {
+            assert.deepEqual(window.yandexDL[0], {
               ecommerce: {
                 detail: {
                   products: [
@@ -176,7 +176,7 @@ describe('Integrations: Yandex Metrica', () => {
             variant: 'Variant 1'
           },
           callback: () => {
-            assert.deepEqual(window.dataLayer[0], {
+            assert.deepEqual(window.yandexDL[0], {
               ecommerce: {
                 detail: {
                   products: [
@@ -211,7 +211,7 @@ describe('Integrations: Yandex Metrica', () => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           callback: () => {
-            assert.deepEqual(window.dataLayer[0], {
+            assert.deepEqual(window.yandexDL[0], {
               ecommerce: {
                 detail: {
                   products: [
@@ -241,7 +241,7 @@ describe('Integrations: Yandex Metrica', () => {
             price: 1500
           },
           callback: () => {
-            assert.ok(!window.dataLayer[0]);
+            assert.ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -255,7 +255,7 @@ describe('Integrations: Yandex Metrica', () => {
             id: '123'
           },
           callback: () => {
-            assert.ok(!window.dataLayer[0]);
+            assert.ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -278,7 +278,7 @@ describe('Integrations: Yandex Metrica', () => {
           },
           quantity: 3,
           callback: () => {
-            assert.deepEqual(window.dataLayer[0], {
+            assert.deepEqual(window.yandexDL[0], {
               ecommerce: {
                 add: {
                   products: [
@@ -308,7 +308,7 @@ describe('Integrations: Yandex Metrica', () => {
             price: 1500
           },
           callback: () => {
-            assert.ok(!window.dataLayer[0]);
+            assert.ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -322,7 +322,7 @@ describe('Integrations: Yandex Metrica', () => {
             id: '123'
           },
           callback: () => {
-            assert.ok(!window.dataLayer[0]);
+            assert.ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -345,7 +345,7 @@ describe('Integrations: Yandex Metrica', () => {
           },
           quantity: 3,
           callback: () => {
-            assert.deepEqual(window.dataLayer[0], {
+            assert.deepEqual(window.yandexDL[0], {
               ecommerce: {
                 remove: {
                   products: [
@@ -371,7 +371,7 @@ describe('Integrations: Yandex Metrica', () => {
             price: 1500
           },
           callback: () => {
-            assert.ok(!window.dataLayer[0]);
+            assert.ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -385,7 +385,7 @@ describe('Integrations: Yandex Metrica', () => {
             id: '123'
           },
           callback: () => {
-            assert.ok(!window.dataLayer[0]);
+            assert.ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -436,7 +436,7 @@ describe('Integrations: Yandex Metrica', () => {
             total: 1500
           },
           callback: () => {
-            assert.deepEqual(window.dataLayer[0], {
+            assert.deepEqual(window.yandexDL[0], {
               ecommerce: {
                 purchase: {
                   actionField: {
@@ -480,7 +480,7 @@ describe('Integrations: Yandex Metrica', () => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
           callback: () => {
-            assert.deepEqual(window.dataLayer[0], {
+            assert.deepEqual(window.yandexDL[0], {
               ecommerce: {
                 purchase: {
                   actionField: {
@@ -518,7 +518,7 @@ describe('Integrations: Yandex Metrica', () => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
           callback: () => {
-            assert.ok(!window.dataLayer[0]);
+            assert.ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -539,7 +539,7 @@ describe('Integrations: Yandex Metrica', () => {
             ]
           },
           callback: () => {
-            assert.ok(!window.dataLayer[0]);
+            assert.ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -554,7 +554,7 @@ describe('Integrations: Yandex Metrica', () => {
             lineItems: lineItems
           },
           callback: () => {
-            assert.ok(!window.dataLayer[0]);
+            assert.ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -585,4 +585,5 @@ describe('Integrations: Yandex Metrica', () => {
       });
     });
   });
+
 });
