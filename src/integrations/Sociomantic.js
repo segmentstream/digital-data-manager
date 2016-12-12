@@ -1,5 +1,14 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
+import {
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  VIEWED_PRODUCT_CATEGORY,
+  VIEWED_CART,
+  VIEWED_CHECKOUT_STEP,
+  SEARCHED_PRODUCTS,
+  COMPLETED_TRANSACTION,
+} from './../events';
 
 function lineItemsToSociomanticsItems(lineItems) {
   const products = [];
@@ -12,7 +21,7 @@ function lineItemsToSociomanticsItems(lineItems) {
           identifier: productId,
           amount: lineItem.product.unitSalePrice || lineItem.product.unitPrice || 0,
           quantity: lineItem.quantity || 1,
-          currency: lineItem.product.currency || ''
+          currency: lineItem.product.currency || '',
         };
         products.push(product);
       }
@@ -22,8 +31,8 @@ function lineItemsToSociomanticsItems(lineItems) {
 }
 
 function deleteEmptyProperties(objName) {
-  var keys = Object.keys(window[objName]);
-  keys.map(function(key) {
+  const keys = Object.keys(window[objName]);
+  keys.map((key) => {
     if (window[objName][key] === '') {
       deleteProperty(window[objName], key);
     }
@@ -36,39 +45,43 @@ class Sociomantic extends Integration {
     const optionsWithDefaults = Object.assign({
       region: '',
       adpanId: '',
-      prefix: ''
+      prefix: '',
     }, options);
     super(digitalData, optionsWithDefaults);
+
+    const region = this.getOption('region') || '';
+    const regionPrefix = region ? `${region}-` : '';
+    const adpanId = this.getOption('adpanId');
+    const src = `//${regionPrefix}sonar.sociomantic.com/js/2010-07-01/adpan/${adpanId}`;
+
+    this.addTag({
+      type: 'script',
+      attr: {
+        type: 'text/javascript',
+        async: true,
+        src: src,
+      },
+    });
+
+    this._isLoaded = false;
   }
 
-  loadTrackingScript() {
-    const adpanId = this.getOption('adpanId');
-    if (window.sociomantic &&
-        window.sociomantic.sonar &&
-        window.sociomantic.sonar.adv[adpanId])
-    {
-      window.sociomantic.sonar.adv[adpanId].enable();
-    } else {
-      const protocol = 'https:' === document.location.protocol ? 'https://' : 'http://';
-      const region = `${this.getOption('region')}-` || '';
-      const scriptURL = region + 'sonar.sociomantic.com/js/2010-07-01/adpan/' + this.getOption('adpanId');
-      const src = protocol + scriptURL;
-
-      this.addTag({
-        type: 'script',
-        attr: {
-          type: 'text/javascript',
-          async: true,
-          src: src
-        },
-      });
-    }
-
+  initialize() {
+    this._isLoaded = true;
     this.onLoad();
   }
 
   isLoaded() {
-    return !!(window.sociomantic && window.sociomantic.sonar);
+    return this._isLoaded;
+  }
+
+  loadTrackingScript() {
+    const adpanId = this.getOption('adpanId');
+    if (window.sociomantic && window.sociomantic.sonar && window.sociomantic.sonar.adv[adpanId]) {
+      window.sociomantic.sonar.adv[adpanId].enable();
+    } else {
+      this.load(this.onLoad);
+    }
   }
 
   reset() {
@@ -78,38 +91,45 @@ class Sociomantic extends Integration {
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-      case 'Viewed Product Detail':
-        enrichableProps = [
-          'product',
-        ];
-        break;
-      case 'Viewed Product Category':
-        enrichableProps = [
-          'listing.category',
-        ];
-        break;
-      case 'Searched Products':
-        enrichableProps = [
-          'listing.category',
-        ];
-        break;
-      case 'Viewed Cart':
-        enrichableProps = [
-          'cart.lineItems',
-        ];
-        break;
-      case 'Completed Transaction':
-        enrichableProps = [
-          'transaction',
-        ];
-        break;
-      case 'Subscribed':
-        enrichableProps = [
-          'user.userId',
-        ];
-        break;
-      default:
-        // do nothing
+    case VIEWED_PAGE:
+      enrichableProps = [
+        'page.type',
+        'user',
+      ];
+      break;
+    case VIEWED_PRODUCT_DETAIL:
+      enrichableProps = [
+        'product',
+      ];
+      break;
+    case VIEWED_PRODUCT_CATEGORY:
+      enrichableProps = [
+        'listing.category',
+      ];
+      break;
+    case SEARCHED_PRODUCTS:
+      enrichableProps = [
+        'listing.category',
+      ];
+      break;
+    case VIEWED_CART:
+      enrichableProps = [
+        'cart.lineItems',
+      ];
+      break;
+    case VIEWED_CHECKOUT_STEP:
+      enrichableProps = [
+        'cart.lineItems',
+      ];
+      break;
+    case COMPLETED_TRANSACTION:
+      enrichableProps = [
+        'transaction',
+        'user',
+      ];
+      break;
+    default:
+      // do nothing
     }
 
     return enrichableProps;
@@ -117,12 +137,13 @@ class Sociomantic extends Integration {
 
   trackEvent(event) {
     const methods = {
-      'Viewed Product Detail': 'onViewedProductDetail',
-      'Viewed Product Category': 'onViewedProductListing',
-      'Viewed Cart': 'onViewedCart',
-      'Completed Transaction': 'onCompletedTransaction',
-      'Subscribed': 'onSubscribed',
-      'Searched Products': 'onViewedProductListing',
+      [VIEWED_PAGE]: 'onViewedPage',
+      [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
+      [VIEWED_PRODUCT_CATEGORY]: 'onViewedProductListing',
+      [VIEWED_CART]: 'onViewedCart',
+      [VIEWED_CHECKOUT_STEP]: 'onViewedCart',
+      [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
+      [SEARCHED_PRODUCTS]: 'onViewedProductListing',
     };
 
     const method = methods[event.name];
@@ -131,26 +152,36 @@ class Sociomantic extends Integration {
     }
   }
 
+  onViewedPage(event) {
+    const prefix = this.getOption('prefix');
+    const trackingObjectName = prefix + 'customer';
+    const user = event.user;
+    const page = event.page;
+    const pages = ['product', 'category', 'checkout', 'confirmation', 'cart'];
+
+    if (user) {
+      window[trackingObjectName] = {
+        customer: user.userId,
+      };
+    }
+
+    if (page && pages.indexOf(page.type) < 0) {
+      this.loadTrackingScript();
+    }
+  }
+
   onViewedProductDetail(event) {
     const prefix = this.getOption('prefix');
     const trackingObjectName = prefix + 'product';
     const product = event.product;
+
     if (product && (product.id || product.skuCode)) {
       window[trackingObjectName] = {
         identifier: product.id || product.skuCode || '',
-        quantity: product.stock || '',
-        fn: product.name || '',
-        description: product.description || '',
-        category: product.category || '',
-        brand: product.manufacturer || '',
-        price: product.unitSalePrice || '',
-        amount: product.unitPrice || '',
-        currency: product.currency || '',
-        url: product.url || '',
-        photo: product.imageUrl || '',
-      }
+      };
       deleteEmptyProperties(trackingObjectName);
-      loadTrackingScript();
+
+      this.loadTrackingScript();
     }
   }
 
@@ -158,11 +189,13 @@ class Sociomantic extends Integration {
     const prefix = this.getOption('prefix');
     const trackingObjectName = prefix + 'product';
     const listing = event.listing;
+
     if (listing && listing.category) {
       window[trackingObjectName] = {
-        category: listing.category
+        category: listing.category,
       };
-      loadTrackingScript();
+
+      this.loadTrackingScript();
     }
   }
 
@@ -170,12 +203,14 @@ class Sociomantic extends Integration {
     const prefix = this.getOption('prefix');
     const trackingObjectName = prefix + 'basket';
     const cart = event.cart;
+
     if (cart && cart.lineItems) {
       const products = lineItemsToSociomanticsItems(cart.lineItems);
       window[trackingObjectName] = {
-        products: products
-      }
-      loadTrackingScript();
+        products: products,
+      };
+
+      this.loadTrackingScript();
     }
   }
 
@@ -186,8 +221,8 @@ class Sociomantic extends Integration {
     const transaction = event.transaction;
 
     window[trackingObjectSaleName] = {
-      confirmed: true
-    }
+      confirmed: true,
+    };
 
     if (transaction && transaction.lineItems) {
       const products = lineItemsToSociomanticsItems(transaction.lineItems);
@@ -195,23 +230,12 @@ class Sociomantic extends Integration {
         products: products,
         transaction: transaction.orderId || '',
         amount: transaction.total || '',
-        currency: transaction.currency || ''
+        currency: transaction.currency || '',
       };
-      deleteEmptyProperties(trackingObjectName);
-      loadTrackingScript();
+      deleteEmptyProperties(trackingObjectBasketName);
     }
-  }
 
-  onSubscribed(event) {
-    const prefix = this.getOption('prefix');
-    const trackingObjectName = prefix + 'lead';
-    const user = event.user;
-    if (user && user.userId) {
-      window[trackingObjectName] = {
-        identifier: user.userId
-      };
-      loadTrackingScript();
-    }
+    this.loadTrackingScript();
   }
 }
 

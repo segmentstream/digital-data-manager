@@ -236,6 +236,60 @@ describe('Integrations: Sociomantic', () => {
       });
     });
 
+    describe('#onViewedCheckoutStep', () => {
+      beforeEach((done) => {
+        window[options.prefix + 'basket'] = undefined;
+        ddManager.once('ready', () => {
+          done();
+        });
+        ddManager.initialize({
+          autoEvents: false
+        });
+      });
+
+      it('should set global basket object if user visits checkout step page', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Checkout Step',
+          cart: {
+            lineItems: [
+              { product: { id: '34343877', currency: 'RUB', unitSalePrice: 10990, unitPrice: 12990 }, quantity: 1 },
+              { product: { id: '34343872', currency: 'RUB', unitSalePrice: 11990, unitPrice: 13990 }, quantity: 2 }
+            ]
+          },
+          callback: () => {
+            assert.deepEqual(window[options.prefix + 'basket'], {
+              products: [
+                { identifier: '34343877', amount: 10990, currency: 'RUB', quantity: 1 },
+                { identifier: '34343872', amount: 11990, currency: 'RUB', quantity: 2 }
+              ]
+            });
+            done();
+          }
+        });
+      });
+
+      it('should not set global basket object if cart is not defined', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Checkout Step',
+          callback: () => {
+            assert.ok(!window[options.prefix + 'basket']);
+            done();
+          }
+        });
+      });
+
+      it('should not set global basket object if cart lineitems is not defined', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Checkout Step',
+          cart: {},
+          callback: () => {
+            assert.ok(!window[options.prefix + 'basket']);
+            done();
+          }
+        });
+      });
+    });
+
     describe('#onCompletedTransaction', () => {
       beforeEach((done) => {
         window[options.prefix + 'basket'] = undefined;
@@ -308,54 +362,5 @@ describe('Integrations: Sociomantic', () => {
         });
       });
     });
-
-    describe('#onSubscribed', () => {
-      beforeEach((done) => {
-        window[options.prefix + 'lead'] = undefined;
-        ddManager.once('ready', () => {
-          done();
-        });
-        ddManager.initialize({
-          autoEvents: false
-        });
-      });
-
-
-      it('should set global lead object if user subscribe', (done) => {
-        window.digitalData.events.push({
-          name: 'Subscribed',
-          user: {
-            userId: '1234455'
-          },
-          callback: () => {
-            assert.deepEqual(window[options.prefix + 'lead'], { identifier: '1234455' });
-            done();
-          }
-        });
-      });
-
-      it('should not set global lead object if user is not defined', (done) => {
-        window.digitalData.events.push({
-          name: 'Subscribed',
-          callback: () => {
-            assert.ok(!window[options.prefix + 'lead']);
-            done();
-          }
-        });
-      });
-
-      it('should not set global lead object if user ID is not defined', (done) => {
-        window.digitalData.events.push({
-          name: 'Subscribed',
-          user: {},
-          callback: () => {
-            assert.ok(!window[options.prefix + 'lead']);
-            done();
-          }
-        });
-      });
-    });
   });
 });
-
-
