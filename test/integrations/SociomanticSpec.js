@@ -10,7 +10,6 @@ describe('Integrations: Sociomantic', () => {
     region: 'eu',
     adpanId: 'aizel-ru',
     prefix: 'sonar_',
-    userTargetingVar: false,
   };
 
   beforeEach(() => {
@@ -76,7 +75,7 @@ describe('Integrations: Sociomantic', () => {
             userId: '55123',
           },
           callback: () => {
-            assert.deepEqual(window[options.prefix + 'customer'], { identifier: '55123', targeting: false });
+            assert.deepEqual(window[options.prefix + 'customer'], { identifier: '55123' });
             done();
           },
         });
