@@ -4,21 +4,12 @@ import reset from './../reset.js';
 import Sociomantic from './../../src/integrations/Sociomantic.js';
 import ddManager from './../../src/ddManager.js';
 
-function subscribed(query, callback) {
-  window.digitalData.events.push({
-    name: 'Subscribed',
-    listing: { query },
-    callback,
-  })
-}
-
 describe('Integrations: Sociomantic', () => {
-
   let sociomantic;
   const options = {
     region: 'eu',
     adpanId: 'aizel-ru',
-    prefix: 'sonar_'
+    prefix: 'sonar_',
   };
 
   beforeEach(() => {
@@ -30,7 +21,7 @@ describe('Integrations: Sociomantic', () => {
       cart: {},
       transaction: {},
       user: {},
-      events: []
+      events: [],
     };
     sociomantic = new Sociomantic(window.digitalData, options);
     ddManager.addIntegration('Sociomantic', sociomantic);
@@ -43,7 +34,6 @@ describe('Integrations: Sociomantic', () => {
   });
 
   describe('before loading', () => {
-
     describe('#constructor', () => {
       it('should add options', () => {
         assert.equal(options.region, sociomantic.getOption('region'));
@@ -54,6 +44,95 @@ describe('Integrations: Sociomantic', () => {
   });
 
   describe('after loading', () => {
+    describe('#onViewedPage', () => {
+      beforeEach((done) => {
+        window[options.prefix + 'customer'] = undefined;
+        window[options.prefix + 'basket'] = undefined;
+        ddManager.once('ready', () => {
+          done();
+        });
+        ddManager.initialize({
+          autoEvents: false,
+        });
+      });
+
+
+      it('should set customer object if user visits any pages', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          user: {
+            userId: '55123',
+          },
+          callback: () => {
+            assert.deepEqual(window[options.prefix + 'customer'], {identifier: '55123'});
+            done();
+          },
+        });
+      });
+
+      it('should not set customer object if user is not defined', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          callback: () => {
+            assert.ok(!window[options.prefix + 'customer']);
+            done();
+          },
+        });
+      });
+
+      it('should not set customer object if user ID is not defined', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          user: {},
+          callback: () => {
+            assert.ok(!window[options.prefix + 'customer']);
+            done();
+          },
+        });
+      });
+
+      it('should set global basket object if user visits any page', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          cart: {
+            lineItems: [
+              { product: { id: '34343877', currency: 'RUB', unitSalePrice: 10990, unitPrice: 12990 }, quantity: 1 },
+              { product: { id: '34343872', currency: 'RUB', unitSalePrice: 11990, unitPrice: 13990 }, quantity: 2 },
+            ],
+          },
+          callback: () => {
+            assert.deepEqual(window[options.prefix + 'basket'], {
+              products: [
+                { identifier: '34343877', amount: 10990, currency: 'RUB', quantity: 1 },
+                { identifier: '34343872', amount: 11990, currency: 'RUB', quantity: 2 },
+              ],
+            });
+            done();
+          },
+        });
+      });
+
+      it('should not set global basket object if cart is not defined', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          callback: () => {
+            assert.ok(!window[options.prefix + 'basket']);
+            done();
+          },
+        });
+      });
+
+      it('should not set global basket object if cart lineitems is not defined', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          cart: {},
+          callback: () => {
+            assert.ok(!window[options.prefix + 'basket']);
+            done();
+          },
+        });
+      });
+    });
 
     describe('#onViewedProductDetail', () => {
       beforeEach((done) => {
@@ -62,7 +141,7 @@ describe('Integrations: Sociomantic', () => {
           done();
         });
         ddManager.initialize({
-          autoEvents: false
+          autoEvents: false,
         });
       });
 
@@ -71,12 +150,12 @@ describe('Integrations: Sociomantic', () => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           product: {
-            id: '123'
+            id: '123',
           },
           callback: () => {
             assert.deepEqual(window[options.prefix + 'product'], {identifier: '123'});
             done();
-          }
+          },
         });
       });
 
@@ -86,7 +165,7 @@ describe('Integrations: Sociomantic', () => {
           callback: () => {
             assert.ok(!window[options.prefix + 'product']);
             done();
-          }
+          },
         });
       });
 
@@ -97,7 +176,7 @@ describe('Integrations: Sociomantic', () => {
           callback: () => {
             assert.ok(!window[options.prefix + 'product']);
             done();
-          }
+          },
         });
       });
     });
@@ -109,7 +188,7 @@ describe('Integrations: Sociomantic', () => {
           done();
         });
         ddManager.initialize({
-          autoEvents: false
+          autoEvents: false,
         });
       });
 
@@ -117,12 +196,12 @@ describe('Integrations: Sociomantic', () => {
         window.digitalData.events.push({
           name: 'Viewed Product Category',
           listing: {
-            category: [ 'shoes', 'female' ]
+            category: [ 'shoes', 'female' ],
           },
           callback: () => {
             assert.deepEqual(window[options.prefix + 'product'], { category: [ 'shoes', 'female' ] });
             done();
-          }
+          },
         });
       });
 
@@ -132,7 +211,7 @@ describe('Integrations: Sociomantic', () => {
           callback: () => {
             assert.ok(!window[options.prefix + 'product']);
             done();
-          }
+          },
         });
       });
 
@@ -143,7 +222,7 @@ describe('Integrations: Sociomantic', () => {
           callback: () => {
             assert.ok(!window[options.prefix + 'product']);
             done();
-          }
+          },
         });
       });
 
@@ -151,12 +230,12 @@ describe('Integrations: Sociomantic', () => {
         window.digitalData.events.push({
           name: 'Searched Products',
           listing: {
-            category: [ 'shoes', 'female' ]
+            category: [ 'shoes', 'female' ],
           },
           callback: () => {
             assert.deepEqual(window[options.prefix + 'product'], { category: [ 'shoes', 'female' ] });
             done();
-          }
+          },
         });
       });
 
@@ -166,7 +245,7 @@ describe('Integrations: Sociomantic', () => {
           callback: () => {
             assert.ok(!window[options.prefix + 'product']);
             done();
-          }
+          },
         });
       });
 
@@ -177,115 +256,7 @@ describe('Integrations: Sociomantic', () => {
           callback: () => {
             assert.ok(!window[options.prefix + 'product']);
             done();
-          }
-        });
-      });
-    });
-
-    describe('#onViewedCart', () => {
-      beforeEach((done) => {
-        window[options.prefix + 'basket'] = undefined;
-        ddManager.once('ready', () => {
-          done();
-        });
-        ddManager.initialize({
-          autoEvents: false
-        });
-      });
-
-      it('should set global basket object if user visits cart page', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Cart',
-          cart: {
-            lineItems: [
-              { product: { id: '34343877', currency: 'RUB', unitSalePrice: 10990, unitPrice: 12990 }, quantity: 1 },
-              { product: { id: '34343872', currency: 'RUB', unitSalePrice: 11990, unitPrice: 13990 }, quantity: 2 }
-            ]
           },
-          callback: () => {
-            assert.deepEqual(window[options.prefix + 'basket'], {
-              products: [
-                { identifier: '34343877', amount: 10990, currency: 'RUB', quantity: 1 },
-                { identifier: '34343872', amount: 11990, currency: 'RUB', quantity: 2 }
-              ]
-            });
-            done();
-          }
-        });
-      });
-
-      it('should not set global basket object if cart is not defined', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Cart',
-          callback: () => {
-            assert.ok(!window[options.prefix + 'basket']);
-            done();
-          }
-        });
-      });
-
-      it('should not set global basket object if cart lineitems is not defined', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Cart',
-          cart: {},
-          callback: () => {
-            assert.ok(!window[options.prefix + 'basket']);
-            done();
-          }
-        });
-      });
-    });
-
-    describe('#onViewedCheckoutStep', () => {
-      beforeEach((done) => {
-        window[options.prefix + 'basket'] = undefined;
-        ddManager.once('ready', () => {
-          done();
-        });
-        ddManager.initialize({
-          autoEvents: false
-        });
-      });
-
-      it('should set global basket object if user visits checkout step page', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Checkout Step',
-          cart: {
-            lineItems: [
-              { product: { id: '34343877', currency: 'RUB', unitSalePrice: 10990, unitPrice: 12990 }, quantity: 1 },
-              { product: { id: '34343872', currency: 'RUB', unitSalePrice: 11990, unitPrice: 13990 }, quantity: 2 }
-            ]
-          },
-          callback: () => {
-            assert.deepEqual(window[options.prefix + 'basket'], {
-              products: [
-                { identifier: '34343877', amount: 10990, currency: 'RUB', quantity: 1 },
-                { identifier: '34343872', amount: 11990, currency: 'RUB', quantity: 2 }
-              ]
-            });
-            done();
-          }
-        });
-      });
-
-      it('should not set global basket object if cart is not defined', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Checkout Step',
-          callback: () => {
-            assert.ok(!window[options.prefix + 'basket']);
-            done();
-          }
-        });
-      });
-
-      it('should not set global basket object if cart lineitems is not defined', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Checkout Step',
-          cart: {},
-          callback: () => {
-            assert.ok(!window[options.prefix + 'basket']);
-            done();
-          }
         });
       });
     });
@@ -298,7 +269,7 @@ describe('Integrations: Sociomantic', () => {
           done();
         });
         ddManager.initialize({
-          autoEvents: false
+          autoEvents: false,
         });
       });
 
@@ -307,10 +278,10 @@ describe('Integrations: Sociomantic', () => {
           name: 'Completed Transaction',
           callback: () => {
             assert.deepEqual(window[options.prefix + 'sale'], {
-              confirmed: true
+              confirmed: true,
             });
             done();
-          }
+          },
         });
       });
 
@@ -323,21 +294,21 @@ describe('Integrations: Sociomantic', () => {
             currency: 'EUR',
             lineItems: [
               { product: { id: '34343877', currency: 'RUB', unitSalePrice: 10990, unitPrice: 12990 }, quantity: 1 },
-              { product: { id: '34343872', currency: 'RUB', unitSalePrice: 11990, unitPrice: 13990 }, quantity: 2 }
-            ]
+              { product: { id: '34343872', currency: 'RUB', unitSalePrice: 11990, unitPrice: 13990 }, quantity: 2 },
+            ],
           },
           callback: () => {
             assert.deepEqual(window[options.prefix + 'basket'], {
               products: [
                 { identifier: '34343877', amount: 10990, currency: 'RUB', quantity: 1 },
-                { identifier: '34343872', amount: 11990, currency: 'RUB', quantity: 2 }
+                { identifier: '34343872', amount: 11990, currency: 'RUB', quantity: 2 },
               ],
               transaction: 'ASFASDAS12321',
               amount: 2.99,
-              currency: 'EUR'
+              currency: 'EUR',
             });
             done();
-          }
+          },
         });
       });
 
@@ -347,7 +318,7 @@ describe('Integrations: Sociomantic', () => {
           callback: () => {
             assert.ok(!window[options.prefix + 'basket']);
             done();
-          }
+          },
         });
       });
 
@@ -358,7 +329,7 @@ describe('Integrations: Sociomantic', () => {
           callback: () => {
             assert.ok(!window[options.prefix + 'basket']);
             done();
-          }
+          },
         });
       });
     });

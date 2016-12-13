@@ -5,7 +5,6 @@ import {
   VIEWED_PRODUCT_DETAIL,
   VIEWED_PRODUCT_CATEGORY,
   VIEWED_CART,
-  VIEWED_CHECKOUT_STEP,
   SEARCHED_PRODUCTS,
   COMPLETED_TRANSACTION,
 } from './../events';
@@ -80,7 +79,7 @@ class Sociomantic extends Integration {
     if (window.sociomantic && window.sociomantic.sonar && window.sociomantic.sonar.adv[adpanId]) {
       window.sociomantic.sonar.adv[adpanId].enable();
     } else {
-      this.load(this.onLoad);
+      this.load();
     }
   }
 
@@ -94,7 +93,8 @@ class Sociomantic extends Integration {
     case VIEWED_PAGE:
       enrichableProps = [
         'page.type',
-        'user',
+        'user.userId',
+        'cart.lineItems',
       ];
       break;
     case VIEWED_PRODUCT_DETAIL:
@@ -112,20 +112,9 @@ class Sociomantic extends Integration {
         'listing.category',
       ];
       break;
-    case VIEWED_CART:
-      enrichableProps = [
-        'cart.lineItems',
-      ];
-      break;
-    case VIEWED_CHECKOUT_STEP:
-      enrichableProps = [
-        'cart.lineItems',
-      ];
-      break;
     case COMPLETED_TRANSACTION:
       enrichableProps = [
         'transaction',
-        'user',
       ];
       break;
     default:
@@ -141,7 +130,6 @@ class Sociomantic extends Integration {
       [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
       [VIEWED_PRODUCT_CATEGORY]: 'onViewedProductListing',
       [VIEWED_CART]: 'onViewedCart',
-      [VIEWED_CHECKOUT_STEP]: 'onViewedCart',
       [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
       [SEARCHED_PRODUCTS]: 'onViewedProductListing',
     };
@@ -154,18 +142,29 @@ class Sociomantic extends Integration {
 
   onViewedPage(event) {
     const prefix = this.getOption('prefix');
-    const trackingObjectName = prefix + 'customer';
+    const trackingObjectCustomerName = prefix + 'customer';
+    const trackingObjectBasketName = prefix + 'basket';
     const user = event.user;
     const page = event.page;
-    const pages = ['product', 'category', 'checkout', 'confirmation', 'cart'];
+    const specialPages = ['product', 'category', 'search', 'confirmation'];
+    const cart = event.cart;
 
-    if (user) {
-      window[trackingObjectName] = {
-        customer: user.userId,
+    // TODO: check if event from pages happes, else trigger VIEWED_PAGE (check )
+    // add nextTick
+    if (user && user.userId) {
+      window[trackingObjectCustomerName] = {
+        identifier: user.userId,
       };
     }
 
-    if (page && pages.indexOf(page.type) < 0) {
+    if (cart && cart.lineItems) {
+      const products = lineItemsToSociomanticsItems(cart.lineItems);
+      window[trackingObjectBasketName] = {
+        products: products,
+      };
+    }
+
+    if (page && specialPages.indexOf(page.type) < 0) {
       this.loadTrackingScript();
     }
   }
@@ -199,19 +198,8 @@ class Sociomantic extends Integration {
     }
   }
 
-  onViewedCart(event) {
-    const prefix = this.getOption('prefix');
-    const trackingObjectName = prefix + 'basket';
-    const cart = event.cart;
-
-    if (cart && cart.lineItems) {
-      const products = lineItemsToSociomanticsItems(cart.lineItems);
-      window[trackingObjectName] = {
-        products: products,
-      };
-
-      this.loadTrackingScript();
-    }
+  onViewedCart() {
+    // Assigning basket object on every pages - see onViewedPage()
   }
 
   onCompletedTransaction(event) {
