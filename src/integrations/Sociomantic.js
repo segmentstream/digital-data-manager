@@ -45,6 +45,7 @@ class Sociomantic extends Integration {
       region: '',
       adpanId: '',
       prefix: '',
+      userTargetingVar: true,
     }, options);
     super(digitalData, optionsWithDefaults);
 
@@ -142,6 +143,7 @@ class Sociomantic extends Integration {
 
   onViewedPage(event) {
     const prefix = this.getOption('prefix');
+    const userTargetingVar = this.getOption('userTargetingVar');
     const trackingObjectCustomerName = prefix + 'customer';
     const trackingObjectBasketName = prefix + 'basket';
     const user = event.user;
@@ -154,6 +156,7 @@ class Sociomantic extends Integration {
     if (user && user.userId) {
       window[trackingObjectCustomerName] = {
         identifier: user.userId,
+        targeting: userTargetingVar,
       };
     }
 
