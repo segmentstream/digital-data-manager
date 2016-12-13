@@ -72,12 +72,13 @@ class Sociomantic extends Integration {
   }
 
   isLoaded() {
-    return this._isLoaded;
+    const adpanId = this.getOption('adpanId');
+    return window.sociomantic && window.sociomantic.sonar && window.sociomantic.sonar.adv[adpanId];
   }
 
   loadTrackingScript() {
     const adpanId = this.getOption('adpanId');
-    if (window.sociomantic && window.sociomantic.sonar && window.sociomantic.sonar.adv[adpanId]) {
+    if (this.isLoaded()) {
       window.sociomantic.sonar.adv[adpanId].enable();
     } else {
       this.load();
@@ -143,16 +144,14 @@ class Sociomantic extends Integration {
 
   onViewedPage(event) {
     const prefix = this.getOption('prefix');
-    const userTargetingVar = this.getOption('userTargetingVar');
     const trackingObjectCustomerName = prefix + 'customer';
     const trackingObjectBasketName = prefix + 'basket';
     const user = event.user;
+    const userTargetingVar = this.getOption('userTargetingVar');
     const page = event.page;
     const specialPages = ['product', 'category', 'search', 'confirmation'];
     const cart = event.cart;
 
-    // TODO: check if event from pages happes, else trigger VIEWED_PAGE (check )
-    // add nextTick
     if (user && user.userId) {
       window[trackingObjectCustomerName] = {
         identifier: user.userId,
@@ -166,9 +165,14 @@ class Sociomantic extends Integration {
         products: products,
       };
     }
-
     if (page && specialPages.indexOf(page.type) < 0) {
       this.loadTrackingScript();
+    } else {
+      setTimeout(() => {
+        if (!this.isLoaded()) {
+          this.loadTrackingScript();
+        }
+      }, 100);
     }
   }
 
@@ -179,10 +183,8 @@ class Sociomantic extends Integration {
 
     if (product && (product.id || product.skuCode)) {
       window[trackingObjectName] = {
-        identifier: product.id || product.skuCode || '',
+        identifier: product.id || product.skuCode,
       };
-      deleteEmptyProperties(trackingObjectName);
-
       this.loadTrackingScript();
     }
   }
@@ -196,7 +198,6 @@ class Sociomantic extends Integration {
       window[trackingObjectName] = {
         category: listing.category,
       };
-
       this.loadTrackingScript();
     }
   }

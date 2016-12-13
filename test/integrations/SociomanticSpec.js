@@ -10,6 +10,7 @@ describe('Integrations: Sociomantic', () => {
     region: 'eu',
     adpanId: 'aizel-ru',
     prefix: 'sonar_',
+    userTargetingVar: false,
   };
 
   beforeEach(() => {
@@ -43,6 +44,17 @@ describe('Integrations: Sociomantic', () => {
     });
   });
 
+  describe('before loading', () => {
+    describe('#initialize', () => {
+      it('should call ready after initialization', () => {
+        sinon.stub(sociomantic, 'onLoad');
+        ddManager.initialize();
+        assert.ok(sociomantic.onLoad.calledOnce);
+        sociomantic.onLoad.restore();
+      });
+    });
+  });
+
   describe('after loading', () => {
     describe('#onViewedPage', () => {
       beforeEach((done) => {
@@ -64,7 +76,7 @@ describe('Integrations: Sociomantic', () => {
             userId: '55123',
           },
           callback: () => {
-            assert.deepEqual(window[options.prefix + 'customer'], {identifier: '55123'});
+            assert.deepEqual(window[options.prefix + 'customer'], { identifier: '55123', targeting: false });
             done();
           },
         });
@@ -314,7 +326,7 @@ describe('Integrations: Sociomantic', () => {
 
       it('should not set global basket object if transaction is not defined', (done) => {
         window.digitalData.events.push({
-          name: 'Viewed Cart',
+          name: 'Completed Transaction',
           callback: () => {
             assert.ok(!window[options.prefix + 'basket']);
             done();
@@ -324,7 +336,7 @@ describe('Integrations: Sociomantic', () => {
 
       it('should not set global basket object if transaction lineitems is not defined', (done) => {
         window.digitalData.events.push({
-          name: 'Viewed Cart',
+          name: 'Completed Transaction',
           cart: {},
           callback: () => {
             assert.ok(!window[options.prefix + 'basket']);
