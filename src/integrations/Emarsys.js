@@ -12,9 +12,10 @@ function calculateLineItemSubtotal(lineItem) {
   return price * quantity;
 }
 
-function mapLineItems(lineItems) {
-  return lineItems.map(function mapLineItem(lineItem) {
+function mapLineItems(lineItems, overrideProduct) {
+  return lineItems.map((lineItem) => {
     const product = lineItem.product;
+    overrideProduct(product);
     const lineItemSubtotal = lineItem.subtotal || calculateLineItemSubtotal(lineItem);
     return {
       item: product.id || product.skuCode,
@@ -148,7 +149,7 @@ class Emarsys extends Integration {
       window.ScarabQueue.push(['setCustomerId', user.userId]);
     }
     if (cart.lineItems && cart.lineItems.length > 0) {
-      window.ScarabQueue.push(['cart', mapLineItems(cart.lineItems)]);
+      window.ScarabQueue.push(['cart', mapLineItems(cart.lineItems, this.overrideProduct)]);
     } else {
       window.ScarabQueue.push(['cart', []]);
     }
@@ -173,6 +174,7 @@ class Emarsys extends Integration {
 
   onViewedProductDetail(event) {
     const product = event.product || {};
+    this.overrideProduct(product);
     if (product.id || product.skuCode) {
       window.ScarabQueue.push(['view', product.id || product.skuCode]);
     }
@@ -192,7 +194,7 @@ class Emarsys extends Integration {
     if (transaction.orderId && transaction.lineItems) {
       window.ScarabQueue.push(['purchase', {
         orderId: transaction.orderId,
-        items: mapLineItems(transaction.lineItems),
+        items: mapLineItems(transaction.lineItems, this.overrideProduct),
       }]);
     }
     go();

@@ -7871,6 +7871,7 @@ var EventDataEnricher = function () {
         }
       }
     }
+    integration.overrideEvent(enrichedEvent);
     return enrichedEvent;
   };
 
@@ -8474,12 +8475,32 @@ var Integration = function (_EventEmitter) {
     var _this = _possibleConstructorReturn(this, _EventEmitter.call(this));
 
     _this.options = options;
+    if (options && options.overrideFunctions) {
+      _this.defineOverrideFunctions(options.overrideFunctions);
+    }
     _this.digitalData = digitalData;
     _this.tags = tags || {};
     _this.onLoad = _this.onLoad.bind(_this);
     _this._isEnriched = false;
     return _this;
   }
+
+  Integration.prototype.defineOverrideFunctions = function defineOverrideFunctions(overrideFunctions) {
+    if (overrideFunctions.event) {
+      this.overrideEvent = overrideFunctions.event.bind(this);
+    }
+    if (overrideFunctions.product) {
+      this.overrideProduct = overrideFunctions.product.bind(this);
+    }
+  };
+
+  Integration.prototype.overrideProduct = function overrideProduct(product) {
+    // abstract
+  };
+
+  Integration.prototype.overrideEvent = function overrideEvent(event) {
+    // abstract
+  };
 
   Integration.prototype.initialize = function initialize() {
     var onLoad = this.onLoad;
@@ -10429,9 +10450,10 @@ function calculateLineItemSubtotal(lineItem) {
   return price * quantity;
 }
 
-function mapLineItems(lineItems) {
-  return lineItems.map(function mapLineItem(lineItem) {
+function mapLineItems(lineItems, overrideProduct) {
+  return lineItems.map(function (lineItem) {
     var product = lineItem.product;
+    overrideProduct(product);
     var lineItemSubtotal = lineItem.subtotal || calculateLineItemSubtotal(lineItem);
     return {
       item: product.id || product.skuCode,
@@ -10555,7 +10577,7 @@ var Emarsys = function (_Integration) {
       window.ScarabQueue.push(['setCustomerId', user.userId]);
     }
     if (cart.lineItems && cart.lineItems.length > 0) {
-      window.ScarabQueue.push(['cart', mapLineItems(cart.lineItems)]);
+      window.ScarabQueue.push(['cart', mapLineItems(cart.lineItems, this.overrideProduct)]);
     } else {
       window.ScarabQueue.push(['cart', []]);
     }
@@ -10580,6 +10602,7 @@ var Emarsys = function (_Integration) {
 
   Emarsys.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
     var product = event.product || {};
+    this.overrideProduct(product);
     if (product.id || product.skuCode) {
       window.ScarabQueue.push(['view', product.id || product.skuCode]);
     }
@@ -10599,7 +10622,7 @@ var Emarsys = function (_Integration) {
     if (transaction.orderId && transaction.lineItems) {
       window.ScarabQueue.push(['purchase', {
         orderId: transaction.orderId,
-        items: mapLineItems(transaction.lineItems)
+        items: mapLineItems(transaction.lineItems, this.overrideProduct)
       }]);
     }
     go();

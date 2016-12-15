@@ -15325,6 +15325,7 @@ var EventDataEnricher = function () {
         }
       }
     }
+    integration.overrideEvent(enrichedEvent);
     return enrichedEvent;
   };
 
@@ -15928,12 +15929,32 @@ var Integration = function (_EventEmitter) {
     var _this = _possibleConstructorReturn(this, _EventEmitter.call(this));
 
     _this.options = options;
+    if (options && options.overrideFunctions) {
+      _this.defineOverrideFunctions(options.overrideFunctions);
+    }
     _this.digitalData = digitalData;
     _this.tags = tags || {};
     _this.onLoad = _this.onLoad.bind(_this);
     _this._isEnriched = false;
     return _this;
   }
+
+  Integration.prototype.defineOverrideFunctions = function defineOverrideFunctions(overrideFunctions) {
+    if (overrideFunctions.event) {
+      this.overrideEvent = overrideFunctions.event.bind(this);
+    }
+    if (overrideFunctions.product) {
+      this.overrideProduct = overrideFunctions.product.bind(this);
+    }
+  };
+
+  Integration.prototype.overrideProduct = function overrideProduct(product) {
+    // abstract
+  };
+
+  Integration.prototype.overrideEvent = function overrideEvent(event) {
+    // abstract
+  };
 
   Integration.prototype.initialize = function initialize() {
     var onLoad = this.onLoad;
@@ -17860,9 +17881,10 @@ function calculateLineItemSubtotal(lineItem) {
   return price * quantity;
 }
 
-function mapLineItems(lineItems) {
-  return lineItems.map(function mapLineItem(lineItem) {
+function mapLineItems(lineItems, overrideProduct) {
+  return lineItems.map(function (lineItem) {
     var product = lineItem.product;
+    overrideProduct(product);
     var lineItemSubtotal = lineItem.subtotal || calculateLineItemSubtotal(lineItem);
     return {
       item: product.id || product.skuCode,
@@ -17986,7 +18008,7 @@ var Emarsys = function (_Integration) {
       window.ScarabQueue.push(['setCustomerId', user.userId]);
     }
     if (cart.lineItems && cart.lineItems.length > 0) {
-      window.ScarabQueue.push(['cart', mapLineItems(cart.lineItems)]);
+      window.ScarabQueue.push(['cart', mapLineItems(cart.lineItems, this.overrideProduct)]);
     } else {
       window.ScarabQueue.push(['cart', []]);
     }
@@ -18011,6 +18033,7 @@ var Emarsys = function (_Integration) {
 
   Emarsys.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
     var product = event.product || {};
+    this.overrideProduct(product);
     if (product.id || product.skuCode) {
       window.ScarabQueue.push(['view', product.id || product.skuCode]);
     }
@@ -18030,7 +18053,7 @@ var Emarsys = function (_Integration) {
     if (transaction.orderId && transaction.lineItems) {
       window.ScarabQueue.push(['purchase', {
         orderId: transaction.orderId,
-        items: mapLineItems(transaction.lineItems)
+        items: mapLineItems(transaction.lineItems, this.overrideProduct)
       }]);
     }
     go();
@@ -21694,6 +21717,10 @@ var _EventDataEnricher = require('./../src/EventDataEnricher.js');
 
 var _EventDataEnricher2 = _interopRequireDefault(_EventDataEnricher);
 
+var _Emarsys = require('./../src/integrations/Emarsys');
+
+var _Emarsys2 = _interopRequireDefault(_Emarsys);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -22119,9 +22146,46 @@ describe('EventDataEnricher', function () {
       _assert2['default'].ok(_digitalData.campaigns[0].category === 'Banner', 'digitalData.campaigns[0].category is not equal to "Banner"');
     });
   });
+
+  describe('#enrichIntegrationData', function () {
+    var emarsys = new _Emarsys2['default'](_digitalData, {
+      merchantId: 'XXX',
+      overrideFunctions: {
+        product: function product(_product) {
+          _product.id = 's/' + _product.id;
+        },
+        event: function event(_event) {
+          if (_event.name === 'Test') {
+            _event.prop1 = 'test2';
+          }
+        }
+      }
+    });
+
+    it('should override event data', function () {
+      var event = {
+        name: 'Test',
+        prop1: 'test1'
+      };
+      var enrichedEvent = _EventDataEnricher2['default'].enrichIntegrationData(event, _digitalData, emarsys);
+      _assert2['default'].equal(enrichedEvent.prop1, 'test2');
+    });
+
+    it('should override product data', function () {
+      var event = {
+        name: 'Viewed Product Detail',
+        product: {
+          id: '123'
+        }
+      };
+      emarsys.initialize();
+      emarsys.trackEvent(event);
+      _assert2['default'].equal(window.ScarabQueue[0][1], 's/123');
+    });
+  });
 });
 
-},{"./../src/EventDataEnricher.js":103,"./../src/functions/deleteProperty.js":112,"assert":1}],148:[function(require,module,exports){
+},{"./../src/EventDataEnricher.js":103,"./../src/functions/deleteProperty.js":112,"./../src/integrations/Emarsys":129,"assert":1}],148:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
