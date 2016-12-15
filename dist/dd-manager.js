@@ -8989,6 +8989,10 @@ var _Emarsys = require('./integrations/Emarsys.js');
 
 var _Emarsys2 = _interopRequireDefault(_Emarsys);
 
+var _Sociomantic = require('./integrations/Sociomantic.js');
+
+var _Sociomantic2 = _interopRequireDefault(_Sociomantic);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -9007,12 +9011,13 @@ var integrations = {
   'myTarget': _MyTarget2['default'],
   'Yandex Metrica': _YandexMetrica2['default'],
   'Vkontakte': _Vkontakte2['default'],
-  'Emarsys': _Emarsys2['default']
+  'Emarsys': _Emarsys2['default'],
+  'Sociomantic': _Sociomantic2['default']
 };
 
 exports['default'] = integrations;
 
-},{"./integrations/Criteo.js":96,"./integrations/Driveback.js":97,"./integrations/Emarsys.js":98,"./integrations/FacebookPixel.js":99,"./integrations/GoogleAdWords.js":100,"./integrations/GoogleAnalytics.js":101,"./integrations/GoogleTagManager.js":102,"./integrations/MyTarget.js":103,"./integrations/OWOXBIStreaming.js":104,"./integrations/RetailRocket.js":105,"./integrations/SegmentStream.js":106,"./integrations/SendPulse.js":107,"./integrations/Vkontakte.js":108,"./integrations/YandexMetrica.js":109}],77:[function(require,module,exports){
+},{"./integrations/Criteo.js":96,"./integrations/Driveback.js":97,"./integrations/Emarsys.js":98,"./integrations/FacebookPixel.js":99,"./integrations/GoogleAdWords.js":100,"./integrations/GoogleAnalytics.js":101,"./integrations/GoogleTagManager.js":102,"./integrations/MyTarget.js":103,"./integrations/OWOXBIStreaming.js":104,"./integrations/RetailRocket.js":105,"./integrations/SegmentStream.js":106,"./integrations/SendPulse.js":107,"./integrations/Sociomantic.js":108,"./integrations/Vkontakte.js":109,"./integrations/YandexMetrica.js":110}],77:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -9275,7 +9280,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.2.9',
+  VERSION: '1.2.10',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -9440,7 +9445,7 @@ ddManager.on = ddManager.addEventListener = function (event, handler) {
 
 exports['default'] = ddManager;
 
-},{"./DDHelper":68,"./DDStorage":69,"./DigitalDataEnricher":70,"./EventDataEnricher":71,"./EventManager":72,"./Integration":73,"./Storage":74,"./ViewabilityTracker":75,"./functions/after":79,"./functions/each":82,"./functions/size":93,"./testMode":111,"async":1,"component-clone":2,"component-emitter":3}],78:[function(require,module,exports){
+},{"./DDHelper":68,"./DDStorage":69,"./DigitalDataEnricher":70,"./EventDataEnricher":71,"./EventManager":72,"./Integration":73,"./Storage":74,"./ViewabilityTracker":75,"./functions/after":79,"./functions/each":82,"./functions/size":93,"./testMode":112,"async":1,"component-clone":2,"component-emitter":3}],78:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -9946,7 +9951,7 @@ window.ddManager = _ddManager2['default'];
 _ddManager2['default'].setAvailableIntegrations(_availableIntegrations2['default']);
 _ddManager2['default'].processEarlyStubCalls(earlyStubsQueue);
 
-},{"./availableIntegrations.js":76,"./ddManager.js":77,"./polyfill.js":110}],96:[function(require,module,exports){
+},{"./availableIntegrations.js":76,"./ddManager.js":77,"./polyfill.js":111}],96:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -11916,7 +11921,7 @@ var GoogleAnalytics = function (_Integration) {
 
 exports['default'] = GoogleAnalytics;
 
-},{"./../Integration.js":73,"./../events":78,"./../functions/deleteProperty.js":80,"./../functions/dotProp":81,"./../functions/each.js":82,"./../functions/size.js":93,"./../variableTypes":112,"component-clone":2}],102:[function(require,module,exports){
+},{"./../Integration.js":73,"./../events":78,"./../functions/deleteProperty.js":80,"./../functions/dotProp":81,"./../functions/each.js":82,"./../functions/size.js":93,"./../variableTypes":113,"component-clone":2}],102:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -13241,6 +13246,260 @@ var _Integration2 = require('./../Integration.js');
 
 var _Integration3 = _interopRequireDefault(_Integration2);
 
+var _deleteProperty = require('./../functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+var _events = require('./../events');
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+function lineItemsToSociomanticsItems(lineItems) {
+  var products = [];
+  for (var i = 0, length = lineItems.length; i < length; i++) {
+    var lineItem = lineItems[i];
+    if (lineItem && lineItem.product) {
+      var productId = lineItem.product.id || lineItem.product.skuCode;
+      if (productId) {
+        var product = {
+          identifier: productId,
+          amount: lineItem.product.unitSalePrice || lineItem.product.unitPrice || 0,
+          quantity: lineItem.quantity || 1,
+          currency: lineItem.product.currency || ''
+        };
+        products.push(product);
+      }
+    }
+  }
+  return products;
+}
+
+function deleteEmptyProperties(objName) {
+  var keys = Object.keys(window[objName]);
+  keys.map(function (key) {
+    if (window[objName][key] === '') {
+      (0, _deleteProperty2['default'])(window[objName], key);
+    }
+  });
+}
+
+var Sociomantic = function (_Integration) {
+  _inherits(Sociomantic, _Integration);
+
+  function Sociomantic(digitalData, options) {
+    _classCallCheck(this, Sociomantic);
+
+    var optionsWithDefaults = Object.assign({
+      region: '',
+      adpanId: '',
+      prefix: ''
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    var region = _this.getOption('region') || '';
+    var regionPrefix = region ? region + '-' : '';
+    var adpanId = _this.getOption('adpanId');
+    var src = '//' + regionPrefix + 'sonar.sociomantic.com/js/2010-07-01/adpan/' + adpanId;
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        type: 'text/javascript',
+        async: true,
+        src: src
+      }
+    });
+
+    _this._isLoaded = false;
+    _this.trackingScriptCalled = false;
+    return _this;
+  }
+
+  Sociomantic.prototype.initialize = function initialize() {
+    this._isLoaded = true;
+    this.onLoad();
+  };
+
+  Sociomantic.prototype.isLoaded = function isLoaded() {
+    var adpanId = this.getOption('adpanId');
+    return window.sociomantic && window.sociomantic.sonar && window.sociomantic.sonar.adv[adpanId];
+  };
+
+  Sociomantic.prototype.loadTrackingScript = function loadTrackingScript() {
+    var adpanId = this.getOption('adpanId');
+    if (this.isLoaded()) {
+      window.sociomantic.sonar.adv[adpanId].enable();
+    } else {
+      this.load();
+    }
+    this.trackingScriptCalled = true;
+  };
+
+  Sociomantic.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, 'sociomantic');
+  };
+
+  Sociomantic.prototype.getEnrichableEventProps = function getEnrichableEventProps(event) {
+    var enrichableProps = [];
+    switch (event.name) {
+      case _events.VIEWED_PAGE:
+        enrichableProps = ['page.type', 'user.userId', 'cart.lineItems'];
+        break;
+      case _events.VIEWED_PRODUCT_DETAIL:
+        enrichableProps = ['product'];
+        break;
+      case _events.VIEWED_PRODUCT_CATEGORY:
+        enrichableProps = ['listing.category'];
+        break;
+      case _events.SEARCHED_PRODUCTS:
+        enrichableProps = ['listing.category'];
+        break;
+      case _events.COMPLETED_TRANSACTION:
+        enrichableProps = ['transaction'];
+        break;
+      default:
+      // do nothing
+    }
+
+    return enrichableProps;
+  };
+
+  Sociomantic.prototype.trackEvent = function trackEvent(event) {
+    var _methods;
+
+    var methods = (_methods = {}, _methods[_events.VIEWED_PAGE] = 'onViewedPage', _methods[_events.VIEWED_PRODUCT_DETAIL] = 'onViewedProductDetail', _methods[_events.VIEWED_PRODUCT_CATEGORY] = 'onViewedProductListing', _methods[_events.VIEWED_CART] = 'onViewedCart', _methods[_events.COMPLETED_TRANSACTION] = 'onCompletedTransaction', _methods[_events.SEARCHED_PRODUCTS] = 'onViewedProductListing', _methods);
+
+    var method = methods[event.name];
+    if (method) {
+      this[method](event);
+    }
+  };
+
+  Sociomantic.prototype.onViewedPage = function onViewedPage(event) {
+    var _this2 = this;
+
+    var prefix = this.getOption('prefix');
+    var trackingObjectCustomerName = prefix + 'customer';
+    var trackingObjectBasketName = prefix + 'basket';
+    var user = event.user;
+    var page = event.page;
+    var specialPages = ['product', 'category', 'search', 'confirmation'];
+    var cart = event.cart;
+
+    if (user && user.userId) {
+      window[trackingObjectCustomerName] = {
+        identifier: user.userId
+      };
+    }
+
+    if (cart && cart.lineItems) {
+      var products = lineItemsToSociomanticsItems(cart.lineItems);
+      window[trackingObjectBasketName] = {
+        products: products
+      };
+    }
+    if (page && specialPages.indexOf(page.type) < 0) {
+      this.loadTrackingScript();
+    } else {
+      setTimeout(function () {
+        if (!_this2.trackingScriptCalled) {
+          _this2.loadTrackingScript();
+        }
+      }, 100);
+    }
+  };
+
+  Sociomantic.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
+    var prefix = this.getOption('prefix');
+    var trackingObjectName = prefix + 'product';
+    var product = event.product;
+
+    if (product && (product.id || product.skuCode)) {
+      window[trackingObjectName] = {
+        identifier: product.id || product.skuCode
+      };
+      this.loadTrackingScript();
+    }
+  };
+
+  Sociomantic.prototype.onViewedProductListing = function onViewedProductListing(event) {
+    var prefix = this.getOption('prefix');
+    var trackingObjectName = prefix + 'product';
+    var listing = event.listing;
+
+    if (listing && listing.category) {
+      window[trackingObjectName] = {
+        category: listing.category
+      };
+      this.loadTrackingScript();
+    }
+  };
+
+  Sociomantic.prototype.onViewedCart = function onViewedCart() {
+    // Assigning basket object on every pages - see onViewedPage()
+  };
+
+  Sociomantic.prototype.onCompletedTransaction = function onCompletedTransaction(event) {
+    var prefix = this.getOption('prefix');
+    var trackingObjectSaleName = prefix + 'sale';
+    var trackingObjectBasketName = prefix + 'basket';
+    var transaction = event.transaction;
+
+    window[trackingObjectSaleName] = {
+      confirmed: true
+    };
+
+    if (transaction && transaction.lineItems) {
+      var products = lineItemsToSociomanticsItems(transaction.lineItems);
+      window[trackingObjectBasketName] = {
+        products: products,
+        transaction: transaction.orderId || '',
+        amount: transaction.total || '',
+        currency: transaction.currency || ''
+      };
+      deleteEmptyProperties(trackingObjectBasketName);
+    }
+
+    this.loadTrackingScript();
+  };
+
+  return Sociomantic;
+}(_Integration3['default']);
+
+exports['default'] = Sociomantic;
+
+},{"./../Integration.js":73,"./../events":78,"./../functions/deleteProperty.js":80}],109:[function(require,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -13309,7 +13568,7 @@ var Vkontakte = function (_Integration) {
 
 exports['default'] = Vkontakte;
 
-},{"./../Integration.js":73}],109:[function(require,module,exports){
+},{"./../Integration.js":73}],110:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -13562,7 +13821,7 @@ var YandexMetrica = function (_Integration) {
 
 exports['default'] = YandexMetrica;
 
-},{"./../Integration.js":73,"./../functions/deleteProperty.js":80}],110:[function(require,module,exports){
+},{"./../Integration.js":73,"./../functions/deleteProperty.js":80}],111:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es6.object.create');
@@ -13585,7 +13844,7 @@ require('core-js/modules/es6.date.to-iso-string');
 
 require('core-js/modules/es6.date.now');
 
-},{"core-js/modules/es6.array.filter":53,"core-js/modules/es6.array.index-of":54,"core-js/modules/es6.array.is-array":55,"core-js/modules/es6.array.map":56,"core-js/modules/es6.date.now":57,"core-js/modules/es6.date.to-iso-string":58,"core-js/modules/es6.function.bind":59,"core-js/modules/es6.object.assign":60,"core-js/modules/es6.object.create":61,"core-js/modules/es6.string.trim":62}],111:[function(require,module,exports){
+},{"core-js/modules/es6.array.filter":53,"core-js/modules/es6.array.index-of":54,"core-js/modules/es6.array.is-array":55,"core-js/modules/es6.array.map":56,"core-js/modules/es6.date.now":57,"core-js/modules/es6.date.to-iso-string":58,"core-js/modules/es6.function.bind":59,"core-js/modules/es6.object.assign":60,"core-js/modules/es6.object.create":61,"core-js/modules/es6.string.trim":62}],112:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -13641,7 +13900,7 @@ function logEnrichedIntegrationEvent(event, integrationName) {
 
 exports['default'] = { isTestMode: isTestMode, showTestModeOverlay: showTestModeOverlay };
 
-},{"./functions/noop":90}],112:[function(require,module,exports){
+},{"./functions/noop":90}],113:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;

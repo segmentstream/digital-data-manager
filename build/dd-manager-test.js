@@ -16443,6 +16443,10 @@ var _Emarsys = require('./integrations/Emarsys.js');
 
 var _Emarsys2 = _interopRequireDefault(_Emarsys);
 
+var _Sociomantic = require('./integrations/Sociomantic.js');
+
+var _Sociomantic2 = _interopRequireDefault(_Sociomantic);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -16461,12 +16465,13 @@ var integrations = {
   'myTarget': _MyTarget2['default'],
   'Yandex Metrica': _YandexMetrica2['default'],
   'Vkontakte': _Vkontakte2['default'],
-  'Emarsys': _Emarsys2['default']
+  'Emarsys': _Emarsys2['default'],
+  'Sociomantic': _Sociomantic2['default']
 };
 
 exports['default'] = integrations;
 
-},{"./integrations/Criteo.js":127,"./integrations/Driveback.js":128,"./integrations/Emarsys.js":129,"./integrations/FacebookPixel.js":130,"./integrations/GoogleAdWords.js":131,"./integrations/GoogleAnalytics.js":132,"./integrations/GoogleTagManager.js":133,"./integrations/MyTarget.js":134,"./integrations/OWOXBIStreaming.js":135,"./integrations/RetailRocket.js":136,"./integrations/SegmentStream.js":137,"./integrations/SendPulse.js":138,"./integrations/Vkontakte.js":139,"./integrations/YandexMetrica.js":140}],109:[function(require,module,exports){
+},{"./integrations/Criteo.js":127,"./integrations/Driveback.js":128,"./integrations/Emarsys.js":129,"./integrations/FacebookPixel.js":130,"./integrations/GoogleAdWords.js":131,"./integrations/GoogleAnalytics.js":132,"./integrations/GoogleTagManager.js":133,"./integrations/MyTarget.js":134,"./integrations/OWOXBIStreaming.js":135,"./integrations/RetailRocket.js":136,"./integrations/SegmentStream.js":137,"./integrations/SendPulse.js":138,"./integrations/Sociomantic.js":139,"./integrations/Vkontakte.js":140,"./integrations/YandexMetrica.js":141}],109:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -16729,7 +16734,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.2.9',
+  VERSION: '1.2.10',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -16894,7 +16899,7 @@ ddManager.on = ddManager.addEventListener = function (event, handler) {
 
 exports['default'] = ddManager;
 
-},{"./DDHelper":100,"./DDStorage":101,"./DigitalDataEnricher":102,"./EventDataEnricher":103,"./EventManager":104,"./Integration":105,"./Storage":106,"./ViewabilityTracker":107,"./functions/after":111,"./functions/each":114,"./functions/size":125,"./testMode":142,"async":2,"component-clone":3,"component-emitter":4}],110:[function(require,module,exports){
+},{"./DDHelper":100,"./DDStorage":101,"./DigitalDataEnricher":102,"./EventDataEnricher":103,"./EventManager":104,"./Integration":105,"./Storage":106,"./ViewabilityTracker":107,"./functions/after":111,"./functions/each":114,"./functions/size":125,"./testMode":143,"async":2,"component-clone":3,"component-emitter":4}],110:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -19347,7 +19352,7 @@ var GoogleAnalytics = function (_Integration) {
 
 exports['default'] = GoogleAnalytics;
 
-},{"./../Integration.js":105,"./../events":110,"./../functions/deleteProperty.js":112,"./../functions/dotProp":113,"./../functions/each.js":114,"./../functions/size.js":125,"./../variableTypes":143,"component-clone":3}],133:[function(require,module,exports){
+},{"./../Integration.js":105,"./../events":110,"./../functions/deleteProperty.js":112,"./../functions/dotProp":113,"./../functions/each.js":114,"./../functions/size.js":125,"./../variableTypes":144,"component-clone":3}],133:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -20672,6 +20677,260 @@ var _Integration2 = require('./../Integration.js');
 
 var _Integration3 = _interopRequireDefault(_Integration2);
 
+var _deleteProperty = require('./../functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+var _events = require('./../events');
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+function lineItemsToSociomanticsItems(lineItems) {
+  var products = [];
+  for (var i = 0, length = lineItems.length; i < length; i++) {
+    var lineItem = lineItems[i];
+    if (lineItem && lineItem.product) {
+      var productId = lineItem.product.id || lineItem.product.skuCode;
+      if (productId) {
+        var product = {
+          identifier: productId,
+          amount: lineItem.product.unitSalePrice || lineItem.product.unitPrice || 0,
+          quantity: lineItem.quantity || 1,
+          currency: lineItem.product.currency || ''
+        };
+        products.push(product);
+      }
+    }
+  }
+  return products;
+}
+
+function deleteEmptyProperties(objName) {
+  var keys = Object.keys(window[objName]);
+  keys.map(function (key) {
+    if (window[objName][key] === '') {
+      (0, _deleteProperty2['default'])(window[objName], key);
+    }
+  });
+}
+
+var Sociomantic = function (_Integration) {
+  _inherits(Sociomantic, _Integration);
+
+  function Sociomantic(digitalData, options) {
+    _classCallCheck(this, Sociomantic);
+
+    var optionsWithDefaults = Object.assign({
+      region: '',
+      adpanId: '',
+      prefix: ''
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    var region = _this.getOption('region') || '';
+    var regionPrefix = region ? region + '-' : '';
+    var adpanId = _this.getOption('adpanId');
+    var src = '//' + regionPrefix + 'sonar.sociomantic.com/js/2010-07-01/adpan/' + adpanId;
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        type: 'text/javascript',
+        async: true,
+        src: src
+      }
+    });
+
+    _this._isLoaded = false;
+    _this.trackingScriptCalled = false;
+    return _this;
+  }
+
+  Sociomantic.prototype.initialize = function initialize() {
+    this._isLoaded = true;
+    this.onLoad();
+  };
+
+  Sociomantic.prototype.isLoaded = function isLoaded() {
+    var adpanId = this.getOption('adpanId');
+    return window.sociomantic && window.sociomantic.sonar && window.sociomantic.sonar.adv[adpanId];
+  };
+
+  Sociomantic.prototype.loadTrackingScript = function loadTrackingScript() {
+    var adpanId = this.getOption('adpanId');
+    if (this.isLoaded()) {
+      window.sociomantic.sonar.adv[adpanId].enable();
+    } else {
+      this.load();
+    }
+    this.trackingScriptCalled = true;
+  };
+
+  Sociomantic.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, 'sociomantic');
+  };
+
+  Sociomantic.prototype.getEnrichableEventProps = function getEnrichableEventProps(event) {
+    var enrichableProps = [];
+    switch (event.name) {
+      case _events.VIEWED_PAGE:
+        enrichableProps = ['page.type', 'user.userId', 'cart.lineItems'];
+        break;
+      case _events.VIEWED_PRODUCT_DETAIL:
+        enrichableProps = ['product'];
+        break;
+      case _events.VIEWED_PRODUCT_CATEGORY:
+        enrichableProps = ['listing.category'];
+        break;
+      case _events.SEARCHED_PRODUCTS:
+        enrichableProps = ['listing.category'];
+        break;
+      case _events.COMPLETED_TRANSACTION:
+        enrichableProps = ['transaction'];
+        break;
+      default:
+      // do nothing
+    }
+
+    return enrichableProps;
+  };
+
+  Sociomantic.prototype.trackEvent = function trackEvent(event) {
+    var _methods;
+
+    var methods = (_methods = {}, _methods[_events.VIEWED_PAGE] = 'onViewedPage', _methods[_events.VIEWED_PRODUCT_DETAIL] = 'onViewedProductDetail', _methods[_events.VIEWED_PRODUCT_CATEGORY] = 'onViewedProductListing', _methods[_events.VIEWED_CART] = 'onViewedCart', _methods[_events.COMPLETED_TRANSACTION] = 'onCompletedTransaction', _methods[_events.SEARCHED_PRODUCTS] = 'onViewedProductListing', _methods);
+
+    var method = methods[event.name];
+    if (method) {
+      this[method](event);
+    }
+  };
+
+  Sociomantic.prototype.onViewedPage = function onViewedPage(event) {
+    var _this2 = this;
+
+    var prefix = this.getOption('prefix');
+    var trackingObjectCustomerName = prefix + 'customer';
+    var trackingObjectBasketName = prefix + 'basket';
+    var user = event.user;
+    var page = event.page;
+    var specialPages = ['product', 'category', 'search', 'confirmation'];
+    var cart = event.cart;
+
+    if (user && user.userId) {
+      window[trackingObjectCustomerName] = {
+        identifier: user.userId
+      };
+    }
+
+    if (cart && cart.lineItems) {
+      var products = lineItemsToSociomanticsItems(cart.lineItems);
+      window[trackingObjectBasketName] = {
+        products: products
+      };
+    }
+    if (page && specialPages.indexOf(page.type) < 0) {
+      this.loadTrackingScript();
+    } else {
+      setTimeout(function () {
+        if (!_this2.trackingScriptCalled) {
+          _this2.loadTrackingScript();
+        }
+      }, 100);
+    }
+  };
+
+  Sociomantic.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
+    var prefix = this.getOption('prefix');
+    var trackingObjectName = prefix + 'product';
+    var product = event.product;
+
+    if (product && (product.id || product.skuCode)) {
+      window[trackingObjectName] = {
+        identifier: product.id || product.skuCode
+      };
+      this.loadTrackingScript();
+    }
+  };
+
+  Sociomantic.prototype.onViewedProductListing = function onViewedProductListing(event) {
+    var prefix = this.getOption('prefix');
+    var trackingObjectName = prefix + 'product';
+    var listing = event.listing;
+
+    if (listing && listing.category) {
+      window[trackingObjectName] = {
+        category: listing.category
+      };
+      this.loadTrackingScript();
+    }
+  };
+
+  Sociomantic.prototype.onViewedCart = function onViewedCart() {
+    // Assigning basket object on every pages - see onViewedPage()
+  };
+
+  Sociomantic.prototype.onCompletedTransaction = function onCompletedTransaction(event) {
+    var prefix = this.getOption('prefix');
+    var trackingObjectSaleName = prefix + 'sale';
+    var trackingObjectBasketName = prefix + 'basket';
+    var transaction = event.transaction;
+
+    window[trackingObjectSaleName] = {
+      confirmed: true
+    };
+
+    if (transaction && transaction.lineItems) {
+      var products = lineItemsToSociomanticsItems(transaction.lineItems);
+      window[trackingObjectBasketName] = {
+        products: products,
+        transaction: transaction.orderId || '',
+        amount: transaction.total || '',
+        currency: transaction.currency || ''
+      };
+      deleteEmptyProperties(trackingObjectBasketName);
+    }
+
+    this.loadTrackingScript();
+  };
+
+  return Sociomantic;
+}(_Integration3['default']);
+
+exports['default'] = Sociomantic;
+
+},{"./../Integration.js":105,"./../events":110,"./../functions/deleteProperty.js":112}],140:[function(require,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+exports.__esModule = true;
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -20740,7 +20999,7 @@ var Vkontakte = function (_Integration) {
 
 exports['default'] = Vkontakte;
 
-},{"./../Integration.js":105}],140:[function(require,module,exports){
+},{"./../Integration.js":105}],141:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -20993,7 +21252,7 @@ var YandexMetrica = function (_Integration) {
 
 exports['default'] = YandexMetrica;
 
-},{"./../Integration.js":105,"./../functions/deleteProperty.js":112}],141:[function(require,module,exports){
+},{"./../Integration.js":105,"./../functions/deleteProperty.js":112}],142:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es6.object.create');
@@ -21016,7 +21275,7 @@ require('core-js/modules/es6.date.to-iso-string');
 
 require('core-js/modules/es6.date.now');
 
-},{"core-js/modules/es6.array.filter":54,"core-js/modules/es6.array.index-of":55,"core-js/modules/es6.array.is-array":56,"core-js/modules/es6.array.map":57,"core-js/modules/es6.date.now":58,"core-js/modules/es6.date.to-iso-string":59,"core-js/modules/es6.function.bind":60,"core-js/modules/es6.object.assign":61,"core-js/modules/es6.object.create":62,"core-js/modules/es6.string.trim":63}],142:[function(require,module,exports){
+},{"core-js/modules/es6.array.filter":54,"core-js/modules/es6.array.index-of":55,"core-js/modules/es6.array.is-array":56,"core-js/modules/es6.array.map":57,"core-js/modules/es6.date.now":58,"core-js/modules/es6.date.to-iso-string":59,"core-js/modules/es6.function.bind":60,"core-js/modules/es6.object.assign":61,"core-js/modules/es6.object.create":62,"core-js/modules/es6.string.trim":63}],143:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -21072,7 +21331,7 @@ function logEnrichedIntegrationEvent(event, integrationName) {
 
 exports['default'] = { isTestMode: isTestMode, showTestModeOverlay: showTestModeOverlay };
 
-},{"./functions/noop":122}],143:[function(require,module,exports){
+},{"./functions/noop":122}],144:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -21081,7 +21340,7 @@ var DIGITALDATA_VAR = exports.DIGITALDATA_VAR = 'digitalData';
 var EVENT_VAR = exports.EVENT_VAR = 'event';
 var PRODUCT_VAR = exports.PRODUCT_VAR = 'product';
 
-},{}],144:[function(require,module,exports){
+},{}],145:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -21287,7 +21546,7 @@ describe('DDHelper', function () {
   });
 });
 
-},{"./../src/DDHelper.js":100,"assert":1}],145:[function(require,module,exports){
+},{"./../src/DDHelper.js":100,"assert":1}],146:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -21352,7 +21611,7 @@ describe('DDStorage', function () {
   });
 });
 
-},{"./../src/DDStorage.js":101,"./../src/Storage.js":106,"assert":1}],146:[function(require,module,exports){
+},{"./../src/DDStorage.js":101,"./../src/Storage.js":106,"assert":1}],147:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -21679,7 +21938,7 @@ describe('DigitalDataEnricher', function () {
   });
 });
 
-},{"./../src/DDStorage.js":101,"./../src/DigitalDataEnricher.js":102,"./../src/Storage.js":106,"./../src/functions/deleteProperty.js":112,"assert":1,"sinon":73}],147:[function(require,module,exports){
+},{"./../src/DDStorage.js":101,"./../src/DigitalDataEnricher.js":102,"./../src/Storage.js":106,"./../src/functions/deleteProperty.js":112,"assert":1,"sinon":73}],148:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -22121,7 +22380,7 @@ describe('EventDataEnricher', function () {
   });
 });
 
-},{"./../src/EventDataEnricher.js":103,"./../src/functions/deleteProperty.js":112,"assert":1}],148:[function(require,module,exports){
+},{"./../src/EventDataEnricher.js":103,"./../src/functions/deleteProperty.js":112,"assert":1}],149:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -22715,7 +22974,7 @@ describe('EventManager', function () {
   });
 });
 
-},{"./../src/EventManager.js":104,"./reset.js":166,"assert":1}],149:[function(require,module,exports){
+},{"./../src/EventManager.js":104,"./reset.js":168,"assert":1}],150:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -23071,7 +23330,7 @@ describe('DDManager', function () {
   });
 });
 
-},{"../src/Integration.js":105,"../src/availableIntegrations.js":108,"../src/ddManager.js":109,"./reset.js":166,"./snippet.js":167,"assert":1,"sinon":73}],150:[function(require,module,exports){
+},{"../src/Integration.js":105,"../src/availableIntegrations.js":108,"../src/ddManager.js":109,"./reset.js":168,"./snippet.js":169,"assert":1,"sinon":73}],151:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -23083,7 +23342,7 @@ function argumentsToArray(args) {
   return Array.prototype.slice.call(args);
 }
 
-},{}],151:[function(require,module,exports){
+},{}],152:[function(require,module,exports){
 'use strict';
 
 require('./../src/polyfill.js');
@@ -23128,7 +23387,9 @@ require('./integrations/VkontakteSpec.js');
 
 require('./integrations/EmarsysSpec.js');
 
-},{"./../src/polyfill.js":141,"./DDHelperSpec.js":144,"./DDStorageSpec.js":145,"./DigitalDataEnricherSpec.js":146,"./EventDataEnricherSpec.js":147,"./EventManagerSpec.js":148,"./ddManagerSpec.js":149,"./integrations/CriteoSpec.js":152,"./integrations/DrivebackSpec.js":153,"./integrations/EmarsysSpec.js":154,"./integrations/FacebookPixelSpec.js":155,"./integrations/GoogleAdWordsSpec.js":156,"./integrations/GoogleAnalyticsSpec.js":157,"./integrations/GoogleTagManagerSpec.js":158,"./integrations/MyTargetSpec.js":159,"./integrations/OWOXBIStreamingSpec.js":160,"./integrations/RetailRocketSpec.js":161,"./integrations/SegmentStreamSpec.js":162,"./integrations/SendPulseSpec.js":163,"./integrations/VkontakteSpec.js":164,"./integrations/YandexMetricaSpec.js":165}],152:[function(require,module,exports){
+require('./integrations/SociomanticSpec.js');
+
+},{"./../src/polyfill.js":142,"./DDHelperSpec.js":145,"./DDStorageSpec.js":146,"./DigitalDataEnricherSpec.js":147,"./EventDataEnricherSpec.js":148,"./EventManagerSpec.js":149,"./ddManagerSpec.js":150,"./integrations/CriteoSpec.js":153,"./integrations/DrivebackSpec.js":154,"./integrations/EmarsysSpec.js":155,"./integrations/FacebookPixelSpec.js":156,"./integrations/GoogleAdWordsSpec.js":157,"./integrations/GoogleAnalyticsSpec.js":158,"./integrations/GoogleTagManagerSpec.js":159,"./integrations/MyTargetSpec.js":160,"./integrations/OWOXBIStreamingSpec.js":161,"./integrations/RetailRocketSpec.js":162,"./integrations/SegmentStreamSpec.js":163,"./integrations/SendPulseSpec.js":164,"./integrations/SociomanticSpec.js":165,"./integrations/VkontakteSpec.js":166,"./integrations/YandexMetricaSpec.js":167}],153:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -24111,7 +24372,7 @@ describe('Integrations: Criteo', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/Criteo.js":127,"./../reset.js":166,"assert":1,"sinon":73}],153:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/integrations/Criteo.js":127,"./../reset.js":168,"assert":1,"sinon":73}],154:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -24201,7 +24462,7 @@ describe('Integrations: Driveback', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/Driveback.js":128,"./../reset.js":166,"assert":1}],154:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/integrations/Driveback.js":128,"./../reset.js":168,"assert":1}],155:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -24660,7 +24921,7 @@ describe('Integrations: Emarsys', function () {
   });
 });
 
-},{"./../../src/ddManager":109,"./../../src/integrations/Emarsys":129,"./../reset":166,"assert":1,"sinon":73}],155:[function(require,module,exports){
+},{"./../../src/ddManager":109,"./../../src/integrations/Emarsys":129,"./../reset":168,"assert":1,"sinon":73}],156:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -25110,7 +25371,7 @@ describe('Integrations: FacebookPixel', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/FacebookPixel.js":130,"./../reset.js":166,"assert":1,"sinon":73}],156:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/integrations/FacebookPixel.js":130,"./../reset.js":168,"assert":1,"sinon":73}],157:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -25636,7 +25897,7 @@ describe('Integrations: GoogleAdWords', function () {
   });
 });
 
-},{"./../../src/ddManager":109,"./../../src/integrations/GoogleAdWords":131,"./../reset":166,"assert":1,"sinon":73}],157:[function(require,module,exports){
+},{"./../../src/ddManager":109,"./../../src/integrations/GoogleAdWords":131,"./../reset":168,"assert":1,"sinon":73}],158:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -27886,7 +28147,7 @@ describe('Integrations: GoogleAnalytics', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/functions/after.js":111,"./../../src/integrations/GoogleAnalytics.js":132,"./../functions/argumentsToArray.js":150,"./../reset.js":166,"assert":1,"sinon":73}],158:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/functions/after.js":111,"./../../src/integrations/GoogleAnalytics.js":132,"./../functions/argumentsToArray.js":151,"./../reset.js":168,"assert":1,"sinon":73}],159:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -28066,7 +28327,7 @@ describe('Integrations: GoogleTagManager', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/GoogleTagManager.js":133,"./../reset.js":166,"assert":1}],159:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/integrations/GoogleTagManager.js":133,"./../reset.js":168,"assert":1}],160:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -28594,7 +28855,7 @@ describe('Integrations: MyTarget', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/MyTarget.js":134,"./../reset.js":166,"assert":1,"sinon":73}],160:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/integrations/MyTarget.js":134,"./../reset.js":168,"assert":1,"sinon":73}],161:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -28695,7 +28956,7 @@ describe('Integrations: OWOXBIStreaming', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/GoogleAnalytics.js":132,"./../../src/integrations/OWOXBIStreaming.js":135,"./../functions/argumentsToArray.js":150,"./../reset.js":166,"assert":1,"sinon":73}],161:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/integrations/GoogleAnalytics.js":132,"./../../src/integrations/OWOXBIStreaming.js":135,"./../functions/argumentsToArray.js":151,"./../reset.js":168,"assert":1,"sinon":73}],162:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -29604,7 +29865,7 @@ describe('Integrations: RetailRocket', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/functions/deleteProperty.js":112,"./../../src/integrations/RetailRocket.js":136,"./../reset.js":166,"assert":1,"sinon":73}],162:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/functions/deleteProperty.js":112,"./../../src/integrations/RetailRocket.js":136,"./../reset.js":168,"assert":1,"sinon":73}],163:[function(require,module,exports){
 'use strict';
 
 var _SegmentStream = require('./../../src/integrations/SegmentStream.js');
@@ -29778,7 +30039,7 @@ describe('SegmentStream', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/SegmentStream.js":137,"./../reset.js":166,"assert":1,"sinon":73}],163:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/integrations/SegmentStream.js":137,"./../reset.js":168,"assert":1,"sinon":73}],164:[function(require,module,exports){
 'use strict';
 
 var _SendPulse = require('./../../src/integrations/SendPulse.js');
@@ -30023,7 +30284,404 @@ describe('SendPulse', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/functions/after.js":111,"./../../src/functions/deleteProperty.js":112,"./../../src/integrations/SendPulse.js":138,"./../reset.js":166,"assert":1,"sinon":73}],164:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/functions/after.js":111,"./../../src/functions/deleteProperty.js":112,"./../../src/integrations/SendPulse.js":138,"./../reset.js":168,"assert":1,"sinon":73}],165:[function(require,module,exports){
+'use strict';
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _sinon = require('sinon');
+
+var _sinon2 = _interopRequireDefault(_sinon);
+
+var _reset = require('./../reset.js');
+
+var _reset2 = _interopRequireDefault(_reset);
+
+var _Sociomantic = require('./../../src/integrations/Sociomantic.js');
+
+var _Sociomantic2 = _interopRequireDefault(_Sociomantic);
+
+var _ddManager = require('./../../src/ddManager.js');
+
+var _ddManager2 = _interopRequireDefault(_ddManager);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+describe('Integrations: Sociomantic', function () {
+  var sociomantic = void 0;
+  var options = {
+    region: 'eu',
+    adpanId: 'aizel-ru',
+    prefix: 'sonar_'
+  };
+
+  beforeEach(function () {
+    window.digitalData = {
+      website: {},
+      page: {},
+      product: {},
+      listing: {},
+      cart: {},
+      transaction: {},
+      user: {},
+      events: []
+    };
+    sociomantic = new _Sociomantic2['default'](window.digitalData, options);
+    _ddManager2['default'].addIntegration('Sociomantic', sociomantic);
+  });
+
+  afterEach(function () {
+    sociomantic.reset();
+    _ddManager2['default'].reset();
+    (0, _reset2['default'])();
+  });
+
+  describe('before loading', function () {
+    describe('#constructor', function () {
+      it('should add options', function () {
+        _assert2['default'].equal(options.region, sociomantic.getOption('region'));
+        _assert2['default'].equal(options.adpanId, sociomantic.getOption('adpanId'));
+        _assert2['default'].equal(options.prefix, sociomantic.getOption('prefix'));
+      });
+    });
+  });
+
+  describe('before loading', function () {
+    describe('#initialize', function () {
+      it('should call ready after initialization', function () {
+        _sinon2['default'].stub(sociomantic, 'onLoad');
+        _ddManager2['default'].initialize();
+        _assert2['default'].ok(sociomantic.onLoad.calledOnce);
+        sociomantic.onLoad.restore();
+      });
+    });
+  });
+
+  describe('after loading', function () {
+    beforeEach(function (done) {
+      _sinon2['default'].spy(sociomantic, 'loadTrackingScript');
+      _ddManager2['default'].once('ready', done);
+      _ddManager2['default'].initialize({
+        autoEvents: false
+      });
+    });
+
+    afterEach(function () {
+      sociomantic.loadTrackingScript.restore();
+    });
+
+    describe('#onViewedPage', function () {
+      beforeEach(function () {
+        window[options.prefix + 'customer'] = undefined;
+        window[options.prefix + 'basket'] = undefined;
+      });
+
+      it('should set customer object if user visits any pages', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          user: {
+            userId: '55123'
+          },
+          page: {
+            type: 'home'
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window[options.prefix + 'customer'], { identifier: '55123' });
+            _assert2['default'].ok(sociomantic.loadTrackingScript.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should not set customer object if user is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'home'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'customer']);
+            _assert2['default'].ok(sociomantic.loadTrackingScript.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should not set customer object if user ID is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          user: {},
+          page: {
+            type: 'home'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'customer']);
+            _assert2['default'].ok(sociomantic.loadTrackingScript.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should set global basket object if user visits any page', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'home'
+          },
+          cart: {
+            lineItems: [{ product: { id: '34343877', currency: 'RUB', unitSalePrice: 10990, unitPrice: 12990 }, quantity: 1 }, { product: { id: '34343872', currency: 'RUB', unitSalePrice: 11990, unitPrice: 13990 }, quantity: 2 }]
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window[options.prefix + 'basket'], {
+              products: [{ identifier: '34343877', amount: 10990, currency: 'RUB', quantity: 1 }, { identifier: '34343872', amount: 11990, currency: 'RUB', quantity: 2 }]
+            });
+            _assert2['default'].ok(sociomantic.loadTrackingScript.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should not set global basket object if cart is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'basket']);
+            _assert2['default'].ok(!sociomantic.loadTrackingScript.called);
+            done();
+          }
+        });
+      });
+
+      it('should not set global basket object if cart lineitems is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          cart: {},
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'basket']);
+            _assert2['default'].ok(!sociomantic.loadTrackingScript.called);
+            done();
+          }
+        });
+      });
+
+      it('should call tracking code after timeout on specials pages', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'product'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!sociomantic.loadTrackingScript.called);
+            window.digitalData.events.push({
+              name: 'Viewed Product Detail',
+              product: {},
+              callback: function callback() {
+                setTimeout(function () {
+                  _assert2['default'].ok(sociomantic.loadTrackingScript.called);
+                  done();
+                }, 101);
+              }
+            });
+          }
+        });
+      });
+    });
+
+    describe('#onViewedProductDetail', function () {
+      beforeEach(function () {
+        window[options.prefix + 'product'] = undefined;
+      });
+
+      it('should set product object if user visits product detail page', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {
+            id: '123'
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window[options.prefix + 'product'], { identifier: '123' });
+            _assert2['default'].ok(sociomantic.loadTrackingScript.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should not set product object if product is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'product']);
+            _assert2['default'].ok(!sociomantic.loadTrackingScript.called);
+            done();
+          }
+        });
+      });
+
+      it('should not set product object if product ID is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {},
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'product']);
+            _assert2['default'].ok(!sociomantic.loadTrackingScript.called);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onViewedProductListing', function () {
+      beforeEach(function () {
+        window[options.prefix + 'product'] = undefined;
+      });
+
+      it('should set global product object if user visits product category page', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          listing: {
+            category: ['shoes', 'female']
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window[options.prefix + 'product'], { category: ['shoes', 'female'] });
+            _assert2['default'].ok(sociomantic.loadTrackingScript.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should not set global product object if listing is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'product']);
+            _assert2['default'].ok(!sociomantic.loadTrackingScript.called);
+            done();
+          }
+        });
+      });
+
+      it('should not set product object if listing category is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          listing: {},
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'product']);
+            _assert2['default'].ok(!sociomantic.loadTrackingScript.called);
+            done();
+          }
+        });
+      });
+
+      it('should set global product object if user search products', function (done) {
+        window.digitalData.events.push({
+          name: 'Searched Products',
+          listing: {
+            category: ['shoes', 'female']
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window[options.prefix + 'product'], { category: ['shoes', 'female'] });
+            _assert2['default'].ok(sociomantic.loadTrackingScript.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should not set global product object if listing is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Searched Products',
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'product']);
+            _assert2['default'].ok(!sociomantic.loadTrackingScript.called);
+            done();
+          }
+        });
+      });
+
+      it('should not set product object if listing category is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Searched Products',
+          listing: {},
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'product']);
+            _assert2['default'].ok(!sociomantic.loadTrackingScript.called);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onCompletedTransaction', function () {
+      beforeEach(function () {
+        window[options.prefix + 'basket'] = undefined;
+        window[options.prefix + 'sale'] = undefined;
+      });
+
+      it('should set global sale object if user visits completed transaction page', function (done) {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          callback: function callback() {
+            _assert2['default'].deepEqual(window[options.prefix + 'sale'], {
+              confirmed: true
+            });
+            _assert2['default'].ok(sociomantic.loadTrackingScript.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should set global basket object if user visits completed transaction page', function (done) {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          transaction: {
+            orderId: 'ASFASDAS12321',
+            total: 2.99,
+            currency: 'EUR',
+            lineItems: [{ product: { id: '34343877', currency: 'RUB', unitSalePrice: 10990, unitPrice: 12990 }, quantity: 1 }, { product: { id: '34343872', currency: 'RUB', unitSalePrice: 11990, unitPrice: 13990 }, quantity: 2 }]
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window[options.prefix + 'basket'], {
+              products: [{ identifier: '34343877', amount: 10990, currency: 'RUB', quantity: 1 }, { identifier: '34343872', amount: 11990, currency: 'RUB', quantity: 2 }],
+              transaction: 'ASFASDAS12321',
+              amount: 2.99,
+              currency: 'EUR'
+            });
+            _assert2['default'].ok(sociomantic.loadTrackingScript.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should not set global basket object if transaction is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'basket']);
+            _assert2['default'].ok(sociomantic.loadTrackingScript.called);
+            done();
+          }
+        });
+      });
+
+      it('should not set global basket object if transaction lineitems is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          transaction: {},
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'basket']);
+            _assert2['default'].ok(sociomantic.loadTrackingScript.called);
+            done();
+          }
+        });
+      });
+    });
+  });
+});
+
+},{"./../../src/ddManager.js":109,"./../../src/integrations/Sociomantic.js":139,"./../reset.js":168,"assert":1,"sinon":73}],166:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -30145,7 +30803,7 @@ describe('Integrations: Vkontakte', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/Vkontakte.js":139,"./../reset.js":166,"assert":1,"sinon":73}],165:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/integrations/Vkontakte.js":140,"./../reset.js":168,"assert":1,"sinon":73}],167:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -30728,7 +31386,7 @@ describe('Integrations: Yandex Metrica', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/YandexMetrica.js":140,"./../reset.js":166,"assert":1,"sinon":73}],166:[function(require,module,exports){
+},{"./../../src/ddManager.js":109,"./../../src/integrations/YandexMetrica.js":141,"./../reset.js":168,"assert":1,"sinon":73}],168:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -30739,7 +31397,7 @@ function reset() {
   window.ddManager = undefined;
 }
 
-},{}],167:[function(require,module,exports){
+},{}],169:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -30788,5 +31446,5 @@ exports['default'] = function () {
   }
 };
 
-},{}]},{},[151])
+},{}]},{},[152])
 //# sourceMappingURL=dd-manager-test.js.map
