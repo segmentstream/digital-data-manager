@@ -63,6 +63,7 @@ class Sociomantic extends Integration {
     });
 
     this._isLoaded = false;
+    this.trackingScriptCalled = false;
   }
 
   initialize() {
@@ -82,6 +83,7 @@ class Sociomantic extends Integration {
     } else {
       this.load();
     }
+    this.trackingScriptCalled = true;
   }
 
   reset() {
@@ -166,7 +168,7 @@ class Sociomantic extends Integration {
       this.loadTrackingScript();
     } else {
       setTimeout(() => {
-        if (!this.isLoaded()) {
+        if (!this.trackingScriptCalled) {
           this.loadTrackingScript();
         }
       }, 100);

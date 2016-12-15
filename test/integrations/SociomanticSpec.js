@@ -55,18 +55,23 @@ describe('Integrations: Sociomantic', () => {
   });
 
   describe('after loading', () => {
+    beforeEach((done) => {
+      sinon.spy(sociomantic, 'loadTrackingScript');
+      ddManager.once('ready', done);
+      ddManager.initialize({
+        autoEvents: false,
+      });
+    });
+
+    afterEach(() => {
+      sociomantic.loadTrackingScript.restore();
+    });
+
     describe('#onViewedPage', () => {
-      beforeEach((done) => {
+      beforeEach(() => {
         window[options.prefix + 'customer'] = undefined;
         window[options.prefix + 'basket'] = undefined;
-        ddManager.once('ready', () => {
-          done();
-        });
-        ddManager.initialize({
-          autoEvents: false,
-        });
       });
-
 
       it('should set customer object if user visits any pages', (done) => {
         window.digitalData.events.push({
@@ -74,8 +79,12 @@ describe('Integrations: Sociomantic', () => {
           user: {
             userId: '55123',
           },
+          page: {
+            type: 'home',
+          },
           callback: () => {
             assert.deepEqual(window[options.prefix + 'customer'], { identifier: '55123' });
+            assert.ok(sociomantic.loadTrackingScript.calledOnce);
             done();
           },
         });
@@ -84,8 +93,12 @@ describe('Integrations: Sociomantic', () => {
       it('should not set customer object if user is not defined', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
+          page: {
+            type: 'home',
+          },
           callback: () => {
             assert.ok(!window[options.prefix + 'customer']);
+            assert.ok(sociomantic.loadTrackingScript.calledOnce);
             done();
           },
         });
@@ -95,8 +108,12 @@ describe('Integrations: Sociomantic', () => {
         window.digitalData.events.push({
           name: 'Viewed Page',
           user: {},
+          page: {
+            type: 'home',
+          },
           callback: () => {
             assert.ok(!window[options.prefix + 'customer']);
+            assert.ok(sociomantic.loadTrackingScript.calledOnce);
             done();
           },
         });
@@ -105,6 +122,9 @@ describe('Integrations: Sociomantic', () => {
       it('should set global basket object if user visits any page', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
+          page: {
+            type: 'home',
+          },
           cart: {
             lineItems: [
               { product: { id: '34343877', currency: 'RUB', unitSalePrice: 10990, unitPrice: 12990 }, quantity: 1 },
@@ -118,6 +138,7 @@ describe('Integrations: Sociomantic', () => {
                 { identifier: '34343872', amount: 11990, currency: 'RUB', quantity: 2 },
               ],
             });
+            assert.ok(sociomantic.loadTrackingScript.calledOnce);
             done();
           },
         });
@@ -128,6 +149,7 @@ describe('Integrations: Sociomantic', () => {
           name: 'Viewed Page',
           callback: () => {
             assert.ok(!window[options.prefix + 'basket']);
+            assert.ok(!sociomantic.loadTrackingScript.called);
             done();
           },
         });
@@ -139,21 +161,38 @@ describe('Integrations: Sociomantic', () => {
           cart: {},
           callback: () => {
             assert.ok(!window[options.prefix + 'basket']);
+            assert.ok(!sociomantic.loadTrackingScript.called);
             done();
+          },
+        });
+      });
+
+      it('should call tracking code after timeout on specials pages', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'product',
+          },
+          callback: () => {
+            assert.ok(!sociomantic.loadTrackingScript.called);
+            window.digitalData.events.push({
+              name: 'Viewed Product Detail',
+              product: {},
+              callback: () => {
+                setTimeout(() => {
+                  assert.ok(sociomantic.loadTrackingScript.called);
+                  done();
+                }, 101);
+              },
+            });
           },
         });
       });
     });
 
     describe('#onViewedProductDetail', () => {
-      beforeEach((done) => {
+      beforeEach(() => {
         window[options.prefix + 'product'] = undefined;
-        ddManager.once('ready', () => {
-          done();
-        });
-        ddManager.initialize({
-          autoEvents: false,
-        });
       });
 
 
@@ -165,6 +204,7 @@ describe('Integrations: Sociomantic', () => {
           },
           callback: () => {
             assert.deepEqual(window[options.prefix + 'product'], {identifier: '123'});
+            assert.ok(sociomantic.loadTrackingScript.calledOnce);
             done();
           },
         });
@@ -175,6 +215,7 @@ describe('Integrations: Sociomantic', () => {
           name: 'Viewed Product Detail',
           callback: () => {
             assert.ok(!window[options.prefix + 'product']);
+            assert.ok(!sociomantic.loadTrackingScript.called);
             done();
           },
         });
@@ -186,6 +227,7 @@ describe('Integrations: Sociomantic', () => {
           product: {},
           callback: () => {
             assert.ok(!window[options.prefix + 'product']);
+            assert.ok(!sociomantic.loadTrackingScript.called);
             done();
           },
         });
@@ -193,14 +235,8 @@ describe('Integrations: Sociomantic', () => {
     });
 
     describe('#onViewedProductListing', () => {
-      beforeEach((done) => {
+      beforeEach(() => {
         window[options.prefix + 'product'] = undefined;
-        ddManager.once('ready', () => {
-          done();
-        });
-        ddManager.initialize({
-          autoEvents: false,
-        });
       });
 
       it('should set global product object if user visits product category page', (done) => {
@@ -211,6 +247,7 @@ describe('Integrations: Sociomantic', () => {
           },
           callback: () => {
             assert.deepEqual(window[options.prefix + 'product'], { category: [ 'shoes', 'female' ] });
+            assert.ok(sociomantic.loadTrackingScript.calledOnce);
             done();
           },
         });
@@ -221,6 +258,7 @@ describe('Integrations: Sociomantic', () => {
           name: 'Viewed Product Category',
           callback: () => {
             assert.ok(!window[options.prefix + 'product']);
+            assert.ok(!sociomantic.loadTrackingScript.called);
             done();
           },
         });
@@ -232,6 +270,7 @@ describe('Integrations: Sociomantic', () => {
           listing: {},
           callback: () => {
             assert.ok(!window[options.prefix + 'product']);
+            assert.ok(!sociomantic.loadTrackingScript.called);
             done();
           },
         });
@@ -245,6 +284,7 @@ describe('Integrations: Sociomantic', () => {
           },
           callback: () => {
             assert.deepEqual(window[options.prefix + 'product'], { category: [ 'shoes', 'female' ] });
+            assert.ok(sociomantic.loadTrackingScript.calledOnce);
             done();
           },
         });
@@ -255,6 +295,7 @@ describe('Integrations: Sociomantic', () => {
           name: 'Searched Products',
           callback: () => {
             assert.ok(!window[options.prefix + 'product']);
+            assert.ok(!sociomantic.loadTrackingScript.called);
             done();
           },
         });
@@ -266,6 +307,7 @@ describe('Integrations: Sociomantic', () => {
           listing: {},
           callback: () => {
             assert.ok(!window[options.prefix + 'product']);
+            assert.ok(!sociomantic.loadTrackingScript.called);
             done();
           },
         });
@@ -273,15 +315,9 @@ describe('Integrations: Sociomantic', () => {
     });
 
     describe('#onCompletedTransaction', () => {
-      beforeEach((done) => {
+      beforeEach(() => {
         window[options.prefix + 'basket'] = undefined;
         window[options.prefix + 'sale'] = undefined;
-        ddManager.once('ready', () => {
-          done();
-        });
-        ddManager.initialize({
-          autoEvents: false,
-        });
       });
 
       it('should set global sale object if user visits completed transaction page', (done) => {
@@ -291,6 +327,7 @@ describe('Integrations: Sociomantic', () => {
             assert.deepEqual(window[options.prefix + 'sale'], {
               confirmed: true,
             });
+            assert.ok(sociomantic.loadTrackingScript.calledOnce);
             done();
           },
         });
@@ -318,6 +355,7 @@ describe('Integrations: Sociomantic', () => {
               amount: 2.99,
               currency: 'EUR',
             });
+            assert.ok(sociomantic.loadTrackingScript.calledOnce);
             done();
           },
         });
@@ -328,6 +366,7 @@ describe('Integrations: Sociomantic', () => {
           name: 'Completed Transaction',
           callback: () => {
             assert.ok(!window[options.prefix + 'basket']);
+            assert.ok(sociomantic.loadTrackingScript.called);
             done();
           },
         });
@@ -336,9 +375,10 @@ describe('Integrations: Sociomantic', () => {
       it('should not set global basket object if transaction lineitems is not defined', (done) => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
-          cart: {},
+          transaction: {},
           callback: () => {
             assert.ok(!window[options.prefix + 'basket']);
+            assert.ok(sociomantic.loadTrackingScript.called);
             done();
           },
         });
