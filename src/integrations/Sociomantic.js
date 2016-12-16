@@ -17,7 +17,7 @@ function lineItemsToSociomanticsItems(lineItems) {
       const productId = lineItem.product.id || lineItem.product.skuCode;
       if (productId) {
         const product = {
-          identifier: productId,
+          identifier: String(productId),
           amount: lineItem.product.unitSalePrice || lineItem.product.unitPrice || 0,
           quantity: lineItem.quantity || 1,
           currency: lineItem.product.currency || '',
@@ -154,7 +154,7 @@ class Sociomantic extends Integration {
 
     if (user && user.userId) {
       window[trackingObjectCustomerName] = {
-        identifier: user.userId,
+        identifier: String(user.userId),
       };
     }
 
@@ -184,7 +184,7 @@ class Sociomantic extends Integration {
 
     if (product && (product.id || product.skuCode)) {
       window[trackingObjectName] = {
-        identifier: product.id || product.skuCode,
+        identifier: String(product.id) || String(product.skuCode),
       };
       this.loadTrackingScript();
     }
@@ -222,7 +222,7 @@ class Sociomantic extends Integration {
       if (products.length) {
         window[trackingObjectBasketName] = {
           products: products,
-          transaction: transaction.orderId || '',
+          transaction: String(transaction.orderId) || '',
           amount: transaction.total || '',
           currency: transaction.currency || '',
         };

@@ -77,7 +77,7 @@ describe('Integrations: Sociomantic', () => {
         window.digitalData.events.push({
           name: 'Viewed Page',
           user: {
-            userId: '55123',
+            userId: 55123,
           },
           page: {
             type: 'home',
@@ -127,8 +127,8 @@ describe('Integrations: Sociomantic', () => {
           },
           cart: {
             lineItems: [
-              { product: { id: '34343877', currency: 'RUB', unitSalePrice: 10990, unitPrice: 12990 }, quantity: 1 },
-              { product: { id: '34343872', currency: 'RUB', unitSalePrice: 11990, unitPrice: 13990 }, quantity: 2 },
+              { product: { id: 34343877, currency: 'RUB', unitSalePrice: 10990, unitPrice: 12990 }, quantity: 1 },
+              { product: { id: 34343872, currency: 'RUB', unitSalePrice: 11990, unitPrice: 13990 }, quantity: 2 },
             ],
           },
           callback: () => {
@@ -369,8 +369,8 @@ describe('Integrations: Sociomantic', () => {
             total: 2.99,
             currency: 'EUR',
             lineItems: [
-              { product: { id: '34343877', currency: 'RUB', unitSalePrice: 10990, unitPrice: 12990 }, quantity: 1 },
-              { product: { id: '34343872', currency: 'RUB', unitSalePrice: 11990, unitPrice: 13990 }, quantity: 2 },
+              { product: { id: 34343877, currency: 'RUB', unitSalePrice: 10990, unitPrice: 12990 }, quantity: 1 },
+              { product: { id: 34343872, currency: 'RUB', unitSalePrice: 11990, unitPrice: 13990 }, quantity: 2 },
             ],
           },
           callback: () => {
