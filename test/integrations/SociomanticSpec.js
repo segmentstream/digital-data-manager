@@ -167,6 +167,20 @@ describe('Integrations: Sociomantic', () => {
         });
       });
 
+      it('should not set global basket object if cart lineitems is empty', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          cart: {
+            lineItems: [],
+          },
+          callback: () => {
+            assert.ok(!window[options.prefix + 'basket']);
+            assert.ok(!sociomantic.loadTrackingScript.called);
+            done();
+          },
+        });
+      });
+
       it('should call tracking code after timeout on specials pages', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
@@ -276,6 +290,20 @@ describe('Integrations: Sociomantic', () => {
         });
       });
 
+      it('should not set product object if listing category is empty', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          listing: {
+            category: [],
+          },
+          callback: () => {
+            assert.ok(!window[options.prefix + 'product']);
+            assert.ok(!sociomantic.loadTrackingScript.called);
+            done();
+          },
+        });
+      });
+
       it('should set global product object if user search products', (done) => {
         window.digitalData.events.push({
           name: 'Searched Products',
@@ -376,6 +404,20 @@ describe('Integrations: Sociomantic', () => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
           transaction: {},
+          callback: () => {
+            assert.ok(!window[options.prefix + 'basket']);
+            assert.ok(sociomantic.loadTrackingScript.called);
+            done();
+          },
+        });
+      });
+
+      it('should not set global basket object if transaction lineitems is empty', (done) => {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          transaction: {
+            lineItems: [],
+          },
           callback: () => {
             assert.ok(!window[options.prefix + 'basket']);
             assert.ok(sociomantic.loadTrackingScript.called);

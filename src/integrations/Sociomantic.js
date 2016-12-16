@@ -226,8 +226,8 @@ class Sociomantic extends Integration {
           amount: transaction.total || '',
           currency: transaction.currency || '',
         };
+        deleteEmptyProperties(trackingObjectBasketName);
       }
-      deleteEmptyProperties(trackingObjectBasketName);
     }
 
     this.loadTrackingScript();
