@@ -160,9 +160,11 @@ class Sociomantic extends Integration {
 
     if (cart && cart.lineItems) {
       const products = lineItemsToSociomanticsItems(cart.lineItems);
-      window[trackingObjectBasketName] = {
-        products: products,
-      };
+      if (products.length) {
+        window[trackingObjectBasketName] = {
+          products: products,
+        };
+      }
     }
     if (page && specialPages.indexOf(page.type) < 0) {
       this.loadTrackingScript();
@@ -193,7 +195,7 @@ class Sociomantic extends Integration {
     const trackingObjectName = prefix + 'product';
     const listing = event.listing;
 
-    if (listing && listing.category) {
+    if (listing && listing.category && listing.category.length) {
       window[trackingObjectName] = {
         category: listing.category,
       };
@@ -217,12 +219,14 @@ class Sociomantic extends Integration {
 
     if (transaction && transaction.lineItems) {
       const products = lineItemsToSociomanticsItems(transaction.lineItems);
-      window[trackingObjectBasketName] = {
-        products: products,
-        transaction: transaction.orderId || '',
-        amount: transaction.total || '',
-        currency: transaction.currency || '',
-      };
+      if (products.length) {
+        window[trackingObjectBasketName] = {
+          products: products,
+          transaction: transaction.orderId || '',
+          amount: transaction.total || '',
+          currency: transaction.currency || '',
+        };
+      }
       deleteEmptyProperties(trackingObjectBasketName);
     }
 
