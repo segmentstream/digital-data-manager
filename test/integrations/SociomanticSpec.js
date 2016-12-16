@@ -1,5 +1,6 @@
 import assert from 'assert';
 import sinon from 'sinon';
+import sha256 from 'crypto-js/sha256';
 import reset from './../reset.js';
 import Sociomantic from './../../src/integrations/Sociomantic.js';
 import ddManager from './../../src/ddManager.js';
@@ -8,7 +9,7 @@ describe('Integrations: Sociomantic', () => {
   let sociomantic;
   const options = {
     region: 'eu',
-    adpanId: 'aizel-ru',
+    advertiserToken: 'aizel-ru',
     prefix: 'sonar_',
   };
 
@@ -37,7 +38,7 @@ describe('Integrations: Sociomantic', () => {
     describe('#constructor', () => {
       it('should add options', () => {
         assert.equal(options.region, sociomantic.getOption('region'));
-        assert.equal(options.adpanId, sociomantic.getOption('adpanId'));
+        assert.equal(options.advertiserToken, sociomantic.getOption('advertiserToken'));
         assert.equal(options.prefix, sociomantic.getOption('prefix'));
       });
     });
@@ -57,6 +58,7 @@ describe('Integrations: Sociomantic', () => {
   describe('after loading', () => {
     beforeEach((done) => {
       sinon.spy(sociomantic, 'loadTrackingScript');
+      sinon.spy(sociomantic, 'clearTrackingObjects');
       ddManager.once('ready', done);
       ddManager.initialize({
         autoEvents: false,
@@ -65,6 +67,7 @@ describe('Integrations: Sociomantic', () => {
 
     afterEach(() => {
       sociomantic.loadTrackingScript.restore();
+      sociomantic.clearTrackingObjects.restore();
     });
 
     describe('#onViewedPage', () => {
@@ -77,13 +80,30 @@ describe('Integrations: Sociomantic', () => {
         window.digitalData.events.push({
           name: 'Viewed Page',
           user: {
-            userId: '55123',
+            userId: 55123,
           },
           page: {
             type: 'home',
           },
           callback: () => {
             assert.deepEqual(window[options.prefix + 'customer'], { identifier: '55123' });
+            assert.ok(sociomantic.loadTrackingScript.calledOnce);
+            done();
+          },
+        });
+      });
+
+      it('should set customer object if user visits any pages', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          user: {
+            email: 'test@test.ru',
+          },
+          page: {
+            type: 'home',
+          },
+          callback: () => {
+            assert.deepEqual(window[options.prefix + 'customer'], { mhash: sha256('test@test.ru') });
             assert.ok(sociomantic.loadTrackingScript.calledOnce);
             done();
           },
@@ -104,7 +124,7 @@ describe('Integrations: Sociomantic', () => {
         });
       });
 
-      it('should not set customer object if user ID is not defined', (done) => {
+      it('should not set customer object if user ID and email are not defined', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
           user: {},
@@ -127,8 +147,8 @@ describe('Integrations: Sociomantic', () => {
           },
           cart: {
             lineItems: [
-              { product: { id: '34343877', currency: 'RUB', unitSalePrice: 10990, unitPrice: 12990 }, quantity: 1 },
-              { product: { id: '34343872', currency: 'RUB', unitSalePrice: 11990, unitPrice: 13990 }, quantity: 2 },
+              { product: { id: 34343877, currency: 'RUB', unitSalePrice: 10990, unitPrice: 12990 }, quantity: 1 },
+              { product: { id: 34343872, currency: 'RUB', unitSalePrice: 11990, unitPrice: 13990 }, quantity: 2 },
             ],
           },
           callback: () => {
@@ -217,9 +237,36 @@ describe('Integrations: Sociomantic', () => {
             id: '123',
           },
           callback: () => {
-            assert.deepEqual(window[options.prefix + 'product'], {identifier: '123'});
+            assert.deepEqual(window[options.prefix + 'product'], { identifier: '123' });
             assert.ok(sociomantic.loadTrackingScript.calledOnce);
             done();
+          },
+        });
+      });
+
+      it('should delete product object on the another single page ', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {
+            id: '123',
+          },
+          callback: () => {
+            assert.deepEqual(window[options.prefix + 'product'], { identifier: '123' });
+            window.digitalData.events.push({
+              name: 'Viewed Page',
+              user: {
+                userId: 55123,
+              },
+              page: {
+                type: 'home',
+              },
+              callback: () => {
+                assert.deepEqual(window[options.prefix + 'customer'], { identifier: '55123' });
+                assert.ok(sociomantic.loadTrackingScript.calledTwice);
+                assert.ok(sociomantic.clearTrackingObjects.calledOnce);
+                done();
+              },
+            });
           },
         });
       });
@@ -369,8 +416,8 @@ describe('Integrations: Sociomantic', () => {
             total: 2.99,
             currency: 'EUR',
             lineItems: [
-              { product: { id: '34343877', currency: 'RUB', unitSalePrice: 10990, unitPrice: 12990 }, quantity: 1 },
-              { product: { id: '34343872', currency: 'RUB', unitSalePrice: 11990, unitPrice: 13990 }, quantity: 2 },
+              { product: { id: 34343877, currency: 'RUB', unitSalePrice: 10990, unitPrice: 12990 }, quantity: 1 },
+              { product: { id: 34343872, currency: 'RUB', unitSalePrice: 11990, unitPrice: 13990 }, quantity: 2 },
             ],
           },
           callback: () => {
