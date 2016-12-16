@@ -44,15 +44,15 @@ class Sociomantic extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       region: '',
-      adpanId: '',
+      advertiserToken: '',
       prefix: '',
     }, options);
     super(digitalData, optionsWithDefaults);
 
     const region = this.getOption('region') || '';
     const regionPrefix = region ? `${region}-` : '';
-    const adpanId = this.getOption('adpanId');
-    const src = `//${regionPrefix}sonar.sociomantic.com/js/2010-07-01/adpan/${adpanId}`;
+    const advertiserToken = this.getOption('advertiserToken');
+    const src = `//${regionPrefix}sonar.sociomantic.com/js/2010-07-01/adpan/${advertiserToken}`;
 
     this.addTag({
       type: 'script',
@@ -73,18 +73,25 @@ class Sociomantic extends Integration {
   }
 
   isLoaded() {
-    const adpanId = this.getOption('adpanId');
-    return window.sociomantic && window.sociomantic.sonar && window.sociomantic.sonar.adv[adpanId];
+    const advertiserToken = this.getOption('advertiserToken');
+    return window.sociomantic && window.sociomantic.sonar && window.sociomantic.sonar.adv[advertiserToken];
   }
 
   loadTrackingScript() {
-    const adpanId = this.getOption('adpanId');
+    const advertiserToken = this.getOption('advertiserToken');
     if (this.isLoaded()) {
-      window.sociomantic.sonar.adv[adpanId].enable();
+      window.sociomantic.sonar.adv[advertiserToken].track();
     } else {
       this.load();
     }
     this.trackingScriptCalled = true;
+  }
+
+  clearTrackingObjects() {
+    const advertiserToken = this.getOption('advertiserToken');
+    if (this.isLoaded()) {
+      window.sociomantic.sonar.adv[advertiserToken].clear();
+    }
   }
 
   reset() {
@@ -130,6 +137,10 @@ class Sociomantic extends Integration {
   }
 
   trackEvent(event) {
+    if (this.trackingScriptCalled) {
+      this.clearTrackingObjects();
+    }
+
     const methods = {
       [VIEWED_PAGE]: 'onViewedPage',
       [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',

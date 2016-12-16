@@ -9,7 +9,7 @@ describe('Integrations: Sociomantic', () => {
   let sociomantic;
   const options = {
     region: 'eu',
-    adpanId: 'aizel-ru',
+    advertiserToken: 'aizel-ru',
     prefix: 'sonar_',
   };
 
@@ -38,7 +38,7 @@ describe('Integrations: Sociomantic', () => {
     describe('#constructor', () => {
       it('should add options', () => {
         assert.equal(options.region, sociomantic.getOption('region'));
-        assert.equal(options.adpanId, sociomantic.getOption('adpanId'));
+        assert.equal(options.advertiserToken, sociomantic.getOption('advertiserToken'));
         assert.equal(options.prefix, sociomantic.getOption('prefix'));
       });
     });
@@ -58,6 +58,7 @@ describe('Integrations: Sociomantic', () => {
   describe('after loading', () => {
     beforeEach((done) => {
       sinon.spy(sociomantic, 'loadTrackingScript');
+      sinon.spy(sociomantic, 'clearTrackingObjects');
       ddManager.once('ready', done);
       ddManager.initialize({
         autoEvents: false,
@@ -66,6 +67,7 @@ describe('Integrations: Sociomantic', () => {
 
     afterEach(() => {
       sociomantic.loadTrackingScript.restore();
+      sociomantic.clearTrackingObjects.restore();
     });
 
     describe('#onViewedPage', () => {
@@ -235,9 +237,36 @@ describe('Integrations: Sociomantic', () => {
             id: '123',
           },
           callback: () => {
-            assert.deepEqual(window[options.prefix + 'product'], {identifier: '123'});
+            assert.deepEqual(window[options.prefix + 'product'], { identifier: '123' });
             assert.ok(sociomantic.loadTrackingScript.calledOnce);
             done();
+          },
+        });
+      });
+
+      it('should delete product object on the another single page ', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {
+            id: '123',
+          },
+          callback: () => {
+            assert.deepEqual(window[options.prefix + 'product'], { identifier: '123' });
+            window.digitalData.events.push({
+              name: 'Viewed Page',
+              user: {
+                userId: 55123,
+              },
+              page: {
+                type: 'home',
+              },
+              callback: () => {
+                assert.deepEqual(window[options.prefix + 'customer'], { identifier: '55123' });
+                assert.ok(sociomantic.loadTrackingScript.calledTwice);
+                assert.ok(sociomantic.clearTrackingObjects.calledOnce);
+                done();
+              },
+            });
           },
         });
       });
