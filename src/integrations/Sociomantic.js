@@ -1,3 +1,4 @@
+import sha256 from 'crypto-js/sha256';
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
 import {
@@ -97,6 +98,7 @@ class Sociomantic extends Integration {
       enrichableProps = [
         'page.type',
         'user.userId',
+        'user.email',
         'cart.lineItems',
       ];
       break;
@@ -152,10 +154,20 @@ class Sociomantic extends Integration {
     const specialPages = ['product', 'category', 'search', 'confirmation'];
     const cart = event.cart;
 
-    if (user && user.userId) {
+    if (user && (user.userId || user.email)) {
+      let userId;
+      let userEmail;
+      if (user.userId) {
+        userId = String(user.userId);
+      }
+      if (user.email) {
+        userEmail = sha256(user.email);
+      }
       window[trackingObjectCustomerName] = {
-        identifier: String(user.userId),
+        identifier: userId || '',
+        mhash: userEmail || '',
       };
+      deleteEmptyProperties(trackingObjectCustomerName);
     }
 
     if (cart && cart.lineItems) {
@@ -183,8 +195,16 @@ class Sociomantic extends Integration {
     const product = event.product;
 
     if (product && (product.id || product.skuCode)) {
+      let productId;
+      let productSkuCode;
+      if (product.id) {
+        productId = String(product.id);
+      }
+      if (product.skuCode) {
+        productSkuCode = String(product.skuCode);
+      }
       window[trackingObjectName] = {
-        identifier: String(product.id) || String(product.skuCode),
+        identifier: productId || productSkuCode,
       };
       this.loadTrackingScript();
     }
@@ -220,9 +240,13 @@ class Sociomantic extends Integration {
     if (transaction && transaction.lineItems) {
       const products = lineItemsToSociomanticsItems(transaction.lineItems);
       if (products.length) {
+        let transactionOrderId;
+        if (transaction.orderId) {
+          transactionOrderId = String(transaction.orderId);
+        }
         window[trackingObjectBasketName] = {
           products: products,
-          transaction: String(transaction.orderId) || '',
+          transaction: transactionOrderId || '',
           amount: transaction.total || '',
           currency: transaction.currency || '',
         };

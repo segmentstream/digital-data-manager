@@ -1,5 +1,6 @@
 import assert from 'assert';
 import sinon from 'sinon';
+import sha256 from 'crypto-js/sha256';
 import reset from './../reset.js';
 import Sociomantic from './../../src/integrations/Sociomantic.js';
 import ddManager from './../../src/ddManager.js';
@@ -90,6 +91,23 @@ describe('Integrations: Sociomantic', () => {
         });
       });
 
+      it('should set customer object if user visits any pages', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          user: {
+            email: 'test@test.ru',
+          },
+          page: {
+            type: 'home',
+          },
+          callback: () => {
+            assert.deepEqual(window[options.prefix + 'customer'], { mhash: sha256('test@test.ru') });
+            assert.ok(sociomantic.loadTrackingScript.calledOnce);
+            done();
+          },
+        });
+      });
+
       it('should not set customer object if user is not defined', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
@@ -104,7 +122,7 @@ describe('Integrations: Sociomantic', () => {
         });
       });
 
-      it('should not set customer object if user ID is not defined', (done) => {
+      it('should not set customer object if user ID and email are not defined', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
           user: {},
