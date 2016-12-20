@@ -1,4 +1,4 @@
-import sha256 from 'crypto-js/sha256';
+import crypto from 'crypto';
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
 import {
@@ -172,7 +172,9 @@ class Sociomantic extends Integration {
         userId = String(user.userId);
       }
       if (user.email) {
-        userEmail = sha256(user.email);
+        const hash = crypto.createHash('sha256');
+        hash.update(user.email);
+        userEmail = hash.digest('hex');
       }
       window[trackingObjectCustomerName] = {
         identifier: userId || '',
