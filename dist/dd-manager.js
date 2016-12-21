@@ -8537,6 +8537,9 @@ var DigitalDataEnricher = function () {
     // define required digitalData structure
     this.enrichStructure();
 
+    // fire session started event if this is new session
+    this.fireSessionStarted();
+
     // persist some default behaviours
     this.persistUserData();
 
@@ -8556,6 +8559,8 @@ var DigitalDataEnricher = function () {
     // when all enrichments are done
     this.listenToUserDataChanges();
     this.listenToEvents();
+
+    this.ddStorage.setLastEventTimestamp(Date.now());
   };
 
   DigitalDataEnricher.prototype.listenToEvents = function listenToEvents() {
@@ -8575,6 +8580,7 @@ var DigitalDataEnricher = function () {
     // enrich DDL based on semantic events
     this.ddListener.push(['on', 'event', function (event) {
       _this.enrichIsReturningStatus();
+      _this.ddStorage.setLastEventTimestamp(Date.now());
 
       if (event.name === 'Subscribed') {
         var email = (0, _dotProp.getProp)(event, 'user.email');
@@ -8591,6 +8597,15 @@ var DigitalDataEnricher = function () {
     this.ddListener.push(['on', 'change:user', function () {
       _this2.persistUserData();
     }]);
+  };
+
+  DigitalDataEnricher.prototype.fireSessionStarted = function fireSessionStarted() {
+    var lastEventTimestamp = this.ddStorage.getLastEventTimestamp();
+    if (!lastEventTimestamp || Date.now() - lastEventTimestamp > this.options.sessionLength * 1000) {
+      this.digitalData.events.push({
+        name: 'Session Started',
+        includeIntegrations: [] });
+    }
   };
 
   DigitalDataEnricher.prototype.enrichDefaultUserData = function enrichDefaultUserData() {
@@ -8634,12 +8649,10 @@ var DigitalDataEnricher = function () {
   DigitalDataEnricher.prototype.enrichIsReturningStatus = function enrichIsReturningStatus() {
     var lastEventTimestamp = this.ddStorage.getLastEventTimestamp();
     var user = this.digitalData.user;
-    var now = Date.now();
-    if (!user.isReturning && lastEventTimestamp && now - lastEventTimestamp > this.options.sessionLength * 1000) {
+    if (!user.isReturning && lastEventTimestamp && Date.now() - lastEventTimestamp > this.options.sessionLength * 1000) {
       this.digitalData.user.isReturning = true;
       this.ddStorage.persist('user.isReturning');
     }
-    this.ddStorage.setLastEventTimestamp(now);
   };
 
   DigitalDataEnricher.prototype.enrichHasSubscribed = function enrichHasSubscribed(email) {
@@ -8677,6 +8690,7 @@ var DigitalDataEnricher = function () {
     } else {
       this.digitalData.transaction = this.digitalData.transaction || {};
     }
+    this.digitalData.events = this.digitalData.events || [];
   };
 
   DigitalDataEnricher.prototype.enrichPageData = function enrichPageData() {
