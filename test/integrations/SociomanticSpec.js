@@ -1,6 +1,6 @@
 import assert from 'assert';
 import sinon from 'sinon';
-import crypto from 'crypto';
+import sha256 from 'crypto-js/sha256';
 import reset from './../reset.js';
 import Sociomantic from './../../src/integrations/Sociomantic.js';
 import ddManager from './../../src/ddManager.js';
@@ -103,10 +103,9 @@ describe('Integrations: Sociomantic', () => {
             type: 'home',
           },
           callback: () => {
-            const hash = crypto.createHash('sha256');
-            hash.update('test@test.ru');
-            assert.equal(window[options.prefix + 'customer'].mhash, hash.digest('hex'));
-            assert.equal(typeof hash.digest('hex'), 'string');
+            const hash = sha256('test@test.ru').toString();
+            assert.equal(window[options.prefix + 'customer'].mhash, hash);
+            assert.equal(typeof hash, 'string');
             assert.ok(sociomantic.loadTrackingScript.calledOnce);
             done();
           },
