@@ -1,6 +1,5 @@
 import assert from 'assert';
 import sinon from 'sinon';
-import sha256 from 'crypto-js/sha256';
 import reset from './../reset.js';
 import Sociomantic from './../../src/integrations/Sociomantic.js';
 import ddManager from './../../src/ddManager.js';
@@ -97,15 +96,14 @@ describe('Integrations: Sociomantic', () => {
         window.digitalData.events.push({
           name: 'Viewed Page',
           user: {
-            email: 'test@test.ru',
+            email: 'test@driveback.ru',
           },
           page: {
             type: 'home',
           },
           callback: () => {
-            const hash = sha256('test@test.ru').toString();
+            const hash = '0e1fe3da996f0c7089514661961912be86d73adf59dc0e689ebdc3e67a897ba9';
             assert.equal(window[options.prefix + 'customer'].mhash, hash);
-            assert.equal(typeof hash, 'string');
             assert.ok(sociomantic.loadTrackingScript.calledOnce);
             done();
           },
@@ -141,63 +139,11 @@ describe('Integrations: Sociomantic', () => {
         });
       });
 
-      it('should set global basket object if user visits any page', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          page: {
-            type: 'home',
-          },
-          cart: {
-            lineItems: [
-              { product: { id: 34343877, currency: 'RUB', unitSalePrice: 10990, unitPrice: 12990 }, quantity: 1 },
-              { product: { id: 34343872, currency: 'RUB', unitSalePrice: 11990, unitPrice: 13990 }, quantity: 2 },
-            ],
-          },
-          callback: () => {
-            assert.deepEqual(window[options.prefix + 'basket'], {
-              products: [
-                { identifier: '34343877', amount: 10990, currency: 'RUB', quantity: 1 },
-                { identifier: '34343872', amount: 11990, currency: 'RUB', quantity: 2 },
-              ],
-            });
-            assert.ok(sociomantic.loadTrackingScript.calledOnce);
-            done();
-          },
-        });
-      });
-
-      it('should not set global basket object if cart is not defined', (done) => {
+      it('should not set global basket object', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
           callback: () => {
             assert.ok(!window[options.prefix + 'basket']);
-            assert.ok(!sociomantic.loadTrackingScript.called);
-            done();
-          },
-        });
-      });
-
-      it('should not set global basket object if cart lineitems is not defined', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          cart: {},
-          callback: () => {
-            assert.ok(!window[options.prefix + 'basket']);
-            assert.ok(!sociomantic.loadTrackingScript.called);
-            done();
-          },
-        });
-      });
-
-      it('should not set global basket object if cart lineitems is empty', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          cart: {
-            lineItems: [],
-          },
-          callback: () => {
-            assert.ok(!window[options.prefix + 'basket']);
-            assert.ok(!sociomantic.loadTrackingScript.called);
             done();
           },
         });
@@ -210,15 +156,80 @@ describe('Integrations: Sociomantic', () => {
             type: 'product',
           },
           callback: () => {
-            assert.ok(!sociomantic.loadTrackingScript.called);
+            assert.ok(!sociomantic.loadTrackingScript.called, 'tracker should not be called');
             window.digitalData.events.push({
               name: 'Viewed Product Detail',
               product: {},
               callback: () => {
                 setTimeout(() => {
-                  assert.ok(sociomantic.loadTrackingScript.called);
+                  assert.ok(sociomantic.loadTrackingScript.calledOnce, 'tracker should be called once');
                   done();
                 }, 101);
+              },
+            });
+          },
+        });
+      });
+
+      it('should track single page application', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'product',
+          },
+          callback: () => {
+            assert.ok(!sociomantic.loadTrackingScript.called, 'tracker should not be called');
+            window.digitalData.events.push({
+              name: 'Viewed Product Detail',
+              product: {
+                id: '114123',
+              },
+              callback: () => {
+                assert.ok(sociomantic.loadTrackingScript.calledOnce, 'tracker should be called once');
+                done();
+                window.digitalData.events.push({
+                  name: 'Viewed Page',
+                  page: {
+                    type: 'content',
+                  },
+                  callback: () => {
+                    assert.ok(sociomantic.loadTrackingScript.calledTwice, 'tracker should be called twice');
+                    done();
+                  },
+                });
+              },
+            });
+          },
+        });
+      });
+
+      it('should track single page application with special second page', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'product',
+          },
+          callback: () => {
+            assert.ok(!sociomantic.loadTrackingScript.called, 'tracker should not be called');
+            window.digitalData.events.push({
+              name: 'Viewed Product Detail',
+              product: {
+                id: '114123',
+              },
+              callback: () => {
+                assert.ok(sociomantic.loadTrackingScript.calledOnce, 'tracker should be called once');
+                window.digitalData.events.push({
+                  name: 'Viewed Page',
+                  page: {
+                    type: 'product',
+                  },
+                  callback: () => {
+                    setTimeout(() => {
+                      assert.ok(sociomantic.loadTrackingScript.calledTwice, 'tracker should be called twice');
+                      done();
+                    }, 101);
+                  },
+                });
               },
             });
           },
@@ -391,23 +402,48 @@ describe('Integrations: Sociomantic', () => {
       });
     });
 
+    describe('#onViewedCart', () => {
+      beforeEach(() => {
+        window[options.prefix + 'basket'] = undefined;
+      });
+
+      it('should set global basket object if user visits cart page', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          user: {
+            userId: 55123,
+          },
+          page: {
+            type: 'cart',
+          },
+          callback: () => {
+            window.digitalData.events.push({
+              name: 'Viewed Cart',
+              cart: {
+                lineItems: [
+                  { product: { id: 34343877, currency: 'RUB', unitSalePrice: 10990, unitPrice: 12990 }, quantity: 1 },
+                  { product: { id: 34343872, currency: 'RUB', unitSalePrice: 11990, unitPrice: 13990 }, quantity: 2 },
+                ],
+              },
+              callback: () => {
+                assert.deepEqual(window[options.prefix + 'basket'], {
+                  products: [
+                    { identifier: '34343877', amount: 10990, currency: 'RUB', quantity: 1 },
+                    { identifier: '34343872', amount: 11990, currency: 'RUB', quantity: 2 },
+                  ],
+                });
+                assert.ok(sociomantic.loadTrackingScript.calledOnce, 'should called once');
+                done();
+              },
+            });
+          },
+        });
+      });
+    });
+
     describe('#onCompletedTransaction', () => {
       beforeEach(() => {
         window[options.prefix + 'basket'] = undefined;
-        window[options.prefix + 'sale'] = undefined;
-      });
-
-      it('should set global sale object if user visits completed transaction page', (done) => {
-        window.digitalData.events.push({
-          name: 'Completed Transaction',
-          callback: () => {
-            assert.deepEqual(window[options.prefix + 'sale'], {
-              confirmed: true,
-            });
-            assert.ok(sociomantic.loadTrackingScript.calledOnce);
-            done();
-          },
-        });
       });
 
       it('should set global basket object if user visits completed transaction page', (done) => {

@@ -92,6 +92,7 @@ class Sociomantic extends Integration {
     if (this.isLoaded()) {
       window.sociomantic.sonar.adv[advertiserToken].clear();
     }
+    this.trackingScriptCalled = false;
   }
 
   reset() {
@@ -106,7 +107,6 @@ class Sociomantic extends Integration {
         'page.type',
         'user.userId',
         'user.email',
-        'cart.lineItems',
       ];
       break;
     case VIEWED_PRODUCT_DETAIL:
@@ -117,6 +117,11 @@ class Sociomantic extends Integration {
     case VIEWED_PRODUCT_CATEGORY:
       enrichableProps = [
         'listing.category',
+      ];
+      break;
+    case VIEWED_CART:
+      enrichableProps = [
+        'cart.lineItems',
       ];
       break;
     case SEARCHED_PRODUCTS:
@@ -137,10 +142,6 @@ class Sociomantic extends Integration {
   }
 
   trackEvent(event) {
-    if (this.trackingScriptCalled) {
-      this.clearTrackingObjects();
-    }
-
     const methods = {
       [VIEWED_PAGE]: 'onViewedPage',
       [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
@@ -152,6 +153,9 @@ class Sociomantic extends Integration {
 
     const method = methods[event.name];
     if (method) {
+      if (this.trackingScriptCalled) {
+        this.clearTrackingObjects();
+      }
       this[method](event);
     }
   }
@@ -159,11 +163,9 @@ class Sociomantic extends Integration {
   onViewedPage(event) {
     const prefix = this.getOption('prefix');
     const trackingObjectCustomerName = prefix + 'customer';
-    const trackingObjectBasketName = prefix + 'basket';
     const user = event.user;
     const page = event.page;
-    const specialPages = ['product', 'category', 'search', 'confirmation'];
-    const cart = event.cart;
+    const specialPages = ['product', 'category', 'cart', 'search', 'confirmation'];
 
     if (user && (user.userId || user.email)) {
       let userId;
@@ -181,14 +183,6 @@ class Sociomantic extends Integration {
       deleteEmptyProperties(trackingObjectCustomerName);
     }
 
-    if (cart && cart.lineItems) {
-      const products = lineItemsToSociomanticsItems(cart.lineItems);
-      if (products.length) {
-        window[trackingObjectBasketName] = {
-          products: products,
-        };
-      }
-    }
     if (page && specialPages.indexOf(page.type) < 0) {
       this.loadTrackingScript();
     } else {
@@ -234,19 +228,26 @@ class Sociomantic extends Integration {
     }
   }
 
-  onViewedCart() {
-    // Assigning basket object on every pages - see onViewedPage()
+  onViewedCart(event) {
+    const prefix = this.getOption('prefix');
+    const trackingObjectBasketName = prefix + 'basket';
+    const cart = event.cart;
+
+    if (cart && cart.lineItems) {
+      const products = lineItemsToSociomanticsItems(cart.lineItems);
+      if (products.length) {
+        window[trackingObjectBasketName] = {
+          products: products,
+        };
+        this.loadTrackingScript();
+      }
+    }
   }
 
   onCompletedTransaction(event) {
     const prefix = this.getOption('prefix');
-    const trackingObjectSaleName = prefix + 'sale';
     const trackingObjectBasketName = prefix + 'basket';
     const transaction = event.transaction;
-
-    window[trackingObjectSaleName] = {
-      confirmed: true,
-    };
 
     if (transaction && transaction.lineItems) {
       const products = lineItemsToSociomanticsItems(transaction.lineItems);
