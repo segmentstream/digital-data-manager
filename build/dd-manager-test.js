@@ -5747,7 +5747,7 @@ var objectKeys = Object.keys || function (obj) {
 }));
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"_process":72}],3:[function(require,module,exports){
+},{"_process":73}],3:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -7854,7 +7854,7 @@ function localstorage(){
 
 }).call(this,require('_process'))
 
-},{"./debug":67,"_process":72}],67:[function(require,module,exports){
+},{"./debug":67,"_process":73}],67:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -8056,7 +8056,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":71}],68:[function(require,module,exports){
+},{"ms":72}],68:[function(require,module,exports){
 (function (global){
 ((typeof define === "function" && define.amd && function (m) {
     define("formatio", ["samsam"], m);
@@ -8274,7 +8274,32 @@ function coerce(val) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"samsam":73}],69:[function(require,module,exports){
+},{"samsam":74}],69:[function(require,module,exports){
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
+}
+
+},{}],70:[function(require,module,exports){
 (function(root, factory) {
 
   if (typeof exports !== 'undefined') {
@@ -8445,7 +8470,7 @@ function coerce(val) {
 
 }));
 
-},{}],70:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 (function (global){
 /*global global, window*/
 /**
@@ -8969,7 +8994,7 @@ function coerce(val) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],71:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -9120,8 +9145,9 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's'
 }
 
-},{}],72:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 // shim for using process in browser
+
 var process = module.exports = {};
 
 // cached from whatever global is present so that test runners that stub it
@@ -9132,84 +9158,22 @@ var process = module.exports = {};
 var cachedSetTimeout;
 var cachedClearTimeout;
 
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
 (function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
+  try {
+    cachedSetTimeout = setTimeout;
+  } catch (e) {
+    cachedSetTimeout = function () {
+      throw new Error('setTimeout is not defined');
     }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
+  }
+  try {
+    cachedClearTimeout = clearTimeout;
+  } catch (e) {
+    cachedClearTimeout = function () {
+      throw new Error('clearTimeout is not defined');
     }
+  }
 } ())
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
 var queue = [];
 var draining = false;
 var currentQueue;
@@ -9234,7 +9198,7 @@ function drainQueue() {
     if (draining) {
         return;
     }
-    var timeout = runTimeout(cleanUpNextTick);
+    var timeout = cachedSetTimeout(cleanUpNextTick);
     draining = true;
 
     var len = queue.length;
@@ -9251,7 +9215,7 @@ function drainQueue() {
     }
     currentQueue = null;
     draining = false;
-    runClearTimeout(timeout);
+    cachedClearTimeout(timeout);
 }
 
 process.nextTick = function (fun) {
@@ -9263,7 +9227,7 @@ process.nextTick = function (fun) {
     }
     queue.push(new Item(fun, args));
     if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
+        cachedSetTimeout(drainQueue, 0);
     }
 };
 
@@ -9302,7 +9266,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],73:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 ((typeof define === "function" && define.amd && function (m) { define("samsam", m); }) ||
  (typeof module === "object" &&
       function (m) { module.exports = m(); }) || // Node
@@ -9703,7 +9667,7 @@ process.umask = function() { return 0; };
     };
 });
 
-},{}],74:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 /**
  * Sinon core utilities. For internal use only.
  *
@@ -9752,7 +9716,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     return sinonModule;
 }());
 
-},{"./sinon/assert":75,"./sinon/behavior":76,"./sinon/call":77,"./sinon/collection":78,"./sinon/extend":79,"./sinon/format":80,"./sinon/log_error":81,"./sinon/match":82,"./sinon/mock":83,"./sinon/sandbox":84,"./sinon/spy":85,"./sinon/stub":86,"./sinon/test":87,"./sinon/test_case":88,"./sinon/times_in_words":89,"./sinon/typeOf":90,"./sinon/util/core":91,"./sinon/walk":98}],75:[function(require,module,exports){
+},{"./sinon/assert":76,"./sinon/behavior":77,"./sinon/call":78,"./sinon/collection":79,"./sinon/extend":80,"./sinon/format":81,"./sinon/log_error":82,"./sinon/match":83,"./sinon/mock":84,"./sinon/sandbox":85,"./sinon/spy":86,"./sinon/stub":87,"./sinon/test":88,"./sinon/test_case":89,"./sinon/times_in_words":90,"./sinon/typeOf":91,"./sinon/util/core":92,"./sinon/walk":99}],76:[function(require,module,exports){
 (function (global){
 /**
  * @depend times_in_words.js
@@ -10003,7 +9967,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./format":80,"./match":82,"./util/core":91}],76:[function(require,module,exports){
+},{"./format":81,"./match":83,"./util/core":92}],77:[function(require,module,exports){
 (function (process){
 /**
  * @depend util/core.js
@@ -10379,7 +10343,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
 
 }).call(this,require('_process'))
 
-},{"./extend":79,"./util/core":91,"_process":72}],77:[function(require,module,exports){
+},{"./extend":80,"./util/core":92,"_process":73}],78:[function(require,module,exports){
 /**
   * @depend util/core.js
   * @depend match.js
@@ -10620,7 +10584,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./format":80,"./match":82,"./util/core":91}],78:[function(require,module,exports){
+},{"./format":81,"./match":83,"./util/core":92}],79:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend spy.js
@@ -10795,7 +10759,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./mock":83,"./spy":85,"./stub":86,"./util/core":91}],79:[function(require,module,exports){
+},{"./mock":84,"./spy":86,"./stub":87,"./util/core":92}],80:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -10908,7 +10872,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":91}],80:[function(require,module,exports){
+},{"./util/core":92}],81:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -11004,7 +10968,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof formatio === "object" && formatio // eslint-disable-line no-undef
 ));
 
-},{"./util/core":91,"formatio":68,"util":101}],81:[function(require,module,exports){
+},{"./util/core":92,"formatio":68,"util":101}],82:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -11090,7 +11054,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":91}],82:[function(require,module,exports){
+},{"./util/core":92}],83:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend typeOf.js
@@ -11353,7 +11317,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./typeOf":90,"./util/core":91}],83:[function(require,module,exports){
+},{"./typeOf":91,"./util/core":92}],84:[function(require,module,exports){
 /**
  * @depend times_in_words.js
  * @depend util/core.js
@@ -11846,7 +11810,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./call":77,"./extend":79,"./format":80,"./match":82,"./spy":85,"./stub":86,"./times_in_words":89,"./util/core":91}],84:[function(require,module,exports){
+},{"./call":78,"./extend":80,"./format":81,"./match":83,"./spy":86,"./stub":87,"./times_in_words":90,"./util/core":92}],85:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend extend.js
@@ -12022,7 +11986,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./collection":78,"./extend":79,"./util/core":91,"./util/fake_server_with_clock":94,"./util/fake_timers":95}],85:[function(require,module,exports){
+},{"./collection":79,"./extend":80,"./util/core":92,"./util/fake_server_with_clock":95,"./util/fake_timers":96}],86:[function(require,module,exports){
 /**
   * @depend times_in_words.js
   * @depend util/core.js
@@ -12487,7 +12451,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./call":77,"./extend":79,"./format":80,"./times_in_words":89,"./util/core":91}],86:[function(require,module,exports){
+},{"./call":78,"./extend":80,"./format":81,"./times_in_words":90,"./util/core":92}],87:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend extend.js
@@ -12689,7 +12653,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./behavior":76,"./extend":79,"./spy":85,"./util/core":91}],87:[function(require,module,exports){
+},{"./behavior":77,"./extend":80,"./spy":86,"./util/core":92}],88:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend sandbox.js
@@ -12789,7 +12753,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     }
 }(typeof sinon === "object" && sinon || null)); // eslint-disable-line no-undef
 
-},{"./sandbox":84,"./util/core":91}],88:[function(require,module,exports){
+},{"./sandbox":85,"./util/core":92}],89:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend test.js
@@ -12897,7 +12861,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./test":87,"./util/core":91}],89:[function(require,module,exports){
+},{"./test":88,"./util/core":92}],90:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -12948,7 +12912,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":91}],90:[function(require,module,exports){
+},{"./util/core":92}],91:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -13003,7 +12967,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":91}],91:[function(require,module,exports){
+},{"./util/core":92}],92:[function(require,module,exports){
 /**
  * @depend ../../sinon.js
  */
@@ -13419,7 +13383,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{}],92:[function(require,module,exports){
+},{}],93:[function(require,module,exports){
 /**
  * Minimal Event interface implementation
  *
@@ -13532,7 +13496,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"./core":91}],93:[function(require,module,exports){
+},{"./core":92}],94:[function(require,module,exports){
 /**
  * @depend fake_xdomain_request.js
  * @depend fake_xml_http_request.js
@@ -13781,7 +13745,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"../format":80,"./core":91,"./fake_xdomain_request":96,"./fake_xml_http_request":97}],94:[function(require,module,exports){
+},{"../format":81,"./core":92,"./fake_xdomain_request":97,"./fake_xml_http_request":98}],95:[function(require,module,exports){
 /**
  * @depend fake_server.js
  * @depend fake_timers.js
@@ -13884,7 +13848,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"./core":91,"./fake_server":93,"./fake_timers":95}],95:[function(require,module,exports){
+},{"./core":92,"./fake_server":94,"./fake_timers":96}],96:[function(require,module,exports){
 /**
  * Fake timer API
  * setTimeout
@@ -13959,7 +13923,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"./core":91,"lolex":70}],96:[function(require,module,exports){
+},{"./core":92,"lolex":71}],97:[function(require,module,exports){
 (function (global){
 /**
  * @depend core.js
@@ -14203,7 +14167,7 @@ if (typeof sinon === "undefined") {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"../extend":79,"../log_error":81,"./core":91,"./event":92}],97:[function(require,module,exports){
+},{"../extend":80,"../log_error":82,"./core":92,"./event":93}],98:[function(require,module,exports){
 (function (global){
 /**
  * @depend core.js
@@ -14947,7 +14911,7 @@ if (typeof sinon === "undefined") {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"../extend":79,"../log_error":81,"./core":91,"./event":92}],98:[function(require,module,exports){
+},{"../extend":80,"../log_error":82,"./core":92,"./event":93}],99:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -15028,32 +14992,7 @@ if (typeof sinon === "undefined") {
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":91}],99:[function(require,module,exports){
-if (typeof Object.create === 'function') {
-  // implementation from standard node.js 'util' module
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    ctor.prototype = Object.create(superCtor.prototype, {
-      constructor: {
-        value: ctor,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-  };
-} else {
-  // old school shim for old browsers
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    var TempCtor = function () {}
-    TempCtor.prototype = superCtor.prototype
-    ctor.prototype = new TempCtor()
-    ctor.prototype.constructor = ctor
-  }
-}
-
-},{}],100:[function(require,module,exports){
+},{"./util/core":92}],100:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
@@ -15651,7 +15590,7 @@ function hasOwnProperty(obj, prop) {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./support/isBuffer":100,"_process":72,"inherits":99}],102:[function(require,module,exports){
+},{"./support/isBuffer":100,"_process":73,"inherits":69}],102:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16889,7 +16828,7 @@ exports['default'] = EventManager;
 },{"./DDHelper.js":102,"./EventDataEnricher.js":105,"./functions/after.js":113,"./functions/deleteProperty.js":114,"./functions/jsonIsEqual.js":120,"./functions/noop.js":124,"./functions/size.js":127,"async":2,"component-clone":3,"debug":66}],107:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -17181,7 +17120,7 @@ var Storage = function () {
 
 exports['default'] = Storage;
 
-},{"lockr":69}],109:[function(require,module,exports){
+},{"lockr":70}],109:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -17510,14 +17449,14 @@ exports['default'] = integrations;
 },{"./integrations/Criteo.js":129,"./integrations/Driveback.js":130,"./integrations/Emarsys.js":131,"./integrations/FacebookPixel.js":132,"./integrations/GoogleAdWords.js":133,"./integrations/GoogleAnalytics.js":134,"./integrations/GoogleTagManager.js":135,"./integrations/MyTarget.js":136,"./integrations/OWOXBIStreaming.js":137,"./integrations/RetailRocket.js":138,"./integrations/SegmentStream.js":139,"./integrations/SendPulse.js":140,"./integrations/Sociomantic.js":141,"./integrations/Vkontakte.js":142,"./integrations/YandexMetrica.js":143}],111:[function(require,module,exports){
 'use strict';
 
-var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
 var _typeof = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
   return typeof obj === "undefined" ? "undefined" : _typeof2(obj);
 } : function (obj) {
-  return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+  return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
 };
 
 var _componentClone = require('component-clone');
@@ -17985,14 +17924,14 @@ exports["default"] = function (obj, prop) {
 },{}],115:[function(require,module,exports){
 'use strict';
 
-var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
 var _typeof = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
   return typeof obj === "undefined" ? "undefined" : _typeof2(obj);
 } : function (obj) {
-  return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+  return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
 };
 
 exports.getProp = getProp;
@@ -18421,14 +18360,14 @@ function throwError(code, message) {
 },{"debug":66}],129:[function(require,module,exports){
 'use strict';
 
-var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
 var _typeof = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
   return typeof obj === "undefined" ? "undefined" : _typeof2(obj);
 } : function (obj) {
-  return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+  return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
 };
 
 var _Integration2 = require('./../Integration.js');
@@ -18744,7 +18683,7 @@ exports['default'] = Criteo;
 },{"./../Integration.js":107,"./../functions/deleteProperty":114,"./../functions/dotProp":115,"./../functions/semver":126}],130:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -18850,14 +18789,14 @@ exports['default'] = Driveback;
 },{"./../Integration.js":107,"./../functions/deleteProperty.js":114,"./../functions/noop.js":124}],131:[function(require,module,exports){
 'use strict';
 
-var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
 var _typeof = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
   return typeof obj === "undefined" ? "undefined" : _typeof2(obj);
 } : function (obj) {
-  return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+  return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
 };
 
 var _Integration2 = require('./../Integration.js');
@@ -19085,7 +19024,7 @@ exports['default'] = Emarsys;
 },{"./../Integration.js":107,"./../functions/deleteProperty.js":114}],132:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -19300,7 +19239,7 @@ exports['default'] = FacebookPixel;
 },{"./../Integration.js":107,"./../functions/deleteProperty.js":114,"component-type":5}],133:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -19555,7 +19494,7 @@ exports['default'] = GoogleAdWords;
 },{"./../Integration.js":107,"./../functions/deleteProperty.js":114}],134:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -20391,7 +20330,7 @@ exports['default'] = GoogleAnalytics;
 },{"./../Integration.js":107,"./../events":112,"./../functions/deleteProperty.js":114,"./../functions/dotProp":115,"./../functions/each.js":116,"./../functions/size.js":127,"./../variableTypes":146,"component-clone":3}],135:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -20491,7 +20430,7 @@ exports['default'] = GoogleTagManager;
 },{"./../Integration.js":107,"./../functions/deleteProperty.js":114}],136:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -20743,7 +20682,7 @@ exports['default'] = MyTarget;
 },{"./../Integration":107,"./../functions/deleteProperty":114,"./../functions/getVarValue":118}],137:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -20853,7 +20792,7 @@ exports['default'] = OWOXBIStreaming;
 },{"./../Integration.js":107}],138:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -20926,6 +20865,7 @@ var RetailRocket = function (_Integration) {
     }, options);
 
     // legacy setting mapper
+
     var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
 
     if (_this.getOption('trackProducts') === false) {
@@ -21285,7 +21225,7 @@ exports['default'] = RetailRocket;
 },{"./../Integration.js":107,"./../functions/deleteProperty":114,"./../functions/dotProp":115,"./../functions/each":116,"./../functions/format":117,"./../functions/getVarValue":118,"./../functions/throwError":128,"component-type":5}],139:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -21472,7 +21412,7 @@ exports['default'] = SegmentStream;
 },{"./../Integration.js":107,"./../functions/deleteProperty.js":114,"./../functions/each.js":116}],140:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -21704,7 +21644,7 @@ exports['default'] = SendPulse;
 },{"./../Integration.js":107,"./../functions/deleteProperty.js":114,"./../functions/dotProp":115,"component-type":5}],141:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -21999,7 +21939,7 @@ exports['default'] = Sociomantic;
 },{"./../Integration.js":107,"./../events":112,"./../functions/deleteProperty.js":114,"crypto-js/sha256":65}],142:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -22078,7 +22018,7 @@ exports['default'] = Vkontakte;
 },{"./../Integration.js":107}],143:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -22161,6 +22101,7 @@ var YandexMetrica = function (_Integration) {
     }, options);
 
     // use custom dataLayer name to avoid conflicts
+
     var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
 
     _this.dataLayerName = 'yandexDL';
@@ -23037,7 +22978,7 @@ describe('DigitalDataEnricher', function () {
   });
 });
 
-},{"./../src/DDStorage.js":103,"./../src/DigitalDataEnricher.js":104,"./../src/Storage.js":108,"./../src/functions/deleteProperty.js":114,"assert":1,"sinon":74}],150:[function(require,module,exports){
+},{"./../src/DDStorage.js":103,"./../src/DigitalDataEnricher.js":104,"./../src/Storage.js":108,"./../src/functions/deleteProperty.js":114,"assert":1,"sinon":75}],150:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -24423,7 +24364,7 @@ describe('DDManager', function () {
   });
 });
 
-},{"../src/Integration.js":107,"../src/availableIntegrations.js":110,"../src/ddManager.js":111,"./reset.js":170,"./snippet.js":171,"assert":1,"sinon":74}],153:[function(require,module,exports){
+},{"../src/Integration.js":107,"../src/availableIntegrations.js":110,"../src/ddManager.js":111,"./reset.js":170,"./snippet.js":171,"assert":1,"sinon":75}],153:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -25465,7 +25406,7 @@ describe('Integrations: Criteo', function () {
   });
 });
 
-},{"./../../src/ddManager.js":111,"./../../src/integrations/Criteo.js":129,"./../reset.js":170,"assert":1,"sinon":74}],156:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/integrations/Criteo.js":129,"./../reset.js":170,"assert":1,"sinon":75}],156:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -26014,7 +25955,7 @@ describe('Integrations: Emarsys', function () {
   });
 });
 
-},{"./../../src/ddManager":111,"./../../src/integrations/Emarsys":131,"./../reset":170,"assert":1,"sinon":74}],158:[function(require,module,exports){
+},{"./../../src/ddManager":111,"./../../src/integrations/Emarsys":131,"./../reset":170,"assert":1,"sinon":75}],158:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -26464,7 +26405,7 @@ describe('Integrations: FacebookPixel', function () {
   });
 });
 
-},{"./../../src/ddManager.js":111,"./../../src/integrations/FacebookPixel.js":132,"./../reset.js":170,"assert":1,"sinon":74}],159:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/integrations/FacebookPixel.js":132,"./../reset.js":170,"assert":1,"sinon":75}],159:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -26990,15 +26931,15 @@ describe('Integrations: GoogleAdWords', function () {
   });
 });
 
-},{"./../../src/ddManager":111,"./../../src/integrations/GoogleAdWords":133,"./../reset":170,"assert":1,"sinon":74}],160:[function(require,module,exports){
+},{"./../../src/ddManager":111,"./../../src/integrations/GoogleAdWords":133,"./../reset":170,"assert":1,"sinon":75}],160:[function(require,module,exports){
 'use strict';
 
-var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 var _typeof = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
   return typeof obj === "undefined" ? "undefined" : _typeof2(obj);
 } : function (obj) {
-  return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+  return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
 };
 
 var _assert = require('assert');
@@ -29240,7 +29181,7 @@ describe('Integrations: GoogleAnalytics', function () {
   });
 });
 
-},{"./../../src/ddManager.js":111,"./../../src/functions/after.js":113,"./../../src/integrations/GoogleAnalytics.js":134,"./../functions/argumentsToArray.js":153,"./../reset.js":170,"assert":1,"sinon":74}],161:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/functions/after.js":113,"./../../src/integrations/GoogleAnalytics.js":134,"./../functions/argumentsToArray.js":153,"./../reset.js":170,"assert":1,"sinon":75}],161:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -29948,7 +29889,7 @@ describe('Integrations: MyTarget', function () {
   });
 });
 
-},{"./../../src/ddManager.js":111,"./../../src/integrations/MyTarget.js":136,"./../reset.js":170,"assert":1,"sinon":74}],163:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/integrations/MyTarget.js":136,"./../reset.js":170,"assert":1,"sinon":75}],163:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -30049,7 +29990,7 @@ describe('Integrations: OWOXBIStreaming', function () {
   });
 });
 
-},{"./../../src/ddManager.js":111,"./../../src/integrations/GoogleAnalytics.js":134,"./../../src/integrations/OWOXBIStreaming.js":137,"./../functions/argumentsToArray.js":153,"./../reset.js":170,"assert":1,"sinon":74}],164:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/integrations/GoogleAnalytics.js":134,"./../../src/integrations/OWOXBIStreaming.js":137,"./../functions/argumentsToArray.js":153,"./../reset.js":170,"assert":1,"sinon":75}],164:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -30958,7 +30899,7 @@ describe('Integrations: RetailRocket', function () {
   });
 });
 
-},{"./../../src/ddManager.js":111,"./../../src/functions/deleteProperty.js":114,"./../../src/integrations/RetailRocket.js":138,"./../reset.js":170,"assert":1,"sinon":74}],165:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/functions/deleteProperty.js":114,"./../../src/integrations/RetailRocket.js":138,"./../reset.js":170,"assert":1,"sinon":75}],165:[function(require,module,exports){
 'use strict';
 
 var _SegmentStream = require('./../../src/integrations/SegmentStream.js');
@@ -31132,7 +31073,7 @@ describe('SegmentStream', function () {
   });
 });
 
-},{"./../../src/ddManager.js":111,"./../../src/integrations/SegmentStream.js":139,"./../reset.js":170,"assert":1,"sinon":74}],166:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/integrations/SegmentStream.js":139,"./../reset.js":170,"assert":1,"sinon":75}],166:[function(require,module,exports){
 'use strict';
 
 var _SendPulse = require('./../../src/integrations/SendPulse.js');
@@ -31377,7 +31318,7 @@ describe('SendPulse', function () {
   });
 });
 
-},{"./../../src/ddManager.js":111,"./../../src/functions/after.js":113,"./../../src/functions/deleteProperty.js":114,"./../../src/integrations/SendPulse.js":140,"./../reset.js":170,"assert":1,"sinon":74}],167:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/functions/after.js":113,"./../../src/functions/deleteProperty.js":114,"./../../src/integrations/SendPulse.js":140,"./../reset.js":170,"assert":1,"sinon":75}],167:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -31901,7 +31842,7 @@ describe('Integrations: Sociomantic', function () {
   });
 });
 
-},{"./../../src/ddManager.js":111,"./../../src/integrations/Sociomantic.js":141,"./../reset.js":170,"assert":1,"sinon":74}],168:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/integrations/Sociomantic.js":141,"./../reset.js":170,"assert":1,"sinon":75}],168:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -32023,7 +31964,7 @@ describe('Integrations: Vkontakte', function () {
   });
 });
 
-},{"./../../src/ddManager.js":111,"./../../src/integrations/Vkontakte.js":142,"./../reset.js":170,"assert":1,"sinon":74}],169:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/integrations/Vkontakte.js":142,"./../reset.js":170,"assert":1,"sinon":75}],169:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -32606,7 +32547,7 @@ describe('Integrations: Yandex Metrica', function () {
   });
 });
 
-},{"./../../src/ddManager.js":111,"./../../src/integrations/YandexMetrica.js":143,"./../reset.js":170,"assert":1,"sinon":74}],170:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/integrations/YandexMetrica.js":143,"./../reset.js":170,"assert":1,"sinon":75}],170:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
