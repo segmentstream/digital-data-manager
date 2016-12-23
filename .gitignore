@@ -1,8 +1,8 @@
 .idea
 .DS_Store
+aws-keys.json
 node_modules
 npm-debug.log
 sauce.json
-sauce_connect.log
-aws-keys.json
 deploy
+sauce_connect.log
