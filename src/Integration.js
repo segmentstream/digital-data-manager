@@ -14,10 +14,30 @@ class Integration extends EventEmitter
   constructor(digitalData, options, tags) {
     super();
     this.options = options;
+    if (options && options.overrideFunctions) {
+      this.defineOverrideFunctions(options.overrideFunctions);
+    }
     this.digitalData = digitalData;
     this.tags = tags || {};
     this.onLoad = this.onLoad.bind(this);
     this._isEnriched = false;
+  }
+
+  defineOverrideFunctions(overrideFunctions) {
+    if (overrideFunctions.event) {
+      this.overrideEvent = overrideFunctions.event.bind(this);
+    }
+    if (overrideFunctions.product) {
+      this.overrideProduct = overrideFunctions.product.bind(this);
+    }
+  }
+
+  overrideProduct(product) {
+    // abstract
+  }
+
+  overrideEvent(event) {
+    // abstract
   }
 
   initialize() {
