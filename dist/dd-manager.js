@@ -13681,11 +13681,12 @@ var RetailRocket = function (_Integration) {
     var items = [];
     var lineItems = transaction.lineItems;
     for (var i = 0, length = lineItems.length; i < length; i++) {
-      if (!this.validateTransactionLineItem(lineItems[i], i)) {
+      if (!this.validateTransactionLineItem(lineItems[i])) {
         areLineItemsValid = false;
         break;
       }
       var product = lineItems[i].product;
+      this.overrideProduct(product);
       items.push({
         id: product.id,
         qnt: lineItems[i].quantity,
@@ -13781,6 +13782,7 @@ var RetailRocket = function (_Integration) {
     var isValid = this.validateLineItem(lineItem);
 
     var product = lineItem.product;
+    this.overrideProduct(product);
     if (!product.id) {
       isValid = false;
     }
@@ -13796,12 +13798,9 @@ var RetailRocket = function (_Integration) {
 
   RetailRocket.prototype.getProductId = function getProductId(product) {
     product = product || {};
-    var productId = void 0;
-    if ((0, _componentType2['default'])(product) === 'object') {
-      productId = product.id;
-    } else {
-      productId = product;
-    }
+    this.overrideProduct(product);
+    var productId = product.id;
+
     return productId;
   };
 
