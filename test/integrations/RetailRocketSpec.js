@@ -14,6 +14,11 @@ describe('Integrations: RetailRocket', () => {
   const options = {
     partnerId: '567c343e6c7d3d14101afee5',
     userIdProperty: 'user.email',
+    overrideFunctions: {
+      product: (product) => {
+        product.id = product.id.replace(/_/g, '');
+      },
+    },
   };
 
   beforeEach(() => {
@@ -241,6 +246,30 @@ describe('Integrations: RetailRocket', () => {
           },
         });
       });
+
+      it('should override product id for "Viewed Product Detail" event', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {
+            id: '123_23',
+          },
+          callback: () => {
+            assert.ok(window.rrApi.view.calledWith('12323'));
+            done();
+          },
+        });
+      });
+
+      it('should override product for "Viewed Product Detail" event', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: '123_23',
+          callback: () => {
+            assert.ok(window.rrApi.view.calledWith('12323'));
+            done();
+          },
+        });
+      });
     });
 
 
@@ -302,6 +331,30 @@ describe('Integrations: RetailRocket', () => {
           },
         });
       });
+
+      it('should override product id for "Added Product" event', (done) => {
+        window.digitalData.events.push({
+          name: 'Added Product',
+          product: {
+            id: '123_23',
+          },
+          callback: () => {
+            assert.ok(window.rrApi.addToBasket.calledWith('12323'));
+            done();
+          },
+        });
+      });
+
+      it('should override product for "Added Product" event', (done) => {
+        window.digitalData.events.push({
+          name: 'Added Product',
+          product: '123_23',
+          callback: () => {
+            assert.ok(window.rrApi.addToBasket.calledWith('12323'));
+            done();
+          },
+        });
+      });
     });
 
 
@@ -320,6 +373,25 @@ describe('Integrations: RetailRocket', () => {
           },
           callback: () => {
             assert.ok(window.rrApi.recomMouseDown.calledWith('327', 'Related'));
+            done();
+          },
+        });
+      });
+
+      it('should override product id "Clicked Product" with product.id param', (done) => {
+        retailRocket.setOption('listMethods', {
+          recom1: 'Related',
+        });
+        window.digitalData.events.push({
+          name: 'Clicked Product',
+          listItem: {
+            product: {
+              id: '327_234',
+            },
+            listId: 'recom1',
+          },
+          callback: () => {
+            assert.ok(window.rrApi.recomMouseDown.calledWith('327234', 'Related'));
             done();
           },
         });
@@ -510,6 +582,51 @@ describe('Integrations: RetailRocket', () => {
           },
           callback: () => {
             assert.ok(window.rrApi.order.calledOnce);
+            done();
+          },
+        });
+      });
+
+      it('should override product id for "Completed Transaction" event', (done) => {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          transaction: {
+            orderId: '123',
+            lineItems: [
+              {
+                product: {
+                  id: '327_1',
+                  unitSalePrice: 245,
+                },
+                quantity: 1,
+              },
+              {
+                product: {
+                  id: '328_2',
+                  unitSalePrice: 245,
+                },
+                quantity: 2,
+              },
+            ],
+          },
+          callback: () => {
+            assert.ok(window.rrApi.order.calledWith(
+              {
+                transaction: '123',
+                items: [
+                  {
+                    id: '3271',
+                    qnt: 1,
+                    price: 245,
+                  },
+                  {
+                    id: '3282',
+                    qnt: 2,
+                    price: 245,
+                  },
+                ],
+              }
+            ));
             done();
           },
         });

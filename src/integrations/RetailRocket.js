@@ -229,11 +229,12 @@ class RetailRocket extends Integration {
     const items = [];
     const lineItems = transaction.lineItems;
     for (let i = 0, length = lineItems.length; i < length; i++) {
-      if (!this.validateTransactionLineItem(lineItems[i], i)) {
+      if (!this.validateTransactionLineItem(lineItems[i])) {
         areLineItemsValid = false;
         break;
       }
       const product = lineItems[i].product;
+      this.overrideProduct(product);
       items.push({
         id: product.id,
         qnt: lineItems[i].quantity,
@@ -328,6 +329,7 @@ class RetailRocket extends Integration {
     let isValid = this.validateLineItem(lineItem);
 
     const product = lineItem.product;
+    this.overrideProduct(product);
     if (!product.id) {
       isValid = false;
     }
@@ -343,12 +345,9 @@ class RetailRocket extends Integration {
 
   getProductId(product) {
     product = product || {};
-    let productId;
-    if (type(product) === 'object') {
-      productId = product.id;
-    } else {
-      productId = product;
-    }
+    this.overrideProduct(product);
+    const productId = product.id;
+
     return productId;
   }
 }

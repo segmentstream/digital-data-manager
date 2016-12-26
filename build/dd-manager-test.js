@@ -21112,11 +21112,12 @@ var RetailRocket = function (_Integration) {
     var items = [];
     var lineItems = transaction.lineItems;
     for (var i = 0, length = lineItems.length; i < length; i++) {
-      if (!this.validateTransactionLineItem(lineItems[i], i)) {
+      if (!this.validateTransactionLineItem(lineItems[i])) {
         areLineItemsValid = false;
         break;
       }
       var product = lineItems[i].product;
+      this.overrideProduct(product);
       items.push({
         id: product.id,
         qnt: lineItems[i].quantity,
@@ -21212,6 +21213,7 @@ var RetailRocket = function (_Integration) {
     var isValid = this.validateLineItem(lineItem);
 
     var product = lineItem.product;
+    this.overrideProduct(product);
     if (!product.id) {
       isValid = false;
     }
@@ -21227,12 +21229,9 @@ var RetailRocket = function (_Integration) {
 
   RetailRocket.prototype.getProductId = function getProductId(product) {
     product = product || {};
-    var productId = void 0;
-    if ((0, _componentType2['default'])(product) === 'object') {
-      productId = product.id;
-    } else {
-      productId = product;
-    }
+    this.overrideProduct(product);
+    var productId = product.id;
+
     return productId;
   };
 
@@ -25632,10 +25631,14 @@ function completedTransaction(transaction, callback) {
 }
 
 describe('Integrations: Emarsys', function () {
-
   var emarsys = void 0;
   var options = {
-    merchantId: '1ED4C63984B56E58'
+    merchantId: '1ED4C63984B56E58',
+    overrideFunctions: {
+      product: function product(_product) {
+        _product.id = _product.id.replace(/_/g, '');
+      }
+    }
   };
 
   beforeEach(function () {
@@ -25807,6 +25810,37 @@ describe('Integrations: Emarsys', function () {
         });
       });
 
+      it('should override product id for "Viewed Page" event', function (done) {
+        window.digitalData.cart = {
+          lineItems: [{
+            product: {
+              id: '123_123',
+              unitSalePrice: 100
+            },
+            quantity: 2,
+            subtotal: 180
+          }, {
+            product: {
+              id: '234_234',
+              unitSalePrice: 100
+            },
+            quantity: 2
+          }]
+        };
+        viewedPage(function () {
+          _assert2['default'].ok(window.ScarabQueue.push.calledWith(['cart', [{
+            item: '123123',
+            price: 180,
+            quantity: 2
+          }, {
+            item: '234234',
+            price: 200,
+            quantity: 2
+          }]]));
+          done();
+        });
+      });
+
       it('should not send "go" for page.type = product', function (done) {
         viewedPageOfType('product', function () {
           _assert2['default'].ok(!window.ScarabQueue.push.calledWith(['go']));
@@ -25909,6 +25943,13 @@ describe('Integrations: Emarsys', function () {
         });
       });
 
+      it('should override product id for "Viewed Product Detail" event', function (done) {
+        viewedProductDetail('123_456', function () {
+          _assert2['default'].ok(window.ScarabQueue.push.calledWith(['view', '123456']));
+          done();
+        });
+      });
+
       it('should send "view" (digitalData)', function (done) {
         window.digitalData.product = {
           id: '123'
@@ -25919,9 +25960,19 @@ describe('Integrations: Emarsys', function () {
         });
       });
 
+      it('should override project id (digitalData) for "Viewed Product Detail" event', function (done) {
+        window.digitalData.product = {
+          id: '123_456'
+        };
+        viewedProductDetail(undefined, function () {
+          _assert2['default'].ok(window.ScarabQueue.push.calledWith(['view', '123456']));
+          done();
+        });
+      });
+
       it('should send "go"', function (done) {
         viewedProductDetail('123', function () {
-          _assert2['default'].ok(window.ScarabQueue.push.calledWith(['view', '123']));
+          _assert2['default'].ok(window.ScarabQueue.push.calledWith(['go']));
           done();
         });
       });
@@ -25958,30 +26009,30 @@ describe('Integrations: Emarsys', function () {
         orderId: '123',
         lineItems: [{
           product: {
-            id: '123',
+            id: '123_456',
             unitSalePrice: 100
           },
           quantity: 2,
           subtotal: 180
         }, {
           product: {
-            id: '234',
+            id: '234_567',
             unitSalePrice: 100
           },
           quantity: 2
         }]
       };
 
-      it('should send "purchase" and "go"', function (done) {
+      it('should send "purchase" and "go" with overrided product id', function (done) {
         completedTransaction(transaction, function () {
           _assert2['default'].ok(window.ScarabQueue.push.calledWith(['purchase', {
             orderId: '123',
             items: [{
-              item: '123',
+              item: '123456',
               price: 180,
               quantity: 2
             }, {
-              item: '234',
+              item: '234567',
               price: 200,
               quantity: 2
             }]
@@ -25991,17 +26042,17 @@ describe('Integrations: Emarsys', function () {
         });
       });
 
-      it('should send "purchase" and "go"', function (done) {
+      it('should send "purchase" and "go" with overrided product id', function (done) {
         window.digitalData.transaction = transaction;
         completedTransaction(undefined, function () {
           _assert2['default'].ok(window.ScarabQueue.push.calledWith(['purchase', {
             orderId: '123',
             items: [{
-              item: '123',
+              item: '123456',
               price: 180,
               quantity: 2
             }, {
-              item: '234',
+              item: '234567',
               price: 200,
               quantity: 2
             }]
@@ -30088,7 +30139,12 @@ describe('Integrations: RetailRocket', function () {
 
   var options = {
     partnerId: '567c343e6c7d3d14101afee5',
-    userIdProperty: 'user.email'
+    userIdProperty: 'user.email',
+    overrideFunctions: {
+      product: function product(_product) {
+        _product.id = _product.id.replace(/_/g, '');
+      }
+    }
   };
 
   beforeEach(function () {
@@ -30310,6 +30366,30 @@ describe('Integrations: RetailRocket', function () {
           }
         });
       });
+
+      it('should override product id for "Viewed Product Detail" event', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {
+            id: '123_23'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(window.rrApi.view.calledWith('12323'));
+            done();
+          }
+        });
+      });
+
+      it('should override product for "Viewed Product Detail" event', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: '123_23',
+          callback: function callback() {
+            _assert2['default'].ok(window.rrApi.view.calledWith('12323'));
+            done();
+          }
+        });
+      });
     });
 
     describe('#onAddedProduct', function () {
@@ -30370,6 +30450,30 @@ describe('Integrations: RetailRocket', function () {
           }
         });
       });
+
+      it('should override product id for "Added Product" event', function (done) {
+        window.digitalData.events.push({
+          name: 'Added Product',
+          product: {
+            id: '123_23'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(window.rrApi.addToBasket.calledWith('12323'));
+            done();
+          }
+        });
+      });
+
+      it('should override product for "Added Product" event', function (done) {
+        window.digitalData.events.push({
+          name: 'Added Product',
+          product: '123_23',
+          callback: function callback() {
+            _assert2['default'].ok(window.rrApi.addToBasket.calledWith('12323'));
+            done();
+          }
+        });
+      });
     });
 
     describe('#onClickedProduct', function () {
@@ -30387,6 +30491,25 @@ describe('Integrations: RetailRocket', function () {
           },
           callback: function callback() {
             _assert2['default'].ok(window.rrApi.recomMouseDown.calledWith('327', 'Related'));
+            done();
+          }
+        });
+      });
+
+      it('should override product id "Clicked Product" with product.id param', function (done) {
+        retailRocket.setOption('listMethods', {
+          recom1: 'Related'
+        });
+        window.digitalData.events.push({
+          name: 'Clicked Product',
+          listItem: {
+            product: {
+              id: '327_234'
+            },
+            listId: 'recom1'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(window.rrApi.recomMouseDown.calledWith('327234', 'Related'));
             done();
           }
         });
@@ -30563,6 +30686,43 @@ describe('Integrations: RetailRocket', function () {
           },
           callback: function callback() {
             _assert2['default'].ok(window.rrApi.order.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should override product id for "Completed Transaction" event', function (done) {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          transaction: {
+            orderId: '123',
+            lineItems: [{
+              product: {
+                id: '327_1',
+                unitSalePrice: 245
+              },
+              quantity: 1
+            }, {
+              product: {
+                id: '328_2',
+                unitSalePrice: 245
+              },
+              quantity: 2
+            }]
+          },
+          callback: function callback() {
+            _assert2['default'].ok(window.rrApi.order.calledWith({
+              transaction: '123',
+              items: [{
+                id: '3271',
+                qnt: 1,
+                price: 245
+              }, {
+                id: '3282',
+                qnt: 2,
+                price: 245
+              }]
+            }));
             done();
           }
         });
