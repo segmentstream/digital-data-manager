@@ -13,13 +13,18 @@ describe('Integrations: RetailRocket', () => {
 
   const options = {
     partnerId: '567c343e6c7d3d14101afee5',
-    userIdProperty: 'user.email'
+    userIdProperty: 'user.email',
+    overrideFunctions: {
+      product: (product) => {
+        product.id = product.id.replace(/_/g, '');
+      },
+    },
   };
 
   beforeEach(() => {
     window.digitalData = {
       user: {},
-      events: []
+      events: [],
     };
     retailRocket = new RetailRocket(window.digitalData, options);
     ddManager.addIntegration('Retail Rocket', retailRocket);
@@ -32,28 +37,29 @@ describe('Integrations: RetailRocket', () => {
 
     // stubs for callbacks (hack)
     window.rrApi = {};
-    window.rrApi.pageViewCompleted = function() {};
-    window.rrApi.setEmailCompleted = function() {};
+    window.rrApi.pageViewCompleted = () => {};
+    window.rrApi.setEmailCompleted = () => {};
   });
 
+
   describe('before loading', () => {
-    beforeEach(function () {
+    beforeEach(() => {
       sinon.stub(retailRocket, 'load');
     });
 
-    afterEach(function () {
+    afterEach(() => {
       retailRocket.load.restore();
     });
 
-    describe('#constructor', () => {
 
+    describe('#constructor', () => {
       it('should create Retail Rocket integrations with proper options and tags', () => {
         assert.equal(options.partnerId, retailRocket.getOption('partnerId'));
         assert.equal('script', retailRocket.getTag().type);
         assert.ok(retailRocket.getTag().attr.src.indexOf('retailrocket.ru') > 0);
       });
-
     });
+
 
     describe('#initialize', () => {
       it('should initialize all methods', () => {
@@ -77,8 +83,8 @@ describe('Integrations: RetailRocket', () => {
     });
   });
 
-  describe('after loading', () => {
 
+  describe('after loading', () => {
     const prepareStubs = () => {
       window.rrApiOnReady.push = (fn) => {
         fn();
@@ -106,7 +112,7 @@ describe('Integrations: RetailRocket', () => {
 
     beforeEach((done) => {
       sinon.stub(retailRocket, 'load', () => {
-        rrApi._initialize = () => {};
+        window.rrApi._initialize = () => {};
         retailRocket.onLoad();
       });
 
@@ -119,17 +125,18 @@ describe('Integrations: RetailRocket', () => {
       restoreStubs();
     });
 
+
     describe('#onViewedProductCategory', () => {
       it('should track "Viewed Product Category" with categoryId param (digitalData)', (done) => {
         window.digitalData.listing = {
-          categoryId: '28'
+          categoryId: '28',
         };
         window.digitalData.events.push({
           name: 'Viewed Product Category',
           callback: () => {
             assert.ok(window.rrApi.categoryView.calledOnce);
             done();
-          }
+          },
         });
       });
 
@@ -137,24 +144,23 @@ describe('Integrations: RetailRocket', () => {
         window.digitalData.events.push({
           name: 'Viewed Product Category',
           listing: {
-            categoryId: '28'
+            categoryId: '28',
           },
           callback: () => {
             assert.ok(window.rrApi.categoryView.calledOnce);
             done();
-          }
+          },
         });
       });
 
-      it('should throw validation error for "Viewed Product Category" event', (done) => {
+      it('should not track "Viewed Product Category" event without categoryId', (done) => {
         window.digitalData.page = {};
         window.digitalData.events.push({
           name: 'Viewed Product Category',
-          callback: (results, errors) => {
-            assert.ok(errors.length > 0);
-            assert.ok(errors[0].code === 'validation_error');
+          callback: () => {
+            assert.ok(!window.rrApi.categoryView.called);
             done();
-          }
+          },
         });
       });
 
@@ -163,29 +169,28 @@ describe('Integrations: RetailRocket', () => {
         window.digitalData.events.push({
           name: 'Viewed Product Category',
           listing: {
-            categoryId: '28'
+            categoryId: '28',
           },
           callback: () => {
             assert.ok(!window.rrApi.categoryView.called);
             done();
-          }
+          },
         });
       });
-
     });
 
-    describe('#onViewedProductDetail', () => {
 
+    describe('#onViewedProductDetail', () => {
       it('should track "Viewed Product Detail" with product.id param (digitalData)', (done) => {
         window.digitalData.product = {
-          id: '327'
+          id: '327',
         };
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           callback: () => {
             assert.ok(window.rrApi.view.calledOnce);
             done();
-          }
+          },
         });
       });
 
@@ -193,18 +198,18 @@ describe('Integrations: RetailRocket', () => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           product: {
-            id: '327'
+            id: '327',
           },
           callback: () => {
             assert.ok(window.rrApi.view.calledOnce);
             done();
-          }
+          },
         });
       });
 
       it('should track "Viewed Product Detail" event with product param', (done) => {
         window.digitalData.page = {
-          type: 'product'
+          type: 'product',
         };
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
@@ -212,20 +217,19 @@ describe('Integrations: RetailRocket', () => {
           callback: () => {
             assert.ok(window.rrApi.view.calledOnce);
             done();
-          }
+          },
         });
       });
 
-      it('should throw validation error for "Viewed Product Detail" event', (done) => {
+      it('should not track "Viewed Product Detail" event without product', (done) => {
         window.digitalData.page = {};
         window.digitalData.product = {};
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
-          callback: (results, errors) => {
-            assert.ok(errors.length > 0);
-            assert.ok(errors[0].code === 'validation_error');
+          callback: () => {
+            assert.ok(!window.rrApi.view.called);
             done();
-          }
+          },
         });
       });
 
@@ -234,36 +238,59 @@ describe('Integrations: RetailRocket', () => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           product: {
-            id: '327'
+            id: '327',
           },
           callback: () => {
             assert.ok(!window.rrApi.view.called);
             done();
-          }
+          },
         });
       });
 
+      it('should override product id for "Viewed Product Detail" event', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {
+            id: '123_23',
+          },
+          callback: () => {
+            assert.ok(window.rrApi.view.calledWith('12323'));
+            done();
+          },
+        });
+      });
+
+      it('should override product for "Viewed Product Detail" event', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: '123_23',
+          callback: () => {
+            assert.ok(window.rrApi.view.calledWith('12323'));
+            done();
+          },
+        });
+      });
     });
 
-    describe('#onAddedProduct', () => {
 
+    describe('#onAddedProduct', () => {
       it('should track "Added Product" with product.id param', (done) => {
         window.digitalData.events.push({
           name: 'Added Product',
           product: {
-            id: '327'
+            id: '327',
           },
           quantity: 1,
           callback: () => {
             assert.ok(window.rrApi.addToBasket.calledOnce);
             done();
-          }
+          },
         });
       });
 
       it('should track "Added Product" event by product id', (done) => {
         window.digitalData.page = {
-          type: 'product'
+          type: 'product',
         };
         window.digitalData.events.push({
           name: 'Added Product',
@@ -272,22 +299,21 @@ describe('Integrations: RetailRocket', () => {
           callback: () => {
             assert.ok(window.rrApi.addToBasket.calledOnce);
             done();
-          }
+          },
         });
       });
 
-      it('should throw validation error for "Added Product" event', (done) => {
+      it('should not track "Added Product" event without product id', (done) => {
         window.digitalData.page = {};
         window.digitalData.product = {
-          id: '327'
+          id: '327',
         };
         window.digitalData.events.push({
           name: 'Added Product',
-          callback: (results, errors) => {
-            assert.ok(errors.length > 0);
-            assert.ok(errors[0].code === 'validation_error');
+          callback: () => {
+            assert.ok(!window.rrApi.addToBasket.called);
             done();
-          }
+          },
         });
       });
 
@@ -296,24 +322,46 @@ describe('Integrations: RetailRocket', () => {
         window.digitalData.events.push({
           name: 'Added Product',
           product: {
-            id: '327'
+            id: '327',
           },
           quantity: 1,
           callback: () => {
             assert.ok(!window.rrApi.addToBasket.called);
             done();
-          }
+          },
         });
       });
 
+      it('should override product id for "Added Product" event', (done) => {
+        window.digitalData.events.push({
+          name: 'Added Product',
+          product: {
+            id: '123_23',
+          },
+          callback: () => {
+            assert.ok(window.rrApi.addToBasket.calledWith('12323'));
+            done();
+          },
+        });
+      });
+
+      it('should override product for "Added Product" event', (done) => {
+        window.digitalData.events.push({
+          name: 'Added Product',
+          product: '123_23',
+          callback: () => {
+            assert.ok(window.rrApi.addToBasket.calledWith('12323'));
+            done();
+          },
+        });
+      });
     });
 
 
     describe('#onClickedProduct', () => {
-
       it('should track "Clicked Product" with product.id param', (done) => {
         retailRocket.setOption('listMethods', {
-          recom1: 'Related'
+          recom1: 'Related',
         });
         window.digitalData.events.push({
           name: 'Clicked Product',
@@ -321,31 +369,50 @@ describe('Integrations: RetailRocket', () => {
             product: {
               id: '327',
             },
-            listId: 'recom1'
+            listId: 'recom1',
           },
           callback: () => {
             assert.ok(window.rrApi.recomMouseDown.calledWith('327', 'Related'));
             done();
-          }
+          },
+        });
+      });
+
+      it('should override product id "Clicked Product" with product.id param', (done) => {
+        retailRocket.setOption('listMethods', {
+          recom1: 'Related',
+        });
+        window.digitalData.events.push({
+          name: 'Clicked Product',
+          listItem: {
+            product: {
+              id: '327_234',
+            },
+            listId: 'recom1',
+          },
+          callback: () => {
+            assert.ok(window.rrApi.recomMouseDown.calledWith('327234', 'Related'));
+            done();
+          },
         });
       });
 
       it('should track "Clicked Product" event by product id', (done) => {
         retailRocket.setOption('listMethods', {
-          recom1: 'Related'
+          recom1: 'Related',
         });
         window.digitalData.page = {
-          type: 'product'
+          type: 'product',
         };
         window.digitalData.recommendation = [
           {
             listId: 'recom1',
             items: [
               {
-                id: '327'
-              }
-            ]
-          }
+                id: '327',
+              },
+            ],
+          },
         ];
         window.digitalData.events.push({
           name: 'Clicked Product',
@@ -355,20 +422,24 @@ describe('Integrations: RetailRocket', () => {
           callback: () => {
             assert.ok(window.rrApi.recomMouseDown.calledWith('327', 'Related'));
             done();
-          }
+          },
         });
       });
 
-      it('should throw validation error for "Clicked Product" event', (done) => {
-        window.digitalData.page = {};
-        window.digitalData.product = {};
+      it('should not track "Clicked Product" event without product id ', (done) => {
+        retailRocket.setOption('listMethods', {
+          recom1: 'Related',
+        });
         window.digitalData.events.push({
           name: 'Clicked Product',
-          callback: (results, errors) => {
-            assert.ok(errors.length > 0);
-            assert.ok(errors[0].code === 'validation_error');
+          listItem: {
+            product: {},
+            listId: 'recom1',
+          },
+          callback: () => {
+            assert.ok(!window.rrApi.recomMouseDown.called);
             done();
-          }
+          },
         });
       });
 
@@ -379,13 +450,13 @@ describe('Integrations: RetailRocket', () => {
           name: 'Clicked Product',
           listItem: {
             product: {
-              id: '327'
+              id: '327',
             },
           },
-          callback: (results, errors) => {
+          callback: () => {
             assert.ok(!window.rrApi.recomMouseDown.called);
             done();
-          }
+          },
         });
       });
 
@@ -398,39 +469,37 @@ describe('Integrations: RetailRocket', () => {
             product: {
               id: '327',
             },
-            listId: 'recom1'
+            listId: 'recom1',
           },
-          callback: (results, errors) => {
+          callback: () => {
             assert.ok(!window.rrApi.recomMouseDown.called);
             done();
-          }
+          },
         });
       });
 
       it('should not track "Clicked Product" if noConflict option is true', (done) => {
         retailRocket.setOption('noConflict', true);
         retailRocket.setOption('listMethods', {
-          recom1: 'Related'
+          recom1: 'Related',
         });
         window.digitalData.events.push({
           name: 'Added Product',
           product: {
             id: '327',
-            listId: 'recom1'
+            listId: 'recom1',
           },
           quantity: 1,
           callback: () => {
             assert.ok(!window.rrApi.recomMouseDown.called);
             done();
-          }
+          },
         });
       });
-
     });
 
 
     describe('#onCompletedTransaction', () => {
-
       it('should track "Completed Transaction" with transaction param (digitalData)', (done) => {
         window.digitalData.transaction = {
           orderId: '123',
@@ -438,25 +507,25 @@ describe('Integrations: RetailRocket', () => {
             {
               product: {
                 id: '327',
-                unitSalePrice: 245
+                unitSalePrice: 245,
               },
-              quantity: 1
+              quantity: 1,
             },
             {
               product: {
                 id: '328',
-                unitSalePrice: 245
+                unitSalePrice: 245,
               },
-              quantity: 2
-            }
-          ]
+              quantity: 2,
+            },
+          ],
         };
         window.digitalData.events.push({
           name: 'Completed Transaction',
           callback: () => {
             assert.ok(window.rrApi.order.calledOnce);
             done();
-          }
+          },
         });
       });
 
@@ -469,23 +538,23 @@ describe('Integrations: RetailRocket', () => {
               {
                 product: {
                   id: '327',
-                  unitSalePrice: 245
+                  unitSalePrice: 245,
                 },
-                quantity: 1
+                quantity: 1,
               },
               {
                 product: {
                   id: '328',
-                  unitSalePrice: 245
+                  unitSalePrice: 245,
                 },
-                quantity: 2
-              }
-            ]
+                quantity: 2,
+              },
+            ],
           },
           callback: () => {
             assert.ok(window.rrApi.order.calledOnce);
             done();
-          }
+          },
         });
       });
 
@@ -498,103 +567,144 @@ describe('Integrations: RetailRocket', () => {
               {
                 product: {
                   id: '327',
-                  unitPrice: 245
+                  unitPrice: 245,
                 },
-                quantity: 1
+                quantity: 1,
               },
               {
                 product: {
                   id: '328',
-                  unitPrice: 245
+                  unitPrice: 245,
                 },
-                quantity: 2
-              }
-            ]
+                quantity: 2,
+              },
+            ],
           },
           callback: () => {
             assert.ok(window.rrApi.order.calledOnce);
             done();
-          }
+          },
         });
       });
 
-      it('should throw validation error for "Completed Transaction" event when missing transaction param', (done) => {
+      it('should override product id for "Completed Transaction" event', (done) => {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          transaction: {
+            orderId: '123',
+            lineItems: [
+              {
+                product: {
+                  id: '327_1',
+                  unitSalePrice: 245,
+                },
+                quantity: 1,
+              },
+              {
+                product: {
+                  id: '328_2',
+                  unitSalePrice: 245,
+                },
+                quantity: 2,
+              },
+            ],
+          },
+          callback: () => {
+            assert.ok(window.rrApi.order.calledWith(
+              {
+                transaction: '123',
+                items: [
+                  {
+                    id: '3271',
+                    qnt: 1,
+                    price: 245,
+                  },
+                  {
+                    id: '3282',
+                    qnt: 2,
+                    price: 245,
+                  },
+                ],
+              }
+            ));
+            done();
+          },
+        });
+      });
+
+      it('should not track "Completed Transaction" event when missing transaction param', (done) => {
         deleteProperty(window.digitalData, 'transaction');
         window.digitalData.events.push({
           name: 'Completed Transaction',
-          callback: (results, errors) => {
-            assert.ok(errors.length > 0);
-            assert.ok(errors[0].code === 'validation_error');
+          callback: () => {
+            assert.ok(!window.rrApi.order.called);
             done();
-          }
+          },
         });
       });
 
-      it('should throw validation error for "Completed Transaction" event when missing lineItems params', (done) => {
+      it('should not track "Completed Transaction" event when missing lineItems params', (done) => {
         window.digitalData.transaction = {
           orderId: '123',
         };
         window.digitalData.events.push({
           name: 'Completed Transaction',
-          callback: (results, errors) => {
-            assert.ok(errors.length > 0);
-            assert.ok(errors[0].code === 'validation_error');
+          callback: () => {
+            assert.ok(!window.rrApi.order.called);
             done();
-          }
+          },
         });
       });
 
-      it('should throw validation error for "Completed Transaction" event when missing product.id params', (done) => {
+      it('should not track "Completed Transaction" event when missing product.id params', (done) => {
         window.digitalData.transaction = {
           orderId: '123',
           lineItems: [
             {
-              product: {}
+              product: {},
             },
             {
-              product: {}
-            }
-          ]
+              product: {},
+            },
+          ],
         };
         window.digitalData.events.push({
           name: 'Completed Transaction',
-          callback: (results, errors) => {
-            assert.ok(errors.length > 0, 'There was no errors');
-            assert.ok(errors[0].code === 'validation_error', 'Error code is not correct');
+          callback: () => {
+            assert.ok(!window.rrApi.order.called);
             done();
-          }
+          },
         });
       });
 
-      it('should throw validation error for "Completed Transaction" event when missing lineItem quantity params', (done) => {
+      it('should not track "Completed Transaction" event when missing lineItem quantity params', (done) => {
         window.digitalData.transaction = {
           orderId: '123',
           lineItems: [
             {
               product: {
                 id: '327',
-                unitSalePrice: 245
-              }
+                unitSalePrice: 245,
+              },
             },
             {
               product: {
                 id: '328',
-                unitSalePrice: 245
-              }
-            }
-          ]
+                unitSalePrice: 245,
+              },
+            },
+          ],
         };
         window.digitalData.events.push({
           name: 'Completed Transaction',
-          callback: (results, errors) => {
-            assert.ok(errors.length > 0, 'There was no errors');
-            assert.ok(errors[0].code === 'validation_error', 'Error code is not correct');
+          callback: () => {
+            assert.ok(!window.rrApi.order.called);
             done();
-          }
+          },
         });
       });
 
-      it('should throw validation error for "Completed Transaction" event when missing product.unitSalePrice params', (done) => {
+      it('should not track "Completed Transaction" event when missing product.unitSalePrice params', (done) => {
         window.digitalData.transaction = {
           orderId: '123',
           lineItems: [
@@ -602,23 +712,22 @@ describe('Integrations: RetailRocket', () => {
               product: {
                 id: '327',
               },
-              quantity: 1
+              quantity: 1,
             },
             {
               product: {
                 id: '328',
               },
-              quantity: 2
-            }
-          ]
+              quantity: 2,
+            },
+          ],
         };
         window.digitalData.events.push({
           name: 'Completed Transaction',
-          callback: (results, errors) => {
-            assert.ok(errors.length > 0);
-            assert.ok(errors[0].code === 'validation_error');
+          callback: () => {
+            assert.ok(!window.rrApi.order.called);
             done();
-          }
+          },
         });
       });
 
@@ -632,30 +741,29 @@ describe('Integrations: RetailRocket', () => {
               {
                 product: {
                   id: '327',
-                  unitSalePrice: 245
+                  unitSalePrice: 245,
                 },
-                quantity: 1
+                quantity: 1,
               },
               {
                 product: {
                   id: '328',
-                  unitSalePrice: 245
+                  unitSalePrice: 245,
                 },
-                quantity: 2
-              }
-            ]
+                quantity: 2,
+              },
+            ],
           },
           callback: () => {
             assert.ok(!window.rrApi.order.called);
             done();
-          }
+          },
         });
       });
-
     });
 
-    describe('#onSubscribed', () => {
 
+    describe('#onSubscribed', () => {
       beforeEach(() => {
         sinon.stub(window.rrApi, 'setEmail');
       });
@@ -669,12 +777,12 @@ describe('Integrations: RetailRocket', () => {
           name: 'Subscribed',
           category: 'Email',
           user: {
-            email: 'test@driveback.ru'
+            email: 'test@driveback.ru',
           },
           callback: () => {
             assert.ok(window.rrApi.setEmail.calledOnce);
             done();
-          }
+          },
         });
       });
 
@@ -700,7 +808,7 @@ describe('Integrations: RetailRocket', () => {
               param3: 'John Dow',
             }));
             done();
-          }
+          },
         });
       });
 
@@ -708,20 +816,20 @@ describe('Integrations: RetailRocket', () => {
         retailRocket.setOption('customVariables', {
           param1: {
             type: 'event',
-            value: 'eventParam1'
+            value: 'eventParam1',
           },
           param2: {
             type: 'event',
-            value: 'eventParam2'
+            value: 'eventParam2',
           },
           param3: {
             type: 'digitalData',
-            value: 'website.language'
+            value: 'website.language',
           },
           param4: {
             type: 'event',
-            value: 'user.firstName'
-          }
+            value: 'user.firstName',
+          },
         });
         window.digitalData.website.language = 'en';
         window.digitalData.user.firstName = 'John Dow';
@@ -737,10 +845,10 @@ describe('Integrations: RetailRocket', () => {
             assert.ok(window.rrApi.setEmail.calledWith('test@driveback.ru', {
               param1: 'test1',
               param2: 'true',
-              param3: 'en'
+              param3: 'en',
             }));
             done();
-          }
+          },
         });
       });
 
@@ -750,12 +858,12 @@ describe('Integrations: RetailRocket', () => {
           name: 'Subscribed',
           category: 'Email',
           user: {
-            email: 'test@driveback.ru'
+            email: 'test@driveback.ru',
           },
           callback: () => {
             assert.ok(window.rrApi.setEmail.calledOnce);
             done();
-          }
+          },
         });
       });
 
@@ -782,75 +890,73 @@ describe('Integrations: RetailRocket', () => {
               param3: 'John Dow',
             }));
             done();
-          }
+          },
         });
       });
 
-      it('should throw validation error for "Subscribed" event', (done) => {
+      it('should not track "Subscribed" event', (done) => {
         window.digitalData.user = {
-          email: 'test@driveback.ru'
+          email: 'test@driveback.ru',
         };
         window.digitalData.events.push({
           name: 'Subscribed',
           category: 'Email',
-          callback: (results, errors) => {
-            assert.ok(errors.length > 0);
-            assert.ok(errors[0].code === 'validation_error');
+          callback: () => {
             assert.ok(!window.rrApi.setEmail.called);
             done();
-          }
+          },
         });
       });
 
       it('should track email if user.email is set and user.isSubscribed is TRUE', (done) => {
         window.digitalData.user = {
           email: 'test@driveback.ru',
-          isSubscribed: true
+          isSubscribed: true,
         };
         retailRocket.setOption('trackAllEmails', false);
-        digitalData.events.push({
+        window.digitalData.events.push({
           name: 'Viewed Page',
           callback: () => {
             assert.ok(window.rrApi.setEmail.calledOnce);
             done();
-          }
+          },
         });
       });
 
       it('should NOT track email if user.email is set and user.isSubscribed is FALSE', (done) => {
         window.digitalData.user = {
           email: 'test@driveback.ru',
-          isSubscribed: false
+          isSubscribed: false,
         };
         retailRocket.setOption('trackAllEmails', false);
-        digitalData.events.push({
+        window.digitalData.events.push({
           name: 'Viewed Page',
           callback: () => {
             assert.ok(!window.rrApi.setEmail.called);
             done();
-          }
+          },
         });
       });
 
       it('should track email if user.email is set and user.isSubscribed is FALSE if trackAllEmail option is TRUE', (done) => {
         window.digitalData.user = {
           email: 'test@driveback.ru',
-          isSubscribed: false
+          isSubscribed: false,
         };
         retailRocket.setOption('trackAllEmails', true);
-        digitalData.events.push({
+        window.digitalData.events.push({
           name: 'Viewed Page',
           callback: () => {
             assert.ok(window.rrApi.setEmail.calledOnce);
             done();
-          }
+          },
         });
       });
 
       it('should NOT track email anytime user.email updated if trackAllEmails is FALSE', (done) => {
         retailRocket.setOption('trackAllEmails', false);
         window.digitalData.user = {
-          email: 'test@driveback.ru'
+          email: 'test@driveback.ru',
         };
 
         setTimeout(() => {
@@ -858,21 +964,20 @@ describe('Integrations: RetailRocket', () => {
           done();
         }, 101);
       });
-
     });
 
-    describe('#onSearchedProducts', () => {
 
+    describe('#onSearchedProducts', () => {
       it('should track "Searched" with query param', (done) => {
         window.digitalData.listing = {
-          query: 'Test query'
+          query: 'Test query',
         };
         window.digitalData.events.push({
           name: 'Searched Products',
           callback: () => {
             assert.ok(window.rrApi.search.calledWith('Test query'));
             done();
-          }
+          },
         });
       });
 
@@ -885,18 +990,18 @@ describe('Integrations: RetailRocket', () => {
           callback: () => {
             assert.ok(window.rrApi.search.calledWith('Test query'));
             done();
-          }
+          },
         });
       });
 
-      it('should throw validation error for "Searched" event', (done) => {
+      it('should not track "Searched" event without query param', (done) => {
         window.digitalData.events.push({
           name: 'Searched Products',
-          callback: (results, errors) => {
-            assert.ok(errors.length > 0);
-            assert.ok(errors[0].code === 'validation_error');
+          listing: {},
+          callback: () => {
+            assert.ok(!window.rrApi.search.called);
             done();
-          }
+          },
         });
       });
 
@@ -910,12 +1015,9 @@ describe('Integrations: RetailRocket', () => {
           callback: () => {
             assert.ok(!window.rrApi.search.called);
             done();
-          }
+          },
         });
       });
-
     });
-
   });
-
 });

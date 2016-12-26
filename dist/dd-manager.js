@@ -7312,6 +7312,7 @@ require('./_string-trim')('trim', function($trim){
 }));
 },{"./core":63}],65:[function(require,module,exports){
 (function (process){
+
 /**
  * This is the web browser implementation of `debug()`.
  *
@@ -7351,23 +7352,14 @@ exports.colors = [
  */
 
 function useColors() {
-  // NB: In an Electron preload script, document will be defined but not fully
-  // initialized. Since we know we're in Chrome, we'll just detect this case
-  // explicitly
-  if (typeof window !== 'undefined' && typeof window.process !== 'undefined' && window.process.type === 'renderer') {
-    return true;
-  }
-
   // is webkit? http://stackoverflow.com/a/16459606/376773
   // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
   return (typeof document !== 'undefined' && 'WebkitAppearance' in document.documentElement.style) ||
     // is firebug? http://stackoverflow.com/a/398120/376773
-    (typeof window !== 'undefined' && window.console && (console.firebug || (console.exception && console.table))) ||
+    (window.console && (console.firebug || (console.exception && console.table))) ||
     // is firefox >= v31?
     // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
-    (navigator && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
-    // double check webkit in userAgent just in case we are in a worker
-    (navigator && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
+    (navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31);
 }
 
 /**
@@ -7389,7 +7381,8 @@ exports.formatters.j = function(v) {
  * @api public
  */
 
-function formatArgs(args) {
+function formatArgs() {
+  var args = arguments;
   var useColors = this.useColors;
 
   args[0] = (useColors ? '%c' : '')
@@ -7399,17 +7392,17 @@ function formatArgs(args) {
     + (useColors ? '%c ' : ' ')
     + '+' + exports.humanize(this.diff);
 
-  if (!useColors) return;
+  if (!useColors) return args;
 
   var c = 'color: ' + this.color;
-  args.splice(1, 0, c, 'color: inherit')
+  args = [args[0], c, 'color: inherit'].concat(Array.prototype.slice.call(args, 1));
 
   // the final "%c" is somewhat tricky, because there could be other
   // arguments passed either before or after the %c, so we need to
   // figure out the correct index to insert the CSS into
   var index = 0;
   var lastC = 0;
-  args[0].replace(/%[a-zA-Z%]/g, function(match) {
+  args[0].replace(/%[a-z%]/g, function(match) {
     if ('%%' === match) return;
     index++;
     if ('%c' === match) {
@@ -7420,6 +7413,7 @@ function formatArgs(args) {
   });
 
   args.splice(lastC, 0, c);
+  return args;
 }
 
 /**
@@ -7462,6 +7456,7 @@ function save(namespaces) {
  */
 
 function load() {
+  var r;
   try {
     return exports.storage.debug;
   } catch(e) {}
@@ -7489,15 +7484,10 @@ exports.enable(load());
  * @api private
  */
 
-function localstorage() {
+function localstorage(){
   try {
     return window.localStorage;
   } catch (e) {}
-}
-
-/** Attach to Window*/
-if (window) {
-  window.debug = exports;
 }
 
 }).call(this,require('_process'))
@@ -7510,7 +7500,7 @@ if (window) {
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = createDebug.debug = createDebug.default = createDebug;
+exports = module.exports = debug.debug = debug;
 exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
@@ -7527,10 +7517,16 @@ exports.skips = [];
 /**
  * Map of special "%n" handling functions, for the debug "format" argument.
  *
- * Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
+ * Valid key names are a single, lowercased letter, i.e. "n".
  */
 
 exports.formatters = {};
+
+/**
+ * Previously assigned color.
+ */
+
+var prevColor = 0;
 
 /**
  * Previous log timestamp.
@@ -7540,20 +7536,13 @@ var prevTime;
 
 /**
  * Select a color.
- * @param {String} namespace
+ *
  * @return {Number}
  * @api private
  */
 
-function selectColor(namespace) {
-  var hash = 0, i;
-
-  for (i in namespace) {
-    hash  = ((hash << 5) - hash) + namespace.charCodeAt(i);
-    hash |= 0; // Convert to 32bit integer
-  }
-
-  return exports.colors[Math.abs(hash) % exports.colors.length];
+function selectColor() {
+  return exports.colors[prevColor++ % exports.colors.length];
 }
 
 /**
@@ -7564,13 +7553,17 @@ function selectColor(namespace) {
  * @api public
  */
 
-function createDebug(namespace) {
+function debug(namespace) {
 
-  function debug() {
-    // disabled?
-    if (!debug.enabled) return;
+  // define the `disabled` version
+  function disabled() {
+  }
+  disabled.enabled = false;
 
-    var self = debug;
+  // define the `enabled` version
+  function enabled() {
+
+    var self = enabled;
 
     // set `diff` timestamp
     var curr = +new Date();
@@ -7580,7 +7573,10 @@ function createDebug(namespace) {
     self.curr = curr;
     prevTime = curr;
 
-    // turn the `arguments` into a proper Array
+    // add the `color` if not set
+    if (null == self.useColors) self.useColors = exports.useColors();
+    if (null == self.color && self.useColors) self.color = selectColor();
+
     var args = new Array(arguments.length);
     for (var i = 0; i < args.length; i++) {
       args[i] = arguments[i];
@@ -7589,13 +7585,13 @@ function createDebug(namespace) {
     args[0] = exports.coerce(args[0]);
 
     if ('string' !== typeof args[0]) {
-      // anything else let's inspect with %O
-      args.unshift('%O');
+      // anything else let's inspect with %o
+      args = ['%o'].concat(args);
     }
 
     // apply any `formatters` transformations
     var index = 0;
-    args[0] = args[0].replace(/%([a-zA-Z%])/g, function(match, format) {
+    args[0] = args[0].replace(/%([a-z%])/g, function(match, format) {
       // if we encounter an escaped % then don't increase the array index
       if (match === '%%') return match;
       index++;
@@ -7611,24 +7607,19 @@ function createDebug(namespace) {
       return match;
     });
 
-    // apply env-specific formatting (colors, etc.)
-    exports.formatArgs.call(self, args);
+    // apply env-specific formatting
+    args = exports.formatArgs.apply(self, args);
 
-    var logFn = debug.log || exports.log || console.log.bind(console);
+    var logFn = enabled.log || exports.log || console.log.bind(console);
     logFn.apply(self, args);
   }
+  enabled.enabled = true;
 
-  debug.namespace = namespace;
-  debug.enabled = exports.enabled(namespace);
-  debug.useColors = exports.useColors();
-  debug.color = selectColor(namespace);
+  var fn = exports.enabled(namespace) ? enabled : disabled;
 
-  // env-specific initialization logic for debug instances
-  if ('function' === typeof exports.init) {
-    exports.init(debug);
-  }
+  fn.namespace = namespace;
 
-  return debug;
+  return fn;
 }
 
 /**
@@ -7647,7 +7638,7 @@ function enable(namespaces) {
 
   for (var i = 0; i < len; i++) {
     if (!split[i]) continue; // ignore empty strings
-    namespaces = split[i].replace(/\*/g, '.*?');
+    namespaces = split[i].replace(/[\\^$+?.()|[\]{}]/g, '\\$&').replace(/\*/g, '.*?');
     if (namespaces[0] === '-') {
       exports.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
     } else {
@@ -8026,7 +8017,6 @@ function plural(ms, n, name) {
 
 },{}],69:[function(require,module,exports){
 // shim for using process in browser
-
 var process = module.exports = {};
 
 // cached from whatever global is present so that test runners that stub it
@@ -8037,22 +8027,84 @@ var process = module.exports = {};
 var cachedSetTimeout;
 var cachedClearTimeout;
 
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
 (function () {
-  try {
-    cachedSetTimeout = setTimeout;
-  } catch (e) {
-    cachedSetTimeout = function () {
-      throw new Error('setTimeout is not defined');
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
     }
-  }
-  try {
-    cachedClearTimeout = clearTimeout;
-  } catch (e) {
-    cachedClearTimeout = function () {
-      throw new Error('clearTimeout is not defined');
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
     }
-  }
 } ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
 var queue = [];
 var draining = false;
 var currentQueue;
@@ -8077,7 +8129,7 @@ function drainQueue() {
     if (draining) {
         return;
     }
-    var timeout = cachedSetTimeout(cleanUpNextTick);
+    var timeout = runTimeout(cleanUpNextTick);
     draining = true;
 
     var len = queue.length;
@@ -8094,7 +8146,7 @@ function drainQueue() {
     }
     currentQueue = null;
     draining = false;
-    cachedClearTimeout(timeout);
+    runClearTimeout(timeout);
 }
 
 process.nextTick = function (fun) {
@@ -8106,7 +8158,7 @@ process.nextTick = function (fun) {
     }
     queue.push(new Item(fun, args));
     if (queue.length === 1 && !draining) {
-        cachedSetTimeout(drainQueue, 0);
+        runTimeout(drainQueue);
     }
 };
 
@@ -9384,7 +9436,7 @@ exports['default'] = EventManager;
 },{"./DDHelper.js":70,"./EventDataEnricher.js":73,"./functions/after.js":81,"./functions/deleteProperty.js":82,"./functions/jsonIsEqual.js":88,"./functions/noop.js":92,"./functions/size.js":95,"async":1,"component-clone":2,"debug":65}],75:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -10022,17 +10074,17 @@ var integrations = {
 
 exports['default'] = integrations;
 
-},{"./integrations/Criteo.js":98,"./integrations/Driveback.js":99,"./integrations/Emarsys.js":100,"./integrations/FacebookPixel.js":101,"./integrations/GoogleAdWords.js":102,"./integrations/GoogleAnalytics.js":103,"./integrations/GoogleTagManager.js":104,"./integrations/MyTarget.js":105,"./integrations/OWOXBIStreaming.js":106,"./integrations/RetailRocket.js":107,"./integrations/SegmentStream.js":108,"./integrations/SendPulse.js":109,"./integrations/Sociomantic.js":110,"./integrations/Vkontakte.js":111,"./integrations/YandexMetrica.js":112}],79:[function(require,module,exports){
+},{"./integrations/Criteo.js":97,"./integrations/Driveback.js":98,"./integrations/Emarsys.js":99,"./integrations/FacebookPixel.js":100,"./integrations/GoogleAdWords.js":101,"./integrations/GoogleAnalytics.js":102,"./integrations/GoogleTagManager.js":103,"./integrations/MyTarget.js":104,"./integrations/OWOXBIStreaming.js":105,"./integrations/RetailRocket.js":106,"./integrations/SegmentStream.js":107,"./integrations/SendPulse.js":108,"./integrations/Sociomantic.js":109,"./integrations/Vkontakte.js":110,"./integrations/YandexMetrica.js":111}],79:[function(require,module,exports){
 'use strict';
 
-var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
 var _typeof = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
   return typeof obj === "undefined" ? "undefined" : _typeof2(obj);
 } : function (obj) {
-  return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+  return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
 };
 
 var _componentClone = require('component-clone');
@@ -10450,7 +10502,7 @@ ddManager.on = ddManager.addEventListener = function (event, handler) {
 
 exports['default'] = ddManager;
 
-},{"./DDHelper":70,"./DDStorage":71,"./DigitalDataEnricher":72,"./EventDataEnricher":73,"./EventManager":74,"./Integration":75,"./Storage":76,"./ViewabilityTracker":77,"./functions/after":81,"./functions/each":84,"./functions/size":95,"./testMode":114,"async":1,"component-clone":2,"component-emitter":3}],80:[function(require,module,exports){
+},{"./DDHelper":70,"./DDStorage":71,"./DigitalDataEnricher":72,"./EventDataEnricher":73,"./EventManager":74,"./Integration":75,"./Storage":76,"./ViewabilityTracker":77,"./functions/after":81,"./functions/each":84,"./functions/size":95,"./testMode":113,"async":1,"component-clone":2,"component-emitter":3}],80:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -10500,14 +10552,14 @@ exports["default"] = function (obj, prop) {
 },{}],83:[function(require,module,exports){
 'use strict';
 
-var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
 var _typeof = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
   return typeof obj === "undefined" ? "undefined" : _typeof2(obj);
 } : function (obj) {
-  return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+  return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
 };
 
 exports.getProp = getProp;
@@ -10909,33 +10961,6 @@ exports["default"] = function (obj) {
 },{}],96:[function(require,module,exports){
 'use strict';
 
-exports.__esModule = true;
-exports['default'] = throwError;
-
-var _debug = require('debug');
-
-var _debug2 = _interopRequireDefault(_debug);
-
-function _interopRequireDefault(obj) {
-  return obj && obj.__esModule ? obj : { 'default': obj };
-}
-
-function throwError(code, message) {
-  if (arguments.length === 1) {
-    message = code;
-    code = 'error';
-  }
-  var error = {
-    code: code,
-    message: message
-  };
-  (0, _debug2['default'])(message);
-  throw error;
-}
-
-},{"debug":65}],97:[function(require,module,exports){
-'use strict';
-
 require('./polyfill.js');
 
 var _ddManager = require('./ddManager.js');
@@ -10956,17 +10981,17 @@ window.ddManager = _ddManager2['default'];
 _ddManager2['default'].setAvailableIntegrations(_availableIntegrations2['default']);
 _ddManager2['default'].processEarlyStubCalls(earlyStubsQueue);
 
-},{"./availableIntegrations.js":78,"./ddManager.js":79,"./polyfill.js":113}],98:[function(require,module,exports){
+},{"./availableIntegrations.js":78,"./ddManager.js":79,"./polyfill.js":112}],97:[function(require,module,exports){
 'use strict';
 
-var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
 var _typeof = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
   return typeof obj === "undefined" ? "undefined" : _typeof2(obj);
 } : function (obj) {
-  return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+  return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
 };
 
 var _Integration2 = require('./../Integration.js');
@@ -11279,10 +11304,10 @@ var Criteo = function (_Integration) {
 
 exports['default'] = Criteo;
 
-},{"./../Integration.js":75,"./../functions/deleteProperty":82,"./../functions/dotProp":83,"./../functions/semver":94}],99:[function(require,module,exports){
+},{"./../Integration.js":75,"./../functions/deleteProperty":82,"./../functions/dotProp":83,"./../functions/semver":94}],98:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -11385,17 +11410,17 @@ var Driveback = function (_Integration) {
 
 exports['default'] = Driveback;
 
-},{"./../Integration.js":75,"./../functions/deleteProperty.js":82,"./../functions/noop.js":92}],100:[function(require,module,exports){
+},{"./../Integration.js":75,"./../functions/deleteProperty.js":82,"./../functions/noop.js":92}],99:[function(require,module,exports){
 'use strict';
 
-var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
 var _typeof = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
   return typeof obj === "undefined" ? "undefined" : _typeof2(obj);
 } : function (obj) {
-  return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+  return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
 };
 
 var _Integration2 = require('./../Integration.js');
@@ -11622,10 +11647,10 @@ var Emarsys = function (_Integration) {
 
 exports['default'] = Emarsys;
 
-},{"./../Integration.js":75,"./../functions/deleteProperty.js":82}],101:[function(require,module,exports){
+},{"./../Integration.js":75,"./../functions/deleteProperty.js":82}],100:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -11837,10 +11862,10 @@ var FacebookPixel = function (_Integration) {
 
 exports['default'] = FacebookPixel;
 
-},{"./../Integration.js":75,"./../functions/deleteProperty.js":82,"component-type":4}],102:[function(require,module,exports){
+},{"./../Integration.js":75,"./../functions/deleteProperty.js":82,"component-type":4}],101:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -12092,10 +12117,10 @@ var GoogleAdWords = function (_Integration) {
 
 exports['default'] = GoogleAdWords;
 
-},{"./../Integration.js":75,"./../functions/deleteProperty.js":82}],103:[function(require,module,exports){
+},{"./../Integration.js":75,"./../functions/deleteProperty.js":82}],102:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -12928,10 +12953,10 @@ var GoogleAnalytics = function (_Integration) {
 
 exports['default'] = GoogleAnalytics;
 
-},{"./../Integration.js":75,"./../events":80,"./../functions/deleteProperty.js":82,"./../functions/dotProp":83,"./../functions/each.js":84,"./../functions/size.js":95,"./../variableTypes":115,"component-clone":2}],104:[function(require,module,exports){
+},{"./../Integration.js":75,"./../events":80,"./../functions/deleteProperty.js":82,"./../functions/dotProp":83,"./../functions/each.js":84,"./../functions/size.js":95,"./../variableTypes":114,"component-clone":2}],103:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -13028,10 +13053,10 @@ var GoogleTagManager = function (_Integration) {
 
 exports['default'] = GoogleTagManager;
 
-},{"./../Integration.js":75,"./../functions/deleteProperty.js":82}],105:[function(require,module,exports){
+},{"./../Integration.js":75,"./../functions/deleteProperty.js":82}],104:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -13280,10 +13305,10 @@ var MyTarget = function (_Integration) {
 
 exports['default'] = MyTarget;
 
-},{"./../Integration":75,"./../functions/deleteProperty":82,"./../functions/getVarValue":86}],106:[function(require,module,exports){
+},{"./../Integration":75,"./../functions/deleteProperty":82,"./../functions/getVarValue":86}],105:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -13390,10 +13415,10 @@ var OWOXBIStreaming = function (_Integration) {
 
 exports['default'] = OWOXBIStreaming;
 
-},{"./../Integration.js":75}],107:[function(require,module,exports){
+},{"./../Integration.js":75}],106:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -13411,10 +13436,6 @@ var _getVarValue = require('./../functions/getVarValue');
 
 var _getVarValue2 = _interopRequireDefault(_getVarValue);
 
-var _throwError = require('./../functions/throwError');
-
-var _throwError2 = _interopRequireDefault(_throwError);
-
 var _each = require('./../functions/each');
 
 var _each2 = _interopRequireDefault(_each);
@@ -13422,10 +13443,6 @@ var _each2 = _interopRequireDefault(_each);
 var _componentType = require('component-type');
 
 var _componentType2 = _interopRequireDefault(_componentType);
-
-var _format = require('./../functions/format');
-
-var _format2 = _interopRequireDefault(_format);
 
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
@@ -13466,7 +13483,6 @@ var RetailRocket = function (_Integration) {
     }, options);
 
     // legacy setting mapper
-
     var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
 
     if (_this.getOption('trackProducts') === false) {
@@ -13588,67 +13604,54 @@ var RetailRocket = function (_Integration) {
   };
 
   RetailRocket.prototype.onViewedProductCategory = function onViewedProductCategory(listing) {
-    var _this2 = this;
-
     listing = listing || {};
     var categoryId = listing.categoryId;
     if (!categoryId) {
-      this.onValidationError('listing.categoryId');
       return;
     }
     window.rrApiOnReady.push(function () {
       try {
         window.rrApi.categoryView(categoryId);
       } catch (e) {
-        _this2.onError(e);
+        // do nothing
       }
     });
   };
 
   RetailRocket.prototype.onViewedProductDetail = function onViewedProductDetail(product) {
-    var _this3 = this;
-
     var productId = this.getProductId(product);
     if (!productId) {
-      this.onValidationError('product.id');
       return;
     }
     window.rrApiOnReady.push(function () {
       try {
         window.rrApi.view(productId);
       } catch (e) {
-        _this3.onError(e);
+        // do nothing
       }
     });
   };
 
   RetailRocket.prototype.onAddedProduct = function onAddedProduct(product) {
-    var _this4 = this;
-
     var productId = this.getProductId(product);
     if (!productId) {
-      this.onValidationError('product.id');
       return;
     }
     window.rrApiOnReady.push(function () {
       try {
         window.rrApi.addToBasket(productId);
       } catch (e) {
-        _this4.onError(e);
+        // do nothing
       }
     });
   };
 
   RetailRocket.prototype.onClickedProduct = function onClickedProduct(listItem) {
-    var _this5 = this;
-
     if (!listItem) {
-      this.onValidationError('listItem.product.id');
       return;
     }
     var productId = this.getProductId(listItem.product);
     if (!productId) {
-      this.onValidationError('listItem.product.id');
       return;
     }
     var listId = listItem.listId;
@@ -13663,31 +13666,36 @@ var RetailRocket = function (_Integration) {
       try {
         window.rrApi.recomMouseDown(productId, methodName);
       } catch (e) {
-        _this5.onError(e);
+        // do nothing
       }
     });
   };
 
   RetailRocket.prototype.onCompletedTransaction = function onCompletedTransaction(transaction) {
-    var _this6 = this;
-
     transaction = transaction || {};
     if (!this.validateTransaction(transaction)) {
       return;
     }
 
+    var areLineItemsValid = true;
     var items = [];
     var lineItems = transaction.lineItems;
     for (var i = 0, length = lineItems.length; i < length; i++) {
-      if (!this.validateTransactionLineItem(lineItems[i], i)) {
-        continue;
+      if (!this.validateTransactionLineItem(lineItems[i])) {
+        areLineItemsValid = false;
+        break;
       }
       var product = lineItems[i].product;
+      this.overrideProduct(product);
       items.push({
         id: product.id,
         qnt: lineItems[i].quantity,
         price: product.unitSalePrice || product.unitPrice
       });
+    }
+
+    if (!areLineItemsValid) {
+      return;
     }
 
     window.rrApiOnReady.push(function () {
@@ -13697,17 +13705,14 @@ var RetailRocket = function (_Integration) {
           items: items
         });
       } catch (e) {
-        _this6.onError(e);
+        // do nothing
       }
     });
   };
 
   RetailRocket.prototype.onSubscribed = function onSubscribed(event) {
-    var _this7 = this;
-
     var user = event.user || {};
     if (!user.email) {
-      this.onValidationError('user.email');
       return;
     }
 
@@ -13731,24 +13736,21 @@ var RetailRocket = function (_Integration) {
       try {
         window.rrApi.setEmail(user.email, rrCustoms);
       } catch (e) {
-        _this7.onError(e);
+        // do nothing
       }
     });
   };
 
   RetailRocket.prototype.onSearched = function onSearched(listing) {
-    var _this8 = this;
-
     listing = listing || {};
     if (!listing.query) {
-      this.onValidationError('listing.query');
       return;
     }
     window.rrApiOnReady.push(function () {
       try {
         window.rrApi.search(listing.query);
       } catch (e) {
-        _this8.onError(e);
+        // do nothing
       }
     });
   };
@@ -13756,43 +13758,38 @@ var RetailRocket = function (_Integration) {
   RetailRocket.prototype.validateTransaction = function validateTransaction(transaction) {
     var isValid = true;
     if (!transaction.orderId) {
-      this.onValidationError('transaction.orderId');
       isValid = false;
     }
 
     var lineItems = transaction.lineItems;
     if (!lineItems || !Array.isArray(lineItems) || lineItems.length === 0) {
-      this.onValidationError('transaction.lineItems');
       isValid = false;
     }
 
     return isValid;
   };
 
-  RetailRocket.prototype.validateLineItem = function validateLineItem(lineItem, index) {
+  RetailRocket.prototype.validateLineItem = function validateLineItem(lineItem) {
     var isValid = true;
     if (!lineItem.product) {
-      this.onValidationError((0, _format2['default'])('lineItems[%d].product', index));
       isValid = false;
     }
 
     return isValid;
   };
 
-  RetailRocket.prototype.validateTransactionLineItem = function validateTransactionLineItem(lineItem, index) {
-    var isValid = this.validateLineItem(lineItem, index);
+  RetailRocket.prototype.validateTransactionLineItem = function validateTransactionLineItem(lineItem) {
+    var isValid = this.validateLineItem(lineItem);
 
     var product = lineItem.product;
+    this.overrideProduct(product);
     if (!product.id) {
-      this.onValidationError((0, _format2['default'])('lineItems[%d].product.id', index));
       isValid = false;
     }
     if (!product.unitSalePrice && !product.unitPrice) {
-      this.onValidationError((0, _format2['default'])('lineItems[%d].product.unitSalePrice', index));
       isValid = false;
     }
     if (!lineItem.quantity) {
-      this.onValidationError((0, _format2['default'])('lineItems[%d].quantity', index));
       isValid = false;
     }
 
@@ -13801,21 +13798,10 @@ var RetailRocket = function (_Integration) {
 
   RetailRocket.prototype.getProductId = function getProductId(product) {
     product = product || {};
-    var productId = void 0;
-    if ((0, _componentType2['default'])(product) === 'object') {
-      productId = product.id;
-    } else {
-      productId = product;
-    }
+    this.overrideProduct(product);
+    var productId = product.id;
+
     return productId;
-  };
-
-  RetailRocket.prototype.onError = function onError(err) {
-    (0, _throwError2['default'])('external_error', (0, _format2['default'])('Retail Rocket integration error: "%s"', err));
-  };
-
-  RetailRocket.prototype.onValidationError = function onValidationError(variableName) {
-    (0, _throwError2['default'])('validation_error', (0, _format2['default'])('Retail Rocket integration error: DDL or event variable "%s" is not defined or empty', variableName));
   };
 
   return RetailRocket;
@@ -13823,10 +13809,10 @@ var RetailRocket = function (_Integration) {
 
 exports['default'] = RetailRocket;
 
-},{"./../Integration.js":75,"./../functions/deleteProperty":82,"./../functions/dotProp":83,"./../functions/each":84,"./../functions/format":85,"./../functions/getVarValue":86,"./../functions/throwError":96,"component-type":4}],108:[function(require,module,exports){
+},{"./../Integration.js":75,"./../functions/deleteProperty":82,"./../functions/dotProp":83,"./../functions/each":84,"./../functions/getVarValue":86,"component-type":4}],107:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -14010,10 +13996,10 @@ var SegmentStream = function (_Integration) {
 
 exports['default'] = SegmentStream;
 
-},{"./../Integration.js":75,"./../functions/deleteProperty.js":82,"./../functions/each.js":84}],109:[function(require,module,exports){
+},{"./../Integration.js":75,"./../functions/deleteProperty.js":82,"./../functions/each.js":84}],108:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -14242,10 +14228,10 @@ var SendPulse = function (_Integration) {
 
 exports['default'] = SendPulse;
 
-},{"./../Integration.js":75,"./../functions/deleteProperty.js":82,"./../functions/dotProp":83,"component-type":4}],110:[function(require,module,exports){
+},{"./../Integration.js":75,"./../functions/deleteProperty.js":82,"./../functions/dotProp":83,"component-type":4}],109:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -14537,264 +14523,10 @@ var Sociomantic = function (_Integration) {
 
 exports['default'] = Sociomantic;
 
-},{"./../Integration.js":75,"./../events":80,"./../functions/deleteProperty.js":82,"crypto-js/sha256":64}],111:[function(require,module,exports){
+},{"./../Integration.js":75,"./../events":80,"./../functions/deleteProperty.js":82,"crypto-js/sha256":64}],110:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
-
-exports.__esModule = true;
-
-var _Integration2 = require('./../Integration.js');
-
-var _Integration3 = _interopRequireDefault(_Integration2);
-
-var _deleteProperty = require('./../functions/deleteProperty.js');
-
-var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
-
-var _events = require('./../events');
-
-function _interopRequireDefault(obj) {
-  return obj && obj.__esModule ? obj : { 'default': obj };
-}
-
-function _classCallCheck(instance, Constructor) {
-  if (!(instance instanceof Constructor)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-}
-
-function _possibleConstructorReturn(self, call) {
-  if (!self) {
-    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
-}
-
-function _inherits(subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
-  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-}
-
-function lineItemsToSociomanticsItems(lineItems) {
-  var products = [];
-  for (var i = 0, length = lineItems.length; i < length; i++) {
-    var lineItem = lineItems[i];
-    if (lineItem && lineItem.product) {
-      var productId = lineItem.product.id || lineItem.product.skuCode;
-      if (productId) {
-        var product = {
-          identifier: productId,
-          amount: lineItem.product.unitSalePrice || lineItem.product.unitPrice || 0,
-          quantity: lineItem.quantity || 1,
-          currency: lineItem.product.currency || ''
-        };
-        products.push(product);
-      }
-    }
-  }
-  return products;
-}
-
-function deleteEmptyProperties(objName) {
-  var keys = Object.keys(window[objName]);
-  keys.map(function (key) {
-    if (window[objName][key] === '') {
-      (0, _deleteProperty2['default'])(window[objName], key);
-    }
-  });
-}
-
-var Sociomantic = function (_Integration) {
-  _inherits(Sociomantic, _Integration);
-
-  function Sociomantic(digitalData, options) {
-    _classCallCheck(this, Sociomantic);
-
-    var optionsWithDefaults = Object.assign({
-      region: '',
-      adpanId: '',
-      prefix: ''
-    }, options);
-
-    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
-
-    var region = _this.getOption('region') || '';
-    var regionPrefix = region ? region + '-' : '';
-    var adpanId = _this.getOption('adpanId');
-    var src = '//' + regionPrefix + 'sonar.sociomantic.com/js/2010-07-01/adpan/' + adpanId;
-
-    _this.addTag({
-      type: 'script',
-      attr: {
-        type: 'text/javascript',
-        async: true,
-        src: src
-      }
-    });
-
-    _this._isLoaded = false;
-    _this.trackingScriptCalled = false;
-    return _this;
-  }
-
-  Sociomantic.prototype.initialize = function initialize() {
-    this._isLoaded = true;
-    this.onLoad();
-  };
-
-  Sociomantic.prototype.isLoaded = function isLoaded() {
-    var adpanId = this.getOption('adpanId');
-    return window.sociomantic && window.sociomantic.sonar && window.sociomantic.sonar.adv[adpanId];
-  };
-
-  Sociomantic.prototype.loadTrackingScript = function loadTrackingScript() {
-    var adpanId = this.getOption('adpanId');
-    if (this.isLoaded()) {
-      window.sociomantic.sonar.adv[adpanId].enable();
-    } else {
-      this.load();
-    }
-    this.trackingScriptCalled = true;
-  };
-
-  Sociomantic.prototype.reset = function reset() {
-    (0, _deleteProperty2['default'])(window, 'sociomantic');
-  };
-
-  Sociomantic.prototype.getEnrichableEventProps = function getEnrichableEventProps(event) {
-    var enrichableProps = [];
-    switch (event.name) {
-      case _events.VIEWED_PAGE:
-        enrichableProps = ['page.type', 'user.userId', 'cart.lineItems'];
-        break;
-      case _events.VIEWED_PRODUCT_DETAIL:
-        enrichableProps = ['product'];
-        break;
-      case _events.VIEWED_PRODUCT_CATEGORY:
-        enrichableProps = ['listing.category'];
-        break;
-      case _events.SEARCHED_PRODUCTS:
-        enrichableProps = ['listing.category'];
-        break;
-      case _events.COMPLETED_TRANSACTION:
-        enrichableProps = ['transaction'];
-        break;
-      default:
-      // do nothing
-    }
-
-    return enrichableProps;
-  };
-
-  Sociomantic.prototype.trackEvent = function trackEvent(event) {
-    var _methods;
-
-    var methods = (_methods = {}, _methods[_events.VIEWED_PAGE] = 'onViewedPage', _methods[_events.VIEWED_PRODUCT_DETAIL] = 'onViewedProductDetail', _methods[_events.VIEWED_PRODUCT_CATEGORY] = 'onViewedProductListing', _methods[_events.VIEWED_CART] = 'onViewedCart', _methods[_events.COMPLETED_TRANSACTION] = 'onCompletedTransaction', _methods[_events.SEARCHED_PRODUCTS] = 'onViewedProductListing', _methods);
-
-    var method = methods[event.name];
-    if (method) {
-      this[method](event);
-    }
-  };
-
-  Sociomantic.prototype.onViewedPage = function onViewedPage(event) {
-    var _this2 = this;
-
-    var prefix = this.getOption('prefix');
-    var trackingObjectCustomerName = prefix + 'customer';
-    var trackingObjectBasketName = prefix + 'basket';
-    var user = event.user;
-    var page = event.page;
-    var specialPages = ['product', 'category', 'search', 'confirmation'];
-    var cart = event.cart;
-
-    if (user && user.userId) {
-      window[trackingObjectCustomerName] = {
-        identifier: user.userId
-      };
-    }
-
-    if (cart && cart.lineItems) {
-      var products = lineItemsToSociomanticsItems(cart.lineItems);
-      window[trackingObjectBasketName] = {
-        products: products
-      };
-    }
-    if (page && specialPages.indexOf(page.type) < 0) {
-      this.loadTrackingScript();
-    } else {
-      setTimeout(function () {
-        if (!_this2.trackingScriptCalled) {
-          _this2.loadTrackingScript();
-        }
-      }, 100);
-    }
-  };
-
-  Sociomantic.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
-    var prefix = this.getOption('prefix');
-    var trackingObjectName = prefix + 'product';
-    var product = event.product;
-
-    if (product && (product.id || product.skuCode)) {
-      window[trackingObjectName] = {
-        identifier: product.id || product.skuCode
-      };
-      this.loadTrackingScript();
-    }
-  };
-
-  Sociomantic.prototype.onViewedProductListing = function onViewedProductListing(event) {
-    var prefix = this.getOption('prefix');
-    var trackingObjectName = prefix + 'product';
-    var listing = event.listing;
-
-    if (listing && listing.category) {
-      window[trackingObjectName] = {
-        category: listing.category
-      };
-      this.loadTrackingScript();
-    }
-  };
-
-  Sociomantic.prototype.onViewedCart = function onViewedCart() {
-    // Assigning basket object on every pages - see onViewedPage()
-  };
-
-  Sociomantic.prototype.onCompletedTransaction = function onCompletedTransaction(event) {
-    var prefix = this.getOption('prefix');
-    var trackingObjectSaleName = prefix + 'sale';
-    var trackingObjectBasketName = prefix + 'basket';
-    var transaction = event.transaction;
-
-    window[trackingObjectSaleName] = {
-      confirmed: true
-    };
-
-    if (transaction && transaction.lineItems) {
-      var products = lineItemsToSociomanticsItems(transaction.lineItems);
-      window[trackingObjectBasketName] = {
-        products: products,
-        transaction: transaction.orderId || '',
-        amount: transaction.total || '',
-        currency: transaction.currency || ''
-      };
-      deleteEmptyProperties(trackingObjectBasketName);
-    }
-
-    this.loadTrackingScript();
-  };
-
-  return Sociomantic;
-}(_Integration3['default']);
-
-exports['default'] = Sociomantic;
-
-},{"./../Integration.js":73,"./../events":78,"./../functions/deleteProperty.js":80}],109:[function(require,module,exports){
-'use strict';
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -14870,10 +14602,10 @@ var Vkontakte = function (_Integration) {
 
 exports['default'] = Vkontakte;
 
-},{"./../Integration.js":75}],112:[function(require,module,exports){
+},{"./../Integration.js":75}],111:[function(require,module,exports){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.__esModule = true;
 
@@ -14956,7 +14688,6 @@ var YandexMetrica = function (_Integration) {
     }, options);
 
     // use custom dataLayer name to avoid conflicts
-
     var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
 
     _this.dataLayerName = 'yandexDL';
@@ -15123,7 +14854,7 @@ var YandexMetrica = function (_Integration) {
 
 exports['default'] = YandexMetrica;
 
-},{"./../Integration.js":75,"./../functions/deleteProperty.js":82}],113:[function(require,module,exports){
+},{"./../Integration.js":75,"./../functions/deleteProperty.js":82}],112:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es6.object.create');
@@ -15146,7 +14877,7 @@ require('core-js/modules/es6.date.to-iso-string');
 
 require('core-js/modules/es6.date.now');
 
-},{"core-js/modules/es6.array.filter":53,"core-js/modules/es6.array.index-of":54,"core-js/modules/es6.array.is-array":55,"core-js/modules/es6.array.map":56,"core-js/modules/es6.date.now":57,"core-js/modules/es6.date.to-iso-string":58,"core-js/modules/es6.function.bind":59,"core-js/modules/es6.object.assign":60,"core-js/modules/es6.object.create":61,"core-js/modules/es6.string.trim":62}],114:[function(require,module,exports){
+},{"core-js/modules/es6.array.filter":53,"core-js/modules/es6.array.index-of":54,"core-js/modules/es6.array.is-array":55,"core-js/modules/es6.array.map":56,"core-js/modules/es6.date.now":57,"core-js/modules/es6.date.to-iso-string":58,"core-js/modules/es6.function.bind":59,"core-js/modules/es6.object.assign":60,"core-js/modules/es6.object.create":61,"core-js/modules/es6.string.trim":62}],113:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -15202,7 +14933,7 @@ function logEnrichedIntegrationEvent(event, integrationName) {
 
 exports['default'] = { isTestMode: isTestMode, showTestModeOverlay: showTestModeOverlay };
 
-},{"./functions/noop":92}],115:[function(require,module,exports){
+},{"./functions/noop":92}],114:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -15211,4 +14942,4 @@ var DIGITALDATA_VAR = exports.DIGITALDATA_VAR = 'digitalData';
 var EVENT_VAR = exports.EVENT_VAR = 'event';
 var PRODUCT_VAR = exports.PRODUCT_VAR = 'product';
 
-},{}]},{},[97]);
+},{}]},{},[96]);
