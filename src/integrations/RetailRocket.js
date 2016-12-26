@@ -2,10 +2,8 @@ import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty';
 import { getProp } from './../functions/dotProp';
 import getVarValue from './../functions/getVarValue';
-import throwError from './../functions/throwError';
 import each from './../functions/each';
 import type from 'component-type';
-import format from './../functions/format';
 
 class RetailRocket extends Integration {
 
@@ -157,14 +155,13 @@ class RetailRocket extends Integration {
     listing = listing || {};
     const categoryId = listing.categoryId;
     if (!categoryId) {
-      this.onValidationError('listing.categoryId');
       return;
     }
     window.rrApiOnReady.push(() => {
       try {
         window.rrApi.categoryView(categoryId);
       } catch (e) {
-        this.onError(e);
+        // do nothing
       }
     });
   }
@@ -172,14 +169,13 @@ class RetailRocket extends Integration {
   onViewedProductDetail(product) {
     const productId = this.getProductId(product);
     if (!productId) {
-      this.onValidationError('product.id');
       return;
     }
     window.rrApiOnReady.push(() => {
       try {
         window.rrApi.view(productId);
       } catch (e) {
-        this.onError(e);
+        // do nothing
       }
     });
   }
@@ -187,26 +183,23 @@ class RetailRocket extends Integration {
   onAddedProduct(product) {
     const productId = this.getProductId(product);
     if (!productId) {
-      this.onValidationError('product.id');
       return;
     }
     window.rrApiOnReady.push(() => {
       try {
         window.rrApi.addToBasket(productId);
       } catch (e) {
-        this.onError(e);
+        // do nothing
       }
     });
   }
 
   onClickedProduct(listItem) {
     if (!listItem) {
-      this.onValidationError('listItem.product.id');
       return;
     }
     const productId = this.getProductId(listItem.product);
     if (!productId) {
-      this.onValidationError('listItem.product.id');
       return;
     }
     const listId = listItem.listId;
@@ -221,7 +214,7 @@ class RetailRocket extends Integration {
       try {
         window.rrApi.recomMouseDown(productId, methodName);
       } catch (e) {
-        this.onError(e);
+        // do nothing
       }
     });
   }
@@ -232,11 +225,13 @@ class RetailRocket extends Integration {
       return;
     }
 
+    let areLineItemsValid = true;
     const items = [];
     const lineItems = transaction.lineItems;
     for (let i = 0, length = lineItems.length; i < length; i++) {
       if (!this.validateTransactionLineItem(lineItems[i], i)) {
-        continue;
+        areLineItemsValid = false;
+        break;
       }
       const product = lineItems[i].product;
       items.push({
@@ -246,6 +241,10 @@ class RetailRocket extends Integration {
       });
     }
 
+    if (!areLineItemsValid) {
+      return;
+    }
+
     window.rrApiOnReady.push(() => {
       try {
         window.rrApi.order({
@@ -253,7 +252,7 @@ class RetailRocket extends Integration {
           items: items,
         });
       } catch (e) {
-        this.onError(e);
+        // do nothing
       }
     });
   }
@@ -261,7 +260,6 @@ class RetailRocket extends Integration {
   onSubscribed(event) {
     const user = event.user || {};
     if (!user.email) {
-      this.onValidationError('user.email');
       return;
     }
 
@@ -284,7 +282,7 @@ class RetailRocket extends Integration {
       try {
         window.rrApi.setEmail(user.email, rrCustoms);
       } catch (e) {
-        this.onError(e);
+        // do nothing
       }
     });
   }
@@ -292,14 +290,13 @@ class RetailRocket extends Integration {
   onSearched(listing) {
     listing = listing || {};
     if (!listing.query) {
-      this.onValidationError('listing.query');
       return;
     }
     window.rrApiOnReady.push(() => {
       try {
         window.rrApi.search(listing.query);
       } catch (e) {
-        this.onError(e);
+        // do nothing
       }
     });
   }
@@ -307,43 +304,37 @@ class RetailRocket extends Integration {
   validateTransaction(transaction) {
     let isValid = true;
     if (!transaction.orderId) {
-      this.onValidationError('transaction.orderId');
       isValid = false;
     }
 
     const lineItems = transaction.lineItems;
     if (!lineItems || !Array.isArray(lineItems) || lineItems.length === 0) {
-      this.onValidationError('transaction.lineItems');
       isValid = false;
     }
 
     return isValid;
   }
 
-  validateLineItem(lineItem, index) {
+  validateLineItem(lineItem) {
     let isValid = true;
     if (!lineItem.product) {
-      this.onValidationError(format('lineItems[%d].product', index));
       isValid = false;
     }
 
     return isValid;
   }
 
-  validateTransactionLineItem(lineItem, index) {
-    let isValid = this.validateLineItem(lineItem, index);
+  validateTransactionLineItem(lineItem) {
+    let isValid = this.validateLineItem(lineItem);
 
     const product = lineItem.product;
     if (!product.id) {
-      this.onValidationError(format('lineItems[%d].product.id', index));
       isValid = false;
     }
     if (!product.unitSalePrice && !product.unitPrice) {
-      this.onValidationError(format('lineItems[%d].product.unitSalePrice', index));
       isValid = false;
     }
     if (!lineItem.quantity) {
-      this.onValidationError(format('lineItems[%d].quantity', index));
       isValid = false;
     }
 
@@ -359,17 +350,6 @@ class RetailRocket extends Integration {
       productId = product;
     }
     return productId;
-  }
-
-  onError(err) {
-    throwError('external_error', format('Retail Rocket integration error: "%s"', err));
-  }
-
-  onValidationError(variableName) {
-    throwError(
-        'validation_error',
-        format('Retail Rocket integration error: DDL or event variable "%s" is not defined or empty', variableName)
-    );
   }
 }
 
