@@ -60,6 +60,9 @@ class DigitalDataEnricher
     // define required digitalData structure
     this.enrichStructure();
 
+    // fire session started event if this is new session
+    this.fireSessionStarted();
+
     // persist some default behaviours
     this.persistUserData();
 
@@ -79,6 +82,8 @@ class DigitalDataEnricher
     // when all enrichments are done
     this.listenToUserDataChanges();
     this.listenToEvents();
+
+    this.ddStorage.setLastEventTimestamp(Date.now());
   }
 
   listenToEvents() {
@@ -96,6 +101,7 @@ class DigitalDataEnricher
     // enrich DDL based on semantic events
     this.ddListener.push(['on', 'event', (event) => {
       this.enrichIsReturningStatus();
+      this.ddStorage.setLastEventTimestamp(Date.now());
 
       if (event.name === 'Subscribed') {
         const email = getProp(event, 'user.email');
@@ -110,6 +116,19 @@ class DigitalDataEnricher
     this.ddListener.push(['on', 'change:user', () => {
       this.persistUserData();
     }]);
+  }
+
+  fireSessionStarted() {
+    const lastEventTimestamp = this.ddStorage.getLastEventTimestamp();
+    if (
+      !lastEventTimestamp ||
+      (Date.now() - lastEventTimestamp) > this.options.sessionLength * 1000
+    ) {
+      this.digitalData.events.push({
+        name: 'Session Started',
+        includeIntegrations: [], // do not send this event to any integration
+      });
+    }
   }
 
   enrichDefaultUserData() {
@@ -153,15 +172,13 @@ class DigitalDataEnricher
   enrichIsReturningStatus() {
     const lastEventTimestamp = this.ddStorage.getLastEventTimestamp();
     const user = this.digitalData.user;
-    const now = Date.now();
     if (
       !user.isReturning && lastEventTimestamp &&
-      (now - lastEventTimestamp) > this.options.sessionLength * 1000
+      (Date.now() - lastEventTimestamp) > this.options.sessionLength * 1000
     ) {
       this.digitalData.user.isReturning = true;
       this.ddStorage.persist('user.isReturning');
     }
-    this.ddStorage.setLastEventTimestamp(now);
   }
 
   enrichHasSubscribed(email) {
@@ -199,6 +216,7 @@ class DigitalDataEnricher
     } else {
       this.digitalData.transaction = this.digitalData.transaction || {};
     }
+    this.digitalData.events = this.digitalData.events || [];
   }
 
   enrichPageData() {

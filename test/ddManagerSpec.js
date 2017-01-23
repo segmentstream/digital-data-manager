@@ -154,20 +154,6 @@ describe('DDManager', () => {
       }
     });
 
-    it('it should fire fire "Viewed Page" event if autoEvents == true', (done) => {
-      ddManager.initialize({
-        autoEvents: false
-      });
-      if (ddManager.isReady()) {
-        ddManager.once('ready', () => {
-          assert.ok(window.digitalData.events.length === 0);
-          done();
-        });
-      } else {
-        assert.ok(false);
-      }
-    });
-
     it('it should enrich digital data', (done) => {
       ddManager.initialize();
       if (ddManager.isReady()) {
@@ -275,6 +261,7 @@ describe('DDManager', () => {
       sinon.stub(integration2, 'trackEvent');
       sinon.stub(integration3, 'trackEvent');
 
+      window.localStorage.clear(); // clear
       ddManager.addIntegration('integration1', integration1);
       ddManager.addIntegration('integration2', integration2);
       ddManager.addIntegration('integration3', integration3);
@@ -284,6 +271,7 @@ describe('DDManager', () => {
     });
 
     afterEach(() => {
+      ddManager.reset();
       integration1.trackEvent.restore();
       integration2.trackEvent.restore();
       integration3.trackEvent.restore();
@@ -327,6 +315,12 @@ describe('DDManager', () => {
           done();
         }
       });
+    });
+
+    it('should not send Session Started event', () => {
+      assert.ok(!integration1.trackEvent.called);
+      assert.ok(!integration2.trackEvent.called);
+      assert.ok(!integration2.trackEvent.called);
     });
 
   });

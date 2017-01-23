@@ -21,7 +21,7 @@ module.exports = function(config) {
       slIe8Win7: {
         base: 'SauceLabs',
         browserName: 'internet explorer',
-        platform: 'Windows 7',
+        platform: 'Windows XP',
         version: '8'
       },
       slChromeWinXp: {
@@ -190,7 +190,7 @@ module.exports = function(config) {
 
     // Concurrency level
     // how many browser should be started simultanous
-    // concurrency: Infinity,
+    // concurrency: 5,
     //
     // browserDisconnectTimeout: 10000,
     // browserDisconnectTolerance: 10,
