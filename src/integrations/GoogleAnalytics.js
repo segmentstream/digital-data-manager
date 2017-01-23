@@ -406,6 +406,8 @@ class GoogleAnalytics extends Integration {
           CLICKED_PRODUCT,
           ADDED_PRODUCT,
           REMOVED_PRODUCT,
+          VIEWED_CHECKOUT_STEP,
+          COMPLETED_CHECKOUT_STEP,
         ].indexOf(event.name) < 0) {
           this.onCustomEvent(event);
         }

@@ -19958,7 +19958,7 @@ var GoogleAnalytics = function (_Integration) {
       if (event.name === _events.COMPLETED_TRANSACTION && !this.getOption('noConflict')) {
         this.onCompletedTransaction(event);
       } else {
-        if ([_events.VIEWED_PRODUCT_DETAIL, _events.VIEWED_PRODUCT_CATEGORY, _events.SEARCHED_PRODUCTS, _events.COMPLETED_TRANSACTION, _events.VIEWED_CART, _events.VIEWED_PRODUCT, _events.CLICKED_PRODUCT, _events.ADDED_PRODUCT, _events.REMOVED_PRODUCT].indexOf(event.name) < 0) {
+        if ([_events.VIEWED_PRODUCT_DETAIL, _events.VIEWED_PRODUCT_CATEGORY, _events.SEARCHED_PRODUCTS, _events.COMPLETED_TRANSACTION, _events.VIEWED_CART, _events.VIEWED_PRODUCT, _events.CLICKED_PRODUCT, _events.ADDED_PRODUCT, _events.REMOVED_PRODUCT, _events.VIEWED_CHECKOUT_STEP, _events.COMPLETED_CHECKOUT_STEP].indexOf(event.name) < 0) {
           this.onCustomEvent(event);
         }
       }

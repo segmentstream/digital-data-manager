@@ -22,7 +22,7 @@ module.exports = function(config) {
         base: 'SauceLabs',
         browserName: 'internet explorer',
         platform: 'Windows 7',
-        version: '8'
+        version: '8.0'
       },
       slChromeWinXp: {
         base: 'SauceLabs',
