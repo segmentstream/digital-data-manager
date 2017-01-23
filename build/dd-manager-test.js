@@ -16932,11 +16932,11 @@ var Integration = function (_EventEmitter) {
     }
   };
 
-  Integration.prototype.overrideProduct = function overrideProduct(product) {
+  Integration.prototype.overrideProduct = function overrideProduct() {
     // abstract
   };
 
-  Integration.prototype.overrideEvent = function overrideEvent(event) {
+  Integration.prototype.overrideEvent = function overrideEvent() {
     // abstract
   };
 
@@ -19958,7 +19958,7 @@ var GoogleAnalytics = function (_Integration) {
       if (event.name === _events.COMPLETED_TRANSACTION && !this.getOption('noConflict')) {
         this.onCompletedTransaction(event);
       } else {
-        if ([_events.VIEWED_PRODUCT_DETAIL, _events.VIEWED_PRODUCT_CATEGORY, _events.SEARCHED_PRODUCTS, _events.COMPLETED_TRANSACTION, _events.VIEWED_CART].indexOf(event.name) < 0) {
+        if ([_events.VIEWED_PRODUCT_DETAIL, _events.VIEWED_PRODUCT_CATEGORY, _events.SEARCHED_PRODUCTS, _events.COMPLETED_TRANSACTION, _events.VIEWED_CART, _events.VIEWED_PRODUCT, _events.CLICKED_PRODUCT, _events.ADDED_PRODUCT, _events.REMOVED_PRODUCT].indexOf(event.name) < 0) {
           this.onCustomEvent(event);
         }
       }
@@ -21979,260 +21979,6 @@ var _Integration2 = require('./../Integration.js');
 
 var _Integration3 = _interopRequireDefault(_Integration2);
 
-var _deleteProperty = require('./../functions/deleteProperty.js');
-
-var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
-
-var _events = require('./../events');
-
-function _interopRequireDefault(obj) {
-  return obj && obj.__esModule ? obj : { 'default': obj };
-}
-
-function _classCallCheck(instance, Constructor) {
-  if (!(instance instanceof Constructor)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-}
-
-function _possibleConstructorReturn(self, call) {
-  if (!self) {
-    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
-}
-
-function _inherits(subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
-  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-}
-
-function lineItemsToSociomanticsItems(lineItems) {
-  var products = [];
-  for (var i = 0, length = lineItems.length; i < length; i++) {
-    var lineItem = lineItems[i];
-    if (lineItem && lineItem.product) {
-      var productId = lineItem.product.id || lineItem.product.skuCode;
-      if (productId) {
-        var product = {
-          identifier: productId,
-          amount: lineItem.product.unitSalePrice || lineItem.product.unitPrice || 0,
-          quantity: lineItem.quantity || 1,
-          currency: lineItem.product.currency || ''
-        };
-        products.push(product);
-      }
-    }
-  }
-  return products;
-}
-
-function deleteEmptyProperties(objName) {
-  var keys = Object.keys(window[objName]);
-  keys.map(function (key) {
-    if (window[objName][key] === '') {
-      (0, _deleteProperty2['default'])(window[objName], key);
-    }
-  });
-}
-
-var Sociomantic = function (_Integration) {
-  _inherits(Sociomantic, _Integration);
-
-  function Sociomantic(digitalData, options) {
-    _classCallCheck(this, Sociomantic);
-
-    var optionsWithDefaults = Object.assign({
-      region: '',
-      adpanId: '',
-      prefix: ''
-    }, options);
-
-    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
-
-    var region = _this.getOption('region') || '';
-    var regionPrefix = region ? region + '-' : '';
-    var adpanId = _this.getOption('adpanId');
-    var src = '//' + regionPrefix + 'sonar.sociomantic.com/js/2010-07-01/adpan/' + adpanId;
-
-    _this.addTag({
-      type: 'script',
-      attr: {
-        type: 'text/javascript',
-        async: true,
-        src: src
-      }
-    });
-
-    _this._isLoaded = false;
-    _this.trackingScriptCalled = false;
-    return _this;
-  }
-
-  Sociomantic.prototype.initialize = function initialize() {
-    this._isLoaded = true;
-    this.onLoad();
-  };
-
-  Sociomantic.prototype.isLoaded = function isLoaded() {
-    var adpanId = this.getOption('adpanId');
-    return window.sociomantic && window.sociomantic.sonar && window.sociomantic.sonar.adv[adpanId];
-  };
-
-  Sociomantic.prototype.loadTrackingScript = function loadTrackingScript() {
-    var adpanId = this.getOption('adpanId');
-    if (this.isLoaded()) {
-      window.sociomantic.sonar.adv[adpanId].enable();
-    } else {
-      this.load();
-    }
-    this.trackingScriptCalled = true;
-  };
-
-  Sociomantic.prototype.reset = function reset() {
-    (0, _deleteProperty2['default'])(window, 'sociomantic');
-  };
-
-  Sociomantic.prototype.getEnrichableEventProps = function getEnrichableEventProps(event) {
-    var enrichableProps = [];
-    switch (event.name) {
-      case _events.VIEWED_PAGE:
-        enrichableProps = ['page.type', 'user.userId', 'cart.lineItems'];
-        break;
-      case _events.VIEWED_PRODUCT_DETAIL:
-        enrichableProps = ['product'];
-        break;
-      case _events.VIEWED_PRODUCT_CATEGORY:
-        enrichableProps = ['listing.category'];
-        break;
-      case _events.SEARCHED_PRODUCTS:
-        enrichableProps = ['listing.category'];
-        break;
-      case _events.COMPLETED_TRANSACTION:
-        enrichableProps = ['transaction'];
-        break;
-      default:
-      // do nothing
-    }
-
-    return enrichableProps;
-  };
-
-  Sociomantic.prototype.trackEvent = function trackEvent(event) {
-    var _methods;
-
-    var methods = (_methods = {}, _methods[_events.VIEWED_PAGE] = 'onViewedPage', _methods[_events.VIEWED_PRODUCT_DETAIL] = 'onViewedProductDetail', _methods[_events.VIEWED_PRODUCT_CATEGORY] = 'onViewedProductListing', _methods[_events.VIEWED_CART] = 'onViewedCart', _methods[_events.COMPLETED_TRANSACTION] = 'onCompletedTransaction', _methods[_events.SEARCHED_PRODUCTS] = 'onViewedProductListing', _methods);
-
-    var method = methods[event.name];
-    if (method) {
-      this[method](event);
-    }
-  };
-
-  Sociomantic.prototype.onViewedPage = function onViewedPage(event) {
-    var _this2 = this;
-
-    var prefix = this.getOption('prefix');
-    var trackingObjectCustomerName = prefix + 'customer';
-    var trackingObjectBasketName = prefix + 'basket';
-    var user = event.user;
-    var page = event.page;
-    var specialPages = ['product', 'category', 'search', 'confirmation'];
-    var cart = event.cart;
-
-    if (user && user.userId) {
-      window[trackingObjectCustomerName] = {
-        identifier: user.userId
-      };
-    }
-
-    if (cart && cart.lineItems) {
-      var products = lineItemsToSociomanticsItems(cart.lineItems);
-      window[trackingObjectBasketName] = {
-        products: products
-      };
-    }
-    if (page && specialPages.indexOf(page.type) < 0) {
-      this.loadTrackingScript();
-    } else {
-      setTimeout(function () {
-        if (!_this2.trackingScriptCalled) {
-          _this2.loadTrackingScript();
-        }
-      }, 100);
-    }
-  };
-
-  Sociomantic.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
-    var prefix = this.getOption('prefix');
-    var trackingObjectName = prefix + 'product';
-    var product = event.product;
-
-    if (product && (product.id || product.skuCode)) {
-      window[trackingObjectName] = {
-        identifier: product.id || product.skuCode
-      };
-      this.loadTrackingScript();
-    }
-  };
-
-  Sociomantic.prototype.onViewedProductListing = function onViewedProductListing(event) {
-    var prefix = this.getOption('prefix');
-    var trackingObjectName = prefix + 'product';
-    var listing = event.listing;
-
-    if (listing && listing.category) {
-      window[trackingObjectName] = {
-        category: listing.category
-      };
-      this.loadTrackingScript();
-    }
-  };
-
-  Sociomantic.prototype.onViewedCart = function onViewedCart() {
-    // Assigning basket object on every pages - see onViewedPage()
-  };
-
-  Sociomantic.prototype.onCompletedTransaction = function onCompletedTransaction(event) {
-    var prefix = this.getOption('prefix');
-    var trackingObjectSaleName = prefix + 'sale';
-    var trackingObjectBasketName = prefix + 'basket';
-    var transaction = event.transaction;
-
-    window[trackingObjectSaleName] = {
-      confirmed: true
-    };
-
-    if (transaction && transaction.lineItems) {
-      var products = lineItemsToSociomanticsItems(transaction.lineItems);
-      window[trackingObjectBasketName] = {
-        products: products,
-        transaction: transaction.orderId || '',
-        amount: transaction.total || '',
-        currency: transaction.currency || ''
-      };
-      deleteEmptyProperties(trackingObjectBasketName);
-    }
-
-    this.loadTrackingScript();
-  };
-
-  return Sociomantic;
-}(_Integration3['default']);
-
-exports['default'] = Sociomantic;
-
-},{"./../Integration.js":105,"./../events":110,"./../functions/deleteProperty.js":112}],140:[function(require,module,exports){
-'use strict';
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
-
-exports.__esModule = true;
-
-var _Integration2 = require('./../Integration.js');
-
-var _Integration3 = _interopRequireDefault(_Integration2);
-
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -23747,7 +23493,7 @@ describe('EventDataEnricher', function () {
   });
 });
 
-},{"./../src/EventDataEnricher.js":105,"./../src/functions/deleteProperty.js":114,"assert":1}],151:[function(require,module,exports){
+},{"./../src/EventDataEnricher.js":105,"./../src/functions/deleteProperty.js":114,"./../src/integrations/Emarsys":131,"assert":1}],151:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
