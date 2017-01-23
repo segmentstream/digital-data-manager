@@ -359,7 +359,7 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":99}],2:[function(require,module,exports){
+},{"util/":101}],2:[function(require,module,exports){
 (function (process,global){
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -5747,7 +5747,7 @@ var objectKeys = Object.keys || function (obj) {
 }));
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"_process":71}],3:[function(require,module,exports){
+},{"_process":73}],3:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -6712,8 +6712,968 @@ require('./_string-trim')('trim', function($trim){
   };
 });
 },{"./_string-trim":44}],64:[function(require,module,exports){
-(function (process){
+;(function (root, factory) {
+	if (typeof exports === "object") {
+		// CommonJS
+		module.exports = exports = factory();
+	}
+	else if (typeof define === "function" && define.amd) {
+		// AMD
+		define([], factory);
+	}
+	else {
+		// Global (browser)
+		root.CryptoJS = factory();
+	}
+}(this, function () {
 
+	/**
+	 * CryptoJS core components.
+	 */
+	var CryptoJS = CryptoJS || (function (Math, undefined) {
+	    /*
+	     * Local polyfil of Object.create
+	     */
+	    var create = Object.create || (function () {
+	        function F() {};
+
+	        return function (obj) {
+	            var subtype;
+
+	            F.prototype = obj;
+
+	            subtype = new F();
+
+	            F.prototype = null;
+
+	            return subtype;
+	        };
+	    }())
+
+	    /**
+	     * CryptoJS namespace.
+	     */
+	    var C = {};
+
+	    /**
+	     * Library namespace.
+	     */
+	    var C_lib = C.lib = {};
+
+	    /**
+	     * Base object for prototypal inheritance.
+	     */
+	    var Base = C_lib.Base = (function () {
+
+
+	        return {
+	            /**
+	             * Creates a new object that inherits from this object.
+	             *
+	             * @param {Object} overrides Properties to copy into the new object.
+	             *
+	             * @return {Object} The new object.
+	             *
+	             * @static
+	             *
+	             * @example
+	             *
+	             *     var MyType = CryptoJS.lib.Base.extend({
+	             *         field: 'value',
+	             *
+	             *         method: function () {
+	             *         }
+	             *     });
+	             */
+	            extend: function (overrides) {
+	                // Spawn
+	                var subtype = create(this);
+
+	                // Augment
+	                if (overrides) {
+	                    subtype.mixIn(overrides);
+	                }
+
+	                // Create default initializer
+	                if (!subtype.hasOwnProperty('init') || this.init === subtype.init) {
+	                    subtype.init = function () {
+	                        subtype.$super.init.apply(this, arguments);
+	                    };
+	                }
+
+	                // Initializer's prototype is the subtype object
+	                subtype.init.prototype = subtype;
+
+	                // Reference supertype
+	                subtype.$super = this;
+
+	                return subtype;
+	            },
+
+	            /**
+	             * Extends this object and runs the init method.
+	             * Arguments to create() will be passed to init().
+	             *
+	             * @return {Object} The new object.
+	             *
+	             * @static
+	             *
+	             * @example
+	             *
+	             *     var instance = MyType.create();
+	             */
+	            create: function () {
+	                var instance = this.extend();
+	                instance.init.apply(instance, arguments);
+
+	                return instance;
+	            },
+
+	            /**
+	             * Initializes a newly created object.
+	             * Override this method to add some logic when your objects are created.
+	             *
+	             * @example
+	             *
+	             *     var MyType = CryptoJS.lib.Base.extend({
+	             *         init: function () {
+	             *             // ...
+	             *         }
+	             *     });
+	             */
+	            init: function () {
+	            },
+
+	            /**
+	             * Copies properties into this object.
+	             *
+	             * @param {Object} properties The properties to mix in.
+	             *
+	             * @example
+	             *
+	             *     MyType.mixIn({
+	             *         field: 'value'
+	             *     });
+	             */
+	            mixIn: function (properties) {
+	                for (var propertyName in properties) {
+	                    if (properties.hasOwnProperty(propertyName)) {
+	                        this[propertyName] = properties[propertyName];
+	                    }
+	                }
+
+	                // IE won't copy toString using the loop above
+	                if (properties.hasOwnProperty('toString')) {
+	                    this.toString = properties.toString;
+	                }
+	            },
+
+	            /**
+	             * Creates a copy of this object.
+	             *
+	             * @return {Object} The clone.
+	             *
+	             * @example
+	             *
+	             *     var clone = instance.clone();
+	             */
+	            clone: function () {
+	                return this.init.prototype.extend(this);
+	            }
+	        };
+	    }());
+
+	    /**
+	     * An array of 32-bit words.
+	     *
+	     * @property {Array} words The array of 32-bit words.
+	     * @property {number} sigBytes The number of significant bytes in this word array.
+	     */
+	    var WordArray = C_lib.WordArray = Base.extend({
+	        /**
+	         * Initializes a newly created word array.
+	         *
+	         * @param {Array} words (Optional) An array of 32-bit words.
+	         * @param {number} sigBytes (Optional) The number of significant bytes in the words.
+	         *
+	         * @example
+	         *
+	         *     var wordArray = CryptoJS.lib.WordArray.create();
+	         *     var wordArray = CryptoJS.lib.WordArray.create([0x00010203, 0x04050607]);
+	         *     var wordArray = CryptoJS.lib.WordArray.create([0x00010203, 0x04050607], 6);
+	         */
+	        init: function (words, sigBytes) {
+	            words = this.words = words || [];
+
+	            if (sigBytes != undefined) {
+	                this.sigBytes = sigBytes;
+	            } else {
+	                this.sigBytes = words.length * 4;
+	            }
+	        },
+
+	        /**
+	         * Converts this word array to a string.
+	         *
+	         * @param {Encoder} encoder (Optional) The encoding strategy to use. Default: CryptoJS.enc.Hex
+	         *
+	         * @return {string} The stringified word array.
+	         *
+	         * @example
+	         *
+	         *     var string = wordArray + '';
+	         *     var string = wordArray.toString();
+	         *     var string = wordArray.toString(CryptoJS.enc.Utf8);
+	         */
+	        toString: function (encoder) {
+	            return (encoder || Hex).stringify(this);
+	        },
+
+	        /**
+	         * Concatenates a word array to this word array.
+	         *
+	         * @param {WordArray} wordArray The word array to append.
+	         *
+	         * @return {WordArray} This word array.
+	         *
+	         * @example
+	         *
+	         *     wordArray1.concat(wordArray2);
+	         */
+	        concat: function (wordArray) {
+	            // Shortcuts
+	            var thisWords = this.words;
+	            var thatWords = wordArray.words;
+	            var thisSigBytes = this.sigBytes;
+	            var thatSigBytes = wordArray.sigBytes;
+
+	            // Clamp excess bits
+	            this.clamp();
+
+	            // Concat
+	            if (thisSigBytes % 4) {
+	                // Copy one byte at a time
+	                for (var i = 0; i < thatSigBytes; i++) {
+	                    var thatByte = (thatWords[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
+	                    thisWords[(thisSigBytes + i) >>> 2] |= thatByte << (24 - ((thisSigBytes + i) % 4) * 8);
+	                }
+	            } else {
+	                // Copy one word at a time
+	                for (var i = 0; i < thatSigBytes; i += 4) {
+	                    thisWords[(thisSigBytes + i) >>> 2] = thatWords[i >>> 2];
+	                }
+	            }
+	            this.sigBytes += thatSigBytes;
+
+	            // Chainable
+	            return this;
+	        },
+
+	        /**
+	         * Removes insignificant bits.
+	         *
+	         * @example
+	         *
+	         *     wordArray.clamp();
+	         */
+	        clamp: function () {
+	            // Shortcuts
+	            var words = this.words;
+	            var sigBytes = this.sigBytes;
+
+	            // Clamp
+	            words[sigBytes >>> 2] &= 0xffffffff << (32 - (sigBytes % 4) * 8);
+	            words.length = Math.ceil(sigBytes / 4);
+	        },
+
+	        /**
+	         * Creates a copy of this word array.
+	         *
+	         * @return {WordArray} The clone.
+	         *
+	         * @example
+	         *
+	         *     var clone = wordArray.clone();
+	         */
+	        clone: function () {
+	            var clone = Base.clone.call(this);
+	            clone.words = this.words.slice(0);
+
+	            return clone;
+	        },
+
+	        /**
+	         * Creates a word array filled with random bytes.
+	         *
+	         * @param {number} nBytes The number of random bytes to generate.
+	         *
+	         * @return {WordArray} The random word array.
+	         *
+	         * @static
+	         *
+	         * @example
+	         *
+	         *     var wordArray = CryptoJS.lib.WordArray.random(16);
+	         */
+	        random: function (nBytes) {
+	            var words = [];
+
+	            var r = (function (m_w) {
+	                var m_w = m_w;
+	                var m_z = 0x3ade68b1;
+	                var mask = 0xffffffff;
+
+	                return function () {
+	                    m_z = (0x9069 * (m_z & 0xFFFF) + (m_z >> 0x10)) & mask;
+	                    m_w = (0x4650 * (m_w & 0xFFFF) + (m_w >> 0x10)) & mask;
+	                    var result = ((m_z << 0x10) + m_w) & mask;
+	                    result /= 0x100000000;
+	                    result += 0.5;
+	                    return result * (Math.random() > .5 ? 1 : -1);
+	                }
+	            });
+
+	            for (var i = 0, rcache; i < nBytes; i += 4) {
+	                var _r = r((rcache || Math.random()) * 0x100000000);
+
+	                rcache = _r() * 0x3ade67b7;
+	                words.push((_r() * 0x100000000) | 0);
+	            }
+
+	            return new WordArray.init(words, nBytes);
+	        }
+	    });
+
+	    /**
+	     * Encoder namespace.
+	     */
+	    var C_enc = C.enc = {};
+
+	    /**
+	     * Hex encoding strategy.
+	     */
+	    var Hex = C_enc.Hex = {
+	        /**
+	         * Converts a word array to a hex string.
+	         *
+	         * @param {WordArray} wordArray The word array.
+	         *
+	         * @return {string} The hex string.
+	         *
+	         * @static
+	         *
+	         * @example
+	         *
+	         *     var hexString = CryptoJS.enc.Hex.stringify(wordArray);
+	         */
+	        stringify: function (wordArray) {
+	            // Shortcuts
+	            var words = wordArray.words;
+	            var sigBytes = wordArray.sigBytes;
+
+	            // Convert
+	            var hexChars = [];
+	            for (var i = 0; i < sigBytes; i++) {
+	                var bite = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
+	                hexChars.push((bite >>> 4).toString(16));
+	                hexChars.push((bite & 0x0f).toString(16));
+	            }
+
+	            return hexChars.join('');
+	        },
+
+	        /**
+	         * Converts a hex string to a word array.
+	         *
+	         * @param {string} hexStr The hex string.
+	         *
+	         * @return {WordArray} The word array.
+	         *
+	         * @static
+	         *
+	         * @example
+	         *
+	         *     var wordArray = CryptoJS.enc.Hex.parse(hexString);
+	         */
+	        parse: function (hexStr) {
+	            // Shortcut
+	            var hexStrLength = hexStr.length;
+
+	            // Convert
+	            var words = [];
+	            for (var i = 0; i < hexStrLength; i += 2) {
+	                words[i >>> 3] |= parseInt(hexStr.substr(i, 2), 16) << (24 - (i % 8) * 4);
+	            }
+
+	            return new WordArray.init(words, hexStrLength / 2);
+	        }
+	    };
+
+	    /**
+	     * Latin1 encoding strategy.
+	     */
+	    var Latin1 = C_enc.Latin1 = {
+	        /**
+	         * Converts a word array to a Latin1 string.
+	         *
+	         * @param {WordArray} wordArray The word array.
+	         *
+	         * @return {string} The Latin1 string.
+	         *
+	         * @static
+	         *
+	         * @example
+	         *
+	         *     var latin1String = CryptoJS.enc.Latin1.stringify(wordArray);
+	         */
+	        stringify: function (wordArray) {
+	            // Shortcuts
+	            var words = wordArray.words;
+	            var sigBytes = wordArray.sigBytes;
+
+	            // Convert
+	            var latin1Chars = [];
+	            for (var i = 0; i < sigBytes; i++) {
+	                var bite = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
+	                latin1Chars.push(String.fromCharCode(bite));
+	            }
+
+	            return latin1Chars.join('');
+	        },
+
+	        /**
+	         * Converts a Latin1 string to a word array.
+	         *
+	         * @param {string} latin1Str The Latin1 string.
+	         *
+	         * @return {WordArray} The word array.
+	         *
+	         * @static
+	         *
+	         * @example
+	         *
+	         *     var wordArray = CryptoJS.enc.Latin1.parse(latin1String);
+	         */
+	        parse: function (latin1Str) {
+	            // Shortcut
+	            var latin1StrLength = latin1Str.length;
+
+	            // Convert
+	            var words = [];
+	            for (var i = 0; i < latin1StrLength; i++) {
+	                words[i >>> 2] |= (latin1Str.charCodeAt(i) & 0xff) << (24 - (i % 4) * 8);
+	            }
+
+	            return new WordArray.init(words, latin1StrLength);
+	        }
+	    };
+
+	    /**
+	     * UTF-8 encoding strategy.
+	     */
+	    var Utf8 = C_enc.Utf8 = {
+	        /**
+	         * Converts a word array to a UTF-8 string.
+	         *
+	         * @param {WordArray} wordArray The word array.
+	         *
+	         * @return {string} The UTF-8 string.
+	         *
+	         * @static
+	         *
+	         * @example
+	         *
+	         *     var utf8String = CryptoJS.enc.Utf8.stringify(wordArray);
+	         */
+	        stringify: function (wordArray) {
+	            try {
+	                return decodeURIComponent(escape(Latin1.stringify(wordArray)));
+	            } catch (e) {
+	                throw new Error('Malformed UTF-8 data');
+	            }
+	        },
+
+	        /**
+	         * Converts a UTF-8 string to a word array.
+	         *
+	         * @param {string} utf8Str The UTF-8 string.
+	         *
+	         * @return {WordArray} The word array.
+	         *
+	         * @static
+	         *
+	         * @example
+	         *
+	         *     var wordArray = CryptoJS.enc.Utf8.parse(utf8String);
+	         */
+	        parse: function (utf8Str) {
+	            return Latin1.parse(unescape(encodeURIComponent(utf8Str)));
+	        }
+	    };
+
+	    /**
+	     * Abstract buffered block algorithm template.
+	     *
+	     * The property blockSize must be implemented in a concrete subtype.
+	     *
+	     * @property {number} _minBufferSize The number of blocks that should be kept unprocessed in the buffer. Default: 0
+	     */
+	    var BufferedBlockAlgorithm = C_lib.BufferedBlockAlgorithm = Base.extend({
+	        /**
+	         * Resets this block algorithm's data buffer to its initial state.
+	         *
+	         * @example
+	         *
+	         *     bufferedBlockAlgorithm.reset();
+	         */
+	        reset: function () {
+	            // Initial values
+	            this._data = new WordArray.init();
+	            this._nDataBytes = 0;
+	        },
+
+	        /**
+	         * Adds new data to this block algorithm's buffer.
+	         *
+	         * @param {WordArray|string} data The data to append. Strings are converted to a WordArray using UTF-8.
+	         *
+	         * @example
+	         *
+	         *     bufferedBlockAlgorithm._append('data');
+	         *     bufferedBlockAlgorithm._append(wordArray);
+	         */
+	        _append: function (data) {
+	            // Convert string to WordArray, else assume WordArray already
+	            if (typeof data == 'string') {
+	                data = Utf8.parse(data);
+	            }
+
+	            // Append
+	            this._data.concat(data);
+	            this._nDataBytes += data.sigBytes;
+	        },
+
+	        /**
+	         * Processes available data blocks.
+	         *
+	         * This method invokes _doProcessBlock(offset), which must be implemented by a concrete subtype.
+	         *
+	         * @param {boolean} doFlush Whether all blocks and partial blocks should be processed.
+	         *
+	         * @return {WordArray} The processed data.
+	         *
+	         * @example
+	         *
+	         *     var processedData = bufferedBlockAlgorithm._process();
+	         *     var processedData = bufferedBlockAlgorithm._process(!!'flush');
+	         */
+	        _process: function (doFlush) {
+	            // Shortcuts
+	            var data = this._data;
+	            var dataWords = data.words;
+	            var dataSigBytes = data.sigBytes;
+	            var blockSize = this.blockSize;
+	            var blockSizeBytes = blockSize * 4;
+
+	            // Count blocks ready
+	            var nBlocksReady = dataSigBytes / blockSizeBytes;
+	            if (doFlush) {
+	                // Round up to include partial blocks
+	                nBlocksReady = Math.ceil(nBlocksReady);
+	            } else {
+	                // Round down to include only full blocks,
+	                // less the number of blocks that must remain in the buffer
+	                nBlocksReady = Math.max((nBlocksReady | 0) - this._minBufferSize, 0);
+	            }
+
+	            // Count words ready
+	            var nWordsReady = nBlocksReady * blockSize;
+
+	            // Count bytes ready
+	            var nBytesReady = Math.min(nWordsReady * 4, dataSigBytes);
+
+	            // Process blocks
+	            if (nWordsReady) {
+	                for (var offset = 0; offset < nWordsReady; offset += blockSize) {
+	                    // Perform concrete-algorithm logic
+	                    this._doProcessBlock(dataWords, offset);
+	                }
+
+	                // Remove processed words
+	                var processedWords = dataWords.splice(0, nWordsReady);
+	                data.sigBytes -= nBytesReady;
+	            }
+
+	            // Return processed words
+	            return new WordArray.init(processedWords, nBytesReady);
+	        },
+
+	        /**
+	         * Creates a copy of this object.
+	         *
+	         * @return {Object} The clone.
+	         *
+	         * @example
+	         *
+	         *     var clone = bufferedBlockAlgorithm.clone();
+	         */
+	        clone: function () {
+	            var clone = Base.clone.call(this);
+	            clone._data = this._data.clone();
+
+	            return clone;
+	        },
+
+	        _minBufferSize: 0
+	    });
+
+	    /**
+	     * Abstract hasher template.
+	     *
+	     * @property {number} blockSize The number of 32-bit words this hasher operates on. Default: 16 (512 bits)
+	     */
+	    var Hasher = C_lib.Hasher = BufferedBlockAlgorithm.extend({
+	        /**
+	         * Configuration options.
+	         */
+	        cfg: Base.extend(),
+
+	        /**
+	         * Initializes a newly created hasher.
+	         *
+	         * @param {Object} cfg (Optional) The configuration options to use for this hash computation.
+	         *
+	         * @example
+	         *
+	         *     var hasher = CryptoJS.algo.SHA256.create();
+	         */
+	        init: function (cfg) {
+	            // Apply config defaults
+	            this.cfg = this.cfg.extend(cfg);
+
+	            // Set initial values
+	            this.reset();
+	        },
+
+	        /**
+	         * Resets this hasher to its initial state.
+	         *
+	         * @example
+	         *
+	         *     hasher.reset();
+	         */
+	        reset: function () {
+	            // Reset data buffer
+	            BufferedBlockAlgorithm.reset.call(this);
+
+	            // Perform concrete-hasher logic
+	            this._doReset();
+	        },
+
+	        /**
+	         * Updates this hasher with a message.
+	         *
+	         * @param {WordArray|string} messageUpdate The message to append.
+	         *
+	         * @return {Hasher} This hasher.
+	         *
+	         * @example
+	         *
+	         *     hasher.update('message');
+	         *     hasher.update(wordArray);
+	         */
+	        update: function (messageUpdate) {
+	            // Append
+	            this._append(messageUpdate);
+
+	            // Update the hash
+	            this._process();
+
+	            // Chainable
+	            return this;
+	        },
+
+	        /**
+	         * Finalizes the hash computation.
+	         * Note that the finalize operation is effectively a destructive, read-once operation.
+	         *
+	         * @param {WordArray|string} messageUpdate (Optional) A final message update.
+	         *
+	         * @return {WordArray} The hash.
+	         *
+	         * @example
+	         *
+	         *     var hash = hasher.finalize();
+	         *     var hash = hasher.finalize('message');
+	         *     var hash = hasher.finalize(wordArray);
+	         */
+	        finalize: function (messageUpdate) {
+	            // Final message update
+	            if (messageUpdate) {
+	                this._append(messageUpdate);
+	            }
+
+	            // Perform concrete-hasher logic
+	            var hash = this._doFinalize();
+
+	            return hash;
+	        },
+
+	        blockSize: 512/32,
+
+	        /**
+	         * Creates a shortcut function to a hasher's object interface.
+	         *
+	         * @param {Hasher} hasher The hasher to create a helper for.
+	         *
+	         * @return {Function} The shortcut function.
+	         *
+	         * @static
+	         *
+	         * @example
+	         *
+	         *     var SHA256 = CryptoJS.lib.Hasher._createHelper(CryptoJS.algo.SHA256);
+	         */
+	        _createHelper: function (hasher) {
+	            return function (message, cfg) {
+	                return new hasher.init(cfg).finalize(message);
+	            };
+	        },
+
+	        /**
+	         * Creates a shortcut function to the HMAC's object interface.
+	         *
+	         * @param {Hasher} hasher The hasher to use in this HMAC helper.
+	         *
+	         * @return {Function} The shortcut function.
+	         *
+	         * @static
+	         *
+	         * @example
+	         *
+	         *     var HmacSHA256 = CryptoJS.lib.Hasher._createHmacHelper(CryptoJS.algo.SHA256);
+	         */
+	        _createHmacHelper: function (hasher) {
+	            return function (message, key) {
+	                return new C_algo.HMAC.init(hasher, key).finalize(message);
+	            };
+	        }
+	    });
+
+	    /**
+	     * Algorithm namespace.
+	     */
+	    var C_algo = C.algo = {};
+
+	    return C;
+	}(Math));
+
+
+	return CryptoJS;
+
+}));
+},{}],65:[function(require,module,exports){
+;(function (root, factory) {
+	if (typeof exports === "object") {
+		// CommonJS
+		module.exports = exports = factory(require("./core"));
+	}
+	else if (typeof define === "function" && define.amd) {
+		// AMD
+		define(["./core"], factory);
+	}
+	else {
+		// Global (browser)
+		factory(root.CryptoJS);
+	}
+}(this, function (CryptoJS) {
+
+	(function (Math) {
+	    // Shortcuts
+	    var C = CryptoJS;
+	    var C_lib = C.lib;
+	    var WordArray = C_lib.WordArray;
+	    var Hasher = C_lib.Hasher;
+	    var C_algo = C.algo;
+
+	    // Initialization and round constants tables
+	    var H = [];
+	    var K = [];
+
+	    // Compute constants
+	    (function () {
+	        function isPrime(n) {
+	            var sqrtN = Math.sqrt(n);
+	            for (var factor = 2; factor <= sqrtN; factor++) {
+	                if (!(n % factor)) {
+	                    return false;
+	                }
+	            }
+
+	            return true;
+	        }
+
+	        function getFractionalBits(n) {
+	            return ((n - (n | 0)) * 0x100000000) | 0;
+	        }
+
+	        var n = 2;
+	        var nPrime = 0;
+	        while (nPrime < 64) {
+	            if (isPrime(n)) {
+	                if (nPrime < 8) {
+	                    H[nPrime] = getFractionalBits(Math.pow(n, 1 / 2));
+	                }
+	                K[nPrime] = getFractionalBits(Math.pow(n, 1 / 3));
+
+	                nPrime++;
+	            }
+
+	            n++;
+	        }
+	    }());
+
+	    // Reusable object
+	    var W = [];
+
+	    /**
+	     * SHA-256 hash algorithm.
+	     */
+	    var SHA256 = C_algo.SHA256 = Hasher.extend({
+	        _doReset: function () {
+	            this._hash = new WordArray.init(H.slice(0));
+	        },
+
+	        _doProcessBlock: function (M, offset) {
+	            // Shortcut
+	            var H = this._hash.words;
+
+	            // Working variables
+	            var a = H[0];
+	            var b = H[1];
+	            var c = H[2];
+	            var d = H[3];
+	            var e = H[4];
+	            var f = H[5];
+	            var g = H[6];
+	            var h = H[7];
+
+	            // Computation
+	            for (var i = 0; i < 64; i++) {
+	                if (i < 16) {
+	                    W[i] = M[offset + i] | 0;
+	                } else {
+	                    var gamma0x = W[i - 15];
+	                    var gamma0  = ((gamma0x << 25) | (gamma0x >>> 7))  ^
+	                                  ((gamma0x << 14) | (gamma0x >>> 18)) ^
+	                                   (gamma0x >>> 3);
+
+	                    var gamma1x = W[i - 2];
+	                    var gamma1  = ((gamma1x << 15) | (gamma1x >>> 17)) ^
+	                                  ((gamma1x << 13) | (gamma1x >>> 19)) ^
+	                                   (gamma1x >>> 10);
+
+	                    W[i] = gamma0 + W[i - 7] + gamma1 + W[i - 16];
+	                }
+
+	                var ch  = (e & f) ^ (~e & g);
+	                var maj = (a & b) ^ (a & c) ^ (b & c);
+
+	                var sigma0 = ((a << 30) | (a >>> 2)) ^ ((a << 19) | (a >>> 13)) ^ ((a << 10) | (a >>> 22));
+	                var sigma1 = ((e << 26) | (e >>> 6)) ^ ((e << 21) | (e >>> 11)) ^ ((e << 7)  | (e >>> 25));
+
+	                var t1 = h + sigma1 + ch + K[i] + W[i];
+	                var t2 = sigma0 + maj;
+
+	                h = g;
+	                g = f;
+	                f = e;
+	                e = (d + t1) | 0;
+	                d = c;
+	                c = b;
+	                b = a;
+	                a = (t1 + t2) | 0;
+	            }
+
+	            // Intermediate hash value
+	            H[0] = (H[0] + a) | 0;
+	            H[1] = (H[1] + b) | 0;
+	            H[2] = (H[2] + c) | 0;
+	            H[3] = (H[3] + d) | 0;
+	            H[4] = (H[4] + e) | 0;
+	            H[5] = (H[5] + f) | 0;
+	            H[6] = (H[6] + g) | 0;
+	            H[7] = (H[7] + h) | 0;
+	        },
+
+	        _doFinalize: function () {
+	            // Shortcuts
+	            var data = this._data;
+	            var dataWords = data.words;
+
+	            var nBitsTotal = this._nDataBytes * 8;
+	            var nBitsLeft = data.sigBytes * 8;
+
+	            // Add padding
+	            dataWords[nBitsLeft >>> 5] |= 0x80 << (24 - nBitsLeft % 32);
+	            dataWords[(((nBitsLeft + 64) >>> 9) << 4) + 14] = Math.floor(nBitsTotal / 0x100000000);
+	            dataWords[(((nBitsLeft + 64) >>> 9) << 4) + 15] = nBitsTotal;
+	            data.sigBytes = dataWords.length * 4;
+
+	            // Hash final blocks
+	            this._process();
+
+	            // Return final computed hash
+	            return this._hash;
+	        },
+
+	        clone: function () {
+	            var clone = Hasher.clone.call(this);
+	            clone._hash = this._hash.clone();
+
+	            return clone;
+	        }
+	    });
+
+	    /**
+	     * Shortcut function to the hasher's object interface.
+	     *
+	     * @param {WordArray|string} message The message to hash.
+	     *
+	     * @return {WordArray} The hash.
+	     *
+	     * @static
+	     *
+	     * @example
+	     *
+	     *     var hash = CryptoJS.SHA256('message');
+	     *     var hash = CryptoJS.SHA256(wordArray);
+	     */
+	    C.SHA256 = Hasher._createHelper(SHA256);
+
+	    /**
+	     * Shortcut function to the HMAC's object interface.
+	     *
+	     * @param {WordArray|string} message The message to hash.
+	     * @param {WordArray|string} key The secret key.
+	     *
+	     * @return {WordArray} The HMAC.
+	     *
+	     * @static
+	     *
+	     * @example
+	     *
+	     *     var hmac = CryptoJS.HmacSHA256(message, key);
+	     */
+	    C.HmacSHA256 = Hasher._createHmacHelper(SHA256);
+	}(Math));
+
+
+	return CryptoJS.SHA256;
+
+}));
+},{"./core":64}],66:[function(require,module,exports){
+(function (process){
 /**
  * This is the web browser implementation of `debug()`.
  *
@@ -6753,14 +7713,23 @@ exports.colors = [
  */
 
 function useColors() {
+  // NB: In an Electron preload script, document will be defined but not fully
+  // initialized. Since we know we're in Chrome, we'll just detect this case
+  // explicitly
+  if (typeof window !== 'undefined' && window && typeof window.process !== 'undefined' && window.process.type === 'renderer') {
+    return true;
+  }
+
   // is webkit? http://stackoverflow.com/a/16459606/376773
   // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
-  return (typeof document !== 'undefined' && 'WebkitAppearance' in document.documentElement.style) ||
+  return (typeof document !== 'undefined' && document && 'WebkitAppearance' in document.documentElement.style) ||
     // is firebug? http://stackoverflow.com/a/398120/376773
-    (window.console && (console.firebug || (console.exception && console.table))) ||
+    (typeof window !== 'undefined' && window && window.console && (console.firebug || (console.exception && console.table))) ||
     // is firefox >= v31?
     // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
-    (navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31);
+    (typeof navigator !== 'undefined' && navigator && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
+    // double check webkit in userAgent just in case we are in a worker
+    (typeof navigator !== 'undefined' && navigator && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
 }
 
 /**
@@ -6782,8 +7751,7 @@ exports.formatters.j = function(v) {
  * @api public
  */
 
-function formatArgs() {
-  var args = arguments;
+function formatArgs(args) {
   var useColors = this.useColors;
 
   args[0] = (useColors ? '%c' : '')
@@ -6793,17 +7761,17 @@ function formatArgs() {
     + (useColors ? '%c ' : ' ')
     + '+' + exports.humanize(this.diff);
 
-  if (!useColors) return args;
+  if (!useColors) return;
 
   var c = 'color: ' + this.color;
-  args = [args[0], c, 'color: inherit'].concat(Array.prototype.slice.call(args, 1));
+  args.splice(1, 0, c, 'color: inherit')
 
   // the final "%c" is somewhat tricky, because there could be other
   // arguments passed either before or after the %c, so we need to
   // figure out the correct index to insert the CSS into
   var index = 0;
   var lastC = 0;
-  args[0].replace(/%[a-z%]/g, function(match) {
+  args[0].replace(/%[a-zA-Z%]/g, function(match) {
     if ('%%' === match) return;
     index++;
     if ('%c' === match) {
@@ -6814,7 +7782,6 @@ function formatArgs() {
   });
 
   args.splice(lastC, 0, c);
-  return args;
 }
 
 /**
@@ -6857,7 +7824,6 @@ function save(namespaces) {
  */
 
 function load() {
-  var r;
   try {
     return exports.storage.debug;
   } catch(e) {}
@@ -6885,7 +7851,7 @@ exports.enable(load());
  * @api private
  */
 
-function localstorage(){
+function localstorage() {
   try {
     return window.localStorage;
   } catch (e) {}
@@ -6893,7 +7859,7 @@ function localstorage(){
 
 }).call(this,require('_process'))
 
-},{"./debug":65,"_process":71}],65:[function(require,module,exports){
+},{"./debug":67,"_process":73}],67:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -6902,7 +7868,7 @@ function localstorage(){
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = debug.debug = debug;
+exports = module.exports = createDebug.debug = createDebug.default = createDebug;
 exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
@@ -6919,16 +7885,10 @@ exports.skips = [];
 /**
  * Map of special "%n" handling functions, for the debug "format" argument.
  *
- * Valid key names are a single, lowercased letter, i.e. "n".
+ * Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
  */
 
 exports.formatters = {};
-
-/**
- * Previously assigned color.
- */
-
-var prevColor = 0;
 
 /**
  * Previous log timestamp.
@@ -6938,13 +7898,20 @@ var prevTime;
 
 /**
  * Select a color.
- *
+ * @param {String} namespace
  * @return {Number}
  * @api private
  */
 
-function selectColor() {
-  return exports.colors[prevColor++ % exports.colors.length];
+function selectColor(namespace) {
+  var hash = 0, i;
+
+  for (i in namespace) {
+    hash  = ((hash << 5) - hash) + namespace.charCodeAt(i);
+    hash |= 0; // Convert to 32bit integer
+  }
+
+  return exports.colors[Math.abs(hash) % exports.colors.length];
 }
 
 /**
@@ -6955,17 +7922,13 @@ function selectColor() {
  * @api public
  */
 
-function debug(namespace) {
+function createDebug(namespace) {
 
-  // define the `disabled` version
-  function disabled() {
-  }
-  disabled.enabled = false;
+  function debug() {
+    // disabled?
+    if (!debug.enabled) return;
 
-  // define the `enabled` version
-  function enabled() {
-
-    var self = enabled;
+    var self = debug;
 
     // set `diff` timestamp
     var curr = +new Date();
@@ -6975,10 +7938,7 @@ function debug(namespace) {
     self.curr = curr;
     prevTime = curr;
 
-    // add the `color` if not set
-    if (null == self.useColors) self.useColors = exports.useColors();
-    if (null == self.color && self.useColors) self.color = selectColor();
-
+    // turn the `arguments` into a proper Array
     var args = new Array(arguments.length);
     for (var i = 0; i < args.length; i++) {
       args[i] = arguments[i];
@@ -6987,13 +7947,13 @@ function debug(namespace) {
     args[0] = exports.coerce(args[0]);
 
     if ('string' !== typeof args[0]) {
-      // anything else let's inspect with %o
-      args = ['%o'].concat(args);
+      // anything else let's inspect with %O
+      args.unshift('%O');
     }
 
     // apply any `formatters` transformations
     var index = 0;
-    args[0] = args[0].replace(/%([a-z%])/g, function(match, format) {
+    args[0] = args[0].replace(/%([a-zA-Z%])/g, function(match, format) {
       // if we encounter an escaped % then don't increase the array index
       if (match === '%%') return match;
       index++;
@@ -7009,19 +7969,24 @@ function debug(namespace) {
       return match;
     });
 
-    // apply env-specific formatting
-    args = exports.formatArgs.apply(self, args);
+    // apply env-specific formatting (colors, etc.)
+    exports.formatArgs.call(self, args);
 
-    var logFn = enabled.log || exports.log || console.log.bind(console);
+    var logFn = debug.log || exports.log || console.log.bind(console);
     logFn.apply(self, args);
   }
-  enabled.enabled = true;
 
-  var fn = exports.enabled(namespace) ? enabled : disabled;
+  debug.namespace = namespace;
+  debug.enabled = exports.enabled(namespace);
+  debug.useColors = exports.useColors();
+  debug.color = selectColor(namespace);
 
-  fn.namespace = namespace;
+  // env-specific initialization logic for debug instances
+  if ('function' === typeof exports.init) {
+    exports.init(debug);
+  }
 
-  return fn;
+  return debug;
 }
 
 /**
@@ -7040,7 +8005,7 @@ function enable(namespaces) {
 
   for (var i = 0; i < len; i++) {
     if (!split[i]) continue; // ignore empty strings
-    namespaces = split[i].replace(/[\\^$+?.()|[\]{}]/g, '\\$&').replace(/\*/g, '.*?');
+    namespaces = split[i].replace(/\*/g, '.*?');
     if (namespaces[0] === '-') {
       exports.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
     } else {
@@ -7095,7 +8060,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":70}],66:[function(require,module,exports){
+},{"ms":72}],68:[function(require,module,exports){
 (function (global){
 ((typeof define === "function" && define.amd && function (m) {
     define("formatio", ["samsam"], m);
@@ -7313,7 +8278,7 @@ function coerce(val) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"samsam":72}],67:[function(require,module,exports){
+},{"samsam":74}],69:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -7338,7 +8303,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],68:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 (function(root, factory) {
 
   if (typeof exports !== 'undefined') {
@@ -7509,7 +8474,7 @@ if (typeof Object.create === 'function') {
 
 }));
 
-},{}],69:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 (function (global){
 /*global global, window*/
 /**
@@ -8033,7 +8998,7 @@ if (typeof Object.create === 'function') {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],70:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -8184,7 +9149,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's'
 }
 
-},{}],71:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -8305,7 +9270,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],72:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 ((typeof define === "function" && define.amd && function (m) { define("samsam", m); }) ||
  (typeof module === "object" &&
       function (m) { module.exports = m(); }) || // Node
@@ -8706,7 +9671,7 @@ process.umask = function() { return 0; };
     };
 });
 
-},{}],73:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 /**
  * Sinon core utilities. For internal use only.
  *
@@ -8755,7 +9720,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     return sinonModule;
 }());
 
-},{"./sinon/assert":74,"./sinon/behavior":75,"./sinon/call":76,"./sinon/collection":77,"./sinon/extend":78,"./sinon/format":79,"./sinon/log_error":80,"./sinon/match":81,"./sinon/mock":82,"./sinon/sandbox":83,"./sinon/spy":84,"./sinon/stub":85,"./sinon/test":86,"./sinon/test_case":87,"./sinon/times_in_words":88,"./sinon/typeOf":89,"./sinon/util/core":90,"./sinon/walk":97}],74:[function(require,module,exports){
+},{"./sinon/assert":76,"./sinon/behavior":77,"./sinon/call":78,"./sinon/collection":79,"./sinon/extend":80,"./sinon/format":81,"./sinon/log_error":82,"./sinon/match":83,"./sinon/mock":84,"./sinon/sandbox":85,"./sinon/spy":86,"./sinon/stub":87,"./sinon/test":88,"./sinon/test_case":89,"./sinon/times_in_words":90,"./sinon/typeOf":91,"./sinon/util/core":92,"./sinon/walk":99}],76:[function(require,module,exports){
 (function (global){
 /**
  * @depend times_in_words.js
@@ -9006,7 +9971,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./format":79,"./match":81,"./util/core":90}],75:[function(require,module,exports){
+},{"./format":81,"./match":83,"./util/core":92}],77:[function(require,module,exports){
 (function (process){
 /**
  * @depend util/core.js
@@ -9382,7 +10347,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
 
 }).call(this,require('_process'))
 
-},{"./extend":78,"./util/core":90,"_process":71}],76:[function(require,module,exports){
+},{"./extend":80,"./util/core":92,"_process":73}],78:[function(require,module,exports){
 /**
   * @depend util/core.js
   * @depend match.js
@@ -9623,7 +10588,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./format":79,"./match":81,"./util/core":90}],77:[function(require,module,exports){
+},{"./format":81,"./match":83,"./util/core":92}],79:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend spy.js
@@ -9798,7 +10763,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./mock":82,"./spy":84,"./stub":85,"./util/core":90}],78:[function(require,module,exports){
+},{"./mock":84,"./spy":86,"./stub":87,"./util/core":92}],80:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -9911,7 +10876,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":90}],79:[function(require,module,exports){
+},{"./util/core":92}],81:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -10007,7 +10972,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof formatio === "object" && formatio // eslint-disable-line no-undef
 ));
 
-},{"./util/core":90,"formatio":66,"util":99}],80:[function(require,module,exports){
+},{"./util/core":92,"formatio":68,"util":101}],82:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -10093,7 +11058,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":90}],81:[function(require,module,exports){
+},{"./util/core":92}],83:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend typeOf.js
@@ -10356,7 +11321,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./typeOf":89,"./util/core":90}],82:[function(require,module,exports){
+},{"./typeOf":91,"./util/core":92}],84:[function(require,module,exports){
 /**
  * @depend times_in_words.js
  * @depend util/core.js
@@ -10849,7 +11814,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./call":76,"./extend":78,"./format":79,"./match":81,"./spy":84,"./stub":85,"./times_in_words":88,"./util/core":90}],83:[function(require,module,exports){
+},{"./call":78,"./extend":80,"./format":81,"./match":83,"./spy":86,"./stub":87,"./times_in_words":90,"./util/core":92}],85:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend extend.js
@@ -11025,7 +11990,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./collection":77,"./extend":78,"./util/core":90,"./util/fake_server_with_clock":93,"./util/fake_timers":94}],84:[function(require,module,exports){
+},{"./collection":79,"./extend":80,"./util/core":92,"./util/fake_server_with_clock":95,"./util/fake_timers":96}],86:[function(require,module,exports){
 /**
   * @depend times_in_words.js
   * @depend util/core.js
@@ -11059,11 +12024,15 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
             }
 
             if (types) {
+                // A new descriptor is needed here because we can only wrap functions
+                // By passing the original descriptor we would end up trying to spy non-function properties
+                var descriptor = {};
                 var methodDesc = sinon.getPropertyDescriptor(object, property);
+
                 for (var i = 0; i < types.length; i++) {
-                    methodDesc[types[i]] = spy.create(methodDesc[types[i]]);
+                    descriptor[types[i]] = spy.create(methodDesc[types[i]]);
                 }
-                return sinon.wrapMethod(object, property, methodDesc);
+                return sinon.wrapMethod(object, property, descriptor);
             }
 
             return sinon.wrapMethod(object, property, spy.create(object[property]));
@@ -11490,7 +12459,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./call":76,"./extend":78,"./format":79,"./times_in_words":88,"./util/core":90}],85:[function(require,module,exports){
+},{"./call":78,"./extend":80,"./format":81,"./times_in_words":90,"./util/core":92}],87:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend extend.js
@@ -11692,7 +12661,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./behavior":75,"./extend":78,"./spy":84,"./util/core":90}],86:[function(require,module,exports){
+},{"./behavior":77,"./extend":80,"./spy":86,"./util/core":92}],88:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend sandbox.js
@@ -11792,7 +12761,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     }
 }(typeof sinon === "object" && sinon || null)); // eslint-disable-line no-undef
 
-},{"./sandbox":83,"./util/core":90}],87:[function(require,module,exports){
+},{"./sandbox":85,"./util/core":92}],89:[function(require,module,exports){
 /**
  * @depend util/core.js
  * @depend test.js
@@ -11900,7 +12869,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./test":86,"./util/core":90}],88:[function(require,module,exports){
+},{"./test":88,"./util/core":92}],90:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -11951,7 +12920,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":90}],89:[function(require,module,exports){
+},{"./util/core":92}],91:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -12006,7 +12975,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":90}],90:[function(require,module,exports){
+},{"./util/core":92}],92:[function(require,module,exports){
 /**
  * @depend ../../sinon.js
  */
@@ -12112,7 +13081,8 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
 
             // IE 8 does not support hasOwnProperty on the window object and Firefox has a problem
             // when using hasOwn.call on objects from other frames.
-            var owned = object.hasOwnProperty ? object.hasOwnProperty(property) : hasOwn.call(object, property);
+            var owned = (object.hasOwnProperty && object.hasOwnProperty === hasOwn) ?
+                object.hasOwnProperty(property) : hasOwn.call(object, property);
 
             if (hasES5Support) {
                 var methodDesc = (typeof method === "function") ? {value: method} : method;
@@ -12176,9 +13146,17 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
                     Object.defineProperty(object, property, wrappedMethodDesc);
                 }
 
+                // this only supports ES5 getter/setter, for ES3.1 and lower
+                // __lookupSetter__ / __lookupGetter__ should be integrated
+                if (hasES5Support) {
+                    var checkDesc = sinon.getPropertyDescriptor(object, property);
+                    if (checkDesc.value === method) {
+                        object[property] = wrappedMethod;
+                    }
+
                 // Use strict equality comparison to check failures then force a reset
                 // via direct assignment.
-                if (object[property] === method) {
+                } else if (object[property] === method) {
                     object[property] = wrappedMethod;
                 }
             };
@@ -12422,7 +13400,7 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{}],91:[function(require,module,exports){
+},{}],93:[function(require,module,exports){
 /**
  * Minimal Event interface implementation
  *
@@ -12535,7 +13513,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"./core":90}],92:[function(require,module,exports){
+},{"./core":92}],94:[function(require,module,exports){
 /**
  * @depend fake_xdomain_request.js
  * @depend fake_xml_http_request.js
@@ -12784,7 +13762,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"../format":79,"./core":90,"./fake_xdomain_request":95,"./fake_xml_http_request":96}],93:[function(require,module,exports){
+},{"../format":81,"./core":92,"./fake_xdomain_request":97,"./fake_xml_http_request":98}],95:[function(require,module,exports){
 /**
  * @depend fake_server.js
  * @depend fake_timers.js
@@ -12887,7 +13865,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"./core":90,"./fake_server":92,"./fake_timers":94}],94:[function(require,module,exports){
+},{"./core":92,"./fake_server":94,"./fake_timers":96}],96:[function(require,module,exports){
 /**
  * Fake timer API
  * setTimeout
@@ -12962,7 +13940,7 @@ if (typeof sinon === "undefined") {
     }
 }());
 
-},{"./core":90,"lolex":69}],95:[function(require,module,exports){
+},{"./core":92,"lolex":71}],97:[function(require,module,exports){
 (function (global){
 /**
  * @depend core.js
@@ -13206,7 +14184,7 @@ if (typeof sinon === "undefined") {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"../extend":78,"../log_error":80,"./core":90,"./event":91}],96:[function(require,module,exports){
+},{"../extend":80,"../log_error":82,"./core":92,"./event":93}],98:[function(require,module,exports){
 (function (global){
 /**
  * @depend core.js
@@ -13950,7 +14928,7 @@ if (typeof sinon === "undefined") {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"../extend":78,"../log_error":80,"./core":90,"./event":91}],97:[function(require,module,exports){
+},{"../extend":80,"../log_error":82,"./core":92,"./event":93}],99:[function(require,module,exports){
 /**
  * @depend util/core.js
  */
@@ -13974,7 +14952,7 @@ if (typeof sinon === "undefined") {
             }
 
             Object.getOwnPropertyNames(obj).forEach(function (k) {
-                if (!seen[k]) {
+                if (seen[k] !== true) {
                     seen[k] = true;
                     var target = typeof Object.getOwnPropertyDescriptor(obj, k).get === "function" ?
                         originalObj : obj;
@@ -14031,14 +15009,14 @@ if (typeof sinon === "undefined") {
     typeof sinon === "object" && sinon // eslint-disable-line no-undef
 ));
 
-},{"./util/core":90}],98:[function(require,module,exports){
+},{"./util/core":92}],100:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],99:[function(require,module,exports){
+},{}],101:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -14629,7 +15607,7 @@ function hasOwnProperty(obj, prop) {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./support/isBuffer":98,"_process":71,"inherits":67}],100:[function(require,module,exports){
+},{"./support/isBuffer":100,"_process":73,"inherits":69}],102:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -14791,7 +15769,7 @@ var DDHelper = function () {
 
 exports['default'] = DDHelper;
 
-},{"./functions/dotProp":113,"component-clone":3}],101:[function(require,module,exports){
+},{"./functions/dotProp":115,"component-clone":3}],103:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -14893,7 +15871,7 @@ var DDStorage = function () {
 
 exports['default'] = DDStorage;
 
-},{"./functions/dotProp":113}],102:[function(require,module,exports){
+},{"./functions/dotProp":115}],104:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -14969,6 +15947,9 @@ var DigitalDataEnricher = function () {
     // define required digitalData structure
     this.enrichStructure();
 
+    // fire session started event if this is new session
+    this.fireSessionStarted();
+
     // persist some default behaviours
     this.persistUserData();
 
@@ -14988,6 +15969,8 @@ var DigitalDataEnricher = function () {
     // when all enrichments are done
     this.listenToUserDataChanges();
     this.listenToEvents();
+
+    this.ddStorage.setLastEventTimestamp(Date.now());
   };
 
   DigitalDataEnricher.prototype.listenToEvents = function listenToEvents() {
@@ -15007,6 +15990,7 @@ var DigitalDataEnricher = function () {
     // enrich DDL based on semantic events
     this.ddListener.push(['on', 'event', function (event) {
       _this.enrichIsReturningStatus();
+      _this.ddStorage.setLastEventTimestamp(Date.now());
 
       if (event.name === 'Subscribed') {
         var email = (0, _dotProp.getProp)(event, 'user.email');
@@ -15023,6 +16007,15 @@ var DigitalDataEnricher = function () {
     this.ddListener.push(['on', 'change:user', function () {
       _this2.persistUserData();
     }]);
+  };
+
+  DigitalDataEnricher.prototype.fireSessionStarted = function fireSessionStarted() {
+    var lastEventTimestamp = this.ddStorage.getLastEventTimestamp();
+    if (!lastEventTimestamp || Date.now() - lastEventTimestamp > this.options.sessionLength * 1000) {
+      this.digitalData.events.push({
+        name: 'Session Started',
+        includeIntegrations: [] });
+    }
   };
 
   DigitalDataEnricher.prototype.enrichDefaultUserData = function enrichDefaultUserData() {
@@ -15066,12 +16059,10 @@ var DigitalDataEnricher = function () {
   DigitalDataEnricher.prototype.enrichIsReturningStatus = function enrichIsReturningStatus() {
     var lastEventTimestamp = this.ddStorage.getLastEventTimestamp();
     var user = this.digitalData.user;
-    var now = Date.now();
-    if (!user.isReturning && lastEventTimestamp && now - lastEventTimestamp > this.options.sessionLength * 1000) {
+    if (!user.isReturning && lastEventTimestamp && Date.now() - lastEventTimestamp > this.options.sessionLength * 1000) {
       this.digitalData.user.isReturning = true;
       this.ddStorage.persist('user.isReturning');
     }
-    this.ddStorage.setLastEventTimestamp(now);
   };
 
   DigitalDataEnricher.prototype.enrichHasSubscribed = function enrichHasSubscribed(email) {
@@ -15109,6 +16100,7 @@ var DigitalDataEnricher = function () {
     } else {
       this.digitalData.transaction = this.digitalData.transaction || {};
     }
+    this.digitalData.events = this.digitalData.events || [];
   };
 
   DigitalDataEnricher.prototype.enrichPageData = function enrichPageData() {
@@ -15233,7 +16225,7 @@ var DigitalDataEnricher = function () {
 
 exports['default'] = DigitalDataEnricher;
 
-},{"./functions/dotProp":113,"./functions/htmlGlobals.js":117,"./functions/semver.js":124}],103:[function(require,module,exports){
+},{"./functions/dotProp":115,"./functions/htmlGlobals.js":119,"./functions/semver.js":126}],105:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -15325,6 +16317,7 @@ var EventDataEnricher = function () {
         }
       }
     }
+    integration.overrideEvent(enrichedEvent);
     return enrichedEvent;
   };
 
@@ -15442,7 +16435,7 @@ var EventDataEnricher = function () {
 
 exports['default'] = EventDataEnricher;
 
-},{"./DDHelper.js":100,"./functions/dotProp":113,"component-clone":3,"component-type":5}],104:[function(require,module,exports){
+},{"./DDHelper.js":102,"./functions/dotProp":115,"component-clone":3,"component-type":5}],106:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -15850,7 +16843,7 @@ var EventManager = function () {
 
 exports['default'] = EventManager;
 
-},{"./DDHelper.js":100,"./EventDataEnricher.js":103,"./functions/after.js":111,"./functions/deleteProperty.js":112,"./functions/jsonIsEqual.js":118,"./functions/noop.js":122,"./functions/size.js":125,"async":2,"component-clone":3,"debug":64}],105:[function(require,module,exports){
+},{"./DDHelper.js":102,"./EventDataEnricher.js":105,"./functions/after.js":113,"./functions/deleteProperty.js":114,"./functions/jsonIsEqual.js":120,"./functions/noop.js":124,"./functions/size.js":127,"async":2,"component-clone":3,"debug":66}],107:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -15928,12 +16921,32 @@ var Integration = function (_EventEmitter) {
     var _this = _possibleConstructorReturn(this, _EventEmitter.call(this));
 
     _this.options = options;
+    if (options && options.overrideFunctions) {
+      _this.defineOverrideFunctions(options.overrideFunctions);
+    }
     _this.digitalData = digitalData;
     _this.tags = tags || {};
     _this.onLoad = _this.onLoad.bind(_this);
     _this._isEnriched = false;
     return _this;
   }
+
+  Integration.prototype.defineOverrideFunctions = function defineOverrideFunctions(overrideFunctions) {
+    if (overrideFunctions.event) {
+      this.overrideEvent = overrideFunctions.event.bind(this);
+    }
+    if (overrideFunctions.product) {
+      this.overrideProduct = overrideFunctions.product.bind(this);
+    }
+  };
+
+  Integration.prototype.overrideProduct = function overrideProduct() {
+    // abstract
+  };
+
+  Integration.prototype.overrideEvent = function overrideEvent() {
+    // abstract
+  };
 
   Integration.prototype.initialize = function initialize() {
     var onLoad = this.onLoad;
@@ -16069,7 +17082,7 @@ var Integration = function (_EventEmitter) {
 
 exports['default'] = Integration;
 
-},{"./functions/deleteProperty.js":112,"./functions/each.js":114,"./functions/format.js":115,"./functions/loadIframe.js":119,"./functions/loadPixel.js":120,"./functions/loadScript.js":121,"./functions/noop.js":122,"async":2,"component-emitter":4,"debug":64}],106:[function(require,module,exports){
+},{"./functions/deleteProperty.js":114,"./functions/each.js":116,"./functions/format.js":117,"./functions/loadIframe.js":121,"./functions/loadPixel.js":122,"./functions/loadScript.js":123,"./functions/noop.js":124,"async":2,"component-emitter":4,"debug":66}],108:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16145,7 +17158,7 @@ var Storage = function () {
 
 exports['default'] = Storage;
 
-},{"lockr":68}],107:[function(require,module,exports){
+},{"lockr":70}],109:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16382,7 +17395,7 @@ var ViewabilityTracker = function () {
 
 exports['default'] = ViewabilityTracker;
 
-},{"./functions/noop.js":122}],108:[function(require,module,exports){
+},{"./functions/noop.js":124}],110:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16443,6 +17456,10 @@ var _Emarsys = require('./integrations/Emarsys.js');
 
 var _Emarsys2 = _interopRequireDefault(_Emarsys);
 
+var _Sociomantic = require('./integrations/Sociomantic.js');
+
+var _Sociomantic2 = _interopRequireDefault(_Sociomantic);
+
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
@@ -16461,12 +17478,13 @@ var integrations = {
   'myTarget': _MyTarget2['default'],
   'Yandex Metrica': _YandexMetrica2['default'],
   'Vkontakte': _Vkontakte2['default'],
-  'Emarsys': _Emarsys2['default']
+  'Emarsys': _Emarsys2['default'],
+  'Sociomantic': _Sociomantic2['default']
 };
 
 exports['default'] = integrations;
 
-},{"./integrations/Criteo.js":127,"./integrations/Driveback.js":128,"./integrations/Emarsys.js":129,"./integrations/FacebookPixel.js":130,"./integrations/GoogleAdWords.js":131,"./integrations/GoogleAnalytics.js":132,"./integrations/GoogleTagManager.js":133,"./integrations/MyTarget.js":134,"./integrations/OWOXBIStreaming.js":135,"./integrations/RetailRocket.js":136,"./integrations/SegmentStream.js":137,"./integrations/SendPulse.js":138,"./integrations/Vkontakte.js":139,"./integrations/YandexMetrica.js":140}],109:[function(require,module,exports){
+},{"./integrations/Criteo.js":129,"./integrations/Driveback.js":130,"./integrations/Emarsys.js":131,"./integrations/FacebookPixel.js":132,"./integrations/GoogleAdWords.js":133,"./integrations/GoogleAnalytics.js":134,"./integrations/GoogleTagManager.js":135,"./integrations/MyTarget.js":136,"./integrations/OWOXBIStreaming.js":137,"./integrations/RetailRocket.js":138,"./integrations/SegmentStream.js":139,"./integrations/SendPulse.js":140,"./integrations/Sociomantic.js":141,"./integrations/Vkontakte.js":142,"./integrations/YandexMetrica.js":143}],111:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -16729,7 +17747,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.2.9',
+  VERSION: '1.2.10',
 
   setAvailableIntegrations: function setAvailableIntegrations(availableIntegrations) {
     _availableIntegrations = availableIntegrations;
@@ -16894,7 +17912,7 @@ ddManager.on = ddManager.addEventListener = function (event, handler) {
 
 exports['default'] = ddManager;
 
-},{"./DDHelper":100,"./DDStorage":101,"./DigitalDataEnricher":102,"./EventDataEnricher":103,"./EventManager":104,"./Integration":105,"./Storage":106,"./ViewabilityTracker":107,"./functions/after":111,"./functions/each":114,"./functions/size":125,"./testMode":142,"async":2,"component-clone":3,"component-emitter":4}],110:[function(require,module,exports){
+},{"./DDHelper":102,"./DDStorage":103,"./DigitalDataEnricher":104,"./EventDataEnricher":105,"./EventManager":106,"./Integration":107,"./Storage":108,"./ViewabilityTracker":109,"./functions/after":113,"./functions/each":116,"./functions/size":127,"./testMode":145,"async":2,"component-clone":3,"component-emitter":4}],112:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16914,7 +17932,7 @@ var REMOVED_PRODUCT = exports.REMOVED_PRODUCT = 'Removed Product';
 var VIEWED_CAMPAIGN = exports.VIEWED_CAMPAIGN = 'Viewed Campaign';
 var CLICKED_CAMPAIGN = exports.CLICKED_CAMPAIGN = 'Clicked Campaign';
 
-},{}],111:[function(require,module,exports){
+},{}],113:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -16928,7 +17946,7 @@ exports["default"] = function (times, fn) {
   };
 };
 
-},{}],112:[function(require,module,exports){
+},{}],114:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -16941,7 +17959,7 @@ exports["default"] = function (obj, prop) {
   }
 };
 
-},{}],113:[function(require,module,exports){
+},{}],115:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -16999,7 +18017,7 @@ function setProp(obj, prop, value) {
 
 exports['default'] = { getProp: getProp, setProp: setProp };
 
-},{}],114:[function(require,module,exports){
+},{}],116:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -17012,7 +18030,7 @@ exports["default"] = function (obj, fn) {
   }
 };
 
-},{}],115:[function(require,module,exports){
+},{}],117:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -17051,7 +18069,7 @@ function format(str) {
   });
 }
 
-},{}],116:[function(require,module,exports){
+},{}],118:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -17066,7 +18084,7 @@ function getVarValue(variable, source) {
   return (0, _dotProp.getProp)(source, variable.value);
 }
 
-},{"./dotProp":113}],117:[function(require,module,exports){
+},{"./dotProp":115}],119:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -17084,7 +18102,7 @@ exports["default"] = {
   }
 };
 
-},{}],118:[function(require,module,exports){
+},{}],120:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -17099,7 +18117,7 @@ function jsonIsEqual(json1, json2) {
   return json1 === json2;
 }
 
-},{}],119:[function(require,module,exports){
+},{}],121:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -17159,7 +18177,7 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":123,"async":2}],120:[function(require,module,exports){
+},{"./scriptOnLoad.js":125,"async":2}],122:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -17195,7 +18213,7 @@ function error(fn, message, img) {
   };
 }
 
-},{}],121:[function(require,module,exports){
+},{}],123:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -17254,14 +18272,14 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-},{"./scriptOnLoad.js":123,"async":2}],122:[function(require,module,exports){
+},{"./scriptOnLoad.js":125,"async":2}],124:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
 
 exports["default"] = function () {};
 
-},{}],123:[function(require,module,exports){
+},{}],125:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -17316,7 +18334,7 @@ function attachEvent(el, fn) {
   });
 }
 
-},{}],124:[function(require,module,exports){
+},{}],126:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -17337,7 +18355,7 @@ function cmp(a, b) {
 
 exports['default'] = { cmp: cmp };
 
-},{}],125:[function(require,module,exports){
+},{}],127:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -17350,7 +18368,7 @@ exports["default"] = function (obj) {
   return size;
 };
 
-},{}],126:[function(require,module,exports){
+},{}],128:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -17377,7 +18395,7 @@ function throwError(code, message) {
   throw error;
 }
 
-},{"debug":64}],127:[function(require,module,exports){
+},{"debug":66}],129:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -17700,7 +18718,7 @@ var Criteo = function (_Integration) {
 
 exports['default'] = Criteo;
 
-},{"./../Integration.js":105,"./../functions/deleteProperty":112,"./../functions/dotProp":113,"./../functions/semver":124}],128:[function(require,module,exports){
+},{"./../Integration.js":107,"./../functions/deleteProperty":114,"./../functions/dotProp":115,"./../functions/semver":126}],130:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -17806,7 +18824,7 @@ var Driveback = function (_Integration) {
 
 exports['default'] = Driveback;
 
-},{"./../Integration.js":105,"./../functions/deleteProperty.js":112,"./../functions/noop.js":122}],129:[function(require,module,exports){
+},{"./../Integration.js":107,"./../functions/deleteProperty.js":114,"./../functions/noop.js":124}],131:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -17860,9 +18878,10 @@ function calculateLineItemSubtotal(lineItem) {
   return price * quantity;
 }
 
-function mapLineItems(lineItems) {
-  return lineItems.map(function mapLineItem(lineItem) {
+function mapLineItems(lineItems, overrideProduct) {
+  return lineItems.map(function (lineItem) {
     var product = lineItem.product;
+    overrideProduct(product);
     var lineItemSubtotal = lineItem.subtotal || calculateLineItemSubtotal(lineItem);
     return {
       item: product.id || product.skuCode,
@@ -17986,7 +19005,7 @@ var Emarsys = function (_Integration) {
       window.ScarabQueue.push(['setCustomerId', user.userId]);
     }
     if (cart.lineItems && cart.lineItems.length > 0) {
-      window.ScarabQueue.push(['cart', mapLineItems(cart.lineItems)]);
+      window.ScarabQueue.push(['cart', mapLineItems(cart.lineItems, this.overrideProduct)]);
     } else {
       window.ScarabQueue.push(['cart', []]);
     }
@@ -18011,6 +19030,7 @@ var Emarsys = function (_Integration) {
 
   Emarsys.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
     var product = event.product || {};
+    this.overrideProduct(product);
     if (product.id || product.skuCode) {
       window.ScarabQueue.push(['view', product.id || product.skuCode]);
     }
@@ -18030,7 +19050,7 @@ var Emarsys = function (_Integration) {
     if (transaction.orderId && transaction.lineItems) {
       window.ScarabQueue.push(['purchase', {
         orderId: transaction.orderId,
-        items: mapLineItems(transaction.lineItems)
+        items: mapLineItems(transaction.lineItems, this.overrideProduct)
       }]);
     }
     go();
@@ -18041,7 +19061,7 @@ var Emarsys = function (_Integration) {
 
 exports['default'] = Emarsys;
 
-},{"./../Integration.js":105,"./../functions/deleteProperty.js":112}],130:[function(require,module,exports){
+},{"./../Integration.js":107,"./../functions/deleteProperty.js":114}],132:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -18256,7 +19276,7 @@ var FacebookPixel = function (_Integration) {
 
 exports['default'] = FacebookPixel;
 
-},{"./../Integration.js":105,"./../functions/deleteProperty.js":112,"component-type":5}],131:[function(require,module,exports){
+},{"./../Integration.js":107,"./../functions/deleteProperty.js":114,"component-type":5}],133:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -18511,7 +19531,7 @@ var GoogleAdWords = function (_Integration) {
 
 exports['default'] = GoogleAdWords;
 
-},{"./../Integration.js":105,"./../functions/deleteProperty.js":112}],132:[function(require,module,exports){
+},{"./../Integration.js":107,"./../functions/deleteProperty.js":114}],134:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -18946,7 +19966,7 @@ var GoogleAnalytics = function (_Integration) {
       if (event.name === _events.COMPLETED_TRANSACTION && !this.getOption('noConflict')) {
         this.onCompletedTransaction(event);
       } else {
-        if ([_events.VIEWED_PRODUCT_DETAIL, _events.VIEWED_PRODUCT_CATEGORY, _events.SEARCHED_PRODUCTS, _events.COMPLETED_TRANSACTION, _events.VIEWED_CART].indexOf(event.name) < 0) {
+        if ([_events.VIEWED_PRODUCT_DETAIL, _events.VIEWED_PRODUCT_CATEGORY, _events.SEARCHED_PRODUCTS, _events.COMPLETED_TRANSACTION, _events.VIEWED_CART, _events.VIEWED_PRODUCT, _events.CLICKED_PRODUCT, _events.ADDED_PRODUCT, _events.REMOVED_PRODUCT, _events.VIEWED_CHECKOUT_STEP, _events.COMPLETED_CHECKOUT_STEP].indexOf(event.name) < 0) {
           this.onCustomEvent(event);
         }
       }
@@ -19347,7 +20367,7 @@ var GoogleAnalytics = function (_Integration) {
 
 exports['default'] = GoogleAnalytics;
 
-},{"./../Integration.js":105,"./../events":110,"./../functions/deleteProperty.js":112,"./../functions/dotProp":113,"./../functions/each.js":114,"./../functions/size.js":125,"./../variableTypes":143,"component-clone":3}],133:[function(require,module,exports){
+},{"./../Integration.js":107,"./../events":112,"./../functions/deleteProperty.js":114,"./../functions/dotProp":115,"./../functions/each.js":116,"./../functions/size.js":127,"./../variableTypes":146,"component-clone":3}],135:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -19447,7 +20467,7 @@ var GoogleTagManager = function (_Integration) {
 
 exports['default'] = GoogleTagManager;
 
-},{"./../Integration.js":105,"./../functions/deleteProperty.js":112}],134:[function(require,module,exports){
+},{"./../Integration.js":107,"./../functions/deleteProperty.js":114}],136:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -19699,7 +20719,7 @@ var MyTarget = function (_Integration) {
 
 exports['default'] = MyTarget;
 
-},{"./../Integration":105,"./../functions/deleteProperty":112,"./../functions/getVarValue":116}],135:[function(require,module,exports){
+},{"./../Integration":107,"./../functions/deleteProperty":114,"./../functions/getVarValue":118}],137:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -19809,7 +20829,7 @@ var OWOXBIStreaming = function (_Integration) {
 
 exports['default'] = OWOXBIStreaming;
 
-},{"./../Integration.js":105}],136:[function(require,module,exports){
+},{"./../Integration.js":107}],138:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -20242,7 +21262,7 @@ var RetailRocket = function (_Integration) {
 
 exports['default'] = RetailRocket;
 
-},{"./../Integration.js":105,"./../functions/deleteProperty":112,"./../functions/dotProp":113,"./../functions/each":114,"./../functions/format":115,"./../functions/getVarValue":116,"./../functions/throwError":126,"component-type":5}],137:[function(require,module,exports){
+},{"./../Integration.js":107,"./../functions/deleteProperty":114,"./../functions/dotProp":115,"./../functions/each":116,"./../functions/format":117,"./../functions/getVarValue":118,"./../functions/throwError":128,"component-type":5}],139:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -20429,7 +21449,7 @@ var SegmentStream = function (_Integration) {
 
 exports['default'] = SegmentStream;
 
-},{"./../Integration.js":105,"./../functions/deleteProperty.js":112,"./../functions/each.js":114}],138:[function(require,module,exports){
+},{"./../Integration.js":107,"./../functions/deleteProperty.js":114,"./../functions/each.js":116}],140:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -20661,7 +21681,302 @@ var SendPulse = function (_Integration) {
 
 exports['default'] = SendPulse;
 
-},{"./../Integration.js":105,"./../functions/deleteProperty.js":112,"./../functions/dotProp":113,"component-type":5}],139:[function(require,module,exports){
+},{"./../Integration.js":107,"./../functions/deleteProperty.js":114,"./../functions/dotProp":115,"component-type":5}],141:[function(require,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+exports.__esModule = true;
+
+var _sha = require('crypto-js/sha256');
+
+var _sha2 = _interopRequireDefault(_sha);
+
+var _Integration2 = require('./../Integration.js');
+
+var _Integration3 = _interopRequireDefault(_Integration2);
+
+var _deleteProperty = require('./../functions/deleteProperty.js');
+
+var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
+
+var _events = require('./../events');
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === 'undefined' ? 'undefined' : _typeof(superClass)));
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+function lineItemsToSociomanticsItems(lineItems) {
+  var products = [];
+  for (var i = 0, length = lineItems.length; i < length; i++) {
+    var lineItem = lineItems[i];
+    if (lineItem && lineItem.product) {
+      var productId = lineItem.product.id || lineItem.product.skuCode;
+      if (productId) {
+        var product = {
+          identifier: String(productId),
+          amount: lineItem.product.unitSalePrice || lineItem.product.unitPrice || 0,
+          quantity: lineItem.quantity || 1,
+          currency: lineItem.product.currency || ''
+        };
+        products.push(product);
+      }
+    }
+  }
+  return products;
+}
+
+function deleteEmptyProperties(objName) {
+  var keys = Object.keys(window[objName]);
+  keys.map(function (key) {
+    if (window[objName][key] === '') {
+      (0, _deleteProperty2['default'])(window[objName], key);
+    }
+  });
+}
+
+var Sociomantic = function (_Integration) {
+  _inherits(Sociomantic, _Integration);
+
+  function Sociomantic(digitalData, options) {
+    _classCallCheck(this, Sociomantic);
+
+    var optionsWithDefaults = Object.assign({
+      region: '',
+      advertiserToken: '',
+      prefix: ''
+    }, options);
+
+    var _this = _possibleConstructorReturn(this, _Integration.call(this, digitalData, optionsWithDefaults));
+
+    var region = _this.getOption('region') || '';
+    var regionPrefix = region ? region + '-' : '';
+    var advertiserToken = _this.getOption('advertiserToken');
+    var src = '//' + regionPrefix + 'sonar.sociomantic.com/js/2010-07-01/adpan/' + advertiserToken;
+
+    _this.addTag({
+      type: 'script',
+      attr: {
+        type: 'text/javascript',
+        async: true,
+        src: src
+      }
+    });
+
+    _this._isLoaded = false;
+    _this.trackingScriptCalled = false;
+    return _this;
+  }
+
+  Sociomantic.prototype.initialize = function initialize() {
+    this._isLoaded = true;
+    this.onLoad();
+  };
+
+  Sociomantic.prototype.isLoaded = function isLoaded() {
+    var advertiserToken = this.getOption('advertiserToken');
+    return window.sociomantic && window.sociomantic.sonar && window.sociomantic.sonar.adv[advertiserToken];
+  };
+
+  Sociomantic.prototype.loadTrackingScript = function loadTrackingScript() {
+    var advertiserToken = this.getOption('advertiserToken');
+    if (this.isLoaded()) {
+      window.sociomantic.sonar.adv[advertiserToken].track();
+    } else {
+      this.load();
+    }
+    this.trackingScriptCalled = true;
+  };
+
+  Sociomantic.prototype.clearTrackingObjects = function clearTrackingObjects() {
+    var advertiserToken = this.getOption('advertiserToken');
+    if (this.isLoaded()) {
+      window.sociomantic.sonar.adv[advertiserToken].clear();
+    }
+    this.trackingScriptCalled = false;
+  };
+
+  Sociomantic.prototype.reset = function reset() {
+    (0, _deleteProperty2['default'])(window, 'sociomantic');
+  };
+
+  Sociomantic.prototype.getEnrichableEventProps = function getEnrichableEventProps(event) {
+    var enrichableProps = [];
+    switch (event.name) {
+      case _events.VIEWED_PAGE:
+        enrichableProps = ['page.type', 'user.userId', 'user.email'];
+        break;
+      case _events.VIEWED_PRODUCT_DETAIL:
+        enrichableProps = ['product'];
+        break;
+      case _events.VIEWED_PRODUCT_CATEGORY:
+        enrichableProps = ['listing.category'];
+        break;
+      case _events.VIEWED_CART:
+        enrichableProps = ['cart.lineItems'];
+        break;
+      case _events.SEARCHED_PRODUCTS:
+        enrichableProps = ['listing.category'];
+        break;
+      case _events.COMPLETED_TRANSACTION:
+        enrichableProps = ['transaction'];
+        break;
+      default:
+      // do nothing
+    }
+
+    return enrichableProps;
+  };
+
+  Sociomantic.prototype.trackEvent = function trackEvent(event) {
+    var _methods;
+
+    var methods = (_methods = {}, _methods[_events.VIEWED_PAGE] = 'onViewedPage', _methods[_events.VIEWED_PRODUCT_DETAIL] = 'onViewedProductDetail', _methods[_events.VIEWED_PRODUCT_CATEGORY] = 'onViewedProductListing', _methods[_events.VIEWED_CART] = 'onViewedCart', _methods[_events.COMPLETED_TRANSACTION] = 'onCompletedTransaction', _methods[_events.SEARCHED_PRODUCTS] = 'onViewedProductListing', _methods);
+
+    var method = methods[event.name];
+    if (method) {
+      if (this.trackingScriptCalled) {
+        this.clearTrackingObjects();
+      }
+      this[method](event);
+    }
+  };
+
+  Sociomantic.prototype.onViewedPage = function onViewedPage(event) {
+    var _this2 = this;
+
+    var prefix = this.getOption('prefix');
+    var trackingObjectCustomerName = prefix + 'customer';
+    var user = event.user;
+    var page = event.page;
+    var specialPages = ['product', 'category', 'cart', 'search', 'confirmation'];
+
+    if (user && (user.userId || user.email)) {
+      var userId = void 0;
+      var userEmailHash = void 0;
+      if (user.userId) {
+        userId = String(user.userId);
+      }
+      if (user.email) {
+        userEmailHash = (0, _sha2['default'])(user.email).toString();
+      }
+      window[trackingObjectCustomerName] = {
+        identifier: userId || '',
+        mhash: userEmailHash || ''
+      };
+      deleteEmptyProperties(trackingObjectCustomerName);
+    }
+
+    if (page && specialPages.indexOf(page.type) < 0) {
+      this.loadTrackingScript();
+    } else {
+      setTimeout(function () {
+        if (!_this2.trackingScriptCalled) {
+          _this2.loadTrackingScript();
+        }
+      }, 100);
+    }
+  };
+
+  Sociomantic.prototype.onViewedProductDetail = function onViewedProductDetail(event) {
+    var prefix = this.getOption('prefix');
+    var trackingObjectName = prefix + 'product';
+    var product = event.product;
+
+    if (product && (product.id || product.skuCode)) {
+      var productId = void 0;
+      var productSkuCode = void 0;
+      if (product.id) {
+        productId = String(product.id);
+      }
+      if (product.skuCode) {
+        productSkuCode = String(product.skuCode);
+      }
+      window[trackingObjectName] = {
+        identifier: productId || productSkuCode
+      };
+      this.loadTrackingScript();
+    }
+  };
+
+  Sociomantic.prototype.onViewedProductListing = function onViewedProductListing(event) {
+    var prefix = this.getOption('prefix');
+    var trackingObjectName = prefix + 'product';
+    var listing = event.listing;
+
+    if (listing && listing.category && listing.category.length) {
+      window[trackingObjectName] = {
+        category: listing.category
+      };
+      this.loadTrackingScript();
+    }
+  };
+
+  Sociomantic.prototype.onViewedCart = function onViewedCart(event) {
+    var prefix = this.getOption('prefix');
+    var trackingObjectBasketName = prefix + 'basket';
+    var cart = event.cart;
+
+    if (cart && cart.lineItems) {
+      var products = lineItemsToSociomanticsItems(cart.lineItems);
+      if (products.length) {
+        window[trackingObjectBasketName] = {
+          products: products
+        };
+        this.loadTrackingScript();
+      }
+    }
+  };
+
+  Sociomantic.prototype.onCompletedTransaction = function onCompletedTransaction(event) {
+    var prefix = this.getOption('prefix');
+    var trackingObjectBasketName = prefix + 'basket';
+    var transaction = event.transaction;
+
+    if (transaction && transaction.lineItems) {
+      var products = lineItemsToSociomanticsItems(transaction.lineItems);
+      if (products.length) {
+        var transactionOrderId = void 0;
+        if (transaction.orderId) {
+          transactionOrderId = String(transaction.orderId);
+        }
+        window[trackingObjectBasketName] = {
+          products: products,
+          transaction: transactionOrderId || '',
+          amount: transaction.total || '',
+          currency: transaction.currency || ''
+        };
+        deleteEmptyProperties(trackingObjectBasketName);
+      }
+    }
+
+    this.loadTrackingScript();
+  };
+
+  return Sociomantic;
+}(_Integration3['default']);
+
+exports['default'] = Sociomantic;
+
+},{"./../Integration.js":107,"./../events":112,"./../functions/deleteProperty.js":114,"crypto-js/sha256":65}],142:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -20740,7 +22055,7 @@ var Vkontakte = function (_Integration) {
 
 exports['default'] = Vkontakte;
 
-},{"./../Integration.js":105}],140:[function(require,module,exports){
+},{"./../Integration.js":107}],143:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -20993,7 +22308,7 @@ var YandexMetrica = function (_Integration) {
 
 exports['default'] = YandexMetrica;
 
-},{"./../Integration.js":105,"./../functions/deleteProperty.js":112}],141:[function(require,module,exports){
+},{"./../Integration.js":107,"./../functions/deleteProperty.js":114}],144:[function(require,module,exports){
 'use strict';
 
 require('core-js/modules/es6.object.create');
@@ -21016,7 +22331,7 @@ require('core-js/modules/es6.date.to-iso-string');
 
 require('core-js/modules/es6.date.now');
 
-},{"core-js/modules/es6.array.filter":54,"core-js/modules/es6.array.index-of":55,"core-js/modules/es6.array.is-array":56,"core-js/modules/es6.array.map":57,"core-js/modules/es6.date.now":58,"core-js/modules/es6.date.to-iso-string":59,"core-js/modules/es6.function.bind":60,"core-js/modules/es6.object.assign":61,"core-js/modules/es6.object.create":62,"core-js/modules/es6.string.trim":63}],142:[function(require,module,exports){
+},{"core-js/modules/es6.array.filter":54,"core-js/modules/es6.array.index-of":55,"core-js/modules/es6.array.is-array":56,"core-js/modules/es6.array.map":57,"core-js/modules/es6.date.now":58,"core-js/modules/es6.date.to-iso-string":59,"core-js/modules/es6.function.bind":60,"core-js/modules/es6.object.assign":61,"core-js/modules/es6.object.create":62,"core-js/modules/es6.string.trim":63}],145:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -21072,7 +22387,7 @@ function logEnrichedIntegrationEvent(event, integrationName) {
 
 exports['default'] = { isTestMode: isTestMode, showTestModeOverlay: showTestModeOverlay };
 
-},{"./functions/noop":122}],143:[function(require,module,exports){
+},{"./functions/noop":124}],146:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -21081,7 +22396,7 @@ var DIGITALDATA_VAR = exports.DIGITALDATA_VAR = 'digitalData';
 var EVENT_VAR = exports.EVENT_VAR = 'event';
 var PRODUCT_VAR = exports.PRODUCT_VAR = 'product';
 
-},{}],144:[function(require,module,exports){
+},{}],147:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -21287,7 +22602,7 @@ describe('DDHelper', function () {
   });
 });
 
-},{"./../src/DDHelper.js":100,"assert":1}],145:[function(require,module,exports){
+},{"./../src/DDHelper.js":102,"assert":1}],148:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -21352,7 +22667,7 @@ describe('DDStorage', function () {
   });
 });
 
-},{"./../src/DDStorage.js":101,"./../src/Storage.js":106,"assert":1}],146:[function(require,module,exports){
+},{"./../src/DDStorage.js":103,"./../src/Storage.js":108,"assert":1}],149:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -21650,6 +22965,30 @@ describe('DigitalDataEnricher', function () {
       }, 110);
     });
 
+    it('should fire Started Session event', function (done) {
+      _digitalData = {};
+      _ddStorage = new _DDStorage2['default'](_digitalData, new _Storage2['default']());
+      _ddStorage.clear(); // to prevent using previous lastEventTimestamp value
+      _digitalDataEnricher.setDigitalData(_digitalData);
+      _digitalDataEnricher.setDDStorage(_ddStorage);
+      _digitalDataEnricher.setOption('sessionLength', 0.1);
+      _digitalDataEnricher.enrichDigitalData();
+
+      _assert2['default'].equal(_digitalData.events[0].name, 'Session Started');
+
+      _digitalDataEnricher.enrichDigitalData();
+
+      _assert2['default'].ok(!_digitalData.events[1]);
+
+      setTimeout(function () {
+        _digitalDataEnricher.enrichDigitalData();
+        setTimeout(function () {
+          _assert2['default'].equal(_digitalData.events[1].name, 'Session Started');
+          done();
+        }, 202);
+      }, 110);
+    });
+
     it('should update user.hasTransacted and user.lastTransactionDate', function () {
       _digitalData = {
         user: {
@@ -21679,7 +23018,7 @@ describe('DigitalDataEnricher', function () {
   });
 });
 
-},{"./../src/DDStorage.js":101,"./../src/DigitalDataEnricher.js":102,"./../src/Storage.js":106,"./../src/functions/deleteProperty.js":112,"assert":1,"sinon":73}],147:[function(require,module,exports){
+},{"./../src/DDStorage.js":103,"./../src/DigitalDataEnricher.js":104,"./../src/Storage.js":108,"./../src/functions/deleteProperty.js":114,"assert":1,"sinon":75}],150:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -21693,6 +23032,10 @@ var _deleteProperty2 = _interopRequireDefault(_deleteProperty);
 var _EventDataEnricher = require('./../src/EventDataEnricher.js');
 
 var _EventDataEnricher2 = _interopRequireDefault(_EventDataEnricher);
+
+var _Emarsys = require('./../src/integrations/Emarsys');
+
+var _Emarsys2 = _interopRequireDefault(_Emarsys);
 
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { 'default': obj };
@@ -22119,9 +23462,46 @@ describe('EventDataEnricher', function () {
       _assert2['default'].ok(_digitalData.campaigns[0].category === 'Banner', 'digitalData.campaigns[0].category is not equal to "Banner"');
     });
   });
+
+  describe('#enrichIntegrationData', function () {
+    var emarsys = new _Emarsys2['default'](_digitalData, {
+      merchantId: 'XXX',
+      overrideFunctions: {
+        product: function product(_product) {
+          _product.id = 's/' + _product.id;
+        },
+        event: function event(_event) {
+          if (_event.name === 'Test') {
+            _event.prop1 = 'test2';
+          }
+        }
+      }
+    });
+
+    it('should override event data', function () {
+      var event = {
+        name: 'Test',
+        prop1: 'test1'
+      };
+      var enrichedEvent = _EventDataEnricher2['default'].enrichIntegrationData(event, _digitalData, emarsys);
+      _assert2['default'].equal(enrichedEvent.prop1, 'test2');
+    });
+
+    it('should override product data', function () {
+      var event = {
+        name: 'Viewed Product Detail',
+        product: {
+          id: '123'
+        }
+      };
+      emarsys.initialize();
+      emarsys.trackEvent(event);
+      _assert2['default'].equal(window.ScarabQueue[0][1], 's/123');
+    });
+  });
 });
 
-},{"./../src/EventDataEnricher.js":103,"./../src/functions/deleteProperty.js":112,"assert":1}],148:[function(require,module,exports){
+},{"./../src/EventDataEnricher.js":105,"./../src/functions/deleteProperty.js":114,"./../src/integrations/Emarsys":131,"assert":1}],151:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -22715,7 +24095,7 @@ describe('EventManager', function () {
   });
 });
 
-},{"./../src/EventManager.js":104,"./reset.js":166,"assert":1}],149:[function(require,module,exports){
+},{"./../src/EventManager.js":106,"./reset.js":170,"assert":1}],152:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -22894,20 +24274,6 @@ describe('DDManager', function () {
       }
     });
 
-    it('it should fire fire "Viewed Page" event if autoEvents == true', function (done) {
-      _ddManager2['default'].initialize({
-        autoEvents: false
-      });
-      if (_ddManager2['default'].isReady()) {
-        _ddManager2['default'].once('ready', function () {
-          _assert2['default'].ok(window.digitalData.events.length === 0);
-          done();
-        });
-      } else {
-        _assert2['default'].ok(false);
-      }
-    });
-
     it('it should enrich digital data', function (done) {
       _ddManager2['default'].initialize();
       if (_ddManager2['default'].isReady()) {
@@ -23015,6 +24381,7 @@ describe('DDManager', function () {
       _sinon2['default'].stub(integration2, 'trackEvent');
       _sinon2['default'].stub(integration3, 'trackEvent');
 
+      window.localStorage.clear(); // clear
       _ddManager2['default'].addIntegration('integration1', integration1);
       _ddManager2['default'].addIntegration('integration2', integration2);
       _ddManager2['default'].addIntegration('integration3', integration3);
@@ -23024,6 +24391,7 @@ describe('DDManager', function () {
     });
 
     afterEach(function () {
+      _ddManager2['default'].reset();
       integration1.trackEvent.restore();
       integration2.trackEvent.restore();
       integration3.trackEvent.restore();
@@ -23068,10 +24436,16 @@ describe('DDManager', function () {
         }
       });
     });
+
+    it('should not send Session Started event', function () {
+      _assert2['default'].ok(!integration1.trackEvent.called);
+      _assert2['default'].ok(!integration2.trackEvent.called);
+      _assert2['default'].ok(!integration2.trackEvent.called);
+    });
   });
 });
 
-},{"../src/Integration.js":105,"../src/availableIntegrations.js":108,"../src/ddManager.js":109,"./reset.js":166,"./snippet.js":167,"assert":1,"sinon":73}],150:[function(require,module,exports){
+},{"../src/Integration.js":107,"../src/availableIntegrations.js":110,"../src/ddManager.js":111,"./reset.js":170,"./snippet.js":171,"assert":1,"sinon":75}],153:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -23083,7 +24457,7 @@ function argumentsToArray(args) {
   return Array.prototype.slice.call(args);
 }
 
-},{}],151:[function(require,module,exports){
+},{}],154:[function(require,module,exports){
 'use strict';
 
 require('./../src/polyfill.js');
@@ -23128,7 +24502,9 @@ require('./integrations/VkontakteSpec.js');
 
 require('./integrations/EmarsysSpec.js');
 
-},{"./../src/polyfill.js":141,"./DDHelperSpec.js":144,"./DDStorageSpec.js":145,"./DigitalDataEnricherSpec.js":146,"./EventDataEnricherSpec.js":147,"./EventManagerSpec.js":148,"./ddManagerSpec.js":149,"./integrations/CriteoSpec.js":152,"./integrations/DrivebackSpec.js":153,"./integrations/EmarsysSpec.js":154,"./integrations/FacebookPixelSpec.js":155,"./integrations/GoogleAdWordsSpec.js":156,"./integrations/GoogleAnalyticsSpec.js":157,"./integrations/GoogleTagManagerSpec.js":158,"./integrations/MyTargetSpec.js":159,"./integrations/OWOXBIStreamingSpec.js":160,"./integrations/RetailRocketSpec.js":161,"./integrations/SegmentStreamSpec.js":162,"./integrations/SendPulseSpec.js":163,"./integrations/VkontakteSpec.js":164,"./integrations/YandexMetricaSpec.js":165}],152:[function(require,module,exports){
+require('./integrations/SociomanticSpec.js');
+
+},{"./../src/polyfill.js":144,"./DDHelperSpec.js":147,"./DDStorageSpec.js":148,"./DigitalDataEnricherSpec.js":149,"./EventDataEnricherSpec.js":150,"./EventManagerSpec.js":151,"./ddManagerSpec.js":152,"./integrations/CriteoSpec.js":155,"./integrations/DrivebackSpec.js":156,"./integrations/EmarsysSpec.js":157,"./integrations/FacebookPixelSpec.js":158,"./integrations/GoogleAdWordsSpec.js":159,"./integrations/GoogleAnalyticsSpec.js":160,"./integrations/GoogleTagManagerSpec.js":161,"./integrations/MyTargetSpec.js":162,"./integrations/OWOXBIStreamingSpec.js":163,"./integrations/RetailRocketSpec.js":164,"./integrations/SegmentStreamSpec.js":165,"./integrations/SendPulseSpec.js":166,"./integrations/SociomanticSpec.js":167,"./integrations/VkontakteSpec.js":168,"./integrations/YandexMetricaSpec.js":169}],155:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -24111,7 +25487,7 @@ describe('Integrations: Criteo', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/Criteo.js":127,"./../reset.js":166,"assert":1,"sinon":73}],153:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/integrations/Criteo.js":129,"./../reset.js":170,"assert":1,"sinon":75}],156:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -24201,7 +25577,7 @@ describe('Integrations: Driveback', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/Driveback.js":128,"./../reset.js":166,"assert":1}],154:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/integrations/Driveback.js":130,"./../reset.js":170,"assert":1}],157:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -24660,7 +26036,7 @@ describe('Integrations: Emarsys', function () {
   });
 });
 
-},{"./../../src/ddManager":109,"./../../src/integrations/Emarsys":129,"./../reset":166,"assert":1,"sinon":73}],155:[function(require,module,exports){
+},{"./../../src/ddManager":111,"./../../src/integrations/Emarsys":131,"./../reset":170,"assert":1,"sinon":75}],158:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -25110,7 +26486,7 @@ describe('Integrations: FacebookPixel', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/FacebookPixel.js":130,"./../reset.js":166,"assert":1,"sinon":73}],156:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/integrations/FacebookPixel.js":132,"./../reset.js":170,"assert":1,"sinon":75}],159:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -25636,7 +27012,7 @@ describe('Integrations: GoogleAdWords', function () {
   });
 });
 
-},{"./../../src/ddManager":109,"./../../src/integrations/GoogleAdWords":131,"./../reset":166,"assert":1,"sinon":73}],157:[function(require,module,exports){
+},{"./../../src/ddManager":111,"./../../src/integrations/GoogleAdWords":133,"./../reset":170,"assert":1,"sinon":75}],160:[function(require,module,exports){
 'use strict';
 
 var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
@@ -27886,7 +29262,7 @@ describe('Integrations: GoogleAnalytics', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/functions/after.js":111,"./../../src/integrations/GoogleAnalytics.js":132,"./../functions/argumentsToArray.js":150,"./../reset.js":166,"assert":1,"sinon":73}],158:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/functions/after.js":113,"./../../src/integrations/GoogleAnalytics.js":134,"./../functions/argumentsToArray.js":153,"./../reset.js":170,"assert":1,"sinon":75}],161:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -28066,7 +29442,7 @@ describe('Integrations: GoogleTagManager', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/GoogleTagManager.js":133,"./../reset.js":166,"assert":1}],159:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/integrations/GoogleTagManager.js":135,"./../reset.js":170,"assert":1}],162:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -28594,7 +29970,7 @@ describe('Integrations: MyTarget', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/MyTarget.js":134,"./../reset.js":166,"assert":1,"sinon":73}],160:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/integrations/MyTarget.js":136,"./../reset.js":170,"assert":1,"sinon":75}],163:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -28695,7 +30071,7 @@ describe('Integrations: OWOXBIStreaming', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/GoogleAnalytics.js":132,"./../../src/integrations/OWOXBIStreaming.js":135,"./../functions/argumentsToArray.js":150,"./../reset.js":166,"assert":1,"sinon":73}],161:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/integrations/GoogleAnalytics.js":134,"./../../src/integrations/OWOXBIStreaming.js":137,"./../functions/argumentsToArray.js":153,"./../reset.js":170,"assert":1,"sinon":75}],164:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -29604,7 +30980,7 @@ describe('Integrations: RetailRocket', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/functions/deleteProperty.js":112,"./../../src/integrations/RetailRocket.js":136,"./../reset.js":166,"assert":1,"sinon":73}],162:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/functions/deleteProperty.js":114,"./../../src/integrations/RetailRocket.js":138,"./../reset.js":170,"assert":1,"sinon":75}],165:[function(require,module,exports){
 'use strict';
 
 var _SegmentStream = require('./../../src/integrations/SegmentStream.js');
@@ -29778,7 +31154,7 @@ describe('SegmentStream', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/SegmentStream.js":137,"./../reset.js":166,"assert":1,"sinon":73}],163:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/integrations/SegmentStream.js":139,"./../reset.js":170,"assert":1,"sinon":75}],166:[function(require,module,exports){
 'use strict';
 
 var _SendPulse = require('./../../src/integrations/SendPulse.js');
@@ -30023,7 +31399,531 @@ describe('SendPulse', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/functions/after.js":111,"./../../src/functions/deleteProperty.js":112,"./../../src/integrations/SendPulse.js":138,"./../reset.js":166,"assert":1,"sinon":73}],164:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/functions/after.js":113,"./../../src/functions/deleteProperty.js":114,"./../../src/integrations/SendPulse.js":140,"./../reset.js":170,"assert":1,"sinon":75}],167:[function(require,module,exports){
+'use strict';
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _sinon = require('sinon');
+
+var _sinon2 = _interopRequireDefault(_sinon);
+
+var _reset = require('./../reset.js');
+
+var _reset2 = _interopRequireDefault(_reset);
+
+var _Sociomantic = require('./../../src/integrations/Sociomantic.js');
+
+var _Sociomantic2 = _interopRequireDefault(_Sociomantic);
+
+var _ddManager = require('./../../src/ddManager.js');
+
+var _ddManager2 = _interopRequireDefault(_ddManager);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+describe('Integrations: Sociomantic', function () {
+  var sociomantic = void 0;
+  var options = {
+    region: 'eu',
+    advertiserToken: 'aizel-ru',
+    prefix: 'sonar_'
+  };
+
+  beforeEach(function () {
+    window.digitalData = {
+      website: {},
+      page: {},
+      product: {},
+      listing: {},
+      cart: {},
+      transaction: {},
+      user: {},
+      events: []
+    };
+    sociomantic = new _Sociomantic2['default'](window.digitalData, options);
+    _ddManager2['default'].addIntegration('Sociomantic', sociomantic);
+  });
+
+  afterEach(function () {
+    sociomantic.reset();
+    _ddManager2['default'].reset();
+    (0, _reset2['default'])();
+  });
+
+  describe('before loading', function () {
+    describe('#constructor', function () {
+      it('should add options', function () {
+        _assert2['default'].equal(options.region, sociomantic.getOption('region'));
+        _assert2['default'].equal(options.advertiserToken, sociomantic.getOption('advertiserToken'));
+        _assert2['default'].equal(options.prefix, sociomantic.getOption('prefix'));
+      });
+    });
+  });
+
+  describe('before loading', function () {
+    describe('#initialize', function () {
+      it('should call ready after initialization', function () {
+        _sinon2['default'].stub(sociomantic, 'onLoad');
+        _ddManager2['default'].initialize();
+        _assert2['default'].ok(sociomantic.onLoad.calledOnce);
+        sociomantic.onLoad.restore();
+      });
+    });
+  });
+
+  describe('after loading', function () {
+    beforeEach(function (done) {
+      _sinon2['default'].spy(sociomantic, 'loadTrackingScript');
+      _sinon2['default'].spy(sociomantic, 'clearTrackingObjects');
+      _ddManager2['default'].once('ready', done);
+      _ddManager2['default'].initialize({
+        autoEvents: false
+      });
+    });
+
+    afterEach(function () {
+      sociomantic.loadTrackingScript.restore();
+      sociomantic.clearTrackingObjects.restore();
+    });
+
+    describe('#onViewedPage', function () {
+      beforeEach(function () {
+        window[options.prefix + 'customer'] = undefined;
+        window[options.prefix + 'basket'] = undefined;
+      });
+
+      it('should set customer object if user visits any pages', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          user: {
+            userId: 55123
+          },
+          page: {
+            type: 'home'
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window[options.prefix + 'customer'], { identifier: '55123' });
+            _assert2['default'].ok(sociomantic.loadTrackingScript.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should set customer object if user visits any pages', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          user: {
+            email: 'test@driveback.ru'
+          },
+          page: {
+            type: 'home'
+          },
+          callback: function callback() {
+            var hash = '0e1fe3da996f0c7089514661961912be86d73adf59dc0e689ebdc3e67a897ba9';
+            _assert2['default'].equal(window[options.prefix + 'customer'].mhash, hash);
+            _assert2['default'].ok(sociomantic.loadTrackingScript.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should not set customer object if user is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'home'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'customer']);
+            _assert2['default'].ok(sociomantic.loadTrackingScript.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should not set customer object if user ID and email are not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          user: {},
+          page: {
+            type: 'home'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'customer']);
+            _assert2['default'].ok(sociomantic.loadTrackingScript.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should not set global basket object', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'basket']);
+            done();
+          }
+        });
+      });
+
+      it('should call tracking code after timeout on specials pages', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'product'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!sociomantic.loadTrackingScript.called, 'tracker should not be called');
+            window.digitalData.events.push({
+              name: 'Viewed Product Detail',
+              product: {},
+              callback: function callback() {
+                setTimeout(function () {
+                  _assert2['default'].ok(sociomantic.loadTrackingScript.calledOnce, 'tracker should be called once');
+                  done();
+                }, 101);
+              }
+            });
+          }
+        });
+      });
+
+      it('should track single page application', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'product'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!sociomantic.loadTrackingScript.called, 'tracker should not be called');
+            window.digitalData.events.push({
+              name: 'Viewed Product Detail',
+              product: {
+                id: '114123'
+              },
+              callback: function callback() {
+                _assert2['default'].ok(sociomantic.loadTrackingScript.calledOnce, 'tracker should be called once');
+                done();
+                window.digitalData.events.push({
+                  name: 'Viewed Page',
+                  page: {
+                    type: 'content'
+                  },
+                  callback: function callback() {
+                    _assert2['default'].ok(sociomantic.loadTrackingScript.calledTwice, 'tracker should be called twice');
+                    done();
+                  }
+                });
+              }
+            });
+          }
+        });
+      });
+
+      it('should track single page application with special second page', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'product'
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!sociomantic.loadTrackingScript.called, 'tracker should not be called');
+            window.digitalData.events.push({
+              name: 'Viewed Product Detail',
+              product: {
+                id: '114123'
+              },
+              callback: function callback() {
+                _assert2['default'].ok(sociomantic.loadTrackingScript.calledOnce, 'tracker should be called once');
+                window.digitalData.events.push({
+                  name: 'Viewed Page',
+                  page: {
+                    type: 'product'
+                  },
+                  callback: function callback() {
+                    setTimeout(function () {
+                      _assert2['default'].ok(sociomantic.loadTrackingScript.calledTwice, 'tracker should be called twice');
+                      done();
+                    }, 101);
+                  }
+                });
+              }
+            });
+          }
+        });
+      });
+    });
+
+    describe('#onViewedProductDetail', function () {
+      beforeEach(function () {
+        window[options.prefix + 'product'] = undefined;
+      });
+
+      it('should set product object if user visits product detail page', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {
+            id: '123'
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window[options.prefix + 'product'], { identifier: '123' });
+            _assert2['default'].ok(sociomantic.loadTrackingScript.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should delete product object on the another single page ', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {
+            id: '123'
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window[options.prefix + 'product'], { identifier: '123' });
+            window.digitalData.events.push({
+              name: 'Viewed Page',
+              user: {
+                userId: 55123
+              },
+              page: {
+                type: 'home'
+              },
+              callback: function callback() {
+                _assert2['default'].deepEqual(window[options.prefix + 'customer'], { identifier: '55123' });
+                _assert2['default'].ok(sociomantic.loadTrackingScript.calledTwice);
+                _assert2['default'].ok(sociomantic.clearTrackingObjects.calledOnce);
+                done();
+              }
+            });
+          }
+        });
+      });
+
+      it('should not set product object if product is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'product']);
+            _assert2['default'].ok(!sociomantic.loadTrackingScript.called);
+            done();
+          }
+        });
+      });
+
+      it('should not set product object if product ID is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {},
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'product']);
+            _assert2['default'].ok(!sociomantic.loadTrackingScript.called);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onViewedProductListing', function () {
+      beforeEach(function () {
+        window[options.prefix + 'product'] = undefined;
+      });
+
+      it('should set global product object if user visits product category page', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          listing: {
+            category: ['shoes', 'female']
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window[options.prefix + 'product'], { category: ['shoes', 'female'] });
+            _assert2['default'].ok(sociomantic.loadTrackingScript.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should not set global product object if listing is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'product']);
+            _assert2['default'].ok(!sociomantic.loadTrackingScript.called);
+            done();
+          }
+        });
+      });
+
+      it('should not set product object if listing category is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          listing: {},
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'product']);
+            _assert2['default'].ok(!sociomantic.loadTrackingScript.called);
+            done();
+          }
+        });
+      });
+
+      it('should not set product object if listing category is empty', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          listing: {
+            category: []
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'product']);
+            _assert2['default'].ok(!sociomantic.loadTrackingScript.called);
+            done();
+          }
+        });
+      });
+
+      it('should set global product object if user search products', function (done) {
+        window.digitalData.events.push({
+          name: 'Searched Products',
+          listing: {
+            category: ['shoes', 'female']
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window[options.prefix + 'product'], { category: ['shoes', 'female'] });
+            _assert2['default'].ok(sociomantic.loadTrackingScript.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should not set global product object if listing is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Searched Products',
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'product']);
+            _assert2['default'].ok(!sociomantic.loadTrackingScript.called);
+            done();
+          }
+        });
+      });
+
+      it('should not set product object if listing category is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Searched Products',
+          listing: {},
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'product']);
+            _assert2['default'].ok(!sociomantic.loadTrackingScript.called);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onViewedCart', function () {
+      beforeEach(function () {
+        window[options.prefix + 'basket'] = undefined;
+      });
+
+      it('should set global basket object if user visits cart page', function (done) {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          user: {
+            userId: 55123
+          },
+          page: {
+            type: 'cart'
+          },
+          callback: function callback() {
+            window.digitalData.events.push({
+              name: 'Viewed Cart',
+              cart: {
+                lineItems: [{ product: { id: 34343877, currency: 'RUB', unitSalePrice: 10990, unitPrice: 12990 }, quantity: 1 }, { product: { id: 34343872, currency: 'RUB', unitSalePrice: 11990, unitPrice: 13990 }, quantity: 2 }]
+              },
+              callback: function callback() {
+                _assert2['default'].deepEqual(window[options.prefix + 'basket'], {
+                  products: [{ identifier: '34343877', amount: 10990, currency: 'RUB', quantity: 1 }, { identifier: '34343872', amount: 11990, currency: 'RUB', quantity: 2 }]
+                });
+                _assert2['default'].ok(sociomantic.loadTrackingScript.calledOnce, 'should called once');
+                done();
+              }
+            });
+          }
+        });
+      });
+    });
+
+    describe('#onCompletedTransaction', function () {
+      beforeEach(function () {
+        window[options.prefix + 'basket'] = undefined;
+      });
+
+      it('should set global basket object if user visits completed transaction page', function (done) {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          transaction: {
+            orderId: 'ASFASDAS12321',
+            total: 2.99,
+            currency: 'EUR',
+            lineItems: [{ product: { id: 34343877, currency: 'RUB', unitSalePrice: 10990, unitPrice: 12990 }, quantity: 1 }, { product: { id: 34343872, currency: 'RUB', unitSalePrice: 11990, unitPrice: 13990 }, quantity: 2 }]
+          },
+          callback: function callback() {
+            _assert2['default'].deepEqual(window[options.prefix + 'basket'], {
+              products: [{ identifier: '34343877', amount: 10990, currency: 'RUB', quantity: 1 }, { identifier: '34343872', amount: 11990, currency: 'RUB', quantity: 2 }],
+              transaction: 'ASFASDAS12321',
+              amount: 2.99,
+              currency: 'EUR'
+            });
+            _assert2['default'].ok(sociomantic.loadTrackingScript.calledOnce);
+            done();
+          }
+        });
+      });
+
+      it('should not set global basket object if transaction is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'basket']);
+            _assert2['default'].ok(sociomantic.loadTrackingScript.called);
+            done();
+          }
+        });
+      });
+
+      it('should not set global basket object if transaction lineitems is not defined', function (done) {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          transaction: {},
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'basket']);
+            _assert2['default'].ok(sociomantic.loadTrackingScript.called);
+            done();
+          }
+        });
+      });
+
+      it('should not set global basket object if transaction lineitems is empty', function (done) {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          transaction: {
+            lineItems: []
+          },
+          callback: function callback() {
+            _assert2['default'].ok(!window[options.prefix + 'basket']);
+            _assert2['default'].ok(sociomantic.loadTrackingScript.called);
+            done();
+          }
+        });
+      });
+    });
+  });
+});
+
+},{"./../../src/ddManager.js":111,"./../../src/integrations/Sociomantic.js":141,"./../reset.js":170,"assert":1,"sinon":75}],168:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -30145,7 +32045,7 @@ describe('Integrations: Vkontakte', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/Vkontakte.js":139,"./../reset.js":166,"assert":1,"sinon":73}],165:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/integrations/Vkontakte.js":142,"./../reset.js":170,"assert":1,"sinon":75}],169:[function(require,module,exports){
 'use strict';
 
 var _assert = require('assert');
@@ -30728,7 +32628,7 @@ describe('Integrations: Yandex Metrica', function () {
   });
 });
 
-},{"./../../src/ddManager.js":109,"./../../src/integrations/YandexMetrica.js":140,"./../reset.js":166,"assert":1,"sinon":73}],166:[function(require,module,exports){
+},{"./../../src/ddManager.js":111,"./../../src/integrations/YandexMetrica.js":143,"./../reset.js":170,"assert":1,"sinon":75}],170:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -30739,7 +32639,7 @@ function reset() {
   window.ddManager = undefined;
 }
 
-},{}],167:[function(require,module,exports){
+},{}],171:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -30788,5 +32688,5 @@ exports['default'] = function () {
   }
 };
 
-},{}]},{},[151])
+},{}]},{},[154])
 //# sourceMappingURL=dd-manager-test.js.map

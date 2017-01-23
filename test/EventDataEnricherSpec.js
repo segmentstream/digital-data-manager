@@ -1,6 +1,7 @@
 import assert from 'assert';
 import deleteProperty from './../src/functions/deleteProperty.js';
 import EventDataEnricher from './../src/EventDataEnricher.js';
+import Emarsys from './../src/integrations/Emarsys';
 
 describe('EventDataEnricher', () => {
 
@@ -445,6 +446,43 @@ describe('EventDataEnricher', () => {
       assert.ok(_digitalData.campaigns[0].category === 'Banner', 'digitalData.campaigns[0].category is not equal to "Banner"');
     });
 
+  });
+
+  describe('#enrichIntegrationData', () => {
+    const emarsys = new Emarsys(_digitalData, {
+      merchantId: 'XXX',
+      overrideFunctions: {
+        product: function(product) {
+          product.id = 's/' + product.id;
+        },
+        event: function(event) {
+          if (event.name === 'Test') {
+            event.prop1 = 'test2';
+          }
+        }
+      }
+    });
+
+    it('should override event data', () => {
+      const event = {
+        name: 'Test',
+        prop1: 'test1'
+      };
+      const enrichedEvent = EventDataEnricher.enrichIntegrationData(event, _digitalData, emarsys);
+      assert.equal(enrichedEvent.prop1, 'test2');
+    });
+
+    it('should override product data', () => {
+      const event = {
+        name: 'Viewed Product Detail',
+        product: {
+          id: '123'
+        }
+      };
+      emarsys.initialize();
+      emarsys.trackEvent(event);
+      assert.equal(window.ScarabQueue[0][1], 's/123');
+    });
   });
 
 });

@@ -41,6 +41,7 @@ class EventDataEnricher
         }
       }
     }
+    integration.overrideEvent(enrichedEvent);
     return enrichedEvent;
   }
 
