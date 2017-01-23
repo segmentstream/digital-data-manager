@@ -402,6 +402,10 @@ class GoogleAnalytics extends Integration {
           SEARCHED_PRODUCTS,
           COMPLETED_TRANSACTION,
           VIEWED_CART,
+          VIEWED_PRODUCT,
+          CLICKED_PRODUCT,
+          ADDED_PRODUCT,
+          REMOVED_PRODUCT,
         ].indexOf(event.name) < 0) {
           this.onCustomEvent(event);
         }
