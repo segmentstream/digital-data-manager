@@ -7716,20 +7716,20 @@ function useColors() {
   // NB: In an Electron preload script, document will be defined but not fully
   // initialized. Since we know we're in Chrome, we'll just detect this case
   // explicitly
-  if (typeof window !== 'undefined' && typeof window.process !== 'undefined' && window.process.type === 'renderer') {
+  if (typeof window !== 'undefined' && window && typeof window.process !== 'undefined' && window.process.type === 'renderer') {
     return true;
   }
 
   // is webkit? http://stackoverflow.com/a/16459606/376773
   // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
-  return (typeof document !== 'undefined' && 'WebkitAppearance' in document.documentElement.style) ||
+  return (typeof document !== 'undefined' && document && 'WebkitAppearance' in document.documentElement.style) ||
     // is firebug? http://stackoverflow.com/a/398120/376773
-    (typeof window !== 'undefined' && window.console && (console.firebug || (console.exception && console.table))) ||
+    (typeof window !== 'undefined' && window && window.console && (console.firebug || (console.exception && console.table))) ||
     // is firefox >= v31?
     // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
-    (navigator && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
+    (typeof navigator !== 'undefined' && navigator && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
     // double check webkit in userAgent just in case we are in a worker
-    (navigator && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
+    (typeof navigator !== 'undefined' && navigator && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
 }
 
 /**
@@ -7855,11 +7855,6 @@ function localstorage() {
   try {
     return window.localStorage;
   } catch (e) {}
-}
-
-/** Attach to Window*/
-if (window) {
-  window.debug = exports;
 }
 
 }).call(this,require('_process'))
@@ -12029,11 +12024,15 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
             }
 
             if (types) {
+                // A new descriptor is needed here because we can only wrap functions
+                // By passing the original descriptor we would end up trying to spy non-function properties
+                var descriptor = {};
                 var methodDesc = sinon.getPropertyDescriptor(object, property);
+
                 for (var i = 0; i < types.length; i++) {
-                    methodDesc[types[i]] = spy.create(methodDesc[types[i]]);
+                    descriptor[types[i]] = spy.create(methodDesc[types[i]]);
                 }
-                return sinon.wrapMethod(object, property, methodDesc);
+                return sinon.wrapMethod(object, property, descriptor);
             }
 
             return sinon.wrapMethod(object, property, spy.create(object[property]));
@@ -13082,7 +13081,8 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
 
             // IE 8 does not support hasOwnProperty on the window object and Firefox has a problem
             // when using hasOwn.call on objects from other frames.
-            var owned = object.hasOwnProperty ? object.hasOwnProperty(property) : hasOwn.call(object, property);
+            var owned = (object.hasOwnProperty && object.hasOwnProperty === hasOwn) ?
+                object.hasOwnProperty(property) : hasOwn.call(object, property);
 
             if (hasES5Support) {
                 var methodDesc = (typeof method === "function") ? {value: method} : method;
@@ -13146,9 +13146,17 @@ var sinon = (function () { // eslint-disable-line no-unused-vars
                     Object.defineProperty(object, property, wrappedMethodDesc);
                 }
 
+                // this only supports ES5 getter/setter, for ES3.1 and lower
+                // __lookupSetter__ / __lookupGetter__ should be integrated
+                if (hasES5Support) {
+                    var checkDesc = sinon.getPropertyDescriptor(object, property);
+                    if (checkDesc.value === method) {
+                        object[property] = wrappedMethod;
+                    }
+
                 // Use strict equality comparison to check failures then force a reset
                 // via direct assignment.
-                if (object[property] === method) {
+                } else if (object[property] === method) {
                     object[property] = wrappedMethod;
                 }
             };
@@ -14944,7 +14952,7 @@ if (typeof sinon === "undefined") {
             }
 
             Object.getOwnPropertyNames(obj).forEach(function (k) {
-                if (!seen[k]) {
+                if (seen[k] !== true) {
                     seen[k] = true;
                     var target = typeof Object.getOwnPropertyDescriptor(obj, k).get === "function" ?
                         originalObj : obj;
