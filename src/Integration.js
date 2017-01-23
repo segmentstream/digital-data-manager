@@ -32,11 +32,11 @@ class Integration extends EventEmitter
     }
   }
 
-  overrideProduct(product) {
+  overrideProduct() {
     // abstract
   }
 
-  overrideEvent(event) {
+  overrideEvent() {
     // abstract
   }
 
