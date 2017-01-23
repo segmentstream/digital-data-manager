@@ -18,78 +18,78 @@ module.exports = function(config) {
 
   if (process.env.SAUCE_ENABLED == "true") {
     customLaunchers = {
-      slIe8Win7: {
+      // slIe8Win7: {
+      //   base: 'SauceLabs',
+      //   browserName: 'internet explorer',
+      //   platform: 'Windows XP',
+      //   version: '8'
+      // },
+      slChromeWinXp: {
+        base: 'SauceLabs',
+        browserName: 'chrome',
+        platform: 'Windows XP'
+      },
+      slIe10Win7: {
         base: 'SauceLabs',
         browserName: 'internet explorer',
-        platform: 'Windows XP',
-        version: '8'
+        platform: 'Windows 7',
+        version: '10'
       },
-      // slChromeWinXp: {
-      //   base: 'SauceLabs',
-      //   browserName: 'chrome',
-      //   platform: 'Windows XP'
-      // },
-      // slIe10Win7: {
-      //   base: 'SauceLabs',
-      //   browserName: 'internet explorer',
-      //   platform: 'Windows 7',
-      //   version: '10'
-      // },
-      // slIe9Win7: {
-      //   base: 'SauceLabs',
-      //   browserName: 'internet explorer',
-      //   platform: 'Windows 7',
-      //   version: '9'
-      // },
-      // slIe11Win10: {
-      //   base: 'SauceLabs',
-      //   browserName: 'internet explorer',
-      //   platform: 'Windows 10',
-      //   version: '11'
-      // },
-      // slME25Win10: {
-      //   base: 'SauceLabs',
-      //   browserName: 'microsoftedge',
-      //   platform: 'Windows 10',
-      //   version: '13'
-      // },
-      // slSafariOsx: {
-      //   base: 'SauceLabs',
-      //   browserName: 'safari',
-      //   platform: 'OS X 10.8'
-      // },
-      // slSafariOsx11: {
-      //   base: 'SauceLabs',
-      //   browserName: 'safari',
-      //   platform: 'OS X 10.11'
-      // },
-      // slOpera12Win7: {
-      //   base: 'SauceLabs',
-      //   browserName: 'opera',
-      //   platform: 'Windows 7',
-      //   version: '12.12'
-      // },
-      // slIphone: {
-      //   base: 'SauceLabs',
-      //   browserName: 'iphone',
-      //   platform: 'OS X 10.10',
-      //   version: '8.2',
-      //   deviceName: 'iPhone Simulator'
-      // },
-      // slIpad: {
-      //   base: 'SauceLabs',
-      //   browserName: 'iphone',
-      //   platform: 'OS X 10.10',
-      //   version: '8.2',
-      //   deviceName: 'iPad Simulator'
-      // },
-      // slAndroid: {
-      //   base: 'SauceLabs',
-      //   browserName: 'android',
-      //   platform: 'Linux',
-      //   version: '5.1',
-      //   deviceName: 'Android Emulator'
-      // }
+      slIe9Win7: {
+        base: 'SauceLabs',
+        browserName: 'internet explorer',
+        platform: 'Windows 7',
+        version: '9'
+      },
+      slIe11Win10: {
+        base: 'SauceLabs',
+        browserName: 'internet explorer',
+        platform: 'Windows 10',
+        version: '11'
+      },
+      slME25Win10: {
+        base: 'SauceLabs',
+        browserName: 'microsoftedge',
+        platform: 'Windows 10',
+        version: '13'
+      },
+      slSafariOsx: {
+        base: 'SauceLabs',
+        browserName: 'safari',
+        platform: 'OS X 10.8'
+      },
+      slSafariOsx11: {
+        base: 'SauceLabs',
+        browserName: 'safari',
+        platform: 'OS X 10.11'
+      },
+      slOpera12Win7: {
+        base: 'SauceLabs',
+        browserName: 'opera',
+        platform: 'Windows 7',
+        version: '12.12'
+      },
+      slIphone: {
+        base: 'SauceLabs',
+        browserName: 'iphone',
+        platform: 'OS X 10.10',
+        version: '8.2',
+        deviceName: 'iPhone Simulator'
+      },
+      slIpad: {
+        base: 'SauceLabs',
+        browserName: 'iphone',
+        platform: 'OS X 10.10',
+        version: '8.2',
+        deviceName: 'iPad Simulator'
+      },
+      slAndroid: {
+        base: 'SauceLabs',
+        browserName: 'android',
+        platform: 'Linux',
+        version: '5.1',
+        deviceName: 'Android Emulator'
+      }
     };
     browsers = Object.keys(customLaunchers);
   } else {
@@ -169,7 +169,7 @@ module.exports = function(config) {
 
     // level of logging
     // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
-    logLevel: config.LOG_DEBUG,
+    logLevel: config.LOG_ERROR,
 
 
     // enable / disable watching file and executing tests whenever any file changes
