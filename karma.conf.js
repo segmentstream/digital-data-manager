@@ -21,8 +21,8 @@ module.exports = function(config) {
       slIe8Win7: {
         base: 'SauceLabs',
         browserName: 'internet explorer',
-        platform: 'Windows 7',
-        version: '8.0'
+        platform: 'Windows XP',
+        version: '8'
       },
       slChromeWinXp: {
         base: 'SauceLabs',
@@ -186,14 +186,14 @@ module.exports = function(config) {
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
-    singleRun: false,
+    singleRun: true,
 
     // Concurrency level
     // how many browser should be started simultanous
-    concurrency: 5,
-
-    browserDisconnectTimeout: 10000,
-    browserDisconnectTolerance: 10,
-    browserNoActivityTimeout: 20000,
+    // concurrency: 5,
+    //
+    // browserDisconnectTimeout: 10000,
+    // browserDisconnectTolerance: 10,
+    // browserNoActivityTimeout: 20000,
   });
 };
