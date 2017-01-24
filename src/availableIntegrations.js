@@ -13,6 +13,7 @@ import YandexMetrica from './integrations/YandexMetrica.js';
 import Vkontakte from './integrations/Vkontakte.js';
 import Emarsys from './integrations/Emarsys.js';
 import Sociomantic from './integrations/Sociomantic.js';
+import Mindbox from './integrations/Mindbox.js';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -30,6 +31,7 @@ const integrations = {
   'Vkontakte': Vkontakte,
   'Emarsys': Emarsys,
   'Sociomantic': Sociomantic,
+  'Mindbox': Mindbox,
 };
 
 export default integrations;

@@ -24,3 +24,4 @@ import './integrations/YandexMetricaSpec.js';
 import './integrations/VkontakteSpec.js';
 import './integrations/EmarsysSpec.js';
 import './integrations/SociomanticSpec.js';
+import './integrations/MindboxSpec.js';
