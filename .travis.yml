@@ -4,4 +4,4 @@ node_js:
 addons:
   sauce_connect: true
 script:
-  - npm run travis
+  - npm run test

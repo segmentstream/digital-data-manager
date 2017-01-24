@@ -6,3 +6,5 @@ npm-debug.log
 sauce.json
 deploy
 sauce_connect.log
+build/*
+dist/*
