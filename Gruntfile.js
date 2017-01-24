@@ -49,7 +49,6 @@ module.exports = function(grunt) {
 
     grunt.loadNpmTasks('grunt-contrib-compress');
     grunt.loadNpmTasks('grunt-contrib-clean');
-    grunt.loadNpmTasks('grunt-contrib-rename');
     grunt.loadNpmTasks('grunt-aws-s3');
 
     // Default task(s).
