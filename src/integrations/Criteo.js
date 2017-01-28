@@ -28,6 +28,7 @@ class Criteo extends Integration {
     const optionsWithDefaults = Object.assign({
       account: '',
       noConflict: false,
+      customDeduplication: false,
       userSegmentVar: undefined,
     }, options);
 
@@ -268,24 +269,32 @@ class Criteo extends Integration {
     if (transaction && transaction.lineItems && transaction.lineItems.length > 0) {
       const products = lineItemsToCriteoItems(transaction.lineItems);
       if (products.length > 0) {
-        let deduplication = 0;
-        const context = event.context;
-        if (
-          context
-          && context.campaign
-          && context.campaign.source
-          && context.campaign.source.toLocaleLowerCase().indexOf('criteo') >= 0
-        ) {
-          deduplication = 1;
+        let customDeduplication = this.getOption('customDeduplication');
+        let deduplication;
+
+        const criteoEvent = {
+          event: 'trackTransaction',
+          id: transaction.orderId,
+          new_customer: (transaction.isFirst) ? 1 : 0,
+          item: products,
+        };
+
+        if (customDeduplication) {
+          const context = event.context;
+          if (
+            context
+            && context.campaign
+            && context.campaign.source
+            && context.campaign.source.toLocaleLowerCase().indexOf('criteo') >= 0
+          ) {
+            criteoEvent.deduplication = 1;
+          } else {
+            criteoEvent.deduplication = 0;
+          }
         }
+
         this.pushCriteoQueue(
-          {
-            event: 'trackTransaction',
-            id: transaction.orderId,
-            new_customer: (transaction.isFirst) ? 1 : 0,
-            deduplication: deduplication,
-            item: products,
-          },
+          criteoEvent,
           this.getUserSegment(event)
         );
       }

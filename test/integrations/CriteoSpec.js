@@ -860,7 +860,6 @@ describe('Integrations: Criteo', () => {
               event: 'trackTransaction',
               id: '123',
               new_customer: 1,
-              deduplication: 0,
               item: [
                 { id: '123', price: 100, quantity: 1 },
                 { id: '234', price: 50, quantity: 2 },
@@ -886,7 +885,6 @@ describe('Integrations: Criteo', () => {
               event: 'trackTransaction',
               id: '123',
               new_customer: 1,
-              deduplication: 0,
               item: [
                 { id: '123', price: 100, quantity: 1 },
                 { id: '234', price: 50, quantity: 2 },
@@ -912,7 +910,6 @@ describe('Integrations: Criteo', () => {
               event: 'trackTransaction',
               id: '123',
               new_customer: 0,
-              deduplication: 0,
               item: [
                 { id: '123', price: 100, quantity: 1 },
                 { id: '234', price: 50, quantity: 2 },
@@ -926,6 +923,7 @@ describe('Integrations: Criteo', () => {
       });
 
       it('should send trackTransaction event if transaction is completed (deduplication = 1)', (done) => {
+        criteo.setOption('customDeduplication', true);
         window.digitalData.events.push({
           name: 'Completed Transaction',
           context: {
@@ -956,7 +954,7 @@ describe('Integrations: Criteo', () => {
       });
 
       it('should send trackTransaction event if transaction is completed (deduplication = 0)', (done) => {
-        criteo.setOption('deduplication', false);
+        criteo.setOption('customDeduplication', false);
         window.digitalData.context = {
           campaign: {
             name: 'CriTeO'
@@ -973,12 +971,12 @@ describe('Integrations: Criteo', () => {
               event: 'trackTransaction',
               id: '123',
               new_customer: 0,
-              deduplication: 0,
               item: [
                 { id: '123', price: 100, quantity: 1 },
                 { id: '234', price: 50, quantity: 2 },
                 { id: '345', price: 30, quantity: 1 },
                 { id: '456', price: 0, quantity: 1 }
+
               ]
             });
             done();
