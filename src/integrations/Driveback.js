@@ -50,9 +50,9 @@ class Driveback extends Integration {
         }
       }
 
-      if (window.dbex) {
-        this.enrichDigitalData();
-      }
+      // if (window.dbex) {
+      //   this.enrichDigitalData();
+      // }
 
       this.load(this.onLoad);
     } else {
@@ -60,15 +60,15 @@ class Driveback extends Integration {
     }
   }
 
-  enrichDigitalData() {
-    window.dbex(() => {
-      this.digitalData.integrations = this.digitalData.integrations || {};
-      this.digitalData.integrations.driveback = {
-        experiments: window.dbex.getVariations(),
-      };
-      this.onEnrich();
-    });
-  }
+  // enrichDigitalData() {
+  //   window.dbex(() => {
+  //     this.digitalData.integrations = this.digitalData.integrations || {};
+  //     this.digitalData.integrations.driveback = {
+  //       experiments: window.dbex.getVariations(),
+  //     };
+  //     this.onEnrich();
+  //   });
+  // }
 
   isLoaded() {
     return !!(window.Driveback && window.Driveback.Loader);

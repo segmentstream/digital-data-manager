@@ -91,17 +91,8 @@ describe('Integrations: Driveback', () => {
     });
 
     it('should initialize dbex and fire callback function', (done) => {
-      const variationsData = {
-        'bject3c6f36d8-1d92-4de4-a989-3d86a1ca621a': 1,
-        'bc386a96-a5da-48bf-b45b-532c85644a8b': 0,
-      };
-      sinon.stub(window.dbex, 'getVariations', () => {
-        return variationsData;
-      });
       window.dbex(function() {
         assert.ok(true);
-        assert.ok(digitalData.integrations.driveback);
-        assert.deepEqual(digitalData.integrations.driveback.experiments, variationsData);
         done();
       });
     });
