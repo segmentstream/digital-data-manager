@@ -1,16 +1,19 @@
 import assert from 'assert';
 import reset from './../reset.js';
+import sinon from 'sinon';
 import Driveback from './../../src/integrations/Driveback.js';
 import ddManager from './../../src/ddManager.js';
 
 describe('Integrations: Driveback', () => {
   let driveback;
+  const digitalData = {};
   const options = {
     websiteToken: 'aba543e1-1413-5f77-a8c7-aaf6979208a3'
   };
 
   beforeEach(() => {
-    driveback = new Driveback(window.digitalData, options);
+
+    driveback = new Driveback(digitalData, options);
     ddManager.addIntegration('Driveback', driveback);
   });
 
@@ -88,8 +91,17 @@ describe('Integrations: Driveback', () => {
     });
 
     it('should initialize dbex and fire callback function', (done) => {
+      const variationsData = {
+        'bject3c6f36d8-1d92-4de4-a989-3d86a1ca621a': 1,
+        'bc386a96-a5da-48bf-b45b-532c85644a8b': 0,
+      };
+      sinon.stub(window.dbex, 'getVariations', () => {
+        return variationsData;
+      });
       window.dbex(function() {
         assert.ok(true);
+        assert.ok(digitalData.integrations.driveback);
+        assert.deepEqual(digitalData.integrations.driveback.experiments, variationsData);
         done();
       });
     });

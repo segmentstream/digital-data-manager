@@ -164,6 +164,26 @@ class Integration extends EventEmitter
   trackEvent() {
     // abstract
   }
+
+  on(event, handler) {
+    this.addEventListener(event, handler);
+  }
+
+  addEventListener(event, handler) {
+    if (event === 'enrich') {
+      if (this._isEnriched) {
+        handler();
+        return;
+      }
+    } else if (event === 'load') {
+      if (this.isLoaded()) {
+        handler();
+        return;
+      }
+    }
+
+    super.addEventListener(event, handler);
+  }
 }
 
 export default Integration;
