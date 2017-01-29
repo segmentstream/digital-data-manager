@@ -69,6 +69,30 @@ describe('Integrations: Driveback', () => {
       assert.ok(Array.isArray(DrivebackOnLoad));
       assert.ok(typeof window.DrivebackLoaderAsyncInit === 'function');
     });
+
+    it('should not add dbex snippet by default', () => {
+      assert.ok(!window.dbex);
+    });
+  });
+
+  describe('after loading with experiments', () => {
+    beforeEach((done) => {
+      driveback.setOption('experiments', true);
+      driveback.setOption('experimentsToken', '123123');
+      ddManager.once('load', done);
+      ddManager.initialize();
+    });
+
+    it('should add dbex snippet if specified in options', () => {
+      assert.ok(window.dbex);
+    });
+
+    it('should initialize dbex and fire callback function', (done) => {
+      window.dbex(function() {
+        assert.ok(true);
+        done();
+      });
+    });
   });
 
 });
