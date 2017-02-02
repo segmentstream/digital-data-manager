@@ -2,6 +2,16 @@ import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
 import type from 'component-type';
 
+function getProductCategory(product) {
+  let category = product.category;
+  if (Array.isArray(category)) {
+    category = category.join('/');
+  } else if (category && product.subcategory) {
+    category = category + '/' + product.subcategory;
+  }
+  return category;
+}
+
 class FacebookPixel extends Integration {
 
   constructor(digitalData, options) {
@@ -32,11 +42,31 @@ class FacebookPixel extends Integration {
       window.fbq.loaded = true;
       window.fbq.version = '2.0';
       window.fbq.queue = [];
-      this.load(this.ready);
+      this.load(this.onLoad);
       window.fbq('init', this.getOption('pixelId'));
     } else {
-      this.ready();
+      this.onLoad();
     }
+  }
+
+  getEnrichableEventProps(event) {
+    let enrichableProps = [];
+    switch (event.name) {
+    case 'Viewed Product Detail':
+      enrichableProps = [
+        'product',
+      ];
+      break;
+    case 'Completed Transaction':
+      enrichableProps = [
+        'transaction',
+      ];
+      break;
+    default:
+      // do nothing
+    }
+
+    return enrichableProps;
   }
 
   isLoaded() {
@@ -50,8 +80,6 @@ class FacebookPixel extends Integration {
   trackEvent(event) {
     if (event.name === 'Viewed Page') {
       this.onViewedPage();
-    } else if (event.name === 'Viewed Product Category') {
-      this.onViewedProductCategory(event.listing);
     } else if (event.name === 'Viewed Product Detail') {
       this.onViewedProductDetail(event.product);
     } else if (event.name === 'Added Product') {
@@ -84,26 +112,24 @@ class FacebookPixel extends Integration {
   }
 
   onViewedProductDetail(product) {
+    const category = getProductCategory(product);
     window.fbq('track', 'ViewContent', {
       content_ids: [product.id || product.skuCode || ''],
       content_type: 'product',
       content_name: product.name || '',
-      content_category: product.category || '',
-      currency: product.currency || '',
-      value: product.unitSalePrice || product.unitPrice || 0,
+      content_category: category || '',
     });
   }
 
   onAddedProduct(product, quantity) {
     if (product && type(product) === 'object') {
+      const category = getProductCategory(product);
       quantity = quantity || 1;
       window.fbq('track', 'AddToCart', {
         content_ids: [product.id || product.skuCode || ''],
         content_type: 'product',
         content_name: product.name || '',
-        content_category: product.category || '',
-        currency: product.currency || '',
-        value: quantity * (product.unitSalePrice || product.unitPrice || 0),
+        content_category: category || '',
       });
     }
   }

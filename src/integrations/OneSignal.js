@@ -97,7 +97,11 @@ class OneSignal extends Integration {
 
   trackEvent(event) {
     if (event.name === this.getOption('pushSubscriptionTriggerEvent')) {
+      // for https
       window.OneSignal.push(['registerForPushNotifications']);
+
+      // for http
+      window.OneSignal.push(['registerForPushNotifications', {httpPermissionRequest: true}]);
     }
   }
 }

@@ -108,72 +108,41 @@ describe('Integrations: GoogleAnalytics', () => {
           assert.ok(ga.load.calledOnce);
         });
 
-        it('should not send universal user id by default', function () {
+        it('should not send universal user id by default', function (done) {
           window.digitalData.user = {
-            id: 'baz'
+            userId: 'baz'
           };
+          window.digitalData.page = {};
           ddManager.initialize({
             autoEvents: false
           });
-          assert.notDeepEqual(argumentsToArray(window.ga.q[1]), ['set', 'userId', 'baz']);
+          digitalData.events.push({
+            name: 'Viewed Page',
+            callback: () => {
+              assert.notDeepEqual(argumentsToArray(window.ga.q[2]), ['set', 'userId', 'baz']);
+              done();
+            }
+          })
         });
 
-        it('should send universal user id if sendUserId option is true and user.id is truthy', function () {
+        it('should send universal user id if sendUserId option is true and user.id is truthy', function (done) {
           window.digitalData.user = {
-            id: 'baz'
+            userId: 'baz'
           };
+          window.digitalData.page = {};
           ga.setOption('sendUserId', true);
           ddManager.initialize({
             autoEvents: false
           });
-          assert.deepEqual(argumentsToArray(window.ga.q[1]), ['set', 'userId', 'baz']);
+          digitalData.events.push({
+            name: 'Viewed Page',
+            callback: () => {
+              assert.deepEqual(argumentsToArray(window.ga.q[3]), ['set', 'userId', 'baz']);
+              done();
+            }
+          });
         });
 
-        it('should map custom dimensions & metrics using DDL data', function() {
-          ga.setOption('metrics', {
-            metric1: 'user.firstName',
-            metric2: 'user.lastName',
-            metric3: 'user.isSubscribed'
-          });
-          ga.setOption('dimensions', {
-            dimension2: 'user.age',
-            dimension3: 'user.hasTransacted'
-          });
-          window.digitalData.user = {
-            firstName: 'John',
-            lastName: 'Doe',
-            age: 20,
-            isSubscribed: true,
-            hasTransacted: false
-          };
-          ddManager.initialize({
-            autoEvents: false
-          });
-
-          assert.deepEqual(argumentsToArray(window.ga.q[2]), ['set', {
-            metric1: 'John',
-            metric2: 'Doe',
-            metric3: 'true',
-            dimension2: 20,
-            dimension3: 'false'
-          }]);
-        });
-
-        it('should not set metrics, dimensions & content groupings if there is no data in DDL', function() {
-          ga.setOption('metrics', {
-            metric1: 'something'
-          });
-          ga.setOption('dimensions', {
-            dimension3: 'industry'
-          });
-          ga.setOption('contentGroupings', {
-            contentGrouping1: 'foo'
-          });
-          ddManager.initialize({
-            autoEvents: false
-          });
-          assert.deepEqual(window.ga.q[2], undefined);
-        });
       });
 
     });
@@ -181,7 +150,7 @@ describe('Integrations: GoogleAnalytics', () => {
     describe('loading', function () {
       it('should load', function (done) {
         assert.ok(!ga.isLoaded());
-        ddManager.once('ready', () => {
+        ddManager.once('load', () => {
           assert.ok(ga.isLoaded());
           done();
         });
@@ -193,6 +162,26 @@ describe('Integrations: GoogleAnalytics', () => {
 
     describe('after loading', () => {
       beforeEach((done) => {
+        ddManager.once('ready', done);
+        ddManager.initialize({
+          autoEvents: false
+        });
+      });
+
+      describe('#enrichDigitalData', () => {
+        it('should add clientId', (done) => {
+          ga.on('enrich', () => {
+            assert.ok(window.digitalData.integrations.googleAnalytics);
+            assert.ok(window.digitalData.integrations.googleAnalytics.clientId);
+            done();
+          });
+        });
+      });
+    });
+
+    describe('after ready', () => {
+      beforeEach((done) => {
+        sinon.stub(ga, 'load');
         ddManager.once('ready', done);
         ddManager.initialize({
           autoEvents: false
@@ -211,7 +200,7 @@ describe('Integrations: GoogleAnalytics', () => {
         it('should send a page view', (done) => {
           window.digitalData.events.push({
             name: 'Viewed Page',
-            page: {},
+            page: window.digitalData.page,
             callback: () => {
               assert.ok(window.ga.calledWith('send', 'pageview', {
                 page: window.location.pathname,
@@ -223,10 +212,58 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
+        it('should send a page view (digitalData)', (done) => {
+          window.digitalData.events.push({
+            name: 'Viewed Page',
+            callback: () => {
+              assert.ok(window.ga.calledWith('send', 'pageview', {
+                page: window.location.pathname,
+                title: document.title,
+                location: window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '') + window.location.pathname + window.location.search
+              }));
+              done();
+            }
+          });
+        });
+
+        it('should send only one pageview using pageviewFlush', (done) => {
+          ga.setOption('enhancedEcommerce', true);
+          window.digitalData.events.push({
+            name: 'Viewed Page',
+            page: {
+              type: 'product',
+              path: window.location.pathname,
+              url: window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '') + window.location.pathname + window.location.search,
+              title: document.title,
+            },
+            callback: () => {
+              assert.ok(!window.ga.calledWith('send', 'pageview', {
+                page: window.location.pathname,
+                title: document.title,
+                location: window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '') + window.location.pathname + window.location.search
+              }));
+              window.digitalData.events.push({
+                name: 'Viewed Product Detail',
+                product: {
+                  id: '123'
+                },
+                callback: () => {
+                  assert.ok(window.ga.calledWith('send', 'pageview', {
+                    page: window.location.pathname,
+                    title: document.title,
+                    location: window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '') + window.location.pathname + window.location.search
+                  }));
+                  done();
+                }
+              });
+            }
+          });
+        });
+
         it('should omit location on subsequent page views', (done) => {
           window.digitalData.events.push({
             name: 'Viewed Page',
-            page: {},
+            page: window.digitalData.page,
             callback: () => {
               assert.ok(window.ga.calledWith('send', 'pageview', {
                 page: window.location.pathname,
@@ -236,7 +273,7 @@ describe('Integrations: GoogleAnalytics', () => {
 
               window.digitalData.events.push({
                 name: 'Viewed Page',
-                page: {},
+                page: window.digitalData.page,
                 callback: () => {
                   assert.ok(window.ga.calledWith('send', 'pageview', {
                     page: window.location.pathname,
@@ -282,6 +319,25 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
+        it('should send a page view with properties', (done) => {
+          window.digitalData.page = {
+            path: '/path',
+            name: 'page name',
+            url: 'url'
+          };
+          digitalData.events.push({
+            name: 'Viewed Page',
+            callback: () => {
+              window.ga.calledWith('send', 'pageview', {
+                page: '/path',
+                title: 'page name',
+                location: 'url'
+              });
+              done();
+            }
+          });
+        });
+
         it('should send the query if its included', (done) => {
           ga.setOption('includeSearch', true);
           digitalData.events.push({
@@ -303,31 +359,93 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should map custom dimensions, metrics & content groupings using event properties', (done) => {
+        it('should map custom dimensions, metrics & content groupings using event properties (legacy format)', (done) => {
           ga.setOption('metrics', {
-            metric1: 'page.score'
+            metric1: 'page.score',
+            metric2: 'timestamp' // timestamp is added for every event inside EventManager
           });
           ga.setOption('dimensions', {
             dimension1: 'page.author',
-            dimension2: 'page.postType'
+            dimension2: 'page.postType',
+            dimension3: 'test',
           });
           ga.setOption('contentGroupings', {
-            contentGrouping1: 'page.section'
+            contentGroup1: 'page.section'
           });
+          ga.prepareCustomDimensions();
           window.digitalData.events.push({
-            name: 'Custom Event',
+            name: 'Viewed Page',
             page: {
               score: 21,
               author: 'Author',
               postType: 'blog',
               section: 'News'
             },
+            test: 'test',
             callback: () => {
               assert.ok(window.ga.calledWith('set', {
                 metric1: 21,
+                metric2: sinon.match.any, // timestamp is added for every event inside EventManager
                 dimension1: 'Author',
                 dimension2: 'blog',
-                contentGrouping1: 'News'
+                dimension3: 'test',
+                contentGroup1: 'News'
+              }));
+              done();
+            }
+          });
+        });
+
+        it('should map custom dimensions, metrics & content groups using event properties or digitalData', (done) => {
+          ga.initVersion = '1.2.8';
+          ga.setOption('metrics', {
+            metric1: {
+              type: 'digitalData',
+              value: 'page.score'
+            },
+            metric2: {
+              type: 'event',
+              value: 'timestamp'
+            } // timestamp is added for every event inside EventManager
+          });
+          ga.setOption('dimensions', {
+            dimension1: {
+              type: 'digitalData',
+              value: 'page.author'
+            },
+            dimension2: {
+              type: 'digitalData',
+              value: 'page.postType'
+            },
+            dimension3: {
+              type: 'event',
+              value: 'test'
+            },
+          });
+          ga.setOption('contentGroups', {
+            contentGroup1: {
+              type: 'digitalData',
+              value: 'page.section'
+            }
+          });
+          ga.prepareCustomDimensions();
+          window.digitalData.page = {
+            score: 21,
+            author: 'Author',
+            postType: 'blog',
+            section: 'News'
+          };
+          window.digitalData.events.push({
+            name: 'Viewed Page',
+            test: 'test',
+            callback: () => {
+              assert.ok(window.ga.calledWith('set', {
+                metric1: 21,
+                metric2: sinon.match.any, // timestamp is added for every event inside EventManager
+                dimension1: 'Author',
+                dimension2: 'blog',
+                dimension3: 'test',
+                contentGroup1: 'News'
               }));
               done();
             }
@@ -341,12 +459,32 @@ describe('Integrations: GoogleAnalytics', () => {
           sinon.stub(window, 'ga');
         });
 
+        afterEach(() => {
+          window.ga.restore();
+        });
+
         it('should send an event', function () {
           window.digitalData.events.push({
             callback: () => {
               assert.ok(window.ga.calledWith('send', 'event', {
                 eventCategory: 'All',
                 eventAction: 'event',
+                eventLabel: undefined,
+                eventValue: 0,
+                nonInteraction: false
+              }));
+            }
+          });
+        });
+
+        it('should send a action property', function () {
+          window.digitalData.events.push({
+            name: 'Test',
+            action: 'test 123',
+            callback: () => {
+              assert.ok(window.ga.calledWith('send', 'event', {
+                eventCategory: 'All',
+                eventAction: 'test 123',
                 eventLabel: undefined,
                 eventValue: 0,
                 nonInteraction: false
@@ -372,7 +510,7 @@ describe('Integrations: GoogleAnalytics', () => {
 
         it('should send a label property', function () {
           window.digitalData.events.push({
-            name: "event",
+            name: 'event',
             label: 'label',
             callback: () => {
               assert.ok(window.ga.calledWith('send', 'event', {
@@ -417,6 +555,41 @@ describe('Integrations: GoogleAnalytics', () => {
         });
 
         it('should map custom dimensions & metrics', function() {
+          ga.initVersion = '1.2.8';
+          ga.setOption('metrics', {
+            metric1: {
+              type: 'event',
+              value: 'loadTime'
+            },
+            metric2: {
+              type: 'event',
+              value: 'levelAchieved'
+            }
+          });
+          ga.setOption('dimensions', {
+            dimension2: {
+              type: 'event',
+              value: 'referrer'
+            }
+          });
+          ga.prepareCustomDimensions();
+
+          window.digitalData.events.push({
+            name: 'Level Unlocked',
+            loadTime: '100',
+            levelAchieved: '5',
+            referrer: 'Google',
+            callback: () => {
+              assert.ok(window.ga.calledWith('set', {
+                metric1: '100',
+                metric2: '5',
+                dimension2: 'Google'
+              }));
+            }
+          });
+        });
+
+        it('should map custom dimensions & metrics (legacy version)', function() {
           ga.setOption('metrics', {
             metric1: 'loadTime',
             metric2: 'levelAchieved'
@@ -424,6 +597,7 @@ describe('Integrations: GoogleAnalytics', () => {
           ga.setOption('dimensions', {
             dimension2: 'referrer'
           });
+          ga.prepareCustomDimensions();
 
           window.digitalData.events.push({
             name: 'Level Unlocked',
@@ -445,6 +619,10 @@ describe('Integrations: GoogleAnalytics', () => {
 
         beforeEach(function () {
           sinon.stub(window, 'ga');
+        });
+
+        afterEach(() => {
+          window.ga.restore();
         });
 
         it('should require ecommerce.js', function () {
@@ -475,37 +653,39 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
+        const transaction =  {
+          orderId: '780bc55',
+          total: 99.99,
+          shippingCost: 13.99,
+          tax: 20.99,
+          currency: 'USD',
+          lineItems: [
+            {
+              product: {
+                id: '123',
+                unitPrice: 24.75,
+                unitSalePrice: 24.75,
+                name: 'my product',
+                skuCode: 'p-298'
+              },
+              quantity: 1
+            },
+            {
+              product: {
+                unitPrice: 24.75,
+                unitSalePrice: 24.75,
+                name: 'other product',
+                skuCode: 'p-299'
+              },
+              quantity: 3
+            }
+          ]
+        };
+
         it('should send ecommerce data', function () {
           window.digitalData.events.push({
             name: 'Completed Transaction',
-            category: 'Ecommerce',
-            transaction: {
-              orderId: '780bc55',
-              total: 99.99,
-              shippingCost: 13.99,
-              tax: 20.99,
-              currency: 'USD',
-              lineItems: [
-                {
-                  product: {
-                    unitPrice: 24.75,
-                    unitSalePrice: 24.75,
-                    name: 'my product',
-                    skuCode: 'p-298'
-                  },
-                  quantity: 1
-                },
-                {
-                  product: {
-                    unitPrice: 24.75,
-                    unitSalePrice: 24.75,
-                    name: 'other product',
-                    skuCode: 'p-299'
-                  },
-                  quantity: 3
-                }
-              ]
-            },
+            transaction: transaction,
             callback: () => {
               assert.deepEqual(window.ga.args[1], ['ecommerce:addTransaction', {
                 id: '780bc55',
@@ -517,7 +697,7 @@ describe('Integrations: GoogleAnalytics', () => {
               }]);
 
               assert.deepEqual(window.ga.args[2], ['ecommerce:addItem', {
-                id: '780bc55',
+                id: '123',
                 category: undefined,
                 name: 'my product',
                 price: 24.75,
@@ -527,7 +707,46 @@ describe('Integrations: GoogleAnalytics', () => {
               }]);
 
               assert.deepEqual(window.ga.args[3], ['ecommerce:addItem', {
+                id: undefined,
+                category: undefined,
+                name: 'other product',
+                price: 24.75,
+                sku: 'p-299',
+                quantity: 3,
+                currency: 'USD'
+              }]);
+
+              assert.deepEqual(window.ga.args[4], ['ecommerce:send']);
+            }
+          });
+        });
+
+        it('should send ecommerce data (digitalData)', function () {
+          window.digitalData.transaction = transaction;
+          window.digitalData.events.push({
+            name: 'Completed Transaction',
+            callback: () => {
+              assert.deepEqual(window.ga.args[1], ['ecommerce:addTransaction', {
                 id: '780bc55',
+                affiliation: undefined,
+                shipping: 13.99,
+                tax: 20.99,
+                revenue: 99.99,
+                currency: 'USD'
+              }]);
+
+              assert.deepEqual(window.ga.args[2], ['ecommerce:addItem', {
+                id: '123',
+                category: undefined,
+                name: 'my product',
+                price: 24.75,
+                quantity: 1,
+                sku: 'p-298',
+                currency: 'USD'
+              }]);
+
+              assert.deepEqual(window.ga.args[3], ['ecommerce:addItem', {
+                id: undefined,
                 category: undefined,
                 name: 'other product',
                 price: 24.75,
@@ -544,7 +763,6 @@ describe('Integrations: GoogleAnalytics', () => {
         it('should fallback to revenue', function () {
           window.digitalData.events.push({
             name: 'Completed Transaction',
-            category: 'Ecommerce',
             transaction: {
               orderId: '5d4c7cb5',
               shippingCost: 13.99,
@@ -604,7 +822,7 @@ describe('Integrations: GoogleAnalytics', () => {
       domain: 'none',
       defaultCurrency: 'USD',
       siteSpeedSampleRate: 42,
-      namespace: false
+      namespace: false,
     };
 
     beforeEach(() => {
@@ -623,6 +841,7 @@ describe('Integrations: GoogleAnalytics', () => {
 
     describe('after loading', function() {
       beforeEach((done) => {
+        sinon.stub(ga, 'load');
         ddManager.once('ready', done);
         ddManager.initialize({
           autoEvents: false
@@ -630,20 +849,21 @@ describe('Integrations: GoogleAnalytics', () => {
       });
 
       describe('enhanced ecommerce', function() {
-        beforeEach(function() {
+
+        beforeEach(() => {
           sinon.stub(window, 'ga');
+        });
+
+        afterEach(() => {
+          window.ga.restore();
         });
 
         it('should require ec.js', function() {
           window.digitalData.events.push({
-            name: 'Completed Transaction',
-            category: 'Ecommerce',
-            transaction: {
-              orderId: 'ee099bf7'
-            },
+            name: 'Viewed Page',
             callback: () => {
               assert.ok(window.ga.args.length > 0);
-              assert.deepEqual(argumentsToArray(window.ga.args[0]), ['require', 'ec']);
+              assert.ok(window.ga.calledWith('require', 'ec'));
             }
           });
         });
@@ -657,35 +877,28 @@ describe('Integrations: GoogleAnalytics', () => {
               orderId: 'ee099bf7'
             },
             callback: () => {
-              assert.ok(window.ga.args.length > 0);
-              assert.notDeepEqual(argumentsToArray(window.ga.args[0]), ['require', 'ec']);
+              assert.ok(!window.ga.calledWith('require', 'ec'));
             }
           });
         });
 
         it('should set currency for ec.js to default', function() {
           window.digitalData.events.push({
-            name: 'Completed Transaction',
-            category: 'Ecommerce',
-            transaction: {
-              orderId: 'ee099bf7'
-            },
+            name: 'Viewed Page',
             callback: () => {
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'USD']);
+              assert.ok(window.ga.calledWith('set', '&cu', 'USD'));
             }
           });
         });
 
         it('should set currency for ec.js to custom currency', function() {
+          window.digitalData.website = {
+            currency: 'EUR'
+          };
           window.digitalData.events.push({
-            name: 'Completed Transaction',
-            category: 'Ecommerce',
-            transaction: {
-              orderId: 'ee099bf7',
-              currency: 'EUR'
-            },
+            name: 'Viewed Page',
             callback: () => {
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'EUR']);
+              assert.ok(window.ga.calledWith('set', '&cu', 'EUR'));
             }
           });
         });
@@ -693,7 +906,6 @@ describe('Integrations: GoogleAnalytics', () => {
         it('should send added product data', function() {
           window.digitalData.events.push({
             name: 'Added Product',
-            category: 'Ecommerce',
             product: {
               currency: 'CAD',
               unitPrice: 24.75,
@@ -703,8 +915,7 @@ describe('Integrations: GoogleAnalytics', () => {
             },
             quantity: 1,
             callback: () => {
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addProduct', {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -713,14 +924,53 @@ describe('Integrations: GoogleAnalytics', () => {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD',
-              }]);
-              assert.deepEqual(window.ga.args[3], ['ec:setAction', 'add', {}]);
-              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }]);
+              }));
+              assert.ok(window.ga.calledWith('ec:setAction', 'add', {}));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }));
             }
           });
         });
 
-        it('should send added product data from digital data layer', function() {
+        it('should send added product data with custom dimensions and metrics', function() {
+          ga.setOption('productDimensions', {
+            'dimension10': 'stock'
+          });
+          ga.setOption('productMetrics', {
+            'metric10': 'weight'
+          });
+          ga.prepareCustomDimensions();
+          window.digitalData.events.push({
+            name: 'Added Product',
+            product: {
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298',
+              stock: 25,
+              weight: 100
+            },
+            quantity: 1,
+            callback: () => {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1',
+                quantity: 1,
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+                dimension10: 25,
+                metric10: 100
+              }));
+              assert.ok(window.ga.calledWith('ec:setAction', 'add', {}));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }));
+            }
+          });
+        });
+
+        it('should send added product data from digitalData', function() {
           window.digitalData.product = {
             id: 'p-298',
             currency: 'CAD',
@@ -731,12 +981,10 @@ describe('Integrations: GoogleAnalytics', () => {
           };
           window.digitalData.events.push({
             name: 'Added Product',
-            category: 'Ecommerce',
             product: 'p-298',
             quantity: 1,
             callback: () => {
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addProduct', {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -745,9 +993,9 @@ describe('Integrations: GoogleAnalytics', () => {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD',
-              }]);
-              assert.deepEqual(window.ga.args[3], ['ec:setAction', 'add', {}]);
-              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }]);
+              }));
+              assert.ok(window.ga.calledWith('ec:setAction', 'add', {}));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }));
             }
           });
         });
@@ -755,7 +1003,6 @@ describe('Integrations: GoogleAnalytics', () => {
         it('should send send label tracking enhanced ecommerce events with Univeral Analytics', function() {
           window.digitalData.events.push({
             name: 'Added Product',
-            category: 'Ecommerce',
             label: 'sample label',
             product: {
               currency: 'CAD',
@@ -766,9 +1013,7 @@ describe('Integrations: GoogleAnalytics', () => {
             },
             quantity: 1,
             callback: () => {
-              assert.equal(window.ga.args.length, 5);
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addProduct', {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -777,9 +1022,9 @@ describe('Integrations: GoogleAnalytics', () => {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD',
-              }]);
-              assert.deepEqual(window.ga.args[3], ['ec:setAction', 'add', {}]);
-              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Added Product', 'sample label', { nonInteraction: 1 }]);
+              }));
+              assert.ok(window.ga.calledWith('ec:setAction', 'add', {}));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', 'sample label', { nonInteraction: 1 }));
             }
           });
         });
@@ -787,7 +1032,6 @@ describe('Integrations: GoogleAnalytics', () => {
         it('should send removed product data', function() {
           window.digitalData.events.push({
             name: 'Removed Product',
-            category: 'Ecommerce',
             product: {
               currency: 'CAD',
               unitPrice: 24.75,
@@ -797,9 +1041,7 @@ describe('Integrations: GoogleAnalytics', () => {
             },
             quantity: 1,
             callback: () => {
-              assert.equal(window.ga.args.length, 5);
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addProduct', {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -808,9 +1050,74 @@ describe('Integrations: GoogleAnalytics', () => {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD',
-              }]);
-              assert.deepEqual(window.ga.args[3], ['ec:setAction', 'remove', {}]);
-              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: 1 }]);
+              }));
+              assert.ok(window.ga.calledWith('ec:setAction', 'remove', {}));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: 1 }));
+            }
+          });
+        });
+
+        it('should send removed product data with custom dimensions and metrics', function() {
+          ga.setOption('productDimensions', {
+            'dimension10': 'stock'
+          });
+          ga.setOption('productMetrics', {
+            'metric10': 'weight'
+          });
+          ga.prepareCustomDimensions();
+          window.digitalData.events.push({
+            name: 'Removed Product',
+            product: {
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298',
+              stock: 25,
+              weight: 100
+            },
+            quantity: 1,
+            callback: () => {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1',
+                quantity: 1,
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+                dimension10: 25,
+                metric10: 100
+              }));
+              assert.ok(window.ga.calledWith('ec:setAction', 'remove', {}));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: 1 }));
+            }
+          });
+        });
+
+        it('should send viewed product detail data (legacy DDL product.category)', function() {
+          window.digitalData.events.push({
+            name: 'Viewed Product Detail',
+            product: {
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298'
+            },
+            callback: () => {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1',
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+              }));
+              assert.ok(window.ga.calledWith('ec:setAction', 'detail', {}));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }));
             }
           });
         });
@@ -822,13 +1129,72 @@ describe('Integrations: GoogleAnalytics', () => {
               currency: 'CAD',
               unitPrice: 24.75,
               name: 'my product',
-              category: 'cat 1',
+              category: ['cat 1', 'cat 2'],
               skuCode: 'p-298'
             },
             callback: () => {
-              assert.equal(window.ga.args.length, 5);
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addProduct', {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1/cat 2',
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+              }));
+              assert.ok(window.ga.calledWith('ec:setAction', 'detail', {}));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }));
+            }
+          });
+        });
+
+        it('should send viewed product detail data (digitalData)', function() {
+          window.digitalData.product = {
+            currency: 'CAD',
+            unitPrice: 24.75,
+            name: 'my product',
+            category: ['cat 1', 'cat 2'],
+            skuCode: 'p-298'
+          };
+          window.digitalData.events.push({
+            name: 'Viewed Product Detail',
+            callback: () => {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1/cat 2',
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+              }));
+              assert.ok(window.ga.calledWith('ec:setAction', 'detail', {}));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }));
+            }
+          });
+        });
+
+        it('should send viewed product detail data with custom dimensions and metrics', function() {
+          ga.setOption('productDimensions', {
+            'dimension10': 'stock'
+          });
+          ga.setOption('productMetrics', {
+            'metric10': 'weight'
+          });
+          ga.prepareCustomDimensions();
+          window.digitalData.events.push({
+            name: 'Viewed Product Detail',
+            product: {
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298',
+              stock: 25,
+              weight: 100
+            },
+            callback: () => {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -836,14 +1202,67 @@ describe('Integrations: GoogleAnalytics', () => {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD',
-              }]);
-              assert.deepEqual(window.ga.args[3], ['ec:setAction', 'detail', {}]);
-              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }]);
+                dimension10: 25,
+                metric10: 100
+              }));
+              assert.ok(window.ga.calledWith('ec:setAction', 'detail', {}));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }));
             }
           });
         });
 
-        it('should send clicked product data', function() {
+        it('should send viewed product detail data with custom dimensions and metrics (new initVersion)', function() {
+          ga.initVersion = '1.2.8';
+          ga.setOption('dimensions', {
+            'dimension10': {
+              type: 'product',
+              value: 'stock'
+            }
+          });
+          ga.setOption('metrics', {
+            'metric10': {
+              type: 'product',
+              value: 'weight'
+            }
+          });
+          ga.prepareCustomDimensions();
+          window.digitalData.events.push({
+            name: 'Viewed Product Detail',
+            product: {
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298',
+              stock: 25,
+              weight: 100
+            },
+            callback: () => {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1',
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+                dimension10: 25,
+                metric10: 100
+              }));
+              assert.ok(window.ga.calledWith('ec:setAction', 'detail', {}));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }));
+            }
+          });
+        });
+
+        it('should send clicked product data with custom dimensions and metrics', function() {
+          ga.setOption('productDimensions', {
+            'dimension10': 'stock'
+          });
+          ga.setOption('productMetrics', {
+            'metric10': 'weight'
+          });
+          ga.prepareCustomDimensions();
           window.digitalData.events.push({
             name: 'Clicked Product',
             listItem: {
@@ -853,14 +1272,14 @@ describe('Integrations: GoogleAnalytics', () => {
                 name: 'my product',
                 category: 'cat 1',
                 skuCode: 'p-298',
-                listName: 'search results'
+                stock: 25,
+                weight: 100
               },
-              listName: 'search results',
+              listId: 'search results',
+              listName: 'Search Results'
             },
             callback: () => {
-              assert.equal(window.ga.args.length, 5);
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addProduct', {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -868,18 +1287,21 @@ describe('Integrations: GoogleAnalytics', () => {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD',
-              }]);
-              assert.deepEqual(window.ga.args[3], ['ec:setAction', 'click', {
-                list: 'search results'
-              }]);
-              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: 1 }]);
+                dimension10: 25,
+                metric10: 100
+              }));
+              assert.ok(window.ga.calledWith('ec:setAction', 'click', {
+                list: 'Search Results'
+              }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: 1 }));
             }
           });
         });
 
-        it('should send clicked product data with data from DDL', function() {
+        it('should send clicked product data with data from DDL', () => {
           window.digitalData.listing = {
-            listName: 'search results',
+            listId: 'search_results',
+            listName: 'Search Results',
             items: [
               {
                 id: 'p-298',
@@ -895,12 +1317,10 @@ describe('Integrations: GoogleAnalytics', () => {
             name: 'Clicked Product',
             listItem: {
               product: 'p-298',
-              listName: 'search results',
+              listId: 'search_results'
             },
             callback: () => {
-              assert.equal(window.ga.args.length, 5);
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addProduct', {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -909,19 +1329,25 @@ describe('Integrations: GoogleAnalytics', () => {
                 variant: undefined,
                 currency: 'CAD',
                 position: 1
-              }]);
-              assert.deepEqual(window.ga.args[3], ['ec:setAction', 'click', {
-                list: 'search results'
-              }]);
-              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: 1 }]);
+              }));
+              assert.ok(window.ga.calledWith('ec:setAction', 'click', {
+                list: 'Search Results'
+              }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: 1 }));
             }
           });
         });
 
-        it('should send viewed product data', function() {
+        it('should send viewed product data with custom dimensions and metrics', function() {
+          ga.setOption('productDimensions', {
+            'dimension10': 'stock'
+          });
+          ga.setOption('productMetrics', {
+            'metric10': 'weight'
+          });
+          ga.prepareCustomDimensions();
           window.digitalData.events.push({
             name: 'Viewed Product',
-            category: 'Ecommerce',
             listItem: {
               product: {
                 currency: 'CAD',
@@ -929,25 +1355,28 @@ describe('Integrations: GoogleAnalytics', () => {
                 name: 'my product',
                 category: 'cat 1',
                 skuCode: 'p-298',
+                stock: 25,
+                weight: 100
               },
-              listName: 'search results',
+              listId: 'search results',
+              listName: 'Search Results',
               position: 2,
             },
             callback: () => {
-              assert.equal(window.ga.args.length, 4);
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addImpression', {
+              assert.ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-298',
                 name: 'my product',
-                list: 'search results',
+                list: 'Search Results',
                 category: 'cat 1',
                 brand: undefined,
                 price: 24.75,
                 currency: 'CAD',
                 variant: undefined,
                 position: 2,
-              }]);
-              assert.deepEqual(window.ga.args[3], ['send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }]);
+                dimension10: 25,
+                metric10: 100
+              }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }));
             }
           });
         });
@@ -955,7 +1384,6 @@ describe('Integrations: GoogleAnalytics', () => {
         it('should send viewed product data array', function() {
           window.digitalData.events.push({
             name: 'Viewed Product',
-            category: 'Ecommerce',
             listItems: [
               {
                 product: {
@@ -965,7 +1393,8 @@ describe('Integrations: GoogleAnalytics', () => {
                   category: 'cat 1',
                   skuCode: 'p-298',
                 },
-                listName: 'search results',
+                listId: 'search_results',
+                listName: 'Search Results',
                 position: 2
               },
               {
@@ -976,45 +1405,43 @@ describe('Integrations: GoogleAnalytics', () => {
                   category: 'cat 1',
                   skuCode: 'p-299',
                 },
-                listName: 'search results',
+                listId: 'search_results',
+                listName: 'Search Results',
                 position: 2
               }
             ],
-            listName: 'search results',
             callback: () => {
-              assert.equal(window.ga.args.length, 6);
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addImpression', {
+              assert.ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-298',
                 name: 'my product',
-                list: 'search results',
+                list: 'Search Results',
                 category: 'cat 1',
                 brand: undefined,
                 price: 24.75,
                 currency: 'CAD',
                 variant: undefined,
                 position: 2,
-              }]);
-              assert.deepEqual(argumentsToArray(window.ga.args[3]), ['set', '&cu', 'CAD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[4]), ['ec:addImpression', {
+              }));
+              assert.ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-299',
                 name: 'my product',
-                list: 'search results',
+                list: 'Search Results',
                 category: 'cat 1',
                 brand: undefined,
                 price: 24.75,
                 currency: 'CAD',
                 variant: undefined,
                 position: 2,
-              }]);
-              assert.deepEqual(window.ga.args[5], ['send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }]);
+              }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }));
             }
           });
         });
 
         it('should send viewed product data from DDL', function() {
           window.digitalData.listing = {
-            listName: 'search results',
+            listId: 'search_results',
+            listName: 'Search Results',
             items: [
               {
                 id: 'p-298',
@@ -1039,30 +1466,29 @@ describe('Integrations: GoogleAnalytics', () => {
             category: 'Ecommerce',
             listItem: {
               product: 'p-299',
-              listName: 'search results',
+              listId: 'search_results',
             },
             callback: () => {
-              assert.equal(window.ga.args.length, 4);
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addImpression', {
+              assert.ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-299',
                 name: 'my other product',
-                list: 'search results',
+                list: 'Search Results',
                 category: 'cat 1',
                 brand: undefined,
                 price: 24.75,
                 currency: 'CAD',
                 variant: undefined,
                 position: 2,
-              }]);
-              assert.deepEqual(window.ga.args[3], ['send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }]);
+              }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }));
             }
           });
         });
 
-        it('should send viewed product data from DDL', function() {
+        it('should send viewed product with multiple products data from DDL', function() {
           window.digitalData.listing = {
-            listName: 'search results',
+            listId: 'search_results',
+            listName: 'Search Results',
             items: [
               {
                 id: 'p-298',
@@ -1088,40 +1514,37 @@ describe('Integrations: GoogleAnalytics', () => {
             listItems: [
               {
                 product: 'p-298',
-                listName: 'search results',
+                listId: 'search_results',
               },
               {
                 product: 'p-299',
-                listName: 'search results',
+                listId: 'search_results',
               }
             ],
             callback: () => {
-              assert.equal(window.ga.args.length, 6);
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addImpression', {
+              assert.ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-298',
                 name: 'my product',
-                list: 'search results',
+                list: 'Search Results',
                 category: 'cat 1',
                 brand: undefined,
                 price: 24.75,
                 currency: 'CAD',
                 variant: undefined,
                 position: 1,
-              }]);
-              assert.deepEqual(argumentsToArray(window.ga.args[3]), ['set', '&cu', 'CAD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[4]), ['ec:addImpression', {
+              }));
+              assert.ok(window.ga.calledWith('ec:addImpression', {
                 id: 'p-299',
                 name: 'my other product',
-                list: 'search results',
+                list: 'Search Results',
                 category: 'cat 1',
                 brand: undefined,
                 price: 24.75,
                 currency: 'CAD',
                 variant: undefined,
                 position: 2,
-              }]);
-              assert.deepEqual(window.ga.args[5], ['send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }]);
+              }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }));
             }
           });
         });
@@ -1137,15 +1560,36 @@ describe('Integrations: GoogleAnalytics', () => {
               position: 'banner_slot1'
             },
             callback: () => {
-              assert.equal(window.ga.args.length, 4);
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'USD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addPromo', {
+              assert.ok(window.ga.calledWith('ec:addPromo', {
                 id: 'PROMO_1234',
                 name: 'Summer Sale',
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
-              }]);
-              assert.deepEqual(window.ga.args[3], ['send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }]);
+              }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }));
+            }
+          });
+        });
+
+        it('should send viewed promotion data with custom action', function() {
+          window.digitalData.events.push({
+            name: 'Viewed Campaign',
+            action: 'Viewed Campaign #123',
+            category: 'Promo',
+            campaign: {
+              id: 'PROMO_1234',
+              name: 'Summer Sale',
+              design: 'summer_banner2',
+              position: 'banner_slot1'
+            },
+            callback: () => {
+              assert.ok(window.ga.calledWith('ec:addPromo', {
+                id: 'PROMO_1234',
+                name: 'Summer Sale',
+                creative: 'summer_banner2',
+                position: 'banner_slot1'
+              }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign #123', { nonInteraction: 1 }));
             }
           });
         });
@@ -1169,21 +1613,19 @@ describe('Integrations: GoogleAnalytics', () => {
               }
             ],
             callback: () => {
-              assert.equal(window.ga.args.length, 5);
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'USD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addPromo', {
+              assert.ok(window.ga.calledWith('ec:addPromo', {
                 id: 'PROMO_1234',
                 name: 'Summer Sale',
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
-              }]);
-              assert.deepEqual(argumentsToArray(window.ga.args[3]), ['ec:addPromo', {
+              }));
+              assert.ok(window.ga.calledWith('ec:addPromo', {
                 id: 'PROMO_2345',
                 name: 'Summer Sale',
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
-              }]);
-              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }]);
+              }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }));
             }
           });
         });
@@ -1200,15 +1642,13 @@ describe('Integrations: GoogleAnalytics', () => {
             category: 'Promo',
             campaign: 'PROMO_1234',
             callback: () => {
-              assert.equal(window.ga.args.length, 4);
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'USD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addPromo', {
+              assert.ok(window.ga.calledWith('ec:addPromo', {
                 id: 'PROMO_1234',
                 name: 'Summer Sale',
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
-              }]);
-              assert.deepEqual(window.ga.args[3], ['send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }]);
+              }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }));
             }
           });
         });
@@ -1233,21 +1673,19 @@ describe('Integrations: GoogleAnalytics', () => {
             category: 'Promo',
             campaigns: ['PROMO_1234', 'PROMO_2345'],
             callback: () => {
-              assert.equal(window.ga.args.length, 5);
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'USD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addPromo', {
+              assert.ok(window.ga.calledWith('ec:addPromo', {
                 id: 'PROMO_1234',
                 name: 'Summer Sale',
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
-              }]);
-              assert.deepEqual(argumentsToArray(window.ga.args[3]), ['ec:addPromo', {
+              }));
+              assert.ok(window.ga.calledWith('ec:addPromo', {
                 id: 'PROMO_2345',
                 name: 'Summer Sale',
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
-              }]);
-              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }]);
+              }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }));
             }
           });
         });
@@ -1263,21 +1701,26 @@ describe('Integrations: GoogleAnalytics', () => {
               position: 'banner_slot1'
             },
             callback: () => {
-              assert.equal(window.ga.args.length, 5);
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'USD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addPromo', {
+              assert.ok(window.ga.calledWith('ec:addPromo', {
                 id: 'PROMO_1234',
                 name: 'Summer Sale',
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
-              }]);
-              assert.deepEqual(window.ga.args[3], ['ec:setAction', 'promo_click', {}]);
-              assert.deepEqual(window.ga.args[4], ['send', 'event', 'Promo', 'Clicked Campaign', { nonInteraction: 1 }]);
+              }));
+              assert.ok(window.ga.calledWith('ec:setAction', 'promo_click', {}));
+              assert.ok(window.ga.calledWith('send', 'event', 'Promo', 'Clicked Campaign', { nonInteraction: 1 }));
             }
           });
         });
 
-        it('should send started order data', function() {
+        it('should send started order data with custom dimensions and metrics', function() {
+          ga.setOption('productDimensions', {
+            'dimension10': 'stock'
+          });
+          ga.setOption('productMetrics', {
+            'metric10': 'weight'
+          });
+          ga.prepareCustomDimensions();
           window.digitalData.cart = {
             currency: 'CAD',
             lineItems: [
@@ -1286,7 +1729,9 @@ describe('Integrations: GoogleAnalytics', () => {
                   id: 'p-298',
                   unitPrice: 24.75,
                   name: 'my product',
-                  skuCode: 'p-298'
+                  skuCode: 'p-298',
+                  stock: 25,
+                  weight: 100
                 },
                 quantity: 1
               },
@@ -1295,7 +1740,9 @@ describe('Integrations: GoogleAnalytics', () => {
                   id: 'p-299',
                   unitPrice: 24.75,
                   name: 'other product',
-                  skuCode: 'p-299'
+                  skuCode: 'p-299',
+                  stock: 30,
+                  weight: 200
                 },
                 quantity: 3
               }
@@ -1306,9 +1753,7 @@ describe('Integrations: GoogleAnalytics', () => {
             step: 1,
             paymentMethod: 'Visa',
             callback: () => {
-              assert.equal(window.ga.args.length, 6);
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addProduct', {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: undefined,
@@ -1317,8 +1762,10 @@ describe('Integrations: GoogleAnalytics', () => {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD',
-              }]);
-              assert.deepEqual(argumentsToArray(window.ga.args[3]), ['ec:addProduct', {
+                dimension10: 25,
+                metric10: 100
+              }));
+              assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-299',
                 name: 'other product',
                 category: undefined,
@@ -1327,81 +1774,35 @@ describe('Integrations: GoogleAnalytics', () => {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD',
-              }]);
-              assert.deepEqual(argumentsToArray(window.ga.args[4]), ['ec:setAction', 'checkout', {
+                dimension10: 30,
+                metric10: 200
+              }));
+              assert.ok(window.ga.calledWith('ec:setAction', 'checkout', {
                 step: 1,
                 option: 'Visa'
-              }]);
-              assert.deepEqual(argumentsToArray(window.ga.args[5]), ['send', 'event', 'Ecommerce', 'Viewed Checkout Step', { nonInteraction: 1 }]);
+              }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Checkout Step', { nonInteraction: 1 }));
             }
           });
         });
 
         it('should send completed checkout step data', function() {
-          window.digitalData.cart = {
-            currency: 'CAD',
-            lineItems: [
-              {
-                product: {
-                  id: 'p-298',
-                  unitPrice: 24.75,
-                  name: 'my product',
-                  skuCode: 'p-298'
-                },
-                quantity: 1
-              },
-              {
-                product: {
-                  id: 'p-299',
-                  unitPrice: 24.75,
-                  name: 'other product',
-                  skuCode: 'p-299'
-                },
-                quantity: 3
-              }
-            ]
-          };
           window.digitalData.events.push({
             name: 'Completed Checkout Step',
             category: 'Ecommerce',
             step: 2,
             shippingMethod: 'FedEx',
             callback: () => {
-              assert.equal(window.ga.args.length, 4);
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:setAction', 'checkout_option', {
+              assert.ok(window.ga.calledWith('ec:setAction', 'checkout_option', {
                 step: 2,
                 option: 'FedEx'
-              }]);
-              assert.deepEqual(argumentsToArray(window.ga.args[3]), ['send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }]);
+              }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }));
             }
           });
         });
 
         it('should send completed checkout step data with all options', function() {
-          window.digitalData.cart = {
-            currency: 'CAD',
-            lineItems: [
-              {
-                product: {
-                  id: 'p-298',
-                  unitPrice: 24.75,
-                  name: 'my product',
-                  skuCode: 'p-298'
-                },
-                quantity: 1
-              },
-              {
-                product: {
-                  id: 'p-299',
-                  unitPrice: 24.75,
-                  name: 'other product',
-                  skuCode: 'p-299'
-                },
-                quantity: 3
-              }
-            ]
-          };
           window.digitalData.events.push({
             name: 'Completed Checkout Step',
             category: 'Ecommerce',
@@ -1409,13 +1810,11 @@ describe('Integrations: GoogleAnalytics', () => {
             paymentMethod: 'Visa',
             shippingMethod: 'FedEx',
             callback: () => {
-              assert.equal(window.ga.args.length, 4);
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:setAction', 'checkout_option', {
+              assert.ok(window.ga.calledWith('ec:setAction', 'checkout_option', {
                 step: 2,
                 option: 'Visa, FedEx'
-              }]);
-              assert.deepEqual(argumentsToArray(window.ga.args[3]), ['send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }]);
+              }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }));
             }
           });
         });
@@ -1426,7 +1825,7 @@ describe('Integrations: GoogleAnalytics', () => {
             category: 'Ecommerce',
             paymentMethod: 'Visa',
             callback: () => {
-              assert.equal(window.ga.args.length, 0);
+              assert.ok(!window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }));
             }
           });
         });
@@ -1437,7 +1836,7 @@ describe('Integrations: GoogleAnalytics', () => {
             category: 'Ecommerce',
             step: 2,
             callback: () => {
-              assert.equal(window.ga.args.length, 0);
+              assert.ok(!window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }));
             }
           });
         });
@@ -1450,21 +1849,48 @@ describe('Integrations: GoogleAnalytics', () => {
               orderId: '7306cc06'
             },
             callback: () => {
-              assert.equal(window.ga.args.length, 4);
-              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:setAction', 'purchase', {
+              assert.ok(window.ga.calledWith('ec:setAction', 'purchase', {
                 id: '7306cc06',
                 affiliation: undefined,
                 revenue: 0.0,
                 tax: undefined,
                 shipping: undefined,
                 coupon: undefined
-              }]);
-              assert.deepEqual(argumentsToArray(window.ga.args[3]), ['send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }]);
+              }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }));
             }
           });
         });
 
-        it('should send completed order data', function() {
+        it('should send simple completed order data (digitalData)', function() {
+          window.digitalData.transaction = {
+            orderId: '7306cc06'
+          };
+          window.digitalData.events.push({
+            name: 'Completed Transaction',
+            category: 'Ecommerce',
+            callback: () => {
+              assert.ok(window.ga.calledWith('ec:setAction', 'purchase', {
+                id: '7306cc06',
+                affiliation: undefined,
+                revenue: 0.0,
+                tax: undefined,
+                shipping: undefined,
+                coupon: undefined
+              }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }));
+            }
+          });
+        });
+
+        it('should send completed order data with custom dimensions and metrics', function() {
+          ga.setOption('productDimensions', {
+            'dimension10': 'stock'
+          });
+          ga.setOption('productMetrics', {
+            'metric10': 'weight'
+          });
+          ga.prepareCustomDimensions();
           window.digitalData.events.push({
             name: 'Completed Transaction',
             category: 'Ecommerce',
@@ -1483,7 +1909,9 @@ describe('Integrations: GoogleAnalytics', () => {
                     unitPrice: 24.75,
                     name: 'my product',
                     category: 'cat 1',
-                    skuCode: 'p-298'
+                    skuCode: 'p-298',
+                    stock: 25,
+                    weight: 100
                   },
                   quantity: 1
                 },
@@ -1493,7 +1921,9 @@ describe('Integrations: GoogleAnalytics', () => {
                     name: 'other product',
                     category: 'cat 2',
                     skuCode: 'p-299',
-                    currency: 'EUR'
+                    currency: 'EUR',
+                    stock: 30,
+                    weight: 200
                   },
                   quantity: 3
                 }
@@ -1501,9 +1931,7 @@ describe('Integrations: GoogleAnalytics', () => {
 
             },
             callback: () => {
-              assert.equal(window.ga.args.length, 6);
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addProduct', {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -1512,8 +1940,10 @@ describe('Integrations: GoogleAnalytics', () => {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD',
-              }]);
-              assert.deepEqual(argumentsToArray(window.ga.args[3]), ['ec:addProduct', {
+                dimension10: 25,
+                metric10: 100,
+              }));
+              assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-299',
                 name: 'other product',
                 category: 'cat 2',
@@ -1522,16 +1952,18 @@ describe('Integrations: GoogleAnalytics', () => {
                 brand: undefined,
                 variant: undefined,
                 currency: 'EUR',
-              }]);
-              assert.deepEqual(argumentsToArray(window.ga.args[4]), ['ec:setAction', 'purchase', {
+                dimension10: 30,
+                metric10: 200,
+              }));
+              assert.ok(window.ga.calledWith('ec:setAction', 'purchase', {
                 id: '780bc55',
                 affiliation: 'affiliation',
                 revenue: 99.9,
                 tax: 20.99,
                 shipping: 13.99,
                 coupon: 'coupon'
-              }]);
-              assert.deepEqual(argumentsToArray(window.ga.args[5]), ['send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }]);
+              }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }));
             }
           });
         });
@@ -1574,9 +2006,7 @@ describe('Integrations: GoogleAnalytics', () => {
 
             },
             callback: () => {
-              assert.equal(window.ga.args.length, 6);
-              assert.deepEqual(argumentsToArray(window.ga.args[1]), ['set', '&cu', 'CAD']);
-              assert.deepEqual(argumentsToArray(window.ga.args[2]), ['ec:addProduct', {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
                 category: 'cat 1',
@@ -1586,8 +2016,8 @@ describe('Integrations: GoogleAnalytics', () => {
                 variant: undefined,
                 currency: 'CAD',
                 coupon: 'promo',
-              }]);
-              assert.deepEqual(argumentsToArray(window.ga.args[3]), ['ec:addProduct', {
+              }));
+              assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-299',
                 name: 'other product',
                 category: 'cat 2',
@@ -1596,16 +2026,16 @@ describe('Integrations: GoogleAnalytics', () => {
                 brand: undefined,
                 variant: undefined,
                 currency: 'EUR',
-              }]);
-              assert.deepEqual(argumentsToArray(window.ga.args[4]), ['ec:setAction', 'purchase', {
+              }));
+              assert.ok(window.ga.calledWith('ec:setAction', 'purchase', {
                 id: '780bc55',
                 affiliation: 'affiliation',
                 revenue: 99.9,
                 tax: 20.99,
                 shipping: 13.99,
                 coupon: 'coupon'
-              }]);
-              assert.deepEqual(argumentsToArray(window.ga.args[5]), ['send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }]);
+              }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }));
             }
           });
         });
@@ -1623,14 +2053,14 @@ describe('Integrations: GoogleAnalytics', () => {
               lineItems: []
             },
             callback: () => {
-              assert.deepEqual(window.ga.args[2], ['ec:setAction', 'purchase', {
+              assert.ok(window.ga.calledWith('ec:setAction', 'purchase', {
                 id: '5d4c7cb5',
                 affiliation: undefined,
                 revenue: 99.9,
                 tax: 20.99,
                 shipping: 13.99,
                 coupon: undefined
-              }]);
+              }));
             }
           });
         });
@@ -1648,11 +2078,31 @@ describe('Integrations: GoogleAnalytics', () => {
               lineItems: []
             },
             callback: () => {
-              assert.equal(window.ga.args.length, 4);
-              assert.deepEqual(window.ga.args[2], ['ec:setAction', 'refund', {
+              assert.ok(window.ga.calledWith('ec:setAction', 'refund', {
                 id: '780bc55'
-              }]);
-              assert.deepEqual(window.ga.args[3], ['send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: 1 }]);
+              }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: 1 }));
+            }
+          });
+        });
+
+        it('should send full refunded order data (digitalData)', function() {
+          window.digitalData.transaction = {
+            orderId: '780bc55',
+            total: 99.9,
+            tax: 20.99,
+            shippingCost: 13.99,
+            currency: 'CAD',
+            lineItems: []
+          };
+          window.digitalData.events.push({
+            name: 'Refunded Transaction',
+            category: 'Ecommerce',
+            callback: () => {
+              assert.ok(window.ga.calledWith('ec:setAction', 'refund', {
+                id: '780bc55'
+              }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: 1 }));
             }
           });
         });
@@ -1683,8 +2133,7 @@ describe('Integrations: GoogleAnalytics', () => {
               ]
             },
             callback: () => {
-              assert.equal(window.ga.args.length, 6);
-              assert.deepEqual(window.ga.args[2], ['ec:addProduct', {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: undefined,
                 category: undefined,
@@ -1692,8 +2141,8 @@ describe('Integrations: GoogleAnalytics', () => {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD'
-              }]);
-              assert.deepEqual(window.ga.args[3], ['ec:addProduct', {
+              }));
+              assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-299',
                 name: undefined,
                 category: undefined,
@@ -1702,11 +2151,11 @@ describe('Integrations: GoogleAnalytics', () => {
                 brand: undefined,
                 variant: undefined,
                 currency: 'CAD'
-              }]);
-              assert.deepEqual(window.ga.args[4], ['ec:setAction', 'refund', {
+              }));
+              assert.ok(window.ga.calledWith('ec:setAction', 'refund', {
                 id: '780bc55'
-              }]);
-              assert.deepEqual(window.ga.args[5], ['send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: 1 }]);
+              }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: 1 }));
             }
           });
         });
@@ -1726,25 +2175,6 @@ describe('Integrations: GoogleAnalytics', () => {
       noConflict: true
     };
 
-    function loadGA(callback) {
-      //load GA
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-      window.ga('create', 'UA-51485228-7', {
-        // Fall back on default to protect against empty string
-        cookieDomain: 'auto',
-        name: 'gtm.123',
-      });
-      window.ga('send', 'pageview');
-
-      window.ga(() => {
-        callback();
-      });
-    }
-
     beforeEach(() => {
       window.digitalData = {
         events: []
@@ -1761,18 +2191,17 @@ describe('Integrations: GoogleAnalytics', () => {
 
     describe('after loading', function () {
       beforeEach((done) => {
-        loadGA(() => {
-          ddManager.once('ready', done);
-          ddManager.initialize({
-            autoEvents: false
-          });
+        sinon.stub(ga, 'load');
+        ddManager.once('ready', done);
+        ddManager.initialize({
+          autoEvents: false
         });
       });
 
       describe('enhanced ecommerce', function () {
 
         beforeEach(() => {
-          sinon.spy(window, 'ga');
+          sinon.stub(window, 'ga');
         });
 
         afterEach(() => {
@@ -1784,8 +2213,13 @@ describe('Integrations: GoogleAnalytics', () => {
             name: 'Test',
             category: 'Test',
             callback: () => {
-              assert.equal(2, window.ga.getAll().length);
-              assert.ok(window.ga.calledOnce);
+              assert.ok(window.ga.calledWith('ddl.send', 'event', {
+                eventAction: 'Test',
+                eventCategory: 'Test',
+                eventLabel: undefined,
+                eventValue: 0,
+                nonInteraction: false
+              }));
               done();
             }
           });
@@ -1794,7 +2228,6 @@ describe('Integrations: GoogleAnalytics', () => {
         it('should not track View Page semantic event', (done) => {
           window.digitalData.events.push({
             name: 'Viewed Page',
-            category: 'Content',
             callback: () => {
               assert.ok(!window.ga.called);
               done();
@@ -1810,81 +2243,7 @@ describe('Integrations: GoogleAnalytics', () => {
               orderId: '7306cc06'
             },
             callback: () => {
-              assert.equal(window.ga.args.length, 1);
-            }
-          });
-        });
-
-      });
-    });
-  });
-
-  describe('Universal with filterEvents', function() {
-
-    let ga;
-    let options = {
-      enhancedEcommerce: true,
-      trackingId: 'UA-51485228-7',
-      domain: 'none',
-      defaultCurrency: 'USD',
-      siteSpeedSampleRate: 42,
-      namespace: 'ddl',
-      filterEvents: ['Completed Transaction']
-    };
-
-    beforeEach(() => {
-      window.digitalData = {
-        events: []
-      };
-      ga = new GoogleAnalytics(window.digitalData, options);
-      ddManager.addIntegration('Google Analytics', ga);
-    });
-
-    afterEach(() => {
-      ga.reset();
-      ddManager.reset();
-      reset();
-    });
-
-    describe('after loading', function () {
-      beforeEach((done) => {
-        ddManager.once('ready', done);
-        ddManager.initialize({
-          autoEvents: false
-        });
-      });
-
-      describe('enhanced ecommerce', function () {
-
-        beforeEach(() => {
-          sinon.spy(window, 'ga');
-        });
-
-        afterEach(() => {
-          window.ga.restore();
-        });
-
-        it('should not track View Page semantic event', (done) => {
-          window.digitalData.events.push({
-            name: 'Viewed Page',
-            category: 'Content',
-            callback: () => {
               assert.ok(!window.ga.called);
-              done();
-            }
-          });
-        });
-
-        it('should not track simple ecommerce data', function (done) {
-          window.digitalData.events.push({
-            name: 'Completed Transaction',
-            category: 'Ecommerce',
-            transaction: {
-              orderId: '7306cc06'
-            },
-            callback: () => {
-              assert.ok(!window.ga.called);
-              done();
             }
           });
         });

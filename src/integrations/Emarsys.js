@@ -12,9 +12,10 @@ function calculateLineItemSubtotal(lineItem) {
   return price * quantity;
 }
 
-function mapLineItems(lineItems) {
-  return lineItems.map(function mapLineItem(lineItem) {
+function mapLineItems(lineItems, overrideProduct) {
+  return lineItems.map((lineItem) => {
     const product = lineItem.product;
+    overrideProduct(product);
     const lineItemSubtotal = lineItem.subtotal || calculateLineItemSubtotal(lineItem);
     return {
       item: product.id || product.skuCode,
@@ -47,10 +48,49 @@ class Emarsys extends Integration {
   initialize() {
     window.ScarabQueue = window.ScarabQueue || [];
     if (!this.getOption('noConflict')) {
-      this.load(this.ready);
+      this.load(this.onLoad);
     } else {
-      this.ready();
+      this.onLoad();
     }
+  }
+
+  getEnrichableEventProps(event) {
+    let enrichableProps = [];
+    switch (event.name) {
+    case 'Viewed Page':
+      enrichableProps = [
+        'page.type',
+        'user.email',
+        'user.userId',
+        'cart',
+      ];
+      break;
+    case 'Viewed Product Detail':
+      enrichableProps = [
+        'product.id',
+        'product.skuCode',
+      ];
+      break;
+    case 'Viewed Product Category':
+      enrichableProps = [
+        'listing.category',
+      ];
+      break;
+    case 'Searched Products':
+      enrichableProps = [
+        'listing.query',
+      ];
+      break;
+    case 'Completed Transaction':
+      enrichableProps = [
+        'transaction',
+      ];
+      break;
+    default:
+      // do nothing
+    }
+
+    return enrichableProps;
   }
 
   isLoaded() {
@@ -61,7 +101,7 @@ class Emarsys extends Integration {
     deleteProperty(window, 'ScarabQueue');
   }
 
-  enrichDigitalData(done) {
+  enrichDigitalData() {
     // TODO
     /*
     ScarabQueue.push(['recommend', {
@@ -77,13 +117,12 @@ class Emarsys extends Integration {
     }]);
     ScarabQueue.push(['go']);
     */
-    done();
   }
 
   trackEvent(event) {
     const methods = {
       'Viewed Page': 'onViewedPage',
-      'Searched': 'onSearched',
+      'Searched Products': 'onSearchedProducts',
       'Viewed Product Category': 'onViewedProductCategory',
       'Viewed Product Detail': 'onViewedProductDetail',
       'Completed Transaction': 'onCompletedTransaction',
@@ -99,24 +138,22 @@ class Emarsys extends Integration {
     }
   }
 
-  sendCommonData() {
-    const user = this.digitalData.user || {};
-    const cart = this.digitalData.cart || {};
+  onViewedPage(event) {
+    const user = event.user || {};
+    const cart = event.cart || {};
+    const page = event.page;
+
     if (user.email) {
       window.ScarabQueue.push(['setEmail', user.email]);
     } else if (user.userId) {
       window.ScarabQueue.push(['setCustomerId', user.userId]);
     }
     if (cart.lineItems && cart.lineItems.length > 0) {
-      window.ScarabQueue.push(['cart', mapLineItems(cart.lineItems)]);
+      window.ScarabQueue.push(['cart', mapLineItems(cart.lineItems, this.overrideProduct)]);
     } else {
       window.ScarabQueue.push(['cart', []]);
     }
-  }
 
-  onViewedPage(event) {
-    const page = event.page;
-    this.sendCommonData();
     // product, category, search and confirmation pages are tracked separately
     if (['product', 'category', 'search', 'confirmation'].indexOf(page.type) < 0) {
       go();
@@ -126,31 +163,40 @@ class Emarsys extends Integration {
   onViewedProductCategory(event) {
     const listing = event.listing || {};
     let category = listing.category;
-    if (Array.isArray(listing.category)) {
-      category = category.join(this.getOption('categorySeparator'));
+    if (listing.category) {
+      if (Array.isArray(listing.category)) {
+        category = category.join(this.getOption('categorySeparator'));
+      }
+      window.ScarabQueue.push(['category', category]);
     }
-    window.ScarabQueue.push(['category', category]);
     go();
   }
 
   onViewedProductDetail(event) {
-    const product = event.product;
-    window.ScarabQueue.push(['view', product.id || product.skuCode]);
+    const product = event.product || {};
+    this.overrideProduct(product);
+    if (product.id || product.skuCode) {
+      window.ScarabQueue.push(['view', product.id || product.skuCode]);
+    }
     go();
   }
 
-  onSearched(event) {
+  onSearchedProducts(event) {
     const listing = event.listing || {};
-    window.ScarabQueue.push(['searchTerm', listing.query]);
+    if (listing.query) {
+      window.ScarabQueue.push(['searchTerm', listing.query]);
+    }
     go();
   }
 
   onCompletedTransaction(event) {
-    const transaction = event.transaction;
-    window.ScarabQueue.push(['purchase', {
-      orderId: transaction.orderId,
-      items: mapLineItems(transaction.lineItems),
-    }]);
+    const transaction = event.transaction || {};
+    if (transaction.orderId && transaction.lineItems) {
+      window.ScarabQueue.push(['purchase', {
+        orderId: transaction.orderId,
+        items: mapLineItems(transaction.lineItems, this.overrideProduct),
+      }]);
+    }
     go();
   }
 }

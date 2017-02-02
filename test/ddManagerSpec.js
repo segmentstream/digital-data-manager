@@ -1,5 +1,6 @@
 import assert from 'assert';
 import reset from './reset.js';
+import sinon from 'sinon';
 import snippet from './snippet.js';
 import ddManager from '../src/ddManager.js';
 import Integration from '../src/Integration.js';
@@ -7,7 +8,12 @@ import availableIntegrations from '../src/availableIntegrations.js';
 
 describe('DDManager', () => {
 
+  beforeEach(() => {
+    //
+  });
+
   afterEach(() => {
+    window.localStorage.clear();
     ddManager.reset();
     reset();
   });
@@ -30,9 +36,9 @@ describe('DDManager', () => {
     it('should work well with async load using stubs from the snippet', () => {
       snippet();
       window.ddManager.initialize();
-      ddManager.processEarlyStubCalls();
+      ddManager.processEarlyStubCalls(window.ddManager);
 
-      assert.ok(ddManager.isInitialized());
+      assert.ok(ddManager.isReady());
       assert.ok(Array.isArray(window.digitalData.events));
       assert.ok(Array.isArray(window.ddListener));
     });
@@ -40,15 +46,15 @@ describe('DDManager', () => {
     it('should initialize after all other stubs', (done) => {
       snippet();
       window.ddManager.initialize();
-      window.ddManager.on('initialize', () => {
+      window.ddManager.on('ready', () => {
         done();
       });
-      ddManager.processEarlyStubCalls();
+      ddManager.processEarlyStubCalls(window.ddManager);
     });
 
     it('should initialize DDManager instance', () => {
       ddManager.initialize();
-      assert.ok(ddManager.isInitialized());
+      assert.ok(ddManager.isReady());
     });
 
     it('should add integration if old-style object settings', () => {
@@ -128,8 +134,8 @@ describe('DDManager', () => {
 
     it('it should fire on("initialize") event even if ddManager was initialized before', (done) => {
       ddManager.initialize();
-      if (ddManager.isInitialized()) {
-        ddManager.on('initialize', () => {
+      if (ddManager.isReady()) {
+        ddManager.on('ready', () => {
           done();
         });
       } else {
@@ -139,35 +145,8 @@ describe('DDManager', () => {
 
     it('it should fire once("initialize") event even if ddManager was initialized before', (done) => {
       ddManager.initialize();
-      if (ddManager.isInitialized()) {
-        ddManager.once('initialize', () => {
-          done();
-        });
-      } else {
-        assert.ok(false);
-      }
-    });
-
-    it('it should fire fire "Viewed Page" event if autoEvents == true', (done) => {
-      ddManager.initialize();
-      if (ddManager.isInitialized()) {
-        ddManager.once('initialize', () => {
-          assert.ok(window.digitalData.events[0].name === 'Viewed Page');
-          assert.ok(window.digitalData.events.length === 1);
-          done();
-        });
-      } else {
-        assert.ok(false);
-      }
-    });
-
-    it('it should fire fire "Viewed Page" event if autoEvents == true', (done) => {
-      ddManager.initialize({
-        autoEvents: false
-      });
-      if (ddManager.isInitialized()) {
-        ddManager.once('initialize', () => {
-          assert.ok(window.digitalData.events.length === 0);
+      if (ddManager.isReady()) {
+        ddManager.once('ready', () => {
           done();
         });
       } else {
@@ -177,8 +156,8 @@ describe('DDManager', () => {
 
     it('it should enrich digital data', (done) => {
       ddManager.initialize();
-      if (ddManager.isInitialized()) {
-        ddManager.once('initialize', () => {
+      if (ddManager.isReady()) {
+        ddManager.once('ready', () => {
           assert.ok(window.digitalData.context.userAgent);
           done();
         });
@@ -187,31 +166,163 @@ describe('DDManager', () => {
       }
     });
 
-    it('it should send Viewed Page event once', (done) => {
-      ddManager.on('ready', () => {
-        setTimeout(() => {
-          assert.equal(window.digitalData.events.length, 2);
-          done();
-        }, 1000);
-      });
+    it('should enrich digitalData based on semantic events', (done) => {
       window.digitalData = {
-        page: {
-          type: 'product'
-        },
-        product: {
-          id: '123'
+        user: {
+          isSubscribed: false,
+          isLoggedIn: true,
+          hasTransacted: false
         }
       };
-      ddManager.setAvailableIntegrations(availableIntegrations);
+
+      ddManager.once('ready', () => {
+        window.digitalData.events.push({
+          name: 'Completed Transaction'
+        });
+
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          user: {
+            email: 'test@email.com'
+          }
+        });
+
+        setTimeout(() => {
+          assert.ok(window.digitalData.user.isLoggedIn);
+          assert.ok(window.digitalData.user.everLoggedIn);
+          assert.ok(window.digitalData.user.hasTransacted);
+          assert.ok(window.digitalData.user.isSubscribed);
+          assert.equal(window.digitalData.user.email, 'test@email.com');
+          assert.ok(window.digitalData.user.lastTransactionDate);
+          done();
+        }, 101);
+      });
+      ddManager.initialize();
+    });
+
+    it('should update user.isReturning status', (done) => {
+      window.localStorage.clear(); // just to be sure
+      ddManager.once('ready', () => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          callback: () => {
+            assert.ok(!window.digitalData.user.isReturning, 'isReturning should be false');
+          }
+        });
+
+        setTimeout(() => {
+          window.digitalData.events.push({
+            name: 'Viewed Page',
+            callback: () => {
+              assert.ok(window.digitalData.user.isReturning, 'isReturning should be true');
+              done();
+            }
+          });
+        }, 110);
+      });
       ddManager.initialize({
-        autoEvents: true,
-        integrations: {
-          'Google Tag Manager': true,
-          'SegmentStream': true,
+        sessionLength: 0.1,
+        autoEvents: false
+      });
+    });
+
+    it('should not update user.isReturning status', (done) => {
+      ddManager.once('ready', () => {
+        window.digitalData.events.push({
+          name: 'Viewed Page'
+        });
+
+        assert.ok(!window.digitalData.user.isReturning);
+        setTimeout(() => {
+          window.digitalData.events.push({
+            name: 'Viewed Page'
+          });
+          setTimeout(() => {
+            assert.ok(!window.digitalData.user.isReturning);
+            done();
+          }, 110);
+        }, 110);
+      });
+      ddManager.initialize({
+        sessionLength: 20,
+        autoEvents: false
+      });
+    });
+  });
+
+  describe('exclude/include tracking', () => {
+
+    const integration1 = new Integration(window.digitalData);
+    const integration2 = new Integration(window.digitalData);
+    const integration3 = new Integration(window.digitalData);
+
+    beforeEach(() => {
+      sinon.stub(integration1, 'trackEvent');
+      sinon.stub(integration2, 'trackEvent');
+      sinon.stub(integration3, 'trackEvent');
+
+      window.localStorage.clear(); // clear
+      ddManager.addIntegration('integration1', integration1);
+      ddManager.addIntegration('integration2', integration2);
+      ddManager.addIntegration('integration3', integration3);
+      ddManager.initialize({
+        autoEvents: false,
+      });
+    });
+
+    afterEach(() => {
+      ddManager.reset();
+      integration1.trackEvent.restore();
+      integration2.trackEvent.restore();
+      integration3.trackEvent.restore();
+    });
+
+    it('should not send event to integration1', (done) => {
+      window.digitalData.events.push({
+        name: 'Test',
+        excludeIntegrations: ['integration1'],
+        callback: () => {
+          assert.ok(!integration1.trackEvent.called);
+          assert.ok(integration2.trackEvent.called);
+          assert.ok(integration3.trackEvent.called);
+          done();
         }
       });
-
     });
+
+    it('should not send event to integration1', (done) => {
+      window.digitalData.events.push({
+        name: 'Test',
+        includeIntegrations: ['integration2', 'integration3'],
+        callback: () => {
+          assert.ok(!integration1.trackEvent.called);
+          assert.ok(integration2.trackEvent.called);
+          assert.ok(integration2.trackEvent.called);
+          done();
+        }
+      });
+    });
+
+    it('should not send event at all', (done) => {
+      window.digitalData.events.push({
+        name: 'Test',
+        includeIntegrations: ['integration2', 'integration3'],
+        excludeIntegrations: ['integration1'],
+        callback: () => {
+          assert.ok(!integration1.trackEvent.called);
+          assert.ok(!integration2.trackEvent.called);
+          assert.ok(!integration2.trackEvent.called);
+          done();
+        }
+      });
+    });
+
+    it('should not send Session Started event', () => {
+      assert.ok(!integration1.trackEvent.called);
+      assert.ok(!integration2.trackEvent.called);
+      assert.ok(!integration2.trackEvent.called);
+    });
+
   });
 
 });

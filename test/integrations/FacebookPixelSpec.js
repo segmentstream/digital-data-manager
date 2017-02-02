@@ -34,7 +34,7 @@ describe('Integrations: FacebookPixel', () => {
 
     it('should load', (done) => {
       assert.ok(!fbPixel.isLoaded());
-      ddManager.once('ready', () => {
+      ddManager.once('load', () => {
         assert.ok(fbPixel.isLoaded());
         done();
       });
@@ -46,7 +46,7 @@ describe('Integrations: FacebookPixel', () => {
   describe('after loading', () => {
 
     before((done) => {
-      if (!ddManager.isInitialized()) {
+      if (!ddManager.isReady()) {
         ddManager.once('ready', done);
         ddManager.initialize();
       } else {
@@ -74,7 +74,6 @@ describe('Integrations: FacebookPixel', () => {
       it('should call fbq track PageView', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
-          category: 'Content',
           page: {
             type: 'home'
           },
@@ -87,50 +86,9 @@ describe('Integrations: FacebookPixel', () => {
 
     });
 
-
-    describe('#onViewedProductCategory', () => {
-
-      beforeEach(() => {
-        sinon.spy(fbPixel, 'onViewedProductCategory');
-      });
-
-      afterEach(() => {
-        fbPixel.onViewedProductCategory.restore();
-      });
-
-      it('should call fbq track ViewContent', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Product Category',
-          category: 'Ecommerce',
-          listing: {
-            categoryId: '123',
-          },
-          callback: () => {
-            assert.ok(window.fbq.calledWith('track', 'ViewContent', {
-              content_ids: ['123'],
-              content_type: 'product_group'
-            }), 'fbq("track", "ViewContent") was not called');
-            const pageArg = fbPixel.onViewedProductCategory.getCall(0).args[0];
-            assert.ok(pageArg.categoryId, 'page.categoryId is not defined');
-            done();
-          }
-        });
-      });
-
-    });
-
-
     describe('#onViewedProductDetail', () => {
 
-      beforeEach(() => {
-        sinon.spy(fbPixel, 'onViewedProductDetail');
-      });
-
-      afterEach(() => {
-        fbPixel.onViewedProductDetail.restore();
-      });
-
-      it('should call fbq track ViewContent', (done) => {
+      it('should call fbq track ViewContent (legacy product.category format)', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           category: 'Ecommerce',
@@ -147,36 +105,86 @@ describe('Integrations: FacebookPixel', () => {
               content_type: 'product',
               content_name: 'Test Product',
               content_category: 'Category 1',
-              currency: 'USD',
-              value: 10000
             }), 'fbq("track", "ViewContent") was not called');
-            const productArg = fbPixel.onViewedProductDetail.getCall(0).args[0];
-            assert.ok(productArg.id, 'product.id is not defined');
-            assert.ok(productArg.name, 'product.name is not defined');
-            assert.ok(productArg.category, 'product.category is not defined');
-            assert.ok(productArg.unitSalePrice, 'product.unitSalePrice is not defined');
             done();
           }
         });
+      });
 
+      it('should call fbq track ViewContent (legacy product.category with product.subcategory format)', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            category: 'Category 1',
+            subcategory: 'Subcategory 1',
+            currency: 'USD',
+            unitSalePrice: 10000
+          },
+          callback: () => {
+            assert.ok(window.fbq.calledWith('track', 'ViewContent', {
+              content_ids: ['123'],
+              content_type: 'product',
+              content_name: 'Test Product',
+              content_category: 'Category 1/Subcategory 1',
+            }), 'fbq("track", "ViewContent") was not called with correct params');
+            done();
+          }
+        });
+      });
+
+      it('should call fbq track ViewContent', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            category: ['Category 1', 'Subcategory 1'],
+            currency: 'USD',
+            unitSalePrice: 10000
+          },
+          callback: () => {
+            assert.ok(window.fbq.calledWith('track', 'ViewContent', {
+              content_ids: ['123'],
+              content_type: 'product',
+              content_name: 'Test Product',
+              content_category: 'Category 1/Subcategory 1',
+            }), 'fbq("track", "ViewContent") was not called');
+            done();
+          }
+        });
+      });
+
+      it('should call fbq track ViewContent (digitalData)', (done) => {
+        window.digitalData.product = {
+          id: '123',
+          name: 'Test Product',
+          category: ['Category 1', 'Subcategory 1'],
+          currency: 'USD',
+          unitSalePrice: 10000
+        };
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          callback: () => {
+            assert.ok(window.fbq.calledWith('track', 'ViewContent', {
+              content_ids: ['123'],
+              content_type: 'product',
+              content_name: 'Test Product',
+              content_category: 'Category 1/Subcategory 1',
+            }), 'fbq("track", "ViewContent") was not called');
+            done();
+          }
+        });
       });
     });
 
 
     describe('#onAddedProduct', () => {
 
-      beforeEach(() => {
-        sinon.spy(fbPixel, 'onAddedProduct');
-      });
-
-      afterEach(() => {
-        fbPixel.onAddedProduct.restore();
-      });
-
-      it('should call fbq track AddToCart', (done) => {
+      it('should call fbq track AddToCart (legacy product.category format)', (done) => {
         window.digitalData.events.push({
           name: 'Added Product',
-          category: 'Ecommerce',
           product: {
             id: '123',
             name: 'Test Product',
@@ -191,25 +199,91 @@ describe('Integrations: FacebookPixel', () => {
               content_type: 'product',
               content_name: 'Test Product',
               content_category: 'Category 1',
-              currency: 'USD',
-              value: 20000
             }), 'fbq("track", "AddToCart") was not called');
-            const productArg = fbPixel.onAddedProduct.getCall(0).args[0];
-            const quantityArg = fbPixel.onAddedProduct.getCall(0).args[1];
-            assert.ok(productArg.id, 'product.id is not defined');
-            assert.ok(productArg.name, 'product.name is not defined');
-            assert.ok(productArg.category, 'product.category is not defined');
-            assert.ok(productArg.currency, 'product.currency is not defined');
-            assert.ok(productArg.unitSalePrice, 'product.unitSalePrice is not defined');
-            assert.ok(quantityArg === 2);
             done();
           }
         });
+      });
 
-        it('should call fbq track ViewContent even without quantity param', (done) => {
-          window.digitalData.events.push({
-            name: 'Added Product',
-            category: 'Ecommerce',
+      it('should call fbq track AddToCart (legacy product.category format with product.subcategory)', (done) => {
+        window.digitalData.events.push({
+          name: 'Added Product',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            category: 'Category 1',
+            subcategory: 'Subcategory 1',
+            currency: 'USD',
+            unitSalePrice: 10000
+          },
+          quantity: 2,
+          callback: () => {
+            assert.ok(window.fbq.calledWith('track', 'AddToCart', {
+              content_ids: ['123'],
+              content_type: 'product',
+              content_name: 'Test Product',
+              content_category: 'Category 1/Subcategory 1',
+            }), 'fbq("track", "AddToCart") was not called');
+            done();
+          }
+        });
+      });
+
+      it('should call fbq track AddToCart' , (done) => {
+        window.digitalData.events.push({
+          name: 'Added Product',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            category: ['Category 1', 'Subcategory 1'],
+            currency: 'USD',
+            unitSalePrice: 10000
+          },
+          quantity: 2,
+          callback: () => {
+            assert.ok(window.fbq.calledWith('track', 'AddToCart', {
+              content_ids: ['123'],
+              content_type: 'product',
+              content_name: 'Test Product',
+              content_category: 'Category 1/Subcategory 1',
+            }), 'fbq("track", "AddToCart") was not called');
+            done();
+          }
+        });
+      });
+
+      it('should call fbq track ViewContent even without quantity param', (done) => {
+        window.digitalData.events.push({
+          name: 'Added Product',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            category: 'Category 1',
+            currency: 'USD',
+            unitSalePrice: 10000
+          },
+          callback: () => {
+            assert.ok(window.fbq.calledWith('track', 'AddToCart', {
+              content_ids: ['123'],
+              content_type: 'product',
+              content_name: 'Test Product',
+              content_category: 'Category 1',
+            }), 'fbq("track", "AddToCart") was not called');
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onCompletedTransaction', () => {
+
+      const transaction = {
+        orderId: '123',
+        total: 20000,
+        currency: 'USD',
+        lineItems: [
+          {
             product: {
               id: '123',
               name: 'Test Product',
@@ -217,74 +291,27 @@ describe('Integrations: FacebookPixel', () => {
               currency: 'USD',
               unitSalePrice: 10000
             },
-            callback: () => {
-              assert.ok(window.fbq.calledWith('track', 'AddToCart', {
-                content_ids: ['123'],
-                content_type: 'product',
-                content_name: 'Test Product',
-                content_category: 'Category 1',
-                currency: 'USD',
-                value: 10000
-              }), 'fbq("track", "AddToCart") was not called');
-              const productArg = fbPixel.onAddedProduct.getCall(0).args[0];
-              const quantityArg = fbPixel.onAddedProduct.getCall(0).args[1];
-              assert.ok(productArg.id, 'product.id is not defined');
-              assert.ok(productArg.name, 'product.name is not defined');
-              assert.ok(productArg.category, 'product.category is not defined');
-              assert.ok(productArg.currency, 'product.currency is not defined');
-              assert.ok(productArg.unitSalePrice, 'product.unitSalePrice is not defined');
-              assert.ok(!quantityArg);
-              done();
-            }
-          });
-        });
-
-      });
-    });
-
-    describe('#onCompletedTransaction', () => {
-
-      beforeEach(() => {
-        sinon.spy(fbPixel, 'onCompletedTransaction');
-      });
-
-      afterEach(() => {
-        fbPixel.onCompletedTransaction.restore();
-      });
+            quantity: 1,
+            subtotal: 10000
+          },
+          {
+            product: {
+              id: '234',
+              name: 'Test Product 2',
+              category: 'Category 1',
+              currency: 'USD',
+              unitSalePrice: 5000
+            },
+            quantity: 2,
+            subtotal: 10000
+          }
+        ]
+      };
 
       it('should call fbq track Purchase', (done) => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
-          category: 'Ecommerce',
-          transaction: {
-            orderId: '123',
-            total: 20000,
-            currency: 'USD',
-            lineItems: [
-              {
-                product: {
-                  id: '123',
-                  name: 'Test Product',
-                  category: 'Category 1',
-                  currency: 'USD',
-                  unitSalePrice: 10000
-                },
-                quantity: 1,
-                subtotal: 10000
-              },
-              {
-                product: {
-                  id: '234',
-                  name: 'Test Product 2',
-                  category: 'Category 1',
-                  currency: 'USD',
-                  unitSalePrice: 5000
-                },
-                quantity: 2,
-                subtotal: 10000
-              }
-            ]
-          },
+          transaction: transaction,
           callback: () => {
             assert.ok(window.fbq.calledWith('track', 'Purchase', {
               content_ids: ['123', '234'],
@@ -292,8 +319,22 @@ describe('Integrations: FacebookPixel', () => {
               currency: 'USD',
               value: 20000
             }), 'fbq("track", "Purchase") was not called');
-            const transactionArg = fbPixel.onCompletedTransaction.getCall(0).args[0];
-            assert.ok(transactionArg.orderId, 'transaction.orderId is not defined');
+            done();
+          }
+        });
+      });
+
+      it('should call fbq track Purchase (digitalData)', (done) => {
+        window.digitalData.transaction = transaction;
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          callback: () => {
+            assert.ok(window.fbq.calledWith('track', 'Purchase', {
+              content_ids: ['123', '234'],
+              content_type: 'product',
+              currency: 'USD',
+              value: 20000
+            }), 'fbq("track", "Purchase") was not called');
             done();
           }
         });
@@ -302,7 +343,6 @@ describe('Integrations: FacebookPixel', () => {
       it('should call fbq track Purchase even if transaction.total and transaction.currency is not defined', (done) => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
-          category: 'Ecommerce',
           transaction: {
             orderId: '123',
             lineItems: [
@@ -339,8 +379,6 @@ describe('Integrations: FacebookPixel', () => {
               currency: 'USD',
               value: 20000
             }), 'fbq("track", "Purchase") was not called');
-            const transactionArg = fbPixel.onCompletedTransaction.getCall(0).args[0];
-            assert.ok(transactionArg.orderId, 'transaction.orderId is not defined');
             done();
           }
         });
@@ -349,7 +387,6 @@ describe('Integrations: FacebookPixel', () => {
       it('should call fbq track Purchase even if lineItem.subtotal and lineItem.currency is not defined', (done) => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
-          category: 'Ecommerce',
           transaction: {
             orderId: '123',
             currency: 'USD',
@@ -383,8 +420,6 @@ describe('Integrations: FacebookPixel', () => {
               currency: 'USD',
               value: 20000
             }), 'fbq("track", "Purchase") was not called');
-            const transactionArg = fbPixel.onCompletedTransaction.getCall(0).args[0];
-            assert.ok(transactionArg.orderId, 'transaction.orderId is not defined');
             done();
           }
         });

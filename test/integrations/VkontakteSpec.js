@@ -39,10 +39,10 @@ describe('Integrations: Vkontakte', () => {
 
     describe('#initialize', () => {
       it('should call ready after initialization', () => {
-        sinon.stub(vk, 'ready');
+        sinon.stub(vk, 'onLoad');
         ddManager.initialize();
-        assert.ok(vk.ready.calledOnce);
-        vk.ready.restore();
+        assert.ok(vk.onLoad.calledOnce);
+        vk.onLoad.restore();
       });
     });
   });
@@ -50,7 +50,7 @@ describe('Integrations: Vkontakte', () => {
   describe('loading', function () {
     it('should load', function (done) {
       assert.ok(!vk.isLoaded());
-      ddManager.once('ready', () => {
+      ddManager.once('load', () => {
         assert.ok(vk.isLoaded());
         done();
       });
@@ -77,7 +77,6 @@ describe('Integrations: Vkontakte', () => {
       it('should add pixel to the page', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
-          category: 'Ecommerce',
           page: {},
           callback: () => {
             assert.ok(vk.addPixel.called);
@@ -89,7 +88,6 @@ describe('Integrations: Vkontakte', () => {
       it('should not add pixel to the page', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Product',
-          category: 'Ecommerce',
           page: {},
           callback: () => {
             assert.ok(!vk.addPixel.called);

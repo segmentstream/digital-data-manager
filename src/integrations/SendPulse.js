@@ -1,6 +1,6 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
-import each from './../functions/each.js';
+import { getProp } from './../functions/dotProp';
 import type from 'component-type';
 
 class SendPulse extends Integration {
@@ -10,6 +10,7 @@ class SendPulse extends Integration {
       https: false,
       pushScriptUrl: '',
       pushSubscriptionTriggerEvent: 'Agreed to Receive Push Notifications',
+      userVariables: [],
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -30,18 +31,23 @@ class SendPulse extends Integration {
         original(value);
         if (value !== 'DENY') {
           this.digitalData.user.pushNotifications.isSubscribed = true;
-          this.sendUserAttributes(this.digitalData.user);
+          this.sendUserAttributes(this.digitalData);
         }
       };
-      this.ready();
+      this.enrichDigitalData();
+      this.onLoad();
     });
   }
 
-  enrichDigitalData(done) {
+  enrichDigitalData() {
     const pushNotification = this.digitalData.user.pushNotifications = {};
     try {
       pushNotification.isSupported = this.checkPushNotificationsSupport();
       this.getPushSubscriptionInfo((subscriptionInfo) => {
+        if (!this.isLoaded()) {
+          // to avoid problems in unit tests because of asyncoronous delay
+          return;
+        }
         if (subscriptionInfo === undefined) {
           pushNotification.isSubscribed = false;
           if (window.oSpP.isSafariNotificationSupported()) {
@@ -60,23 +66,18 @@ class SendPulse extends Integration {
           }
         }
         this.onSubscriptionStatusReceived();
-        done();
+        this.onEnrich();
       });
     } catch (e) {
       pushNotification.isSupported = false;
-      done();
+      this.onEnrich();
     }
   }
 
   onSubscriptionStatusReceived() {
     if (this.digitalData.user.pushNotifications.isSubscribed) {
-      this.sendUserAttributes(this.digitalData.user);
+      this.sendUserAttributes(this.digitalData);
     }
-    window.ddListener.push(['on', 'change:user', (newUser, oldUser) => {
-      if (newUser.pushNotifications.isSubscribed && oldUser !== undefined) {
-        this.sendUserAttributes(newUser, oldUser);
-      }
-    }]);
   }
 
   checkPushNotificationsSupport() {
@@ -119,12 +120,22 @@ class SendPulse extends Integration {
     });
   }
 
-  sendUserAttributes(newUser, oldUser) {
-    each(newUser, (key, value) => {
-      if (type(value) !== 'object' && (!oldUser || value !== oldUser[key])) {
-        window.oSpP.push(key, String(value));
+  sendUserAttributes(digitalData) {
+    const userVariables = this.getOption('userVariables');
+    for (const userVar of userVariables) {
+      let value;
+      if (userVar.indexOf('.') < 0) { // legacy version
+        value = getProp(digitalData.user, userVar);
+      } else {
+        value = getProp(digitalData, userVar);
       }
-    });
+      if (
+        value !== undefined &&
+        type(value) !== 'object'
+      ) {
+        window.oSpP.push(userVar, String(value));
+      }
+    }
   }
 
   isLoaded() {

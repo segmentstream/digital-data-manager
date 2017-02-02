@@ -1,10 +1,10 @@
-import getProperty from './functions/getProperty.js';
+import { getProp } from './functions/dotProp';
 import clone from 'component-clone';
 
 class DDHelper {
 
   static get(key, digitalData) {
-    const value = getProperty(digitalData, key);
+    const value = getProp(digitalData, key);
     return clone(value);
   }
 
@@ -41,7 +41,7 @@ class DDHelper {
     }
   }
 
-  static getListItem(id, digitalData, listName) {
+  static getListItem(id, digitalData, listId) {
     // search in listings
     const listingItem = {};
     for (const listingKey of ['listing', 'recommendation']) {
@@ -51,13 +51,14 @@ class DDHelper {
           listings = [listings];
         }
         for (const listing of listings) {
-          if (listing.items && listing.items.length && (!listName || listName === listing.listName)) {
+          if (listing.items && listing.items.length && (!listId || listId === listing.listId)) {
             for (let i = 0, length = listing.items.length; i < length; i++) {
               if (listing.items[i].id && String(listing.items[i].id) === String(id)) {
                 const product = clone(listing.items[i]);
                 listingItem.product = product;
                 listingItem.position = (i + 1);
-                listingItem.listName = listName || listing.listName;
+                listingItem.listId = listId || listing.listId;
+                listingItem.listName = listing.listName;
                 return listingItem;
               }
             }

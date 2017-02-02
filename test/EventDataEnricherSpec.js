@@ -1,6 +1,7 @@
 import assert from 'assert';
 import deleteProperty from './../src/functions/deleteProperty.js';
 import EventDataEnricher from './../src/EventDataEnricher.js';
+import Emarsys from './../src/integrations/Emarsys';
 
 describe('EventDataEnricher', () => {
 
@@ -329,71 +330,7 @@ describe('EventDataEnricher', () => {
         assert.ok(_digitalData.listing[0].items[0].unitPrice === 10000, 'DDL listing[0].items[0].unitPrice is not equal to 10000');
       });
     });
-
   });
-
-
-  describe('#transaction', () => {
-
-    before(() => {
-      _digitalData = {
-        page: {
-          type: 'home'
-        },
-        transaction: {
-          orderId: '123',
-          lineItems: [
-            {
-              product: {
-                id: '123'
-              },
-              quantity: 2
-            }
-          ],
-          total: 10000,
-          subtotal: 10000
-        },
-        events: []
-      };
-    });
-
-    it('should enrich transaction when transaction is empty', () => {
-      const event = {
-        name: 'Completed Transaction',
-        category: 'Ecommerce'
-      };
-
-      event.transaction = EventDataEnricher.transaction(event.transaction, _digitalData);
-
-      assert.ok(event.name);
-      assert.ok(event.category);
-      assert.ok(event.transaction);
-      assert.ok(event.transaction.orderId === '123', 'transaction.orderId is is not equal to "123"');
-      assert.ok(event.transaction.lineItems.length === 1, 'transaction.lineItemsLength is is not equal to 1');
-    });
-
-    it('should enrich transaction when transaction is not empty', () => {
-      const event = {
-        name: 'Completed Transaction',
-        category: 'Ecommerce',
-        transaction: {
-          oderId: '123',
-          subtotal: 11000
-        }
-      };
-
-      event.transaction = EventDataEnricher.transaction(event.transaction, _digitalData);
-
-      assert.ok(event.name);
-      assert.ok(event.category);
-      assert.ok(event.transaction);
-      assert.ok(event.transaction.orderId === '123', 'transaction.orderId is is not equal to "123"');
-      assert.ok(event.transaction.subtotal === 11000, 'transaction.subtital is is not equal to 11000');
-      assert.ok(event.transaction.lineItems.length === 1, 'transaction.lineItemsLength is is not equal to 1');
-    });
-
-  });
-
 
   describe('#campaign', () => {
 
@@ -511,109 +448,41 @@ describe('EventDataEnricher', () => {
 
   });
 
-  describe('#user', () => {
-
-    before(() => {
-      _digitalData = {
-        page: {
-          type: 'home'
+  describe('#enrichIntegrationData', () => {
+    const emarsys = new Emarsys(_digitalData, {
+      merchantId: 'XXX',
+      overrideFunctions: {
+        product: function(product) {
+          product.id = 's/' + product.id;
         },
-        user: {
-          firstName: 'John',
-          lastName: 'Dow',
-          isLoggedIn: true,
-          email: 'example@driveback.ru'
-        },
-        events: []
-      };
+        event: function(event) {
+          if (event.name === 'Test') {
+            event.prop1 = 'test2';
+          }
+        }
+      }
     });
 
-    it('should enrich user when user is empty', () => {
+    it('should override event data', () => {
       const event = {
-        name: 'Subscribed',
-        category: 'Email'
+        name: 'Test',
+        prop1: 'test1'
       };
-
-      event.user = EventDataEnricher.user(event.user, _digitalData);
-
-      assert.ok(event.name);
-      assert.ok(event.category);
-      assert.ok(event.user);
-      assert.ok(event.user.isLoggedIn === true, 'user.isLoggedIn is not equal to TRUE');
-      assert.ok(event.user.firstName === 'John', 'user.firstName is not equal to "John"');
-      assert.ok(event.user.lastName === 'Dow', 'user.lastName is not equal to "Dow"');
-      assert.ok(event.user.email === 'example@driveback.ru', 'user.email is is not equal to "example@driveback.ru"');
+      const enrichedEvent = EventDataEnricher.enrichIntegrationData(event, _digitalData, emarsys);
+      assert.equal(enrichedEvent.prop1, 'test2');
     });
 
-    it('should enrich user when user is not empty', () => {
+    it('should override product data', () => {
       const event = {
-        name: 'Subscribed',
-        category: 'Email',
-        user: {
-          email: 'example2@driveback.ru'
+        name: 'Viewed Product Detail',
+        product: {
+          id: '123'
         }
       };
-
-      event.user = EventDataEnricher.user(event.user, _digitalData);
-
-      assert.ok(event.name);
-      assert.ok(event.category);
-      assert.ok(event.user);
-      assert.ok(event.user.isLoggedIn === true, 'user.isLoggedIn is not equal to TRUE');
-      assert.ok(event.user.firstName === 'John', 'user.firstName is not equal to "John"');
-      assert.ok(event.user.lastName === 'Dow', 'user.lastName is not equal to "Dow"');
-      assert.ok(event.user.email === 'example2@driveback.ru', 'user.email is is not equal to "example2@driveback.ru"');
+      emarsys.initialize();
+      emarsys.trackEvent(event);
+      assert.equal(window.ScarabQueue[0][1], 's/123');
     });
-
-  });
-
-  describe('#page', () => {
-
-    before(() => {
-      _digitalData = {
-        page: {
-          type: 'category',
-          categoryId: '123'
-        },
-        events: []
-      };
-    });
-
-    it('should enrich user when user is empty', () => {
-      const event = {
-        name: 'Viewed Page',
-        category: 'Content'
-      };
-
-      event.page = EventDataEnricher.page(event.page, _digitalData);
-
-      assert.ok(event.name);
-      assert.ok(event.category);
-      assert.ok(event.page);
-      assert.ok(event.page.type === 'category', 'page.type is not equal to "category"');
-      assert.ok(event.page.categoryId === '123', 'page.categoryId is not equal to "123"');
-    });
-
-    it('should enrich user when user is not empty', () => {
-      const event = {
-        name: 'Subscribed',
-        category: 'Email',
-        page: {
-          categoryId: '234',
-          url: 'http://example.com'
-        }
-      };
-
-      event.page = EventDataEnricher.page(event.page, _digitalData);
-
-      assert.ok(event.name);
-      assert.ok(event.category);
-      assert.ok(event.page);
-      assert.ok(event.page.type === 'category', 'page.type is not equal to "category"');
-      assert.ok(event.page.categoryId === '234', 'page.categoryId is not equal to "234"');
-      assert.ok(event.page.url === 'http://example.com', 'page.categoryId is not equal to "http://example.com"');
-    });
-
   });
 
 });

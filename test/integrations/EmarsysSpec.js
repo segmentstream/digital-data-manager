@@ -20,7 +20,6 @@ function viewedPageOfType(type, callback) {
 function viewedProductCategory(category, callback) {
   window.digitalData.events.push({
     name: 'Viewed Product Category',
-    category: 'Ecommerce',
     listing: { category },
     callback,
   });
@@ -28,19 +27,17 @@ function viewedProductCategory(category, callback) {
 
 function searched(query, callback) {
   window.digitalData.events.push({
-    name: 'Searched',
-    category: 'Content',
+    name: 'Searched Products',
     listing: { query },
     callback,
-  })
+  });
 }
 
 function viewedProductDetail(productId, callback) {
   window.digitalData.events.push({
     name: 'Viewed Product Detail',
-    category: 'Ecommerce',
     product: {
-      id: productId
+      id: productId,
     },
     callback,
   });
@@ -49,17 +46,21 @@ function viewedProductDetail(productId, callback) {
 function completedTransaction(transaction, callback) {
   window.digitalData.events.push({
     name: 'Completed Transaction',
-    category: 'Ecommerce',
     transaction,
     callback,
-  })
+  });
 }
 
-describe('Integrations: Emarsys', () => {
 
+describe('Integrations: Emarsys', () => {
   let emarsys;
   const options = {
-    merchantId: '123',
+    merchantId: '1ED4C63984B56E58',
+    overrideFunctions: {
+      product: (product) => {
+        product.id = product.id.replace(/_/g, '');
+      },
+    },
   };
 
   beforeEach(() => {
@@ -67,7 +68,7 @@ describe('Integrations: Emarsys', () => {
       website: {},
       page: {},
       user: {},
-      events: []
+      events: [],
     };
     emarsys = new Emarsys(window.digitalData, options);
     ddManager.addIntegration('Emarsys', emarsys);
@@ -80,11 +81,11 @@ describe('Integrations: Emarsys', () => {
   });
 
   describe('before loading', () => {
-    beforeEach(function () {
+    beforeEach(() => {
       sinon.stub(emarsys, 'load');
     });
 
-    afterEach(function () {
+    afterEach(() => {
       emarsys.load.restore();
     });
 
@@ -110,13 +111,13 @@ describe('Integrations: Emarsys', () => {
     });
   });
 
-  describe('loading', function () {
+  describe('loading', () => {
     beforeEach(() => {
       sinon.stub(emarsys, 'load', () => {
-        window._tmr = {
-          push: function() {},
+        window.ScarabQueue = {
+          push: () => {},
         };
-        emarsys.ready();
+        emarsys.onLoad();
       });
     });
 
@@ -124,14 +125,14 @@ describe('Integrations: Emarsys', () => {
       emarsys.load.restore();
     });
 
-    it('should load', function (done) {
+    it('should load', (done) => {
       assert.ok(!emarsys.isLoaded());
-      ddManager.once('ready', () => {
+      ddManager.once('load', () => {
         assert.ok(emarsys.isLoaded());
         done();
       });
       ddManager.initialize({
-        autoEvents: false
+        autoEvents: false,
       });
     });
   });
@@ -139,16 +140,16 @@ describe('Integrations: Emarsys', () => {
   describe('after loading', () => {
     beforeEach((done) => {
       sinon.stub(emarsys, 'load', () => {
-        sinon.spy(window.ScarabQueue, 'push')
-        emarsys.ready();
+        sinon.spy(window.ScarabQueue, 'push');
+        emarsys.onLoad();
       });
       ddManager.once('ready', done);
       ddManager.initialize({
-        autoEvents: false
+        autoEvents: false,
       });
     });
 
-    afterEach(function () {
+    afterEach(() => {
       emarsys.load.restore();
       window.ScarabQueue.push.restore();
     });
@@ -156,7 +157,7 @@ describe('Integrations: Emarsys', () => {
     describe('#onViewedPage', () => {
       it('should send email if user.email is defined', (done) => {
         window.digitalData.user = {
-          email: 'test@driveback.ru'
+          email: 'test@driveback.ru',
         };
         viewedPage(() => {
           assert.ok(window.ScarabQueue.push.calledWith(['setEmail', 'test@driveback.ru']));
@@ -173,7 +174,7 @@ describe('Integrations: Emarsys', () => {
 
       it('should send customerId if user.userId is defined', (done) => {
         window.digitalData.user = {
-          userId: '123'
+          userId: '123',
         };
         viewedPage(() => {
           assert.ok(window.ScarabQueue.push.calledWith(['setCustomerId', '123']));
@@ -206,32 +207,69 @@ describe('Integrations: Emarsys', () => {
             {
               product: {
                 id: '123',
-                unitSalePrice: 100
+                unitSalePrice: 100,
               },
               quantity: 2,
-              subtotal: 180
+              subtotal: 180,
             },
             {
               product: {
                 id: '234',
-                unitSalePrice: 100
+                unitSalePrice: 100,
               },
-              quantity: 2
-            }
-          ]
+              quantity: 2,
+            },
+          ],
         };
         viewedPage(() => {
           assert.ok(window.ScarabQueue.push.calledWith(['cart', [
             {
               item: '123',
               price: 180,
-              quantity: 2
+              quantity: 2,
             },
             {
               item: '234',
               price: 200,
-              quantity: 2
-            }
+              quantity: 2,
+            },
+          ]]));
+          done();
+        });
+      });
+
+      it('should override product id for "Viewed Page" event', (done) => {
+        window.digitalData.cart = {
+          lineItems: [
+            {
+              product: {
+                id: '123_123',
+                unitSalePrice: 100,
+              },
+              quantity: 2,
+              subtotal: 180,
+            },
+            {
+              product: {
+                id: '234_234',
+                unitSalePrice: 100,
+              },
+              quantity: 2,
+            },
+          ],
+        };
+        viewedPage(() => {
+          assert.ok(window.ScarabQueue.push.calledWith(['cart', [
+            {
+              item: '123123',
+              price: 180,
+              quantity: 2,
+            },
+            {
+              item: '234234',
+              price: 200,
+              quantity: 2,
+            },
           ]]));
           done();
         });
@@ -265,8 +303,24 @@ describe('Integrations: Emarsys', () => {
         });
       });
 
+      it('should send "go" for page.type = confirmation (digitalData)', (done) => {
+        window.digitalData.page.type = 'confirmation';
+        viewedPage(() => {
+          assert.ok(!window.ScarabQueue.push.calledWith(['go']));
+          done();
+        });
+      });
+
       it('should send "go" for any other page', (done) => {
         viewedPageOfType('home', () => {
+          assert.ok(window.ScarabQueue.push.calledWith(['go']));
+          done();
+        });
+      });
+
+      it('should send "go" for any other page (digitalData)', (done) => {
+        window.digitalData.page.type = 'home';
+        viewedPage(() => {
           assert.ok(window.ScarabQueue.push.calledWith(['go']));
           done();
         });
@@ -276,6 +330,16 @@ describe('Integrations: Emarsys', () => {
     describe('#onViewedProductCategory', () => {
       it('should send category with default separator', (done) => {
         viewedProductCategory(['Category', 'Subcategory 1', 'Subcategory 2'], () => {
+          assert.ok(window.ScarabQueue.push.calledWith(['category', 'Category > Subcategory 1 > Subcategory 2']));
+          done();
+        });
+      });
+
+      it('should send category with default separator (digitalData)', (done) => {
+        window.digitalData.listing = {
+          category: ['Category', 'Subcategory 1', 'Subcategory 2'],
+        };
+        viewedProductCategory(undefined, () => {
           assert.ok(window.ScarabQueue.push.calledWith(['category', 'Category > Subcategory 1 > Subcategory 2']));
           done();
         });
@@ -313,9 +377,36 @@ describe('Integrations: Emarsys', () => {
         });
       });
 
+      it('should override product id for "Viewed Product Detail" event', (done) => {
+        viewedProductDetail('123_456', () => {
+          assert.ok(window.ScarabQueue.push.calledWith(['view', '123456']));
+          done();
+        });
+      });
+
+      it('should send "view" (digitalData)', (done) => {
+        window.digitalData.product = {
+          id: '123',
+        };
+        viewedProductDetail(undefined, () => {
+          assert.ok(window.ScarabQueue.push.calledWith(['view', '123']));
+          done();
+        });
+      });
+
+      it('should override project id (digitalData) for "Viewed Product Detail" event', (done) => {
+        window.digitalData.product = {
+          id: '123_456',
+        };
+        viewedProductDetail(undefined, () => {
+          assert.ok(window.ScarabQueue.push.calledWith(['view', '123456']));
+          done();
+        });
+      });
+
       it('should send "go"', (done) => {
         viewedProductDetail('123', () => {
-          assert.ok(window.ScarabQueue.push.calledWith(['view', '123']));
+          assert.ok(window.ScarabQueue.push.calledWith(['go']));
           done();
         });
       });
@@ -326,7 +417,17 @@ describe('Integrations: Emarsys', () => {
         searched('test query', () => {
           assert.ok(window.ScarabQueue.push.calledWith(['searchTerm', 'test query']));
           done();
-        })
+        });
+      });
+
+      it('should send "searchTerm" (digitalData)', (done) => {
+        window.digitalData.listing = {
+          query: 'test query',
+        };
+        searched(undefined, () => {
+          assert.ok(window.ScarabQueue.push.calledWith(['searchTerm', 'test query']));
+          done();
+        });
       });
 
       it('should send "go"', (done) => {
@@ -338,45 +439,70 @@ describe('Integrations: Emarsys', () => {
     });
 
     describe('#onCompletedTransaction', () => {
-      it('should send "purchase" and "go"', (done) => {
-        completedTransaction({
-          orderId: '123',
-          lineItems: [
-            {
-              product: {
-                id: '123',
-                unitSalePrice: 100
-              },
-              quantity: 2,
-              subtotal: 180
+      const transaction = {
+        orderId: '123',
+        lineItems: [
+          {
+            product: {
+              id: '123_456',
+              unitSalePrice: 100,
             },
-            {
-              product: {
-                id: '234',
-                unitSalePrice: 100
-              },
-              quantity: 2
-            }
-          ]
-        }, () => {
+            quantity: 2,
+            subtotal: 180,
+          },
+          {
+            product: {
+              id: '234_567',
+              unitSalePrice: 100,
+            },
+            quantity: 2,
+          },
+        ],
+      };
+
+      it('should send "purchase" and "go" with overrided product id', (done) => {
+        completedTransaction(transaction, () => {
           assert.ok(window.ScarabQueue.push.calledWith(['purchase', {
             orderId: '123',
             items: [
               {
-                item: '123',
+                item: '123456',
                 price: 180,
-                quantity: 2
+                quantity: 2,
               },
               {
-                item: '234',
+                item: '234567',
                 price: 200,
-                quantity: 2
-              }
-            ]
+                quantity: 2,
+              },
+            ],
           }]));
           assert.ok(window.ScarabQueue.push.calledWith(['go']));
           done();
-        })
+        });
+      });
+
+      it('should send "purchase" and "go" with overrided product id', (done) => {
+        window.digitalData.transaction = transaction;
+        completedTransaction(undefined, () => {
+          assert.ok(window.ScarabQueue.push.calledWith(['purchase', {
+            orderId: '123',
+            items: [
+              {
+                item: '123456',
+                price: 180,
+                quantity: 2,
+              },
+              {
+                item: '234567',
+                price: 200,
+                quantity: 2,
+              },
+            ],
+          }]));
+          assert.ok(window.ScarabQueue.push.calledWith(['go']));
+          done();
+        });
       });
     });
   });

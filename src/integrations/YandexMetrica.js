@@ -2,10 +2,13 @@ import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
 
 function getProductCategory(product) {
-  const categories = [];
-  if (product.category) categories.push(product.category);
-  if (product.subcategory) categories.push(product.subcategory);
-  return (categories.length) ? categories.join('/') : undefined;
+  let category = product.category;
+  if (Array.isArray(category)) {
+    category = category.join('/');
+  } else if (category && product.subcategory) {
+    category = category + '/' + product.subcategory;
+  }
+  return category;
 }
 
 function getProductId(product) {
@@ -45,6 +48,9 @@ class YandexMetrica extends Integration {
 
     super(digitalData, optionsWithDefaults);
 
+    // use custom dataLayer name to avoid conflicts
+    this.dataLayerName = 'yandexDL';
+
     this.addTag({
       type: 'script',
       attr: {
@@ -53,11 +59,30 @@ class YandexMetrica extends Integration {
     });
   }
 
+  getEnrichableEventProps(event) {
+    let enrichableProps = [];
+    switch (event.name) {
+    case 'Viewed Product Detail':
+      enrichableProps = [
+        'product',
+      ];
+      break;
+    case 'Completed Transaction':
+      enrichableProps = [
+        'transaction',
+      ];
+      break;
+    default:
+      // do nothing
+    }
+    return enrichableProps;
+  }
+
   initialize() {
     const id = this.getOption('counterId');
 
     window.yandex_metrika_callbacks = window.yandex_metrika_callbacks || [];
-    this.dataLayer = window.dataLayer = window.dataLayer || [];
+    this.dataLayer = window[this.dataLayerName] = window[this.dataLayerName] || [];
     if (!this.getOption('noConflict') && id) {
       window.yandex_metrika_callbacks.push(() => {
         this.yaCounter = window['yaCounter' + id] = new window.Ya.Metrika({
@@ -66,12 +91,12 @@ class YandexMetrica extends Integration {
           webvisor: this.getOption('webvisor'),
           trackLinks: this.getOption('trackLinks'),
           trackHash: this.getOption('trackHash'),
-          ecommerce: true,
+          ecommerce: this.dataLayerName,
         });
       });
-      this.load(this.ready);
+      this.load(this.onLoad);
     } else {
-      this.ready();
+      this.onLoad();
     }
   }
 
@@ -82,7 +107,7 @@ class YandexMetrica extends Integration {
   reset() {
     deleteProperty(window, 'Ya');
     deleteProperty(window, 'yandex_metrika_callbacks');
-    deleteProperty(window, 'dataLayer');
+    deleteProperty(window, this.dataLayerName);
   }
 
   trackEvent(event) {
@@ -92,7 +117,6 @@ class YandexMetrica extends Integration {
       'Removed Product': 'onRemovedProduct',
       'Completed Transaction': 'onCompletedTransaction',
     };
-
     if (this.getOption('counterId')) {
       const method = methods[event.name];
       if (method && !this.getOption('noConflict')) {

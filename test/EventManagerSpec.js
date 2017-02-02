@@ -1,7 +1,6 @@
 import assert from 'assert';
 import reset from './reset.js';
 import EventManager from './../src/EventManager.js';
-import AutoEvents from './../src/AutoEvents.js';
 
 describe('EventManager', () => {
 
@@ -26,6 +25,9 @@ describe('EventManager', () => {
 
     beforeEach(() => {
       _digitalData = {
+        page: {
+          categoryId: 1
+        },
         events: []
       };
       _ddListener = [];
@@ -40,7 +42,7 @@ describe('EventManager', () => {
       _digitalData.events.push(event);
 
       assert.ok(_digitalData.events.length == 1);
-      assert.ok(_digitalData.events[0].time > 100000);
+      assert.ok(_digitalData.events[0].timestamp > 100000);
       assert.ok(_digitalData.events[0].hasFired);
     });
 
@@ -62,6 +64,46 @@ describe('EventManager', () => {
       assert.equal(receivedEvent.category, event.category);
     });
 
+    it('should process callback for beforeEvent and event', () => {
+      let event = Object.assign({}, eventTemplate);
+      let callbackFired = false;
+      let receivedEvent;
+
+      _eventManager.initialize();
+
+      _ddListener.push(['on', 'event', (e) => {
+        callbackFired = true;
+        receivedEvent = e;
+      }]);
+      _ddListener.push(['on', 'beforeEvent', (e) => {
+        e.newVar = 'test';
+      }]);
+      _digitalData.events.push(event);
+
+      assert.ok(callbackFired);
+      assert.equal(receivedEvent.action, event.action);
+      assert.equal(receivedEvent.category, event.category);
+      assert.equal(receivedEvent.newVar, 'test');
+    });
+
+    it('should not process callback evet after beforeEvent callback returned false', () => {
+      let event = Object.assign({}, eventTemplate);
+      let callbackFired = false;
+      let receivedEvent;
+
+      _eventManager.initialize();
+
+      _ddListener.push(['on', 'event', (e) => {
+        callbackFired = true;
+        receivedEvent = e;
+      }]);
+      _ddListener.push(['on', 'beforeEvent', (e) => {
+        return false;
+      }]);
+      _digitalData.events.push(event);
+
+      assert.ok(!callbackFired);
+    });
 
     it('should process early callback for event', () => {
       let event = Object.assign({}, eventTemplate);
@@ -84,6 +126,23 @@ describe('EventManager', () => {
         assert.ok(true);
         assert.equal(e.action, event.action);
         assert.equal(e.category, event.category);
+      }]);
+      _digitalData.events.push(event);
+
+      _eventManager.initialize();
+    });
+
+    it('should process early callback for early event and beforeEvent', () => {
+      let event = Object.assign({}, eventTemplate);
+
+      _ddListener.push(['on', 'event', (e) => {
+        assert.ok(true);
+        assert.equal(e.action, event.action);
+        assert.equal(e.category, event.category);
+        assert.equal(e.newVar, 'test');
+      }]);
+      _ddListener.push(['on', 'beforeEvent', (e) => {
+        e.newVar = 'test';
       }]);
       _digitalData.events.push(event);
 
@@ -185,6 +244,9 @@ describe('EventManager', () => {
       _digitalData = {
         user: {
           returning: false
+        },
+        page: {
+          categoryId: 1
         },
         listing: {
           items: [
@@ -319,6 +381,51 @@ describe('EventManager', () => {
         name: 'Test Event'
       });
     });
+
+    it('should fire change key callback for chaining listeners', (done) => {
+      let counter = 0;
+      _ddListener.push(['on', 'change:listing.categoryId', (newValue, previousValue) => {
+        counter++;
+        assert.equal(newValue, counter + 1);
+        _digitalData.page.categoryId = (counter + 2);
+        if (counter = 3) {
+          done();
+        }
+      }]);
+      _ddListener.push(['on', 'change:page.categoryId', (newValue, previousValue) => {
+        _digitalData.listing.categoryId = _digitalData.page.categoryId;
+      }]);
+      _digitalData.page.categoryId = 2;
+    });
+
+    // it('should fire change key callback for chaining listeners ommiting first change', (done) => {
+    //   let counter = 0;
+    //   let firstNewValue;
+    //   setTimeout(() => {
+    //     _digitalData.page.categoryId = 2;
+    //     _ddListener.push(['on', 'change:listing.categoryId', (newValue, previousValue) => {
+    //       counter++;
+    //       if (!firstNewValue) {
+    //         firstNewValue = newValue;
+    //       }
+    //       assert.equal(newValue, counter + 2);
+    //       if (counter < 2) {
+    //         _digitalData.page.categoryId = (counter + 3);
+    //       }
+    //     }]);
+    //     _ddListener.push(['on', 'change:page.categoryId', (newValue, previousValue) => {
+    //       _digitalData.listing.categoryId = _digitalData.page.categoryId;
+    //     }]);
+    //     setTimeout(() => {
+    //       _digitalData.page.categoryId = 3;
+    //       setTimeout(() => {
+    //         assert.ok(firstNewValue > 2, 'should fire listener starting from categoriID = 3');
+    //         assert.equal(counter, 2);
+    //         done();
+    //       }, 550);
+    //     }, 110);
+    //   }, 3);
+    // });
 
   });
 
@@ -476,76 +583,6 @@ describe('EventManager', () => {
       }]);
     });
 
-  });
-
-
-  describe(': listening for autoEvents based on DDL changes', () => {
-
-    beforeEach(() => {
-      _digitalData = {
-        page: {
-          type: 'home'
-        }
-      };
-      _ddListener = [];
-      _eventManager = new EventManager(_digitalData, _ddListener);
-      _eventManager.setAutoEvents(new AutoEvents());
-      _eventManager.initialize();
-    });
-
-    it('should fire Viewed Page event', (done) => {
-      _digitalData.page = {
-        type: 'content'
-      };
-      setTimeout(() => {
-        assert.ok(_digitalData.events.length === 2);
-        assert.ok(_digitalData.events[1].name === 'Viewed Page');
-        assert.ok(_digitalData.events[1].page.type === 'content');
-        done();
-      }, 101)
-    });
-
-    it('should fire Viewed Page and Viewed Product Category events', (done) => {
-      _digitalData.page = {
-        type: 'category',
-      };
-      _digitalData.listing = {
-        categoryId: '123',
-      };
-      setTimeout(() => {
-        assert.ok(_digitalData.events.length === 3);
-        assert.ok(_digitalData.events[1].name === 'Viewed Page');
-        assert.ok(_digitalData.events[1].page.type === 'category');
-        assert.ok(_digitalData.events[2].name === 'Viewed Product Category');
-        assert.ok(_digitalData.events[2].listing.categoryId === '123');
-        done();
-      }, 101);
-    });
-
-    it('should fire Viewed Product Detail event', (done) => {
-      _digitalData.product = {
-        id: '123',
-        name: 'Test Product'
-      };
-      setTimeout(() => {
-        assert.ok(_digitalData.events.length === 2);
-        assert.ok(_digitalData.events[1].name === 'Viewed Product Detail');
-        assert.ok(_digitalData.events[1].product.id === '123');
-        done();
-      }, 101);
-    });
-
-    it('should fire Completed Transaction event', (done) => {
-      _digitalData.transaction = {
-        orderId: '123',
-      };
-      setTimeout(() => {
-        assert.ok(_digitalData.events.length === 2);
-        assert.ok(_digitalData.events[1].name === 'Completed Transaction');
-        assert.ok(_digitalData.events[1].transaction.orderId === '123');
-        done();
-      }, 101);
-    });
   });
 
 });

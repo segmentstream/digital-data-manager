@@ -15,6 +15,7 @@ let _previousDigitalData = {};
 let _digitalData = {};
 let _checkForChangesIntervalId;
 let _autoEvents;
+let _viewabilityTracker;
 let _isInitialized = false;
 
 const _callbackOnComplete = (error) => {
@@ -60,6 +61,9 @@ class EventManager {
     if (_autoEvents) {
       _autoEvents.onInitialize();
     }
+    if (_viewabilityTracker) {
+      _viewabilityTracker.initialize();
+    }
     _checkForChangesIntervalId = setInterval(() => {
       this.fireDefine();
       this.checkForChanges();
@@ -72,6 +76,10 @@ class EventManager {
     _autoEvents = autoEvents;
     _autoEvents.setDigitalData(_digitalData);
     _autoEvents.setDDListener(_ddListener);
+  }
+
+  setViewabilityTracker(viewabilityTracker) {
+    _viewabilityTracker = viewabilityTracker;
   }
 
   getAutoEvents() {
@@ -103,8 +111,12 @@ class EventManager {
       if (callbackInfo.length < 3) {
         return;
       }
-      const asyncHandler = async.asyncify(callbackInfo[2]);
-      this.on(callbackInfo[1], asyncHandler, processPastEvents);
+      let handler = callbackInfo[2];
+      if (callbackInfo[1] !== 'beforeEvent') {
+        // make handler async if it is not before-handler
+        handler = async.asyncify(callbackInfo[2]);
+      }
+      this.on(callbackInfo[1], handler, processPastEvents);
     } if (callbackInfo[0] === 'off') {
       // TODO
     }
@@ -147,9 +159,29 @@ class EventManager {
     }
   }
 
+  beforeFireEvent(event) {
+    if (!_callbacks.beforeEvent) {
+      return true;
+    }
+
+    let beforeEventCallback;
+    let result;
+    for (beforeEventCallback of _callbacks.beforeEvent) {
+      result = beforeEventCallback.handler(event);
+      if (result === false) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   fireEvent(event) {
     let eventCallback;
-    event.time = (new Date()).getTime();
+    event.timestamp = Date.now();
+
+    if (!this.beforeFireEvent(event)) {
+      return false;
+    }
 
     if (_callbacks.event) {
       const results = [];
@@ -190,17 +222,17 @@ class EventManager {
 
   on(eventInfo, handler, processPastEvents) {
     const [type, key] = eventInfo.split(':');
-    _callbacks[type] = _callbacks[type] || [];
-    if (key) {
-      _callbacks[type].push({
-        key,
-        handler,
-      });
-    } else {
-      _callbacks[type].push({
-        handler,
-      });
+
+    if (type === 'view') {
+      _viewabilityTracker.addTracker(key, handler);
+      return; // delegate view tracking to ViewabilityTracker
     }
+
+    _callbacks[type] = _callbacks[type] || [];
+    _callbacks[type].push({
+      key,
+      handler,
+    });
     if (_isInitialized && type === 'event' && processPastEvents) {
       this.applyCallbackForPastEvents(handler);
     }
@@ -239,26 +271,7 @@ class EventManager {
   }
 
   enrichEventWithData(event) {
-    const enrichableVars = [
-      'product',
-      'listItem',
-      'listItems',
-      'transaction',
-      'campaign',
-      'campaigns',
-      'user',
-      'page',
-    ];
-
-    for (const enrichableVar of enrichableVars) {
-      if (event[enrichableVar]) {
-        const enricherMethod = EventDataEnricher[enrichableVar];
-        const eventVar = event[enrichableVar];
-        event[enrichableVar] = enricherMethod(eventVar, _digitalData);
-      }
-    }
-
-    return event;
+    return EventDataEnricher.enrichCommonData(event, _digitalData);
   }
 
   reset() {
@@ -269,6 +282,7 @@ class EventManager {
     _ddListener.push = Array.prototype.push;
     _callbacks = {};
     _autoEvents = null;
+    _viewabilityTracker = null;
   }
 }
 

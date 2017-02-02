@@ -86,7 +86,7 @@ describe('Integrations: Yandex Metrica', () => {
           assert.equal(options.trackHash, ym.getOption('trackHash'));
         };
         window.yandex_metrika_callbacks.pop()();
-        ym.ready();
+        ym.onLoad();
       });
     });
 
@@ -96,7 +96,7 @@ describe('Integrations: Yandex Metrica', () => {
 
     it('should load', function (done) {
       assert.ok(!ym.isLoaded());
-      ddManager.once('ready', () => {
+      ddManager.once('load', () => {
         assert.ok(ym.isLoaded());
         done();
       });
@@ -114,7 +114,7 @@ describe('Integrations: Yandex Metrica', () => {
           this.reachGoal = function() {};
         };
         window.yandex_metrika_callbacks.pop()();
-        ym.ready();
+        ym.onLoad();
       });
       ddManager.once('ready', done);
       ddManager.initialize({
@@ -127,10 +127,9 @@ describe('Integrations: Yandex Metrica', () => {
     });
 
     describe('#onViewedProductDetail', () => {
-      it('should push product detail into dataLayer', (done) => {
+      it('should push product detail into dataLayer (legacy DDL product.category)', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
-          category: 'Ecommerce',
           product: {
             id: '123',
             name: 'Test Product',
@@ -142,7 +141,7 @@ describe('Integrations: Yandex Metrica', () => {
             variant: 'Variant 1'
           },
           callback: () => {
-            assert.deepEqual(window.dataLayer[0], {
+            assert.deepEqual(window.yandexDL[0], {
               ecommerce: {
                 detail: {
                   products: [
@@ -164,15 +163,85 @@ describe('Integrations: Yandex Metrica', () => {
         });
       });
 
+      it('should push product detail into dataLayer', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            manufacturer: 'Test Brand',
+            category: ['Category 1', 'Subcategory 1'],
+            voucher: 'VOUCHER1',
+            unitSalePrice: 1500,
+            variant: 'Variant 1'
+          },
+          callback: () => {
+            assert.deepEqual(window.yandexDL[0], {
+              ecommerce: {
+                detail: {
+                  products: [
+                    {
+                      id: '123',
+                      name: 'Test Product',
+                      price: 1500,
+                      brand: 'Test Brand',
+                      category: 'Category 1/Subcategory 1',
+                      coupon: 'VOUCHER1',
+                      variant: 'Variant 1'
+                    }
+                  ]
+                }
+              }
+            });
+            done();
+          }
+        });
+      });
+
+      it('should push product detail into dataLayer (digitalData)', (done) => {
+        window.digitalData.product = {
+          id: '123',
+          name: 'Test Product',
+          manufacturer: 'Test Brand',
+          category: ['Category 1', 'Subcategory 1'],
+          voucher: 'VOUCHER1',
+          unitSalePrice: 1500,
+          variant: 'Variant 1'
+        };
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          callback: () => {
+            assert.deepEqual(window.yandexDL[0], {
+              ecommerce: {
+                detail: {
+                  products: [
+                    {
+                      id: '123',
+                      name: 'Test Product',
+                      price: 1500,
+                      brand: 'Test Brand',
+                      category: 'Category 1/Subcategory 1',
+                      coupon: 'VOUCHER1',
+                      variant: 'Variant 1'
+                    }
+                  ]
+                }
+              }
+            });
+            done();
+          }
+        });
+      });
+
+
       it('should not push product detail into dataLayer if product ID or product name is not defined', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
-          category: 'Ecommerce',
           product: {
             price: 1500
           },
           callback: () => {
-            assert.ok(!window.dataLayer[0]);
+            assert.ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -182,12 +251,11 @@ describe('Integrations: Yandex Metrica', () => {
         ym.setOption('noConflict', true);
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
-          category: 'Ecommerce',
           product: {
             id: '123'
           },
           callback: () => {
-            assert.ok(!window.dataLayer[0]);
+            assert.ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -198,7 +266,6 @@ describe('Integrations: Yandex Metrica', () => {
       it('should push added product into dataLayer', (done) => {
         window.digitalData.events.push({
           name: 'Added Product',
-          category: 'Ecommerce',
           product: {
             id: '123',
             name: 'Test Product',
@@ -211,7 +278,7 @@ describe('Integrations: Yandex Metrica', () => {
           },
           quantity: 3,
           callback: () => {
-            assert.deepEqual(window.dataLayer[0], {
+            assert.deepEqual(window.yandexDL[0], {
               ecommerce: {
                 add: {
                   products: [
@@ -237,12 +304,11 @@ describe('Integrations: Yandex Metrica', () => {
       it('should not push added product into dataLayer if product ID or product name is not defined', (done) => {
         window.digitalData.events.push({
           name: 'Added Product',
-          category: 'Ecommerce',
           product: {
             price: 1500
           },
           callback: () => {
-            assert.ok(!window.dataLayer[0]);
+            assert.ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -252,12 +318,11 @@ describe('Integrations: Yandex Metrica', () => {
         ym.setOption('noConflict', true);
         window.digitalData.events.push({
           name: 'Added Product',
-          category: 'Ecommerce',
           product: {
             id: '123'
           },
           callback: () => {
-            assert.ok(!window.dataLayer[0]);
+            assert.ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -268,7 +333,6 @@ describe('Integrations: Yandex Metrica', () => {
       it('should push removed product into dataLayer', (done) => {
         window.digitalData.events.push({
           name: 'Removed Product',
-          category: 'Ecommerce',
           product: {
             id: '123',
             name: 'Test Product',
@@ -281,7 +345,7 @@ describe('Integrations: Yandex Metrica', () => {
           },
           quantity: 3,
           callback: () => {
-            assert.deepEqual(window.dataLayer[0], {
+            assert.deepEqual(window.yandexDL[0], {
               ecommerce: {
                 remove: {
                   products: [
@@ -303,12 +367,11 @@ describe('Integrations: Yandex Metrica', () => {
       it('should not push removed product into dataLayer if product ID or product name is not defined', (done) => {
         window.digitalData.events.push({
           name: 'Removed Product',
-          category: 'Ecommerce',
           product: {
             price: 1500
           },
           callback: () => {
-            assert.ok(!window.dataLayer[0]);
+            assert.ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -318,12 +381,11 @@ describe('Integrations: Yandex Metrica', () => {
         ym.setOption('noConflict', true);
         window.digitalData.events.push({
           name: 'Removed Product',
-          category: 'Ecommerce',
           product: {
             id: '123'
           },
           callback: () => {
-            assert.ok(!window.dataLayer[0]);
+            assert.ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -374,7 +436,51 @@ describe('Integrations: Yandex Metrica', () => {
             total: 1500
           },
           callback: () => {
-            assert.deepEqual(window.dataLayer[0], {
+            assert.deepEqual(window.yandexDL[0], {
+              ecommerce: {
+                purchase: {
+                  actionField: {
+                    id: '123',
+                    goal_id: options.purchaseGoalId,
+                    coupon: 'VOUCHER1',
+                    revenue: 1500
+                  },
+                  products: [
+                    {
+                      id: '123',
+                      price: 100,
+                      quantity: 1
+                    },
+                    {
+                      id: '234',
+                      price: 50,
+                      quantity: 2
+                    },
+                    {
+                      name: 'Test Product',
+                      price: 30,
+                      quantity: 1
+                    },
+                  ]
+                }
+              }
+            });
+            done();
+          }
+        });
+      });
+
+      it('should push purchase information into dataLayer (digitalData)', (done) => {
+        window.digitalData.transaction = {
+          orderId: '123',
+          vouchers: ['VOUCHER1'],
+          lineItems: lineItems,
+          total: 1500
+        };
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          callback: () => {
+            assert.deepEqual(window.yandexDL[0], {
               ecommerce: {
                 purchase: {
                   actionField: {
@@ -411,9 +517,8 @@ describe('Integrations: Yandex Metrica', () => {
       it('should not purchase information into dataLayer if transaction object is not defined', (done) => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
-          category: 'Ecommerce',
           callback: () => {
-            assert.ok(!window.dataLayer[0]);
+            assert.ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -422,7 +527,6 @@ describe('Integrations: Yandex Metrica', () => {
       it('should not purchase information into dataLayer if transaction object is no orderId', (done) => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
-          category: 'Ecommerce',
           transaction: {
             lineItems: [
               {
@@ -435,7 +539,7 @@ describe('Integrations: Yandex Metrica', () => {
             ]
           },
           callback: () => {
-            assert.ok(!window.dataLayer[0]);
+            assert.ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -445,13 +549,12 @@ describe('Integrations: Yandex Metrica', () => {
         ym.setOption('noConflict', true);
         window.digitalData.events.push({
           name: 'Completed Transaction',
-          category: 'Ecommerce',
           transaction: {
             orderId: '123',
             lineItems: lineItems
           },
           callback: () => {
-            assert.ok(!window.dataLayer[0]);
+            assert.ok(!window.yandexDL[0]);
             done();
           }
         });
@@ -482,4 +585,5 @@ describe('Integrations: Yandex Metrica', () => {
       });
     });
   });
+
 });

@@ -1,10 +1,31 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
-import getProperty from './../functions/getProperty.js';
+import { getProp } from './../functions/dotProp';
 import each from './../functions/each.js';
 import size from './../functions/size.js';
-import type from 'component-type';
 import clone from 'component-clone';
+import {
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  VIEWED_PRODUCT_CATEGORY,
+  VIEWED_CART,
+  SEARCHED_PRODUCTS,
+  COMPLETED_TRANSACTION,
+  REFUNDED_TRANSACTION,
+  VIEWED_CHECKOUT_STEP,
+  COMPLETED_CHECKOUT_STEP,
+  VIEWED_PRODUCT,
+  CLICKED_PRODUCT,
+  ADDED_PRODUCT,
+  REMOVED_PRODUCT,
+  VIEWED_CAMPAIGN,
+  CLICKED_CAMPAIGN,
+} from './../events';
+import {
+  EVENT_VAR,
+  DIGITALDATA_VAR,
+  PRODUCT_VAR,
+} from './../variableTypes';
 
 function getTransactionVoucher(transaction) {
   let voucher;
@@ -13,25 +34,30 @@ function getTransactionVoucher(transaction) {
   } else {
     voucher = transaction.voucher;
   }
-  if (!voucher) {
-    if (Array.isArray(transaction.promotions)) {
-      voucher = transaction.promotions[0];
-    } else {
-      voucher = transaction.promotion;
-    }
-  }
+
   return voucher;
 }
 
-function getCheckoutOptions(event) {
-  const optionNames = ['paymentMethod', 'shippingMethod'];
+function getCheckoutOptions(event, checkoutOptions) {
+  const optionNames = checkoutOptions;
   const options = [];
   for (const optionName of optionNames) {
-    if (event[optionName]) {
-      options.push(event[optionName]);
+    const optionValue = getProp(event, optionName);
+    if (optionValue) {
+      options.push(optionValue);
     }
   }
   return options.join(', ');
+}
+
+function getProductCategory(product) {
+  let category = product.category;
+  if (Array.isArray(category)) {
+    category = category.join('/');
+  } else if (category && product.subcategory) {
+    category = category + '/' + product.subcategory;
+  }
+  return category;
 }
 
 class GoogleAnalytics extends Integration {
@@ -39,7 +65,6 @@ class GoogleAnalytics extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       trackingId: '',
-      trackOnlyCustomEvents: false,
       doubleClick: false,
       enhancedLinkAttribution: false,
       enhancedEcommerce: false,
@@ -51,10 +76,13 @@ class GoogleAnalytics extends Integration {
       defaultCurrency: 'USD',
       metrics: {},
       dimensions: {},
-      contentGroupings: {},
-      namespace: 'ddl',
+      contentGroupings: {}, // legacy version
+      contentGroups: {},
+      productDimensions: {},
+      productMetrics: {},
+      namespace: undefined,
       noConflict: false,
-      filterEvents: [],
+      checkoutOptions: ['option', 'paymentMethod', 'shippingMethod'],
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -67,7 +95,54 @@ class GoogleAnalytics extends Integration {
     });
   }
 
-  initialize() {
+  getEnrichableEventProps(event) {
+    let enrichableProps = [];
+    switch (event.name) {
+    case VIEWED_PAGE:
+      enrichableProps = [
+        'user.userId',
+        'website.currency',
+        'page',
+      ];
+      const enrichableDimensionsProps = this.getEnrichableDimensionsProps();
+      for (const enrichableDimensionsProp of enrichableDimensionsProps) {
+        enrichableProps.push(enrichableDimensionsProp);
+      }
+      break;
+    case VIEWED_PRODUCT_DETAIL:
+      enrichableProps = [
+        'product',
+      ];
+      break;
+    case VIEWED_CHECKOUT_STEP:
+      enrichableProps = [
+        'cart',
+        'transaction',
+      ];
+      break;
+    case COMPLETED_TRANSACTION:
+    case REFUNDED_TRANSACTION:
+      enrichableProps = [
+        'transaction',
+      ];
+      break;
+    default:
+      // do nothing
+    }
+
+    return enrichableProps;
+  }
+
+  initialize(version) {
+    this.initVersion = version;
+
+    // support of legacy version
+    if (!this.initVersion && !this.getOption('namespace') && this.getOption('namespace') !== false) {
+      this.setOption('namespace', 'ddl');
+    }
+
+    this.prepareCustomDimensions();
+
     if (this.getOption('trackingId')) {
       this.pageCalled = false;
 
@@ -86,13 +161,66 @@ class GoogleAnalytics extends Integration {
       this.initializeTracker();
 
       if (this.getOption('noConflict')) {
-        this.ready();
+        this.onLoad();
       } else {
-        this.load(this.ready);
+        this.load(this.onLoad);
       }
     } else {
-      this.ready();
+      super.onLoad();
     }
+    this.enrichDigitalData();
+  }
+
+  prepareCustomDimensions() {
+    this.enrichableDimensionsProps = [];
+    this.productLevelDimensions = {};
+    this.hitLevelDimentsions = {};
+
+    let settings = Object.assign(
+      this.getOption('metrics'),
+      this.getOption('dimensions'),
+      this.getOption('contentGroups')
+    );
+
+    if (!this.initVersion) {
+      settings = Object.assign(settings, this.getOption('contentGroupings'));
+      each(settings, (key, value) => {
+        this.enrichableDimensionsProps.push(value);
+        this.hitLevelDimentsions[key] = value;
+      });
+      const productSettings = Object.assign(
+        this.getOption('productMetrics'),
+        this.getOption('productDimensions')
+      );
+      each(productSettings, (key, value) => {
+        this.productLevelDimensions[key] = value;
+      });
+    } else {
+      each(settings, (key, variable) => {
+        if (variable.type === PRODUCT_VAR) {
+          this.productLevelDimensions[key] = variable.value;
+        } else {
+          if (variable.type === DIGITALDATA_VAR) {
+            this.enrichableDimensionsProps.push(variable.value);
+            this.hitLevelDimentsions[key] = variable.value;
+          } else if (variable.type === EVENT_VAR) {
+            this.hitLevelDimentsions[key] = variable.value;
+          }
+        }
+      });
+    }
+  }
+
+  getEnrichableDimensionsProps() {
+    return this.enrichableDimensionsProps;
+  }
+
+  getProductLevelDimensions() {
+    return this.productLevelDimensions;
+  }
+
+  getHitLevelDimensions() {
+    return this.hitLevelDimentsions;
   }
 
   initializeTracker() {
@@ -103,7 +231,6 @@ class GoogleAnalytics extends Integration {
       allowLinker: true,
       name: this.getOption('namespace') ? this.getOption('namespace') : undefined,
     });
-
     // display advertising
     if (this.getOption('doubleClick')) {
       this.ga('require', 'displayfeatures');
@@ -113,19 +240,9 @@ class GoogleAnalytics extends Integration {
       this.ga('require', 'linkid', 'linkid.js');
     }
 
-    // send global id
-    const userId = this.get('user.id');
-    if (this.getOption('sendUserId') && userId) {
-      this.ga('set', 'userId', userId);
-    }
-
     // anonymize after initializing, otherwise a warning is shown
     // in google analytics debugger
     if (this.getOption('anonymizeIp')) this.ga('set', 'anonymizeIp', true);
-
-    // custom dimensions & metrics
-    const custom = this.getCustomDimensions();
-    if (size(custom)) this.ga('set', custom);
   }
 
   ga() {
@@ -150,23 +267,22 @@ class GoogleAnalytics extends Integration {
     this.pageCalled = false;
   }
 
-  getCustomDimensions(source) {
-    source = source || this.digitalData;
-    const settings = Object.assign(
-        Object.assign(
-            this.getOption('metrics'),
-            this.getOption('dimensions')
-        ),
-        this.getOption('contentGroupings')
-    );
+  getCustomDimensions(source, productScope = false) {
+    let settings;
+    if (productScope) {
+      settings = this.getProductLevelDimensions();
+    } else {
+      settings = this.getHitLevelDimensions();
+    }
     const custom = {};
     each(settings, (key, value) => {
-      let dimensionVal = getProperty(source, value);
+      let dimensionVal = getProp(source, value);
       if (dimensionVal !== undefined) {
-        if (type(dimensionVal) === 'boolean') dimensionVal = dimensionVal.toString();
+        if (typeof dimensionVal === 'boolean') dimensionVal = dimensionVal.toString();
         custom[key] = dimensionVal;
       }
     });
+
     return custom;
   }
 
@@ -181,89 +297,171 @@ class GoogleAnalytics extends Integration {
   }
 
   pushEnhancedEcommerce(event) {
-    // Send a custom non-interaction event to ensure all EE data is pushed.
-    // Without doing this we'd need to require page display after setting EE data.
-    const cleanedArgs = [];
-    const args = [
-      'send',
-      'event',
-      event.category || 'Ecommerce',
-      event.name || 'not defined',
-      event.label,
-      {
-        nonInteraction: 1,
-      },
-    ];
+    this.setEventCustomDimensions(event);
 
-    for (const arg of args) {
-      if (arg !== undefined) {
-        cleanedArgs.push(arg);
+    if (this.getPageview()) {
+      this.flushPageview();
+    } else {
+      // Send a custom non-interaction event to ensure all EE data is pushed.
+      // Without doing this we'd need to require page display after setting EE data.
+      const cleanedArgs = [];
+      const args = [
+        'send',
+        'event',
+        event.category || 'Ecommerce',
+        event.action || event.name || 'not defined',
+        event.label,
+        {
+          nonInteraction: 1,
+        },
+      ];
+
+      for (const arg of args) {
+        if (arg !== undefined) {
+          cleanedArgs.push(arg);
+        }
       }
+
+      this.ga.apply(this, cleanedArgs);
+    }
+  }
+
+  enrichDigitalData() {
+    window.ga((tracker) => {
+      const trackerName = this.getOption('namespace');
+      tracker = tracker || window.ga.getByName(trackerName);
+      if (tracker) {
+        this.digitalData.integrations.googleAnalytics = {
+          clientId: tracker.get('clientId'),
+        };
+      }
+      this.onEnrich();
+    });
+  }
+
+  isPageviewDelayed(pageType) {
+    if (!this.getOption('enhancedEcommerce')) {
+      return false;
+    }
+    const map = {
+      'category': VIEWED_PRODUCT_CATEGORY,
+      'product': VIEWED_PRODUCT_DETAIL,
+      'cart': [VIEWED_CART, VIEWED_CHECKOUT_STEP],
+      'confirmation': COMPLETED_TRANSACTION,
+      'search': SEARCHED_PRODUCTS,
+      'checkout': VIEWED_CHECKOUT_STEP,
+    };
+
+    let eventNames = map[pageType];
+    if (!eventNames) {
+      return false;
     }
 
-    this.ga.apply(this, cleanedArgs);
+    if (!Array.isArray(eventNames)) {
+      eventNames = [eventNames];
+    }
+
+    return true;
   }
 
   trackEvent(event) {
-    const filterEvents = this.getOption('filterEvents') || [];
-    if (filterEvents.indexOf(event.name) >= 0) {
-      return;
-    }
-
-    if (event.name === 'Viewed Page') {
+    if (event.name === VIEWED_PAGE) {
       if (!this.getOption('noConflict')) {
         this.onViewedPage(event);
       }
     } else if (this.getOption('enhancedEcommerce')) {
-      if (event.name === 'Viewed Product') {
-        this.onViewedProduct(event);
-      } else if (event.name === 'Clicked Product') {
-        this.onClickedProduct(event);
-      } else if (event.name === 'Viewed Product Detail') {
-        this.onViewedProductDetail(event);
-      } else if (event.name === 'Added Product') {
-        this.onAddedProduct(event);
-      } else if (event.name === 'Removed Product') {
-        this.onRemovedProduct(event);
-      } else if (event.name === 'Completed Transaction') {
-        this.onCompletedTransactionEnhanced(event);
-      } else if (event.name === 'Refunded Transaction') {
-        this.onRefundedTransaction(event);
-      } else if (event.name === 'Viewed Product Category') {
-        this.onViewedProductCategory(event);
-      } else if (event.name === 'Viewed Campaign') {
-        this.onViewedCampaign(event);
-      } else if (event.name === 'Clicked Campaign') {
-        this.onClickedCampaign(event);
-      } else if (event.name === 'Viewed Checkout Step') {
-        this.onViewedCheckoutStep(event);
-      } else if (event.name === 'Completed Checkout Step') {
-        this.onCompletedCheckoutStep(event);
+      const methods = {
+        [VIEWED_PRODUCT]: this.onViewedProduct,
+        [CLICKED_PRODUCT]: this.onClickedProduct,
+        [VIEWED_PRODUCT_DETAIL]: this.onViewedProductDetail,
+        [ADDED_PRODUCT]: this.onAddedProduct,
+        [REMOVED_PRODUCT]: this.onRemovedProduct,
+        [COMPLETED_TRANSACTION]: this.onCompletedTransactionEnhanced,
+        [REFUNDED_TRANSACTION]: this.onRefundedTransaction,
+        [VIEWED_CAMPAIGN]: this.onViewedCampaign,
+        [CLICKED_CAMPAIGN]: this.onClickedCampaign,
+        [VIEWED_CHECKOUT_STEP]: this.onViewedCheckoutStep,
+        [COMPLETED_CHECKOUT_STEP]: this.onCompletedCheckoutStep,
+        [VIEWED_PRODUCT_CATEGORY]: this.onViewedProductCategory, // stub
+        [VIEWED_CART]: this.onViewedCart, // stub
+        [SEARCHED_PRODUCTS]: this.onSearchedProducts, // stub
+      };
+      const method = methods[event.name];
+      if (method) {
+        method.bind(this)(event);
       } else {
         this.onCustomEvent(event);
       }
     } else {
-      if (event.name === 'Completed Transaction' && !this.getOption('noConflict')) {
+      if (event.name === COMPLETED_TRANSACTION && !this.getOption('noConflict')) {
         this.onCompletedTransaction(event);
       } else {
-        this.onCustomEvent(event);
+        if ([
+          VIEWED_PRODUCT_DETAIL,
+          VIEWED_PRODUCT_CATEGORY,
+          SEARCHED_PRODUCTS,
+          COMPLETED_TRANSACTION,
+          VIEWED_CART,
+          VIEWED_PRODUCT,
+          CLICKED_PRODUCT,
+          ADDED_PRODUCT,
+          REMOVED_PRODUCT,
+          VIEWED_CHECKOUT_STEP,
+          COMPLETED_CHECKOUT_STEP,
+        ].indexOf(event.name) < 0) {
+          this.onCustomEvent(event);
+        }
       }
     }
   }
 
+  setPageview(pageview) {
+    this.pageview = pageview;
+  }
+
+  getPageview() {
+    return this.pageview;
+  }
+
+  flushPageview() {
+    this.ga('send', 'pageview', this.pageview);
+    this.pageCalled = true;
+    this.pageview = null;
+  }
+
   onViewedPage(event) {
+    // send global id
     const page = event.page;
     const pageview = {};
     const pageUrl = page.url;
     let pagePath = page.path;
+
     if (this.getOption('includeSearch') && page.queryString) {
       pagePath = pagePath + page.queryString;
     }
     const pageTitle = page.name || page.title;
-
     pageview.page = pagePath;
     pageview.title = pageTitle;
     pageview.location = pageUrl;
+
+    if (this.pageCalled) {
+      deleteProperty(pageview, 'location');
+    }
+    this.setPageview(pageview);
+
+    // set
+    if (this.getOption('sendUserId')) {
+      const userId = getProp(event, 'user.userId');
+      if (userId) {
+        this.ga('set', 'userId', userId);
+      }
+    }
+
+    // set
+    if (this.getOption('enhancedEcommerce')) {
+      const currency = getProp(event, 'website.currency');
+      this.loadEnhancedEcommerce(currency);
+    }
 
     // set
     this.ga('set', {
@@ -271,14 +469,18 @@ class GoogleAnalytics extends Integration {
       title: pageTitle,
     });
 
-    if (this.pageCalled) {
-      deleteProperty(pageview, 'location');
-    }
-
     // send
-    this.ga('send', 'pageview', pageview);
+    this.setEventCustomDimensions(event);
 
-    this.pageCalled = true;
+    if (!this.isPageviewDelayed(page.type)) {
+      this.flushPageview();
+    } else {
+      setTimeout(() => {
+        if (this.isLoaded() && this.getPageview()) {
+          this.flushPageview(); // flush anyway in 100ms
+        }
+      }, 100);
+    }
   }
 
   onViewedProduct(event) {
@@ -292,18 +494,20 @@ class GoogleAnalytics extends Integration {
       if (!product.id && !product.skuCode && !product.name) {
         continue;
       }
-      this.loadEnhancedEcommerce(product.currency);
-      this.ga('ec:addImpression', {
+
+      const custom = this.getCustomDimensions(product, true);
+      const gaProduct = Object.assign({
         id: product.id || product.skuCode,
         name: product.name,
         list: listItem.listName,
-        category: product.category,
+        category: getProductCategory(product),
         brand: product.brand || product.manufacturer,
         price: product.unitSalePrice || product.unitPrice,
         currency: product.currency || this.getOption('defaultCurrency'),
         variant: product.variant,
         position: listItem.position,
-      });
+      }, custom);
+      this.ga('ec:addImpression', gaProduct);
     }
 
     this.pushEnhancedEcommerce(event);
@@ -313,8 +517,6 @@ class GoogleAnalytics extends Integration {
     if (!event.listItem) {
       return;
     }
-    const product = event.listItem.product;
-    this.loadEnhancedEcommerce(product.currency);
     this.enhancedEcommerceProductAction(event, 'click', {
       list: event.listItem.listName,
     });
@@ -322,22 +524,16 @@ class GoogleAnalytics extends Integration {
   }
 
   onViewedProductDetail(event) {
-    const product = event.product;
-    this.loadEnhancedEcommerce(product.currency);
     this.enhancedEcommerceProductAction(event, 'detail');
     this.pushEnhancedEcommerce(event);
   }
 
   onAddedProduct(event) {
-    const product = event.product;
-    this.loadEnhancedEcommerce(product.currency);
     this.enhancedEcommerceProductAction(event, 'add');
     this.pushEnhancedEcommerce(event);
   }
 
   onRemovedProduct(event) {
-    const product = event.product;
-    this.loadEnhancedEcommerce(product.currency);
     this.enhancedEcommerceProductAction(event, 'remove');
     this.pushEnhancedEcommerce(event);
   }
@@ -368,8 +564,8 @@ class GoogleAnalytics extends Integration {
       const product = lineItem.product;
       if (product) {
         this.ga('ecommerce:addItem', {
-          id: transaction.orderId,
-          category: product.category,
+          id: product.id,
+          category: getProductCategory(product),
           quantity: lineItem.quantity,
           price: product.unitSalePrice || product.unitPrice,
           name: product.name,
@@ -388,8 +584,6 @@ class GoogleAnalytics extends Integration {
 
     // orderId is required.
     if (!transaction || !transaction.orderId) return;
-
-    this.loadEnhancedEcommerce(transaction.currency);
 
     each(transaction.lineItems, (key, lineItem) => {
       const product = lineItem.product;
@@ -417,7 +611,6 @@ class GoogleAnalytics extends Integration {
 
     // orderId is required.
     if (!transaction || !transaction.orderId) return;
-    this.loadEnhancedEcommerce(transaction.currency);
 
     each(transaction.lineItems, (key, lineItem) => {
       const product = lineItem.product;
@@ -439,8 +632,6 @@ class GoogleAnalytics extends Integration {
     if ((!campaigns || !Array.isArray(campaigns)) && event.campaign) {
       campaigns = [event.campaign];
     }
-
-    this.loadEnhancedEcommerce();
 
     for (const campaign of campaigns) {
       if (!campaign || !campaign.id) {
@@ -465,7 +656,6 @@ class GoogleAnalytics extends Integration {
       return;
     }
 
-    this.loadEnhancedEcommerce();
     this.ga('ec:addPromo', {
       id: campaign.id,
       name: campaign.name,
@@ -477,9 +667,7 @@ class GoogleAnalytics extends Integration {
   }
 
   onViewedCheckoutStep(event) {
-    const cartOrTransaction = this.get('cart') || this.get('transaction');
-
-    this.loadEnhancedEcommerce(cartOrTransaction.currency);
+    const cartOrTransaction = getProp(event, 'cart') || getProp(event, 'transaction');
 
     each(cartOrTransaction.lineItems, (key, lineItem) => {
       const product = lineItem.product;
@@ -491,21 +679,17 @@ class GoogleAnalytics extends Integration {
 
     this.ga('ec:setAction', 'checkout', {
       step: event.step || 1,
-      option: getCheckoutOptions(event) || undefined,
+      option: getCheckoutOptions(event, this.getOption('checkoutOptions')) || undefined,
     });
 
     this.pushEnhancedEcommerce(event);
   }
 
   onCompletedCheckoutStep(event) {
-    const cartOrTransaction = this.get('cart') || this.get('transaction');
-    const options = getCheckoutOptions(event);
-
+    const options = getCheckoutOptions(event, this.getOption('checkoutOptions'));
     if (!event.step || !options) {
       return;
     }
-
-    this.loadEnhancedEcommerce(cartOrTransaction.currency);
 
     this.ga('ec:setAction', 'checkout_option', {
       step: event.step,
@@ -515,35 +699,52 @@ class GoogleAnalytics extends Integration {
     this.pushEnhancedEcommerce(event);
   }
 
-  onCustomEvent(event) {
-    // custom dimensions & metrics
-    const source = clone(event);
-    deleteProperty(source, 'name');
-    deleteProperty(source, 'category');
-    const custom = this.getCustomDimensions(source);
-    if (size(custom)) this.ga('set', custom);
+  onViewedProductCategory(event) {
+    this.pushEnhancedEcommerce(event);
+  }
 
+  onViewedCart(event) {
+    this.pushEnhancedEcommerce(event);
+  }
+
+  onSearchedProducts(event) {
+    this.pushEnhancedEcommerce(event);
+  }
+
+  onCustomEvent(event) {
     const payload = {
-      eventAction: event.name || 'event',
+      eventAction: event.action || event.name || 'event',
       eventCategory: event.category || 'All',
       eventLabel: event.label,
       eventValue: Math.round(event.value) || 0,
       nonInteraction: !!event.nonInteraction,
     };
 
+    this.setEventCustomDimensions(event);
     this.ga('send', 'event', payload);
   }
 
+  setEventCustomDimensions(event) {
+    // custom dimensions & metrics
+    const source = clone(event);
+    for (const prop of ['name', 'category', 'label', 'nonInteraction', 'value']) {
+      deleteProperty(source, prop);
+    }
+    const custom = this.getCustomDimensions(source);
+    if (size(custom)) this.ga('set', custom);
+  }
+
   enhancedEcommerceTrackProduct(product, quantity, position) {
-    const gaProduct = {
+    const custom = this.getCustomDimensions(product, true);
+    const gaProduct = Object.assign({
       id: product.id || product.skuCode,
       name: product.name,
-      category: product.category,
+      category: getProductCategory(product),
       price: product.unitSalePrice || product.unitPrice,
       brand: product.brand || product.manufacturer,
       variant: product.variant,
       currency: product.currency,
-    };
+    }, custom);
     if (quantity) gaProduct.quantity = quantity;
     if (position) gaProduct.position = position;
     // append coupon if it set

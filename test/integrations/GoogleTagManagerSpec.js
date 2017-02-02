@@ -36,7 +36,7 @@ describe('Integrations: GoogleTagManager', () => {
 
       it('should load', (done) => {
         assert.ok(!gtm.isLoaded());
-        ddManager.once('ready', () => {
+        ddManager.once('load', () => {
           assert.ok(gtm.isLoaded());
           done();
         });
@@ -60,16 +60,24 @@ describe('Integrations: GoogleTagManager', () => {
 
     describe('after loading', () => {
       beforeEach((done) => {
-        ddManager.once('ready', done);
-        ddManager.initialize();
+        ddManager.once('load', done);
+        ddManager.initialize({
+          autoEvents: false
+        });
       });
 
-      it('should update dataLayer', () => {
+      it('should update dataLayer', (done) => {
         let dl = window.dataLayer;
-
         assert.ok(dl);
-        assert.ok(dl[0].event === 'gtm.js');
-        assert.ok(typeof dl[0]['gtm.start'] === 'number');
+        setTimeout(() => {
+          assert.ok(dl[0].event === 'gtm.js');
+          assert.ok(typeof dl[0]['gtm.start'] === 'number');
+          assert.ok(dl[1].event === 'DDManager Ready');
+          assert.ok(dl[2].event === 'gtm.dom');
+          assert.ok(dl[3].event === 'gtm.load');
+          assert.ok(dl[4].event === 'DDManager Loaded');
+          done();
+        }, 10);
       });
 
       describe('#trackEvent', () => {
@@ -114,9 +122,9 @@ describe('Integrations: GoogleTagManager', () => {
 
     beforeEach(() => {
       window.dataLayer = [];
-      window.dataLayer.push = function() {
-        window.dataLayer.prototype.apply(this,arguments);
-      };
+      // window.dataLayer.push = function() {
+      //   window.dataLayer.prototype.apply(this,arguments);
+      // };
       gtm = new GoogleTagManager(window.digitalData, {
         noConflict: true
       });
@@ -132,14 +140,12 @@ describe('Integrations: GoogleTagManager', () => {
     describe('after loading', () => {
       beforeEach((done) => {
         ddManager.once('ready', done);
-        ddManager.initialize();
+        ddManager.initialize({
+          autoEvents: false
+        });
       });
 
       describe('#trackEvent', () => {
-
-        beforeEach(() => {
-          window.dataLayer = [];
-        });
 
         it('should send event with additional parameters to existing GTM', () => {
           window.digitalData.events.push({
@@ -150,8 +156,8 @@ describe('Integrations: GoogleTagManager', () => {
 
           let dl = window.dataLayer;
 
-          assert.ok(dl[0].event === 'some-event');
-          assert.ok(dl[0].additionalParam === true);
+          assert.ok(dl[2].event === 'some-event');
+          assert.ok(dl[2].additionalParam === true);
         });
 
       });

@@ -73,7 +73,7 @@ describe('DDHelper', () => {
           ]
         },
         recommendation: {
-          listName: 'recom',
+          listId: 'recom',
           items: [
             {
               id: '4'
@@ -108,9 +108,9 @@ describe('DDHelper', () => {
       assert.ok(DDHelper.getProduct('4', _digitalData).id === '4');
     });
 
-    it('should get product from list key without any listName properties', () => {
+    it('should get product from list key without any listId properties', () => {
       assert.ok(DDHelper.getProduct('5', _digitalData, 'recom').id === '5');
-      assert.ok(!DDHelper.getProduct('5', _digitalData, 'recom').listName);
+      assert.ok(!DDHelper.getProduct('5', _digitalData, 'recom').listId);
     });
 
     it('should get product from cart key', () => {
@@ -145,7 +145,7 @@ describe('DDHelper', () => {
           ]
         },
         recommendation: {
-          listName: 'recom',
+          listId: 'recom',
           items: [
             {
               id: '4'
@@ -182,7 +182,7 @@ describe('DDHelper', () => {
 
     it('should get product from recommendation key from list "recom"', () => {
       assert.ok(DDHelper.getListItem('5', _digitalData, 'recom').product.id === '5');
-      assert.ok(DDHelper.getListItem('5', _digitalData, 'recom').listName === 'recom');
+      assert.ok(DDHelper.getListItem('5', _digitalData, 'recom').listId === 'recom');
     });
 
     it('should not get product from cart key', () => {

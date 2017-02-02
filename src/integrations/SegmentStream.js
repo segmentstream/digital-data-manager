@@ -21,6 +21,20 @@ class SegmentStream extends Integration {
     });
   }
 
+  getEnrichableEventProps(event) {
+    let enrichableProps = [];
+    switch (event.name) {
+    case 'Viewed Product Detail':
+      enrichableProps = [
+        'product',
+      ];
+      break;
+    default:
+      // do nothing
+    }
+    return enrichableProps;
+  }
+
   initialize() {
     const ssApi = window.ssApi = window.ssApi || [];
 
@@ -55,10 +69,8 @@ class SegmentStream extends Integration {
     }
 
     ssApi.initialize(this._options);
-    ssApi.pushOnReady(() => {
-      this.ready();
-    });
-    this.load();
+    this.load(this.onLoad);
+    this.enrichDigitalData();
   }
 
   isLoaded() {
@@ -70,18 +82,23 @@ class SegmentStream extends Integration {
     localStorage.clear();
   }
 
-  enrichDigitalData(done) {
+  enrichDigitalData() {
     function lowercaseFirstLetter(string) {
       return string.charAt(0).toLowerCase() + string.slice(1);
     }
-    const attributes = window.ssApi.getData().attributes;
-    this.digitalData.user.ssAttributes = {};
-    this.digitalData.user.anonymousId = window.ssApi.getAnonymousId();
-    each(attributes, (name, value) => {
-      const key = lowercaseFirstLetter(name);
-      this.digitalData.user.ssAttributes[key] = value;
+
+    window.ssApi.pushOnReady(() => {
+      const attributes = window.ssApi.getData().attributes;
+      const ssAttributes = {};
+      each(attributes, (name, value) => {
+        const key = lowercaseFirstLetter(name);
+        ssAttributes[key] = value;
+      });
+
+      this.digitalData.user.anonymousId = window.ssApi.getAnonymousId();
+      this.digitalData.user.ssAttributes = ssAttributes;
+      this.onEnrich();
     });
-    done();
   }
 
   trackEvent(event) {
@@ -98,22 +115,28 @@ class SegmentStream extends Integration {
   }
 
   onViewedPage() {
-    window.ssApi.track('Viewed Page');
-    this.enrichDigitalData();
+    window.ssApi.pushOnReady(() => {
+      window.ssApi.track('Viewed Page');
+      this.enrichDigitalData();
+    });
   }
 
   onViewedProductDetail(event) {
-    window.ssApi.track('Viewed Product Detail', {
-      price: event.product.unitSalePrice || event.product.unitPrice || 0,
+    window.ssApi.pushOnReady(() => {
+      window.ssApi.track('Viewed Product Detail', {
+        price: event.product.unitSalePrice || event.product.unitPrice || 0,
+      });
+      this.enrichDigitalData();
     });
-    this.enrichDigitalData();
   }
 
   onAddedProduct(event) {
-    window.ssApi.track('Added Product', {
-      price: event.product.unitSalePrice || event.product.unitPrice || 0,
+    window.ssApi.pushOnReady(() => {
+      window.ssApi.track('Added Product', {
+        price: event.product.unitSalePrice || event.product.unitPrice || 0,
+      });
+      this.enrichDigitalData();
     });
-    this.enrichDigitalData();
   }
 }
 

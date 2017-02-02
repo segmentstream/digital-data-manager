@@ -18,12 +18,18 @@ class GoogleTagManager extends Integration {
   }
 
   initialize() {
+    window.dataLayer = window.dataLayer || [];
+    this.ddManager.on('ready', () => {
+      window.dataLayer.push({ event: 'DDManager Ready' });
+    });
+    this.ddManager.on('load', () => {
+      window.dataLayer.push({ event: 'DDManager Loaded' });
+    });
     if (this.getOption('containerId') && this.getOption('noConflict') === false) {
-      window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({ 'gtm.start': Number(new Date()), event: 'gtm.js' });
-      this.load(this.ready);
+      this.load(this.onLoad);
     } else {
-      this.ready();
+      this.onLoad();
     }
   }
 
@@ -37,13 +43,14 @@ class GoogleTagManager extends Integration {
   }
 
   trackEvent(event) {
-    const name = event.name;
-    const category = event.category;
-    deleteProperty(event, 'name');
-    deleteProperty(event, 'category');
-    event.event = name;
-    event.eventCategory = category;
-    window.dataLayer.push(event);
+    const dlEvent = Object.assign({}, event);
+    const name = dlEvent.name;
+    const category = dlEvent.category;
+    deleteProperty(dlEvent, 'name');
+    deleteProperty(dlEvent, 'category');
+    dlEvent.event = name;
+    dlEvent.eventCategory = category;
+    window.dataLayer.push(dlEvent);
   }
 }
 

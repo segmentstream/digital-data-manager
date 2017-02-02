@@ -1,8 +1,50 @@
 import type from 'component-type';
+import clone from 'component-clone';
 import DDHelper from './DDHelper.js';
+import dotProp from './functions/dotProp';
 
 class EventDataEnricher
 {
+  static enrichCommonData(event, digitalData) {
+    const enrichableVars = [
+      'product',
+      'listItem',
+      'listItems',
+      'campaign',
+      'campaigns',
+    ];
+
+    for (const enrichableVar of enrichableVars) {
+      if (event[enrichableVar]) {
+        const enricherMethod = EventDataEnricher[enrichableVar];
+        const eventVar = event[enrichableVar];
+        event[enrichableVar] = enricherMethod(eventVar, digitalData);
+      }
+    }
+
+    // enrich digitalData version
+    if (!event.version && digitalData.version) {
+      event.version = digitalData.version;
+    }
+
+    return event;
+  }
+
+  static enrichIntegrationData(event, digitalData, integration) {
+    const enrichedEvent = clone(event);
+    const enrichableProps = integration.getEnrichableEventProps(event);
+    for (const prop of enrichableProps) {
+      if (!dotProp.getProp(event, prop)) {
+        const ddlPropValue = dotProp.getProp(digitalData, prop);
+        if (ddlPropValue !== undefined) {
+          dotProp.setProp(enrichedEvent, prop, ddlPropValue);
+        }
+      }
+    }
+    integration.overrideEvent(enrichedEvent);
+    return enrichedEvent;
+  }
+
   static product(product, digitalData) {
     let productId;
 
@@ -38,7 +80,7 @@ class EventDataEnricher
     }
 
     if (productId) {
-      const ddlListItem = DDHelper.getListItem(productId, digitalData, listItem.listName);
+      const ddlListItem = DDHelper.getListItem(productId, digitalData, listItem.listId);
       if (ddlListItem) {
         listItem.product = Object.assign(ddlListItem.product, listItem.product);
         listItem = Object.assign(ddlListItem, listItem);
@@ -55,16 +97,6 @@ class EventDataEnricher
       result.push(enrichedListItem);
     }
     return result;
-  }
-
-  static transaction(transaction, digitalData) {
-    transaction = transaction || {};
-    const ddlTransaction = DDHelper.get('transaction', digitalData) || {};
-    if (ddlTransaction) {
-      transaction = Object.assign(ddlTransaction, transaction);
-    }
-
-    return transaction;
   }
 
   static campaign(campaign, digitalData) {
@@ -94,26 +126,6 @@ class EventDataEnricher
       result.push(EventDataEnricher.campaign(campaign, digitalData));
     }
     return result;
-  }
-
-  static user(user, digitalData) {
-    user = user || {};
-    const ddlUser = DDHelper.get('user', digitalData) || {};
-    if (ddlUser) {
-      user = Object.assign(ddlUser, user);
-    }
-
-    return user;
-  }
-
-  static page(page, digitalData) {
-    page = page || {};
-    const ddlPage = DDHelper.get('page', digitalData) || {};
-    if (ddlPage) {
-      page = Object.assign(ddlPage, page);
-    }
-
-    return page;
   }
 }
 

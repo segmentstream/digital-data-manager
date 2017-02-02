@@ -58,7 +58,7 @@ describe('SendPulse', function() {
                 target: {
                   result: {
                     type: 'SubscriptionId',
-                    value: "v1/gAAAAABW9rF70jehdBnhO...O1DEYc0qZud-g-FdaW73j__"
+                    value: 'v1/gAAAAABW9rF70jehdBnhO...O1DEYc0qZud-g-FdaW73j__'
                   }
                 }
               });
@@ -73,7 +73,6 @@ describe('SendPulse', function() {
         sinon.stub(window.oSpP, 'push');
         callback();
       });
-
       ddManager.once('ready', done);
       ddManager.initialize({
         autoEvents: false
@@ -87,17 +86,21 @@ describe('SendPulse', function() {
     describe('#enrichDigitalData', () => {
 
       it('should enrich digitalData.user', () => {
-        assert.ok(window.digitalData.user.pushNotifications);
+        _sp.on('enrich', () => {
+          assert.ok(window.digitalData.user.pushNotifications);
+        });
       });
 
       it('should not support push notifications for IE and Edge', () => {
-        window.oSpP.detectBrowser = () => {
-          return {
-            name: 'Edge',
-            version: '25.10'
-          }
-        };
-        assert.ok(!_sp.checkPushNotificationsSupport());
+        _sp.on('enrich', () => {
+          window.oSpP.detectBrowser = () => {
+            return {
+              name: 'Edge',
+              version: '25.10'
+            }
+          };
+          assert.ok(!_sp.checkPushNotificationsSupport());
+        });
       });
     });
 
@@ -107,47 +110,52 @@ describe('SendPulse', function() {
         window.oSpP.push.restore();
       });
 
-      it('should add additional params to SendPulse once integration is initialized', (done) => {
-        setTimeout(() => {
+      it('should add additional params to SendPulse once integration is initialized (legacy version)', () => {
+        _sp.setOption('userVariables', ['test']);
+        _sp.once('enrich', () => {
           assert.ok(window.oSpP.push.calledWith('test', 'test'));
-          done();
-        }, 101);
+        })
       });
 
-      it('should add additional params to SendPulse if user is subscribed', (done) => {
-        window.digitalData.user.city = 'New York';
-        window.digitalData.user.isBoolean = true;
-        window.digitalData.user.test = 'test';
-        window.oSpP.push.restore();
-        sinon.spy(window.oSpP, 'push');
-        setTimeout(() => {
-          assert.ok(window.oSpP.push.calledWith('city', 'New York'));
-          assert.ok(window.oSpP.push.calledWith('isBoolean', 'true'));
+      it('should not add additional params to SendPulse once integration is initialized (legacy version)', () => {
+        _sp.once('enrich', () => {
           assert.ok(!window.oSpP.push.calledWith('test', 'test'));
-          done();
-        }, 101);
+        })
       });
 
-      it('should not add additional params to SendPulse if user is not subscribed', (done) => {
-        window.digitalData.user.pushNotifications.isSubscribed = false;
-        window.oSpP.push.restore();
-        sinon.spy(window.oSpP, 'push');
-        window.digitalData.user.city = 'New York';
-        setTimeout(() => {
-          assert.ok(!window.oSpP.push.called);
-          done();
-        }, 100);
+      it('should add additional params to SendPulse once integration is initialized', () => {
+        _sp.setOption('userVariables', ['user.test']);
+        _sp.once('enrich', () => {
+          assert.ok(window.oSpP.push.calledWith('test', 'test'));
+        })
       });
 
+      it('should not add additional params to SendPulse once integration is initialized', () => {
+        _sp.once('enrich', () => {
+          assert.ok(!window.oSpP.push.calledWith('test', 'test'));
+        })
+      });
     });
 
     describe('oSpP.storeSubscription', () => {
 
       it('should send user attributes if any', () => {
-        window.digitalData.user.test = 'test';
-        //sinon.spy(window.oSpP, 'push');
-        window.oSpP.storeSubscription('DUMMY');
-        assert.ok(window.oSpP.push.calledWith('test', 'test'));
+        _sp.setOption('userVariables', ['test']);
+        _sp.once('enrich', () => {
+          window.digitalData.user.test = 'test';
+          //sinon.spy(window.oSpP, 'push');
+          window.oSpP.storeSubscription('DUMMY');
+          assert.ok(window.oSpP.push.calledWith('test', 'test'));
+        });
+      });
+
+      it('should not send user attributes if any', () => {
+        _sp.once('enrich', () => {
+          window.digitalData.user.test = 'test';
+          //sinon.spy(window.oSpP, 'push');
+          window.oSpP.storeSubscription('DUMMY');
+          assert.ok(!window.oSpP.push.calledWith('test', 'test'));
+        });
       });
 
     });

@@ -1,0 +1,6 @@
+driveback_cdn:
+  image: kyma/docker-nginx:latest
+  volumes:
+    - ./build:/var/www
+  ports:
+    - 80

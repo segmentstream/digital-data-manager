@@ -1,16 +1,19 @@
 import assert from 'assert';
 import reset from './../reset.js';
+import sinon from 'sinon';
 import Driveback from './../../src/integrations/Driveback.js';
 import ddManager from './../../src/ddManager.js';
 
 describe('Integrations: Driveback', () => {
   let driveback;
+  const digitalData = {};
   const options = {
     websiteToken: 'aba543e1-1413-5f77-a8c7-aaf6979208a3'
   };
 
   beforeEach(() => {
-    driveback = new Driveback(window.digitalData, options);
+
+    driveback = new Driveback(digitalData, options);
     ddManager.addIntegration('Driveback', driveback);
   });
 
@@ -34,7 +37,7 @@ describe('Integrations: Driveback', () => {
 
     it('should load', (done) => {
       assert.ok(!driveback.isLoaded());
-      ddManager.once('ready', () => {
+      ddManager.once('load', () => {
         assert.ok(driveback.isLoaded());
         done();
       });
@@ -58,7 +61,7 @@ describe('Integrations: Driveback', () => {
 
   describe('after loading', () => {
     beforeEach((done) => {
-      ddManager.once('ready', done);
+      ddManager.once('load', done);
       ddManager.initialize();
     });
 
@@ -68,6 +71,30 @@ describe('Integrations: Driveback', () => {
       assert.ok(window.Driveback);
       assert.ok(Array.isArray(DrivebackOnLoad));
       assert.ok(typeof window.DrivebackLoaderAsyncInit === 'function');
+    });
+
+    it('should not add dbex snippet by default', () => {
+      assert.ok(!window.dbex);
+    });
+  });
+
+  describe('after loading with experiments', () => {
+    beforeEach((done) => {
+      driveback.setOption('experiments', true);
+      driveback.setOption('experimentsToken', '123123');
+      ddManager.once('load', done);
+      ddManager.initialize();
+    });
+
+    it('should add dbex snippet if specified in options', () => {
+      assert.ok(window.dbex);
+    });
+
+    it('should initialize dbex and fire callback function', (done) => {
+      window.dbex(function() {
+        assert.ok(true);
+        done();
+      });
     });
   });
 
