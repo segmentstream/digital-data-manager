@@ -2,6 +2,21 @@ import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
 import noop from './../functions/noop.js';
 
+function getExperment(experiment) {
+  if (typeof experiment === 'object') {
+    if (experiment.id) {
+      return experiment;
+    }
+    return undefined;
+  }
+  if (experiment) {
+    return {
+      id: experiment,
+    };
+  }
+  return undefined;
+}
+
 class Driveback extends Integration {
 
   constructor(digitalData, options) {
@@ -50,7 +65,7 @@ class Driveback extends Integration {
 
         // disable automatic Driveback init and init only when dbex is ready
         window.DrivebackAsyncInit = noop;
-        window.dbex(function() {
+        window.dbex(function onDbexExperimentsLoaded() {
           window.Driveback.init();
         });
       }
@@ -68,23 +83,30 @@ class Driveback extends Integration {
   enrichDigitalData() {
     window.dbex(() => {
       this.digitalData.user = this.digitalData.user || {};
-      this.digitalData.user.experiments = {
-        experiments: window.dbex.chooseVariations(),
-      };
+      this.digitalData.user.experiments = window.dbex.chooseVariations();
       this.onEnrich();
     });
   }
 
   trackEvent(event) {
-    if (this.getOption('experiments') && event.name === 'Viewed Experiment') {
-      const experiment = event.experiment;
+    if (this.getOption('experiments')) {
+      if (event.name === 'Viewed Experiment') {
+        const experiment = getExperment(event.experiment);
+        if (!experiment) {
+          return;
+        }
+        if (experiment.variationId) {
+          window.dbex('setVariation', experiment.id, experiment.variationId);
+        }
+        window.dbex('trackSession', experiment.id);
+      } else if (event.name === 'Achieved Experiment Goal') {
+        const experiment = getExperment(event.experiment);
+        if (!experiment) {
+          return;
+        }
 
-      if (!experiment.id || experiment.variationId === undefined) return;
-
-      window.dbex(() => {
-        dbex.setVariation(experiment.id, experiment.variationId);
-        dbex.trackSession(experiment.id);
-      });
+        window.dbex('trackConversion', experiment.id, event.value);
+      }
     }
   }
 
