@@ -1,7 +1,13 @@
 import Integration from './../Integration';
 import deleteProperty from './../functions/deleteProperty';
-import getProperty from './../functions/getProperty';
+import { getProp } from './../functions/dotProp';
 import each from './../functions/each';
+import { VIEWED_PAGE } from './../events';
+import { DIGITALDATA_VAR } from './../variableTypes';
+
+function isHttps() {
+  return (window.location.href.indexOf('https:') >= 0);
+}
 
 class OneSignal extends Integration {
 
@@ -13,11 +19,16 @@ class OneSignal extends Integration {
       path: '/',
       safariWebId: undefined,
       pushSubscriptionTriggerEvent: 'Agreed to Receive Push Notifications',
-      tags: {},
-      noConflict: false,
+      tagVars: {},
+      welcomeNotification: {
+        disable: true
+      }
     }, options);
 
     super(digitalData, optionsWithDefaults);
+
+    this.userTags = {}; // not to conflict with this.tags named it userTags
+    this.enrichableTagProps = [];
 
     this.addTag({
       type: 'script',
@@ -27,23 +38,118 @@ class OneSignal extends Integration {
     });
   }
 
+  getEnrichableEventProps(event) {
+    const enrichableProps = [];
+
+    switch (event.name) {
+    case VIEWED_PAGE:
+    case this.getOption('pushSubscriptionTriggerEvent'):
+      const enrichableTagProps = this.getEnrichableTagProps();
+      for (const enrichableTagProp of enrichableTagProps) {
+        enrichableProps.push(enrichableTagProp);
+      }
+      break;
+    default:
+      // do nothing
+    }
+
+    return enrichableProps;
+  }
+
+  getEnrichableTagProps() {
+    return this.enrichableTagProps;
+  }
+
+  prepareEnrichableTagProps() {
+    const tagsSettings = this.getOption('tagVars');
+    each(tagsSettings, (key, variable) => {
+      if (variable.type === DIGITALDATA_VAR) {
+        this.enrichableTagProps.push(variable.value);
+      }
+    });
+  }
+
   initialize() {
     window.OneSignal = window.OneSignal || [];
-    if (!this.getOption('noConflict')) {
-      window.OneSignal.push(['init', {
-        appId: this.getOption('appId'),
-        autoRegister: this.getOption('autoRegister'),
-        subdomainName: this.getOption('subdomainName'),
-        path: this.getOption('path'),
-        safari_web_id: this.getOption('safariWebId'),
-      }]);
-      window.OneSignal.push(['sendTags', this.getTags(), function onTagsSent() {
-        // Callback called when tags have finished sending
-      }]);
-      this.load(this.ready);
+    window.OneSignal.push(['init', {
+      appId: this.getOption('appId'),
+      autoRegister: this.getOption('autoRegister'),
+      subdomainName: this.getOption('subdomainName'),
+      path: this.getOption('path'),
+      safari_web_id: this.getOption('safariWebId'),
+      promptOptions: this.getOption('promptOptions'),
+      notifyButton: this.getOption('notifyButton'),
+      welcomeNotification: this.getOption('welcomeNotification'),
+    }]);
+
+    window.OneSignal.push(['getRegistrationId', (registrationId) => {
+      if (registrationId) {
+        window.OneSignal.push(['getTags', (tags) => {
+      		this.currentTags = tags;
+          this.emit('getTags');
+      	}]);
+      } else {
+        this.currentTags = {};
+        this.emit('getTags');
+      }
+    }]);
+
+    this.enrichDigitalData();
+    this.prepareEnrichableTagProps();
+    this.load(this.onLoad);
+  }
+
+  onGetTags(fn) {
+    if (this.currentTags) {
+      fn(this.currentTags);
     } else {
-      this.ready();
+      this.on('getTags', () => {
+        fn(this.currentTags);
+      });
     }
+  }
+
+  extractTagValuesFromEvent(event) {
+    const tagsSettings = this.getOption('tagVars');
+    const newTags = {};
+    each(tagsSettings, (key, variable) => {
+      let tagVal = getProp(event, variable.value);
+      if (tagVal !== undefined) {
+        if (typeof tagVal === 'boolean') tagVal = tagVal.toString();
+        newTags[key] = tagVal;
+      }
+    });
+    return newTags;
+  }
+
+  getTagsToDelete(currentTags) {
+    const newTagsKeys = Object.keys(this.getOption('tagVars'));
+    const oldTagsKeys = Object.keys(currentTags);
+    const tagKeysToDelete = oldTagsKeys.filter(key => newTagsKeys.indexOf(key) < 0);
+    if (tagKeysToDelete.length) {
+      return tagKeysToDelete;
+    }
+    return null;
+  }
+
+  getTagsToSend(newTags, currentTags) {
+    const newTagsKeys = Object.keys(newTags);
+    const tagsToSend = {};
+    let tagsToSendCount = 0;
+    for (const key of newTagsKeys) {
+      if (String(newTags[key]) !== String(currentTags[key])) {
+        tagsToSend[key] = newTags[key];
+        tagsToSendCount += 1;
+      }
+    }
+    if (tagsToSendCount > 0) {
+      return tagsToSend;
+    }
+    return null;
+  }
+
+  isHttps() {
+    return isHttps();
   }
 
   isLoaded() {
@@ -54,54 +160,61 @@ class OneSignal extends Integration {
     deleteProperty(window, 'OneSignal');
   }
 
-  getTags() {
-    const tags = {};
-    const tagSettings = this.getOption('tags');
-    each(tagSettings, (tagName, ddlVarName) => {
-      let tagVal = getProperty(this.digitalData, ddlVarName);
-      if (tagVal !== undefined) {
-        if (typeof tagVal === 'boolean') tagVal = tagVal.toString();
-        tags[tagName] = tagVal;
+  enrichDigitalData() {
+    window.OneSignal.push(() => {
+      const pushNotification = this.digitalData.user.pushNotifications = {};
+      const isSupported = window.OneSignal.isPushNotificationsSupported();
+      pushNotification.isSupported = isSupported;
+      if (isSupported) {
+        window.OneSignal.push(['getNotificationPermission', (permission) => {
+          switch (permission) {
+          case 'granted':
+            pushNotification.isSubscribed = true;
+            window.OneSignal.push(['getUserId', (userId) => {
+              pushNotification.userId = userId;
+              this.onEnrich();
+            }]);
+            break;
+          case 'denied':
+            pushNotification.isSubscribed = false;
+            pushNotification.isDenied = true;
+            this.onEnrich();
+            break;
+          default:
+            pushNotification.isSubscribed = false;
+            this.onEnrich();
+            break;
+          }
+        }]);
+      } else {
+        this.onEnrich();
       }
     });
-    return tags;
   }
 
-  enrichDigitalData(done) {
-    const pushNotification = this.digitalData.user.pushNotifications = {};
-    window.OneSignal.push(function onOneSignalLoaded() {
-      pushNotification.isSupported = window.OneSignal.isPushNotificationsSupported();
-      window.OneSignal.getNotificationPermission(function onGetPushNotificationPermission(permission) {
-        switch (permission) {
-        case 'granted':
-          pushNotification.isSubscribed = true;
-          window.OneSignal.getRegistrationId(function onGetRegistrationId(registrationId) {
-            pushNotification.subscriptionId = registrationId;
-          });
-          window.OneSignal.getUserId(function onGetUserId(userId) {
-            pushNotification.userId = userId;
-          });
-          break;
-        case 'denied':
-          pushNotification.isSubscribed = false;
-          pushNotification.isDenied = true;
-          break;
-        default:
-          pushNotification.isSubscribed = false;
-          break;
+  sendTagsUpdate(event) {
+    this.onGetTags((currentTags) => {
+      const newTags = this.extractTagValuesFromEvent(event);
+      const tagsToDelete = this.getTagsToDelete(currentTags);
+      const tagsToSend = this.getTagsToSend(newTags, currentTags);
+      window.OneSignal.push(() => {
+        if (tagsToSend) {
+          window.OneSignal.sendTags(tagsToSend);
+        }
+        if (tagsToDelete) {
+          window.OneSignal.deleteTags(tagsToDelete);
         }
       });
     });
-    done();
   }
 
   trackEvent(event) {
+    if (event.name === 'Viewed Page' || event.name === 'Added Product') {
+      this.sendTagsUpdate(event);
+    }
     if (event.name === this.getOption('pushSubscriptionTriggerEvent')) {
-      // for https
       window.OneSignal.push(['registerForPushNotifications']);
-
-      // for http
-      window.OneSignal.push(['registerForPushNotifications', {httpPermissionRequest: true}]);
+      this.sendTagsUpdate(event);
     }
   }
 }

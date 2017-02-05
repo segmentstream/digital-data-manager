@@ -5,13 +5,24 @@ import assert from 'assert';
 import reset from './../reset.js';
 import after from './../../src/functions/after.js';
 import deleteProperty from './../../src/functions/deleteProperty.js';
-import platform from 'platform';
+import noop from './../../src/functions/noop';
 
 describe('OneSignal', function() {
 
   let _oneSignal;
   let options = {
-    appId: 'b8c0d1f6-a49a-4f6e-abeb-8a742ee01dd0'
+    appId: 'b7b8fc3c-4e98-499d-a727-3696caa518fc',
+    safariWebId: 'web.onesignal.auto.5694d1e9-fcaa-415d-b1f1-1ef52daca700',
+    tagVars: {
+      'tag1': {
+        type: 'digitalData',
+        value: 'cart.total',
+      },
+      'tag3': {
+        type: 'event',
+        value: 'page.test'
+      }
+    }
   };
 
   beforeEach(() => {
@@ -65,7 +76,7 @@ describe('OneSignal', function() {
         window.OneSignal = {
           push: () => {}
         };
-        _oneSignal.ready();
+        _oneSignal.onLoad();
       });
     });
 
@@ -79,15 +90,13 @@ describe('OneSignal', function() {
         assert.ok(_oneSignal.isLoaded());
         done();
       });
-      ddManager.initialize({
-        autoEvents: false
-      });
+      ddManager.initialize();
     });
   });
 
   describe('after loading', function () {
 
-    beforeEach((done) => {
+    beforeEach(() => {
       window.digitalData.user = {
         test: 'test',
         obj: {
@@ -95,14 +104,41 @@ describe('OneSignal', function() {
           param2: 'test'
         }
       };
-
-      _oneSignal.once('ready', () => {
-        sinon.spy(window.OneSignal, 'push');
-        done();
+      window.digitalData.cart = {
+        total: 1000,
+      };
+      sinon.stub(_oneSignal, 'load', () => {
+        _oneSignal.onLoad();
       });
-      ddManager.initialize({
-        autoEvents: false
+      window.OneSignal = window.OneSignal || [];
+      sinon.stub(window.OneSignal, 'push', (cmdArr) => {
+        if (typeof cmdArr === 'function') {
+          cmdArr();
+        }
+        if (cmdArr[0] === 'getNotificationPermission') {
+          cmdArr[1]('granted');
+        }
+        if (cmdArr[0] === 'getUserId') {
+          cmdArr[1]('ba3cb416-e05a-4fc0-8c9b-db3c9b2f7758');
+        }
+        if (cmdArr[0] === 'getRegistrationId') {
+          cmdArr[1]('ba3cb416-e05a-4fc0-8c9b-db3c9b2f7758');
+        }
+        if (cmdArr[0] === 'getTags') {
+          cmdArr[1]({
+            tag1: '1000',
+            tag2: 'value2'
+          });
+        }
       });
+      window.OneSignal.isPushNotificationsSupported = () => {
+        return true;
+      };
+      window.OneSignal.sendTags = noop;
+      window.OneSignal.deleteTags = noop;
+      sinon.stub(window.OneSignal, 'sendTags');
+      sinon.stub(window.OneSignal, 'deleteTags');
+      ddManager.initialize();
     });
 
     afterEach(() => {
@@ -111,143 +147,33 @@ describe('OneSignal', function() {
 
     describe('#enrichDigitalData', () => {
 
-      it.only('should enrich digitalData.user', () => {
-        assert.ok(window.digitalData.user.pushNotifications);
-      });
-
-      it('should not support push notifications only in certain browsers', () => {
-        const isSupported = window.digitalData.user.pushNotifications.isSupported;
-        console.log(platform.name, platform.version, platform.os.family, isSupported);
-        if (['IE', 'Edge'].indexOf(platform.name) >= 0) {
-          assert.ok(!isSupported);
-        } else if (['Safari', 'Chrome', 'Firefox'].indexOf(platform.name) >= 0) {
-          if (platform.name === 'Safari') {
-            if (platform.is === 'iOS' || parseInt(platform.version) < 9) {
-              assert.ok(!isSupported);
-            } else {
-              assert.ok(isSupported);
-            }
-          }
-          if (['Safari', 'Chrome'].indexOf(platform.name) >= 0) {
-            if (platform.os === 'iOS') {
-              assert.ok(!isSupported);
-            } else {
-              assert.ok(isSupported);
-            }
-          } else if (platform.name === 'Chrome') {
-            assert.ok(isSupported);
-          }
-        } else {
-          assert.ok(!isSupported);
-        }
-      });
-    });
-
-    describe('digitalData changes', () => {
-
-      afterEach(() => {
-        window.oSpP.push.restore();
-      });
-
-      it('should add additional params to SendPulse once integration is initialized', (done) => {
-        setTimeout(() => {
-          assert.ok(window.oSpP.push.calledWith('test', 'test'));
+      it('should enrich digitalData.user', (done) => {
+        _oneSignal.on('enrich', () => {
+          assert.ok(window.digitalData.user.pushNotifications);
+          assert.equal(window.digitalData.user.pushNotifications.userId, 'ba3cb416-e05a-4fc0-8c9b-db3c9b2f7758');
+          assert.equal(window.digitalData.user.pushNotifications.isSupported, true);
+          assert.equal(window.digitalData.user.pushNotifications.isSubscribed, true);
           done();
-        }, 101);
+        });
       });
 
-      it('should add additional params to SendPulse if user is subscribed', (done) => {
-        window.digitalData.user.city = 'New York';
-        window.digitalData.user.isBoolean = true;
-        window.digitalData.user.test = 'test';
-        window.oSpP.push.restore();
-        sinon.spy(window.oSpP, 'push');
-        setTimeout(() => {
-          assert.ok(window.oSpP.push.calledWith('city', 'New York'));
-          assert.ok(window.oSpP.push.calledWith('isBoolean', 'true'));
-          assert.ok(!window.oSpP.push.calledWith('test', 'test'));
-          done();
-        }, 101);
-      });
-
-      it('should not add additional params to SendPulse if user is not subscribed', (done) => {
-        window.digitalData.user.pushNotifications.isSubscribed = false;
-        window.oSpP.push.restore();
-        sinon.spy(window.oSpP, 'push');
-        window.digitalData.user.city = 'New York';
-        setTimeout(() => {
-          assert.ok(!window.oSpP.push.called);
-          done();
-        }, 100);
-      });
-
-    });
-
-    describe('oSpP.storeSubscription', () => {
-
-      it('should send user attributes if any', () => {
-        window.digitalData.user.test = 'test';
-        //sinon.spy(window.oSpP, 'push');
-        window.oSpP.storeSubscription('DUMMY');
-        assert.ok(window.oSpP.push.calledWith('test', 'test'));
-      });
-
-    });
-
-    describe('#trackEvent', () => {
-
-      it('should call oSpP.showPopUp', (done) => {
-        sinon.spy(window.oSpP, 'showPopUp');
+      it('should send new tags and remove old', (done) => {
         window.digitalData.events.push({
-          name: 'Agreed to Receive Push Notifications',
+          name: 'Viewed Page',
+          page: {
+            test: 'test value'
+          },
           callback: () => {
-            assert.ok(window.oSpP.showPopUp.calledOnce);
-            window.oSpP.showPopUp.restore();
-            done();
+            _oneSignal.onGetTags(() => {
+              assert.ok(window.OneSignal.sendTags.calledWith({
+                tag3: 'test value'
+              }));
+              assert.ok(window.OneSignal.deleteTags.calledWith(['tag2']));
+              done();
+            });
           }
         });
       });
-
-      it('should call oSpP.startSubscription', (done) => {
-        window.oSpP.detectBrowser = () => {
-          return {
-            name: 'Safari',
-            version: '9.0.3'
-          }
-        };
-        window.oSpP.isSafariNotificationSupported = () => {
-          return true;
-        };
-        sinon.spy(window.oSpP, 'startSubscription');
-        window.digitalData.events.push({
-          name: 'Agreed to Receive Push Notifications',
-          callback: () => {
-            assert.ok(window.oSpP.startSubscription.calledOnce);
-            window.oSpP.startSubscription.restore();
-            done();
-          }
-        });
-      });
-
-      it('should call oSpP.startSubscription for https website', (done) => {
-        sinon.stub(_sp, 'isHttps', () => {
-          return true;
-        });
-        window.oSpP.isServiceWorkerChromeSupported = () => {
-          return true;
-        };
-        sinon.spy(window.oSpP, 'startSubscription');
-        window.digitalData.events.push({
-          name: 'Agreed to Receive Push Notifications',
-          callback: () => {
-            assert.ok(window.oSpP.startSubscription.calledOnce);
-            window.oSpP.startSubscription.restore();
-            done();
-          }
-        });
-        _sp.isHttps.restore();
-      });
-
     });
   });
 });
