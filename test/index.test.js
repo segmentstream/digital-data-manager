@@ -23,4 +23,5 @@ import './integrations/MyTargetSpec.js';
 import './integrations/YandexMetricaSpec.js';
 import './integrations/VkontakteSpec.js';
 import './integrations/EmarsysSpec.js';
+import './integrations/OneSignalSpec.js';
 import './integrations/SociomanticSpec.js';

@@ -12,6 +12,7 @@ import MyTarget from './integrations/MyTarget.js';
 import YandexMetrica from './integrations/YandexMetrica.js';
 import Vkontakte from './integrations/Vkontakte.js';
 import Emarsys from './integrations/Emarsys.js';
+import OneSignal from './integrations/OneSignal.js';
 import Sociomantic from './integrations/Sociomantic.js';
 
 const integrations = {
@@ -29,6 +30,7 @@ const integrations = {
   'Yandex Metrica': YandexMetrica,
   'Vkontakte': Vkontakte,
   'Emarsys': Emarsys,
+  'OneSignal': OneSignal,
   'Sociomantic': Sociomantic,
 };
 

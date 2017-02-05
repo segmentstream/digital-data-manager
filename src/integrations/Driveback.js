@@ -70,7 +70,7 @@ class Driveback extends Integration {
         });
       }
 
-      if (window.dbex) {
+      if (this.getOption('experiments') && window.dbex) {
         this.enrichDigitalData();
       }
 
@@ -81,6 +81,7 @@ class Driveback extends Integration {
   }
 
   enrichDigitalData() {
+    if (!window.dbex.chooseVariations) return; // TODO: hotfix, remove later
     window.dbex(() => {
       this.digitalData.user = this.digitalData.user || {};
       this.digitalData.user.experiments = window.dbex.chooseVariations();
