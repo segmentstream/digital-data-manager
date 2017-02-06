@@ -2,6 +2,7 @@ import Integration from './../Integration';
 import deleteProperty from './../functions/deleteProperty';
 import { getProp } from './../functions/dotProp';
 import each from './../functions/each';
+import after from './../functions/after';
 import {
   VIEWED_PAGE,
   ADDED_PRODUCT,
@@ -48,6 +49,13 @@ class OneSignal extends Integration {
     this.userTags = {}; // not to conflict with this.tags named it userTags
     this.enrichableTagProps = [];
 
+    this.addTag('manifest', {
+      type: 'link',
+      attr: {
+        rel: 'manifest',
+        href: optionsWithDefaults.path.replace(/\/$/, '') + '/manifest.json'
+      },
+    });
     this.addTag({
       type: 'script',
       attr: {
@@ -84,6 +92,16 @@ class OneSignal extends Integration {
 
   initialize() {
     window.OneSignal = window.OneSignal || [];
+
+    if (this.getOption('notifyButton') && this.getOption('notifyButton').displayPredicate) {
+      try {
+        this.getOption('notifyButton').displayPredicate =
+          Function(this.getOption('notifyButton').displayPredicate);
+      } catch (e) {
+        deleteProperty(this.getOption('notifyButton'), 'displayPredicate');
+      }
+    }
+
     window.OneSignal.push(['init', {
       appId: this.getOption('appId'),
       autoRegister: this.getOption('autoRegister'),
@@ -109,7 +127,12 @@ class OneSignal extends Integration {
 
     this.enrichDigitalData();
     this.prepareEnrichableTagProps();
-    this.load(this.onLoad);
+
+    const loaded = after((isHttps() ? 2 : 1), this.onLoad);
+    if (isHttps()) {
+      this.load('manifest', loaded);
+    }
+    this.load(loaded);
   }
 
   onGetTags(fn) {
