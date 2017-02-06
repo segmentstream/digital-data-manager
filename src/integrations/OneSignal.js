@@ -2,8 +2,26 @@ import Integration from './../Integration';
 import deleteProperty from './../functions/deleteProperty';
 import { getProp } from './../functions/dotProp';
 import each from './../functions/each';
-import { VIEWED_PAGE } from './../events';
+import {
+  VIEWED_PAGE,
+  ADDED_PRODUCT,
+  REMOVED_PRODUCT,
+  VIEWED_PRODUCT_DETAIL,
+  VIEWED_PRODUCT_CATEGORY,
+  COMPLETED_TRANSACTION,
+  SUBSCRIBED,
+} from './../events';
 import { DIGITALDATA_VAR } from './../variableTypes';
+
+const semanticEvents = [
+  VIEWED_PAGE,
+  ADDED_PRODUCT,
+  REMOVED_PRODUCT,
+  VIEWED_PRODUCT_DETAIL,
+  VIEWED_PRODUCT_CATEGORY,
+  COMPLETED_TRANSACTION,
+  SUBSCRIBED,
+];
 
 function isHttps() {
   return (window.location.href.indexOf('https:') >= 0);
@@ -21,8 +39,8 @@ class OneSignal extends Integration {
       pushSubscriptionTriggerEvent: 'Agreed to Receive Push Notifications',
       tagVars: {},
       welcomeNotification: {
-        disable: true
-      }
+        disable: true,
+      },
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -39,18 +57,13 @@ class OneSignal extends Integration {
   }
 
   getEnrichableEventProps(event) {
-    const enrichableProps = [];
+    const enrichableProps = ['user.email'];
 
-    switch (event.name) {
-    case VIEWED_PAGE:
-    case this.getOption('pushSubscriptionTriggerEvent'):
+    if (semanticEvents.indexOf(event.name) >= 0 || event.name === this.getOption('pushSubscriptionTriggerEvent')) {
       const enrichableTagProps = this.getEnrichableTagProps();
       for (const enrichableTagProp of enrichableTagProps) {
         enrichableProps.push(enrichableTagProp);
       }
-      break;
-    default:
-      // do nothing
     }
 
     return enrichableProps;
@@ -85,9 +98,9 @@ class OneSignal extends Integration {
     window.OneSignal.push(['getRegistrationId', (registrationId) => {
       if (registrationId) {
         window.OneSignal.push(['getTags', (tags) => {
-      		this.currentTags = tags;
+          this.currentTags = tags;
           this.emit('getTags');
-      	}]);
+        }]);
       } else {
         this.currentTags = {};
         this.emit('getTags');
@@ -200,20 +213,32 @@ class OneSignal extends Integration {
       window.OneSignal.push(() => {
         if (tagsToSend) {
           window.OneSignal.sendTags(tagsToSend);
+          Object.assign(this.currentTags, tagsToSend);
         }
         if (tagsToDelete) {
           window.OneSignal.deleteTags(tagsToDelete);
+          for (const tagKeyToDelete of tagsToDelete) {
+            deleteProperty(this.currentTags, tagKeyToDelete);
+          }
         }
       });
     });
   }
 
   trackEvent(event) {
-    if (event.name === 'Viewed Page' || event.name === 'Added Product') {
-      this.sendTagsUpdate(event);
+    if (event.name === VIEWED_PAGE || event.name === SUBSCRIBED) {
+      const user = event.user;
+      if (user && user.email) {
+        window.OneSignal.push(function() {
+          window.OneSignal.syncHashedEmail(user.email);
+        });
+      }
     }
+
     if (event.name === this.getOption('pushSubscriptionTriggerEvent')) {
       window.OneSignal.push(['registerForPushNotifications']);
+      this.sendTagsUpdate(event);
+    } else if (semanticEvents.indexOf(event.name) >= 0) {
       this.sendTagsUpdate(event);
     }
   }
