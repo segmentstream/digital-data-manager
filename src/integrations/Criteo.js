@@ -269,8 +269,7 @@ class Criteo extends Integration {
     if (transaction && transaction.lineItems && transaction.lineItems.length > 0) {
       const products = lineItemsToCriteoItems(transaction.lineItems);
       if (products.length > 0) {
-        let customDeduplication = this.getOption('customDeduplication');
-        let deduplication;
+        const customDeduplication = this.getOption('customDeduplication');
 
         const criteoEvent = {
           event: 'trackTransaction',
