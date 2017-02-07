@@ -2,6 +2,7 @@ import Integration from './../Integration';
 import deleteProperty from './../functions/deleteProperty';
 import { getProp } from './../functions/dotProp';
 import each from './../functions/each';
+import after from './../functions/after';
 import {
   VIEWED_PAGE,
   ADDED_PRODUCT,
@@ -27,6 +28,52 @@ function isHttps() {
   return (window.location.href.indexOf('https:') >= 0);
 }
 
+function clickListenerWorkaround() {
+  function getDialogBody() {
+    return document.querySelector('.onesignal-bell-launcher-dialog-body');
+  }
+
+  function getSubscribeButton() {
+    return document.querySelector('#onesignal-bell-container .onesignal-bell-launcher #subscribe-button');
+  }
+
+  function getUnsubscribeButton() {
+    return document.querySelector('#onesignal-bell-container .onesignal-bell-launcher #unsubscribe-button');
+  }
+
+  function onSubscribeButtonClicked() {
+    window.OneSignal.event.trigger('notifyButtonSubscribeClick');
+  }
+
+  function onUnsubscribeButtonClicked() {
+    window.OneSignal.event.trigger('notifyButtonUnsubscribeClick');
+  }
+
+  function onDialogBodyModified() {
+    if (getSubscribeButton()) {
+      getSubscribeButton().removeEventListener('click', onSubscribeButtonClicked);
+      getSubscribeButton().addEventListener('click', onSubscribeButtonClicked);
+    }
+    if (getUnsubscribeButton()) {
+      getUnsubscribeButton().removeEventListener('click', onUnsubscribeButtonClicked);
+      getUnsubscribeButton().addEventListener('click', onUnsubscribeButtonClicked);
+    }
+  }
+
+  function hookTreeModified() {
+    if (getDialogBody()) {
+      getDialogBody().addEventListener('DOMSubtreeModified', onDialogBodyModified);
+    }
+  }
+
+  window.OneSignal = window.OneSignal || [];
+  window.OneSignal.push(() => {
+    window.OneSignal.once('notifyButtonLauncherClick', () => {
+      hookTreeModified();
+    });
+  });
+}
+
 class OneSignal extends Integration {
 
   constructor(digitalData, options) {
@@ -48,6 +95,13 @@ class OneSignal extends Integration {
     this.userTags = {}; // not to conflict with this.tags named it userTags
     this.enrichableTagProps = [];
 
+    this.addTag('manifest', {
+      type: 'link',
+      attr: {
+        rel: 'manifest',
+        href: optionsWithDefaults.path.replace(/\/$/, '') + '/manifest.json',
+      },
+    });
     this.addTag({
       type: 'script',
       attr: {
@@ -84,6 +138,20 @@ class OneSignal extends Integration {
 
   initialize() {
     window.OneSignal = window.OneSignal || [];
+
+    if (this.getOption('notifyButton') && this.getOption('notifyButton').displayPredicate) {
+      try {
+        this.getOption('notifyButton').displayPredicate =
+          Function(this.getOption('notifyButton').displayPredicate); // eslint-disable-line no-new-func
+      } catch (e) {
+        deleteProperty(this.getOption('notifyButton'), 'displayPredicate');
+      }
+    }
+
+    if (this.getOption('notifyButton') && this.getOption('notifyButton').enable) {
+      clickListenerWorkaround(); // temporary fix of notify bell click listener
+    }
+
     window.OneSignal.push(['init', {
       appId: this.getOption('appId'),
       autoRegister: this.getOption('autoRegister'),
@@ -109,7 +177,12 @@ class OneSignal extends Integration {
 
     this.enrichDigitalData();
     this.prepareEnrichableTagProps();
-    this.load(this.onLoad);
+
+    const loaded = after((isHttps() ? 2 : 1), this.onLoad);
+    if (isHttps()) {
+      this.load('manifest', loaded);
+    }
+    this.load(loaded);
   }
 
   onGetTags(fn) {
@@ -229,7 +302,7 @@ class OneSignal extends Integration {
     if (event.name === VIEWED_PAGE || event.name === SUBSCRIBED) {
       const user = event.user;
       if (user && user.email) {
-        window.OneSignal.push(function() {
+        window.OneSignal.push(() => {
           window.OneSignal.syncHashedEmail(user.email);
         });
       }
