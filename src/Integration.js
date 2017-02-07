@@ -1,10 +1,11 @@
-import loadScript from './functions/loadScript.js';
-import loadIframe from './functions/loadIframe.js';
-import loadPixel from './functions/loadPixel.js';
-import format from './functions/format.js';
-import noop from './functions/noop.js';
-import each from './functions/each.js';
-import deleteProperty from './functions/deleteProperty.js';
+import loadScript from './functions/loadScript';
+import loadLink from './functions/loadLink';
+import loadIframe from './functions/loadIframe';
+import loadPixel from './functions/loadPixel';
+import format from './functions/format';
+import noop from './functions/noop';
+import each from './functions/each';
+import deleteProperty from './functions/deleteProperty';
 import debug from 'debug';
 import async from 'async';
 import EventEmitter from 'component-emitter';
@@ -91,6 +92,12 @@ class Integration extends EventEmitter
         deleteProperty(attr, 'src');
         each(attr, (key, value) => {
           el.setAttribute(key, value);
+        });
+        break;
+      case 'link':
+        el = loadLink(attr, (err) => {
+          if (!err) return safeCallback();
+          debug('error loading "%s" error="%s"', tagName, err);
         });
         break;
       case 'iframe':
