@@ -276,8 +276,11 @@ ddManager = {
     if (!integration instanceof Integration || !name) {
       throw new TypeError('attempted to add an invalid integration');
     }
-    _integrations[name] = integration;
+
+    integration.setName(name);
     integration.setDDManager(ddManager);
+
+    _integrations[name] = integration;
   },
 
   getIntegration: (name) => {
