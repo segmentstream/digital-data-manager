@@ -479,9 +479,8 @@ describe('EventDataEnricher', () => {
           id: '123'
         }
       };
-      emarsys.initialize();
-      emarsys.trackEvent(event);
-      assert.equal(window.ScarabQueue[0][1], 's/123');
+      const enrichedEvent = EventDataEnricher.enrichIntegrationData(event, _digitalData, emarsys);
+      assert.equal(enrichedEvent.product.id, 's/123');
     });
   });
 

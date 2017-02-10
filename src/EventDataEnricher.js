@@ -31,18 +31,56 @@ class EventDataEnricher
   }
 
   static enrichIntegrationData(event, digitalData, integration) {
-    const enrichedEvent = clone(event);
+    const eventName = event.name;
+    let enrichedEvent = clone(event);
     const enrichableProps = integration.getEnrichableEventProps(event);
     for (const prop of enrichableProps) {
-      if (!dotProp.getProp(event, prop)) {
+      if (!dotProp.getProp(event, prop) && digitalData) {
         const ddlPropValue = dotProp.getProp(digitalData, prop);
         if (ddlPropValue !== undefined) {
           dotProp.setProp(enrichedEvent, prop, ddlPropValue);
         }
       }
     }
-    integration.overrideEvent(enrichedEvent);
+
+    // handle event override
+    if (integration.getEventOverrideFunction()) {
+      integration.getEventOverrideFunction()(enrichedEvent);
+    }
+    // handle product override
+    if (integration.getProductOverrideFunction()) {
+      enrichedEvent = EventDataEnricher.overrideEventProducts(enrichedEvent, integration);
+    }
+
     return enrichedEvent;
+  }
+
+  static overrideEventProducts(event, integration) {
+    const eventName = event.name;
+    if (event.product) {
+      integration.getProductOverrideFunction()(event.product);
+    } else if (event.listing && event.listing.items) {
+      for (const product of event.listing.items) {
+        integration.getProductOverrideFunction()(product);
+      }
+    } else if (event.cart && event.cart.lineItems) {
+      for (const lineItem of event.cart.lineItems) {
+        integration.getProductOverrideFunction()(lineItem.product);
+      }
+    } else if (event.transaction && event.transaction.lineItems) {
+      for (const lineItem of event.transaction.lineItems) {
+        integration.getProductOverrideFunction()(lineItem.product);
+      }
+    } else if (event.listItem || event.listItems) {
+      if (event.listItem) {
+        integration.getProductOverrideFunction()(event.listItem.product);
+      } else if (event.listItems) {
+        for (const listItem of event.listItems) {
+          integration.getProductOverrideFunction()(listItem.product);
+        }
+      }
+    }
+    return event;
   }
 
   static product(product, digitalData) {
