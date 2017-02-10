@@ -16,7 +16,9 @@ describe('Integrations: RetailRocket', () => {
     userIdProperty: 'user.email',
     overrideFunctions: {
       product: (product) => {
-        product.id = product.id.replace(/_/g, '');
+        if (product && product.id) {
+          product.id = product.id.replace(/_/g, '');
+        }    
       },
     },
   };

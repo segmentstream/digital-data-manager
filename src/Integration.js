@@ -4,6 +4,7 @@ import loadIframe from './functions/loadIframe';
 import loadPixel from './functions/loadPixel';
 import format from './functions/format';
 import noop from './functions/noop';
+import log from './functions/log';
 import each from './functions/each';
 import deleteProperty from './functions/deleteProperty';
 import debug from 'debug';
@@ -15,6 +16,7 @@ class Integration extends EventEmitter
   constructor(digitalData, options, tags) {
     super();
     this.options = options;
+    this.overrideFunctions = {};
     if (options && options.overrideFunctions) {
       this.defineOverrideFunctions(options.overrideFunctions);
     }
@@ -22,15 +24,47 @@ class Integration extends EventEmitter
     this.tags = tags || {};
     this.onLoad = this.onLoad.bind(this);
     this._isEnriched = false;
+    this._productOverrideErrorFired = false;
   }
 
   defineOverrideFunctions(overrideFunctions) {
     if (overrideFunctions.event) {
-      this.overrideEvent = overrideFunctions.event.bind(this);
+      this.overrideFunctions.event = (event) => {
+        try {
+          overrideFunctions.event.bind(this)(event);
+        } catch (e) {
+          log(`function override error for event ${event.name} in integration ${this.getName()}: ${e}`, log.ERROR);
+        }
+      };
     }
     if (overrideFunctions.product) {
-      this.overrideProduct = overrideFunctions.product.bind(this);
+      this.overrideFunctions.product = (product) => {
+        try {
+          overrideFunctions.product.bind(this)(product);
+        } catch (e) {
+          if (!this._productOverrideErrorFired) {
+            log(`function override error for product in integration ${this.getName()}: ${e}`, log.ERROR);
+            this._productOverrideErrorFired = true;
+          }
+        }
+      };
     }
+  }
+
+  getProductOverrideFunction() {
+    return this.overrideFunctions.product;
+  }
+
+  getEventOverrideFunction() {
+    return this.overrideFunctions.event;
+  }
+
+  setName(name) {
+    this.name = name;
+  }
+
+  getName() {
+    return this.name;
   }
 
   overrideProduct() {
