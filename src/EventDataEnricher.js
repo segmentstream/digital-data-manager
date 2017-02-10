@@ -31,7 +31,6 @@ class EventDataEnricher
   }
 
   static enrichIntegrationData(event, digitalData, integration) {
-    const eventName = event.name;
     let enrichedEvent = clone(event);
     const enrichableProps = integration.getEnrichableEventProps(event);
     for (const prop of enrichableProps) {
@@ -56,7 +55,6 @@ class EventDataEnricher
   }
 
   static overrideEventProducts(event, integration) {
-    const eventName = event.name;
     if (event.product) {
       integration.getProductOverrideFunction()(event.product);
     } else if (event.listing && event.listing.items) {
