@@ -110,6 +110,16 @@ describe('DDManager', () => {
       assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration);
     });
 
+    it('shoud set EventManager\'s sendViewedPageEvent value to true', () => {
+      ddManager.initialize({ sendViewedPageEvent: true });
+      assert.ok(ddManager.getEventManager().getSendViewedPageEvent());
+    });
+
+    it('shoud set EventManager\'s sendViewedPageEvent value to false', () => {
+      ddManager.initialize();
+      assert.ok(!ddManager.getEventManager().getSendViewedPageEvent());
+    });
+
     it('it should fire on("ready") event even if ddManager was ready before', (done) => {
       ddManager.initialize();
       if (ddManager.isReady()) {

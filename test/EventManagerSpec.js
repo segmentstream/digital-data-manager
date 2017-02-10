@@ -177,6 +177,29 @@ describe('EventManager', () => {
       });
     });
 
+    it('should add Viewed Page event if sendViewedPageEvent setting is enabled', () => {
+      _digitalData.events.push({ name: 'Viewed Product Detail' });
+
+      _eventManager.setSendViewedPageEvent(true);
+      _eventManager.initialize();
+
+      assert.equal(_digitalData.events[0].name, 'Viewed Page');
+      assert.equal(_digitalData.events[1].name, 'Viewed Product Detail');
+      assert.equal(_digitalData.events.length, 2);
+    });
+
+    it('should not add Viewed Page event if sendViewedPageEvent setting is enabled, but Viewed Page already sent', () => {
+      _digitalData.events.push({ name: 'Viewed Page' });
+      _digitalData.events.push({ name: 'Viewed Product Detail' });
+
+      _eventManager.setSendViewedPageEvent(true);
+      _eventManager.initialize();
+
+      assert.equal(_digitalData.events[0].name, 'Viewed Page');
+      assert.equal(_digitalData.events[1].name, 'Viewed Product Detail');
+      assert.equal(_digitalData.events.length, 2);
+    });
+
     it('should enrich product data from DDL', (done) => {
       _digitalData.product = {
         id: '123',
