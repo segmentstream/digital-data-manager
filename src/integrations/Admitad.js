@@ -1,5 +1,6 @@
 import Integration from './../Integration';
 import deleteProperty from './../functions/deleteProperty';
+import cleanObject from './../functions/cleanObject';
 import getQueryParam from './../functions/getQueryParam';
 import topDomain from './../functions/topDomain';
 import { getProp } from './../functions/dotProp';
@@ -125,13 +126,13 @@ class Admitad extends Integration {
     const lineItems = transaction.lineItems;
     let index = 1;
     for (const lineItem of lineItems) {
-      window._admitadPositions.push({
+      window._admitadPositions.push(cleanObject({
         uid: uid,
         order_id: transaction.orderId,
         position_id: index,
         client_id: getProp(event, 'user.userId'),
         tariff_code: getProp(lineItem, 'admitad.tariffCode') || '1',
-        currency_code: getProp(lineItem, 'product.currency') || getProp(event, 'website.currency') || '',
+        currency_code: getProp(lineItem, 'product.currency') || getProp(event, 'website.currency'),
         position_count: lineItems.length,
         price: getProp(lineItem, 'product.unitSalePrice') || getProp(lineItem, 'product.unitPrice'),
         quantity: lineItem.quantity || 1,
@@ -140,7 +141,7 @@ class Admitad extends Integration {
         old_customer: (transaction.isFirst === false) ? 1 : 0,
         coupon: (transaction.vouchers && transaction.vouchers.length) ? 1 : 0,
         payment_type: PAYMENT_TYPE_SALE,
-      });
+      }));
       index += 1;
     }
 
@@ -154,14 +155,14 @@ class Admitad extends Integration {
 
     this.setupPixel(event);
 
-    window._admitadPositions.push({
+    window._admitadPositions.push(cleanObject({
       uid: uid,
       order_id: getProp(event, 'lead.id'),
       client_id: getProp(event, 'user.userId'),
       tariff_code: getProp(event, 'admitad.tariffCode') || '1',
       screen: getScreenResolution(),
       payment_type: PAYMENT_TYPE_LEAD,
-    });
+    }));
 
     this.load('trackingPixel');
   }
