@@ -302,9 +302,11 @@ class OneSignal extends Integration {
     if (event.name === VIEWED_PAGE || event.name === SUBSCRIBED) {
       const user = event.user;
       if (user && user.email) {
-        window.OneSignal.push(() => {
-          window.OneSignal.syncHashedEmail(user.email);
-        });
+        window.OneSignal.push(['getRegistrationId', (registrationId) => {
+          if (registrationId) { // This operation can only be performed after the user is subscribed
+            window.OneSignal.syncHashedEmail(user.email);
+          }
+        }]);
       }
     }
 
