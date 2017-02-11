@@ -1,5 +1,7 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty';
+import getQueryParam from './../functions/getQueryParam';
+import topDomain from './../functions/topDomain';
 import { getProp } from './../functions/dotProp';
 import { COMPLETED_TRANSACTION, LEAD } from '/events';
 import cookie from 'js-cookie';
@@ -10,16 +12,21 @@ function getScreenResolution() {
 
 const PAYMENT_TYPE_SALE = 'sale';
 const PAYMENT_TYPE_LEAD = 'lead';
+const UID_GET_PARAM = 'admitad_uid';
+const DEFAULT_COOKIE_NAME = 'admitad_uid';
 
 class Admitad extends Integration {
 
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       campaignCode: '',
-      paymentType: 'sale',
+      paymentType: PAYMENT_TYPE_SALE,
       defaultActionCode: '1',
       responseType: 'img',
-      cookieName: 'admitad_uid',
+      cookieName: DEFAULT_COOKIE_NAME,
+      cookieTracking: true, // false - if advertiser wants to track cookies by itself
+      cookieDomain: topDomain(window.location.href),
+      cookieTtl: 90, // days
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -37,7 +44,26 @@ class Admitad extends Integration {
 
   initialize() {
     this._isLoaded = true;
+
+    if (this.getOption('cookieTracking')) {
+      this.addAffiliateCookie();
+    }
+
     this.onLoad();
+  }
+
+  addAffiliateCookie() {
+    if (window.self !== window.top) {
+      return; // protect from iframe cookie-stuffing
+    }
+
+    const uidInQuery = getQueryParam(UID_GET_PARAM);
+    if (uidInQuery) {
+      cookie.set(this.getOption('cookieName'), uidInQuery, {
+        expires: this.getOption('cookieTtl'),
+        domain: this.getOption('cookieDomain'),
+      });
+    }
   }
 
   getEnrichableEventProps(event) {
@@ -121,15 +147,22 @@ class Admitad extends Integration {
   }
 
   trackLead(event, uid) {
+    if (!event.lead || !event.lead.id) {
+      return;
+    }
+
     this.setupPixel(event);
+
     window._admitadPositions.push({
       uid: uid,
-      order_id: event.leadId,
+      order_id: getProp('lead.id', event),
       client_id: getProp('user.userId', event),
       tariff_code: getProp('admitad.tariffCode', event) || '1',
       screen: getScreenResolution(),
       payment_type: PAYMENT_TYPE_LEAD,
     });
+
+    this.load('trackingPixel');
   }
 }
 
