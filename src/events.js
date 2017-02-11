@@ -13,3 +13,4 @@ export const ADDED_PRODUCT = 'Added Product';
 export const REMOVED_PRODUCT = 'Removed Product';
 export const VIEWED_CAMPAIGN = 'Viewed Campaign';
 export const CLICKED_CAMPAIGN = 'Clicked Campaign';
+export const LEAD = 'Lead';
