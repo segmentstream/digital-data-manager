@@ -225,6 +225,7 @@ ddManager = {
       domain: null,
       websiteMaxWidth: 'auto',
       sessionLength: 3600,
+      sendViewedPageEvent: false,
     }, settings);
 
     if (_isReady) {
@@ -244,6 +245,7 @@ ddManager = {
 
     // initialize event manager
     _eventManager = new EventManager(_digitalData, _ddListener);
+    _eventManager.setSendViewedPageEvent(settings.sendViewedPageEvent);
     _eventManager.setViewabilityTracker(new ViewabilityTracker({
       websiteMaxWidth: settings.websiteMaxWidth,
     }));
