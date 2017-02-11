@@ -1,9 +1,9 @@
-import Integration from './../Integration.js';
+import Integration from './../Integration';
 import deleteProperty from './../functions/deleteProperty';
 import getQueryParam from './../functions/getQueryParam';
 import topDomain from './../functions/topDomain';
 import { getProp } from './../functions/dotProp';
-import { COMPLETED_TRANSACTION, LEAD } from '/events';
+import { COMPLETED_TRANSACTION, LEAD } from './../events';
 import cookie from 'js-cookie';
 
 function getScreenResolution() {
@@ -107,7 +107,7 @@ class Admitad extends Integration {
   setupPixel(event) {
     window._admitadPixel = {
       response_type: this.getOption('responseType'),
-      action_code: getProp('admitad.actionCode', event) || this.getOption('defaultActionCode'),
+      action_code: getProp(event, 'admitad.actionCode') || this.getOption('defaultActionCode'),
       campaign_code: this.getOption('campaignCode'),
     };
     window._admitadPositions = window._admitadPositions || [];
@@ -115,6 +115,7 @@ class Admitad extends Integration {
 
   trackSale(event, uid) {
     const transaction = event.transaction;
+
     if (!transaction || !transaction.lineItems || !transaction.lineItems.length) {
       return;
     }
@@ -128,13 +129,13 @@ class Admitad extends Integration {
         uid: uid,
         order_id: transaction.orderId,
         position_id: index,
-        client_id: getProp('user.userId', event),
-        tariff_code: getProp('admitad.tariffCode', lineItem) || '1',
-        currency_code: getProp('product.currency', lineItem) || getProp('website.currency', event) || '',
+        client_id: getProp(event, 'user.userId'),
+        tariff_code: getProp(lineItem, 'admitad.tariffCode') || '1',
+        currency_code: getProp(lineItem, 'product.currency') || getProp(event, 'website.currency') || '',
         position_count: lineItems.length,
-        price: getProp('product.unitSalePrice', lineItem) || getProp('product.unitPrice', lineItem),
+        price: getProp(lineItem, 'product.unitSalePrice') || getProp(lineItem, 'product.unitPrice'),
         quantity: lineItem.quantity || 1,
-        product_id: getProp('product.id', lineItem),
+        product_id: getProp(lineItem, 'product.id'),
         screen: getScreenResolution(),
         old_customer: (transaction.isFirst === false) ? 1 : 0,
         coupon: (transaction.vouchers && transaction.vouchers.length) ? 1 : 0,
@@ -155,9 +156,9 @@ class Admitad extends Integration {
 
     window._admitadPositions.push({
       uid: uid,
-      order_id: getProp('lead.id', event),
-      client_id: getProp('user.userId', event),
-      tariff_code: getProp('admitad.tariffCode', event) || '1',
+      order_id: getProp(event, 'lead.id'),
+      client_id: getProp(event, 'user.userId'),
+      tariff_code: getProp(event, 'admitad.tariffCode') || '1',
       screen: getScreenResolution(),
       payment_type: PAYMENT_TYPE_LEAD,
     });
