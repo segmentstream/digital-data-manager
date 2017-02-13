@@ -16,9 +16,23 @@ const PAYMENT_TYPE_LEAD = 'lead';
 const UID_GET_PARAM = 'admitad_uid';
 const DEFAULT_COOKIE_NAME = 'admitad_uid';
 
+function normalizeOptions(options) {
+  if (options.deduplication) {
+    if (options.utmSource) {
+      options.utmSource = options.utmSource.toLowerCase();
+    }
+    if (options.deduplicationUtmMedium) {
+      options.deduplicationUtmMedium = options.deduplicationUtmMedium.map((utmMedium) => {
+        return utmMedium.toLowerCase();
+      });
+    }
+  }
+}
+
 class Admitad extends Integration {
 
   constructor(digitalData, options) {
+    normalizeOptions(options);
     const optionsWithDefaults = Object.assign({
       campaignCode: '',
       paymentType: PAYMENT_TYPE_SALE,
@@ -28,6 +42,9 @@ class Admitad extends Integration {
       cookieTracking: true, // false - if advertiser wants to track cookies by itself
       cookieDomain: topDomain(window.location.href),
       cookieTtl: 90, // days
+      deduplication: false,
+      utmSource: 'admitad', // utm_source which is sent with admitad_uid get param
+      deduplicationUtmMedium: ['affiliate'], // by default deduplicate only with other affiliates
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -75,10 +92,12 @@ class Admitad extends Integration {
         'transaction',
         'user.userId',
         'website.currency',
+        'context.campaign',
       ];
     } else if (event.name === LEAD) {
       enrichableProps = [
         'user.userId',
+        'context.campaign',
       ];
     }
 
@@ -98,11 +117,29 @@ class Admitad extends Integration {
     const uid = cookie.get(this.getOption('cookieName'));
     if (!uid) return;
 
+    if (this.isDeduplication(event)) return;
+
     if (event.name === COMPLETED_TRANSACTION && this.getOption('paymentType') === PAYMENT_TYPE_SALE) {
       this.trackSale(event, uid);
     } else if (event.name === LEAD && this.getOption('paymentType') === PAYMENT_TYPE_LEAD) {
       this.trackLead(event, uid);
     }
+  }
+
+  isDeduplication(event) {
+    if (this.getOption('deduplication')) {
+      const campaignSource = getProp(event, 'context.campaign.source');
+      if (campaignSource && campaignSource.toLowerCase() !== this.getOption('campaignSource')) {
+        // last click source is not admitad
+        const deduplicationUtmMedium = this.getOption('deduplicationUtmMedium') || [];
+        const campaignMedium = getProp(event, 'context.campaign.medium');
+        if (deduplicationUtmMedium.indexOf(campaignMedium.toLowerCase() >= 0)) {
+          // last click medium is deduplicated
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   setupPixel(event) {

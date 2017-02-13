@@ -1,7 +1,8 @@
 import deleteProperty from './deleteProperty';
+import each from './each';
 
 export default function cleanObject(object) {
-  for (var key in object) {
+  each(object, (key) => {
     const value = object[key];
     if (value === undefined) {
       deleteProperty(object, key);
@@ -10,7 +11,7 @@ export default function cleanObject(object) {
     if (typeof value === 'object' && !(value instanceof Date)) {
       cleanObject(object[key]);
 
-      if(value === null) {
+      if (value === null) {
         continue;
       }
 
@@ -18,7 +19,7 @@ export default function cleanObject(object) {
         deleteProperty(object, key);
       }
     }
-  }
+  });
 
   return object;
 }
