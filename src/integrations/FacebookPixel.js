@@ -84,6 +84,8 @@ class FacebookPixel extends Integration {
       this.onViewedProductDetail(event.product);
     } else if (event.name === 'Added Product') {
       this.onAddedProduct(event.product, event.quantity);
+    } else if (event.name === 'Lead') {
+      this.onLead(event.product, event.quantity);
     } else if (event.name === 'Completed Transaction') {
       this.onCompletedTransaction(event.transaction);
     } else if ([
@@ -130,6 +132,21 @@ class FacebookPixel extends Integration {
         content_type: 'product',
         content_name: product.name || '',
         content_category: category || '',
+      });
+    }
+  }
+
+  onLead(product, quantity) {
+    if (product && type(product) === 'object') {
+      const category = getProductCategory(product);
+      quantity = quantity || 1;
+      window.fbq('track', 'Lead', {
+        content_ids: [product.id || product.skuCode || ''],
+        content_type: 'product',
+        content_name: product.name || '',
+        content_category: category || '',
+        currency: product.currency || '',
+        value: quantity * (product.unitSalePrice || product.unitPrice || 0),
       });
     }
   }
