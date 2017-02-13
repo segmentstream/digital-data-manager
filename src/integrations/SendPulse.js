@@ -1,7 +1,6 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
 import { getProp } from './../functions/dotProp';
-import type from 'component-type';
 
 class SendPulse extends Integration {
 
@@ -131,7 +130,7 @@ class SendPulse extends Integration {
       }
       if (
         value !== undefined &&
-        type(value) !== 'object'
+        typeof value !== 'object'
       ) {
         window.oSpP.push(userVar, String(value));
       }

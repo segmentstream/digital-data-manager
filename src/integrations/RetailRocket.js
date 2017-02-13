@@ -3,7 +3,6 @@ import deleteProperty from './../functions/deleteProperty';
 import { getProp } from './../functions/dotProp';
 import getVarValue from './../functions/getVarValue';
 import each from './../functions/each';
-import type from 'component-type';
 
 class RetailRocket extends Integration {
 
@@ -267,13 +266,13 @@ class RetailRocket extends Integration {
     const settings = this.getOption('customVariables');
     each(settings, (key, variable) => {
       let rrCustom;
-      if (type(variable) === 'string') { // TODO: remove backward compatibility in later versions
+      if (typeof variable === 'string') { // TODO: remove backward compatibility in later versions
         rrCustom = getProp(event, variable);
       } else {
         rrCustom = getVarValue(variable, event);
       }
       if (rrCustom !== undefined) {
-        if (type(rrCustom) === 'boolean') rrCustom = rrCustom.toString();
+        if (typeof rrCustom === 'boolean') rrCustom = rrCustom.toString();
         rrCustoms[key] = rrCustom;
       }
     });

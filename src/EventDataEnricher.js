@@ -1,5 +1,4 @@
-import type from 'component-type';
-import clone from 'component-clone';
+import clone from './functions/clone';
 import DDHelper from './DDHelper.js';
 import dotProp from './functions/dotProp';
 
@@ -31,7 +30,7 @@ class EventDataEnricher
   }
 
   static enrichIntegrationData(event, digitalData, integration) {
-    let enrichedEvent = clone(event);
+    let enrichedEvent = clone(event, true);
     const enrichableProps = integration.getEnrichableEventProps(event);
     for (const prop of enrichableProps) {
       if (!dotProp.getProp(event, prop) && digitalData) {
@@ -84,7 +83,7 @@ class EventDataEnricher
   static product(product, digitalData) {
     let productId;
 
-    if (type(product) === 'object') {
+    if (typeof product === 'object') {
       productId = product.id;
     } else {
       productId = product;
@@ -106,7 +105,7 @@ class EventDataEnricher
   static listItem(listItem, digitalData) {
     let productId;
 
-    if (type(listItem.product) === 'object') {
+    if (typeof listItem.product === 'object') {
       productId = listItem.product.id;
     } else {
       productId = listItem.product;
@@ -137,7 +136,7 @@ class EventDataEnricher
 
   static campaign(campaign, digitalData) {
     let campaignId;
-    if (type(campaign) === 'object') {
+    if (typeof campaign === 'object') {
       campaignId = campaign.id;
     } else {
       campaignId = campaign;

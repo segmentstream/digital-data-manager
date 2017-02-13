@@ -1,6 +1,5 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
-import type from 'component-type';
 
 function getProductCategory(product) {
   let category = product.category;
@@ -122,7 +121,7 @@ class FacebookPixel extends Integration {
   }
 
   onAddedProduct(product, quantity) {
-    if (product && type(product) === 'object') {
+    if (product && typeof product === 'object') {
       const category = getProductCategory(product);
       quantity = quantity || 1;
       window.fbq('track', 'AddToCart', {

@@ -3,7 +3,7 @@ import deleteProperty from './../functions/deleteProperty.js';
 import { getProp } from './../functions/dotProp';
 import each from './../functions/each.js';
 import size from './../functions/size.js';
-import clone from 'component-clone';
+import clone from './../functions/clone';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
