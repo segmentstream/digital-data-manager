@@ -86,6 +86,8 @@ class FacebookPixel extends Integration {
       this.onAddedProduct(event.product, event.quantity);
     } else if (event.name === 'Completed Transaction') {
       this.onCompletedTransaction(event.transaction);
+    } else if (event.name === 'Obtained Lead') {
+      this.onObtainedLead(event);
     } else if ([
       'Viewed Product',
       'Clicked Product',
@@ -161,6 +163,29 @@ class FacebookPixel extends Integration {
         value: transaction.total || revenue1 || revenue2 || 0,
       });
     }
+  }
+
+  onObtainedLead(event) {
+    let options = {};
+    const page = event.page;
+    const product = event.product;
+    if (page) {
+      Object.assign(options, { content_category: page.type });
+    }
+    if (product) {
+      if (product.name) {
+        Object.assign(options, { content_name: product.name});
+      }
+      if (product.unitSalePrice || product.unitPrice) {
+        const produtPrice = product.unitSalePrice ||  product.unitPrice;
+        Object.assign(options, { value: produtPrice});
+      }
+      if (product.currency) {
+        Object.assign(options, { currency: product.currency});
+      }
+    }
+
+    window.fbq('track', 'Lead', options);
   }
 
   onCustomEvent(event) {

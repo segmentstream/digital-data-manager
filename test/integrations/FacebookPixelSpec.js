@@ -427,6 +427,34 @@ describe('Integrations: FacebookPixel', () => {
 
     });
 
+    describe('#onObtainedLead', () => {
+      it('should call fbq track Lead', (done) => {
+        window.digitalData.events.push({
+          name: 'Obtained Lead',
+          page: {
+            type: 'product'
+          },
+          product: {
+            id: "1234567890",
+            name: "Trial",
+            currency: "RUB",
+            unitPrice: 12990,
+            unitSalePrice: 10990
+          },
+          callback: () => {
+            assert.ok(window.fbq.calledWith('track', 'Lead', {
+              content_category: 'product',
+              content_name: 'Trial',
+              value: 10990,
+              currency: "RUB"
+            }), 'fbq("track", "Lead") was not called');
+            done();
+          }
+        });
+      });
+    });
+
+
 
     describe('#onCustomEvent', () => {
       it('should call fbq track for custom event', (done) => {
