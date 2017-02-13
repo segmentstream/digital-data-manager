@@ -84,6 +84,8 @@ class FacebookPixel extends Integration {
       this.onViewedProductDetail(event.product);
     } else if (event.name === 'Added Product') {
       this.onAddedProduct(event.product, event.quantity);
+    } else if (event.name === 'Subscribed') {
+      this.onSubscribed(event.user);
     } else if (event.name === 'Completed Transaction') {
       this.onCompletedTransaction(event.transaction);
     } else if ([
@@ -130,6 +132,15 @@ class FacebookPixel extends Integration {
         content_type: 'product',
         content_name: product.name || '',
         content_category: category || '',
+      });
+    }
+  }
+
+  onSubscribed(user) {
+    if (user && type(user) === 'object') {
+      window.fbq('track', 'Lead', {
+        content_name: user.email || '',
+        content_category: 'User'
       });
     }
   }
