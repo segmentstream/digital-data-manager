@@ -1,6 +1,7 @@
 import clone from './functions/clone';
 import async from 'async';
 import size from './functions/size';
+import cleanObject from './functions/cleanObject';
 import after from './functions/after';
 import each from './functions/each';
 import emitter from 'component-emitter';
@@ -219,7 +220,7 @@ ddManager = {
       domain: null,
       websiteMaxWidth: 'auto',
       sessionLength: 3600,
-      sendViewedPageEvent: false,
+      sendViewedPageEvent: true,
       useCookieStorage: false,
     }, settings);
 
@@ -231,9 +232,9 @@ ddManager = {
 
     let storage;
     if (settings.useCookieStorage) {
-      storage = new CookieStorage({
+      storage = new CookieStorage(cleanObject({
         cookieDomain: settings.cookieDomain,
-      });
+      }));
     } else {
       storage = new Storage();
     }
