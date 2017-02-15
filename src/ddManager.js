@@ -1,6 +1,5 @@
-import clone from 'component-clone';
+import clone from './functions/clone';
 import async from 'async';
-
 import size from './functions/size';
 import after from './functions/after';
 import each from './functions/each';
@@ -96,7 +95,7 @@ function _addIntegrations(integrationSettings) {
     if (Array.isArray(integrationSettings)) {
       for (const integrationSetting of integrationSettings) {
         const name = integrationSetting.name;
-        const options = clone(integrationSetting.options);
+        const options = clone(integrationSetting.options, true);
         if (typeof _availableIntegrations[name] === 'function') {
           const integration = new _availableIntegrations[name](_digitalData, options || {});
           ddManager.addIntegration(name, integration);
@@ -105,7 +104,7 @@ function _addIntegrations(integrationSettings) {
     } else {
       each(integrationSettings, (name, options) => {
         if (typeof _availableIntegrations[name] === 'function') {
-          const integration = new _availableIntegrations[name](_digitalData, clone(options));
+          const integration = new _availableIntegrations[name](_digitalData, clone(options, true));
           ddManager.addIntegration(name, integration);
         }
       });
