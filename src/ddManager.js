@@ -225,7 +225,7 @@ ddManager = {
       domain: null,
       websiteMaxWidth: 'auto',
       sessionLength: 3600,
-      sendViewedPageEvent: false,
+      sendViewedPageEvent: true,
     }, settings);
 
     if (_isReady) {
