@@ -12,10 +12,8 @@ export default function cleanObject(object) {
       cleanObject(object[key]);
 
       if (value === null) {
-        continue;
-      }
-
-      if(!Array.isArray(value) && !Object.keys(value).length) {
+        deleteProperty(object, key);
+      } else if (!Array.isArray(value) && !Object.keys(value).length) {
         deleteProperty(object, key);
       }
     }

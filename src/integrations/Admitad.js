@@ -15,6 +15,8 @@ const PAYMENT_TYPE_SALE = 'sale';
 const PAYMENT_TYPE_LEAD = 'lead';
 const UID_GET_PARAM = 'admitad_uid';
 const DEFAULT_COOKIE_NAME = 'admitad_uid';
+const ADMITAD_PIXEL_VAR = '_admitadPixelDD';
+const ADMITAD_POSITIONS_VAR = '_admitadPositionsDD';
 
 function normalizeOptions(options) {
   if (options.deduplication) {
@@ -54,8 +56,8 @@ class Admitad extends Integration {
     this.addTag('trackingPixel', {
       type: 'script',
       attr: {
-        id: '_admitad-pixel',
-        src: `//cdn.asbmit.com/static/js/ad/pixel.min.js?r=${Date.now()}`,
+        id: '_admitad-pixel-dd',
+        src: `//cdn.asbmit.com/static/js/ddpixel.js?r=${Date.now()}`,
       },
     });
   }
@@ -143,12 +145,12 @@ class Admitad extends Integration {
   }
 
   setupPixel(event) {
-    window._admitadPixel = {
+    window[ADMITAD_PIXEL_VAR] = {
       response_type: this.getOption('responseType'),
       action_code: getProp(event, 'admitad.actionCode') || this.getOption('defaultActionCode'),
       campaign_code: this.getOption('campaignCode'),
     };
-    window._admitadPositions = window._admitadPositions || [];
+    window[ADMITAD_POSITIONS_VAR] = window[ADMITAD_POSITIONS_VAR] || [];
   }
 
   trackSale(event, uid) {
@@ -163,7 +165,7 @@ class Admitad extends Integration {
     const lineItems = transaction.lineItems;
     let index = 1;
     for (const lineItem of lineItems) {
-      window._admitadPositions.push(cleanObject({
+      window[ADMITAD_POSITIONS_VAR].push(cleanObject({
         uid: uid,
         order_id: transaction.orderId,
         position_id: index,
@@ -192,7 +194,7 @@ class Admitad extends Integration {
 
     this.setupPixel(event);
 
-    window._admitadPositions.push(cleanObject({
+    window[ADMITAD_POSITIONS_VAR].push(cleanObject({
       uid: uid,
       order_id: getProp(event, 'lead.id'),
       client_id: getProp(event, 'user.userId'),
