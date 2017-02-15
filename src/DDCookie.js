@@ -1,9 +1,11 @@
 import cookie from 'js-cookie';
+import { getProp } from './functions/dotProp';
 import topDomain from './functions/topDomain.js';
 
-class Cookie
+class DDCookie
 {
-  constructor(options = {}) {
+  constructor(digitalData, options = {}) {
+    this.digitalData = digitalData;
     this.options = Object.assign({
       cookieDomain: topDomain(location.href),
       cookieMaxAge: 31536000000, // default to a year
@@ -28,6 +30,17 @@ class Cookie
     }
   }
 
+  persist(key, exp) {
+    const value = getProp(this.digitalData, key);
+    if (value !== undefined) {
+      return this.set(key, value, exp);
+    }
+  }
+
+  unpersist(key) {
+    return this.cookie.remove(key);
+  }
+
   set(key, val, exp) {
     key = this.getOption('prefix') + key;
     exp = exp || this.getOption('cookieMaxAge');
@@ -47,9 +60,20 @@ class Cookie
     key = this.getOption('prefix') + key;
     return cookie.remove(key);
   }
+
   getOption(name) {
     return this.options[name];
   }
+
+  clear() {
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i];
+        var eqPos = cookie.indexOf('=');
+        var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+        document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    }
+  }
 }
 
-export default Cookie;
+export default DDCookie;
