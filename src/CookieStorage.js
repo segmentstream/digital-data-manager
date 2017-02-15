@@ -2,14 +2,13 @@ import cookie from 'js-cookie';
 import { getProp } from './functions/dotProp';
 import topDomain from './functions/topDomain.js';
 
-class DDCookie
+class CookieStorage
 {
-  constructor(digitalData, options = {}) {
-    this.digitalData = digitalData;
+  constructor(options = {}) {
     this.options = Object.assign({
       cookieDomain: topDomain(location.href),
       cookieMaxAge: 31536000000, // default to a year
-      prefix: 'ddl:',
+      prefix: 'dd_',
     }, options);
 
     // http://curl.haxx.se/rfc/cookie_spec.html
@@ -30,17 +29,6 @@ class DDCookie
     }
   }
 
-  persist(key, exp) {
-    const value = getProp(this.digitalData, key);
-    if (value !== undefined) {
-      return this.set(key, value, exp);
-    }
-  }
-
-  unpersist(key) {
-    return this.cookie.remove(key);
-  }
-
   set(key, val, exp) {
     key = this.getOption('prefix') + key;
     exp = exp || this.getOption('cookieMaxAge');
@@ -53,7 +41,7 @@ class DDCookie
 
   get(key) {
     key = this.getOption('prefix') + key;
-    return cookie.get(key);
+    return cookie.getJSON(key);
   }
 
   remove(key) {
@@ -76,4 +64,4 @@ class DDCookie
   }
 }
 
-export default DDCookie;
+export default CookieStorage;

@@ -12,7 +12,7 @@ import DDHelper from './DDHelper';
 import DigitalDataEnricher from './DigitalDataEnricher';
 import Storage from './Storage';
 import DDStorage from './DDStorage';
-import DDCookie from './DDCookie';
+import CookieStorage from './CookieStorage';
 import { isTestMode, logEnrichedIntegrationEvent, showTestModeOverlay } from './testMode';
 
 let ddManager;
@@ -47,9 +47,8 @@ let _eventManager;
  */
 let _digitalDataEnricher;
 
-
 /**
- * @type {DDStorage|DDCookie}
+ * @type {DDStorage}
  * @private
  */
 let _ddStorage;
@@ -230,13 +229,16 @@ ddManager = {
 
     _prepareGlobals();
 
+    let storage;
     if (settings.useCookieStorage) {
-      _ddStorage = new DDCookie(_digitalData, {
+      storage = new CookieStorage({
         cookieDomain: settings.cookieDomain,
       });
     } else {
-      _ddStorage = new DDStorage(_digitalData, new Storage());
+      storage = new Storage();
     }
+
+    _ddStorage = new DDStorage(_digitalData, storage);
 
     // initialize digital data enricher
     _digitalDataEnricher = new DigitalDataEnricher(_digitalData, _ddListener, _ddStorage, {
