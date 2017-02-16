@@ -101,7 +101,7 @@ describe('Integrations: Yandex Metrica', () => {
         done();
       });
       ddManager.initialize({
-        autoEvents: false
+        sendViewedPageEvent: false
       });
     });
   });
@@ -118,7 +118,7 @@ describe('Integrations: Yandex Metrica', () => {
       });
       ddManager.once('ready', done);
       ddManager.initialize({
-        autoEvents: false
+        sendViewedPageEvent: false
       });
     });
 

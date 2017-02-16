@@ -132,7 +132,7 @@ describe('Integrations: Emarsys', () => {
         done();
       });
       ddManager.initialize({
-        autoEvents: false,
+        sendViewedPageEvent: false,
       });
     });
   });
@@ -145,7 +145,7 @@ describe('Integrations: Emarsys', () => {
       });
       ddManager.once('ready', done);
       ddManager.initialize({
-        autoEvents: false,
+        sendViewedPageEvent: false,
       });
     });
 
