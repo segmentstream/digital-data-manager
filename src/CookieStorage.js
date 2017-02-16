@@ -1,13 +1,14 @@
 import cookie from 'js-cookie';
+import { getProp } from './functions/dotProp';
 import topDomain from './functions/topDomain.js';
 
-class Cookie
+class CookieStorage
 {
   constructor(options = {}) {
     this.options = Object.assign({
       cookieDomain: topDomain(location.href),
       cookieMaxAge: 31536000000, // default to a year
-      prefix: 'ddl:',
+      prefix: 'dd_',
     }, options);
 
     // http://curl.haxx.se/rfc/cookie_spec.html
@@ -40,16 +41,27 @@ class Cookie
 
   get(key) {
     key = this.getOption('prefix') + key;
-    return cookie.get(key);
+    return cookie.getJSON(key);
   }
 
   remove(key) {
     key = this.getOption('prefix') + key;
     return cookie.remove(key);
   }
+
   getOption(name) {
     return this.options[name];
   }
+
+  clear() {
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i];
+        var eqPos = cookie.indexOf('=');
+        var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+        document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    }
+  }
 }
 
-export default Cookie;
+export default CookieStorage;
