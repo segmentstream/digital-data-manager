@@ -117,7 +117,7 @@ describe('DDManager', () => {
 
     it('shoud set EventManager\'s sendViewedPageEvent value to false', () => {
       ddManager.initialize();
-      assert.ok(!ddManager.getEventManager().getSendViewedPageEvent());
+      assert.ok(ddManager.getEventManager().getSendViewedPageEvent());
     });
 
     it('it should fire on("ready") event even if ddManager was ready before', (done) => {
@@ -232,7 +232,7 @@ describe('DDManager', () => {
       });
       ddManager.initialize({
         sessionLength: 0.1,
-        autoEvents: false
+        sendViewedPageEvent: false
       });
     });
 
@@ -255,7 +255,7 @@ describe('DDManager', () => {
       });
       ddManager.initialize({
         sessionLength: 20,
-        autoEvents: false
+        sendViewedPageEvent: false
       });
     });
   });
@@ -276,7 +276,7 @@ describe('DDManager', () => {
       ddManager.addIntegration('integration2', integration2);
       ddManager.addIntegration('integration3', integration3);
       ddManager.initialize({
-        autoEvents: false,
+        sendViewedPageEvent: false,
       });
     });
 

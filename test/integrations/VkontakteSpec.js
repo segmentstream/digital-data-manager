@@ -55,7 +55,7 @@ describe('Integrations: Vkontakte', () => {
         done();
       });
       ddManager.initialize({
-        autoEvents: false
+        sendViewedPageEvent: false
       });
     });
   });
@@ -65,7 +65,7 @@ describe('Integrations: Vkontakte', () => {
       sinon.spy(vk, 'addPixel');
       ddManager.once('ready', done);
       ddManager.initialize({
-        autoEvents: false
+        sendViewedPageEvent: false
       });
     });
 

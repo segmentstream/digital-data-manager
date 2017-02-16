@@ -60,7 +60,7 @@ describe('Integrations: Sociomantic', () => {
       sinon.spy(sociomantic, 'clearTrackingObjects');
       ddManager.once('ready', done);
       ddManager.initialize({
-        autoEvents: false,
+        sendViewedPageEvent: false,
       });
     });
 
