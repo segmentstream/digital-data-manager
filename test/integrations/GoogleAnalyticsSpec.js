@@ -45,7 +45,7 @@ describe('Integrations: GoogleAnalytics', () => {
         it('should require \'displayfeatures\' if .doubleClick option is `true`', function () {
           ga.setOption('doubleClick', true);
           ddManager.initialize({
-            autoEvents: false
+            sendViewedPageEvent: false,
           });
           assert.deepEqual(argumentsToArray(window.ga.q[1]), ['require', 'displayfeatures']);
         });
@@ -53,7 +53,7 @@ describe('Integrations: GoogleAnalytics', () => {
         it('should require "linkid.js" if enhanced link attribution is `true`', function () {
           ga.setOption('enhancedLinkAttribution', true);
           ddManager.initialize({
-            autoEvents: false
+            sendViewedPageEvent: false,
           });
           assert.deepEqual(argumentsToArray(window.ga.q[1]), ['require', 'linkid', 'linkid.js']);
         });
@@ -61,7 +61,7 @@ describe('Integrations: GoogleAnalytics', () => {
         it('should create window.GoogleAnalyticsObject', function () {
           assert.ok(!window.GoogleAnalyticsObject);
           ddManager.initialize({
-            autoEvents: false
+            sendViewedPageEvent: false
           });
           assert.equal(window.GoogleAnalyticsObject, 'ga');
         });
@@ -69,7 +69,7 @@ describe('Integrations: GoogleAnalytics', () => {
         it('should create window.ga', function () {
           assert.ok(!window.ga);
           ddManager.initialize({
-            autoEvents: false
+            sendViewedPageEvent: false
           });
           assert.equal(typeof window.ga, 'function');
         });
@@ -77,14 +77,14 @@ describe('Integrations: GoogleAnalytics', () => {
         it('should create window.ga.l', function () {
           assert.ok(!window.ga);
           ddManager.initialize({
-            autoEvents: false
+            sendViewedPageEvent: false
           });
           assert.equal(typeof window.ga.l, 'number');
         });
 
         it('should call window.ga.create with options', function () {
           ddManager.initialize({
-            autoEvents: false
+            sendViewedPageEvent: false
           });
           assert.deepEqual(argumentsToArray(window.ga.q[0]), ['create', options.trackingId, {
             cookieDomain: 'none',
@@ -96,14 +96,14 @@ describe('Integrations: GoogleAnalytics', () => {
 
         it('should anonymize the ip', function () {
           ddManager.initialize({
-            autoEvents: false
+            sendViewedPageEvent: false
           });
           assert.deepEqual(argumentsToArray(window.ga.q[1]), ['set', 'anonymizeIp', true]);
         });
 
         it('should call #load', function () {
           ddManager.initialize({
-            autoEvents: false
+            sendViewedPageEvent: false
           });
           assert.ok(ga.load.calledOnce);
         });
@@ -114,7 +114,7 @@ describe('Integrations: GoogleAnalytics', () => {
           };
           window.digitalData.page = {};
           ddManager.initialize({
-            autoEvents: false
+            sendViewedPageEvent: false
           });
           digitalData.events.push({
             name: 'Viewed Page',
@@ -132,7 +132,7 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.page = {};
           ga.setOption('sendUserId', true);
           ddManager.initialize({
-            autoEvents: false
+            sendViewedPageEvent: false
           });
           digitalData.events.push({
             name: 'Viewed Page',
@@ -155,7 +155,7 @@ describe('Integrations: GoogleAnalytics', () => {
           done();
         });
         ddManager.initialize({
-          autoEvents: false
+          sendViewedPageEvent: false
         });
       });
     });
@@ -164,7 +164,7 @@ describe('Integrations: GoogleAnalytics', () => {
       beforeEach((done) => {
         ddManager.once('ready', done);
         ddManager.initialize({
-          autoEvents: false
+          sendViewedPageEvent: false
         });
       });
 
@@ -184,7 +184,7 @@ describe('Integrations: GoogleAnalytics', () => {
         sinon.stub(ga, 'load');
         ddManager.once('ready', done);
         ddManager.initialize({
-          autoEvents: false
+          sendViewedPageEvent: false
         });
       });
 
@@ -844,7 +844,7 @@ describe('Integrations: GoogleAnalytics', () => {
         sinon.stub(ga, 'load');
         ddManager.once('ready', done);
         ddManager.initialize({
-          autoEvents: false
+          sendViewedPageEvent: false
         });
       });
 
@@ -2194,7 +2194,7 @@ describe('Integrations: GoogleAnalytics', () => {
         sinon.stub(ga, 'load');
         ddManager.once('ready', done);
         ddManager.initialize({
-          autoEvents: false
+          sendViewedPageEvent: false
         });
       });
 
