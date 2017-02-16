@@ -90,7 +90,7 @@ describe('Integrations: Criteo', () => {
         done();
       });
       ddManager.initialize({
-        autoEvents: false
+        sendViewedPageEvent: false,
       });
     });
   });
@@ -104,7 +104,7 @@ describe('Integrations: Criteo', () => {
         done();
       });
       ddManager.initialize({
-        autoEvents: false
+        sendViewedPageEvent: false,
       });
     });
 

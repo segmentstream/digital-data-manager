@@ -110,7 +110,7 @@ describe('Integrations: GoogleAdWords', () => {
     describe('#initialize', () => {
       it('should initialize AdWords queue object', () => {
         ddManager.initialize({
-          autoEvents: false
+          sendViewedPageEvent: false,
         });
         assert.ok(adwords.asyncQueue);
         assert.ok(adwords.asyncQueue.push);
@@ -118,7 +118,7 @@ describe('Integrations: GoogleAdWords', () => {
 
       it('should call tags load after initialization', () => {
         ddManager.initialize({
-          autoEvents: false
+          sendViewedPageEvent: false,
         });
         assert.ok(adwords.load.calledOnce);
       });
@@ -134,7 +134,7 @@ describe('Integrations: GoogleAdWords', () => {
         done();
       });
       ddManager.initialize({
-        autoEvents: false
+        sendViewedPageEvent: false,
       });
     });
   });
@@ -146,7 +146,7 @@ describe('Integrations: GoogleAdWords', () => {
         sinon.spy(window, 'google_trackConversion');
       })
       ddManager.initialize({
-        autoEvents: false
+        sendViewedPageEvent: false,
       });
     });
 

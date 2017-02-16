@@ -62,7 +62,7 @@ describe('Integrations: GoogleTagManager', () => {
       beforeEach((done) => {
         ddManager.once('load', done);
         ddManager.initialize({
-          autoEvents: false
+          sendViewedPageEvent: false
         });
       });
 
@@ -141,7 +141,7 @@ describe('Integrations: GoogleTagManager', () => {
       beforeEach((done) => {
         ddManager.once('ready', done);
         ddManager.initialize({
-          autoEvents: false
+          sendViewedPageEvent: false
         });
       });
 
