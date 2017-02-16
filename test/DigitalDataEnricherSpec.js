@@ -300,33 +300,6 @@ describe('DigitalDataEnricher', () => {
         }, 202);
       }, 110);
     });
-
-    it('should update user.hasTransacted and user.lastTransactionDate', () => {
-      _digitalData = {
-        user: {
-          isSubscribed: true,
-          isLoggedIn: true,
-          email: 'test@email.com',
-        },
-        page: {
-          type: 'confirmation'
-        },
-        transaction: {
-          orderId: '123'
-        }
-      };
-      enirch(_digitalData, true);
-
-      _digitalData = {
-        user: {
-          isLoggedIn: false,
-        }
-      };
-      enirch(_digitalData);
-
-      assert.ok(_digitalData.user.hasTransacted);
-      assert.ok(_digitalData.user.lastTransactionDate);
-    });
   });
 
 });
