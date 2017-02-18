@@ -1,6 +1,8 @@
+import htmlGlobals from './htmlGlobals';
+
 export default function getQueryParam(name, queryString) {
   if (!queryString) {
-    queryString = location.search;
+    queryString = htmlGlobals.getLocation().search;
   }
   name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
   const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
