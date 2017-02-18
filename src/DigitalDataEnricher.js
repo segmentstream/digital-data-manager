@@ -21,6 +21,7 @@ const ddStorageForcedFields = [
 const ddStorageAlwaysPersistedFields = [
   'user.email',
   'user.lastTransactionDate',
+  'context.campaign',
 ];
 
 function isForcedField(field) {
@@ -65,18 +66,18 @@ class DigitalDataEnricher
     // fire session started event if this is new session
     this.fireSessionStarted();
 
-    // persist some default behaviours
-    this.persistUserData();
-
     // enrich with default data
+    this.enrichContextData();
     this.enrichPageData();
     this.enrichLegacyVersions();
+
+    // persist some default behaviours
+    this.persistUserData();
 
     // should be after all default enrichments
     this.enrichDDStorageData();
 
     // enrich required fields if still not defined
-    this.enrichContextData(); // should be after enrichDDStorageData
     this.enrichDefaultUserData();
     this.enrichIsReturningStatus();
 
@@ -169,6 +170,10 @@ class DigitalDataEnricher
     if (user.lastTransactionDate) {
       this.ddStorage.persist('user.lastTransactionDate');
     }
+  }
+
+  persistContextData() {
+
   }
 
   enrichIsReturningStatus() {

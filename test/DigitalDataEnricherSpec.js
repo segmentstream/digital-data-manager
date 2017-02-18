@@ -76,7 +76,6 @@ describe('DigitalDataEnricher', () => {
       assert.ok(_digitalData.page.referrer === _document.referrer);
       assert.ok(_digitalData.page.title === _document.title);
     });
-
   });
 
   describe('#enrichContextData', () => {
@@ -92,10 +91,24 @@ describe('DigitalDataEnricher', () => {
       };
     });
 
-    it('should enrich DDL context variable', () => {
+    it('should enrich DDL context userAgent variable', () => {
+      _ddStorage = new DDStorage(_digitalData, new Storage());
       _digitalDataEnricher.setDigitalData(_digitalData);
+      _digitalDataEnricher.setDDStorage(_ddStorage);
       _digitalDataEnricher.enrichContextData();
       assert.ok(_digitalData.context.userAgent === _navigator.userAgent);
+    });
+
+    it('should enrich DDL context campaign variable', () => {
+      _ddStorage = new DDStorage(_digitalData, new Storage());
+      _digitalDataEnricher.setDigitalData(_digitalData);
+      _digitalDataEnricher.setDDStorage(_ddStorage);
+      _digitalDataEnricher.enrichContextData();
+      assert.deepEqual(_digitalData.context.campaign, {
+        name: 'test_campaign',
+        source: 'newsletter',
+        medium: 'email'
+      });
     });
 
   });
@@ -255,6 +268,32 @@ describe('DigitalDataEnricher', () => {
       assert.ok(_digitalData.user.isSubscribed);
       assert.equal(_digitalData.user.email, 'test@email.com');
       assert.equal(_digitalData.user.lastTransactionDate, '2016-03-30T10:05:26.041Z');
+    });
+
+    it('should enrich context.campaign data', () => {
+      _digitalData = {};
+      enirch(_digitalData);
+      assert.deepEqual(_digitalData.context.campaign, {
+        name: 'test_campaign', source: 'newsletter', medium: 'email'
+      });
+
+      // overddie location
+      _htmlGlobals.getLocation.restore();
+      sinon.stub(_htmlGlobals, 'getLocation', () => {
+        return {
+          search: ''
+        };
+      });
+
+      // reset dd
+      deleteProperty(_digitalData.context, 'campaign');
+      assert.ok(!_digitalData.context.campaign);
+
+      // enirch again
+      enirch(_digitalData);
+      assert.deepEqual(_digitalData.context.campaign, {
+        name: 'test_campaign', source: 'newsletter', medium: 'email'
+      });
     });
 
     it('should update user.isReturning status', (done) => {
