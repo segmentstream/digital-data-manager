@@ -3,6 +3,27 @@ import deleteProperty from './../functions/deleteProperty';
 import { getProp } from './../functions/dotProp';
 import getVarValue from './../functions/getVarValue';
 import each from './../functions/each';
+import {
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  VIEWED_PRODUCT_LISTING,
+  CLICKED_PRODUCT,
+  ADDED_PRODUCT,
+  SEARCHED_PRODUCTS,
+  COMPLETED_TRANSACTION,
+  SUBSCRIBED,
+} from './../events';
+
+const SEMANTIC_EVENTS = [
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  VIEWED_PRODUCT_LISTING,
+  CLICKED_PRODUCT,
+  ADDED_PRODUCT,
+  SEARCHED_PRODUCTS,
+  COMPLETED_TRANSACTION,
+  SUBSCRIBED,
+];
 
 class RetailRocket extends Integration {
 
@@ -33,31 +54,35 @@ class RetailRocket extends Integration {
     });
   }
 
+  getSemanticEvents() {
+    return SEMANTIC_EVENTS;
+  }
+
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case 'Viewed Page':
+    case VIEWED_PAGE:
       enrichableProps = [
         'user.email',
         'user.isSubscribed',
       ];
       break;
-    case 'Viewed Product Detail':
+    case VIEWED_PRODUCT_DETAIL:
       enrichableProps = [
         'product.id',
       ];
       break;
-    case 'Viewed Product Category':
+    case VIEWED_PRODUCT_LISTING:
       enrichableProps = [
         'listing.categoryId',
       ];
       break;
-    case 'Searched Products':
+    case SEARCHED_PRODUCTS:
       enrichableProps = [
         'listing.query',
       ];
       break;
-    case 'Completed Transaction':
+    case COMPLETED_TRANSACTION:
       enrichableProps = [
         'transaction',
       ];
@@ -66,7 +91,7 @@ class RetailRocket extends Integration {
       // do nothing
     }
 
-    if (['Viewed Page', 'Subscribed'].indexOf(event.name) >= 0) {
+    if ([VIEWED_PAGE, SUBSCRIBED].indexOf(event.name) >= 0) {
       const settings = this.getOption('customVariables');
       each(settings, (key, variable) => {
         if (variable.type === 'digitalData') {
@@ -117,25 +142,27 @@ class RetailRocket extends Integration {
 
   trackEvent(event) {
     if (this.getOption('noConflict') !== true) {
-      if (event.name === 'Viewed Page') {
+
+      if (event.name === VIEWED_PAGE) {
         this.onViewedPage(event);
-      } else if (event.name === 'Viewed Product Category') {
+      } else if (event.name === VIEWED_PRODUCT_LISTING) {
         this.onViewedProductCategory(event.listing);
-      } else if (event.name === 'Added Product') {
+      } else if (event.name === ADDED_PRODUCT) {
         this.onAddedProduct(event.product);
-      } else if (event.name === 'Viewed Product Detail') {
+      } else if (event.name === VIEWED_PRODUCT_DETAIL) {
+        console.log(VIEWED_PRODUCT_DETAIL);
         this.onViewedProductDetail(event.product);
-      } else if (event.name === 'Clicked Product') {
+      } else if (event.name === CLICKED_PRODUCT) {
         this.onClickedProduct(event.listItem);
-      } else if (event.name === 'Completed Transaction') {
+      } else if (event.name === COMPLETED_TRANSACTION) {
         this.onCompletedTransaction(event.transaction);
-      } else if (event.name === 'Subscribed') {
+      } else if (event.name === SUBSCRIBED) {
         this.onSubscribed(event);
-      } else if (event.name === 'Searched Products') {
+      } else if (event.name === SEARCHED_PRODUCTS) {
         this.onSearched(event.listing);
       }
     } else {
-      if (event.name === 'Subscribed') {
+      if (event.name === SUBSCRIBED) {
         this.onSubscribed(event);
       }
     }

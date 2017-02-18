@@ -2,6 +2,18 @@ import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
 import each from './../functions/each.js';
 
+import {
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  ADDED_PRODUCT,
+} from './../events';
+
+const SEMANTIC_EVENTS = [
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  ADDED_PRODUCT,
+];
+
 class SegmentStream extends Integration {
 
   constructor(digitalData, options) {
@@ -19,6 +31,10 @@ class SegmentStream extends Integration {
         src: '//cdn.driveback.ru/js/segmentstream.js',
       },
     });
+  }
+
+  getSemanticEvents() {
+    return SEMANTIC_EVENTS;
   }
 
   getEnrichableEventProps(event) {
@@ -103,9 +119,9 @@ class SegmentStream extends Integration {
 
   trackEvent(event) {
     const methods = {
-      'Viewed Page': 'onViewedPage',
-      'Viewed Product Detail': 'onViewedProductDetail',
-      'Added Product': 'onAddedProduct',
+      [VIEWED_PAGE]: 'onViewedPage',
+      [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
+      [ADDED_PRODUCT]: 'onAddedProduct',
     };
 
     const method = methods[event.name];

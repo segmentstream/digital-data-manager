@@ -4,12 +4,13 @@ import { getProp } from './../functions/dotProp';
 import each from './../functions/each.js';
 import size from './../functions/size.js';
 import clone from './../functions/clone';
+import noop from './../functions/noop';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
-  VIEWED_PRODUCT_CATEGORY,
-  VIEWED_CART,
+  VIEWED_PRODUCT_LISTING,
   SEARCHED_PRODUCTS,
+  VIEWED_CART,
   COMPLETED_TRANSACTION,
   REFUNDED_TRANSACTION,
   VIEWED_CHECKOUT_STEP,
@@ -26,6 +27,26 @@ import {
   DIGITALDATA_VAR,
   PRODUCT_VAR,
 } from './../variableTypes';
+
+const SEMANTIC_EVENTS = [
+  VIEWED_PAGE,
+  COMPLETED_TRANSACTION,
+];
+
+const EC_SEMANTIC_EVENTS = [
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  COMPLETED_TRANSACTION,
+  REFUNDED_TRANSACTION,
+  VIEWED_CHECKOUT_STEP,
+  COMPLETED_CHECKOUT_STEP,
+  VIEWED_PRODUCT,
+  CLICKED_PRODUCT,
+  ADDED_PRODUCT,
+  REMOVED_PRODUCT,
+  VIEWED_CAMPAIGN,
+  CLICKED_CAMPAIGN,
+];
 
 function getTransactionVoucher(transaction) {
   let voucher;
@@ -93,6 +114,17 @@ class GoogleAnalytics extends Integration {
         src: '//www.google-analytics.com/analytics.js',
       },
     });
+  }
+
+  getSemanticEvents() {
+    if (this.getOption('enhancedEcommerce')) {
+      return EC_SEMANTIC_EVENTS;
+    }
+    return SEMANTIC_EVENTS;
+  }
+
+  allowCustomEvents() {
+    return true;
   }
 
   getEnrichableEventProps(event) {
@@ -344,11 +376,9 @@ class GoogleAnalytics extends Integration {
       return false;
     }
     const map = {
-      'category': VIEWED_PRODUCT_CATEGORY,
       'product': VIEWED_PRODUCT_DETAIL,
-      'cart': [VIEWED_CART, VIEWED_CHECKOUT_STEP],
+      'cart': [VIEWED_CHECKOUT_STEP],
       'confirmation': COMPLETED_TRANSACTION,
-      'search': SEARCHED_PRODUCTS,
       'checkout': VIEWED_CHECKOUT_STEP,
     };
 
@@ -365,6 +395,9 @@ class GoogleAnalytics extends Integration {
   }
 
   trackEvent(event) {
+    if ([VIEWED_PRODUCT_LISTING, SEARCHED_PRODUCTS, VIEWED_CART].indexOf(event.name) >= 0) {
+      return; // ignore events (not semantic for GA)
+    }
     if (event.name === VIEWED_PAGE) {
       if (!this.getOption('noConflict')) {
         this.onViewedPage(event);
@@ -382,9 +415,6 @@ class GoogleAnalytics extends Integration {
         [CLICKED_CAMPAIGN]: this.onClickedCampaign,
         [VIEWED_CHECKOUT_STEP]: this.onViewedCheckoutStep,
         [COMPLETED_CHECKOUT_STEP]: this.onCompletedCheckoutStep,
-        [VIEWED_PRODUCT_CATEGORY]: this.onViewedProductCategory, // stub
-        [VIEWED_CART]: this.onViewedCart, // stub
-        [SEARCHED_PRODUCTS]: this.onSearchedProducts, // stub
       };
       const method = methods[event.name];
       if (method) {
@@ -398,10 +428,9 @@ class GoogleAnalytics extends Integration {
       } else {
         if ([
           VIEWED_PRODUCT_DETAIL,
-          VIEWED_PRODUCT_CATEGORY,
+          VIEWED_PRODUCT_LISTING,
           SEARCHED_PRODUCTS,
           COMPLETED_TRANSACTION,
-          VIEWED_CART,
           VIEWED_PRODUCT,
           CLICKED_PRODUCT,
           ADDED_PRODUCT,
@@ -696,18 +725,6 @@ class GoogleAnalytics extends Integration {
       option: options,
     });
 
-    this.pushEnhancedEcommerce(event);
-  }
-
-  onViewedProductCategory(event) {
-    this.pushEnhancedEcommerce(event);
-  }
-
-  onViewedCart(event) {
-    this.pushEnhancedEcommerce(event);
-  }
-
-  onSearchedProducts(event) {
     this.pushEnhancedEcommerce(event);
   }
 

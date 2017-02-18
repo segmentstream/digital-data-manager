@@ -17,6 +17,10 @@ class GoogleTagManager extends Integration {
     });
   }
 
+  allowCustomEvents() {
+    return true;
+  }
+
   initialize() {
     window.dataLayer = window.dataLayer || [];
     this.ddManager.on('ready', () => {

@@ -15,6 +15,7 @@ import Storage from './Storage';
 import DDStorage from './DDStorage';
 import CookieStorage from './CookieStorage';
 import { isTestMode, logEnrichedIntegrationEvent, showTestModeOverlay } from './testMode';
+import { mapEvent } from './events';
 
 let ddManager;
 
@@ -137,13 +138,25 @@ function _addIntegrationsEventTracking() {
       } else {
         trackEvent = true;
       }
+
       if (trackEvent) {
-        // important! cloned object is returned (not link)
-        const enrichedEvent = EventDataEnricher.enrichIntegrationData(event, _digitalData, integration);
-        if (isTestMode()) {
-          logEnrichedIntegrationEvent(enrichedEvent, integrationName);
+        const mappedEventName = mapEvent(event.name);
+        if (
+          integration.getSemanticEvents().indexOf(mappedEventName) < 0
+          && !integration.allowCustomEvents()
+        ) {
+          return;
         }
-        integration.trackEvent(enrichedEvent);
+
+        // important! cloned object is returned (not link)
+        let integrationEvent = clone(event, true);
+        integrationEvent.name = mappedEventName;
+        integrationEvent = EventDataEnricher.enrichIntegrationData(integrationEvent, _digitalData, integration);
+
+        if (isTestMode()) {
+          logEnrichedIntegrationEvent(integrationEvent, integrationName);
+        }
+        integration.trackEvent(integrationEvent);
       }
     });
   }], true);

@@ -5,22 +5,12 @@ import each from './../functions/each';
 import after from './../functions/after';
 import {
   VIEWED_PAGE,
-  ADDED_PRODUCT,
-  REMOVED_PRODUCT,
-  VIEWED_PRODUCT_DETAIL,
-  VIEWED_PRODUCT_CATEGORY,
-  COMPLETED_TRANSACTION,
   SUBSCRIBED,
 } from './../events';
 import { DIGITALDATA_VAR } from './../variableTypes';
 
 const semanticEvents = [
   VIEWED_PAGE,
-  ADDED_PRODUCT,
-  REMOVED_PRODUCT,
-  VIEWED_PRODUCT_DETAIL,
-  VIEWED_PRODUCT_CATEGORY,
-  COMPLETED_TRANSACTION,
   SUBSCRIBED,
 ];
 
@@ -108,6 +98,15 @@ class OneSignal extends Integration {
         src: 'https://cdn.onesignal.com/sdks/OneSignalSDK.js',
       },
     });
+  }
+
+  getSemanticEvents() {
+    SEMANTIC_EVENTS.push(this.getOption('pushSubscriptionTriggerEvent'))
+    return SEMANTIC_EVENTS;
+  }
+
+  allowCustomEvents() {
+    return false;
   }
 
   getEnrichableEventProps(event) {

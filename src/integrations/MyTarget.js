@@ -1,6 +1,21 @@
 import Integration from './../Integration';
 import deleteProperty from './../functions/deleteProperty';
 import getVarValue from './../functions/getVarValue';
+import {
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  VIEWED_PRODUCT_LISTING,
+  VIEWED_CART,
+  COMPLETED_TRANSACTION,
+} from './../events';
+
+const SEMANTIC_EVENTS = [
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  VIEWED_PRODUCT_LISTING,
+  VIEWED_CART,
+  COMPLETED_TRANSACTION,
+];
 
 function lineItemsToProductIds(lineItems) {
   const productIds = lineItems.filter((lineItem) => {
@@ -43,25 +58,33 @@ class MyTarget extends Integration {
     }
   }
 
+  getSemanticEvents() {
+    return SEMANTIC_EVENTS;
+  }
+
+  allowCustomEvents() {
+    return true;
+  }
+
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case 'Viewed Page':
+    case VIEWED_PAGE:
       enrichableProps = [
         'page.type',
       ];
       break;
-    case 'Viewed Product Detail':
+    case VIEWED_PRODUCT_DETAIL:
       enrichableProps = [
         'product',
       ];
       break;
-    case 'Viewed Cart':
+    case VIEWED_CART:
       enrichableProps = [
         'cart',
       ];
       break;
-    case 'Completed Transaction':
+    case COMPLETED_TRANSACTION:
       enrichableProps = [
         'transaction',
       ];
@@ -96,11 +119,11 @@ class MyTarget extends Integration {
 
   trackEvent(event) {
     const methods = {
-      'Viewed Page': 'onViewedPage',
-      'Viewed Product Category': 'onViewedProductCategory',
-      'Viewed Product Detail': 'onViewedProductDetail',
-      'Viewed Cart': 'onViewedCart',
-      'Completed Transaction': 'onCompletedTransaction',
+      [VIEWED_PAGE]: 'onViewedPage',
+      [VIEWED_PRODUCT_LISTING]: 'onViewedProductCategory',
+      [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
+      [VIEWED_CART]: 'onViewedCart',
+      [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
     };
 
     const method = methods[event.name];
@@ -124,7 +147,7 @@ class MyTarget extends Integration {
     if (page) {
       if (page.type === 'home') {
         this.onViewedHome(event);
-      } else if (['product', 'category', 'checkout', 'confirmation', 'cart'].indexOf(page.type) < 0) {
+      } else if (['product', 'listing', 'category', 'checkout', 'confirmation', 'cart'].indexOf(page.type) < 0) {
         this.onViewedOtherPage(event);
       }
     }

@@ -1,5 +1,18 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
+import {
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  ADDED_PRODUCT,
+  COMPLETED_TRANSACTION,
+} from './../events';
+
+const SEMANTIC_EVENTS = [
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  ADDED_PRODUCT,
+  COMPLETED_TRANSACTION,
+];
 
 function getProductCategory(product) {
   let category = product.category;
@@ -48,6 +61,14 @@ class FacebookPixel extends Integration {
     }
   }
 
+  getSemanticEvents() {
+    return SEMANTIC_EVENTS;
+  }
+
+  allowCustomEvents() {
+    return true;
+  }
+
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
@@ -77,13 +98,13 @@ class FacebookPixel extends Integration {
   }
 
   trackEvent(event) {
-    if (event.name === 'Viewed Page') {
+    if (event.name === VIEWED_PAGE) {
       this.onViewedPage();
-    } else if (event.name === 'Viewed Product Detail') {
+    } else if (event.name === VIEWED_PRODUCT_DETAIL) {
       this.onViewedProductDetail(event.product);
-    } else if (event.name === 'Added Product') {
+    } else if (event.name === ADDED_PRODUCT) {
       this.onAddedProduct(event.product, event.quantity);
-    } else if (event.name === 'Completed Transaction') {
+    } else if (event.name === COMPLETED_TRANSACTION) {
       this.onCompletedTransaction(event.transaction);
     } else if ([
       'Viewed Product',

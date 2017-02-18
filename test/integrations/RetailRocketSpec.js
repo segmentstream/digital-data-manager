@@ -18,7 +18,7 @@ describe('Integrations: RetailRocket', () => {
       product: (product) => {
         if (product && product.id) {
           product.id = product.id.replace(/_/g, '');
-        }    
+        }
       },
     },
   };
