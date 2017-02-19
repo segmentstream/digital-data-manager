@@ -59,6 +59,15 @@ class Mindbox extends Integration {
       window.directCrm.Queue = window.directCrm.Queue || [];
       window.directCrm.Queue.push(arguments);
     };
+
+    window.directCrm('create', {
+      projectSystemName: this.getOption('projectSystemName'),
+      brandSystemName: this.getOption('brandSystemName'),
+      pointOfContactSystemName: this.getOption('pointOfContactSystemName'),
+      projectDomain: this.getOption('projectDomain'),
+      serviceDomain: 'tracker.directcrm.ru',
+    });
+
     this.load(this.onLoad);
   }
 
