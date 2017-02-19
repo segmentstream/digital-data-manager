@@ -30,27 +30,26 @@ class EventDataEnricher
   }
 
   static enrichIntegrationData(event, digitalData, integration) {
-    let enrichedEvent = clone(event, true);
     const enrichableProps = integration.getEnrichableEventProps(event);
     for (const prop of enrichableProps) {
       if (!dotProp.getProp(event, prop) && digitalData) {
         const ddlPropValue = dotProp.getProp(digitalData, prop);
         if (ddlPropValue !== undefined) {
-          dotProp.setProp(enrichedEvent, prop, ddlPropValue);
+          dotProp.setProp(event, prop, ddlPropValue);
         }
       }
     }
 
     // handle event override
     if (integration.getEventOverrideFunction()) {
-      integration.getEventOverrideFunction()(enrichedEvent);
+      integration.getEventOverrideFunction()(event);
     }
     // handle product override
     if (integration.getProductOverrideFunction()) {
-      enrichedEvent = EventDataEnricher.overrideEventProducts(enrichedEvent, integration);
+      event = EventDataEnricher.overrideEventProducts(event, integration);
     }
 
-    return enrichedEvent;
+    return event;
   }
 
   static overrideEventProducts(event, integration) {

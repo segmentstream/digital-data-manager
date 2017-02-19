@@ -266,6 +266,12 @@ describe('DDManager', () => {
     const integration2 = new Integration(window.digitalData);
     const integration3 = new Integration(window.digitalData);
 
+    integration1.allowCustomEvents =
+    integration2.allowCustomEvents =
+    integration3.allowCustomEvents = () => {
+      return true;
+    }
+
     beforeEach(() => {
       sinon.stub(integration1, 'trackEvent');
       sinon.stub(integration2, 'trackEvent');

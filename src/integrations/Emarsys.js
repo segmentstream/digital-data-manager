@@ -1,5 +1,20 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
+import {
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  VIEWED_PRODUCT_LISTING,
+  SEARCHED_PRODUCTS,
+  COMPLETED_TRANSACTION,
+} from './../events';
+
+const SEMANTIC_EVENTS = [
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  VIEWED_PRODUCT_LISTING,
+  SEARCHED_PRODUCTS,
+  COMPLETED_TRANSACTION,
+];
 
 function go() {
   window.ScarabQueue.push(['go']);
@@ -53,10 +68,14 @@ class Emarsys extends Integration {
     }
   }
 
+  getSemanticEvents() {
+    return SEMANTIC_EVENTS;
+  }
+
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case 'Viewed Page':
+    case VIEWED_PAGE:
       enrichableProps = [
         'page.type',
         'user.email',
@@ -64,23 +83,23 @@ class Emarsys extends Integration {
         'cart',
       ];
       break;
-    case 'Viewed Product Detail':
+    case VIEWED_PRODUCT_DETAIL:
       enrichableProps = [
         'product.id',
         'product.skuCode',
       ];
       break;
-    case 'Viewed Product Category':
+    case VIEWED_PRODUCT_LISTING:
       enrichableProps = [
         'listing.category',
       ];
       break;
-    case 'Searched Products':
+    case SEARCHED_PRODUCTS:
       enrichableProps = [
         'listing.query',
       ];
       break;
-    case 'Completed Transaction':
+    case COMPLETED_TRANSACTION:
       enrichableProps = [
         'transaction',
       ];
@@ -120,11 +139,11 @@ class Emarsys extends Integration {
 
   trackEvent(event) {
     const methods = {
-      'Viewed Page': 'onViewedPage',
-      'Searched Products': 'onSearchedProducts',
-      'Viewed Product Category': 'onViewedProductCategory',
-      'Viewed Product Detail': 'onViewedProductDetail',
-      'Completed Transaction': 'onCompletedTransaction',
+      [VIEWED_PAGE]: 'onViewedPage',
+      [VIEWED_PRODUCT_LISTING]: 'onViewedProductListing',
+      [SEARCHED_PRODUCTS]: 'onSearchedProducts',
+      [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
+      [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
     };
 
     const method = methods[event.name];
@@ -159,11 +178,11 @@ class Emarsys extends Integration {
     }
   }
 
-  onViewedProductCategory(event) {
+  onViewedProductListing(event) {
     const listing = event.listing || {};
     let category = listing.category;
-    if (listing.category) {
-      if (Array.isArray(listing.category)) {
+    if (category) {
+      if (Array.isArray(category)) {
         category = category.join(this.getOption('categorySeparator'));
       }
       window.ScarabQueue.push(['category', category]);

@@ -7,12 +7,19 @@ class Vkontakte extends Integration {
       eventPixels: {},
     }, options);
     super(digitalData, optionsWithDefaults);
+
+    this.SEMANTIC_EVENTS = Object.keys(this.getOption('eventPixels'));
+
     this._isLoaded = false;
   }
 
   initialize() {
     this._isLoaded = true;
     this.onLoad();
+  }
+
+  getSemanticEvents() {
+    return this.SEMANTIC_EVENTS;
   }
 
   isLoaded() {
