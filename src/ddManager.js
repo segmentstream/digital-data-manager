@@ -1,6 +1,7 @@
 import clone from './functions/clone';
 import async from 'async';
 import size from './functions/size';
+import cleanObject from './functions/cleanObject';
 import after from './functions/after';
 import each from './functions/each';
 import emitter from 'component-emitter';
@@ -12,7 +13,9 @@ import DDHelper from './DDHelper';
 import DigitalDataEnricher from './DigitalDataEnricher';
 import Storage from './Storage';
 import DDStorage from './DDStorage';
+import CookieStorage from './CookieStorage';
 import { isTestMode, logEnrichedIntegrationEvent, showTestModeOverlay } from './testMode';
+import { mapEvent } from './events';
 
 let ddManager;
 
@@ -45,12 +48,6 @@ let _eventManager;
  * @private
  */
 let _digitalDataEnricher;
-
-/**
- * @type {Storage}
- * @private
- */
-let _storage;
 
 /**
  * @type {DDStorage}
@@ -141,13 +138,25 @@ function _addIntegrationsEventTracking() {
       } else {
         trackEvent = true;
       }
+
       if (trackEvent) {
-        // important! cloned object is returned (not link)
-        const enrichedEvent = EventDataEnricher.enrichIntegrationData(event, _digitalData, integration);
-        if (isTestMode()) {
-          logEnrichedIntegrationEvent(enrichedEvent, integrationName);
+        const mappedEventName = mapEvent(event.name);
+        if (
+          integration.getSemanticEvents().indexOf(mappedEventName) < 0
+          && !integration.allowCustomEvents()
+        ) {
+          return;
         }
-        integration.trackEvent(enrichedEvent);
+
+        // important! cloned object is returned (not link)
+        let integrationEvent = clone(event, true);
+        integrationEvent.name = mappedEventName;
+        integrationEvent = EventDataEnricher.enrichIntegrationData(integrationEvent, _digitalData, integration);
+
+        if (isTestMode()) {
+          logEnrichedIntegrationEvent(integrationEvent, integrationName);
+        }
+        integration.trackEvent(integrationEvent);
       }
     });
   }], true);
@@ -225,6 +234,7 @@ ddManager = {
       websiteMaxWidth: 'auto',
       sessionLength: 3600,
       sendViewedPageEvent: true,
+      useCookieStorage: false,
     }, settings);
 
     if (_isReady) {
@@ -233,8 +243,16 @@ ddManager = {
 
     _prepareGlobals();
 
-    _storage = new Storage();
-    _ddStorage = new DDStorage(_digitalData, _storage);
+    let storage;
+    if (settings.useCookieStorage) {
+      storage = new CookieStorage(cleanObject({
+        cookieDomain: settings.cookieDomain,
+      }));
+    } else {
+      storage = new Storage();
+    }
+
+    _ddStorage = new DDStorage(_digitalData, storage);
 
     // initialize digital data enricher
     _digitalDataEnricher = new DigitalDataEnricher(_digitalData, _ddListener, _ddStorage, {

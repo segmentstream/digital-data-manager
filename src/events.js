@@ -1,6 +1,6 @@
 export const VIEWED_PAGE = 'Viewed Page';
 export const VIEWED_PRODUCT_DETAIL = 'Viewed Product Detail';
-export const VIEWED_PRODUCT_CATEGORY = 'Viewed Product Category';
+export const VIEWED_PRODUCT_LISTING = 'Viewed Product Listing';
 export const SEARCHED_PRODUCTS = 'Searched Products';
 export const VIEWED_CART = 'Viewed Cart';
 export const COMPLETED_TRANSACTION = 'Completed Transaction';
@@ -14,3 +14,18 @@ export const REMOVED_PRODUCT = 'Removed Product';
 export const VIEWED_CAMPAIGN = 'Viewed Campaign';
 export const CLICKED_CAMPAIGN = 'Clicked Campaign';
 export const LEAD = 'Lead';
+export const SUBSCRIBED = 'Subscribed';
+
+// legacy events
+export const VIEWED_PRODUCT_CATEGORY = 'Viewed Product Category';
+export const SEARCHED = 'Searched';
+
+// legacy events mapping
+const eventMapper = {
+  [SEARCHED]: SEARCHED_PRODUCTS,
+  [VIEWED_PRODUCT_CATEGORY]: VIEWED_PRODUCT_LISTING,
+}
+
+export function mapEvent(eventName) {
+  return (eventMapper[eventName]) ? eventMapper[eventName] : eventName;
+}

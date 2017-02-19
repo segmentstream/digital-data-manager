@@ -4,7 +4,7 @@ import deleteProperty from './../functions/deleteProperty.js';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
-  VIEWED_PRODUCT_CATEGORY,
+  VIEWED_PRODUCT_LISTING,
   VIEWED_CART,
   SEARCHED_PRODUCTS,
   COMPLETED_TRANSACTION,
@@ -54,6 +54,15 @@ class Sociomantic extends Integration {
     const advertiserToken = this.getOption('advertiserToken');
     const src = `//${regionPrefix}sonar.sociomantic.com/js/2010-07-01/adpan/${advertiserToken}`;
 
+    this.SEMANTIC_EVENTS = [
+      VIEWED_PAGE,
+      VIEWED_PRODUCT_DETAIL,
+      VIEWED_PRODUCT_LISTING,
+      VIEWED_CART,
+      SEARCHED_PRODUCTS,
+      COMPLETED_TRANSACTION,
+    ];
+
     this.addTag({
       type: 'script',
       attr: {
@@ -99,6 +108,10 @@ class Sociomantic extends Integration {
     deleteProperty(window, 'sociomantic');
   }
 
+  getSemanticEvents() {
+    return this.SEMANTIC_EVENTS;
+  }
+
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
@@ -114,7 +127,7 @@ class Sociomantic extends Integration {
         'product',
       ];
       break;
-    case VIEWED_PRODUCT_CATEGORY:
+    case VIEWED_PRODUCT_LISTING:
       enrichableProps = [
         'listing.category',
       ];
@@ -126,7 +139,7 @@ class Sociomantic extends Integration {
       break;
     case SEARCHED_PRODUCTS:
       enrichableProps = [
-        'listing.category',
+        'listing.query',
       ];
       break;
     case COMPLETED_TRANSACTION:
@@ -145,10 +158,10 @@ class Sociomantic extends Integration {
     const methods = {
       [VIEWED_PAGE]: 'onViewedPage',
       [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
-      [VIEWED_PRODUCT_CATEGORY]: 'onViewedProductListing',
+      [VIEWED_PRODUCT_LISTING]: 'onViewedProductListing',
       [VIEWED_CART]: 'onViewedCart',
       [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
-      [SEARCHED_PRODUCTS]: 'onViewedProductListing',
+      [SEARCHED_PRODUCTS]: 'onSearchedProducts',
     };
 
     const method = methods[event.name];
@@ -223,6 +236,20 @@ class Sociomantic extends Integration {
     if (listing && listing.category && listing.category.length) {
       window[trackingObjectName] = {
         category: listing.category,
+      };
+      this.loadTrackingScript();
+    }
+  }
+
+  onSearchedProducts(event) {
+    const prefix = this.getOption('prefix');
+    const trackingObjectName = prefix + 'search';
+    const listing = event.listing;
+
+    if (listing && listing.query) {
+      window[trackingObjectName] = {
+        query: listing.query,
+        type: 2, // retail products search
       };
       this.loadTrackingScript();
     }

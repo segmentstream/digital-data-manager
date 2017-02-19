@@ -53,6 +53,11 @@ class Admitad extends Integration {
 
     this._isLoaded = false;
 
+    this.SEMANTIC_EVENTS = [
+      COMPLETED_TRANSACTION,
+      LEAD,
+    ];
+
     this.addTag('trackingPixel', {
       type: 'script',
       attr: {
@@ -84,6 +89,10 @@ class Admitad extends Integration {
         domain: this.getOption('cookieDomain'),
       });
     }
+  }
+
+  getSemanticEvents() {
+    return this.SEMANTIC_EVENTS;
   }
 
   getEnrichableEventProps(event) {
