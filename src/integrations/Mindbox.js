@@ -178,6 +178,13 @@ class Mindbox extends Integration {
   trackEvent(event) {
     const eventMap = {
       [VIEWED_PRODUCT_DETAIL]: this.onViewedProductDetail,
+      [VIEWED_PRODUCT_LISTING]: this.onViewedProductListing,
+      [ADDED_PRODUCT]: this.onAddedProduct,
+      [REMOVED_PRODUCT]: this.onRemovedProduct,
+      [LOGGED_IN]: this.onLoggedIn,
+      [REGISTERED]: this.onRegistered,
+      [SUBSCRIBED]: this.onSubscribed,
+      [COMPLETED_TRANSACTION]: this.onCompletedTransaction,
     };
 
     // get operation name either from email or from integration settings
