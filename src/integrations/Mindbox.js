@@ -33,7 +33,7 @@ class Mindbox extends Integration {
 
     super(digitalData, optionsWithDefaults);
 
-    this.enrichableUserProps = [];
+    this.prepareEnrichableUserProps();
 
     this.SEMANTIC_EVENTS = [
       LOGGED_IN,
@@ -71,7 +71,7 @@ class Mindbox extends Integration {
     return true;
   }
 
-  prepareEnrichableTagProps() {
+  prepareEnrichableUserProps() {
     const userVarsSettings = this.getOption('userVars');
     each(userVarsSettings, (key, variable) => {
       if (variable.type === DIGITALDATA_VAR) {
