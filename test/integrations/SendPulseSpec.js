@@ -75,7 +75,7 @@ describe('SendPulse', function() {
       });
       ddManager.once('ready', done);
       ddManager.initialize({
-        autoEvents: false
+        sendViewedPageEvent: false
       });
     });
 

@@ -1,5 +1,5 @@
 import { getProp } from './functions/dotProp';
-import clone from 'component-clone';
+import clone from './functions/clone';
 
 class DDHelper {
 

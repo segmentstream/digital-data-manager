@@ -1,4 +1,4 @@
-import clone from 'component-clone';
+import clone from './functions/clone';
 import async from 'async';
 import debug from 'debug';
 import noop from './functions/noop.js';
@@ -8,15 +8,16 @@ import after from './functions/after.js';
 import jsonIsEqual from './functions/jsonIsEqual.js';
 import DDHelper from './DDHelper.js';
 import EventDataEnricher from './EventDataEnricher.js';
+import { VIEWED_PAGE } from './events';
 
 let _callbacks = {};
 let _ddListener = [];
 let _previousDigitalData = {};
 let _digitalData = {};
 let _checkForChangesIntervalId;
-let _autoEvents;
 let _viewabilityTracker;
 let _isInitialized = false;
+let _sendViewedPageEvent = false;
 
 const _callbackOnComplete = (error) => {
   if (error) {
@@ -58,9 +59,6 @@ class EventManager {
       events[events.length] = event;
     };
 
-    if (_autoEvents) {
-      _autoEvents.onInitialize();
-    }
     if (_viewabilityTracker) {
       _viewabilityTracker.initialize();
     }
@@ -72,18 +70,16 @@ class EventManager {
     _isInitialized = true;
   }
 
-  setAutoEvents(autoEvents) {
-    _autoEvents = autoEvents;
-    _autoEvents.setDigitalData(_digitalData);
-    _autoEvents.setDDListener(_ddListener);
+  setSendViewedPageEvent(sendViewedPageEvent) {
+    _sendViewedPageEvent = sendViewedPageEvent;
+  }
+
+  getSendViewedPageEvent() {
+    return _sendViewedPageEvent;
   }
 
   setViewabilityTracker(viewabilityTracker) {
     _viewabilityTracker = viewabilityTracker;
-  }
-
-  getAutoEvents() {
-    return _autoEvents;
   }
 
   checkForChanges() {
@@ -204,7 +200,7 @@ class EventManager {
       };
 
       for (eventCallback of _callbacks.event) {
-        let eventCopy = clone(event);
+        let eventCopy = clone(event, true);
         deleteProperty(eventCopy, 'callback');
         if (eventCopy.enrichEventData !== false) {
           eventCopy = this.enrichEventWithData(eventCopy);
@@ -243,7 +239,7 @@ class EventManager {
     let event;
     for (event of events) {
       if (event.hasFired) {
-        let eventCopy = clone(event);
+        let eventCopy = clone(event, true);
         deleteProperty(eventCopy, 'callback');
         if (eventCopy.enrichEventData !== false) {
           eventCopy = this.enrichEventWithData(eventCopy);
@@ -256,6 +252,20 @@ class EventManager {
   fireUnfiredEvents() {
     const events = _digitalData.events;
     let event;
+
+    if (_sendViewedPageEvent) {
+      let viewedPageEventIsSent = false;
+      for (event of events) {
+        if (event.name === VIEWED_PAGE) {
+          viewedPageEventIsSent = true;
+          break;
+        }
+      }
+      if (!viewedPageEventIsSent) {
+        events.unshift({ name: VIEWED_PAGE });
+      }
+    }
+
     for (event of events) {
       if (!event.hasFired) {
         this.fireEvent(event);
@@ -281,7 +291,6 @@ class EventManager {
     }
     _ddListener.push = Array.prototype.push;
     _callbacks = {};
-    _autoEvents = null;
     _viewabilityTracker = null;
   }
 }

@@ -1,5 +1,7 @@
-import htmlGlobals from './functions/htmlGlobals.js';
-import semver from './functions/semver.js';
+import htmlGlobals from './functions/htmlGlobals';
+import semver from './functions/semver';
+import getQueryParam from './functions/getQueryParam';
+import cleanObject from './functions/cleanObject';
 import { getProp, setProp } from './functions/dotProp';
 
 /**
@@ -19,6 +21,7 @@ const ddStorageForcedFields = [
 const ddStorageAlwaysPersistedFields = [
   'user.email',
   'user.lastTransactionDate',
+  'context.campaign',
 ];
 
 function isForcedField(field) {
@@ -63,14 +66,13 @@ class DigitalDataEnricher
     // fire session started event if this is new session
     this.fireSessionStarted();
 
+    // enrich with default data
+    this.enrichContextData();
+    this.enrichPageData();
+    this.enrichLegacyVersions();
+
     // persist some default behaviours
     this.persistUserData();
-
-    // enrich with default context data
-    this.enrichPageData();
-    this.enrichTransactionData();
-    this.enrichContextData();
-    this.enrichLegacyVersions();
 
     // should be after all default enrichments
     this.enrichDDStorageData();
@@ -108,6 +110,7 @@ class DigitalDataEnricher
         this.enrichHasSubscribed(email);
       } else if (event.name === 'Completed Transaction') {
         this.enrichHasTransacted();
+        this.ddStorage.unpersist('context.campaign');
       }
     }]);
   }
@@ -167,6 +170,10 @@ class DigitalDataEnricher
     if (user.lastTransactionDate) {
       this.ddStorage.persist('user.lastTransactionDate');
     }
+  }
+
+  persistContextData() {
+
   }
 
   enrichIsReturningStatus() {
@@ -230,27 +237,23 @@ class DigitalDataEnricher
     page.hash = page.hash || this.getHtmlGlobals().getLocation().hash;
   }
 
-  enrichTransactionData() {
-    const page = this.digitalData.page;
-    const user = this.digitalData.user;
-    const transaction = this.digitalData.transaction;
-
-    if (
-      page.type === 'confirmation' &&
-      transaction &&
-      !transaction.isReturning
-    ) {
-      // check if never transacted before
-      if (transaction.isFirst === undefined) {
-        transaction.isFirst = !user.hasTransacted;
-      }
-      this.enrichHasTransacted();
-    }
-  }
-
   enrichContextData() {
     const context = this.digitalData.context;
     context.userAgent = this.getHtmlGlobals().getNavigator().userAgent;
+
+    if (!context.campaign) {
+      const utmSource = getQueryParam('utm_source');
+      const utmMedium = getQueryParam('utm_medium');
+      const utmCampaign = getQueryParam('utm_campaign');
+      if (utmSource || utmMedium || utmCampaign) {
+        context.campaign = cleanObject({
+          name: utmCampaign,
+          source: utmSource,
+          medium: utmMedium,
+        });
+        this.ddStorage.persist('context.campaign', 7776000); // 90 days
+      }
+    }
   }
 
   enrichDDStorageData() {

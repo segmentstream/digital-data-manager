@@ -40,7 +40,7 @@ describe('SegmentStream', function() {
 
       it('it should initialize all stub functions', function () {
         ddManager.initialize({
-          autoEvents: false
+          sendViewedPageEvent: false
         });
         ddManager.on('ready', () => {
           assert.ok(window.ssApi.initialize);
@@ -65,7 +65,7 @@ describe('SegmentStream', function() {
       };
       ddManager.once('load', done);
       ddManager.initialize({
-        autoEvents: false
+        sendViewedPageEvent: false
       });
     });
 

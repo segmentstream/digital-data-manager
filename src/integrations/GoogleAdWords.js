@@ -1,5 +1,24 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
+import {
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  VIEWED_PRODUCT_LISTING,
+  SEARCHED_PRODUCTS,
+  VIEWED_CART,
+  ADDED_PRODUCT,
+  COMPLETED_TRANSACTION,
+} from './../events';
+
+const SEMANTIC_EVENTS = [
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  VIEWED_PRODUCT_LISTING,
+  SEARCHED_PRODUCTS,
+  VIEWED_CART,
+  ADDED_PRODUCT,
+  COMPLETED_TRANSACTION,
+];
 
 function lineItemsToProductIds(lineItems) {
   lineItems = lineItems || [];
@@ -9,17 +28,6 @@ function lineItemsToProductIds(lineItems) {
     return lineItem.product.id || lineItem.product.skuCode;
   });
   return productIds;
-}
-
-function mapPageType(pageType) {
-  const map = {
-    home: 'home',
-    search: 'searchresults',
-  };
-  if (map[pageType]) {
-    return map[pageType];
-  }
-  return 'other';
 }
 
 class GoogleAdWords extends Integration {
@@ -40,30 +48,34 @@ class GoogleAdWords extends Integration {
     });
   }
 
+  getSemanticEvents() {
+    return SEMANTIC_EVENTS;
+  }
+
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case 'Viewed Page':
+    case VIEWED_PAGE:
       enrichableProps = [
         'page.type',
       ];
       break;
-    case 'Viewed Product Detail':
+    case VIEWED_PRODUCT_DETAIL:
       enrichableProps = [
         'product',
       ];
       break;
-    case 'Viewed Product Category':
+    case VIEWED_PRODUCT_LISTING:
       enrichableProps = [
         'listing.category',
       ];
       break;
-    case 'Viewed Cart':
+    case VIEWED_CART:
       enrichableProps = [
         'cart',
       ];
       break;
-    case 'Completed Transaction':
+    case COMPLETED_TRANSACTION:
       enrichableProps = [
         'transaction',
       ];
@@ -107,11 +119,12 @@ class GoogleAdWords extends Integration {
 
   trackEvent(event) {
     const methods = {
-      'Viewed Page': 'onViewedPage',
-      'Viewed Product Category': 'onViewedProductCategory',
-      'Viewed Product Detail': 'onViewedProductDetail',
-      'Completed Transaction': 'onCompletedTransaction',
-      'Viewed Cart': 'onViewedCart',
+      [VIEWED_PAGE]: 'onViewedPage',
+      [VIEWED_PRODUCT_LISTING]: 'onViewedProductListing',
+      [SEARCHED_PRODUCTS]: 'onSearchedProducts',
+      [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
+      [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
+      [VIEWED_CART]: 'onViewedCart',
     };
 
     const method = methods[event.name];
@@ -143,11 +156,11 @@ class GoogleAdWords extends Integration {
 
   onViewedPage(event) {
     const page = event.page;
-    // product, category, cart, checkout and confirmation pages are tracked separately
-    if (['product', 'category', 'cart', 'checkout', 'confirmation'].indexOf(page.type) < 0) {
+    // product, category, listing, cart, checkout and confirmation pages are tracked separately
+    if (['product', 'listing', 'search', 'category', 'cart', 'checkout', 'confirmation'].indexOf(page.type) < 0) {
       this.trackConversion({
         ecomm_prodid: '',
-        ecomm_pagetype: mapPageType(page.type),
+        ecomm_pagetype: (page.type === 'home') ? 'home' : 'other',
         ecomm_totalvalue: '',
       });
     }
@@ -173,23 +186,36 @@ class GoogleAdWords extends Integration {
     });
   }
 
-  onViewedProductCategory(event) {
-    const listing = event.listing;
-    if (!listing) {
-      return;
-    }
-
-    let category = listing.category;
-    if (Array.isArray(category)) {
-      category = category.join('/');
-    }
-
+  onSearchedProducts(event) {
     this.trackConversion({
       ecomm_prodid: '',
-      ecomm_pagetype: 'category',
+      ecomm_pagetype: 'searchresults',
       ecomm_totalvalue: '',
-      ecomm_category: category,
     });
+  }
+
+  onViewedProductListing(event) {
+    const listing = event.listing;
+    let params = {};
+
+    if (listing) {
+      if (listing.category) {
+        let category = listing.category;
+        if (Array.isArray(category)) {
+          category = category.join('/');
+        }
+        params = {
+          ecomm_pagetype: 'category',
+          ecomm_category: category,
+        };
+      }
+    }
+
+    this.trackConversion(Object.assign({
+      ecomm_prodid: '',
+      ecomm_pagetype: 'other',
+      ecomm_totalvalue: '',
+    }, params));
   }
 
   onViewedCart(event) {

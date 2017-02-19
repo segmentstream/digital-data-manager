@@ -1,5 +1,4 @@
-import type from 'component-type';
-import clone from 'component-clone';
+import clone from './functions/clone';
 import DDHelper from './DDHelper.js';
 import dotProp from './functions/dotProp';
 
@@ -31,24 +30,59 @@ class EventDataEnricher
   }
 
   static enrichIntegrationData(event, digitalData, integration) {
-    const enrichedEvent = clone(event);
     const enrichableProps = integration.getEnrichableEventProps(event);
     for (const prop of enrichableProps) {
-      if (!dotProp.getProp(event, prop)) {
+      if (!dotProp.getProp(event, prop) && digitalData) {
         const ddlPropValue = dotProp.getProp(digitalData, prop);
         if (ddlPropValue !== undefined) {
-          dotProp.setProp(enrichedEvent, prop, ddlPropValue);
+          dotProp.setProp(event, prop, ddlPropValue);
         }
       }
     }
-    integration.overrideEvent(enrichedEvent);
-    return enrichedEvent;
+
+    // handle event override
+    if (integration.getEventOverrideFunction()) {
+      integration.getEventOverrideFunction()(event);
+    }
+    // handle product override
+    if (integration.getProductOverrideFunction()) {
+      event = EventDataEnricher.overrideEventProducts(event, integration);
+    }
+
+    return event;
+  }
+
+  static overrideEventProducts(event, integration) {
+    if (event.product) {
+      integration.getProductOverrideFunction()(event.product);
+    } else if (event.listing && event.listing.items) {
+      for (const product of event.listing.items) {
+        integration.getProductOverrideFunction()(product);
+      }
+    } else if (event.cart && event.cart.lineItems) {
+      for (const lineItem of event.cart.lineItems) {
+        integration.getProductOverrideFunction()(lineItem.product);
+      }
+    } else if (event.transaction && event.transaction.lineItems) {
+      for (const lineItem of event.transaction.lineItems) {
+        integration.getProductOverrideFunction()(lineItem.product);
+      }
+    } else if (event.listItem || event.listItems) {
+      if (event.listItem) {
+        integration.getProductOverrideFunction()(event.listItem.product);
+      } else if (event.listItems) {
+        for (const listItem of event.listItems) {
+          integration.getProductOverrideFunction()(listItem.product);
+        }
+      }
+    }
+    return event;
   }
 
   static product(product, digitalData) {
     let productId;
 
-    if (type(product) === 'object') {
+    if (typeof product === 'object') {
       productId = product.id;
     } else {
       productId = product;
@@ -70,7 +104,7 @@ class EventDataEnricher
   static listItem(listItem, digitalData) {
     let productId;
 
-    if (type(listItem.product) === 'object') {
+    if (typeof listItem.product === 'object') {
       productId = listItem.product.id;
     } else {
       productId = listItem.product;
@@ -101,7 +135,7 @@ class EventDataEnricher
 
   static campaign(campaign, digitalData) {
     let campaignId;
-    if (type(campaign) === 'object') {
+    if (typeof campaign === 'object') {
       campaignId = campaign.id;
     } else {
       campaignId = campaign;

@@ -2,6 +2,25 @@ import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty';
 import { getProp } from './../functions/dotProp';
 import semver from './../functions/semver';
+import {
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  VIEWED_PRODUCT_LISTING,
+  SEARCHED_PRODUCTS,
+  VIEWED_CART,
+  COMPLETED_TRANSACTION,
+  SUBSCRIBED,
+} from './../events';
+
+const SEMANTIC_EVENTS = [
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  VIEWED_PRODUCT_LISTING,
+  SEARCHED_PRODUCTS,
+  VIEWED_CART,
+  COMPLETED_TRANSACTION,
+  SUBSCRIBED,
+];
 
 function lineItemsToCriteoItems(lineItems) {
   const products = [];
@@ -28,6 +47,7 @@ class Criteo extends Integration {
     const optionsWithDefaults = Object.assign({
       account: '',
       noConflict: false,
+      customDeduplication: false,
       userSegmentVar: undefined,
     }, options);
 
@@ -41,33 +61,37 @@ class Criteo extends Integration {
     });
   }
 
+  getSemanticEvents() {
+    return SEMANTIC_EVENTS;
+  }
+
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case 'Viewed Page':
+    case VIEWED_PAGE:
       enrichableProps = [
         'website.type',
         'user.email',
         'page.type',
       ];
       break;
-    case 'Viewed Product Detail':
+    case VIEWED_PRODUCT_DETAIL:
       enrichableProps = [
         'product.id',
       ];
       break;
-    case 'Viewed Product Category':
-    case 'Searched Products':
+    case VIEWED_PRODUCT_LISTING:
+    case SEARCHED_PRODUCTS:
       enrichableProps = [
         'listing.items',
       ];
       break;
-    case 'Viewed Cart':
+    case VIEWED_CART:
       enrichableProps = [
         'cart',
       ];
       break;
-    case 'Completed Transaction':
+    case COMPLETED_TRANSACTION:
       enrichableProps = [
         'context.campaign',
         'transaction',
@@ -131,17 +155,17 @@ class Criteo extends Integration {
 
   trackEvent(event) {
     const methods = {
-      'Viewed Page': 'onViewedPage',
-      'Viewed Product Detail': 'onViewedProductDetail',
-      'Completed Transaction': 'onCompletedTransaction',
-      'Viewed Product Category': 'onViewedProductListing',
-      'Viewed Cart': 'onViewedCart',
-      'Searched': 'onViewedProductListing',
-      'Searched Products': 'onViewedProductListing',
-      'Subscribed': 'onSubscribed',
+      [VIEWED_PAGE]: 'onViewedPage',
+      [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
+      [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
+      [VIEWED_PRODUCT_LISTING]: 'onViewedProductListing',
+      [SEARCHED_PRODUCTS]: 'onViewedProductListing',
+      [VIEWED_CART]: 'onViewedCart',
+      [VIEWED_PRODUCT_LISTING]: 'onViewedProductListing',
+      [SUBSCRIBED]: 'onSubscribed',
     };
 
-    if (this.getOption('noConflict') !== true || event.name === 'Subscribed') {
+    if (this.getOption('noConflict') !== true || event.name === SUBSCRIBED) {
       const method = methods[event.name];
       if (method) {
         this[method](event);
@@ -165,7 +189,6 @@ class Criteo extends Integration {
     if (['desktop', 'tablet', 'mobile'].indexOf(siteType) < 0) {
       siteType = 'desktop';
     }
-
     this.criteo_q.push({
       event: 'setAccount',
       account: this.getOption('account'),
@@ -268,24 +291,31 @@ class Criteo extends Integration {
     if (transaction && transaction.lineItems && transaction.lineItems.length > 0) {
       const products = lineItemsToCriteoItems(transaction.lineItems);
       if (products.length > 0) {
-        let deduplication = 0;
-        const context = event.context;
-        if (
-          context
-          && context.campaign
-          && context.campaign.source
-          && context.campaign.source.toLocaleLowerCase().indexOf('criteo') >= 0
-        ) {
-          deduplication = 1;
+        const customDeduplication = this.getOption('customDeduplication');
+
+        const criteoEvent = {
+          event: 'trackTransaction',
+          id: transaction.orderId,
+          new_customer: (transaction.isFirst) ? 1 : 0,
+          item: products,
+        };
+
+        if (customDeduplication) {
+          const context = event.context;
+          if (
+            context
+            && context.campaign
+            && context.campaign.source
+            && context.campaign.source.toLocaleLowerCase().indexOf('criteo') >= 0
+          ) {
+            criteoEvent.deduplication = 1;
+          } else {
+            criteoEvent.deduplication = 0;
+          }
         }
+
         this.pushCriteoQueue(
-          {
-            event: 'trackTransaction',
-            id: transaction.orderId,
-            new_customer: (transaction.isFirst) ? 1 : 0,
-            deduplication: deduplication,
-            item: products,
-          },
+          criteoEvent,
           this.getUserSegment(event)
         );
       }

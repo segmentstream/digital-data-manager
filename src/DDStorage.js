@@ -16,7 +16,7 @@ class DDStorage
       const persistedKeys = this.getPersistedKeys();
       if (persistedKeys.indexOf(key) < 0) {
         persistedKeys.push(key);
-        this.storage.set(keyPersistedKeys, persistedKeys);
+        this.updatePersistedKeys(persistedKeys);
       }
       return this.storage.set(key, value, exp);
     }

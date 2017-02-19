@@ -41,6 +41,17 @@ function viewedProductCategory(category, callback) {
   window.digitalData.events.push(event);
 }
 
+function viewedSearchResults(query, callback) {
+  const event = {
+    name: 'Searched Products',
+    callback: asyncCallback(callback),
+  };
+  if (query) {
+    event.listing = { query };
+  }
+  window.digitalData.events.push(event);
+}
+
 function viewedProductDetail(product, callback) {
   window.digitalData.events.push({
     name: 'Viewed Product Detail',
@@ -110,7 +121,7 @@ describe('Integrations: GoogleAdWords', () => {
     describe('#initialize', () => {
       it('should initialize AdWords queue object', () => {
         ddManager.initialize({
-          autoEvents: false
+          sendViewedPageEvent: false,
         });
         assert.ok(adwords.asyncQueue);
         assert.ok(adwords.asyncQueue.push);
@@ -118,7 +129,7 @@ describe('Integrations: GoogleAdWords', () => {
 
       it('should call tags load after initialization', () => {
         ddManager.initialize({
-          autoEvents: false
+          sendViewedPageEvent: false,
         });
         assert.ok(adwords.load.calledOnce);
       });
@@ -134,7 +145,7 @@ describe('Integrations: GoogleAdWords', () => {
         done();
       });
       ddManager.initialize({
-        autoEvents: false
+        sendViewedPageEvent: false,
       });
     });
   });
@@ -146,7 +157,7 @@ describe('Integrations: GoogleAdWords', () => {
         sinon.spy(window, 'google_trackConversion');
       })
       ddManager.initialize({
-        autoEvents: false
+        sendViewedPageEvent: false,
       });
     });
 
@@ -216,9 +227,9 @@ describe('Integrations: GoogleAdWords', () => {
         });
       });
 
-      it('should track conversion for search page', (done) => {
+      it('should not track conversion for search page', (done) => {
         viewedPageOfType('search', () => {
-          assert.ok(window.google_trackConversion.calledWith({
+          assert.ok(!window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
               ecomm_prodid: '',
@@ -262,7 +273,7 @@ describe('Integrations: GoogleAdWords', () => {
       });
     });
 
-    describe('#onViewedProductCategory', () => {
+    describe('#onViewedProductListing', () => {
       it('should send category with default separator', (done) => {
         viewedProductCategory(['Category', 'Subcategory 1', 'Subcategory 2'], () => {
           assert.ok(window.google_trackConversion.calledWith({
@@ -298,7 +309,6 @@ describe('Integrations: GoogleAdWords', () => {
         });
       });
 
-
       it('should send "category" without separator', (done) => {
         viewedProductCategory('Category 1', () => {
           assert.ok(window.google_trackConversion.calledWith({
@@ -314,6 +324,22 @@ describe('Integrations: GoogleAdWords', () => {
           done();
         });
       });
+
+      it('should track conversion for search page', (done) => {
+        viewedSearchResults('test query', () => {
+          assert.ok(window.google_trackConversion.calledWith({
+            google_conversion_id: adwords.getOption('conversionId'),
+            google_custom_params: {
+              ecomm_prodid: '',
+              ecomm_pagetype: 'searchresults',
+              ecomm_totalvalue: ''
+            },
+            google_remarketing_only: adwords.getOption('remarketingOnly'),
+          }));
+          done();
+        });
+      });
+
     });
 
     describe('#onViewedProductDetail', () => {

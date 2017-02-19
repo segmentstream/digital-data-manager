@@ -1,7 +1,6 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
 import { getProp } from './../functions/dotProp';
-import type from 'component-type';
 
 class SendPulse extends Integration {
 
@@ -14,6 +13,10 @@ class SendPulse extends Integration {
     }, options);
 
     super(digitalData, optionsWithDefaults);
+
+    this.SEMANTIC_EVENTS = [
+      this.getOption('pushSubscriptionTriggerEvent')
+    ];
 
     this.addTag({
       type: 'script',
@@ -37,6 +40,10 @@ class SendPulse extends Integration {
       this.enrichDigitalData();
       this.onLoad();
     });
+  }
+
+  getSemanticEvents() {
+    return this.SEMANTIC_EVENTS;
   }
 
   enrichDigitalData() {
@@ -131,7 +138,7 @@ class SendPulse extends Integration {
       }
       if (
         value !== undefined &&
-        type(value) !== 'object'
+        typeof value !== 'object'
       ) {
         window.oSpP.push(userVar, String(value));
       }

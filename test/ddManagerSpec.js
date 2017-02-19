@@ -110,6 +110,16 @@ describe('DDManager', () => {
       assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration);
     });
 
+    it('shoud set EventManager\'s sendViewedPageEvent value to true', () => {
+      ddManager.initialize({ sendViewedPageEvent: true });
+      assert.ok(ddManager.getEventManager().getSendViewedPageEvent());
+    });
+
+    it('shoud set EventManager\'s sendViewedPageEvent value to false', () => {
+      ddManager.initialize();
+      assert.ok(ddManager.getEventManager().getSendViewedPageEvent());
+    });
+
     it('it should fire on("ready") event even if ddManager was ready before', (done) => {
       ddManager.initialize();
       if (ddManager.isReady()) {
@@ -222,7 +232,7 @@ describe('DDManager', () => {
       });
       ddManager.initialize({
         sessionLength: 0.1,
-        autoEvents: false
+        sendViewedPageEvent: false
       });
     });
 
@@ -245,7 +255,7 @@ describe('DDManager', () => {
       });
       ddManager.initialize({
         sessionLength: 20,
-        autoEvents: false
+        sendViewedPageEvent: false
       });
     });
   });
@@ -255,6 +265,12 @@ describe('DDManager', () => {
     const integration1 = new Integration(window.digitalData);
     const integration2 = new Integration(window.digitalData);
     const integration3 = new Integration(window.digitalData);
+
+    integration1.allowCustomEvents =
+    integration2.allowCustomEvents =
+    integration3.allowCustomEvents = () => {
+      return true;
+    }
 
     beforeEach(() => {
       sinon.stub(integration1, 'trackEvent');
@@ -266,7 +282,7 @@ describe('DDManager', () => {
       ddManager.addIntegration('integration2', integration2);
       ddManager.addIntegration('integration3', integration3);
       ddManager.initialize({
-        autoEvents: false,
+        sendViewedPageEvent: false,
       });
     });
 

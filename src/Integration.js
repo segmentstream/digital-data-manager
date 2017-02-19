@@ -1,10 +1,12 @@
-import loadScript from './functions/loadScript.js';
-import loadIframe from './functions/loadIframe.js';
-import loadPixel from './functions/loadPixel.js';
-import format from './functions/format.js';
-import noop from './functions/noop.js';
-import each from './functions/each.js';
-import deleteProperty from './functions/deleteProperty.js';
+import loadScript from './functions/loadScript';
+import loadLink from './functions/loadLink';
+import loadIframe from './functions/loadIframe';
+import loadPixel from './functions/loadPixel';
+import format from './functions/format';
+import noop from './functions/noop';
+import log from './functions/log';
+import each from './functions/each';
+import deleteProperty from './functions/deleteProperty';
 import debug from 'debug';
 import async from 'async';
 import EventEmitter from 'component-emitter';
@@ -14,6 +16,7 @@ class Integration extends EventEmitter
   constructor(digitalData, options, tags) {
     super();
     this.options = options;
+    this.overrideFunctions = {};
     if (options && options.overrideFunctions) {
       this.defineOverrideFunctions(options.overrideFunctions);
     }
@@ -21,23 +24,47 @@ class Integration extends EventEmitter
     this.tags = tags || {};
     this.onLoad = this.onLoad.bind(this);
     this._isEnriched = false;
+    this._productOverrideErrorFired = false;
   }
 
   defineOverrideFunctions(overrideFunctions) {
     if (overrideFunctions.event) {
-      this.overrideEvent = overrideFunctions.event.bind(this);
+      this.overrideFunctions.event = (event) => {
+        try {
+          overrideFunctions.event.bind(this)(event);
+        } catch (e) {
+          log(`function override error for event ${event.name} in integration ${this.getName()}: ${e}`, log.ERROR);
+        }
+      };
     }
     if (overrideFunctions.product) {
-      this.overrideProduct = overrideFunctions.product.bind(this);
+      this.overrideFunctions.product = (product) => {
+        try {
+          overrideFunctions.product.bind(this)(product);
+        } catch (e) {
+          if (!this._productOverrideErrorFired) {
+            log(`function override error for product in integration ${this.getName()}: ${e}`, log.ERROR);
+            this._productOverrideErrorFired = true;
+          }
+        }
+      };
     }
   }
 
-  overrideProduct() {
-    // abstract
+  getProductOverrideFunction() {
+    return this.overrideFunctions.product;
   }
 
-  overrideEvent() {
-    // abstract
+  getEventOverrideFunction() {
+    return this.overrideFunctions.event;
+  }
+
+  setName(name) {
+    this.name = name;
+  }
+
+  getName() {
+    return this.name;
   }
 
   initialize() {
@@ -91,6 +118,12 @@ class Integration extends EventEmitter
         deleteProperty(attr, 'src');
         each(attr, (key, value) => {
           el.setAttribute(key, value);
+        });
+        break;
+      case 'link':
+        el = loadLink(attr, (err) => {
+          if (!err) return safeCallback();
+          debug('error loading "%s" error="%s"', tagName, err);
         });
         break;
       case 'iframe':
@@ -153,6 +186,14 @@ class Integration extends EventEmitter
     return [];
   }
 
+  getSemanticEvents() {
+    return [];
+  }
+
+  allowCustomEvents() {
+    return false;
+  }
+
   isEnriched() {
     return this._isEnriched;
   }
@@ -163,6 +204,26 @@ class Integration extends EventEmitter
 
   trackEvent() {
     // abstract
+  }
+
+  on(event, handler) {
+    this.addEventListener(event, handler);
+  }
+
+  addEventListener(event, handler) {
+    if (event === 'enrich') {
+      if (this._isEnriched) {
+        handler();
+        return;
+      }
+    } else if (event === 'load') {
+      if (this.isLoaded()) {
+        handler();
+        return;
+      }
+    }
+
+    super.addEventListener(event, handler);
   }
 }
 

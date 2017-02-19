@@ -1,4 +1,3 @@
-import type from 'component-type';
 import each from './each.js';
 
 const pattern = /(\w+)\[(\d+)\]/;
@@ -84,7 +83,7 @@ export function stringify(obj) {
   const pairs = [];
 
   each(obj, (key, value) => {
-    if (type(value) === 'array') {
+    if (typeof (value) === 'object' && value.length) {
       for (let i = 0; i < value.length; ++i) {
         pairs.push(encode(key + '[' + i + ']') + '=' + encode(value[i]));
       }

@@ -1,5 +1,20 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
+import {
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  VIEWED_PRODUCT_LISTING,
+  SEARCHED_PRODUCTS,
+  COMPLETED_TRANSACTION,
+} from './../events';
+
+const SEMANTIC_EVENTS = [
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  VIEWED_PRODUCT_LISTING,
+  SEARCHED_PRODUCTS,
+  COMPLETED_TRANSACTION,
+];
 
 function go() {
   window.ScarabQueue.push(['go']);
@@ -12,10 +27,9 @@ function calculateLineItemSubtotal(lineItem) {
   return price * quantity;
 }
 
-function mapLineItems(lineItems, overrideProduct) {
+function mapLineItems(lineItems) {
   return lineItems.map((lineItem) => {
     const product = lineItem.product;
-    overrideProduct(product);
     const lineItemSubtotal = lineItem.subtotal || calculateLineItemSubtotal(lineItem);
     return {
       item: product.id || product.skuCode,
@@ -54,10 +68,14 @@ class Emarsys extends Integration {
     }
   }
 
+  getSemanticEvents() {
+    return SEMANTIC_EVENTS;
+  }
+
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case 'Viewed Page':
+    case VIEWED_PAGE:
       enrichableProps = [
         'page.type',
         'user.email',
@@ -65,23 +83,23 @@ class Emarsys extends Integration {
         'cart',
       ];
       break;
-    case 'Viewed Product Detail':
+    case VIEWED_PRODUCT_DETAIL:
       enrichableProps = [
         'product.id',
         'product.skuCode',
       ];
       break;
-    case 'Viewed Product Category':
+    case VIEWED_PRODUCT_LISTING:
       enrichableProps = [
         'listing.category',
       ];
       break;
-    case 'Searched Products':
+    case SEARCHED_PRODUCTS:
       enrichableProps = [
         'listing.query',
       ];
       break;
-    case 'Completed Transaction':
+    case COMPLETED_TRANSACTION:
       enrichableProps = [
         'transaction',
       ];
@@ -121,11 +139,11 @@ class Emarsys extends Integration {
 
   trackEvent(event) {
     const methods = {
-      'Viewed Page': 'onViewedPage',
-      'Searched Products': 'onSearchedProducts',
-      'Viewed Product Category': 'onViewedProductCategory',
-      'Viewed Product Detail': 'onViewedProductDetail',
-      'Completed Transaction': 'onCompletedTransaction',
+      [VIEWED_PAGE]: 'onViewedPage',
+      [VIEWED_PRODUCT_LISTING]: 'onViewedProductListing',
+      [SEARCHED_PRODUCTS]: 'onSearchedProducts',
+      [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
+      [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
     };
 
     const method = methods[event.name];
@@ -149,7 +167,7 @@ class Emarsys extends Integration {
       window.ScarabQueue.push(['setCustomerId', user.userId]);
     }
     if (cart.lineItems && cart.lineItems.length > 0) {
-      window.ScarabQueue.push(['cart', mapLineItems(cart.lineItems, this.overrideProduct)]);
+      window.ScarabQueue.push(['cart', mapLineItems(cart.lineItems)]);
     } else {
       window.ScarabQueue.push(['cart', []]);
     }
@@ -160,11 +178,11 @@ class Emarsys extends Integration {
     }
   }
 
-  onViewedProductCategory(event) {
+  onViewedProductListing(event) {
     const listing = event.listing || {};
     let category = listing.category;
-    if (listing.category) {
-      if (Array.isArray(listing.category)) {
+    if (category) {
+      if (Array.isArray(category)) {
         category = category.join(this.getOption('categorySeparator'));
       }
       window.ScarabQueue.push(['category', category]);
@@ -174,7 +192,6 @@ class Emarsys extends Integration {
 
   onViewedProductDetail(event) {
     const product = event.product || {};
-    this.overrideProduct(product);
     if (product.id || product.skuCode) {
       window.ScarabQueue.push(['view', product.id || product.skuCode]);
     }
@@ -194,7 +211,7 @@ class Emarsys extends Integration {
     if (transaction.orderId && transaction.lineItems) {
       window.ScarabQueue.push(['purchase', {
         orderId: transaction.orderId,
-        items: mapLineItems(transaction.lineItems, this.overrideProduct),
+        items: mapLineItems(transaction.lineItems),
       }]);
     }
     go();
