@@ -150,7 +150,6 @@ class RetailRocket extends Integration {
       } else if (event.name === ADDED_PRODUCT) {
         this.onAddedProduct(event.product);
       } else if (event.name === VIEWED_PRODUCT_DETAIL) {
-        console.log(VIEWED_PRODUCT_DETAIL);
         this.onViewedProductDetail(event.product);
       } else if (event.name === CLICKED_PRODUCT) {
         this.onClickedProduct(event.listItem);

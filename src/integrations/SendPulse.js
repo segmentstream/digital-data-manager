@@ -14,6 +14,10 @@ class SendPulse extends Integration {
 
     super(digitalData, optionsWithDefaults);
 
+    this.SEMANTIC_EVENTS = [
+      this.getOption('pushSubscriptionTriggerEvent')
+    ];
+
     this.addTag({
       type: 'script',
       attr: {
@@ -36,6 +40,10 @@ class SendPulse extends Integration {
       this.enrichDigitalData();
       this.onLoad();
     });
+  }
+
+  getSemanticEvents() {
+    return this.SEMANTIC_EVENTS;
   }
 
   enrichDigitalData() {

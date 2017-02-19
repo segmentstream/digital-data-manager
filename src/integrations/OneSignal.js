@@ -9,11 +9,6 @@ import {
 } from './../events';
 import { DIGITALDATA_VAR } from './../variableTypes';
 
-const semanticEvents = [
-  VIEWED_PAGE,
-  SUBSCRIBED,
-];
-
 function isHttps() {
   return (window.location.href.indexOf('https:') >= 0);
 }
@@ -85,6 +80,12 @@ class OneSignal extends Integration {
     this.userTags = {}; // not to conflict with this.tags named it userTags
     this.enrichableTagProps = [];
 
+    this.SEMANTIC_EVENTS = [
+      VIEWED_PAGE,
+      SUBSCRIBED,
+      this.getOption('pushSubscriptionTriggerEvent'),
+    ];
+
     this.addTag('manifest', {
       type: 'link',
       attr: {
@@ -101,8 +102,7 @@ class OneSignal extends Integration {
   }
 
   getSemanticEvents() {
-    SEMANTIC_EVENTS.push(this.getOption('pushSubscriptionTriggerEvent'))
-    return SEMANTIC_EVENTS;
+    return this.SEMANTIC_EVENTS;
   }
 
   allowCustomEvents() {
@@ -112,7 +112,7 @@ class OneSignal extends Integration {
   getEnrichableEventProps(event) {
     const enrichableProps = ['user.email'];
 
-    if (semanticEvents.indexOf(event.name) >= 0 || event.name === this.getOption('pushSubscriptionTriggerEvent')) {
+    if (this.SEMANTIC_EVENTS.indexOf(event.name) >= 0) {
       const enrichableTagProps = this.getEnrichableTagProps();
       for (const enrichableTagProp of enrichableTagProps) {
         enrichableProps.push(enrichableTagProp);
@@ -312,7 +312,7 @@ class OneSignal extends Integration {
     if (event.name === this.getOption('pushSubscriptionTriggerEvent')) {
       window.OneSignal.push(['registerForPushNotifications']);
       this.sendTagsUpdate(event);
-    } else if (semanticEvents.indexOf(event.name) >= 0) {
+    } else if (this.SEMANTIC_EVENTS.indexOf(event.name) >= 0) {
       this.sendTagsUpdate(event);
     }
   }

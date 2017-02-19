@@ -1,5 +1,12 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
+import {
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  ADDED_PRODUCT,
+  REMOVED_PRODUCT,
+  COMPLETED_TRANSACTION,
+} from './../events';
 
 function getProductCategory(product) {
   let category = product.category;
@@ -51,6 +58,21 @@ class YandexMetrica extends Integration {
     // use custom dataLayer name to avoid conflicts
     this.dataLayerName = 'yandexDL';
 
+    this.SEMANTIC_EVENTS = [
+      VIEWED_PAGE,
+      VIEWED_PRODUCT_DETAIL,
+      ADDED_PRODUCT,
+      REMOVED_PRODUCT,
+      COMPLETED_TRANSACTION,
+    ];
+
+    const goalEvents = Object.keys(this.getOption('goals'));
+    for (const goalEvent of goalEvents) {
+      if (this.SEMANTIC_EVENTS.indexOf(goalEvent) < 0) {
+        this.SEMANTIC_EVENTS.push(goalEvent);
+      }
+    }
+
     this.addTag({
       type: 'script',
       attr: {
@@ -59,15 +81,19 @@ class YandexMetrica extends Integration {
     });
   }
 
+  getSemanticEvents() {
+    return this.SEMANTIC_EVENTS;
+  }
+
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case 'Viewed Product Detail':
+    case VIEWED_PRODUCT_DETAIL:
       enrichableProps = [
         'product',
       ];
       break;
-    case 'Completed Transaction':
+    case COMPLETED_TRANSACTION:
       enrichableProps = [
         'transaction',
       ];
@@ -112,10 +138,10 @@ class YandexMetrica extends Integration {
 
   trackEvent(event) {
     const methods = {
-      'Viewed Product Detail': 'onViewedProductDetail',
-      'Added Product': 'onAddedProduct',
-      'Removed Product': 'onRemovedProduct',
-      'Completed Transaction': 'onCompletedTransaction',
+      [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
+      [ADDED_PRODUCT]: 'onAddedProduct',
+      [REMOVED_PRODUCT]: 'onRemovedProduct',
+      [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
     };
     if (this.getOption('counterId')) {
       const method = methods[event.name];
