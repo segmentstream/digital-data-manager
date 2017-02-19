@@ -25,7 +25,6 @@ class Mindbox extends Integration {
       brandSystemName: '',
       pointOfContactSystemName: '',
       projectDomain: '',
-      serviceKey: '',
       operationMapping: {},
       userVars: {},
       userIdProvider: undefined,
