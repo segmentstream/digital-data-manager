@@ -144,7 +144,7 @@ class Admitad extends Integration {
         // last click source is not admitad
         const deduplicationUtmMedium = this.getOption('deduplicationUtmMedium') || [];
         const campaignMedium = getProp(event, 'context.campaign.medium');
-        if (deduplicationUtmMedium.indexOf(campaignMedium.toLowerCase() >= 0)) {
+        if (deduplicationUtmMedium.indexOf(campaignMedium.toLowerCase()) >= 0) {
           // last click medium is deduplicated
           return true;
         }
