@@ -6,14 +6,15 @@ import ddManager from './../../src/ddManager.js';
 
 describe('Integrations: Driveback', () => {
   let driveback;
-  const digitalData = {};
+  window.digitalData = {
+    events: []
+  };
   const options = {
-    websiteToken: 'aba543e1-1413-5f77-a8c7-aaf6979208a3'
+    websiteToken: 'aba543e1-1413-5f77-a8c7-aaf6979208a3',
   };
 
   beforeEach(() => {
-
-    driveback = new Driveback(digitalData, options);
+    driveback = new Driveback(window.digitalData, options);
     ddManager.addIntegration('Driveback', driveback);
   });
 
@@ -95,6 +96,32 @@ describe('Integrations: Driveback', () => {
         assert.ok(true);
         done();
       });
+    });
+
+    it('should track experiment session', (done) => {
+      sinon.stub(window, 'dbex');
+      window.digitalData.events.push({
+        name: 'Viewed Experiment',
+        experiment: '123',
+        callback: () => {
+          assert.ok(window.dbex.calledWith('trackSession', '123'));
+          done();
+        }
+      });
+      window.dbex.restore();
+    });
+
+    it('should track experiment session', (done) => {
+      sinon.stub(window, 'dbex');
+      window.digitalData.events.push({
+        name: 'Achieved Experiment Goal',
+        experiment: '123',
+        callback: () => {
+          assert.ok(window.dbex.calledWith('trackConversion', '123'));
+          done();
+        }
+      });
+      window.dbex.restore();
     });
   });
 
