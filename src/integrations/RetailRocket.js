@@ -142,7 +142,6 @@ class RetailRocket extends Integration {
 
   trackEvent(event) {
     if (this.getOption('noConflict') !== true) {
-
       if (event.name === VIEWED_PAGE) {
         this.onViewedPage(event);
       } else if (event.name === VIEWED_PRODUCT_LISTING) {

@@ -15,7 +15,7 @@ class SendPulse extends Integration {
     super(digitalData, optionsWithDefaults);
 
     this.SEMANTIC_EVENTS = [
-      this.getOption('pushSubscriptionTriggerEvent')
+      this.getOption('pushSubscriptionTriggerEvent'),
     ];
 
     this.addTag({
