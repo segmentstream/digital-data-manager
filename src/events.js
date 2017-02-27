@@ -16,6 +16,8 @@ export const CLICKED_CAMPAIGN = 'Clicked Campaign';
 export const SUBSCRIBED = 'Subscribed';
 export const REGISTERED = 'Registered';
 export const LOGGED_IN = 'Logged In';
+export const VIEWED_EXPERIMENT = 'Viewed Experiment';
+export const ACHIEVED_EXPERIMENT_GOAL = 'Achieved Experiment Goal';
 
 // legacy events
 export const VIEWED_PRODUCT_CATEGORY = 'Viewed Product Category';

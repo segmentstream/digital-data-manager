@@ -102,7 +102,10 @@ class OneSignal extends Integration {
   }
 
   getSemanticEvents() {
-    return this.SEMANTIC_EVENTS;
+    if (this.initialized) {
+      return this.SEMANTIC_EVENTS;
+    }
+    return [];
   }
 
   allowCustomEvents() {
@@ -118,7 +121,6 @@ class OneSignal extends Integration {
         enrichableProps.push(enrichableTagProp);
       }
     }
-
     return enrichableProps;
   }
 
@@ -136,6 +138,10 @@ class OneSignal extends Integration {
   }
 
   initialize() {
+    if (!this.getOption('subdomainName') && !isHttps()) {
+      return;
+    }
+
     window.OneSignal = window.OneSignal || [];
 
     if (this.getOption('notifyButton') && this.getOption('notifyButton').displayPredicate) {
@@ -182,6 +188,7 @@ class OneSignal extends Integration {
       this.load('manifest', loaded);
     }
     this.load(loaded);
+    this.initialized = true;
   }
 
   onGetTags(fn) {
