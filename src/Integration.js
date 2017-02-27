@@ -25,9 +25,15 @@ class Integration extends EventEmitter
     this.onLoad = this.onLoad.bind(this);
     this._isEnriched = false;
     this._productOverrideErrorFired = false;
+
+    const optionsOverrideFunction = this.getOptionsOverrideFunction();
+    if (optionsOverrideFunction) {
+      optionsOverrideFunction(options);
+    }
   }
 
   defineOverrideFunctions(overrideFunctions) {
+    // TODO: refactoring
     if (overrideFunctions.event) {
       this.overrideFunctions.event = (event) => {
         try {
@@ -49,6 +55,15 @@ class Integration extends EventEmitter
         }
       };
     }
+    if (overrideFunctions.options) {
+      this.overrideFunctions.options = (options) => {
+        try {
+          overrideFunctions.options.bind(this)(options);
+        } catch (e) {
+          log(`function override error for options of integration ${this.getName()}: ${e}`, log.ERROR);
+        }
+      }
+    }
   }
 
   getProductOverrideFunction() {
@@ -57,6 +72,10 @@ class Integration extends EventEmitter
 
   getEventOverrideFunction() {
     return this.overrideFunctions.event;
+  }
+
+  getOptionsOverrideFunction() {
+    return this.overrideFunctions.options;
   }
 
   setName(name) {
