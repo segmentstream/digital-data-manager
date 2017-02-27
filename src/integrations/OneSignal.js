@@ -121,7 +121,6 @@ class OneSignal extends Integration {
         enrichableProps.push(enrichableTagProp);
       }
     }
-
     return enrichableProps;
   }
 

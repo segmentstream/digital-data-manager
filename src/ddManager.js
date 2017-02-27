@@ -269,10 +269,12 @@ ddManager = {
 
     _initializeIntegrations(settings);
 
-    _eventManager.initialize();
-
     _isReady = true;
     ddManager.emit('ready');
+
+    // initialize EventManager after emit('ready')
+    // because EventManager startы firing events immediately
+    _eventManager.initialize();
 
     if (isTestMode()) {
       showTestModeOverlay();
