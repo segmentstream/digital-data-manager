@@ -1,7 +1,7 @@
-import clone from 'component-clone';
+import clone from './functions/clone';
 import async from 'async';
-
 import size from './functions/size';
+import cleanObject from './functions/cleanObject';
 import after from './functions/after';
 import each from './functions/each';
 import emitter from 'component-emitter';
@@ -13,7 +13,9 @@ import DDHelper from './DDHelper';
 import DigitalDataEnricher from './DigitalDataEnricher';
 import Storage from './Storage';
 import DDStorage from './DDStorage';
+import CookieStorage from './CookieStorage';
 import { isTestMode, logEnrichedIntegrationEvent, showTestModeOverlay } from './testMode';
+import { mapEvent } from './events';
 
 let ddManager;
 
@@ -46,12 +48,6 @@ let _eventManager;
  * @private
  */
 let _digitalDataEnricher;
-
-/**
- * @type {Storage}
- * @private
- */
-let _storage;
 
 /**
  * @type {DDStorage}
@@ -96,7 +92,7 @@ function _addIntegrations(integrationSettings) {
     if (Array.isArray(integrationSettings)) {
       for (const integrationSetting of integrationSettings) {
         const name = integrationSetting.name;
-        const options = clone(integrationSetting.options);
+        const options = clone(integrationSetting.options, true);
         if (typeof _availableIntegrations[name] === 'function') {
           const integration = new _availableIntegrations[name](_digitalData, options || {});
           ddManager.addIntegration(name, integration);
@@ -105,7 +101,7 @@ function _addIntegrations(integrationSettings) {
     } else {
       each(integrationSettings, (name, options) => {
         if (typeof _availableIntegrations[name] === 'function') {
-          const integration = new _availableIntegrations[name](_digitalData, clone(options));
+          const integration = new _availableIntegrations[name](_digitalData, clone(options, true));
           ddManager.addIntegration(name, integration);
         }
       });
@@ -142,13 +138,25 @@ function _addIntegrationsEventTracking() {
       } else {
         trackEvent = true;
       }
+
       if (trackEvent) {
-        // important! cloned object is returned (not link)
-        const enrichedEvent = EventDataEnricher.enrichIntegrationData(event, _digitalData, integration);
-        if (isTestMode()) {
-          logEnrichedIntegrationEvent(enrichedEvent, integrationName);
+        const mappedEventName = mapEvent(event.name);
+        if (
+          integration.getSemanticEvents().indexOf(mappedEventName) < 0
+          && !integration.allowCustomEvents()
+        ) {
+          return;
         }
-        integration.trackEvent(enrichedEvent);
+
+        // important! cloned object is returned (not link)
+        let integrationEvent = clone(event, true);
+        integrationEvent.name = mappedEventName;
+        integrationEvent = EventDataEnricher.enrichIntegrationData(integrationEvent, _digitalData, integration);
+
+        if (isTestMode()) {
+          logEnrichedIntegrationEvent(integrationEvent, integrationName);
+        }
+        integration.trackEvent(integrationEvent);
       }
     });
   }], true);
@@ -188,7 +196,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.2.15',
+  VERSION: '1.2.16',
 
   setAvailableIntegrations: (availableIntegrations) => {
     _availableIntegrations = availableIntegrations;
@@ -226,6 +234,7 @@ ddManager = {
       websiteMaxWidth: 'auto',
       sessionLength: 3600,
       sendViewedPageEvent: true,
+      useCookieStorage: false,
     }, settings);
 
     if (_isReady) {
@@ -234,8 +243,16 @@ ddManager = {
 
     _prepareGlobals();
 
-    _storage = new Storage();
-    _ddStorage = new DDStorage(_digitalData, _storage);
+    let storage;
+    if (settings.useCookieStorage) {
+      storage = new CookieStorage(cleanObject({
+        cookieDomain: settings.cookieDomain,
+      }));
+    } else {
+      storage = new Storage();
+    }
+
+    _ddStorage = new DDStorage(_digitalData, storage);
 
     // initialize digital data enricher
     _digitalDataEnricher = new DigitalDataEnricher(_digitalData, _ddListener, _ddStorage, {
@@ -252,10 +269,12 @@ ddManager = {
 
     _initializeIntegrations(settings);
 
-    _eventManager.initialize();
-
     _isReady = true;
     ddManager.emit('ready');
+
+    // initialize EventManager after emit('ready')
+    // because EventManager startы firing events immediately
+    _eventManager.initialize();
 
     if (isTestMode()) {
       showTestModeOverlay();

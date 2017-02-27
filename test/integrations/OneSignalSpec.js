@@ -13,6 +13,7 @@ describe('OneSignal', function() {
   let options = {
     appId: 'b7b8fc3c-4e98-499d-a727-3696caa518fc',
     safariWebId: 'web.onesignal.auto.5694d1e9-fcaa-415d-b1f1-1ef52daca700',
+    subdomainName: 'test',
     tagVars: {
       'tag1': {
         type: 'digitalData',

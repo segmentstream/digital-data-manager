@@ -1,5 +1,4 @@
-import type from 'component-type';
-import clone from 'component-clone';
+import clone from './functions/clone';
 import DDHelper from './DDHelper.js';
 import dotProp from './functions/dotProp';
 
@@ -31,27 +30,26 @@ class EventDataEnricher
   }
 
   static enrichIntegrationData(event, digitalData, integration) {
-    let enrichedEvent = clone(event);
     const enrichableProps = integration.getEnrichableEventProps(event);
     for (const prop of enrichableProps) {
       if (!dotProp.getProp(event, prop) && digitalData) {
         const ddlPropValue = dotProp.getProp(digitalData, prop);
         if (ddlPropValue !== undefined) {
-          dotProp.setProp(enrichedEvent, prop, ddlPropValue);
+          dotProp.setProp(event, prop, ddlPropValue);
         }
       }
     }
 
     // handle event override
     if (integration.getEventOverrideFunction()) {
-      integration.getEventOverrideFunction()(enrichedEvent);
+      integration.getEventOverrideFunction()(event);
     }
     // handle product override
     if (integration.getProductOverrideFunction()) {
-      enrichedEvent = EventDataEnricher.overrideEventProducts(enrichedEvent, integration);
+      event = EventDataEnricher.overrideEventProducts(event, integration);
     }
 
-    return enrichedEvent;
+    return event;
   }
 
   static overrideEventProducts(event, integration) {
@@ -84,7 +82,7 @@ class EventDataEnricher
   static product(product, digitalData) {
     let productId;
 
-    if (type(product) === 'object') {
+    if (typeof product === 'object') {
       productId = product.id;
     } else {
       productId = product;
@@ -106,7 +104,7 @@ class EventDataEnricher
   static listItem(listItem, digitalData) {
     let productId;
 
-    if (type(listItem.product) === 'object') {
+    if (typeof listItem.product === 'object') {
       productId = listItem.product.id;
     } else {
       productId = listItem.product;
@@ -137,7 +135,7 @@ class EventDataEnricher
 
   static campaign(campaign, digitalData) {
     let campaignId;
-    if (type(campaign) === 'object') {
+    if (typeof campaign === 'object') {
       campaignId = campaign.id;
     } else {
       campaignId = campaign;

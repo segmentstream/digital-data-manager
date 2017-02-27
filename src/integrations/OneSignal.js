@@ -5,24 +5,9 @@ import each from './../functions/each';
 import after from './../functions/after';
 import {
   VIEWED_PAGE,
-  ADDED_PRODUCT,
-  REMOVED_PRODUCT,
-  VIEWED_PRODUCT_DETAIL,
-  VIEWED_PRODUCT_CATEGORY,
-  COMPLETED_TRANSACTION,
   SUBSCRIBED,
 } from './../events';
 import { DIGITALDATA_VAR } from './../variableTypes';
-
-const semanticEvents = [
-  VIEWED_PAGE,
-  ADDED_PRODUCT,
-  REMOVED_PRODUCT,
-  VIEWED_PRODUCT_DETAIL,
-  VIEWED_PRODUCT_CATEGORY,
-  COMPLETED_TRANSACTION,
-  SUBSCRIBED,
-];
 
 function isHttps() {
   return (window.location.href.indexOf('https:') >= 0);
@@ -95,6 +80,12 @@ class OneSignal extends Integration {
     this.userTags = {}; // not to conflict with this.tags named it userTags
     this.enrichableTagProps = [];
 
+    this.SEMANTIC_EVENTS = [
+      VIEWED_PAGE,
+      SUBSCRIBED,
+      this.getOption('pushSubscriptionTriggerEvent'),
+    ];
+
     this.addTag('manifest', {
       type: 'link',
       attr: {
@@ -110,16 +101,26 @@ class OneSignal extends Integration {
     });
   }
 
+  getSemanticEvents() {
+    if (this.initialized) {
+      return this.SEMANTIC_EVENTS;
+    }
+    return [];
+  }
+
+  allowCustomEvents() {
+    return false;
+  }
+
   getEnrichableEventProps(event) {
     const enrichableProps = ['user.email'];
 
-    if (semanticEvents.indexOf(event.name) >= 0 || event.name === this.getOption('pushSubscriptionTriggerEvent')) {
+    if (this.SEMANTIC_EVENTS.indexOf(event.name) >= 0) {
       const enrichableTagProps = this.getEnrichableTagProps();
       for (const enrichableTagProp of enrichableTagProps) {
         enrichableProps.push(enrichableTagProp);
       }
     }
-
     return enrichableProps;
   }
 
@@ -137,6 +138,10 @@ class OneSignal extends Integration {
   }
 
   initialize() {
+    if (!this.getOption('subdomainName') && !isHttps()) {
+      return;
+    }
+
     window.OneSignal = window.OneSignal || [];
 
     if (this.getOption('notifyButton') && this.getOption('notifyButton').displayPredicate) {
@@ -183,6 +188,7 @@ class OneSignal extends Integration {
       this.load('manifest', loaded);
     }
     this.load(loaded);
+    this.initialized = true;
   }
 
   onGetTags(fn) {
@@ -313,7 +319,7 @@ class OneSignal extends Integration {
     if (event.name === this.getOption('pushSubscriptionTriggerEvent')) {
       window.OneSignal.push(['registerForPushNotifications']);
       this.sendTagsUpdate(event);
-    } else if (semanticEvents.indexOf(event.name) >= 0) {
+    } else if (this.SEMANTIC_EVENTS.indexOf(event.name) >= 0) {
       this.sendTagsUpdate(event);
     }
   }

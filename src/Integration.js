@@ -67,14 +67,6 @@ class Integration extends EventEmitter
     return this.name;
   }
 
-  overrideProduct() {
-    // abstract
-  }
-
-  overrideEvent() {
-    // abstract
-  }
-
   initialize() {
     const onLoad = this.onLoad;
     async.nextTick(onLoad);
@@ -192,6 +184,14 @@ class Integration extends EventEmitter
 
   getEnrichableEventProps() {
     return [];
+  }
+
+  getSemanticEvents() {
+    return [];
+  }
+
+  allowCustomEvents() {
+    return false;
   }
 
   isEnriched() {

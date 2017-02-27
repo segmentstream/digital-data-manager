@@ -364,37 +364,47 @@ describe('Integrations: Sociomantic', () => {
         });
       });
 
-      it('should set global product object if user search products', (done) => {
+    });
+
+    describe('#onSearchedProducts', () => {
+      beforeEach(() => {
+        window[options.prefix + 'search'] = undefined;
+      });
+
+      it('should set global search object if user search products', (done) => {
         window.digitalData.events.push({
           name: 'Searched Products',
           listing: {
-            category: [ 'shoes', 'female' ],
+            query: 'test query',
           },
           callback: () => {
-            assert.deepEqual(window[options.prefix + 'product'], { category: [ 'shoes', 'female' ] });
+            assert.deepEqual(window[options.prefix + 'search'], {
+              query: 'test query',
+              type: 2
+            });
             assert.ok(sociomantic.loadTrackingScript.calledOnce);
             done();
           },
         });
       });
 
-      it('should not set global product object if listing is not defined', (done) => {
+      it('should not set global search object if listing is not defined', (done) => {
         window.digitalData.events.push({
           name: 'Searched Products',
           callback: () => {
-            assert.ok(!window[options.prefix + 'product']);
+            assert.ok(!window[options.prefix + 'search']);
             assert.ok(!sociomantic.loadTrackingScript.called);
             done();
           },
         });
       });
 
-      it('should not set product object if listing category is not defined', (done) => {
+      it('should not set search object if listing query is not defined', (done) => {
         window.digitalData.events.push({
           name: 'Searched Products',
           listing: {},
           callback: () => {
-            assert.ok(!window[options.prefix + 'product']);
+            assert.ok(!window[options.prefix + 'search']);
             assert.ok(!sociomantic.loadTrackingScript.called);
             done();
           },

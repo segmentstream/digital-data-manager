@@ -1,4 +1,4 @@
-import clone from 'component-clone';
+import clone from './functions/clone';
 import async from 'async';
 import debug from 'debug';
 import noop from './functions/noop.js';
@@ -200,7 +200,7 @@ class EventManager {
       };
 
       for (eventCallback of _callbacks.event) {
-        let eventCopy = clone(event);
+        let eventCopy = clone(event, true);
         deleteProperty(eventCopy, 'callback');
         if (eventCopy.enrichEventData !== false) {
           eventCopy = this.enrichEventWithData(eventCopy);
@@ -239,7 +239,7 @@ class EventManager {
     let event;
     for (event of events) {
       if (event.hasFired) {
-        let eventCopy = clone(event);
+        let eventCopy = clone(event, true);
         deleteProperty(eventCopy, 'callback');
         if (eventCopy.enrichEventData !== false) {
           eventCopy = this.enrichEventWithData(eventCopy);

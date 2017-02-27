@@ -1,3 +1,5 @@
+window.localStorage.clear();
+
 import './../src/polyfill.js';
 
 // tests
