@@ -1,6 +1,10 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
 import noop from './../functions/noop.js';
+import {
+  VIEWED_EXPERIMENT,
+  ACHIEVED_EXPERIMENT_GOAL,
+} from './../events';
 
 function getExperment(experiment) {
   if (typeof experiment === 'object') {
@@ -28,6 +32,11 @@ class Driveback extends Integration {
     }, options);
 
     super(digitalData, optionsWithDefaults);
+
+    this.SEMANTIC_EVENTS = [
+      VIEWED_EXPERIMENT,
+      ACHIEVED_EXPERIMENT_GOAL,
+    ];
 
     this.addTag({
       type: 'script',
@@ -78,6 +87,10 @@ class Driveback extends Integration {
     } else {
       this.onLoad();
     }
+  }
+
+  getSemanticEvents() {
+    return this.SEMANTIC_EVENTS;
   }
 
   enrichDigitalData() {
