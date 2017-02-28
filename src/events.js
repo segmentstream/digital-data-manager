@@ -26,7 +26,7 @@ export const SEARCHED = 'Searched';
 const eventMapper = {
   [SEARCHED]: SEARCHED_PRODUCTS,
   [VIEWED_PRODUCT_CATEGORY]: VIEWED_PRODUCT_LISTING,
-}
+};
 
 export function mapEvent(eventName) {
   return (eventMapper[eventName]) ? eventMapper[eventName] : eventName;

@@ -1,10 +1,10 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
 import { getProp } from './../functions/dotProp';
+import cleanObject from './../functions/cleanObject';
 import each from './../functions/each.js';
 import size from './../functions/size.js';
 import clone from './../functions/clone';
-import noop from './../functions/noop';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -86,6 +86,7 @@ class GoogleAnalytics extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       trackingId: '',
+      alternativeTrackingId: '',
       doubleClick: false,
       enhancedLinkAttribution: false,
       enhancedEcommerce: false,
@@ -102,6 +103,7 @@ class GoogleAnalytics extends Integration {
       productDimensions: {},
       productMetrics: {},
       namespace: undefined,
+      alternativeNamespace: undefined,
       noConflict: false,
       checkoutOptions: ['option', 'paymentMethod', 'shippingMethod'],
     }, options);
@@ -190,7 +192,10 @@ class GoogleAnalytics extends Integration {
         this.setOption('domain', 'none');
       }
 
-      this.initializeTracker();
+      this.initializeTracker(this.getOption('trackingId'), this.getOption('namespace'));
+      if (this.getOption('alternativeTrackingId') && this.getOption('alternativeNamespace')) {
+        this.initializeTracker(this.getOption('alternativeTrackingId'), this.getOption('alternativeNamespace'));
+      }
 
       if (this.getOption('noConflict')) {
         this.onLoad();
@@ -206,7 +211,7 @@ class GoogleAnalytics extends Integration {
   prepareCustomDimensions() {
     this.enrichableDimensionsProps = [];
     this.productLevelDimensions = {};
-    this.hitLevelDimentsions = {};
+    this.hitLevelDimensions = {};
 
     let settings = Object.assign(
       this.getOption('metrics'),
@@ -218,7 +223,7 @@ class GoogleAnalytics extends Integration {
       settings = Object.assign(settings, this.getOption('contentGroupings'));
       each(settings, (key, value) => {
         this.enrichableDimensionsProps.push(value);
-        this.hitLevelDimentsions[key] = value;
+        this.hitLevelDimensions[key] = value;
       });
       const productSettings = Object.assign(
         this.getOption('productMetrics'),
@@ -234,9 +239,9 @@ class GoogleAnalytics extends Integration {
         } else {
           if (variable.type === DIGITALDATA_VAR) {
             this.enrichableDimensionsProps.push(variable.value);
-            this.hitLevelDimentsions[key] = variable.value;
+            this.hitLevelDimensions[key] = variable.value;
           } else if (variable.type === EVENT_VAR) {
-            this.hitLevelDimentsions[key] = variable.value;
+            this.hitLevelDimensions[key] = variable.value;
           }
         }
       });
@@ -252,39 +257,62 @@ class GoogleAnalytics extends Integration {
   }
 
   getHitLevelDimensions() {
-    return this.hitLevelDimentsions;
+    return this.hitLevelDimensions;
   }
 
-  initializeTracker() {
-    window.ga('create', this.getOption('trackingId'), {
+  initializeTracker(trackingId, namespace) {
+    window.ga('create', trackingId, cleanObject({
       // Fall back on default to protect against empty string
       cookieDomain: this.getOption('domain'),
       siteSpeedSampleRate: this.getOption('siteSpeedSampleRate'),
       allowLinker: true,
-      name: this.getOption('namespace') ? this.getOption('namespace') : undefined,
-    });
+      name: namespace ? namespace : undefined,
+    }));
     // display advertising
-    if (this.getOption('doubleClick')) {
-      this.ga('require', 'displayfeatures');
+    if (this.getOption('doubleClick') && !this.displayfeatures) {
+      this.ga(['require', 'displayfeatures'], this.getOption('noConflict'));
+      this.displayfeatures = true;
     }
     // https://support.google.com/analytics/answer/2558867?hl=en
-    if (this.getOption('enhancedLinkAttribution')) {
-      this.ga('require', 'linkid', 'linkid.js');
+    if (this.getOption('enhancedLinkAttribution') && !this.linkid) {
+      this.ga(['require', 'linkid', 'linkid.js'], this.getOption('noConflict'));
+      this.linkid = true;
     }
 
     // anonymize after initializing, otherwise a warning is shown
     // in google analytics debugger
-    if (this.getOption('anonymizeIp')) this.ga('set', 'anonymizeIp', true);
+    if (this.getOption('anonymizeIp')) this.ga(['set', 'anonymizeIp', true], this.getOption('noConflict'));
   }
 
-  ga() {
-    if (!this.getOption('namespace')) {
-      window.ga.apply(window, arguments);
-    } else {
-      if (arguments[0]) {
-        arguments[0] = this.getOption('namespace') + '.' + arguments[0];
+  hasAlternativeTracker() {
+    return (this.getOption('alternativeTrackingId') && this.getOption('alternativeNamespace'));
+  }
+
+  gaWithNamespace(namespace, args) {
+    const command = args.slice(0).shift();
+    const params = args.slice(1);
+    if (command) {
+      const namespacedCommand = [namespace, command].join('.');
+      const namespacedParams = [namespacedCommand, ...params];
+      window.ga.apply(window, namespacedParams);
+    }
+  }
+
+  gaAlternative(args) {
+    this.gaWithNamespace(this.getOption('alternativeNamespace'), args);
+  }
+
+  ga(args, noConflict = false) {
+    if (!noConflict) {
+      if (!this.getOption('namespace')) {
+        window.ga.apply(window, args);
+      } else {
+        this.gaWithNamespace(this.getOption('namespace'), args);
       }
-      window.ga.apply(window, arguments);
+    }
+
+    if (this.hasAlternativeTracker()) {
+      this.gaAlternative(args);
     }
   }
 
@@ -320,16 +348,16 @@ class GoogleAnalytics extends Integration {
 
   loadEnhancedEcommerce(currency) {
     if (!this.enhancedEcommerceLoaded) {
-      this.ga('require', 'ec');
+      this.ga(['require', 'ec'], this.getOption('noConflict'));
       this.enhancedEcommerceLoaded = true;
     }
 
     // Ensure we set currency for every hit
-    this.ga('set', '&cu', currency || this.getOption('defaultCurrency'));
+    this.ga(['set', '&cu', currency || this.getOption('defaultCurrency')], this.getOption('noConflict'));
   }
 
-  pushEnhancedEcommerce(event) {
-    this.setEventCustomDimensions(event);
+  pushEnhancedEcommerce(event, noConflict) {
+    this.setEventCustomDimensions(event, noConflict);
 
     if (this.getPageview()) {
       this.flushPageview();
@@ -354,7 +382,7 @@ class GoogleAnalytics extends Integration {
         }
       }
 
-      this.ga.apply(this, cleanedArgs);
+      this.ga(cleanedArgs, noConflict);
     }
   }
 
@@ -399,9 +427,7 @@ class GoogleAnalytics extends Integration {
       return; // ignore events (not semantic for GA)
     }
     if (event.name === VIEWED_PAGE) {
-      if (!this.getOption('noConflict')) {
-        this.onViewedPage(event);
-      }
+      this.onViewedPage(event);
     } else if (this.getOption('enhancedEcommerce')) {
       const methods = {
         [VIEWED_PRODUCT]: this.onViewedProduct,
@@ -423,7 +449,7 @@ class GoogleAnalytics extends Integration {
         this.onCustomEvent(event);
       }
     } else {
-      if (event.name === COMPLETED_TRANSACTION && !this.getOption('noConflict')) {
+      if (event.name === COMPLETED_TRANSACTION) {
         this.onCompletedTransaction(event);
       } else {
         if ([
@@ -453,7 +479,7 @@ class GoogleAnalytics extends Integration {
   }
 
   flushPageview() {
-    this.ga('send', 'pageview', this.pageview);
+    this.ga(['send', 'pageview', this.pageview], this.getOption('noConflict'));
     this.pageCalled = true;
     this.pageview = null;
   }
@@ -482,7 +508,7 @@ class GoogleAnalytics extends Integration {
     if (this.getOption('sendUserId')) {
       const userId = getProp(event, 'user.userId');
       if (userId) {
-        this.ga('set', 'userId', userId);
+        this.ga(['set', 'userId', userId], this.getOption('noConflict'));
       }
     }
 
@@ -493,13 +519,13 @@ class GoogleAnalytics extends Integration {
     }
 
     // set
-    this.ga('set', {
+    this.ga(['set', {
       page: pagePath,
       title: pageTitle,
-    });
+    }], this.getOption('noConflict'));
 
     // send
-    this.setEventCustomDimensions(event);
+    this.setEventCustomDimensions(event, this.getOption('noConflict'));
 
     if (!this.isPageviewDelayed(page.type)) {
       this.flushPageview();
@@ -536,10 +562,10 @@ class GoogleAnalytics extends Integration {
         variant: product.variant,
         position: listItem.position,
       }, custom);
-      this.ga('ec:addImpression', gaProduct);
+      this.ga(['ec:addImpression', gaProduct], this.getOption('noConflict'));
     }
 
-    this.pushEnhancedEcommerce(event);
+    this.pushEnhancedEcommerce(event, this.getOption('noConflict'));
   }
 
   onClickedProduct(event) {
@@ -549,22 +575,22 @@ class GoogleAnalytics extends Integration {
     this.enhancedEcommerceProductAction(event, 'click', {
       list: event.listItem.listName,
     });
-    this.pushEnhancedEcommerce(event);
+    this.pushEnhancedEcommerce(event, this.getOption('noConflict'));
   }
 
   onViewedProductDetail(event) {
     this.enhancedEcommerceProductAction(event, 'detail');
-    this.pushEnhancedEcommerce(event);
+    this.pushEnhancedEcommerce(event, this.getOption('noConflict'));
   }
 
   onAddedProduct(event) {
     this.enhancedEcommerceProductAction(event, 'add');
-    this.pushEnhancedEcommerce(event);
+    this.pushEnhancedEcommerce(event, this.getOption('noConflict'));
   }
 
   onRemovedProduct(event) {
     this.enhancedEcommerceProductAction(event, 'remove');
-    this.pushEnhancedEcommerce(event);
+    this.pushEnhancedEcommerce(event, this.getOption('noConflict'));
   }
 
   onCompletedTransaction(event) {
@@ -574,25 +600,25 @@ class GoogleAnalytics extends Integration {
 
     // require ecommerce
     if (!this.ecommerce) {
-      this.ga('require', 'ecommerce');
+      this.ga(['require', 'ecommerce'], this.getOption('noConflict'));
       this.ecommerce = true;
     }
 
     // add transaction
-    this.ga('ecommerce:addTransaction', {
+    this.ga(['ecommerce:addTransaction', {
       id: transaction.orderId,
       affiliation: transaction.affiliation,
       shipping: transaction.shippingCost,
       tax: transaction.tax,
       revenue: transaction.total || transaction.subtotal || 0,
       currency: transaction.currency,
-    });
+    }], this.getOption('noConflict'));
 
     // add products
     each(transaction.lineItems, (key, lineItem) => {
       const product = lineItem.product;
       if (product) {
-        this.ga('ecommerce:addItem', {
+        this.ga(['ecommerce:addItem', {
           id: product.id,
           category: getProductCategory(product),
           quantity: lineItem.quantity,
@@ -600,12 +626,12 @@ class GoogleAnalytics extends Integration {
           name: product.name,
           sku: product.skuCode,
           currency: product.currency || transaction.currency,
-        });
+        }], this.getOption('noConflict'));
       }
     });
 
     // send
-    this.ga('ecommerce:send');
+    this.ga(['ecommerce:send'], this.getOption('noConflict'));
   }
 
   onCompletedTransactionEnhanced(event) {
@@ -623,16 +649,16 @@ class GoogleAnalytics extends Integration {
     });
 
     const voucher = getTransactionVoucher(transaction);
-    this.ga('ec:setAction', 'purchase', {
+    this.ga(['ec:setAction', 'purchase', {
       id: transaction.orderId,
       affiliation: transaction.affiliation,
       revenue: transaction.total || transaction.subtotal || 0,
       tax: transaction.tax,
       shipping: transaction.shippingCost,
       coupon: voucher,
-    });
+    }], this.getOption('noConflict'));
 
-    this.pushEnhancedEcommerce(event);
+    this.pushEnhancedEcommerce(event, this.getOption('noConflict'));
   }
 
   onRefundedTransaction(event) {
@@ -649,11 +675,11 @@ class GoogleAnalytics extends Integration {
       }
     });
 
-    this.ga('ec:setAction', 'refund', {
+    this.ga(['ec:setAction', 'refund', {
       id: transaction.orderId,
-    });
+    }], this.getOption('noConflict'));
 
-    this.pushEnhancedEcommerce(event);
+    this.pushEnhancedEcommerce(event, this.getOption('noConflict'));
   }
 
   onViewedCampaign(event) {
@@ -667,15 +693,15 @@ class GoogleAnalytics extends Integration {
         continue;
       }
 
-      this.ga('ec:addPromo', {
+      this.ga(['ec:addPromo', {
         id: campaign.id,
         name: campaign.name,
         creative: campaign.design || campaign.creative,
         position: campaign.position,
-      });
+      }]);
     }
 
-    this.pushEnhancedEcommerce(event);
+    this.pushEnhancedEcommerce(event); // ignore noConflict
   }
 
   onClickedCampaign(event) {
@@ -685,14 +711,14 @@ class GoogleAnalytics extends Integration {
       return;
     }
 
-    this.ga('ec:addPromo', {
+    this.ga(['ec:addPromo', {
       id: campaign.id,
       name: campaign.name,
       creative: campaign.design || campaign.creative,
       position: campaign.position,
-    });
-    this.ga('ec:setAction', 'promo_click', {});
-    this.pushEnhancedEcommerce(event);
+    }]);
+    this.ga(['ec:setAction', 'promo_click', {}]);
+    this.pushEnhancedEcommerce(event); // ignore noConflict
   }
 
   onViewedCheckoutStep(event) {
@@ -706,12 +732,12 @@ class GoogleAnalytics extends Integration {
       }
     });
 
-    this.ga('ec:setAction', 'checkout', {
+    this.ga(['ec:setAction', 'checkout', {
       step: event.step || 1,
       option: getCheckoutOptions(event, this.getOption('checkoutOptions')) || undefined,
-    });
+    }], this.getOption('noConflict'));
 
-    this.pushEnhancedEcommerce(event);
+    this.pushEnhancedEcommerce(event, this.getOption('noConflict'));
   }
 
   onCompletedCheckoutStep(event) {
@@ -720,12 +746,12 @@ class GoogleAnalytics extends Integration {
       return;
     }
 
-    this.ga('ec:setAction', 'checkout_option', {
+    this.ga(['ec:setAction', 'checkout_option', {
       step: event.step,
       option: options,
-    });
+    }], this.getOption('noConflict'));
 
-    this.pushEnhancedEcommerce(event);
+    this.pushEnhancedEcommerce(event, this.getOption('noConflict'));
   }
 
   onCustomEvent(event) {
@@ -738,17 +764,19 @@ class GoogleAnalytics extends Integration {
     };
 
     this.setEventCustomDimensions(event);
-    this.ga('send', 'event', payload);
+    this.ga(['send', 'event', payload]);
   }
 
-  setEventCustomDimensions(event) {
+  setEventCustomDimensions(event, noConflict) {
     // custom dimensions & metrics
     const source = clone(event);
     for (const prop of ['name', 'category', 'label', 'nonInteraction', 'value']) {
       deleteProperty(source, prop);
     }
     const custom = this.getCustomDimensions(source);
-    if (size(custom)) this.ga('set', custom);
+    if (size(custom)) {
+      this.ga(['set', custom], noConflict);
+    }
   }
 
   enhancedEcommerceTrackProduct(product, quantity, position) {
@@ -767,7 +795,7 @@ class GoogleAnalytics extends Integration {
     // append coupon if it set
     // https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#measuring-transactions
     if (product.voucher) gaProduct.coupon = product.voucher;
-    this.ga('ec:addProduct', gaProduct);
+    this.ga(['ec:addProduct', gaProduct], this.getOption('noConflict'));
   }
 
   enhancedEcommerceProductAction(event, action, data) {
@@ -780,7 +808,7 @@ class GoogleAnalytics extends Integration {
       product = event.product;
     }
     this.enhancedEcommerceTrackProduct(product, event.quantity, position);
-    this.ga('ec:setAction', action, data || {});
+    this.ga(['ec:setAction', action, data || {}], this.getOption('noConflict'));
   }
 }
 

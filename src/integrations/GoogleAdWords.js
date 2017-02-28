@@ -186,7 +186,7 @@ class GoogleAdWords extends Integration {
     });
   }
 
-  onSearchedProducts(event) {
+  onSearchedProducts() {
     this.trackConversion({
       ecomm_prodid: '',
       ecomm_pagetype: 'searchresults',

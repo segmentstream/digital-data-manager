@@ -62,7 +62,7 @@ class Integration extends EventEmitter
         } catch (e) {
           log(`function override error for options of integration ${this.getName()}: ${e}`, log.ERROR);
         }
-      }
+      };
     }
   }
 
