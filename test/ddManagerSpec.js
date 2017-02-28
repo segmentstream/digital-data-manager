@@ -368,4 +368,73 @@ describe('DDManager', () => {
 
   });
 
+  describe('Named/Categorized Pages', () => {
+
+    const integration = new Integration(window.digitalData);
+    integration.getEnrichableEventProps = () => {
+      return ['page'];
+    };
+    integration.getSemanticEvents = () => {
+      return ['Viewed Page'];
+    };
+    integration.trackNamedPages = () => {
+      return true;
+    };
+    integration.trackCategorizedPages = () => {
+      return true;
+    };
+    sinon.stub(integration, 'trackEvent');
+
+    beforeEach(() => {
+      ddManager.addIntegration('integration1', integration);
+      ddManager.initialize({
+        sendViewedPageEvent: false,
+      });
+    });
+
+    afterEach(() => {
+      ddManager.reset();
+      integration.trackEvent.restore();
+    });
+
+    it('should track named and categorized pages', (done) => {
+      window.digitalData.page = {
+        type: 'home',
+        name: 'Test Name',
+        category: 'Test Category'
+      };
+      window.digitalData.events.push({
+        name: 'Viewed Page',
+        callback: () => {
+          assert.ok(integration.trackEvent.calledWithMatch({
+            name: 'Viewed Page',
+            page: {
+              type: 'home',
+              name: 'Test Name',
+              category: 'Test Category'
+            },
+          }));
+          assert.ok(integration.trackEvent.calledWithMatch({
+            name: 'Viewed Test Name Page',
+            page: {
+              type: 'home',
+              name: 'Test Name',
+              category: 'Test Category'
+            },
+          }));
+          assert.ok(integration.trackEvent.calledWithMatch({
+            name: 'Viewed Test Category Page',
+            page: {
+              type: 'home',
+              name: 'Test Name',
+              category: 'Test Category'
+            },
+          }));
+          done();
+        }
+      });
+    });
+
+  });
+
 });
