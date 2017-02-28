@@ -13,6 +13,7 @@ export const ADDED_PRODUCT = 'Added Product';
 export const REMOVED_PRODUCT = 'Removed Product';
 export const VIEWED_CAMPAIGN = 'Viewed Campaign';
 export const CLICKED_CAMPAIGN = 'Clicked Campaign';
+export const LEAD = 'Lead';
 export const SUBSCRIBED = 'Subscribed';
 export const VIEWED_EXPERIMENT = 'Viewed Experiment';
 export const ACHIEVED_EXPERIMENT_GOAL = 'Achieved Experiment Goal';
