@@ -116,17 +116,22 @@ function _trackIntegrationEvent(event, integration) {
   integration.trackEvent(event);
 }
 
+function _preparePageEvent(event, name) {
+  const namedPageEvent = clone(event);
+  namedPageEvent.name = `Viewed ${name} Page`;
+  namedPageEvent.nonInteraction = true;
+  return namedPageEvent;
+}
+
 function _trackIntegrationPageEvent(event, integration) {
   if (integration.trackNamedPages() || integration.trackCategorizedPages()) {
     _trackIntegrationEvent(clone(event), integration);
     if (integration.trackNamedPages() && event.page && event.page.name) {
-      const namedPageEvent = clone(event);
-      namedPageEvent.name = `Viewed ${event.page.name} Page`;
+      const namedPageEvent = _preparePageEvent(event, event.page.name);
       _trackIntegrationEvent(namedPageEvent, integration);
     }
     if (integration.trackCategorizedPages() && event.page && event.page.category) {
-      const categorizedPageEvent = clone(event);
-      categorizedPageEvent.name = `Viewed ${event.page.category} Page`;
+      const categorizedPageEvent = _preparePageEvent(event, event.page.category);
       _trackIntegrationEvent(categorizedPageEvent, integration);
     }
   } else {
