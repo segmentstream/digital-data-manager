@@ -1,4 +1,3 @@
-import clone from './functions/clone';
 import DDHelper from './DDHelper.js';
 import dotProp from './functions/dotProp';
 

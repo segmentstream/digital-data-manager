@@ -24,6 +24,7 @@ export default function clone(obj, preserveFunctions = false) {
     }
     // array
     const copy = new Array(obj.length);
+
     for (let i = 0, l = obj.length; i < l; i += 1) {
       copy[i] = clone(obj[i], preserveFunctions);
     }
