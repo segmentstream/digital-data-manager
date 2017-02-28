@@ -1,19 +1,20 @@
-import GoogleAnalytics from './integrations/GoogleAnalytics.js';
-import GoogleTagManager from './integrations/GoogleTagManager.js';
-import GoogleAdWords from './integrations/GoogleAdWords.js';
-import Driveback from './integrations/Driveback.js';
-import RetailRocket from './integrations/RetailRocket.js';
-import FacebookPixel from './integrations/FacebookPixel.js';
-import SegmentStream from './integrations/SegmentStream.js';
-import SendPulse from './integrations/SendPulse.js';
-import OWOXBIStreaming from './integrations/OWOXBIStreaming.js';
-import Criteo from './integrations/Criteo.js';
-import MyTarget from './integrations/MyTarget.js';
-import YandexMetrica from './integrations/YandexMetrica.js';
-import Vkontakte from './integrations/Vkontakte.js';
-import Emarsys from './integrations/Emarsys.js';
-import OneSignal from './integrations/OneSignal.js';
-import Sociomantic from './integrations/Sociomantic.js';
+import GoogleAnalytics from './integrations/GoogleAnalytics';
+import GoogleTagManager from './integrations/GoogleTagManager';
+import GoogleAdWords from './integrations/GoogleAdWords';
+import Driveback from './integrations/Driveback';
+import RetailRocket from './integrations/RetailRocket';
+import FacebookPixel from './integrations/FacebookPixel';
+import SegmentStream from './integrations/SegmentStream';
+import SendPulse from './integrations/SendPulse';
+import OWOXBIStreaming from './integrations/OWOXBIStreaming';
+import Criteo from './integrations/Criteo';
+import MyTarget from './integrations/MyTarget';
+import YandexMetrica from './integrations/YandexMetrica';
+import Vkontakte from './integrations/Vkontakte';
+import Emarsys from './integrations/Emarsys';
+import OneSignal from './integrations/OneSignal';
+import Sociomantic from './integrations/Sociomantic';
+import Admitad from './integrations/Admitad';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -32,6 +33,7 @@ const integrations = {
   'Emarsys': Emarsys,
   'OneSignal': OneSignal,
   'Sociomantic': Sociomantic,
+  'Admitad': Admitad,
 };
 
 export default integrations;
