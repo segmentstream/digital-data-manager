@@ -46,7 +46,7 @@ class Admitad extends Integration {
       cookieTtl: 90, // days
       deduplication: false,
       utmSource: 'admitad', // utm_source which is sent with admitad_uid get param
-      deduplicationUtmMedium: ['affiliate'], // by default deduplicate only with other affiliates
+      deduplicationUtmMedium: [], // by default deduplicate with any source/medium other then admitad source
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -129,7 +129,6 @@ class Admitad extends Integration {
     if (!uid) return;
 
     if (this.isDeduplication(event)) return;
-
     if (event.name === COMPLETED_TRANSACTION && this.getOption('paymentType') === PAYMENT_TYPE_SALE) {
       this.trackSale(event, uid);
     } else if (event.name === LEAD && this.getOption('paymentType') === PAYMENT_TYPE_LEAD) {
@@ -140,9 +139,13 @@ class Admitad extends Integration {
   isDeduplication(event) {
     if (this.getOption('deduplication')) {
       const campaignSource = getProp(event, 'context.campaign.source');
-      if (campaignSource && campaignSource.toLowerCase() !== this.getOption('campaignSource')) {
+      if (!campaignSource || campaignSource.toLowerCase() !== this.getOption('utmSource')) {
         // last click source is not admitad
         const deduplicationUtmMedium = this.getOption('deduplicationUtmMedium') || [];
+        if (!deduplicationUtmMedium || deduplicationUtmMedium.length === 0) {
+          // deduplicate with everything
+          return true;
+        }
         const campaignMedium = getProp(event, 'context.campaign.medium');
         if (deduplicationUtmMedium.indexOf(campaignMedium.toLowerCase()) >= 0) {
           // last click medium is deduplicated
@@ -156,7 +159,7 @@ class Admitad extends Integration {
   setupPixel(event) {
     window[ADMITAD_PIXEL_VAR] = {
       response_type: this.getOption('responseType'),
-      action_code: getProp(event, 'admitad.actionCode') || this.getOption('defaultActionCode'),
+      action_code: getProp(event, 'integrations.admitad.actionCode') || this.getOption('defaultActionCode'),
       campaign_code: this.getOption('campaignCode'),
     };
     window[ADMITAD_POSITIONS_VAR] = window[ADMITAD_POSITIONS_VAR] || [];
