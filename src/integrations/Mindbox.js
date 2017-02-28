@@ -196,7 +196,7 @@ class Mindbox extends Integration {
     };
 
     // get operation name either from email or from integration settings
-    const operation = getProp(event, 'mindbox.operation') || this.getOperationName(event.name);
+    const operation = getProp(event, 'integrations.mindbox.operation') || this.getOperationName(event.name);
     if (!operation) return;
 
     if (eventMap[event.name]) {
