@@ -90,7 +90,6 @@ describe('Integrations: GoogleAnalytics', () => {
             cookieDomain: 'none',
             siteSpeedSampleRate: options.siteSpeedSampleRate,
             allowLinker: true,
-            name: undefined
           }]);
         });
 
