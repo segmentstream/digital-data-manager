@@ -341,4 +341,31 @@ describe('DDManager', () => {
 
   });
 
+  describe('override options', () => {
+
+    const integration = new Integration(window.digitalData, {
+      option1: 'initial_value',
+      option2: 'initial_value',
+      overrideFunctions: {
+        options: function(options) {
+          options.option1 = 'overriden_value'
+        }
+      }
+    });
+
+    beforeEach(() => {
+      ddManager.addIntegration('integration1', integration);
+    });
+
+    afterEach(() => {
+      ddManager.reset();
+    });
+
+    it('should override option1 and not override option2', () => {
+      assert.ok(integration.getOption('option1'), 'overriden_value');
+      assert.ok(integration.getOption('option1'), 'initial_value');
+    });
+
+  });
+
 });
