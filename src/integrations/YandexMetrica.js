@@ -1,7 +1,14 @@
-import Integration from './../Integration.js';
-import deleteProperty from './../functions/deleteProperty.js';
+import {
+  Integration,
+  getEnrichableVariableMappingProps,
+  extractVariableMappingValues,
+} from './../Integration';
+import deleteProperty from './../functions/deleteProperty';
+import arrayMerge from './../functions/arrayMerge';
 import {
   VIEWED_PAGE,
+  LOGGED_IN,
+  REGISTERED,
   VIEWED_PRODUCT_DETAIL,
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
@@ -50,6 +57,8 @@ class YandexMetrica extends Integration {
       trackHash: false,
       purchaseGoalId: undefined,
       goals: {},
+      visitParamsVars: {},
+      userParamsVars: {},
       noConflict: false,
     }, options);
 
@@ -58,20 +67,27 @@ class YandexMetrica extends Integration {
     // use custom dataLayer name to avoid conflicts
     this.dataLayerName = 'yandexDL';
 
+    this.enrichableUserParamsProps = getEnrichablePropsFromVariableMapping(this.getOption('userParamsVars'));
+    this.enrichableVisitParamsProps = getEnrichablePropsFromVariableMapping(this.getOption('visitParamsVars'));
+
     this.SEMANTIC_EVENTS = [
       VIEWED_PAGE,
       VIEWED_PRODUCT_DETAIL,
       ADDED_PRODUCT,
       REMOVED_PRODUCT,
       COMPLETED_TRANSACTION,
+      LOGGED_IN,
+      REGISTERED,
     ];
 
-    const goalEvents = Object.keys(this.getOption('goals'));
-    for (const goalEvent of goalEvents) {
+    this.goalEvents = Object.keys(this.getOption('goals'));
+    for (const goalEvent of this.goalEvents) {
       if (this.SEMANTIC_EVENTS.indexOf(goalEvent) < 0) {
         this.SEMANTIC_EVENTS.push(goalEvent);
       }
     }
+
+    this.pageCalled = false;
 
     this.addTag({
       type: 'script',
@@ -83,6 +99,10 @@ class YandexMetrica extends Integration {
 
   getSemanticEvents() {
     return this.SEMANTIC_EVENTS;
+  }
+
+  getGoalEvents() {
+    return this.goalEvents;
   }
 
   getEnrichableEventProps(event) {
@@ -99,27 +119,35 @@ class YandexMetrica extends Integration {
       ];
       break;
     default:
-      // do nothing
+      const goalEvents = this.getGoalEvents();
+      if (goalEvents.indexOf(event.name) >= 0) {
+        arrayMerge(enrichableProps, this.getEnrichableUserParamsProps());
+        arrayMerge(enrichableProps, this.getEnrichableVisitParamsProps());
+      }
     }
     return enrichableProps;
   }
 
-  initialize() {
-    const id = this.getOption('counterId');
+  getEnrichableUserParamsProps() {
+    return this.enrichableUserParamsProps;
+  }
 
+  getEnrichableVisitParamsProps() {
+    return this.enrichableVisitParamsProps;
+  }
+
+  getUserParams(event) {
+    return extractVariableMappingValues(event, this.getOption('userParamsVars'));
+  }
+
+  getVisitParams(event) {
+    return extractVariableMappingValues(event, this.getOption('visitParamsVars'));
+  }
+
+  initialize() {
     window.yandex_metrika_callbacks = window.yandex_metrika_callbacks || [];
     this.dataLayer = window[this.dataLayerName] = window[this.dataLayerName] || [];
-    if (!this.getOption('noConflict') && id) {
-      window.yandex_metrika_callbacks.push(() => {
-        this.yaCounter = window['yaCounter' + id] = new window.Ya.Metrika({
-          id,
-          clickmap: this.getOption('clickmap'),
-          webvisor: this.getOption('webvisor'),
-          trackLinks: this.getOption('trackLinks'),
-          trackHash: this.getOption('trackHash'),
-          ecommerce: this.dataLayerName,
-        });
-      });
+    if (!this.getOption('noConflict')) {
       this.load(this.onLoad);
     } else {
       this.onLoad();
@@ -138,6 +166,7 @@ class YandexMetrica extends Integration {
 
   trackEvent(event) {
     const methods = {
+      [VIEWED_PAGE]: 'onViewedPage',
       [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
       [ADDED_PRODUCT]: 'onAddedProduct',
       [REMOVED_PRODUCT]: 'onRemovedProduct',
@@ -155,6 +184,36 @@ class YandexMetrica extends Integration {
         this.yaCounter.reachGoal(goalIdentificator);
       }
     }
+  }
+
+  onViewedPage(event) {
+    const id = this.getOption('counterId');
+    if (!id) return;
+
+    window.yandex_metrika_callbacks.push(() => {
+      if (!this.pageCalled) {
+        this.yaCounter = window['yaCounter' + id] = new window.Ya.Metrika({
+          id,
+          clickmap: this.getOption('clickmap'),
+          webvisor: this.getOption('webvisor'),
+          trackLinks: this.getOption('trackLinks'),
+          trackHash: this.getOption('trackHash'),
+          ecommerce: this.dataLayerName,
+          params: this.getVisitParams(event),
+          userParams: this.getUserParams(event),
+        });
+        this.pageCalled = true;
+      } else {
+        // ajax pageview
+        const page = event.page || {};
+        const url = event.page.url || window.location.href;
+        this.yaCounter.hit(url, {
+          referer: event.page.referrer || document.referrer,
+          title: event.page.title || document.title,
+          params: this.getVisitParams(event),
+        });
+      }
+    });
   }
 
   onViewedProductDetail(event) {

@@ -6,12 +6,35 @@ import format from './functions/format';
 import noop from './functions/noop';
 import log from './functions/log';
 import each from './functions/each';
+import { getProp } from './functions/dotProp';
 import deleteProperty from './functions/deleteProperty';
 import debug from 'debug';
 import async from 'async';
 import EventEmitter from 'component-emitter';
 
-class Integration extends EventEmitter
+export function getEnrichableVariableMappingProps(variableMapping) {
+  const enrichableProps = [];
+  each(variableMapping, (key, variable) => {
+    if (variable.type === DIGITALDATA_VAR) {
+      enrichableProps.push(variable.value);
+    }
+  });
+  return enrichableProps;
+}
+
+export function extractVariableMappingValues(source, variableMapping) {
+  const values = {};
+  each(variableMapping, (key, variable) => {
+    let value = getProp(source, variable.value);
+    if (value !== undefined) {
+      if (typeof value === 'boolean') value = value.toString();
+      values[key] = value;
+    }
+  });
+  return values;
+}
+
+export class Integration extends EventEmitter
 {
   constructor(digitalData, options, tags) {
     super();
