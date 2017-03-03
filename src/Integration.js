@@ -11,6 +11,7 @@ import deleteProperty from './functions/deleteProperty';
 import debug from 'debug';
 import async from 'async';
 import EventEmitter from 'component-emitter';
+import { DIGITALDATA_VAR } from './variableTypes';
 
 export function getEnrichableVariableMappingProps(variableMapping) {
   const enrichableProps = [];

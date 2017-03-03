@@ -4,11 +4,10 @@ import {
   extractVariableMappingValues,
 } from './../Integration';
 import deleteProperty from './../functions/deleteProperty';
+import cleanObject from './../functions/cleanObject';
 import arrayMerge from './../functions/arrayMerge';
 import {
   VIEWED_PAGE,
-  LOGGED_IN,
-  REGISTERED,
   VIEWED_PRODUCT_DETAIL,
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
@@ -67,8 +66,8 @@ class YandexMetrica extends Integration {
     // use custom dataLayer name to avoid conflicts
     this.dataLayerName = 'yandexDL';
 
-    this.enrichableUserParamsProps = getEnrichablePropsFromVariableMapping(this.getOption('userParamsVars'));
-    this.enrichableVisitParamsProps = getEnrichablePropsFromVariableMapping(this.getOption('visitParamsVars'));
+    this.enrichableUserParamsProps = getEnrichableVariableMappingProps(this.getOption('userParamsVars'));
+    this.enrichableVisitParamsProps = getEnrichableVariableMappingProps(this.getOption('visitParamsVars'));
 
     this.SEMANTIC_EVENTS = [
       VIEWED_PAGE,
@@ -76,8 +75,6 @@ class YandexMetrica extends Integration {
       ADDED_PRODUCT,
       REMOVED_PRODUCT,
       COMPLETED_TRANSACTION,
-      LOGGED_IN,
-      REGISTERED,
     ];
 
     this.goalEvents = Object.keys(this.getOption('goals'));
@@ -120,7 +117,7 @@ class YandexMetrica extends Integration {
       break;
     default:
       const goalEvents = this.getGoalEvents();
-      if (goalEvents.indexOf(event.name) >= 0) {
+      if (event.name === VIEWED_PAGE || goalEvents.indexOf(event.name) >= 0) {
         arrayMerge(enrichableProps, this.getEnrichableUserParamsProps());
         arrayMerge(enrichableProps, this.getEnrichableVisitParamsProps());
       }
@@ -147,7 +144,19 @@ class YandexMetrica extends Integration {
   initialize() {
     window.yandex_metrika_callbacks = window.yandex_metrika_callbacks || [];
     this.dataLayer = window[this.dataLayerName] = window[this.dataLayerName] || [];
-    if (!this.getOption('noConflict')) {
+
+    const id = this.getOption('counterId');
+    if (id && !this.getOption('noConflict')) {
+      window.yandex_metrika_callbacks.push(() => {
+        this.yaCounter = window['yaCounter' + id] = new window.Ya.Metrika({
+          id,
+          clickmap: this.getOption('clickmap'),
+          webvisor: this.getOption('webvisor'),
+          trackLinks: this.getOption('trackLinks'),
+          trackHash: this.getOption('trackHash'),
+          ecommerce: this.dataLayerName,
+        });
+      });
       this.load(this.onLoad);
     } else {
       this.onLoad();
@@ -177,12 +186,7 @@ class YandexMetrica extends Integration {
       if (method && !this.getOption('noConflict')) {
         this[method](event);
       }
-
-      const goals = this.getOption('goals');
-      const goalIdentificator = goals[event.name];
-      if (goalIdentificator) {
-        this.yaCounter.reachGoal(goalIdentificator);
-      }
+      this.trackCustomEvent(event);
     }
   }
 
@@ -190,28 +194,27 @@ class YandexMetrica extends Integration {
     const id = this.getOption('counterId');
     if (!id) return;
 
+    const visitParams = cleanObject(this.getVisitParams(event));
+    const userParams = cleanObject(this.getUserParams(event));
+
     window.yandex_metrika_callbacks.push(() => {
       if (!this.pageCalled) {
-        this.yaCounter = window['yaCounter' + id] = new window.Ya.Metrika({
-          id,
-          clickmap: this.getOption('clickmap'),
-          webvisor: this.getOption('webvisor'),
-          trackLinks: this.getOption('trackLinks'),
-          trackHash: this.getOption('trackHash'),
-          ecommerce: this.dataLayerName,
-          params: this.getVisitParams(event),
-          userParams: this.getUserParams(event),
-        });
+        if (visitParams) {
+          this.yaCounter.params(visitParams);
+        }
         this.pageCalled = true;
       } else {
         // ajax pageview
         const page = event.page || {};
-        const url = event.page.url || window.location.href;
+        const url = page.url || window.location.href;
         this.yaCounter.hit(url, {
-          referer: event.page.referrer || document.referrer,
-          title: event.page.title || document.title,
-          params: this.getVisitParams(event),
+          referer: page.referrer || document.referrer,
+          title: page.title || document.title,
+          params: visitParams,
         });
+      }
+      if (userParams) {
+        this.yaCounter.userParams(userParams);
       }
     });
   }
@@ -294,6 +297,17 @@ class YandexMetrica extends Integration {
     this.dataLayer.push({
       ecommerce: { purchase },
     });
+  }
+
+  trackCustomEvent(event) {
+    const goals = this.getOption('goals');
+    const goalIdentificator = goals[event.name];
+    if (goalIdentificator) {
+      const visitParams = cleanObject(this.getVisitParams(event));
+      window.yandex_metrika_callbacks.push(() => {
+        this.yaCounter.reachGoal(goalIdentificator, visitParams);
+      });
+    }
   }
 }
 
