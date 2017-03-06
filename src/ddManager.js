@@ -111,7 +111,7 @@ function _addIntegrations(integrationSettings) {
 
 function _trackIntegrationEvent(event, integration) {
   if (isTestMode()) {
-    logEnrichedIntegrationEvent(event, integrationName);
+    logEnrichedIntegrationEvent(event, integration.getName());
   }
   integration.trackEvent(event);
 }
@@ -177,7 +177,6 @@ function _addIntegrationsEventTracking() {
         ) {
           return;
         }
-
         // important! cloned object is returned (not link)
         let integrationEvent = clone(event, true);
         integrationEvent.name = mappedEventName;

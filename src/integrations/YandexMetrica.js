@@ -6,6 +6,7 @@ import {
 import deleteProperty from './../functions/deleteProperty';
 import cleanObject from './../functions/cleanObject';
 import arrayMerge from './../functions/arrayMerge';
+import size from './../functions/size';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -141,6 +142,16 @@ class YandexMetrica extends Integration {
     return extractVariableMappingValues(event, this.getOption('visitParamsVars'));
   }
 
+  yaCounterCall(method, args) {
+    if (window.yandex_metrika_callbacks) {
+      window.yandex_metrika_callbacks.push(() => {
+        this.yaCounter[method].apply(this, args);
+      });
+    } else {
+      this.yaCounter[method].apply(this, args);
+    }
+  }
+
   initialize() {
     window.yandex_metrika_callbacks = window.yandex_metrika_callbacks || [];
     this.dataLayer = window[this.dataLayerName] = window[this.dataLayerName] || [];
@@ -157,7 +168,7 @@ class YandexMetrica extends Integration {
           ecommerce: this.dataLayerName,
         });
       });
-      this.load(this.onLoad);
+      this.load((this.onLoad));
     } else {
       this.onLoad();
     }
@@ -197,26 +208,24 @@ class YandexMetrica extends Integration {
     const visitParams = cleanObject(this.getVisitParams(event));
     const userParams = cleanObject(this.getUserParams(event));
 
-    window.yandex_metrika_callbacks.push(() => {
-      if (!this.pageCalled) {
-        if (visitParams) {
-          this.yaCounter.params(visitParams);
-        }
-        this.pageCalled = true;
-      } else {
-        // ajax pageview
-        const page = event.page || {};
-        const url = page.url || window.location.href;
-        this.yaCounter.hit(url, {
-          referer: page.referrer || document.referrer,
-          title: page.title || document.title,
-          params: visitParams,
-        });
+    if (!this.pageCalled) {
+      if (size(visitParams)) {
+        this.yaCounterCall('params', [visitParams]);
       }
-      if (userParams) {
-        this.yaCounter.userParams(userParams);
-      }
-    });
+      this.pageCalled = true;
+    } else {
+      // ajax pageview
+      const page = event.page || {};
+      const url = page.url || window.location.href;
+      this.yaCounterCall('hit', [ url, {
+        referer: page.referrer || document.referrer,
+        title: page.title || document.title,
+        params: visitParams,
+      }]);
+    }
+    if (size(userParams)) {
+      this.yaCounterCall('userParams', [userParams]);
+    }
   }
 
   onViewedProductDetail(event) {
@@ -304,9 +313,11 @@ class YandexMetrica extends Integration {
     const goalIdentificator = goals[event.name];
     if (goalIdentificator) {
       const visitParams = cleanObject(this.getVisitParams(event));
-      window.yandex_metrika_callbacks.push(() => {
-        this.yaCounter.reachGoal(goalIdentificator, visitParams);
-      });
+      const args = [goalIdentificator];
+      if (size(visitParams)) {
+        args.push(visitParams);
+      }
+      this.yaCounterCall('reachGoal', args);
     }
   }
 }

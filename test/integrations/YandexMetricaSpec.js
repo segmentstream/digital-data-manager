@@ -116,6 +116,7 @@ describe('Integrations: Yandex Metrica', () => {
           assert.equal(options.trackHash, ym.getOption('trackHash'));
         };
         window.yandex_metrika_callbacks.pop()();
+        window.yandex_metrika_callbacks = undefined;
         ym.onLoad();
       });
     });
@@ -151,6 +152,7 @@ describe('Integrations: Yandex Metrica', () => {
           callback = window.yandex_metrika_callbacks.pop();
           if (callback) callback();
         } while (callback);
+        window.yandex_metrika_callbacks = undefined;
         ym.onLoad();
       });
       ddManager.once('ready', done);
@@ -176,7 +178,6 @@ describe('Integrations: Yandex Metrica', () => {
           name: 'Viewed Page',
           testParam: 'testValue',
           callback: () => {
-            window.yandex_metrika_callbacks.pop()();
             assert.ok(ym.yaCounter.params.calledWith({
               'websiteType': 'desktop',
               'customParam': 'testValue'
@@ -192,7 +193,6 @@ describe('Integrations: Yandex Metrica', () => {
           name: 'Viewed Page',
           testParam: 'testValue',
           callback: () => {
-            window.yandex_metrika_callbacks.pop()();
             assert.ok(ym.yaCounter.userParams.calledWith({
               'userRfm': 'rfm1',
               'customParam': 'testValue'
@@ -207,16 +207,12 @@ describe('Integrations: Yandex Metrica', () => {
         window.digitalData.events.push({
           name: 'Viewed Page',
           testParam: 'testValue',
-          callback: () => {
-            window.yandex_metrika_callbacks.pop()();
-          }
         });
+        sinon.spy(ym.yaCounter, 'userParams');
         window.digitalData.events.push({
           name: 'Viewed Page',
           testParam: 'testValue',
           callback: () => {
-            sinon.spy(ym.yaCounter, 'userParams');
-            window.yandex_metrika_callbacks.pop()();
             assert.ok(ym.yaCounter.userParams.calledWith({
               'userRfm': 'rfm1',
               'customParam': 'testValue'
@@ -231,15 +227,11 @@ describe('Integrations: Yandex Metrica', () => {
         window.digitalData.events.push({
           name: 'Viewed Page',
           testParam: 'testValue',
-          callback: () => {
-            window.yandex_metrika_callbacks.pop()();
-          }
         });
         window.digitalData.events.push({
           name: 'Viewed Page',
           testParam: 'testValue',
           callback: () => {
-            window.yandex_metrika_callbacks.pop()();
             assert.ok(ym.yaCounter.hit.calledWith(window.location.href, {
               referer: document.referrer,
               title: '',
@@ -695,7 +687,6 @@ describe('Integrations: Yandex Metrica', () => {
         window.digitalData.events.push({
           name: 'Test Event',
           callback: () => {
-            window.yandex_metrika_callbacks.pop()();
             assert.ok(ym.yaCounter.reachGoal.calledWith('GOAL1'));
             done();
           }
@@ -707,10 +698,6 @@ describe('Integrations: Yandex Metrica', () => {
         window.digitalData.events.push({
           name: 'Test Event 2',
           callback: () => {
-            const callback = window.yandex_metrika_callbacks.pop();
-            if (callback) {
-              callback();
-            }
             assert.ok(!ym.yaCounter.reachGoal.called);
             done();
           }
@@ -723,7 +710,6 @@ describe('Integrations: Yandex Metrica', () => {
           name: 'Test Event',
           testParam: 'testValue',
           callback: () => {
-            window.yandex_metrika_callbacks.pop()();
             assert.ok(ym.yaCounter.reachGoal.calledWith('GOAL1', {
               'websiteType': 'desktop',
               'customParam': 'testValue'
