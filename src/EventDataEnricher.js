@@ -32,8 +32,9 @@ class EventDataEnricher
     const enrichableProps = integration.getEnrichableEventProps(event);
     for (const prop of enrichableProps) {
       if (!dotProp.getProp(event, prop) && digitalData) {
-        const ddlPropValue = dotProp.getProp(digitalData, prop);
+        const ddlPropValue = DDHelper.get(prop, digitalData);
         if (ddlPropValue !== undefined) {
+          // important! value should be cloned
           dotProp.setProp(event, prop, ddlPropValue);
         }
       }

@@ -368,6 +368,57 @@ describe('DDManager', () => {
 
   });
 
+  describe('override product', () => {
+
+    let integration;
+
+    beforeEach(() => {
+      window.digitalData = {
+        product: {
+          id: '123'
+        }
+      };
+      integration = new Integration(window.digitalData, {
+        option1: 'initial_value',
+        option2: 'initial_value',
+        overrideFunctions: {
+          product: function(product) {
+            product.id += '-test';
+          }
+        }
+      });
+      integration.getEnrichableEventProps = () => {
+        return ['product'];
+      };
+      integration.getSemanticEvents = () => {
+        return ['Viewed Product Detail'];
+      };
+      sinon.stub(integration, 'trackEvent');
+      ddManager.addIntegration('integration1', integration);
+      ddManager.initialize();
+    });
+
+    afterEach(() => {
+      ddManager.reset();
+    });
+
+    it('should not override original DDL', (done) => {
+      window.digitalData.events.push({
+        name: 'Viewed Product Detail',
+        callback: () => {
+          assert.ok(integration.trackEvent.calledWithMatch({
+            product: {
+              id: '123-test'
+            }
+          }));
+          assert.equal(window.digitalData.product.id, '123');
+          done();
+        }
+      });
+    });
+
+  });
+
   describe('Named/Categorized Pages', () => {
 
     const integration = new Integration(window.digitalData);
