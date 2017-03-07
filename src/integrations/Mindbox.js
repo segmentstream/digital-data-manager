@@ -1,7 +1,7 @@
 import Integration from './../Integration.js';
 import { getProp } from './../functions/dotProp';
 import each from './../functions/each';
-import cleanObject from './../function/cleanObject';
+import cleanObject from './../functions/cleanObject';
 import { DIGITALDATA_VAR } from './../variableTypes';
 import {
   LOGGED_IN,
