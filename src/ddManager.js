@@ -15,7 +15,7 @@ import Storage from './Storage';
 import DDStorage from './DDStorage';
 import CookieStorage from './CookieStorage';
 import { isTestMode, logEnrichedIntegrationEvent, showTestModeOverlay } from './testMode';
-import { mapEvent } from './events';
+import { VIEWED_PAGE, mapEvent } from './events';
 
 let ddManager;
 
@@ -109,6 +109,36 @@ function _addIntegrations(integrationSettings) {
   }
 }
 
+function _trackIntegrationEvent(event, integration) {
+  if (isTestMode()) {
+    logEnrichedIntegrationEvent(event, integration.getName());
+  }
+  integration.trackEvent(event);
+}
+
+function _preparePageEvent(event, name) {
+  const namedPageEvent = clone(event);
+  namedPageEvent.name = `Viewed ${name} Page`;
+  namedPageEvent.nonInteraction = true;
+  return namedPageEvent;
+}
+
+function _trackIntegrationPageEvent(event, integration) {
+  if (integration.trackNamedPages() || integration.trackCategorizedPages()) {
+    _trackIntegrationEvent(clone(event), integration);
+    if (integration.trackNamedPages() && event.page && event.page.name) {
+      const namedPageEvent = _preparePageEvent(event, event.page.name);
+      _trackIntegrationEvent(namedPageEvent, integration);
+    }
+    if (integration.trackCategorizedPages() && event.page && event.page.category) {
+      const categorizedPageEvent = _preparePageEvent(event, event.page.category);
+      _trackIntegrationEvent(categorizedPageEvent, integration);
+    }
+  } else {
+    _trackIntegrationEvent(event, integration);
+  }
+}
+
 function _addIntegrationsEventTracking() {
   _eventManager.addCallback(['on', 'event', (event) => {
     each(_integrations, (integrationName, integration) => {
@@ -147,16 +177,15 @@ function _addIntegrationsEventTracking() {
         ) {
           return;
         }
-
         // important! cloned object is returned (not link)
         let integrationEvent = clone(event, true);
         integrationEvent.name = mappedEventName;
         integrationEvent = EventDataEnricher.enrichIntegrationData(integrationEvent, _digitalData, integration);
-
-        if (isTestMode()) {
-          logEnrichedIntegrationEvent(integrationEvent, integrationName);
+        if (integrationEvent.name === VIEWED_PAGE) {
+          _trackIntegrationPageEvent(integrationEvent, integration);
+        } else {
+          _trackIntegrationEvent(integrationEvent, integration);
         }
-        integration.trackEvent(integrationEvent);
       }
     });
   }], true);
@@ -196,7 +225,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.2.16',
+  VERSION: '1.2.18',
 
   setAvailableIntegrations: (availableIntegrations) => {
     _availableIntegrations = availableIntegrations;

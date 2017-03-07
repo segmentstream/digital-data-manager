@@ -368,4 +368,171 @@ describe('DDManager', () => {
 
   });
 
+  describe('override product', () => {
+
+    let integration;
+
+    beforeEach(() => {
+      window.digitalData = {
+        product: {
+          id: '123'
+        }
+      };
+      integration = new Integration(window.digitalData, {
+        option1: 'initial_value',
+        option2: 'initial_value',
+        overrideFunctions: {
+          product: function(product) {
+            product.id += '-test';
+          }
+        }
+      });
+      integration.getEnrichableEventProps = () => {
+        return ['product'];
+      };
+      integration.getSemanticEvents = () => {
+        return ['Viewed Product Detail'];
+      };
+      sinon.stub(integration, 'trackEvent');
+      ddManager.addIntegration('integration1', integration);
+      ddManager.initialize();
+    });
+
+    afterEach(() => {
+      ddManager.reset();
+    });
+
+    it('should not override original DDL', (done) => {
+      window.digitalData.events.push({
+        name: 'Viewed Product Detail',
+        callback: () => {
+          assert.ok(integration.trackEvent.calledWithMatch({
+            product: {
+              id: '123-test'
+            }
+          }));
+          assert.equal(window.digitalData.product.id, '123');
+          done();
+        }
+      });
+    });
+
+  });
+
+  describe('Named/Categorized Pages', () => {
+
+    const integration = new Integration(window.digitalData);
+    integration.getEnrichableEventProps = () => {
+      return ['page'];
+    };
+    integration.getSemanticEvents = () => {
+      return ['Viewed Page'];
+    };
+
+    beforeEach(() => {
+      sinon.stub(integration, 'trackEvent');
+      ddManager.addIntegration('integration1', integration);
+      ddManager.initialize({
+        sendViewedPageEvent: false,
+      });
+    });
+
+    afterEach(() => {
+      ddManager.reset();
+      integration.trackEvent.restore();
+    });
+
+    it('should track named and categorized pages', (done) => {
+      integration.trackNamedPages = () => {
+        return true;
+      };
+      integration.trackCategorizedPages = () => {
+        return true;
+      };
+
+      window.digitalData.page = {
+        type: 'home',
+        name: 'Test Name',
+        category: 'Test Category'
+      };
+      window.digitalData.events.push({
+        name: 'Viewed Page',
+        callback: () => {
+          assert.ok(integration.trackEvent.calledWithMatch({
+            name: 'Viewed Page',
+            page: {
+              type: 'home',
+              name: 'Test Name',
+              category: 'Test Category'
+            },
+          }));
+          assert.ok(integration.trackEvent.calledWithMatch({
+            name: 'Viewed Test Name Page',
+            page: {
+              type: 'home',
+              name: 'Test Name',
+              category: 'Test Category'
+            },
+          }));
+          assert.ok(integration.trackEvent.calledWithMatch({
+            name: 'Viewed Test Category Page',
+            page: {
+              type: 'home',
+              name: 'Test Name',
+              category: 'Test Category'
+            },
+          }));
+          done();
+        }
+      });
+
+    });
+
+    it('should not track named and categorized pages', (done) => {
+      integration.trackNamedPages = () => {
+        return false;
+      };
+      integration.trackCategorizedPages = () => {
+        return false;
+      };
+
+      window.digitalData.page = {
+        type: 'home',
+        name: 'Test Name',
+        category: 'Test Category'
+      };
+      window.digitalData.events.push({
+        name: 'Viewed Page',
+        callback: () => {
+          assert.ok(integration.trackEvent.calledWithMatch({
+            name: 'Viewed Page',
+            page: {
+              type: 'home',
+              name: 'Test Name',
+              category: 'Test Category'
+            },
+          }));
+          assert.ok(!integration.trackEvent.calledWithMatch({
+            name: 'Viewed Test Name Page',
+            page: {
+              type: 'home',
+              name: 'Test Name',
+              category: 'Test Category'
+            },
+          }));
+          assert.ok(!integration.trackEvent.calledWithMatch({
+            name: 'Viewed Test Category Page',
+            page: {
+              type: 'home',
+              name: 'Test Name',
+              category: 'Test Category'
+            },
+          }));
+          done();
+        }
+      });
+    });
+
+  });
+
 });

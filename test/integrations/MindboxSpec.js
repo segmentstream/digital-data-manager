@@ -1,8 +1,9 @@
 import assert from 'assert';
 import sinon from 'sinon';
 import reset from './../reset.js';
-import Mindbox from './../../src/integrations/Mindbox.js';
-import ddManager from './../../src/ddManager.js';
+import Mindbox from './../../src/integrations/Mindbox';
+import ddManager from './../../src/ddManager';
+import noop from './../../src/functions/noop';
 
 describe('Integrations: Mindbox', () => {
   let mindbox;
@@ -47,28 +48,51 @@ describe('Integrations: Mindbox', () => {
     });
 
     describe('#initialize', () => {
-      it('should call ready after initialization', () => {
-        sinon.stub(mindbox, 'onLoad');
+      it('should preapre stubs', () => {
         ddManager.initialize();
-        assert.ok(mindbox.onLoad.calledOnce);
-        mindbox.onLoad.restore();
+        assert.ok(typeof window.directCrm === 'function');
+        assert.ok(window.directCrm.Queue);
+      });
+
+      it('should create tracker', () => {
+        window.directCrm = noop;
+        sinon.stub(window, 'directCrm');
+        ddManager.initialize();
+        assert.ok(window.directCrm.calledWith('create', {
+          projectSystemName: mindbox.getOption('projectSystemName'),
+          brandSystemName: mindbox.getOption('brandSystemName'),
+          pointOfContactSystemName: mindbox.getOption('pointOfContactSystemName'),
+          projectDomain: mindbox.getOption('projectDomain'),
+          serviceDomain: 'tracker.directcrm.ru',
+        }));
       });
     });
   });
 
   describe('after loading', () => {
     beforeEach((done) => {
-      // sinon.spy(mindbox, 'loadTrackingScript');
-      // sinon.spy(mindbox, 'clearTrackingObjects');
       ddManager.once('ready', done);
-      ddManager.initialize({
-        autoEvents: false,
-      });
+      ddManager.initialize();
     });
 
     afterEach(() => {
-      // mindbox.loadTrackingScript.restore();
-      // mindbox.clearTrackingObjects.restore();
+
+    });
+
+    describe('#onViewedProductDetail', () => {
+      const productId = '123';
+      mindbox.setOption('operationMapping', {
+        'Viewed Product Detail':
+      })
+
+      it.only('should track viewed product operation', () => {
+        assert.ok(window.directCrm.calledWith('performOperation', {
+          operation,
+          data: {
+            action: { productId },
+          },
+        });
+      });
     });
   });
 });

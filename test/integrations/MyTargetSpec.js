@@ -482,6 +482,9 @@ describe('Integrations: MyTarget', () => {
 
     describe('#onCustomEvent', () => {
       it('should send reachGoal event for any other DDL event', (done) => {
+        myTarget.setOption('goals', {
+          'Subscribed': 'userSubscription'
+        });
         window.digitalData.events.push({
           name: 'Subscribed',
           user: {
@@ -491,8 +494,43 @@ describe('Integrations: MyTarget', () => {
             assert.deepEqual(window._tmr[0], {
               id: myTarget.getOption('counterId'),
               type: 'reachGoal',
-              goal: 'Subscribed'
+              goal: 'userSubscription'
             });
+            done();
+          }
+        });
+      });
+
+      it('should send reachGoal event for sematic events if goal defined in settings', (done) => {
+        myTarget.setOption('goals', {
+          'Completed Transaction': 'orderCompleted'
+        });
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          transaction: {
+            orderId: '123123'
+          },
+          callback: () => {
+            // window._tmr[0] has sematic event tracking
+            assert.deepEqual(window._tmr[1], {
+              id: myTarget.getOption('counterId'),
+              type: 'reachGoal',
+              goal: 'orderCompleted'
+            });
+            done();
+          }
+        });
+      });
+
+      it('should not send reachGoal event if goal is not defined in settings', (done) => {
+        myTarget.setOption('goals', {});
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          user: {
+            email: 'test@driveback.ru'
+          },
+          callback: () => {
+            assert.equal(window._tmr.length, 0);
             done();
           }
         });
@@ -500,6 +538,9 @@ describe('Integrations: MyTarget', () => {
 
       it('should send reachGoal event for any other DDL event event if noConflict option is true', (done) => {
         myTarget.setOption('noConflict', true);
+        myTarget.setOption('goals', {
+          'Subscribed': 'userSubscription'
+        });
         window.digitalData.events.push({
           name: 'Subscribed',
           user: {
@@ -509,7 +550,7 @@ describe('Integrations: MyTarget', () => {
             assert.deepEqual(window._tmr[0], {
               id: myTarget.getOption('counterId'),
               type: 'reachGoal',
-              goal: 'Subscribed'
+              goal: 'userSubscription'
             });
             done();
           }
