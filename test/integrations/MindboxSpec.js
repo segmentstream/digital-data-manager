@@ -13,6 +13,7 @@ describe('Integrations: Mindbox', () => {
     brandSystemName: 'drivebackru',
     pointOfContactSystemName: 'test-services.directcrm.ru',
     projectDomain: 'tracker.directcrm.ru',
+    userIdProvider: 'TestWebsiteId',
   };
 
   beforeEach(() => {
@@ -73,26 +74,350 @@ describe('Integrations: Mindbox', () => {
     beforeEach((done) => {
       ddManager.once('ready', done);
       ddManager.initialize();
+
+      sinon.spy(window, 'directCrm');
     });
 
     afterEach(() => {
-
+      window.directCrm.restore();
     });
 
     describe('#onViewedProductDetail', () => {
-      const productId = '123';
-      mindbox.setOption('operationMapping', {
-        'Viewed Product Detail':
-      })
 
-      it.only('should track viewed product operation', () => {
-        assert.ok(window.directCrm.calledWith('performOperation', {
-          operation,
-          data: {
-            action: { productId },
-          },
+      beforeEach(() => {
+        mindbox.setOption('operationMapping', {
+          'Viewed Product Detail': 'ViewProduct',
         });
       });
+
+      it('should track viewed product with default operation', () => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {
+            id: '123'
+          },
+          callback: () => {
+            assert.ok(window.directCrm.calledWith('performOperation', {
+              operation: 'ViewProduct',
+              data: {
+                action: {
+                  productId: '123'
+                },
+              },
+            }));
+          }
+        });
+      });
+
+      it('should track viewed product with custom operation', () => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {
+            id: '123'
+          },
+          integrations: {
+            mindbox: {
+              operation: 'ViewedProductCustom'
+            }
+          },
+          callback: () => {
+            assert.ok(window.directCrm.calledWith('performOperation', {
+              operation: 'ViewedProductCustom',
+              data: {
+                action: {
+                  productId: '123'
+                },
+              },
+            }));
+          }
+        });
+      });
+
     });
+
+
+    describe('#onAddedProduct', () => {
+
+      beforeEach(() => {
+        mindbox.setOption('operationMapping', {
+          'Added Product': 'AddProduct',
+        });
+      });
+
+      it('should track added product with default operation', () => {
+        window.digitalData.events.push({
+          name: 'Added Product',
+          product: {
+            id: '123',
+            skuCode: 'sku123',
+            unitSalePrice: 2500,
+          },
+          quantity: 5,
+          callback: () => {
+            assert.ok(window.directCrm.calledWith('performOperation', {
+              operation: 'AddProduct',
+              data: {
+                action: {
+                  productId: '123',
+                  skuId: 'sku123',
+                  count: 5,
+                  price: 2500,
+                },
+              },
+            }));
+          }
+        });
+      });
+
+      it('should track added product with custom operation', () => {
+        window.digitalData.events.push({
+          name: 'Added Product',
+          product: {
+            id: '123',
+            skuCode: 'sku123',
+            unitSalePrice: 2500,
+          },
+          quantity: 5,
+          integrations: {
+            mindbox: {
+              operation: 'AddProductCustom'
+            }
+          },
+          callback: () => {
+            assert.ok(window.directCrm.calledWith('performOperation', {
+              operation: 'AddProductCustom',
+              data: {
+                action: {
+                  productId: '123',
+                  skuId: 'sku123',
+                  count: 5,
+                  price: 2500,
+                },
+              },
+            }));
+          }
+        });
+      });
+
+    });
+
+
+    describe('#onViewedProductListing', () => {
+
+      beforeEach(() => {
+        mindbox.setOption('operationMapping', {
+          'Viewed Product Listing': 'CategoryView',
+        });
+      });
+
+      it('should track viewed product listing with default operation', () => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Listing',
+          listing: {
+            categoryId: '123',
+          },
+          callback: () => {
+            assert.ok(window.directCrm.calledWith('performOperation', {
+              operation: 'CategoryView',
+              data: {
+                action: {
+                  productCategoryId: '123',
+                },
+              },
+            }));
+          }
+        });
+      });
+
+      it('should track viewed product listing with custom operation', () => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Listing',
+          listing: {
+            categoryId: '123',
+          },
+          integrations: {
+            mindbox: {
+              operation: 'CategoryViewCustom'
+            }
+          },
+          callback: () => {
+            assert.ok(window.directCrm.calledWith('performOperation', {
+              operation: 'CategoryViewCustom',
+              data: {
+                action: {
+                  productCategoryId: '123',
+                },
+              },
+            }));
+          }
+        });
+      });
+
+    });
+
+
+    describe('#onRemovedProduct', () => {
+
+      beforeEach(() => {
+        mindbox.setOption('operationMapping', {
+          'Removed Product': 'RemoveProduct',
+        });
+      });
+
+      it('should track removed product with default operation', () => {
+        window.digitalData.events.push({
+          name: 'Removed Product',
+          product: {
+            id: '123',
+            skuCode: 'sku123',
+            unitSalePrice: 2500,
+          },
+          quantity: 5,
+          callback: () => {
+            assert.ok(window.directCrm.calledWith('performOperation', {
+              operation: 'RemoveProduct',
+              data: {
+                action: {
+                  productId: '123',
+                  skuId: 'sku123',
+                  count: 5,
+                  price: 2500,
+                },
+              },
+            }));
+          }
+        });
+      });
+
+      it('should track added product with custom operation', () => {
+        window.digitalData.events.push({
+          name: 'Added Product',
+          product: {
+            id: '123',
+            skuCode: 'sku123',
+            unitSalePrice: 2500,
+          },
+          quantity: 5,
+          integrations: {
+            mindbox: {
+              operation: 'AddProductCustom'
+            }
+          },
+          callback: () => {
+            assert.ok(window.directCrm.calledWith('performOperation', {
+              operation: 'AddProductCustom',
+              data: {
+                action: {
+                  productId: '123',
+                  skuId: 'sku123',
+                  count: 5,
+                  price: 2500,
+                },
+              },
+            }));
+          }
+        });
+      });
+
+    });
+
+    describe('#onCompletedTransaction', () => {
+
+      const transaction = {
+        orderId: '123',
+        lineItems: [
+          {
+            product: {
+              id: '123',
+              skuCode: 'sky123',
+              unitSalePrice: 100
+            },
+            quantity: 1
+          },
+          {
+            product: {
+              id: '234',
+              skuCode: 'sky234',
+              unitSalePrice: 150
+            },
+            quantity: 2
+          },
+        ],
+        shippingMethod: 'Courier',
+        paymentMethod: 'Visa',
+        total: 5000
+      };
+
+      beforeEach(() => {
+        mindbox.setOption('operationMapping', {
+          'Completed Transaction': 'CompletedOrder',
+        });
+      });
+
+      it.only('should track completed transaction with default operation', () => {
+        window.digitalData.user = {
+          userId: 'user123'
+        };
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          transaction,
+          callback: () => {
+            assert.ok(window.directCrm.calledWith('performOperation', {
+              operation: 'CompletedOrder',
+              identificator: {
+                provider: 'TestWebsiteId',
+                identify: 'user123',
+              },
+              order: {
+                webSiteId: '123',
+                price: 5000,
+                deliveryType: 'Courier',
+                paymentType: 'Visa',
+              },
+              items: [
+                {
+                  productId: '123',
+                  skuId: 'sku123',
+                  quantity: 1,
+                  price: 100,
+                },
+                {
+                  productId: '234',
+                  skuId: 'sku234',
+                  quantity: 2,
+                  price: 150,
+                }
+              ]
+            }));
+          }
+        });
+      });
+
+      it('should track viewed product listing with custom operation', () => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Listing',
+          listing: {
+            categoryId: '123',
+          },
+          integrations: {
+            mindbox: {
+              operation: 'CategoryViewCustom'
+            }
+          },
+          callback: () => {
+            assert.ok(window.directCrm.calledWith('performOperation', {
+              operation: 'CategoryViewCustom',
+              data: {
+                action: {
+                  productCategoryId: '123',
+                },
+              },
+            }));
+          }
+        });
+      });
+
+    });
+
   });
 });

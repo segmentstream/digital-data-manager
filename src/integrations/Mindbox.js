@@ -80,6 +80,7 @@ class Mindbox extends Integration {
   }
 
   prepareEnrichableUserProps() {
+    this.enrichableUserProps = [];
     const userVarsSettings = this.getOption('userVars');
     each(userVarsSettings, (key, variable) => {
       if (variable.type === DIGITALDATA_VAR) {
@@ -131,7 +132,6 @@ class Mindbox extends Integration {
 
   getIdentificator(event, priorityProvider) {
     let identificator;
-
     // identify by userId
     if (this.getOption('userIdProvider')) {
       const userId = getProp(event, 'user.userId');
@@ -185,18 +185,18 @@ class Mindbox extends Integration {
 
   trackEvent(event) {
     const eventMap = {
-      [VIEWED_PRODUCT_DETAIL]: this.onViewedProductDetail,
-      [VIEWED_PRODUCT_LISTING]: this.onViewedProductListing,
-      [ADDED_PRODUCT]: this.onAddedProduct,
-      [REMOVED_PRODUCT]: this.onRemovedProduct,
-      [LOGGED_IN]: this.onLoggedIn,
-      [REGISTERED]: this.onRegistered,
-      [SUBSCRIBED]: this.onSubscribed,
-      [COMPLETED_TRANSACTION]: this.onCompletedTransaction,
+      [VIEWED_PRODUCT_DETAIL]: this.onViewedProductDetail.bind(this),
+      [VIEWED_PRODUCT_LISTING]: this.onViewedProductListing.bind(this),
+      [ADDED_PRODUCT]: this.onAddedProduct.bind(this),
+      [REMOVED_PRODUCT]: this.onRemovedProduct.bind(this),
+      [LOGGED_IN]: this.onLoggedIn.bind(this),
+      [REGISTERED]: this.onRegistered.bind(this),
+      [SUBSCRIBED]: this.onSubscribed.bind(this),
+      [COMPLETED_TRANSACTION]: this.onCompletedTransaction.bind(this),
     };
-
     // get operation name either from email or from integration settings
     const operation = getProp(event, 'integrations.mindbox.operation') || this.getOperationName(event.name);
+
     if (!operation) return;
 
     if (eventMap[event.name]) {
@@ -272,7 +272,7 @@ class Mindbox extends Integration {
         action: cleanObject({
           productId,
           skuId: getProp(event, 'product.skuCode'),
-          quantity: getProp(event, 'quantity'),
+          count: getProp(event, 'quantity'),
           price: getProp(event, 'product.unitSalePrice'),
         }),
       },
@@ -289,7 +289,7 @@ class Mindbox extends Integration {
         action: cleanObject({
           productId,
           skuId: getProp(event, 'product.skuCode'),
-          quantity: getProp(event, 'quantity'),
+          count: getProp(event, 'quantity'),
           price: getProp(event, 'product.unitSalePrice'),
         }),
       },
@@ -315,6 +315,19 @@ class Mindbox extends Integration {
         });
       });
     }
+
+    console.log(cleanObject({
+      operation,
+      identificator,
+      data: this.getUserData(event),
+      order: {
+        webSiteId: orderId,
+        price: getProp(event, 'transaction.total'),
+        deliveryType: getProp(event, 'transaction.shippingMethod'),
+        paymentType: getProp(event, 'transaction.paymentMethod'),
+      },
+      items: mindboxItems,
+    }));
 
     window.directCrm('identify', cleanObject({
       operation,
