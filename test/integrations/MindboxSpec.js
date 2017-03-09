@@ -576,5 +576,34 @@ describe('Integrations: Mindbox', () => {
 
     });
 
+
+    describe('#onLoggedIn', () => {
+
+      beforeEach(() => {
+        mindbox.setOption('operationMapping', {
+          'Logged In': 'EnterWebsite',
+        });
+        window.digitalData.user = {
+          userId: '123'
+        };
+      });
+
+      it('should track authorization with default operation', () => {
+        window.digitalData.events.push({
+          name: 'Logged In',
+          callback: () => {
+            assert.ok(window.directCrm.calledWith('identify', {
+              operation: 'EnterWebsite',
+              identificator: {
+                provider: 'TestWebsiteId',
+                identity: '123'
+              }
+            }));
+          }
+        });
+      });
+
+    });
+
   });
 });

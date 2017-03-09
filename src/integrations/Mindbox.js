@@ -93,9 +93,7 @@ class Mindbox extends Integration {
     let enrichableProps = [];
     switch (event.name) {
     case REGISTERED:
-      enrichableProps = this.getEnrichableUserProps();
-      enrichableProps.push('user.userId');
-      break;
+    case LOGGED_IN:
     case SUBSCRIBED:
       enrichableProps = this.getEnrichableUserProps();
       enrichableProps.push('user.userId');
@@ -230,7 +228,7 @@ class Mindbox extends Integration {
   onSubscribed(event, operation) {
     const identificator = this.getIdentificator(event, PROVIDER_EMAIL);
     if (!identificator) return;
-    
+
     window.directCrm('identify', {
       operation,
       identificator,
