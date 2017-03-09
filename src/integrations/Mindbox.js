@@ -230,7 +230,7 @@ class Mindbox extends Integration {
   onSubscribed(event, operation) {
     const identificator = this.getIdentificator(event, PROVIDER_EMAIL);
     if (!identificator) return;
-
+    
     window.directCrm('identify', {
       operation,
       identificator,
@@ -304,30 +304,17 @@ class Mindbox extends Integration {
     if (!orderId) return;
 
     const lineItems = getProp(event, 'transaction.lineItems');
-    let mindboxItems;
+    let mindboxItems = [];
     if (lineItems && lineItems.length) {
       mindboxItems = lineItems.map((lineItem) => {
         return cleanObject({
           productId: getProp(lineItem, 'product.id'),
           skuId: getProp(lineItem, 'product.skuCode'),
-          quantity: lineItem.quantity || 1,
+          count: lineItem.quantity || 1,
           price: getProp(lineItem, 'product.unitSalePrice'),
         });
       });
     }
-
-    console.log(cleanObject({
-      operation,
-      identificator,
-      data: this.getUserData(event),
-      order: {
-        webSiteId: orderId,
-        price: getProp(event, 'transaction.total'),
-        deliveryType: getProp(event, 'transaction.shippingMethod'),
-        paymentType: getProp(event, 'transaction.paymentMethod'),
-      },
-      items: mindboxItems,
-    }));
 
     window.directCrm('identify', cleanObject({
       operation,

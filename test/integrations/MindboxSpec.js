@@ -329,7 +329,7 @@ describe('Integrations: Mindbox', () => {
           {
             product: {
               id: '123',
-              skuCode: 'sky123',
+              skuCode: 'sku123',
               unitSalePrice: 100
             },
             quantity: 1
@@ -337,7 +337,7 @@ describe('Integrations: Mindbox', () => {
           {
             product: {
               id: '234',
-              skuCode: 'sky234',
+              skuCode: 'sku234',
               unitSalePrice: 150
             },
             quantity: 2
@@ -354,7 +354,7 @@ describe('Integrations: Mindbox', () => {
         });
       });
 
-      it.only('should track completed transaction with default operation', () => {
+      it('should track completed transaction with default operation', () => {
         window.digitalData.user = {
           userId: 'user123'
         };
@@ -362,12 +362,13 @@ describe('Integrations: Mindbox', () => {
           name: 'Completed Transaction',
           transaction,
           callback: () => {
-            assert.ok(window.directCrm.calledWith('performOperation', {
+            assert.ok(window.directCrm.calledWith('identify', {
               operation: 'CompletedOrder',
               identificator: {
                 provider: 'TestWebsiteId',
-                identify: 'user123',
+                identity: 'user123',
               },
+              data: {},
               order: {
                 webSiteId: '123',
                 price: 5000,
@@ -378,13 +379,13 @@ describe('Integrations: Mindbox', () => {
                 {
                   productId: '123',
                   skuId: 'sku123',
-                  quantity: 1,
+                  count: 1,
                   price: 100,
                 },
                 {
                   productId: '234',
                   skuId: 'sku234',
-                  quantity: 2,
+                  count: 2,
                   price: 150,
                 }
               ]
@@ -393,24 +394,180 @@ describe('Integrations: Mindbox', () => {
         });
       });
 
-      it('should track viewed product listing with custom operation', () => {
+      it('should track completed transaction with default custom operation', () => {
+        window.digitalData.user = {
+          userId: 'user123'
+        };
         window.digitalData.events.push({
-          name: 'Viewed Product Listing',
-          listing: {
-            categoryId: '123',
-          },
+          name: 'Completed Transaction',
+          transaction,
           integrations: {
             mindbox: {
-              operation: 'CategoryViewCustom'
+              operation: 'CompletedOrderCustom'
             }
           },
           callback: () => {
-            assert.ok(window.directCrm.calledWith('performOperation', {
-              operation: 'CategoryViewCustom',
-              data: {
-                action: {
-                  productCategoryId: '123',
+            assert.ok(window.directCrm.calledWith('identify', {
+              operation: 'CompletedOrderCustom',
+              identificator: {
+                provider: 'TestWebsiteId',
+                identity: 'user123',
+              },
+              data: {},
+              order: {
+                webSiteId: '123',
+                price: 5000,
+                deliveryType: 'Courier',
+                paymentType: 'Visa',
+              },
+              items: [
+                {
+                  productId: '123',
+                  skuId: 'sku123',
+                  count: 1,
+                  price: 100,
                 },
+                {
+                  productId: '234',
+                  skuId: 'sku234',
+                  count: 2,
+                  price: 150,
+                }
+              ]
+            }));
+          }
+        });
+      });
+
+    });
+
+    describe('#onSubscribed and #onRegistered', () => {
+
+      beforeEach(() => {
+        mindbox.setOption('operationMapping', {
+          'Subscribed': 'EmailSubscribe',
+          'Registered': 'Registration',
+        });
+        mindbox.setOption('userVars', {
+          'email': {
+            type: 'digitalData',
+            value: 'user.email'
+          },
+          'firstName': {
+            type: 'digitalData',
+            value: 'user.firstName'
+          },
+          'lastName': {
+            type: 'digitalData',
+            value: 'user.lastName'
+          },
+        });
+      });
+
+      it('should track subscription with default operation', () => {
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          user: {
+            email: 'test@driveback.ru',
+            firstName: 'John',
+            lastName: 'Dow',
+          },
+          callback: () => {
+            assert.ok(window.directCrm.calledWith('identify', {
+              operation: 'EmailSubscribe',
+              identificator: {
+                provider: 'email',
+                identity: 'test@driveback.ru'
+              },
+              data: {
+                email: 'test@driveback.ru',
+                firstName: 'John',
+                lastName: 'Dow',
+              },
+            }));
+          }
+        });
+      });
+
+      it('should track subscription with custom operation', () => {
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          user: {
+            email: 'test@driveback.ru',
+            firstName: 'John',
+            lastName: 'Dow',
+          },
+          integrations: {
+            mindbox: {
+              operation: 'EmailSubscribeCustom'
+            }
+          },
+          callback: () => {
+            assert.ok(window.directCrm.calledWith('identify', {
+              operation: 'EmailSubscribeCustom',
+              identificator: {
+                provider: 'email',
+                identity: 'test@driveback.ru'
+              },
+              data: {
+                email: 'test@driveback.ru',
+                firstName: 'John',
+                lastName: 'Dow',
+              },
+            }));
+          }
+        });
+      });
+
+      it('should track registration with default operation', () => {
+        window.digitalData.events.push({
+          name: 'Registered',
+          user: {
+            email: 'test@driveback.ru',
+            firstName: 'John',
+            lastName: 'Dow',
+          },
+          callback: () => {
+            assert.ok(window.directCrm.calledWith('identify', {
+              operation: 'Registration',
+              identificator: {
+                provider: 'email',
+                identity: 'test@driveback.ru'
+              },
+              data: {
+                email: 'test@driveback.ru',
+                firstName: 'John',
+                lastName: 'Dow',
+              },
+            }));
+          }
+        });
+      });
+
+      it('should track registration with custom operation', () => {
+        window.digitalData.events.push({
+          name: 'Registered',
+          user: {
+            email: 'test@driveback.ru',
+            firstName: 'John',
+            lastName: 'Dow',
+          },
+          integrations: {
+            mindbox: {
+              operation: 'RegistrationCustom'
+            }
+          },
+          callback: () => {
+            assert.ok(window.directCrm.calledWith('identify', {
+              operation: 'RegistrationCustom',
+              identificator: {
+                provider: 'email',
+                identity: 'test@driveback.ru'
+              },
+              data: {
+                email: 'test@driveback.ru',
+                firstName: 'John',
+                lastName: 'Dow',
               },
             }));
           }
