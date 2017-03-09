@@ -157,6 +157,13 @@ class OneSignal extends Integration {
       clickListenerWorkaround(); // temporary fix of notify bell click listener
     }
 
+    if (this.getOption('path') && this.getOption('path') !== '/') {
+      window.OneSignal.push(function() {
+        // This registers the workers at the root scope, which is allowed by the HTTP header "Service-Worker-Allowed: /"
+        window.OneSignal.SERVICE_WORKER_PARAM = { scope: '/' };
+      });
+    }
+
     window.OneSignal.push(['init', {
       appId: this.getOption('appId'),
       autoRegister: this.getOption('autoRegister'),
