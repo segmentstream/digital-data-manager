@@ -115,7 +115,7 @@ export class Integration extends EventEmitter
     async.nextTick(onLoad);
   }
 
-  load(tagName, callback) {
+  load(tagName, params, callback) {
     setTimeout(() => {
       const callbackCalled = false;
       const safeCallback = () => {
@@ -135,7 +135,9 @@ export class Integration extends EventEmitter
       }, 500);
 
       // Argument shuffling
-      if (typeof tagName === 'function') { callback = tagName; tagName = null; }
+      if (typeof tagName === 'function') { callback = tagName; params = null, tagName = null; }
+      if (tagName && typeof tagName === 'object') { callback = params; params = tagName; tagName = null; }
+      if (typeof params === 'function') { callback = params; params = null; }
 
       // Default arguments
       tagName = tagName || 'library';
@@ -146,6 +148,15 @@ export class Integration extends EventEmitter
 
       let el;
       const attr = tag.attr;
+
+      if (params) {
+        each(attr, (attrKey, attrVal) => {
+          attr[attrKey] = attrVal.replace(/\{\{\ *(\w+)\ *\}\}/g, function(_, $1) {
+            return params[$1];
+          });
+        });
+      }
+
       switch (tag.type) {
       case 'img':
         attr.width = 1;
