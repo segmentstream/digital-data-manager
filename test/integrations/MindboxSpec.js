@@ -383,7 +383,7 @@ describe('Integrations: Mindbox', () => {
                     productId: '234',
                     skuId: 'sku234',
                     count: 2,
-                    price: 300,
+                    price: 150,
                   }
                 ]
               },
@@ -429,7 +429,7 @@ describe('Integrations: Mindbox', () => {
                     productId: '234',
                     skuId: 'sku234',
                     count: 2,
-                    price: 300,
+                    price: 150,
                   }
                 ]
               },

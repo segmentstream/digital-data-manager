@@ -315,12 +315,11 @@ class Mindbox extends Integration {
     let mindboxItems = [];
     if (lineItems && lineItems.length) {
       mindboxItems = lineItems.map((lineItem) => {
-        const quantity = lineItem.quantity || 1;
         return cleanObject({
           productId: getProp(lineItem, 'product.id'),
           skuId: getProp(lineItem, 'product.skuCode'),
-          count: quantity,
-          price: lineItem.subtotal || getProp(lineItem, 'product.unitSalePrice') * quantity,
+          count: lineItem.quantity || 1,
+          price: getProp(lineItem, 'product.unitSalePrice'),
         });
       });
     }
