@@ -35,7 +35,7 @@ const integrations = {
   'OneSignal': OneSignal,
   'Sociomantic': Sociomantic,
   'Admitad': Admitad,
-  'DoubleClick Floodlight': DoubleClickFloodlight
+  'DoubleClick Floodlight': DoubleClickFloodlight,
 };
 
 export default integrations;

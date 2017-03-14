@@ -1,15 +1,17 @@
-import Integration from './../Integration';
-import arrayMerge from './../functions/arrayMerge';
+import {
+  Integration,
+  getEnrichableVariableMappingProps,
+  extractVariableMappingValues,
+} from './../Integration';
 import queryString from './../functions/queryString';
-import { getProp } from './../functions/dotProp';
+import cleanObject from './../functions/cleanObject';
 import { COMPLETED_TRANSACTION } from './events';
 
 class DoubleClickFloodlight extends Integration {
 
   constructor(digitalData, options) {
-    normalizeOptions(options);
     const optionsWithDefaults = Object.assign({
-      advertiserId : '',
+      advertiserId: '',
       eventTags: {},
       /* example:
       eventTags: {
@@ -38,7 +40,7 @@ class DoubleClickFloodlight extends Integration {
     for (const tagEvent of this.tagEvents) {
       const tagOptions = this.getOption('eventTags')[tagEvent];
       if (tagOptions) {
-        this.enrichableEventProps[tagEvent] = getEnrichableVariableMappingProps(tagOptions.customVars));
+        this.enrichableEventProps[tagEvent] = getEnrichableVariableMappingProps(tagOptions.customVars);
         this.SEMANTIC_EVENTS.push(tagEvent);
       }
     }
@@ -61,8 +63,8 @@ class DoubleClickFloodlight extends Integration {
   }
 
   getEnrichableEventProps(event) {
-    if (enrichableEventProps[tagEvent]) {
-      return enrichableEventProps[tagEvent];
+    if (this.enrichableEventProps[event.name]) {
+      return this.enrichableEventProps[event.name];
     }
     return [];
   }
@@ -78,17 +80,16 @@ class DoubleClickFloodlight extends Integration {
       const customVariables = extractVariableMappingValues(event, tagEvents[event.name].customVars);
       const customVariablesStr = queryString.stringify(customVariables).replace(/&/g, ';');
 
-      let commonTagParams = {
+      const commonTagParams = {
         src: this.getOption('advertiserId'),
         type: tagOptions.groupTag,
         cat: tagOptions.activityTag,
-        ord: orderId,
         customVariables: customVariablesStr,
       };
       let tagParams;
 
       if (event.name === COMPLETED_TRANSACTION) {
-        tagParams = this.getSaleTagParams(transaction);
+        tagParams = this.getSaleTagParams(event.transaction);
       } else {
         tagParams = this.getCustomEventTagParams();
       }
@@ -106,19 +107,18 @@ class DoubleClickFloodlight extends Integration {
       return cleanObject({
         ord: transaction.orderId,
         cost: transaction.total,
-        qty: (hasLineItems) ? lineItems.reduce(function(acc, lineItem) {
+        qty: (hasLineItems) ? lineItems.reduce(function countLineItemsQuantity(acc, lineItem) {
           return acc + lineItem.quantity || 1;
-        }, 0);
+        }, 0) : undefined,
       });
-    } else {
-      return this.getCustomEventTagParams();
     }
+    return this.getCustomEventTagParams();
   }
 
-  getCustomEventTagParams(tagParams) {
+  getCustomEventTagParams() {
     return {
-      ord: Math.random() * 10000000000000000000;
-    }
+      ord: Math.random() * 10000000000000000000,
+    };
   }
 }
 

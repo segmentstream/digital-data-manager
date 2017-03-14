@@ -135,9 +135,20 @@ export class Integration extends EventEmitter
       }, 500);
 
       // Argument shuffling
-      if (typeof tagName === 'function') { callback = tagName; params = null, tagName = null; }
-      if (tagName && typeof tagName === 'object') { callback = params; params = tagName; tagName = null; }
-      if (typeof params === 'function') { callback = params; params = null; }
+      if (typeof tagName === 'function') {
+        callback = tagName;
+        params = null;
+        tagName = null;
+      }
+      if (tagName && typeof tagName === 'object') {
+        callback = params;
+        params = tagName;
+        tagName = null;
+      }
+      if (typeof params === 'function') {
+        callback = params;
+        params = null;
+      }
 
       // Default arguments
       tagName = tagName || 'library';
@@ -151,7 +162,7 @@ export class Integration extends EventEmitter
 
       if (params) {
         each(attr, (attrKey, attrVal) => {
-          attr[attrKey] = attrVal.replace(/\{\{\ *(\w+)\ *\}\}/g, function(_, $1) {
+          attr[attrKey] = attrVal.replace(/\{\{\ *(\w+)\ *\}\}/g, (_, $1) => {
             return params[$1];
           });
         });
