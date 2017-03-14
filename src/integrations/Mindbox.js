@@ -48,24 +48,23 @@ class Mindbox extends Integration {
     this.addTag({
       type: 'script',
       attr: {
-        id: 'directCrm',
-        src: `//tracker.directcrm.ru/scripts/v1/tracker.js?v=${Math.random()}`,
+        id: 'mindbox',
+        src: '//api.mindbox.ru/scripts/v1/tracker.js',
       },
     });
   }
 
   initialize() {
-    window.directCrm = window.directCrm || function directCrmStub() {
-      window.directCrm.Queue = window.directCrm.Queue || [];
-      window.directCrm.Queue.push(arguments);
+    window.mindbox = window.mindbox || function mindboxStub() {
+      window.mindbox.queue.push(arguments);
     };
+    window.mindbox.queue = window.mindbox.queue || [];
 
-    window.directCrm('create', {
+    window.mindbox('create', {
       projectSystemName: this.getOption('projectSystemName'),
       brandSystemName: this.getOption('brandSystemName'),
       pointOfContactSystemName: this.getOption('pointOfContactSystemName'),
       projectDomain: this.getOption('projectDomain'),
-      serviceDomain: 'tracker.directcrm.ru',
     });
 
     this.load(this.onLoad);
@@ -208,7 +207,7 @@ class Mindbox extends Integration {
     const identificator = this.getIdentificator(event);
     if (!identificator) return;
 
-    window.directCrm('identify', {
+    window.mindbox('identify', {
       operation,
       identificator,
     });
@@ -218,7 +217,7 @@ class Mindbox extends Integration {
     const identificator = this.getIdentificator(event);
     if (!identificator) return;
 
-    window.directCrm('identify', {
+    window.mindbox('identify', {
       operation,
       identificator,
       data: cleanObject(this.getUserData(event)),
@@ -229,10 +228,18 @@ class Mindbox extends Integration {
     const identificator = this.getIdentificator(event, PROVIDER_EMAIL);
     if (!identificator) return;
 
-    window.directCrm('identify', {
+    const data = cleanObject(this.getUserData(event));
+    data.subscriptions = [
+      {
+        isSubscribed: true,
+        valueByDefault: true,
+      },
+    ];
+
+    window.mindbox('identify', {
       operation,
       identificator,
-      data: cleanObject(this.getUserData(event)),
+      data,
     });
   }
 
@@ -240,7 +247,7 @@ class Mindbox extends Integration {
     const productId = getProp(event, 'product.id');
     if (!productId) return;
 
-    window.directCrm('performOperation', {
+    window.mindbox('performOperation', {
       operation,
       data: {
         action: { productId },
@@ -252,7 +259,7 @@ class Mindbox extends Integration {
     const productCategoryId = getProp(event, 'listing.categoryId');
     if (!productCategoryId) return;
 
-    window.directCrm('performOperation', {
+    window.mindbox('performOperation', {
       operation,
       data: {
         action: { productCategoryId },
@@ -264,14 +271,15 @@ class Mindbox extends Integration {
     const productId = getProp(event, 'product.id');
     if (!productId) return;
 
-    window.directCrm('performOperation', {
+    const quantity = event.quantity || 1;
+    window.mindbox('performOperation', {
       operation,
       data: {
         action: cleanObject({
           productId,
           skuId: getProp(event, 'product.skuCode'),
-          count: getProp(event, 'quantity'),
-          price: getProp(event, 'product.unitSalePrice'),
+          count: quantity,
+          price: getProp(event, 'product.unitSalePrice') * quantity,
         }),
       },
     });
@@ -281,14 +289,16 @@ class Mindbox extends Integration {
     const productId = getProp(event, 'product.id');
     if (!productId) return;
 
-    window.directCrm('performOperation', {
+    const quantity = event.quantity || 1;
+
+    window.mindbox('performOperation', {
       operation,
       data: {
         action: cleanObject({
           productId,
           skuId: getProp(event, 'product.skuCode'),
-          count: getProp(event, 'quantity'),
-          price: getProp(event, 'product.unitSalePrice'),
+          count: quantity,
+          price: getProp(event, 'product.unitSalePrice') * quantity,
         }),
       },
     });
@@ -305,26 +315,29 @@ class Mindbox extends Integration {
     let mindboxItems = [];
     if (lineItems && lineItems.length) {
       mindboxItems = lineItems.map((lineItem) => {
+        const quantity = lineItem.quantity || 1;
         return cleanObject({
           productId: getProp(lineItem, 'product.id'),
           skuId: getProp(lineItem, 'product.skuCode'),
-          count: lineItem.quantity || 1,
-          price: getProp(lineItem, 'product.unitSalePrice'),
+          count: quantity,
+          price: lineItem.subtotal || getProp(lineItem, 'product.unitSalePrice') * quantity,
         });
       });
     }
 
-    window.directCrm('identify', cleanObject({
+    const data = this.getUserData(event);
+    data.order = {
+      webSiteId: orderId,
+      price: getProp(event, 'transaction.total'),
+      deliveryType: getProp(event, 'transaction.shippingMethod'),
+      paymentType: getProp(event, 'transaction.paymentMethod'),
+    };
+    data.items = mindboxItems;
+
+    window.mindbox('identify', cleanObject({
       operation,
       identificator,
-      data: this.getUserData(event),
-      order: {
-        webSiteId: orderId,
-        price: getProp(event, 'transaction.total'),
-        deliveryType: getProp(event, 'transaction.shippingMethod'),
-        paymentType: getProp(event, 'transaction.paymentMethod'),
-      },
-      items: mindboxItems,
+      data,
     }));
   }
 
@@ -335,7 +348,7 @@ class Mindbox extends Integration {
       identificator = this.getIdentificator(event);
       data = this.getUserData(event);
     }
-    window.directCrm('performOperation', cleanObject({
+    window.mindbox('performOperation', cleanObject({
       operation,
       identificator,
       data,

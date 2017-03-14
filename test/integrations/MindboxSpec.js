@@ -8,11 +8,10 @@ import noop from './../../src/functions/noop';
 describe('Integrations: Mindbox', () => {
   let mindbox;
   const options = {
-    serviceDomain: 'Test',
     projectSystemName: 'Test',
     brandSystemName: 'drivebackru',
-    pointOfContactSystemName: 'test-services.directcrm.ru',
-    projectDomain: 'tracker.directcrm.ru',
+    pointOfContactSystemName: 'test-services.mindbox.ru',
+    projectDomain: 'test.com',
     userIdProvider: 'TestWebsiteId',
   };
 
@@ -40,7 +39,6 @@ describe('Integrations: Mindbox', () => {
   describe('before loading', () => {
     describe('#constructor', () => {
       it('should add options', () => {
-        assert.equal(options.serviceDomain, mindbox.getOption('serviceDomain'));
         assert.equal(options.projectSystemName, mindbox.getOption('projectSystemName'));
         assert.equal(options.brandSystemName, mindbox.getOption('brandSystemName'));
         assert.equal(options.pointOfContactSystemName, mindbox.getOption('pointOfContactSystemName'));
@@ -51,20 +49,19 @@ describe('Integrations: Mindbox', () => {
     describe('#initialize', () => {
       it('should preapre stubs', () => {
         ddManager.initialize();
-        assert.ok(typeof window.directCrm === 'function');
-        assert.ok(window.directCrm.Queue);
+        assert.ok(typeof window.mindbox === 'function');
+        assert.ok(window.mindbox.queue);
       });
 
       it('should create tracker', () => {
-        window.directCrm = noop;
-        sinon.stub(window, 'directCrm');
+        window.mindbox = noop;
+        sinon.stub(window, 'mindbox');
         ddManager.initialize();
-        assert.ok(window.directCrm.calledWith('create', {
+        assert.ok(window.mindbox.calledWith('create', {
           projectSystemName: mindbox.getOption('projectSystemName'),
           brandSystemName: mindbox.getOption('brandSystemName'),
           pointOfContactSystemName: mindbox.getOption('pointOfContactSystemName'),
           projectDomain: mindbox.getOption('projectDomain'),
-          serviceDomain: 'tracker.directcrm.ru',
         }));
       });
     });
@@ -75,11 +72,11 @@ describe('Integrations: Mindbox', () => {
       ddManager.once('ready', done);
       ddManager.initialize();
 
-      sinon.spy(window, 'directCrm');
+      sinon.spy(window, 'mindbox');
     });
 
     afterEach(() => {
-      window.directCrm.restore();
+      window.mindbox.restore();
     });
 
     describe('#onViewedProductDetail', () => {
@@ -97,7 +94,7 @@ describe('Integrations: Mindbox', () => {
             id: '123'
           },
           callback: () => {
-            assert.ok(window.directCrm.calledWith('performOperation', {
+            assert.ok(window.mindbox.calledWith('performOperation', {
               operation: 'ViewProduct',
               data: {
                 action: {
@@ -121,7 +118,7 @@ describe('Integrations: Mindbox', () => {
             }
           },
           callback: () => {
-            assert.ok(window.directCrm.calledWith('performOperation', {
+            assert.ok(window.mindbox.calledWith('performOperation', {
               operation: 'ViewedProductCustom',
               data: {
                 action: {
@@ -154,14 +151,14 @@ describe('Integrations: Mindbox', () => {
           },
           quantity: 5,
           callback: () => {
-            assert.ok(window.directCrm.calledWith('performOperation', {
+            assert.ok(window.mindbox.calledWith('performOperation', {
               operation: 'AddProduct',
               data: {
                 action: {
                   productId: '123',
                   skuId: 'sku123',
                   count: 5,
-                  price: 2500,
+                  price: 12500,
                 },
               },
             }));
@@ -184,14 +181,14 @@ describe('Integrations: Mindbox', () => {
             }
           },
           callback: () => {
-            assert.ok(window.directCrm.calledWith('performOperation', {
+            assert.ok(window.mindbox.calledWith('performOperation', {
               operation: 'AddProductCustom',
               data: {
                 action: {
                   productId: '123',
                   skuId: 'sku123',
                   count: 5,
-                  price: 2500,
+                  price: 12500,
                 },
               },
             }));
@@ -217,7 +214,7 @@ describe('Integrations: Mindbox', () => {
             categoryId: '123',
           },
           callback: () => {
-            assert.ok(window.directCrm.calledWith('performOperation', {
+            assert.ok(window.mindbox.calledWith('performOperation', {
               operation: 'CategoryView',
               data: {
                 action: {
@@ -241,7 +238,7 @@ describe('Integrations: Mindbox', () => {
             }
           },
           callback: () => {
-            assert.ok(window.directCrm.calledWith('performOperation', {
+            assert.ok(window.mindbox.calledWith('performOperation', {
               operation: 'CategoryViewCustom',
               data: {
                 action: {
@@ -274,14 +271,14 @@ describe('Integrations: Mindbox', () => {
           },
           quantity: 5,
           callback: () => {
-            assert.ok(window.directCrm.calledWith('performOperation', {
+            assert.ok(window.mindbox.calledWith('performOperation', {
               operation: 'RemoveProduct',
               data: {
                 action: {
                   productId: '123',
                   skuId: 'sku123',
                   count: 5,
-                  price: 2500,
+                  price: 12500,
                 },
               },
             }));
@@ -304,14 +301,14 @@ describe('Integrations: Mindbox', () => {
             }
           },
           callback: () => {
-            assert.ok(window.directCrm.calledWith('performOperation', {
+            assert.ok(window.mindbox.calledWith('performOperation', {
               operation: 'AddProductCustom',
               data: {
                 action: {
                   productId: '123',
                   skuId: 'sku123',
                   count: 5,
-                  price: 2500,
+                  price: 12500,
                 },
               },
             }));
@@ -362,33 +359,34 @@ describe('Integrations: Mindbox', () => {
           name: 'Completed Transaction',
           transaction,
           callback: () => {
-            assert.ok(window.directCrm.calledWith('identify', {
+            assert.ok(window.mindbox.calledWith('identify', {
               operation: 'CompletedOrder',
               identificator: {
                 provider: 'TestWebsiteId',
                 identity: 'user123',
               },
-              data: {},
-              order: {
-                webSiteId: '123',
-                price: 5000,
-                deliveryType: 'Courier',
-                paymentType: 'Visa',
-              },
-              items: [
-                {
-                  productId: '123',
-                  skuId: 'sku123',
-                  count: 1,
-                  price: 100,
+              data: {
+                order: {
+                  webSiteId: '123',
+                  price: 5000,
+                  deliveryType: 'Courier',
+                  paymentType: 'Visa',
                 },
-                {
-                  productId: '234',
-                  skuId: 'sku234',
-                  count: 2,
-                  price: 150,
-                }
-              ]
+                items: [
+                  {
+                    productId: '123',
+                    skuId: 'sku123',
+                    count: 1,
+                    price: 100,
+                  },
+                  {
+                    productId: '234',
+                    skuId: 'sku234',
+                    count: 2,
+                    price: 300,
+                  }
+                ]
+              },
             }));
           }
         });
@@ -407,33 +405,34 @@ describe('Integrations: Mindbox', () => {
             }
           },
           callback: () => {
-            assert.ok(window.directCrm.calledWith('identify', {
+            assert.ok(window.mindbox.calledWith('identify', {
               operation: 'CompletedOrderCustom',
               identificator: {
                 provider: 'TestWebsiteId',
                 identity: 'user123',
               },
-              data: {},
-              order: {
-                webSiteId: '123',
-                price: 5000,
-                deliveryType: 'Courier',
-                paymentType: 'Visa',
-              },
-              items: [
-                {
-                  productId: '123',
-                  skuId: 'sku123',
-                  count: 1,
-                  price: 100,
+              data: {
+                order: {
+                  webSiteId: '123',
+                  price: 5000,
+                  deliveryType: 'Courier',
+                  paymentType: 'Visa',
                 },
-                {
-                  productId: '234',
-                  skuId: 'sku234',
-                  count: 2,
-                  price: 150,
-                }
-              ]
+                items: [
+                  {
+                    productId: '123',
+                    skuId: 'sku123',
+                    count: 1,
+                    price: 100,
+                  },
+                  {
+                    productId: '234',
+                    skuId: 'sku234',
+                    count: 2,
+                    price: 300,
+                  }
+                ]
+              },
             }));
           }
         });
@@ -473,7 +472,7 @@ describe('Integrations: Mindbox', () => {
             lastName: 'Dow',
           },
           callback: () => {
-            assert.ok(window.directCrm.calledWith('identify', {
+            assert.ok(window.mindbox.calledWith('identify', {
               operation: 'EmailSubscribe',
               identificator: {
                 provider: 'email',
@@ -483,6 +482,12 @@ describe('Integrations: Mindbox', () => {
                 email: 'test@driveback.ru',
                 firstName: 'John',
                 lastName: 'Dow',
+                subscriptions: [
+                  {
+                    isSubscribed: true,
+                    valueByDefault: true,
+                  },
+                ]
               },
             }));
           }
@@ -503,7 +508,7 @@ describe('Integrations: Mindbox', () => {
             }
           },
           callback: () => {
-            assert.ok(window.directCrm.calledWith('identify', {
+            assert.ok(window.mindbox.calledWith('identify', {
               operation: 'EmailSubscribeCustom',
               identificator: {
                 provider: 'email',
@@ -513,6 +518,12 @@ describe('Integrations: Mindbox', () => {
                 email: 'test@driveback.ru',
                 firstName: 'John',
                 lastName: 'Dow',
+                subscriptions: [
+                  {
+                    isSubscribed: true,
+                    valueByDefault: true,
+                  },
+                ]
               },
             }));
           }
@@ -528,7 +539,7 @@ describe('Integrations: Mindbox', () => {
             lastName: 'Dow',
           },
           callback: () => {
-            assert.ok(window.directCrm.calledWith('identify', {
+            assert.ok(window.mindbox.calledWith('identify', {
               operation: 'Registration',
               identificator: {
                 provider: 'email',
@@ -558,7 +569,7 @@ describe('Integrations: Mindbox', () => {
             }
           },
           callback: () => {
-            assert.ok(window.directCrm.calledWith('identify', {
+            assert.ok(window.mindbox.calledWith('identify', {
               operation: 'RegistrationCustom',
               identificator: {
                 provider: 'email',
@@ -592,7 +603,7 @@ describe('Integrations: Mindbox', () => {
         window.digitalData.events.push({
           name: 'Logged In',
           callback: () => {
-            assert.ok(window.directCrm.calledWith('identify', {
+            assert.ok(window.mindbox.calledWith('identify', {
               operation: 'EnterWebsite',
               identificator: {
                 provider: 'TestWebsiteId',
