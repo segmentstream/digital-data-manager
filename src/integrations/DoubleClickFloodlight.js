@@ -5,7 +5,7 @@ import {
 } from './../Integration';
 import queryString from './../functions/queryString';
 import cleanObject from './../functions/cleanObject';
-import { COMPLETED_TRANSACTION } from './events';
+import { COMPLETED_TRANSACTION } from './../events';
 
 class DoubleClickFloodlight extends Integration {
 

@@ -51,43 +51,39 @@ describe('Integrations: DoubleClick Floodlight', () => {
       events: []
     };
     doubleClick = new DoubleClickFloodlight(window.digitalData, options);
-    ddManager.addIntegration('DoubleClick Floodlight', criteo);
+    ddManager.addIntegration('DoubleClick Floodlight', doubleClick);
   });
 
   afterEach(() => {
-    criteo.reset();
+    doubleClick.reset();
     ddManager.reset();
     reset();
   });
 
   describe('before loading', () => {
     beforeEach(function () {
-      sinon.stub(criteo, 'load');
+      sinon.stub(doubleClick, 'load');
     });
 
     afterEach(function () {
-      criteo.load.restore();
+      doubleClick.load.restore();
     });
 
     describe('#constructor', () => {
-      it('should add proper tags and options', () => {
-        assert.equal(options.account, criteo.getOption('account'));
-        assert.equal(undefined, criteo.getOption('deduplication'));
-        assert.equal('script', criteo.getTag().type);
-        assert.equal(criteo.getTag().attr.src, '//static.criteo.net/js/ld/ld.js');
+      it.only('should add proper options', () => {
+        assert.equal(options.advertiserId, doubleClick.getOption('advertiserId'));
       });
     });
 
     describe('#initialize', () => {
       it('should initialize criteo queue object', () => {
         ddManager.initialize();
-        assert.ok(window.criteo_q);
-        assert.ok(window.criteo_q.push);
+        assert.ok(doubleClick.isLoaded());
       });
 
-      it('should call tags load after initialization', () => {
+      it('should not load any tags load after initialization', () => {
         ddManager.initialize();
-        assert.ok(criteo.load.calledOnce);
+        assert.ok(!doubleClick.load.calledOnce);
       });
     });
   });
