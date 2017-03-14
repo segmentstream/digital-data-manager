@@ -16,6 +16,7 @@ import OneSignal from './integrations/OneSignal';
 import Sociomantic from './integrations/Sociomantic';
 import Admitad from './integrations/Admitad';
 import Mindbox from './integrations/Mindbox.js';
+import DoubleClickFloodlight from './integrations/DoubleClickFloodlight';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -36,6 +37,7 @@ const integrations = {
   'Sociomantic': Sociomantic,
   'Admitad': Admitad,
   'Mindbox': Mindbox,
+  'DoubleClick Floodlight': DoubleClickFloodlight,
 };
 
 export default integrations;
