@@ -1,9 +1,8 @@
 import assert from 'assert';
 import sinon from 'sinon';
-import reset from './../reset.js';
-import DoubleClickFloodlight from './../../src/integrations/DoubleClickFloodlight.js';
-import ddManager from './../../src/ddManager.js';
-
+import reset from './../reset';
+import DoubleClickFloodlight from './../../src/integrations/DoubleClickFloodlight';
+import ddManager from './../../src/ddManager';
 
 describe('Integrations: DoubleClick Floodlight', () => {
   let doubleClick;
@@ -70,7 +69,7 @@ describe('Integrations: DoubleClick Floodlight', () => {
     });
 
     describe('#constructor', () => {
-      it.only('should add proper options', () => {
+      it('should add proper options', () => {
         assert.equal(options.advertiserId, doubleClick.getOption('advertiserId'));
       });
     });
@@ -89,37 +88,9 @@ describe('Integrations: DoubleClick Floodlight', () => {
   });
 
 
-  describe('loading', function () {
-    beforeEach(() => {
-      sinon.stub(criteo, 'load', () => {
-        window.criteo_q = {
-          push: function() {}
-        };
-        criteo.onLoad();
-      });
-    });
-
-    afterEach(() => {
-      criteo.load.restore();
-    });
-
-    it('should load', function (done) {
-      assert.ok(!criteo.isLoaded());
-      ddManager.once('load', () => {
-        assert.ok(criteo.isLoaded());
-        done();
-      });
-      ddManager.initialize({
-        sendViewedPageEvent: false,
-      });
-    });
-  });
-
   describe('after loading', () => {
     beforeEach((done) => {
-      sinon.stub(criteo, 'load', () => {
-        setTimeout(criteo.onLoad, 0);
-      });
+      sinon.stub(doubleClick, 'load');
       ddManager.once('ready', () => {
         done();
       });
@@ -128,92 +99,60 @@ describe('Integrations: DoubleClick Floodlight', () => {
       });
     });
 
-    afterEach(function () {
-      criteo.load.restore();
+    describe('#Custom Event', () => {
+      it('should track custom event', (done) => {
+        window.digitalData.events.push({
+          name: 'Custom Event',
+          testParam: 'testVal',
+          callback: () => {
+            doubleClick.load.calledWith({
+              src: 123123,
+              type: 'customGroup',
+              cat: 'customActivity',
+              ord: sinon.match.number,
+              customVariables: 'u1=user123;u2=testVal'
+            });
+            done();
+          }
+        });
+      });
     });
 
-    describe('#Viewed Page', () => {
-
-      it('should define account id', (done) => {
-        viewedPage({}, () => {
-          assert.deepEqual(window.criteo_q[0][0], { event: 'setAccount', account: options.account });
-          done();
-        });
-      });
-
-      it('should define "d" site type if other option is not specified', (done) => {
-        viewedPage({}, () => {
-          assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "d" });
-          done();
-        });
-      });
-
-      it('should define "d" site type if website.type is not one of: "desktop", "tablet" or "mobile"', (done) => {
-        viewedPage({
-          website: {
-            type: "test"
+    describe('#Completed Transaction', () => {
+      it('should track sale', (done) => {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          transaction: {
+            orderId: 'order123',
+            lineItems: [
+              {
+                product: {
+                  id: '123'
+                },
+                quantity: 1
+              },
+              {
+                product: {
+                  id: '234'
+                },
+                quantity: 2
+              },
+            ],
+            total: 10000
+          },
+          testParam: 'testVal',
+          callback: () => {
+            doubleClick.load.calledWith({
+              src: 123123,
+              type: 'customGroup',
+              cat: 'customActivity',
+              ord: 'order123',
+              qty: 3,
+              cost: 10000,
+              customVariables: 'u1=user123;u2=testVal'
+            });
+            done();
           }
-        }, () => {
-          assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "d" });
-          done();
-        });
-      });
-
-      it('should define "d" site type if digitalData.website.type is "desktop"', (done) => {
-        viewedPage({
-          website: {
-            type: "desktop"
-          }
-        }, () => {
-          assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "d" });
-          done();
-        });
-      });
-
-      it('should define "t" site type if digitalData.website.type is "tablet"', (done) => {
-        viewedPage({
-          website: {
-            type: "tablet"
-          }
-        }, () => {
-          assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "t" });
-          done();
-        });
-      });
-
-      it('should define "m" site type if digitalData.website.type is "mobile"', (done) => {
-        viewedPage({
-          website: {
-            type: "mobile"
-          }
-        }, () => {
-          assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "m" });
-          done();
-        });
-      });
-
-      it('should set email if digitalData.user.email is defined', (done) => {
-        viewedPage({
-          user: {
-            email: 'test@driveback.ru'
-          }
-        }, () => {
-          assert.deepEqual(window.criteo_q[0][2], { event: 'setEmail', email: 'test@driveback.ru' });
-          done();
-        });
-      });
-
-      it('should set email and website type from digitalData', (done) => {
-        window.digitalData.website = {
-          type: 'mobile'
-        };
-        window.digitalData.user = {
-          email: 'test@driveback.ru'
-        }
-        viewedPage({}, () => {
-          assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "m" });
-          assert.deepEqual(window.criteo_q[0][2], { event: 'setEmail', email: 'test@driveback.ru' });
-          done();
         });
       });
     });

@@ -3,7 +3,7 @@ import {
   getEnrichableVariableMappingProps,
   extractVariableMappingValues,
 } from './../Integration';
-import queryString from './../functions/queryString';
+import { stringify } from './../functions/queryString';
 import cleanObject from './../functions/cleanObject';
 import { COMPLETED_TRANSACTION } from './../events';
 
@@ -48,7 +48,7 @@ class DoubleClickFloodlight extends Integration {
     this.addTag({
       type: 'img',
       attr: {
-        src: `//ad.doubleclick.net/activity;src={{ src }};type={{ type }};cat={{ cat }};ord={{ ord }}{{ customVariables }}?`,
+        src: `//ad.doubleclick.net/activity;src={{ src }};type={{ type }};cat={{ cat }};ord={{ ord }};{{ customVariables }}?`,
       },
     });
   }
@@ -74,11 +74,12 @@ class DoubleClickFloodlight extends Integration {
   }
 
   trackEvent(event) {
-    const tagEvents = this.getOption('tagEvents');
-    const tagOptions = tagEvents[event.name];
+    const eventTags = this.getOption('eventTags');
+    const tagOptions = eventTags[event.name];
+
     if (tagOptions) {
-      const customVariables = extractVariableMappingValues(event, tagEvents[event.name].customVars);
-      const customVariablesStr = queryString.stringify(customVariables).replace(/&/g, ';');
+      const customVariables = extractVariableMappingValues(event, eventTags[event.name].customVars);
+      const customVariablesStr = stringify(customVariables).replace(/&/g, ';');
 
       const commonTagParams = {
         src: this.getOption('advertiserId'),
@@ -93,7 +94,6 @@ class DoubleClickFloodlight extends Integration {
       } else {
         tagParams = this.getCustomEventTagParams();
       }
-
       tagParams = Object.assign(commonTagParams, tagParams);
 
       this.load(tagParams);
@@ -106,7 +106,7 @@ class DoubleClickFloodlight extends Integration {
       const hasLineItems = lineItems && Array.isArray(lineItems);
       return cleanObject({
         ord: transaction.orderId,
-        cost: transaction.total,
+        cost: transaction.total || transaction.subtotal,
         qty: (hasLineItems) ? lineItems.reduce(function countLineItemsQuantity(acc, lineItem) {
           return acc + lineItem.quantity || 1;
         }, 0) : undefined,

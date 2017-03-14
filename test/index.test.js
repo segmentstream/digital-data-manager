@@ -27,3 +27,4 @@ import './integrations/VkontakteSpec.js';
 import './integrations/EmarsysSpec.js';
 import './integrations/OneSignalSpec.js';
 import './integrations/SociomanticSpec.js';
+import './integrations/DoubleClickFloodlightSpec.js';
