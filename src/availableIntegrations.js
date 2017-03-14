@@ -15,6 +15,7 @@ import Emarsys from './integrations/Emarsys';
 import OneSignal from './integrations/OneSignal';
 import Sociomantic from './integrations/Sociomantic';
 import Admitad from './integrations/Admitad';
+import DoubleClickFloodlight from './integrations/DoubleClickFloodlight';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -34,6 +35,7 @@ const integrations = {
   'OneSignal': OneSignal,
   'Sociomantic': Sociomantic,
   'Admitad': Admitad,
+  'DoubleClick Floodlight': DoubleClickFloodlight,
 };
 
 export default integrations;
