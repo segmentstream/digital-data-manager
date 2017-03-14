@@ -485,6 +485,7 @@ describe('Integrations: MyTarget', () => {
         myTarget.setOption('goals', {
           'Subscribed': 'userSubscription'
         });
+        myTarget.addGoalsToSemanticEvents();
         window.digitalData.events.push({
           name: 'Subscribed',
           user: {
@@ -505,6 +506,7 @@ describe('Integrations: MyTarget', () => {
         myTarget.setOption('goals', {
           'Completed Transaction': 'orderCompleted'
         });
+        myTarget.addGoalsToSemanticEvents();
         window.digitalData.events.push({
           name: 'Completed Transaction',
           transaction: {
@@ -524,6 +526,7 @@ describe('Integrations: MyTarget', () => {
 
       it('should not send reachGoal event if goal is not defined in settings', (done) => {
         myTarget.setOption('goals', {});
+        myTarget.addGoalsToSemanticEvents();
         window.digitalData.events.push({
           name: 'Subscribed',
           user: {
@@ -541,6 +544,7 @@ describe('Integrations: MyTarget', () => {
         myTarget.setOption('goals', {
           'Subscribed': 'userSubscription'
         });
+        myTarget.addGoalsToSemanticEvents();
         window.digitalData.events.push({
           name: 'Subscribed',
           user: {

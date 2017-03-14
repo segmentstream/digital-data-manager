@@ -40,12 +40,7 @@ class MyTarget extends Integration {
       VIEWED_CART,
       COMPLETED_TRANSACTION,
     ];
-    const goalEvents = Object.keys(this.getOption('goals'));
-    for (const goalEvent of goalEvents) {
-      if (this.SEMANTIC_EVENTS.indexOf(goalEvent) < 0) {
-        this.SEMANTIC_EVENTS.push(goalEvent);
-      }
-    }
+    this.addGoalsToSemanticEvents();
 
     this.addTag({
       type: 'script',
@@ -62,6 +57,15 @@ class MyTarget extends Integration {
       this.load(this.onLoad);
     } else {
       this.onLoad();
+    }
+  }
+
+  addGoalsToSemanticEvents() {
+    const goalEvents = Object.keys(this.getOption('goals'));
+    for (const goalEvent of goalEvents) {
+      if (this.SEMANTIC_EVENTS.indexOf(goalEvent) < 0) {
+        this.SEMANTIC_EVENTS.push(goalEvent);
+      }
     }
   }
 
