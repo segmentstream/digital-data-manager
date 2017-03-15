@@ -64,21 +64,7 @@ class Ofsys extends Integration {
       // do nothing
     }
 
-    const userSegmentVar = this.getOption('userSegmentVar');
-    if (userSegmentVar) {
-      enrichableProps.push(userSegmentVar);
-    }
-
     return enrichableProps;
-  }
-
-  getUserSegment(event) {
-    const userSegmentVar = this.getOption('userSegmentVar');
-    let userSegment;
-    if (userSegmentVar) {
-      userSegment = getProp(event, userSegmentVar);
-    }
-    return userSegment;
   }
 
   initialize() {
