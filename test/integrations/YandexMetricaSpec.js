@@ -1,29 +1,59 @@
 import assert from 'assert';
 import sinon from 'sinon';
 import reset from './../reset.js';
+import noop from './../../src/functions/noop';
 import YandexMetrica from './../../src/integrations/YandexMetrica.js';
 import ddManager from './../../src/ddManager.js';
 
 describe('Integrations: Yandex Metrica', () => {
 
   let ym;
-  const options = {
-    counterId: '37510050',
-    clickmap: true,
-    webvisor: true,
-    trackLinks: false,
-    trackHash: true,
-    purchaseGoalId: '20185850',
-    goals: {
-      'Test Event': 'GOAL1'
-    },
-    noConflict: false,
-  };
+  let options;
 
   beforeEach(() => {
+    options = {
+      counterId: '37510050',
+      clickmap: true,
+      webvisor: true,
+      trackLinks: false,
+      trackHash: true,
+      purchaseGoalId: '20185850',
+      goals: {
+        'Test Event': 'GOAL1'
+      },
+      'visitParamsVars': {
+        'websiteType': {
+          type: 'digitalData',
+          value: 'website.type'
+        },
+        'customParam': {
+          type: 'event',
+          value: 'testParam'
+        }
+      },
+      'userParamsVars': {
+        'userRfm': {
+          type: 'digitalData',
+          value: 'user.rfmSegment'
+        },
+        'customParam': {
+          type: 'event',
+          value: 'testParam'
+        }
+      },
+      noConflict: false,
+    };
+
     window.digitalData = {
+      website: {
+        type: 'desktop',
+        region: 'New York'
+      },
       page: {},
-      user: {},
+      user: {
+        rfmSegment: 'rfm1',
+        isLoggedIn: true
+      },
       events: []
     };
     ym = new YandexMetrica(window.digitalData, options);
@@ -86,6 +116,7 @@ describe('Integrations: Yandex Metrica', () => {
           assert.equal(options.trackHash, ym.getOption('trackHash'));
         };
         window.yandex_metrika_callbacks.pop()();
+        window.yandex_metrika_callbacks = undefined;
         ym.onLoad();
       });
     });
@@ -111,9 +142,17 @@ describe('Integrations: Yandex Metrica', () => {
       sinon.stub(ym, 'load', () => {
         window.Ya = {};
         window.Ya.Metrika = function() {
-          this.reachGoal = function() {};
+          this.reachGoal = noop;
+          this.params = noop;
+          this.userParams = noop;
+          this.hit = noop;
         };
-        window.yandex_metrika_callbacks.pop()();
+        let callback;
+        do {
+          callback = window.yandex_metrika_callbacks.pop();
+          if (callback) callback();
+        } while (callback);
+        window.yandex_metrika_callbacks = undefined;
         ym.onLoad();
       });
       ddManager.once('ready', done);
@@ -124,6 +163,87 @@ describe('Integrations: Yandex Metrica', () => {
 
     afterEach(function () {
       ym.load.restore();
+      if (ym.yaCounter.params.restore) {
+        ym.yaCounter.params.restore();
+      }
+      if (ym.yaCounter.userParams.restore) {
+        ym.yaCounter.userParams.restore();
+      }
+    });
+
+    describe('#onViewedPage', () => {
+      it('should track params on first pageview', (done) => {
+        sinon.spy(ym.yaCounter, 'params');
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          testParam: 'testValue',
+          callback: () => {
+            assert.ok(ym.yaCounter.params.calledWith({
+              'websiteType': 'desktop',
+              'customParam': 'testValue'
+            }));
+            done();
+          }
+        });
+      });
+
+      it('should track userParams on first pageview', (done) => {
+        sinon.spy(ym.yaCounter, 'userParams');
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          testParam: 'testValue',
+          callback: () => {
+            assert.ok(ym.yaCounter.userParams.calledWith({
+              'userRfm': 'rfm1',
+              'customParam': 'testValue'
+            }));
+            done();
+          }
+        });
+      });
+
+      it('should send additional hit with params on second pageview (ajax websites)', (done) => {
+        sinon.spy(ym.yaCounter, 'hit');
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          testParam: 'testValue',
+        });
+        sinon.spy(ym.yaCounter, 'userParams');
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          testParam: 'testValue',
+          callback: () => {
+            assert.ok(ym.yaCounter.userParams.calledWith({
+              'userRfm': 'rfm1',
+              'customParam': 'testValue'
+            }));
+            done();
+          }
+        });
+      });
+
+      it('should send userParams on second pageview (ajax websites)', (done) => {
+        sinon.spy(ym.yaCounter, 'hit');
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          testParam: 'testValue',
+        });
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          testParam: 'testValue',
+          callback: () => {
+            assert.ok(ym.yaCounter.hit.calledWith(window.location.href, {
+              referer: document.referrer,
+              title: '',
+              params: {
+                'websiteType': 'desktop',
+                'customParam': 'testValue'
+              }
+            }));
+            done();
+          }
+        });
+      });
     });
 
     describe('#onViewedProductDetail', () => {
@@ -561,7 +681,7 @@ describe('Integrations: Yandex Metrica', () => {
       });
     });
 
-    describe('Custom Goal', () => {
+    describe('#onCustomEvent', () => {
       it('should track custom event as a goal', (done) => {
         sinon.stub(ym.yaCounter, 'reachGoal');
         window.digitalData.events.push({
@@ -579,6 +699,21 @@ describe('Integrations: Yandex Metrica', () => {
           name: 'Test Event 2',
           callback: () => {
             assert.ok(!ym.yaCounter.reachGoal.called);
+            done();
+          }
+        });
+      });
+
+      it('should track params on custom event', (done) => {
+        sinon.spy(ym.yaCounter, 'reachGoal');
+        window.digitalData.events.push({
+          name: 'Test Event',
+          testParam: 'testValue',
+          callback: () => {
+            assert.ok(ym.yaCounter.reachGoal.calledWith('GOAL1', {
+              'websiteType': 'desktop',
+              'customParam': 'testValue'
+            }));
             done();
           }
         });

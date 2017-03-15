@@ -348,7 +348,11 @@ class GoogleAnalytics extends Integration {
 
   loadEnhancedEcommerce(currency) {
     if (!this.enhancedEcommerceLoaded) {
-      this.ga(['require', 'ec'], this.getOption('noConflict'));
+      let noConflict = this.getOption('noConflict');
+      if (this.getOption('namespace')) {
+        noConflict = false; // always load for custom namespace
+      }
+      this.ga(['require', 'ec'], noConflict);
       this.enhancedEcommerceLoaded = true;
     }
 

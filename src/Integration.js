@@ -6,12 +6,36 @@ import format from './functions/format';
 import noop from './functions/noop';
 import log from './functions/log';
 import each from './functions/each';
+import { getProp } from './functions/dotProp';
 import deleteProperty from './functions/deleteProperty';
 import debug from 'debug';
 import async from 'async';
 import EventEmitter from 'component-emitter';
+import { DIGITALDATA_VAR } from './variableTypes';
 
-class Integration extends EventEmitter
+export function getEnrichableVariableMappingProps(variableMapping) {
+  const enrichableProps = [];
+  each(variableMapping, (key, variable) => {
+    if (variable.type === DIGITALDATA_VAR) {
+      enrichableProps.push(variable.value);
+    }
+  });
+  return enrichableProps;
+}
+
+export function extractVariableMappingValues(source, variableMapping) {
+  const values = {};
+  each(variableMapping, (key, variable) => {
+    let value = getProp(source, variable.value);
+    if (value !== undefined) {
+      if (typeof value === 'boolean') value = value.toString();
+      values[key] = value;
+    }
+  });
+  return values;
+}
+
+export class Integration extends EventEmitter
 {
   constructor(digitalData, options, tags) {
     super();
@@ -91,7 +115,7 @@ class Integration extends EventEmitter
     async.nextTick(onLoad);
   }
 
-  load(tagName, callback) {
+  load(tagName, params, callback) {
     setTimeout(() => {
       const callbackCalled = false;
       const safeCallback = () => {
@@ -111,7 +135,20 @@ class Integration extends EventEmitter
       }, 500);
 
       // Argument shuffling
-      if (typeof tagName === 'function') { callback = tagName; tagName = null; }
+      if (typeof tagName === 'function') {
+        callback = tagName;
+        params = null;
+        tagName = null;
+      }
+      if (tagName && typeof tagName === 'object') {
+        callback = params;
+        params = tagName;
+        tagName = null;
+      }
+      if (typeof params === 'function') {
+        callback = params;
+        params = null;
+      }
 
       // Default arguments
       tagName = tagName || 'library';
@@ -122,6 +159,15 @@ class Integration extends EventEmitter
 
       let el;
       const attr = tag.attr;
+
+      if (params) {
+        each(attr, (attrKey, attrVal) => {
+          attr[attrKey] = attrVal.replace(/\{\{\ *(\w+)\ *\}\}/g, (_, $1) => {
+            return params[$1];
+          });
+        });
+      }
+
       switch (tag.type) {
       case 'img':
         attr.width = 1;
@@ -210,6 +256,14 @@ class Integration extends EventEmitter
   }
 
   allowCustomEvents() {
+    return false;
+  }
+
+  trackCategorizedPages() {
+    return false;
+  }
+
+  trackNamedPages() {
     return false;
   }
 

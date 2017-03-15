@@ -9,14 +9,6 @@ import {
   COMPLETED_TRANSACTION,
 } from './../events';
 
-const SEMANTIC_EVENTS = [
-  VIEWED_PAGE,
-  VIEWED_PRODUCT_DETAIL,
-  VIEWED_PRODUCT_LISTING,
-  VIEWED_CART,
-  COMPLETED_TRANSACTION,
-];
-
 function lineItemsToProductIds(lineItems) {
   const productIds = lineItems.filter((lineItem) => {
     return !!(lineItem.product.id);
@@ -36,9 +28,19 @@ class MyTarget extends Integration {
         'value': '1',
       },
       noConflict: false,
+      goals: {},
     }, options);
 
     super(digitalData, optionsWithDefaults);
+
+    this.SEMANTIC_EVENTS = [
+      VIEWED_PAGE,
+      VIEWED_PRODUCT_DETAIL,
+      VIEWED_PRODUCT_LISTING,
+      VIEWED_CART,
+      COMPLETED_TRANSACTION,
+    ];
+    this.addGoalsToSemanticEvents();
 
     this.addTag({
       type: 'script',
@@ -58,12 +60,17 @@ class MyTarget extends Integration {
     }
   }
 
-  getSemanticEvents() {
-    return SEMANTIC_EVENTS;
+  addGoalsToSemanticEvents() {
+    const goalEvents = Object.keys(this.getOption('goals'));
+    for (const goalEvent of goalEvents) {
+      if (this.SEMANTIC_EVENTS.indexOf(goalEvent) < 0) {
+        this.SEMANTIC_EVENTS.push(goalEvent);
+      }
+    }
   }
 
-  allowCustomEvents() {
-    return true;
+  getSemanticEvents() {
+    return this.SEMANTIC_EVENTS;
   }
 
   getEnrichableEventProps(event) {
@@ -130,9 +137,8 @@ class MyTarget extends Integration {
     if (this.getOption('counterId')) {
       if (method && !this.getOption('noConflict')) {
         this[method](event);
-      } else if (!method) {
-        this.trackCustomEvent(event);
       }
+      this.trackCustomEvent(event);
     }
   }
 
@@ -215,7 +221,7 @@ class MyTarget extends Integration {
     const transaction = event.transaction;
     let productIds;
 
-    if (transaction.lineItems || transaction.lineItems.length > 0) {
+    if (transaction.lineItems && transaction.lineItems.length > 0) {
       productIds = lineItemsToProductIds(transaction.lineItems);
     }
     window._tmr.push({
@@ -228,11 +234,15 @@ class MyTarget extends Integration {
   }
 
   trackCustomEvent(event) {
-    window._tmr.push({
-      id: this.getOption('counterId'),
-      type: 'reachGoal',
-      goal: event.name,
-    });
+    const goals = this.getOption('goals');
+    const goalIdentificator = goals[event.name];
+    if (goalIdentificator) {
+      window._tmr.push({
+        id: this.getOption('counterId'),
+        type: 'reachGoal',
+        goal: goalIdentificator,
+      });
+    }
   }
 }
 
