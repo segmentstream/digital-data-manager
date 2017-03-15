@@ -81,23 +81,6 @@ class Ofsys extends Integration {
     return userSegment;
   }
 
-  pushCriteoQueue(criteoEvent, userSegment) {
-    if (criteoEvent) {
-      if (userSegment) {
-        criteoEvent.user_segment = userSegment;
-      }
-      this.criteo_q.push(criteoEvent);
-    }
-
-    // final push to criteo in signle hit
-    if (this.criteo_q.length === 1) {
-      window.criteo_q.push(this.criteo_q[0]);
-    } else {
-      window.criteo_q.push(this.criteo_q);
-    }
-    this.criteo_q = [];
-  }
-
   initialize() {
     this.asyncQueue = [];
 
