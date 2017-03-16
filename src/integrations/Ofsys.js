@@ -194,8 +194,8 @@ class Ofsys extends Integration {
 
     this.asyncQueue.push(() => {
       window.DI.Journey.ECommerce.RemoveCartItem({
-        idCart: '43234',
-        idProduct: '54368',
+        idCart: this.cartId,
+        idProduct: product.id,
       });
       window.DI.Journey.ECommerce.SubmitCart();
     });
