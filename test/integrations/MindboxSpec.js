@@ -371,21 +371,21 @@ describe('Integrations: Mindbox', () => {
                   price: 5000,
                   deliveryType: 'Courier',
                   paymentType: 'Visa',
+                  items: [
+                    {
+                      productId: '123',
+                      skuId: 'sku123',
+                      count: 1,
+                      price: 100,
+                    },
+                    {
+                      productId: '234',
+                      skuId: 'sku234',
+                      count: 2,
+                      price: 150,
+                    }
+                  ]
                 },
-                items: [
-                  {
-                    productId: '123',
-                    skuId: 'sku123',
-                    count: 1,
-                    price: 100,
-                  },
-                  {
-                    productId: '234',
-                    skuId: 'sku234',
-                    count: 2,
-                    price: 150,
-                  }
-                ]
               },
             }));
           }
@@ -417,21 +417,21 @@ describe('Integrations: Mindbox', () => {
                   price: 5000,
                   deliveryType: 'Courier',
                   paymentType: 'Visa',
+                  items: [
+                    {
+                      productId: '123',
+                      skuId: 'sku123',
+                      count: 1,
+                      price: 100,
+                    },
+                    {
+                      productId: '234',
+                      skuId: 'sku234',
+                      count: 2,
+                      price: 150,
+                    }
+                  ]
                 },
-                items: [
-                  {
-                    productId: '123',
-                    skuId: 'sku123',
-                    count: 1,
-                    price: 100,
-                  },
-                  {
-                    productId: '234',
-                    skuId: 'sku234',
-                    count: 2,
-                    price: 150,
-                  }
-                ]
               },
             }));
           }

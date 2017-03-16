@@ -330,8 +330,8 @@ class Mindbox extends Integration {
       price: getProp(event, 'transaction.total'),
       deliveryType: getProp(event, 'transaction.shippingMethod'),
       paymentType: getProp(event, 'transaction.paymentMethod'),
+      items: mindboxItems,
     };
-    data.items = mindboxItems;
 
     window.mindbox('identify', cleanObject({
       operation,
