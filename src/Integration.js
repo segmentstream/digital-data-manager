@@ -251,6 +251,10 @@ export class Integration extends EventEmitter
     return [];
   }
 
+  getEventValidations() {
+    return [];
+  }
+
   getSemanticEvents() {
     return [];
   }

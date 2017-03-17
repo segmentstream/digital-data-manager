@@ -14,8 +14,9 @@ import DigitalDataEnricher from './DigitalDataEnricher';
 import Storage from './Storage';
 import DDStorage from './DDStorage';
 import CookieStorage from './CookieStorage';
-import { isTestMode, logEnrichedIntegrationEvent, showTestModeOverlay } from './testMode';
+import { isTestMode, logEnrichedIntegrationEvent, logValidationError, showTestModeOverlay } from './testMode';
 import { VIEWED_PAGE, mapEvent } from './events';
+import { validateEvent } from './EventValidator';
 
 let ddManager;
 
@@ -109,11 +110,28 @@ function _addIntegrations(integrationSettings) {
   }
 }
 
-function _trackIntegrationEvent(event, integration) {
-  if (isTestMode()) {
-    logEnrichedIntegrationEvent(event, integration.getName());
+function _validateIntegrationEvent(event, integration) {
+  const validations = integration.getEventValidations(event);
+  if (validations.length) {
+    return validateEvent(event, validations);
   }
-  integration.trackEvent(event);
+}
+
+function _trackIntegrationEvent(event, integration) {
+  const validationResult = _validateIntegrationEvent(event, integration);
+
+  if (validationResult.errors.length || validationResult.warnings.length) {
+    if (isTestMode()) {
+      logValidationError(event, validationResult, integration.getName());
+    }
+  }
+
+  if (!validationResult.errors.length) {
+    if (isTestMode()) {
+      logEnrichedIntegrationEvent(event, integration.getName());
+    }
+    integration.trackEvent(event);
+  }
 }
 
 function _preparePageEvent(event, name) {

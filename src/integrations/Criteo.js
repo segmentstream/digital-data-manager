@@ -1,6 +1,7 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty';
 import { getProp } from './../functions/dotProp';
+import { ERROR_TYPE_NOTICE } from './../EventValidator';
 import semver from './../functions/semver';
 import {
   VIEWED_PAGE,
@@ -27,7 +28,7 @@ function lineItemsToCriteoItems(lineItems) {
   for (let i = 0, length = lineItems.length; i < length; i++) {
     const lineItem = lineItems[i];
     if (lineItem.product) {
-      const productId = lineItem.product.id || lineItem.product.skuCode;
+      const productId = lineItem.product.id;
       if (productId) {
         const product = {
           id: productId,
@@ -107,6 +108,53 @@ class Criteo extends Integration {
     }
 
     return enrichableProps;
+  }
+
+  getEventValidations(event) {
+    let validations = [];
+    switch (event.name) {
+    case VIEWED_PAGE:
+      validations = [
+        ['page.type', { required: true }],
+      ];
+      break;
+    case VIEWED_PRODUCT_DETAIL:
+      validations = [
+        ['product.id', { required: true }],
+      ];
+      break;
+    case VIEWED_PRODUCT_LISTING:
+    case SEARCHED_PRODUCTS:
+      validations = [
+        ['listing.items[].product.id', { required: true }],
+      ];
+      break;
+    case VIEWED_CART:
+      validations = [
+        ['cart.lineItems[].product.id', { required: true }],
+        ['cart.lineItems[].product.unitSalePrice', { required: true }],
+        ['cart.lineItems[].quantity', { required: true }],
+      ];
+      break;
+    case COMPLETED_TRANSACTION:
+      validations = [
+        ['transaction.orderId', { required: true }],
+        ['transaction.lineItems[].product.id', { required: true }],
+        ['transaction.lineItems[].product.unitSalePrice', { required: true }],
+        ['transaction.lineItems[].quantity', { required: true }],
+        ['transaction.isFirst', { required: true }, ERROR_TYPE_NOTICE],
+      ];
+      break;
+    default:
+      // do nothing
+    }
+
+    const userSegmentVar = this.getOption('userSegmentVar');
+    if (userSegmentVar) {
+      validations.push([userSegmentVar, { required: true }, ERROR_TYPE_NOTICE]);
+    }
+
+    return validations;
   }
 
   getUserSegment(event) {
@@ -237,7 +285,7 @@ class Criteo extends Integration {
       length = items.length;
     }
     for (let i = 0; i < length; i++) {
-      const productId = items[i].id || items[i].skuCode;
+      const productId = items[i].id;
       if (productId) {
         productIds.push(productId);
       }
@@ -257,7 +305,7 @@ class Criteo extends Integration {
     const product = event.product;
     let productId;
     if (product) {
-      productId = product.id || product.skuCode;
+      productId = product.id;
     }
     if (productId) {
       this.pushCriteoQueue(

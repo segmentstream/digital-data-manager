@@ -1,5 +1,29 @@
 import noop from './functions/noop';
 
+window.console.log = window.console.log || noop;
+window.console.warn = window.console.warn || window.console.log || noop;
+const browserSupportsGroups = !!window.console.group;
+
+function log(message) {
+  window.console.log(message);
+}
+
+function warn(message) {
+  window.console.warn(message);
+}
+
+function group(message) {
+  if (browserSupportsGroups) {
+    window.console.group(message);
+  } else {
+    log(message);
+  }
+}
+
+function groupEnd() {
+  if (browserSupportsGroups) window.console.groupEnd();
+}
+
 export function isTestMode() {
   return window.localStorage.getItem('_ddm_test_mode') === '1';
 }
@@ -28,27 +52,17 @@ export function showTestModeOverlay() {
 }
 
 export function logEnrichedIntegrationEvent(event, integrationName) {
-  window.console.log = window.console.log || noop;
-  const browserSupportsGroups = !!window.console.group;
-
-  function log(message) {
-    window.console.log(message);
-  }
-
-  function group(message) {
-    if (browserSupportsGroups) {
-      window.console.group(message);
-    } else {
-      log(message);
-    }
-  }
-
-  function groupEnd() {
-    if (browserSupportsGroups) window.console.groupEnd();
-  }
-
   group(`${event.name} -> ${integrationName}`);
   log(event);
+  groupEnd();
+}
+
+export function logValidationError(event, errors, integrationName) {
+  group(`${event.name} -> ${integrationName}`);
+  for (const error of errors) {
+    const {field, message} = error;
+    warn(`Field '${field}' ${message}`);
+  }
   groupEnd();
 }
 

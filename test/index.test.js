@@ -9,6 +9,7 @@ import './DDStorageSpec.js';
 import './EventManagerSpec.js';
 import './EventDataEnricherSpec.js';
 import './DigitalDataEnricherSpec.js';
+import './EventValidatorSpec.js';
 
 // integrations
 import './integrations/GoogleAnalyticsSpec.js';
