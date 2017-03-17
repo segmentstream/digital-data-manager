@@ -5,6 +5,7 @@ import cleanObject from './../functions/cleanObject';
 import each from './../functions/each.js';
 import size from './../functions/size.js';
 import clone from './../functions/clone';
+import cookie from 'js-cookie';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -391,6 +392,17 @@ class GoogleAnalytics extends Integration {
   }
 
   enrichDigitalData() {
+    const gaCookie = cookie.get('_ga');
+    if (gaCookie) {
+      const match = gaCookie.match(/(\d+\.\d+)$/);
+      const googleClientId = (match) ? match[1] : null;
+      if (googleClientId) {
+        this.digitalData.user = this.digitalData.user || {};
+        this.digitalData.user.googleClientId = googleClientId;
+      }
+    }    
+
+    // TODO: remove asyn enrichment
     window.ga((tracker) => {
       const trackerName = this.getOption('namespace');
       tracker = tracker || window.ga.getByName(trackerName);

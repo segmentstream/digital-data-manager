@@ -169,6 +169,9 @@ describe('Integrations: GoogleAnalytics', () => {
 
       describe('#enrichDigitalData', () => {
         it('should add clientId', (done) => {
+          ga.on('ready', () => {
+            assert.ok(window.digitalData.user.googleClientId);
+          });
           ga.on('enrich', () => {
             assert.ok(window.digitalData.integrations.googleAnalytics);
             assert.ok(window.digitalData.integrations.googleAnalytics.clientId);
