@@ -400,13 +400,15 @@ class GoogleAnalytics extends Integration {
         this.digitalData.user = this.digitalData.user || {};
         this.digitalData.user.googleClientId = googleClientId;
       }
-    }    
+    }
 
     // TODO: remove asyn enrichment
     window.ga((tracker) => {
       const trackerName = this.getOption('namespace');
       tracker = tracker || window.ga.getByName(trackerName);
       if (tracker) {
+        this.digitalData.user = this.digitalData.user || {};
+        this.digitalData.user.googleClientId = googleClientId;
         this.digitalData.integrations.googleAnalytics = {
           clientId: tracker.get('clientId'),
         };
