@@ -16,6 +16,7 @@ import OneSignal from './integrations/OneSignal';
 import Sociomantic from './integrations/Sociomantic';
 import Admitad from './integrations/Admitad';
 import DoubleClickFloodlight from './integrations/DoubleClickFloodlight';
+import RTBHouse from './integrations/RTBHouse';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -36,6 +37,7 @@ const integrations = {
   'Sociomantic': Sociomantic,
   'Admitad': Admitad,
   'DoubleClick Floodlight': DoubleClickFloodlight,
+  'RTB House': RTBHouse,
 };
 
 export default integrations;
