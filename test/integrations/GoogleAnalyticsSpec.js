@@ -864,22 +864,10 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.events.push({
             name: 'Viewed Page',
             callback: () => {
+              console.log();
               assert.ok(window.ga.args.length > 0);
-              assert.ok(window.ga.calledWith('require', 'ec'));
-            }
-          });
-        });
-
-        it('should not require ec if .enhancedEcommerceLoaded is true', function() {
-          ga.enhancedEcommerceLoaded = true;
-          window.digitalData.events.push({
-            name: 'Completed Transaction',
-            category: 'Ecommerce',
-            transaction: {
-              orderId: 'ee099bf7'
-            },
-            callback: () => {
-              assert.ok(!window.ga.calledWith('require', 'ec'));
+              assert.equal(window.ga.q[1][0], 'require');
+              assert.equal(window.ga.q[1][1], 'ec');
             }
           });
         });
