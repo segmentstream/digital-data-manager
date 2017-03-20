@@ -29,3 +29,4 @@ import './integrations/OneSignalSpec.js';
 import './integrations/SociomanticSpec.js';
 import './integrations/MindboxSpec.js';
 import './integrations/DoubleClickFloodlightSpec.js';
+import './integrations/RTBHouseSpec.js';
