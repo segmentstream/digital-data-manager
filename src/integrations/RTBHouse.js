@@ -1,7 +1,5 @@
 import Integration from './../Integration.js';
-import deleteProperty from './../functions/deleteProperty';
 import { getProp } from './../functions/dotProp';
-import semver from './../functions/semver';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -104,12 +102,10 @@ class RTBHouse extends Integration {
         'page.type',
         'cart',
       ];
-      break;
     case VIEWED_PRODUCT_DETAIL:
       return [
         'product.id',
       ];
-      break;
     case VIEWED_PRODUCT_LISTING:
       return [
         'listing.categoryId',
@@ -118,13 +114,11 @@ class RTBHouse extends Integration {
       return [
         'listing.items',
       ];
-      break;
     case COMPLETED_TRANSACTION:
       return [
         'context.campaign',
         'transaction',
       ];
-      break;
     default:
       return [];
     }
