@@ -145,8 +145,8 @@ class RTBHouse extends Integration {
       [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
       [VIEWED_PRODUCT_LISTING]: 'onViewedProductListing',
       [SEARCHED_PRODUCTS]: 'onSearchedProducts',
-      [VIEWED_CART]: 'onViewedCart',
-      [VIEWED_PRODUCT_LISTING]: 'onViewedProductListing',
+      [VIEWED_CHECKOUT_STEP]: 'onViewedCheckoutStep',
+      [ADDED_PRODUCT]: 'onAddedProduct',
     };
 
     const method = methods[event.name];
@@ -164,7 +164,7 @@ class RTBHouse extends Integration {
     }
 
     if (cart && cart.lineItems && cart.lineItems.length) {
-      this.trackCart();
+      this.trackCart(cart);
     }
 
     if (!this.pageTracked) {
@@ -179,7 +179,7 @@ class RTBHouse extends Integration {
   trackCart(cart) {
     const productIds = cart.lineItems.reduce((str, lineItem, index) => {
       const productId = getProp(lineItem, 'product.id');
-      if (index < 0) {
+      if (index > 0) {
         return [str, productId].join(',');
       }
       return productId;
@@ -194,7 +194,7 @@ class RTBHouse extends Integration {
   }
 
   onViewedOther() {
-    this.load('other');
+    this.load();
     this.pageTracked = true;
   }
 
@@ -211,12 +211,12 @@ class RTBHouse extends Integration {
     if (!listing || !listing.items || !listing.items.length) return;
 
     const productIds = listing.items.reduce((str, product, index) => {
-      if (index < 0) {
+      if (index > 0) {
         return [str, product.id].join(',');
       }
       return product.id;
     }, '');
-    this.load('search', { productIds });
+    this.load('listing', { productIds });
   }
 
   onViewedProductDetail(event) {
@@ -244,16 +244,18 @@ class RTBHouse extends Integration {
 
   onCompletedTransaction(event) {
     const transaction = event.transaction;
-    if (transaction && transaction.lineItems && transaction.lineItems.length > 0) {
+    if (transaction && transaction.orderId && transaction.lineItems && transaction.lineItems.length > 0) {
+      const orderId = transaction.orderId;
+      const total = transaction.total;
       const productIds = transaction.lineItems.reduce((str, lineItem, index) => {
         const productId = getProp(lineItem, 'product.id');
-        if (index < 0) {
+        if (index > 0) {
           return [str, productId].join(',');
         }
         return productId;
       }, '');
 
-      const deduplication = DEFAULT_DEDUPLICATION;
+      let deduplication = DEFAULT_DEDUPLICATION;
       if (this.getOption('customDeduplication')) {
         const currentSource = getProp(event, 'context.campaign.source');
         if (currentSource === RTBHOUSE_UTM_SOURCE) {
@@ -263,7 +265,7 @@ class RTBHouse extends Integration {
         }
       }
 
-      this.load('orderstatus2', { productIds, deduplication });
+      this.load('orderstatus2', { productIds, orderId, total, deduplication });
       this.pageTracked = true;
     }
   }

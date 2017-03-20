@@ -28,4 +28,4 @@ import './integrations/EmarsysSpec.js';
 import './integrations/OneSignalSpec.js';
 import './integrations/SociomanticSpec.js';
 import './integrations/DoubleClickFloodlightSpec.js';
-import './integrations/RTBHouse.js';
+import './integrations/RTBHouseSpec.js';
