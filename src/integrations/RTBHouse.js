@@ -52,31 +52,31 @@ class RTBHouse extends Integration {
     this.addTag('category2', {
       type: 'script',
       attr: {
-        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_category2_{categoryId}`,
+        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_category2_{{ categoryId }}`,
       },
     });
     this.addTag('offer', {
       type: 'script',
       attr: {
-        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_offer_{productId}`,
+        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_offer_{{ productId }}`,
       },
     });
     this.addTag('listing', {
       type: 'script',
       attr: {
-        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_listing_{productIds}`,
+        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_listing_{{ productIds }}`,
       },
     });
     this.addTag('basketadd', {
       type: 'script',
       attr: {
-        src: `//creativecdn.com/tags?type=script&id=pr_VB82iQFyqcxTg1HWJlJM_basketadd_{productId}`,
+        src: `//creativecdn.com/tags?type=script&id=pr_VB82iQFyqcxTg1HWJlJM_basketadd_{{ productId }}`,
       },
     });
     this.addTag('basketstatus', {
       type: 'script',
       attr: {
-        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_basketstatus_{productIds}`,
+        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_basketstatus_{{ productIds }}`,
       },
     });
     this.addTag('startorder', {
@@ -88,7 +88,7 @@ class RTBHouse extends Integration {
     this.addTag('orderstatus2', {
       type: 'script',
       attr: {
-        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_orderstatus2_{total}_{orderId}_{productIds}&cd={dediplication}`,
+        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_orderstatus2_{{ total }}_{{ orderId }}_{{ productIds }}&cd={{ deduplication }}`,
       },
     });
   }
