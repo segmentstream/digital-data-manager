@@ -7,6 +7,7 @@ import {
   LOGGED_IN,
   REGISTERED,
   SUBSCRIBED,
+  UPDATED_PROFILE_INFO,
   VIEWED_PRODUCT_DETAIL,
   VIEWED_PRODUCT_LISTING,
   ADDED_PRODUCT,
@@ -38,6 +39,7 @@ class Mindbox extends Integration {
       LOGGED_IN,
       REGISTERED,
       SUBSCRIBED,
+      UPDATED_PROFILE_INFO,
       VIEWED_PRODUCT_DETAIL,
       VIEWED_PRODUCT_LISTING,
       ADDED_PRODUCT,
@@ -91,11 +93,15 @@ class Mindbox extends Integration {
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case REGISTERED:
     case LOGGED_IN:
+      enrichableProps.push('user.userId');
+      break;
+    case REGISTERED:
     case SUBSCRIBED:
+    case UPDATED_PROFILE_INFO:
       enrichableProps = this.getEnrichableUserProps();
       enrichableProps.push('user.userId');
+      enrichableProps.push('user.isSubscribed');
       break;
     case COMPLETED_TRANSACTION:
       enrichableProps = this.getEnrichableUserProps();
@@ -189,6 +195,7 @@ class Mindbox extends Integration {
       [LOGGED_IN]: this.onLoggedIn.bind(this),
       [REGISTERED]: this.onRegistered.bind(this),
       [SUBSCRIBED]: this.onSubscribed.bind(this),
+      [UPDATED_PROFILE_INFO]: this.onUpdatedProfileInfo.bind(this),
       [COMPLETED_TRANSACTION]: this.onCompletedTransaction.bind(this),
     };
     // get operation name either from email or from integration settings
@@ -214,13 +221,27 @@ class Mindbox extends Integration {
   }
 
   onRegistered(event, operation) {
+    this.onUpdatedProfileInfo(event, operation);
+  }
+
+  onUpdatedProfileInfo(event, operation) {
     const identificator = this.getIdentificator(event);
     if (!identificator) return;
 
+    const data = cleanObject(this.getUserData(event));
+    if (getProp(event, 'user.isSubscribed') && getProp(event, 'user.email')) {
+      data.subscriptions = [
+        {
+          pointOfContact: 'Email',
+          isSubscribed: true,
+          valueByDefault: true,
+        },
+      ];
+    }
     window.mindbox('identify', {
       operation,
       identificator,
-      data: cleanObject(this.getUserData(event)),
+      data,
     });
   }
 

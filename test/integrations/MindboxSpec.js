@@ -585,6 +585,39 @@ describe('Integrations: Mindbox', () => {
         });
       });
 
+      it('should track registration with subscription to email', () => {
+        window.digitalData.events.push({
+          name: 'Registered',
+          user: {
+            isSubscribed: true,
+            email: 'test@driveback.ru',
+            firstName: 'John',
+            lastName: 'Dow',
+          },
+          callback: () => {
+            assert.ok(window.mindbox.calledWith('identify', {
+              operation: 'Registration',
+              identificator: {
+                provider: 'email',
+                identity: 'test@driveback.ru'
+              },
+              data: {
+                email: 'test@driveback.ru',
+                firstName: 'John',
+                lastName: 'Dow',
+                subscriptions: [
+                  {
+                    pointOfContact: 'Email',
+                    isSubscribed: true,
+                    valueByDefault: true
+                  }
+                ]
+              },
+            }));
+          }
+        });
+      });
+
     });
 
 

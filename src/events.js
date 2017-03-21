@@ -17,6 +17,7 @@ export const LEAD = 'Lead';
 export const SUBSCRIBED = 'Subscribed';
 export const REGISTERED = 'Registered';
 export const LOGGED_IN = 'Logged In';
+export const UPDATED_PROFILE_INFO = 'Updated Profile Info';
 export const VIEWED_EXPERIMENT = 'Viewed Experiment';
 export const ACHIEVED_EXPERIMENT_GOAL = 'Achieved Experiment Goal';
 
