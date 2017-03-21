@@ -160,7 +160,6 @@ class GoogleAnalytics extends Integration {
     default:
       // do nothing
     }
-
     const enrichableDimensionsProps = this.getEnrichableDimensionsProps();
     for (const enrichableDimensionsProp of enrichableDimensionsProps) {
       enrichableProps.push(enrichableDimensionsProp);
@@ -251,15 +250,15 @@ class GoogleAnalytics extends Integration {
   }
 
   getEnrichableDimensionsProps() {
-    return this.enrichableDimensionsProps;
+    return this.enrichableDimensionsProps || [];
   }
 
   getProductLevelDimensions() {
-    return this.productLevelDimensions;
+    return this.productLevelDimensions || [];
   }
 
   getHitLevelDimensions() {
-    return this.hitLevelDimensions;
+    return this.hitLevelDimensions || [];
   }
 
   initializeTracker(trackingId, namespace) {

@@ -86,6 +86,7 @@ class YandexMetrica extends Integration {
     }
 
     this.pageCalled = false;
+    this.dataLayer = [];
 
     this.addTag({
       type: 'script',
@@ -127,11 +128,11 @@ class YandexMetrica extends Integration {
   }
 
   getEnrichableUserParamsProps() {
-    return this.enrichableUserParamsProps;
+    return this.enrichableUserParamsProps || [];
   }
 
   getEnrichableVisitParamsProps() {
-    return this.enrichableVisitParamsProps;
+    return this.enrichableVisitParamsProps || [];
   }
 
   getUserParams(event) {
