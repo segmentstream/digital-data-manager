@@ -75,7 +75,7 @@ describe('Integrations: DoubleClick Floodlight', () => {
     });
 
     describe('#initialize', () => {
-      it('should initialize criteo queue object', () => {
+      it('should initialize', () => {
         ddManager.initialize();
         assert.ok(doubleClick.isLoaded());
       });
