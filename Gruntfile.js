@@ -48,12 +48,15 @@ module.exports = function(grunt) {
                 options: {
                     bucket: 'cdn-stage.ddmanager.ru',
                     differential: true, // Only uploads the files that have changed
-                    gzipRename: 'ext' // when uploading a gz file, keep the original extension
+                    gzipRename: 'ext', // when uploading a gz file, keep the original extension
+                    params: {
+                        ContentEncoding: 'none'
+                    }
                 },
                 files: [
                     {
                         expand: true,
-                        cwd: 'deploy',
+                        cwd: 'dist',
                         src: ['**'],
                         dest: 'sdk/'
                     }
@@ -75,7 +78,6 @@ module.exports = function(grunt) {
 
     grunt.registerTask('build:stage', [
         'clean:pre_build',
-        'compress',
         'aws_s3:stage'
     ]);
 };

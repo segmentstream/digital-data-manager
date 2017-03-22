@@ -32,10 +32,17 @@ class EventDataEnricher
     const enrichableProps = integration.getEnrichableEventProps(event);
     for (const prop of enrichableProps) {
       if (!dotProp.getProp(event, prop) && digitalData) {
-        const ddlPropValue = DDHelper.get(prop, digitalData);
+        let propToEnrich = prop;
+
+        // if prop is special case: *.length, *.first, *.last, etc
+        // drawback - instead of enriching just length - whole obejct is enirched
+        if (prop.endsWith('.length')) {
+          propToEnrich = prop.replace(/\.length$/, '');
+        }
+
+        const ddlPropValue = DDHelper.get(propToEnrich, digitalData); // cloned value returned
         if (ddlPropValue !== undefined) {
-          // important! value should be cloned
-          dotProp.setProp(event, prop, ddlPropValue);
+          dotProp.setProp(event, propToEnrich, ddlPropValue);
         }
       }
     }
