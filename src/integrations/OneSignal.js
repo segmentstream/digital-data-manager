@@ -158,7 +158,7 @@ class OneSignal extends Integration {
     }
 
     if (this.getOption('path') && this.getOption('path') !== '/') {
-      window.OneSignal.push(function() {
+      window.OneSignal.push(() => {
         // This registers the workers at the root scope, which is allowed by the HTTP header "Service-Worker-Allowed: /"
         window.OneSignal.SERVICE_WORKER_PARAM = { scope: '/' };
       });

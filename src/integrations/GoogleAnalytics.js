@@ -5,6 +5,7 @@ import cleanObject from './../functions/cleanObject';
 import each from './../functions/each.js';
 import size from './../functions/size.js';
 import clone from './../functions/clone';
+import cookie from 'js-cookie';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -138,10 +139,6 @@ class GoogleAnalytics extends Integration {
         'website.currency',
         'page',
       ];
-      const enrichableDimensionsProps = this.getEnrichableDimensionsProps();
-      for (const enrichableDimensionsProp of enrichableDimensionsProps) {
-        enrichableProps.push(enrichableDimensionsProp);
-      }
       break;
     case VIEWED_PRODUCT_DETAIL:
       enrichableProps = [
@@ -162,6 +159,10 @@ class GoogleAnalytics extends Integration {
       break;
     default:
       // do nothing
+    }
+    const enrichableDimensionsProps = this.getEnrichableDimensionsProps();
+    for (const enrichableDimensionsProp of enrichableDimensionsProps) {
+      enrichableProps.push(enrichableDimensionsProp);
     }
 
     return enrichableProps;
@@ -249,15 +250,15 @@ class GoogleAnalytics extends Integration {
   }
 
   getEnrichableDimensionsProps() {
-    return this.enrichableDimensionsProps;
+    return this.enrichableDimensionsProps || [];
   }
 
   getProductLevelDimensions() {
-    return this.productLevelDimensions;
+    return this.productLevelDimensions || [];
   }
 
   getHitLevelDimensions() {
-    return this.hitLevelDimensions;
+    return this.hitLevelDimensions || [];
   }
 
   initializeTracker(trackingId, namespace) {
@@ -277,6 +278,10 @@ class GoogleAnalytics extends Integration {
     if (this.getOption('enhancedLinkAttribution') && !this.linkid) {
       this.ga(['require', 'linkid', 'linkid.js'], this.getOption('noConflict'));
       this.linkid = true;
+    }
+
+    if (this.getOption('enhancedEcommerce')) {
+      this.loadEnhancedEcommerce();
     }
 
     // anonymize after initializing, otherwise a warning is shown
@@ -346,7 +351,7 @@ class GoogleAnalytics extends Integration {
     return custom;
   }
 
-  loadEnhancedEcommerce(currency) {
+  loadEnhancedEcommerce() {
     if (!this.enhancedEcommerceLoaded) {
       let noConflict = this.getOption('noConflict');
       if (this.getOption('namespace')) {
@@ -355,17 +360,14 @@ class GoogleAnalytics extends Integration {
       this.ga(['require', 'ec'], noConflict);
       this.enhancedEcommerceLoaded = true;
     }
-
-    // Ensure we set currency for every hit
-    this.ga(['set', '&cu', currency || this.getOption('defaultCurrency')], this.getOption('noConflict'));
   }
 
   pushEnhancedEcommerce(event, noConflict) {
-    this.setEventCustomDimensions(event, noConflict);
-
     if (this.getPageview()) {
       this.flushPageview();
     } else {
+      this.setEventCustomDimensions(event, noConflict);
+
       // Send a custom non-interaction event to ensure all EE data is pushed.
       // Without doing this we'd need to require page display after setting EE data.
       const cleanedArgs = [];
@@ -391,10 +393,23 @@ class GoogleAnalytics extends Integration {
   }
 
   enrichDigitalData() {
+    const gaCookie = cookie.get('_ga');
+    if (gaCookie) {
+      const match = gaCookie.match(/(\d+\.\d+)$/);
+      const googleClientId = (match) ? match[1] : null;
+      if (googleClientId) {
+        this.digitalData.user = this.digitalData.user || {};
+        this.digitalData.user.googleClientId = googleClientId;
+      }
+    }
+
+    // TODO: remove asynс enrichment
     window.ga((tracker) => {
       const trackerName = this.getOption('namespace');
       tracker = tracker || window.ga.getByName(trackerName);
       if (tracker) {
+        this.digitalData.user = this.digitalData.user || {};
+        this.digitalData.user.googleClientId = tracker.get('clientId');
         this.digitalData.integrations.googleAnalytics = {
           clientId: tracker.get('clientId'),
         };
@@ -507,7 +522,6 @@ class GoogleAnalytics extends Integration {
       deleteProperty(pageview, 'location');
     }
     this.setPageview(pageview);
-
     // set
     if (this.getOption('sendUserId')) {
       const userId = getProp(event, 'user.userId');
@@ -518,8 +532,8 @@ class GoogleAnalytics extends Integration {
 
     // set
     if (this.getOption('enhancedEcommerce')) {
-      const currency = getProp(event, 'website.currency');
-      this.loadEnhancedEcommerce(currency);
+      const currency = getProp(event, 'website.currency') || this.getOption('defaultCurrency');
+      this.ga(['set', '&cu', currency], this.getOption('noConflict'));
     }
 
     // set
@@ -535,7 +549,7 @@ class GoogleAnalytics extends Integration {
       this.flushPageview();
     } else {
       setTimeout(() => {
-        if (this.isLoaded() && this.getPageview()) {
+        if (this.getPageview()) {
           this.flushPageview(); // flush anyway in 100ms
         }
       }, 100);
