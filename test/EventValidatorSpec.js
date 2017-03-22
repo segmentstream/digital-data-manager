@@ -53,7 +53,7 @@ describe('EventValidator', () => {
     assert.deepEqual(result.warnings, [['product.id', 'is required']]);
   });
 
-  it.only('should validate event array field with error (no lineItem)', () => {
+  it('should validate event array field with error (no lineItem)', () => {
     const event = {
       name: 'Viewed Product Listing',
     };
@@ -62,5 +62,16 @@ describe('EventValidator', () => {
     ]);
 
     assert.deepEqual(result.errors, [['listing.items[].product.id', 'is required']]);
+  });
+
+  it.only('should validate event array field with warning (no lineItem)', () => {
+    const event = {
+      name: 'Viewed Product Listing',
+    };
+    const result = validateEvent(event, [
+      [ 'listing.items[].product.id', { required: true }, ERROR_TYPE_NOTICE ]
+    ]);
+
+    assert.deepEqual(result.warnings, [['listing.items[].product.id', 'is required']]);
   });
 });
