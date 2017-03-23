@@ -6,9 +6,12 @@ import deleteProperty from './functions/deleteProperty.js';
 import size from './functions/size.js';
 import after from './functions/after.js';
 import jsonIsEqual from './functions/jsonIsEqual.js';
+import { error } from './functions/safeConsole';
 import DDHelper from './DDHelper.js';
 import EventDataEnricher from './EventDataEnricher.js';
 import { VIEWED_PAGE } from './events';
+
+window.console.error = noop;
 
 let _callbacks = {};
 let _ddListener = [];
@@ -121,11 +124,9 @@ class EventManager {
         }
         if (value !== undefined) {
           try {
-            async.nextTick(() => {
-              callback.handler(value);
-            });
+            callback.handler(value);
           } catch (e) {
-            throw new Error(e);
+            error(e);
           }
           _callbacks.define.splice(_callbacks.define.indexOf(callback), 1);
         }
@@ -137,11 +138,9 @@ class EventManager {
     let callback;
     const callHandler = (handler, nv, pv) => {
       try {
-        async.nextTick(() => {
-          handler(nv, pv);
-        });
+        handler(nv, pv);
       } catch (e) {
-        throw Error(e);
+        error(e);
       }
     };
 
@@ -210,13 +209,11 @@ class EventManager {
           eventCopy = this.enrichEventWithData(eventCopy);
         }
         try {
-          async.nextTick(() => {
-            const result = eventCallback.handler(eventCopy);
-            eventCallbackOnComplete(null, result);
-          });
+          const result = eventCallback.handler(eventCopy);
+          eventCallbackOnComplete(null, result);
         } catch (e) {
           eventCallbackOnComplete(e);
-          throw new Error(e);
+          error(e);
         }
       }
     } else {

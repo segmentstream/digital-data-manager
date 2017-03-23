@@ -1,28 +1,5 @@
 import noop from './functions/noop';
-
-window.console.log = window.console.log || noop;
-window.console.warn = window.console.warn || window.console.log || noop;
-const browserSupportsGroups = !!window.console.group;
-
-function log(message) {
-  window.console.log(message);
-}
-
-function warn(message) {
-  window.console.warn(message);
-}
-
-function group(message) {
-  if (browserSupportsGroups) {
-    window.console.group(message);
-  } else {
-    log(message);
-  }
-}
-
-function groupEnd() {
-  if (browserSupportsGroups) window.console.groupEnd();
-}
+import { log, warn, group, groupEnd } from './functions/safeConsole';
 
 export function isTestMode() {
   return window.localStorage.getItem('_ddm_test_mode') === '1';

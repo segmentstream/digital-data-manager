@@ -18,8 +18,7 @@ import CookieStorage from './CookieStorage';
 import { isTestMode, logEnrichedIntegrationEvent, logValidationError, showTestModeOverlay } from './testMode';
 import { VIEWED_PAGE, mapEvent } from './events';
 import { validateEvent } from './EventValidator';
-
-window.console.warn = window.console.warn || window.console.log || noop;
+import { warn } from './functions/safeConsole';
 
 let ddManager;
 
@@ -231,11 +230,7 @@ function _initializeIntegrations(settings) {
           integration.once('load', loaded);
           integration.initialize(version);
         } else {
-          /* eslint-disable */
-          console.warn(
-            `Integration "${name}" can't be initialized properly because of the conflict`
-          );
-          /* eslint-enable */
+          warn(`Integration "${name}" can't be initialized properly because of the conflict`);
           loaded();
         }
       });

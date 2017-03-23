@@ -48,6 +48,9 @@ describe('Integrations: Mindbox', () => {
 
     describe('#initialize', () => {
       it('should preapre stubs', () => {
+        sinon.stub(mindbox, 'load', () => {
+          mindbox.onLoad();
+        });
         ddManager.initialize();
         assert.ok(typeof window.mindbox === 'function');
         assert.ok(window.mindbox.queue);
@@ -56,6 +59,9 @@ describe('Integrations: Mindbox', () => {
       it('should create tracker', () => {
         window.mindbox = noop;
         sinon.stub(window, 'mindbox');
+        sinon.stub(mindbox, 'load', () => {
+          mindbox.onLoad();
+        });
         ddManager.initialize();
         assert.ok(window.mindbox.calledWith('create', {
           projectSystemName: mindbox.getOption('projectSystemName'),
@@ -69,6 +75,9 @@ describe('Integrations: Mindbox', () => {
 
   describe('after loading', () => {
     beforeEach((done) => {
+      sinon.stub(mindbox, 'load', () => {
+        mindbox.onLoad();
+      });
       ddManager.once('ready', done);
       ddManager.initialize();
 

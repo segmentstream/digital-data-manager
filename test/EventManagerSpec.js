@@ -1,4 +1,5 @@
 import assert from 'assert';
+import sinon from 'sinon';
 import reset from './reset.js';
 import EventManager from './../src/EventManager.js';
 
@@ -169,12 +170,7 @@ describe('EventManager', () => {
     });
 
     it('should fire event with callback inside after listeners completed', (done) => {
-      let fatalErrorThrown = false;
-
-      window.onerror = function(message, file, lineNumber) {
-        window.onerror = undefined;
-        fatalErrorThrown = true;
-      };
+      sinon.stub(window.console, 'error');
 
       _eventManager.initialize();
 
@@ -201,7 +197,8 @@ describe('EventManager', () => {
       });
 
       setTimeout(() => {
-        assert.ok(fatalErrorThrown);
+        assert.ok(window.console.error.calledOnce);
+        window.console.error.restore();
         done();
       }, 100)
     });
@@ -348,14 +345,10 @@ describe('EventManager', () => {
     });
 
     it('should fire change callbacks asynchronously', (done) => {
-      let fatalErrorThrown = false;
       let listener1Called = false;
       let listener2Called = false;
 
-      window.onerror = () => {
-        window.onerror = undefined;
-        fatalErrorThrown = true;
-      };
+      sinon.stub(window.console, 'error');
 
       _ddListener.push(['on', 'change', (newValue, previousValue) => {
         listener1Called = true;
@@ -367,9 +360,10 @@ describe('EventManager', () => {
       _digitalData.test2 = 'test2';
 
       setTimeout(() => {
-        // assert.ok(fatalErrorThrown);
-        // assert.ok(listener1Called);
-        // assert.ok(listener2Called);
+        assert.ok(listener1Called);
+        assert.ok(listener2Called);
+        assert.ok(window.console.error.calledOnce);
+        window.console.error.restore();
         done();
       }, 100);
     });
@@ -557,17 +551,15 @@ describe('EventManager', () => {
       _digitalData.listing.items.push({id: 3});
     });
 
-    it('should fire define callbacks asynchronously', (done) => {
-      let fatalErrorThrown = false;
-      window.onerror = () => {
-        window.onerror = undefined;
-        fatalErrorThrown = true;
-      };
+    it('should fire define callbacks despite errors', (done) => {
+      sinon.stub(window.console, 'error');
 
       _ddListener.push(['on', 'define', (value) => {
         throw new Error('test error');
       }]);
       _ddListener.push(['on', 'define', (value) => {
+        assert.ok(window.console.error.calledOnce);
+        window.console.error.restore();
         done();
       }]);
       _digitalData.test2 = 'test2';

@@ -300,6 +300,7 @@ describe('DigitalDataEnricher', () => {
       });
     });
 
+    /*
     it('should update user.isReturning status', (done) => {
       _digitalData = {};
       _ddStorage = new DDStorage(_digitalData, new Storage());
@@ -317,6 +318,7 @@ describe('DigitalDataEnricher', () => {
         done();
       }, 200);
     });
+    */
 
     it('should fire Started Session event', (done) => {
       _digitalData = {};
