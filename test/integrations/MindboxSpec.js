@@ -585,11 +585,12 @@ describe('Integrations: Mindbox', () => {
         });
       });
 
-      it('should track registration with subscription to email', () => {
+      it('should track registration with subscription to email and sms', () => {
         window.digitalData.events.push({
           name: 'Registered',
           user: {
             isSubscribed: true,
+            isSubscribedBySms: true,
             email: 'test@driveback.ru',
             firstName: 'John',
             lastName: 'Dow',
@@ -608,6 +609,11 @@ describe('Integrations: Mindbox', () => {
                 subscriptions: [
                   {
                     pointOfContact: 'Email',
+                    isSubscribed: true,
+                    valueByDefault: true
+                  },
+                  {
+                    pointOfContact: 'Sms',
                     isSubscribed: true,
                     valueByDefault: true
                   }
