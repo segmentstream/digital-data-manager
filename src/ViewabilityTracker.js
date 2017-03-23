@@ -105,6 +105,8 @@ class ViewabilityTracker
   }
 
   startTracking() {
+    if (!window.jQuery) return;
+
     this.defineDocBoundaries();
 
     const _track = () => {
