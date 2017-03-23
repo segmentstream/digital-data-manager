@@ -120,7 +120,7 @@ class Criteo extends Integration {
 
   pushCriteoQueue(criteoEvent, userSegment) {
     if (criteoEvent) {
-      if (userSegment) {
+      if (userSegment !== undefined) {
         criteoEvent.user_segment = userSegment;
       }
       this.criteo_q.push(criteoEvent);
