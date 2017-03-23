@@ -45,19 +45,6 @@ describe('Integrations: Driveback', () => {
       ddManager.initialize();
     });
 
-    it('should not load if Driveback is already loaded', (done) => {
-      const originalIsLoaded = driveback.isLoaded;
-      driveback.isLoaded = () => {
-        return true;
-      };
-      assert.ok(driveback.isLoaded());
-      ddManager.once('ready', () => {
-        assert.ok(!originalIsLoaded());
-        done();
-      });
-      ddManager.initialize();
-    });
-
   });
 
   describe('after loading', () => {
@@ -104,7 +91,6 @@ describe('Integrations: Driveback', () => {
         name: 'Viewed Experiment',
         experiment: '123',
         callback: () => {
-          console.log(window.dbex.calledWith);
           assert.ok(window.dbex.calledWith('trackSession', '123'));
           window.dbex.restore();
           done();

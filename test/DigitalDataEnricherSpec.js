@@ -51,6 +51,10 @@ describe('DigitalDataEnricher', () => {
     }
   });
 
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
   afterEach(() => {
     window.localStorage.clear();
   });
@@ -302,18 +306,16 @@ describe('DigitalDataEnricher', () => {
       _ddStorage.clear(); // to prevent using previous lastEventTimestamp value
       _digitalDataEnricher.setDigitalData(_digitalData);
       _digitalDataEnricher.setDDStorage(_ddStorage);
-      _digitalDataEnricher.setOption('sessionLength', 0.1);
+      _digitalDataEnricher.setOption('sessionLength', 0.01);
       _digitalDataEnricher.enrichDigitalData();
 
       assert.ok(!_digitalData.user.isReturning, 'isReturning should be false');
 
       setTimeout(() => {
         _digitalDataEnricher.enrichDigitalData();
-        setTimeout(() => {
-          assert.ok(_digitalData.user.isReturning, 'isReturning should be true');
-          done();
-        }, 202);
-      }, 110);
+        assert.ok(_digitalData.user.isReturning, 'isReturning should be true');
+        done();
+      }, 200);
     });
 
     it('should fire Started Session event', (done) => {

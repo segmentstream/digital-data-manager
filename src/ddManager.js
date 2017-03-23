@@ -122,7 +122,6 @@ function _validateIntegrationEvent(event, integration) {
 
 function _trackIntegrationEvent(event, integration) {
   const validationResult = _validateIntegrationEvent(event, integration);
-
   if (validationResult && isTestMode()) {
     if (validationResult.errors.length || validationResult.warnings.length) {
       logValidationError(event, validationResult, integration.getName());

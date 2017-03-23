@@ -91,14 +91,18 @@ describe('Integrations: Yandex Metrica', () => {
 
     describe('#initialize', () => {
       it('should initialize yandex metrica queue object', () => {
-        ddManager.initialize();
+        ddManager.initialize({
+          sendViewedPageEvent: false
+        });
         assert.ok(window.yandex_metrika_callbacks);
         assert.ok(window.yandex_metrika_callbacks.push);
         assert.ok(window.yandex_metrika_callbacks.length, 1);
       });
 
       it('should call tags load after initialization', () => {
-        ddManager.initialize();
+        ddManager.initialize({
+          sendViewedPageEvent: false
+        });
         assert.ok(ym.load.calledOnce);
       });
     });

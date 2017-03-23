@@ -347,7 +347,7 @@ describe('EventManager', () => {
       _digitalData.listing.items.push({id: 3});
     });
 
-    it.only('should fire change callbacks asynchronously', (done) => {
+    it('should fire change callbacks asynchronously', (done) => {
       let fatalErrorThrown = false;
       let listener1Called = false;
       let listener2Called = false;

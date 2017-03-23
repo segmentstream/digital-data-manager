@@ -42,27 +42,29 @@ const validateArrayField = (arrayField, arrayFieldValues, subfield, rules, error
   const errors = [];
   const warnings = [];
 
+  const pushResult = (fieldName, result) => {
+    if (result !== true) {
+      if (errorType === ERROR_TYPE_NOTICE) {
+        warnings.push([fieldName, result]);
+      } else {
+        errors.push([fieldName, result]);
+      }
+    }
+  };
+
   each(rules, (ruleName, ruleParam) => {
     let result;
     if (!Array.isArray(arrayFieldValues)) {
       result = ruleHandlers[ruleName](undefined, ruleParam);
-      const filedName = [arrayField, subfield].join('[]');
-      if (errorType === ERROR_TYPE_NOTICE) {
-        warnings.push([filedName, result]);
-      } else {
-        errors.push([filedName, result]);
-      }
+      const fieldName = [arrayField, subfield].join('[].');
+      pushResult(fieldName, result);
     } else {
       let i = 1;
       for (const arrayFieldValue of arrayFieldValues) {
         const value = getProp(arrayFieldValue, subfield);
         result = ruleHandlers[ruleName](value, ruleParam);
         const fieldName = [arrayField, i, subfield].join('.');
-        if (errorType === ERROR_TYPE_NOTICE) {
-          warnings.push([fieldName, result]);
-        } else {
-          errors.push([fieldName, result]);
-        }
+        pushResult(fieldName, result);
         i += 1;
       }
     }
@@ -79,7 +81,7 @@ export const validateEvent = (event, validations) => {
     const [ field, rules, errorType ] = validation;
 
     if (field.indexOf('[]') > 0) {
-      const [ arrayField, subfield ] = field.split('[]');
+      const [ arrayField, subfield ] = field.split('[].');
       const value = getProp(event, arrayField);
       return validateArrayField(arrayField, value, subfield, rules, errorType);
     }

@@ -9,7 +9,7 @@ import availableIntegrations from '../src/availableIntegrations.js';
 describe('DDManager', () => {
 
   beforeEach(() => {
-    //
+    window.localStorage.clear();
   });
 
   afterEach(() => {
@@ -20,13 +20,17 @@ describe('DDManager', () => {
 
   describe('#initialize', () => {
     it('should initialize Array objects for window.digitalData.events and window.ddListener', () => {
-      ddManager.initialize();
+      ddManager.initialize({
+        sendViewedPageEvent: false
+      });
       assert.ok(Array.isArray(window.digitalData.events));
       assert.ok(Array.isArray(window.ddListener));
     });
 
     it('should initialize website, page, user and cart objects', () => {
-      ddManager.initialize();
+      ddManager.initialize({
+        sendViewedPageEvent: false
+      });
       assert.ok(window.digitalData.website);
       assert.ok(window.digitalData.page);
       assert.ok(window.digitalData.user);
@@ -35,7 +39,9 @@ describe('DDManager', () => {
 
     it('should work well with async load using stubs from the snippet', () => {
       snippet();
-      window.ddManager.initialize();
+      window.ddManager.initialize({
+        sendViewedPageEvent: false
+      });
       ddManager.processEarlyStubCalls(window.ddManager);
 
       assert.ok(ddManager.isReady());
@@ -45,7 +51,9 @@ describe('DDManager', () => {
 
     it('should initialize after all other stubs', (done) => {
       snippet();
-      window.ddManager.initialize();
+      window.ddManager.initialize({
+        sendViewedPageEvent: false
+      });
       window.ddManager.on('ready', () => {
         done();
       });
@@ -53,13 +61,16 @@ describe('DDManager', () => {
     });
 
     it('should initialize DDManager instance', () => {
-      ddManager.initialize();
+      ddManager.initialize({
+        sendViewedPageEvent: false
+      });
       assert.ok(ddManager.isReady());
     });
 
     it('should add integration if old-style object settings', () => {
       ddManager.setAvailableIntegrations(availableIntegrations);
       ddManager.initialize({
+        sendViewedPageEvent: false,
         integrations: {
           'Google Tag Manager': {
             componentId: 'XXX'
@@ -73,6 +84,7 @@ describe('DDManager', () => {
     it('should add integration if old-style object settings without options', () => {
       ddManager.setAvailableIntegrations(availableIntegrations);
       ddManager.initialize({
+        sendViewedPageEvent: false,
         integrations: {
           'Google Tag Manager': true
         }
@@ -84,6 +96,7 @@ describe('DDManager', () => {
     it('should add integration if new array settings', () => {
       ddManager.setAvailableIntegrations(availableIntegrations);
       ddManager.initialize({
+        sendViewedPageEvent: false,
         integrations: [
           {
             'name': 'Google Tag Manager',
@@ -100,6 +113,7 @@ describe('DDManager', () => {
     it('should add integration if new array settings without options', () => {
       ddManager.setAvailableIntegrations(availableIntegrations);
       ddManager.initialize({
+        sendViewedPageEvent: false,
         integrations: [
           {
             'name': 'Google Tag Manager'
@@ -121,7 +135,9 @@ describe('DDManager', () => {
     });
 
     it('it should fire on("ready") event even if ddManager was ready before', (done) => {
-      ddManager.initialize();
+      ddManager.initialize({
+        sendViewedPageEvent: false
+      });
       if (ddManager.isReady()) {
         ddManager.on('ready', () => {
           done();
@@ -132,7 +148,9 @@ describe('DDManager', () => {
     });
 
     it('it should fire once("ready") event even if ddManager was ready before', (done) => {
-      ddManager.initialize();
+      ddManager.initialize({
+        sendViewedPageEvent: false
+      });
       if (ddManager.isReady()) {
         ddManager.once('ready', () => {
           done();
@@ -143,7 +161,9 @@ describe('DDManager', () => {
     });
 
     it('it should fire on("initialize") event even if ddManager was initialized before', (done) => {
-      ddManager.initialize();
+      ddManager.initialize({
+        sendViewedPageEvent: false
+      });
       if (ddManager.isReady()) {
         ddManager.on('ready', () => {
           done();
@@ -154,7 +174,9 @@ describe('DDManager', () => {
     });
 
     it('it should fire once("initialize") event even if ddManager was initialized before', (done) => {
-      ddManager.initialize();
+      ddManager.initialize({
+        sendViewedPageEvent: false
+      });
       if (ddManager.isReady()) {
         ddManager.once('ready', () => {
           done();
@@ -165,7 +187,9 @@ describe('DDManager', () => {
     });
 
     it('it should enrich digital data', (done) => {
-      ddManager.initialize();
+      ddManager.initialize({
+        sendViewedPageEvent: false
+      });
       if (ddManager.isReady()) {
         ddManager.once('ready', () => {
           assert.ok(window.digitalData.context.userAgent);
@@ -207,32 +231,32 @@ describe('DDManager', () => {
           done();
         }, 101);
       });
-      ddManager.initialize();
+      ddManager.initialize({
+        sendViewedPageEvent: false
+      });
     });
 
     it('should update user.isReturning status', (done) => {
       window.localStorage.clear(); // just to be sure
-      ddManager.once('ready', () => {
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          callback: () => {
-            assert.ok(!window.digitalData.user.isReturning, 'isReturning should be false');
-          }
-        });
-
-        setTimeout(() => {
-          window.digitalData.events.push({
-            name: 'Viewed Page',
-            callback: () => {
-              assert.ok(window.digitalData.user.isReturning, 'isReturning should be true');
-              done();
-            }
-          });
-        }, 110);
-      });
       ddManager.initialize({
-        sessionLength: 0.1,
+        sessionLength: 0.01,
         sendViewedPageEvent: false
+      });
+
+      window.digitalData.events.push({
+        name: 'Viewed Page',
+        callback: () => {
+          assert.ok(!window.digitalData.user.isReturning, 'isReturning should be false');
+          setTimeout(() => {
+            window.digitalData.events.push({
+              name: 'Viewed Page',
+              callback: () => {
+                assert.ok(window.digitalData.user.isReturning, 'isReturning should be true');
+                done();
+              }
+            });
+          }, 200);
+        }
       });
     });
 
@@ -395,7 +419,9 @@ describe('DDManager', () => {
       };
       sinon.stub(integration, 'trackEvent');
       ddManager.addIntegration('integration1', integration);
-      ddManager.initialize();
+      ddManager.initialize({
+        sendViewedPageEvent: false
+      });
     });
 
     afterEach(() => {

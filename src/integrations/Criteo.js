@@ -126,7 +126,7 @@ class Criteo extends Integration {
     case VIEWED_PRODUCT_LISTING:
     case SEARCHED_PRODUCTS:
       validations = [
-        ['listing.items[].product.id', { required: true }],
+        ['listing.items[].id', { required: true }],
       ];
       break;
     case VIEWED_CART:

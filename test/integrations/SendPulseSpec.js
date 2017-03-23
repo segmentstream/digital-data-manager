@@ -208,10 +208,10 @@ describe('SendPulse', function() {
           callback: () => {
             assert.ok(window.oSpP.startSubscription.calledOnce);
             window.oSpP.startSubscription.restore();
+            _sp.isHttps.restore();
             done();
           }
         });
-        _sp.isHttps.restore();
       });
 
     });

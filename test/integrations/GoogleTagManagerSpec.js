@@ -43,19 +43,6 @@ describe('Integrations: GoogleTagManager', () => {
         ddManager.initialize();
       });
 
-      it('should not load if gtm is already loaded', (done) => {
-        const originalIsLoaded = gtm.isLoaded;
-        gtm.isLoaded = () => {
-          return true;
-        };
-        assert.ok(gtm.isLoaded());
-        ddManager.once('ready', () => {
-          assert.ok(!originalIsLoaded());
-          done();
-        });
-        ddManager.initialize();
-      });
-
     });
 
     describe('after loading', () => {
@@ -86,29 +73,31 @@ describe('Integrations: GoogleTagManager', () => {
           window.dataLayer = [];
         });
 
-        it('should send event', () => {
-          window.digitalData.events.push({
-            name: 'some-event',
-            category: 'some-category'
-          });
-
-          let dl = window.dataLayer;
-
-          assert.ok(dl[0].event === 'some-event');
-          assert.ok(dl[0].eventCategory === 'some-category');
-        });
-
-        it('should send event with additional parameters', () => {
+        it('should send event', (done) => {
           window.digitalData.events.push({
             name: 'some-event',
             category: 'some-category',
-            additionalParam: true
+            callback: () => {
+              let dl = window.dataLayer;
+              assert.ok(dl[0].event === 'some-event');
+              assert.ok(dl[0].eventCategory === 'some-category');
+              done();
+            }
           });
+        });
 
-          let dl = window.dataLayer;
-
-          assert.ok(dl[0].event === 'some-event');
-          assert.ok(dl[0].additionalParam === true);
+        it('should send event with additional parameters', (done) => {
+          window.digitalData.events.push({
+            name: 'some-event',
+            category: 'some-category',
+            additionalParam: true,
+            callback: () => {
+              let dl = window.dataLayer;
+              assert.ok(dl[0].event === 'some-event');
+              assert.ok(dl[0].additionalParam === true);
+              done();
+            }
+          });
         });
 
       });
@@ -147,17 +136,18 @@ describe('Integrations: GoogleTagManager', () => {
 
       describe('#trackEvent', () => {
 
-        it('should send event with additional parameters to existing GTM', () => {
+        it('should send event with additional parameters to existing GTM', (done) => {
           window.digitalData.events.push({
             name: 'some-event',
             category: 'some-category',
-            additionalParam: true
+            additionalParam: true,
+            callback: () => {
+              let dl = window.dataLayer;
+              assert.ok(dl[2].event === 'some-event');
+              assert.ok(dl[2].additionalParam === true);
+              done();
+            }
           });
-
-          let dl = window.dataLayer;
-
-          assert.ok(dl[2].event === 'some-event');
-          assert.ok(dl[2].additionalParam === true);
         });
 
       });
