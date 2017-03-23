@@ -64,7 +64,7 @@ describe('EventValidator', () => {
     assert.deepEqual(result.errors, [['listing.items[].product.id', 'is required']]);
   });
 
-  it.only('should validate event array field with warning (no lineItem)', () => {
+  it('should validate event array field with warning (no lineItem)', () => {
     const event = {
       name: 'Viewed Product Listing',
     };

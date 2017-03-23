@@ -104,11 +104,12 @@ describe('Integrations: Driveback', () => {
         name: 'Viewed Experiment',
         experiment: '123',
         callback: () => {
+          console.log(window.dbex.calledWith);
           assert.ok(window.dbex.calledWith('trackSession', '123'));
+          window.dbex.restore();
           done();
         }
       });
-      window.dbex.restore();
     });
 
     it('should track experiment session', (done) => {
@@ -118,10 +119,10 @@ describe('Integrations: Driveback', () => {
         experiment: '123',
         callback: () => {
           assert.ok(window.dbex.calledWith('trackConversion', '123'));
+          window.dbex.restore();
           done();
         }
       });
-      window.dbex.restore();
     });
   });
 

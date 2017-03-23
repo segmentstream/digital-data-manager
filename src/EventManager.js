@@ -19,12 +19,6 @@ let _viewabilityTracker;
 let _isInitialized = false;
 let _sendViewedPageEvent = false;
 
-const _callbackOnComplete = (error) => {
-  if (error) {
-    debug('ddListener callback error: %s', error);
-  }
-};
-
 function _getCopyWithoutEvents(digitalData) {
   const digitalDataCopy = clone(digitalData);
   deleteProperty(digitalDataCopy, 'events');
@@ -107,11 +101,7 @@ class EventManager {
       if (callbackInfo.length < 3) {
         return;
       }
-      let handler = callbackInfo[2];
-      if (callbackInfo[1] !== 'beforeEvent') {
-        // make handler async if it is not before-handler
-        handler = async.asyncify(callbackInfo[2]);
-      }
+      const handler = callbackInfo[2];
       this.on(callbackInfo[1], handler, processPastEvents);
     } if (callbackInfo[0] === 'off') {
       // TODO
@@ -130,7 +120,13 @@ class EventManager {
           value = _digitalData;
         }
         if (value !== undefined) {
-          callback.handler(value, _callbackOnComplete);
+          try {
+            async.nextTick(() => {
+              callback.handler(value);
+            });
+          } catch (e) {
+            throw new Error(e);
+          }
           _callbacks.define.splice(_callbacks.define.indexOf(callback), 1);
         }
       }
@@ -139,6 +135,16 @@ class EventManager {
 
   fireChange(newValue, previousValue) {
     let callback;
+    const callHandler = (handler, nv, pv) => {
+      try {
+        async.nextTick(() => {
+          handler(nv, pv);
+        });
+      } catch (e) {
+        throw Error(e);
+      }
+    };
+
     if (_callbacks.change && _callbacks.change.length > 0) {
       for (callback of _callbacks.change) {
         if (callback.key) {
@@ -146,10 +152,10 @@ class EventManager {
           const newKeyValue = DDHelper.get(key, newValue);
           const previousKeyValue = DDHelper.get(key, previousValue);
           if (!jsonIsEqual(newKeyValue, previousKeyValue)) {
-            callback.handler(newKeyValue, previousKeyValue, _callbackOnComplete);
+            callHandler(callback.handler, newKeyValue, previousKeyValue);
           }
         } else {
-          callback.handler(newValue, previousValue, _callbackOnComplete);
+          callHandler(callback.handler, newValue, previousValue);
         }
       }
     }
@@ -172,7 +178,6 @@ class EventManager {
   }
 
   fireEvent(event) {
-    let eventCallback;
     event.timestamp = Date.now();
 
     if (!this.beforeFireEvent(event)) {
@@ -195,17 +200,24 @@ class EventManager {
         if (error) {
           errors.push(error);
         }
-        _callbackOnComplete(error);
         ready();
       };
 
-      for (eventCallback of _callbacks.event) {
+      for (const eventCallback of _callbacks.event) {
         let eventCopy = clone(event, true);
         deleteProperty(eventCopy, 'callback');
         if (eventCopy.enrichEventData !== false) {
           eventCopy = this.enrichEventWithData(eventCopy);
         }
-        eventCallback.handler(eventCopy, eventCallbackOnComplete);
+        try {
+          async.nextTick(() => {
+            const result = eventCallback.handler(eventCopy);
+            eventCallbackOnComplete(null, result);
+          });
+        } catch (e) {
+          eventCallbackOnComplete(e);
+          throw new Error(e);
+        }
       }
     } else {
       if (typeof event.callback === 'function') {
@@ -292,6 +304,7 @@ class EventManager {
     _ddListener.push = Array.prototype.push;
     _callbacks = {};
     _viewabilityTracker = null;
+    _sendViewedPageEvent = false;
   }
 }
 
