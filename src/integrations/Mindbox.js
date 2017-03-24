@@ -258,10 +258,12 @@ class Mindbox extends Integration {
 
     const data = cleanObject(this.getUserData(event));
     data.subscriptions = [
-      {
+      cleanObejct({
+        pointOfContact: 'Email',
+        topic: event.subscriptionList,
         isSubscribed: true,
         valueByDefault: true,
-      },
+      }),
     ];
 
     window.mindbox('identify', {
@@ -299,15 +301,13 @@ class Mindbox extends Integration {
     const productId = getProp(event, 'product.id');
     if (!productId) return;
 
-    const quantity = event.quantity || 1;
     window.mindbox('performOperation', {
       operation,
       data: {
         action: cleanObject({
           productId,
           skuId: getProp(event, 'product.skuCode'),
-          count: quantity,
-          price: getProp(event, 'product.unitSalePrice') * quantity,
+          price: getProp(event, 'product.unitSalePrice'),
         }),
       },
     });
@@ -317,16 +317,13 @@ class Mindbox extends Integration {
     const productId = getProp(event, 'product.id');
     if (!productId) return;
 
-    const quantity = event.quantity || 1;
-
     window.mindbox('performOperation', {
       operation,
       data: {
         action: cleanObject({
           productId,
           skuId: getProp(event, 'product.skuCode'),
-          count: quantity,
-          price: getProp(event, 'product.unitSalePrice') * quantity,
+          price: getProp(event, 'product.unitSalePrice'),
         }),
       },
     });
@@ -346,7 +343,7 @@ class Mindbox extends Integration {
         return cleanObject({
           productId: getProp(lineItem, 'product.id'),
           skuId: getProp(lineItem, 'product.skuCode'),
-          count: lineItem.quantity || 1,
+          quantity: lineItem.quantity || 1,
           price: getProp(lineItem, 'product.unitSalePrice'),
         });
       });
