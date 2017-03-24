@@ -724,13 +724,9 @@ describe('Integrations: Criteo', () => {
             {
               product: {
                 id: '345',
-                unitPrice: 30
-              }
-            },
-            {
-              product: {
-                id: '456',
-              }
+                unitSalePrice: 30
+              },
+              quantity: 1
             },
           ]
         };
@@ -741,7 +737,6 @@ describe('Integrations: Criteo', () => {
               { id: '123', price: 100, quantity: 1 },
               { id: '234', price: 50, quantity: 2 },
               { id: '345', price: 30, quantity: 1 },
-              { id: '456', price: 0, quantity: 1 }
             ]});
             done();
           }
@@ -771,14 +766,10 @@ describe('Integrations: Criteo', () => {
               {
                 product: {
                   id: '345',
-                  unitPrice: 30
-                }
+                  unitSalePrice: 30
+                },
+                quantity: 1
               },
-              {
-                product: {
-                  id: '456',
-                }
-              }
             ]
           },
           callback: () => {
@@ -786,7 +777,6 @@ describe('Integrations: Criteo', () => {
               { id: '123', price: 100, quantity: 1 },
               { id: '234', price: 50, quantity: 2 },
               { id: '345', price: 30, quantity: 1 },
-              { id: '456', price: 0, quantity: 1 }
             ]});
             done();
           }
@@ -859,17 +849,10 @@ describe('Integrations: Criteo', () => {
         {
           product: {
             id: '345',
-            unitPrice: 30
-          }
+            unitSalePrice: 30
+          },
+          quantity: 1
         },
-        {
-          product: {
-            id: '456',
-          }
-        },
-        {
-          product: {}
-        }
       ];
 
       it('should send trackTransaction event if transaction is completed (digitalData)', (done) => {
@@ -889,7 +872,6 @@ describe('Integrations: Criteo', () => {
                 { id: '123', price: 100, quantity: 1 },
                 { id: '234', price: 50, quantity: 2 },
                 { id: '345', price: 30, quantity: 1 },
-                { id: '456', price: 0, quantity: 1 }
               ]
             });
             done();
@@ -914,7 +896,6 @@ describe('Integrations: Criteo', () => {
                 { id: '123', price: 100, quantity: 1 },
                 { id: '234', price: 50, quantity: 2 },
                 { id: '345', price: 30, quantity: 1 },
-                { id: '456', price: 0, quantity: 1 }
               ]
             });
             done();
@@ -939,7 +920,6 @@ describe('Integrations: Criteo', () => {
                 { id: '123', price: 100, quantity: 1 },
                 { id: '234', price: 50, quantity: 2 },
                 { id: '345', price: 30, quantity: 1 },
-                { id: '456', price: 0, quantity: 1 }
               ]
             });
             done();
@@ -970,7 +950,6 @@ describe('Integrations: Criteo', () => {
                 { id: '123', price: 100, quantity: 1 },
                 { id: '234', price: 50, quantity: 2 },
                 { id: '345', price: 30, quantity: 1 },
-                { id: '456', price: 0, quantity: 1 }
               ]
             });
             done();
@@ -1000,7 +979,6 @@ describe('Integrations: Criteo', () => {
                 { id: '123', price: 100, quantity: 1 },
                 { id: '234', price: 50, quantity: 2 },
                 { id: '345', price: 30, quantity: 1 },
-                { id: '456', price: 0, quantity: 1 }
 
               ]
             });
