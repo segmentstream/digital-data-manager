@@ -76,18 +76,25 @@ const validateArrayField = (arrayField, arrayFieldValues, subfield, rules, error
 export const validateEvent = (event, validations) => {
   const errors = [];
   const warnings = [];
-
   for (const validation of validations) {
     const [ field, rules, errorType ] = validation;
+    let result;
 
     if (field.indexOf('[]') > 0) {
       const [ arrayField, subfield ] = field.split('[].');
       const value = getProp(event, arrayField);
-      return validateArrayField(arrayField, value, subfield, rules, errorType);
+      result = validateArrayField(arrayField, value, subfield, rules, errorType);
+    } else {
+      const value = getProp(event, field);
+      result = validateField(field, value, rules, errorType);
     }
 
-    const value = getProp(event, field);
-    return validateField(field, value, rules, errorType);
+    for (const resultError of result.errors) {
+      errors.push(resultError);
+    }
+    for (const resultWarning of result.warnings) {
+      warnings.push(resultWarning);
+    }
   }
 
   return { errors, warnings };

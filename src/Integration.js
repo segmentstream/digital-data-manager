@@ -162,9 +162,11 @@ export class Integration extends EventEmitter
 
       if (params) {
         each(attr, (attrKey, attrVal) => {
-          attr[attrKey] = attrVal.replace(/\{\{\ *(\w+)\ *\}\}/g, (_, $1) => {
-            return params[$1];
-          });
+          if (attrVal) {
+            attr[attrKey] = attrVal.replace(/\{\{\ *(\w+)\ *\}\}/g, (_, $1) => {
+              return params[$1];
+            });
+          }      
         });
       }
 

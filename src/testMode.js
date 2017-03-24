@@ -42,7 +42,7 @@ export function logValidationResult(event, validationResult, integrationName) {
 export function logEnrichedIntegrationEvent(event, integrationName, validationResult) {
   group(`${event.name} -> ${integrationName}`);
   log(event);
-  if (validationResult && validationResult.errors.length) {
+  if (validationResult) {
     logValidationResult(event, validationResult, integrationName);
   }
   groupEnd();
