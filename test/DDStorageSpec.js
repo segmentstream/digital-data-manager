@@ -29,7 +29,7 @@ describe('DDStorage', () => {
 
     it('should persist fields with and without exp dates', (done) => {
       _ddStorage.persist('user.isSubscribed');
-      _ddStorage.persist('user.email', 1);
+      _ddStorage.persist('user.email', 100);
       _ddStorage.persist('user.temp', 0.01);
 
       assert.deepEqual(_ddStorage.getPersistedKeys(), [
@@ -50,7 +50,7 @@ describe('DDStorage', () => {
           'user.email'
         ]);
         done();
-      }, 110);
+      }, 150);
     });
 
   });

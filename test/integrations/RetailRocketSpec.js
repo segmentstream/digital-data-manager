@@ -65,7 +65,9 @@ describe('Integrations: RetailRocket', () => {
 
     describe('#initialize', () => {
       it('should initialize all methods', () => {
-        ddManager.initialize();
+        ddManager.initialize({
+          sendViewedPageEvent: false
+        });
         assert.ok(window.rrPartnerId, 'window.rrPartnerId is not defined');
         assert.ok(window.rrApi, 'window.rrApi is not defined');
         assert.ok(window.rrApiOnReady, 'window.rrApiOnReady is not defined');
@@ -79,7 +81,9 @@ describe('Integrations: RetailRocket', () => {
 
       it('should set window.rrPartnerUserId if possible', () => {
         window.digitalData.user.email = 'test@test.com';
-        ddManager.initialize();
+        ddManager.initialize({
+          sendViewedPageEvent: false
+        });
         assert.equal(window.rrPartnerUserId, 'test@test.com');
       });
     });
@@ -119,7 +123,9 @@ describe('Integrations: RetailRocket', () => {
       });
 
       ddManager.once('ready', done);
-      ddManager.initialize();
+      ddManager.initialize({
+        sendViewedPageEvent: false
+      });
       prepareStubs();
     });
 
@@ -918,6 +924,7 @@ describe('Integrations: RetailRocket', () => {
         retailRocket.setOption('trackAllEmails', false);
         window.digitalData.events.push({
           name: 'Viewed Page',
+          category: 'Test',
           callback: () => {
             assert.ok(window.rrApi.setEmail.calledOnce);
             done();

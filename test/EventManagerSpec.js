@@ -1,4 +1,5 @@
 import assert from 'assert';
+import sinon from 'sinon';
 import reset from './reset.js';
 import EventManager from './../src/EventManager.js';
 
@@ -46,8 +47,9 @@ describe('EventManager', () => {
       assert.ok(_digitalData.events[0].hasFired);
     });
 
-    it('should process callback for event', () => {
+    it('should process callback for event', (done) => {
       let event = Object.assign({}, eventTemplate);
+
       let callbackFired = false;
       let receivedEvent;
 
@@ -57,14 +59,17 @@ describe('EventManager', () => {
         callbackFired = true;
         receivedEvent = e;
       }]);
-      _digitalData.events.push(event);
 
-      assert.ok(callbackFired);
-      assert.equal(receivedEvent.action, event.action);
-      assert.equal(receivedEvent.category, event.category);
+      event.callback = () => {
+        assert.ok(callbackFired);
+        assert.equal(receivedEvent.action, event.action);
+        assert.equal(receivedEvent.category, event.category);
+        done();
+      };
+      _digitalData.events.push(event);
     });
 
-    it('should process callback for beforeEvent and event', () => {
+    it('should process callback for beforeEvent and event', (done) => {
       let event = Object.assign({}, eventTemplate);
       let callbackFired = false;
       let receivedEvent;
@@ -78,12 +83,16 @@ describe('EventManager', () => {
       _ddListener.push(['on', 'beforeEvent', (e) => {
         e.newVar = 'test';
       }]);
-      _digitalData.events.push(event);
 
-      assert.ok(callbackFired);
-      assert.equal(receivedEvent.action, event.action);
-      assert.equal(receivedEvent.category, event.category);
-      assert.equal(receivedEvent.newVar, 'test');
+
+      event.callback = () => {
+        assert.ok(callbackFired);
+        assert.equal(receivedEvent.action, event.action);
+        assert.equal(receivedEvent.category, event.category);
+        assert.equal(receivedEvent.newVar, 'test');
+        done();
+      };
+      _digitalData.events.push(event);
     });
 
     it('should not process callback evet after beforeEvent callback returned false', () => {
@@ -161,20 +170,37 @@ describe('EventManager', () => {
     });
 
     it('should fire event with callback inside after listeners completed', (done) => {
+      sinon.stub(window.console, 'error');
+
       _eventManager.initialize();
 
       _ddListener.push(['on', 'event', (e) => {
         return 'test result';
       }]);
 
+      _ddListener.push(['on', 'event', (e) => {
+        return fatal.error;
+      }]);
+
+      _ddListener.push(['on', 'event', (e) => {
+        return 'test result 2';
+      }]);
+
       _digitalData.events.push({
         name: 'Test',
         category: 'Test',
-        callback: (results) => {
+        callback: (results, errors) => {
+          assert.ok(errors);
           assert.ok(results[0] == 'test result');
-          done();
+          assert.ok(results[1] == 'test result 2');
         }
       });
+
+      setTimeout(() => {
+        assert.ok(window.console.error.calledOnce);
+        window.console.error.restore();
+        done();
+      }, 100)
     });
 
     it('should add Viewed Page event if sendViewedPageEvent setting is enabled', () => {
@@ -318,14 +344,28 @@ describe('EventManager', () => {
       _digitalData.listing.items.push({id: 3});
     });
 
-    it('should fire change callbacks asynchronously, ignoring possible exceptions', (done) => {
+    it('should fire change callbacks asynchronously', (done) => {
+      let listener1Called = false;
+      let listener2Called = false;
+
+      sinon.stub(window.console, 'error');
+
       _ddListener.push(['on', 'change', (newValue, previousValue) => {
+        listener1Called = true;
         throw new Error('test error');
       }]);
       _ddListener.push(['on', 'change', (newValue, previousValue) => {
-        done();
+        listener2Called = true;
       }]);
       _digitalData.test2 = 'test2';
+
+      setTimeout(() => {
+        assert.ok(listener1Called);
+        assert.ok(listener2Called);
+        assert.ok(window.console.error.calledOnce);
+        window.console.error.restore();
+        done();
+      }, 100);
     });
 
     it('should handle change callback exception', (done) => {
@@ -511,11 +551,15 @@ describe('EventManager', () => {
       _digitalData.listing.items.push({id: 3});
     });
 
-    it('should fire define callbacks asynchronously, ignoring possible exceptions', (done) => {
+    it('should fire define callbacks despite errors', (done) => {
+      sinon.stub(window.console, 'error');
+
       _ddListener.push(['on', 'define', (value) => {
         throw new Error('test error');
       }]);
       _ddListener.push(['on', 'define', (value) => {
+        assert.ok(window.console.error.calledOnce);
+        window.console.error.restore();
         done();
       }]);
       _digitalData.test2 = 'test2';
