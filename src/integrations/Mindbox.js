@@ -258,14 +258,14 @@ class Mindbox extends Integration {
 
     const data = cleanObject(this.getUserData(event));
     data.subscriptions = [
-      cleanObejct({
+      cleanObject({
         pointOfContact: 'Email',
         topic: event.subscriptionList,
         isSubscribed: true,
         valueByDefault: true,
       }),
     ];
-
+    
     window.mindbox('identify', {
       operation,
       identificator,

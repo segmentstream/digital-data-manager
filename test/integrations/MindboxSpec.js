@@ -166,8 +166,7 @@ describe('Integrations: Mindbox', () => {
                 action: {
                   productId: '123',
                   skuId: 'sku123',
-                  count: 5,
-                  price: 12500,
+                  price: 2500
                 },
               },
             }));
@@ -196,8 +195,7 @@ describe('Integrations: Mindbox', () => {
                 action: {
                   productId: '123',
                   skuId: 'sku123',
-                  count: 5,
-                  price: 12500,
+                  price: 2500,
                 },
               },
             }));
@@ -286,8 +284,7 @@ describe('Integrations: Mindbox', () => {
                 action: {
                   productId: '123',
                   skuId: 'sku123',
-                  count: 5,
-                  price: 12500,
+                  price: 2500,
                 },
               },
             }));
@@ -316,8 +313,7 @@ describe('Integrations: Mindbox', () => {
                 action: {
                   productId: '123',
                   skuId: 'sku123',
-                  count: 5,
-                  price: 12500,
+                  price: 2500,
                 },
               },
             }));
@@ -384,13 +380,13 @@ describe('Integrations: Mindbox', () => {
                     {
                       productId: '123',
                       skuId: 'sku123',
-                      count: 1,
+                      quantity: 1,
                       price: 100,
                     },
                     {
                       productId: '234',
                       skuId: 'sku234',
-                      count: 2,
+                      quantity: 2,
                       price: 150,
                     }
                   ]
@@ -430,13 +426,13 @@ describe('Integrations: Mindbox', () => {
                     {
                       productId: '123',
                       skuId: 'sku123',
-                      count: 1,
+                      quantity: 1,
                       price: 100,
                     },
                     {
                       productId: '234',
                       skuId: 'sku234',
-                      count: 2,
+                      quantity: 2,
                       price: 150,
                     }
                   ]
@@ -493,6 +489,7 @@ describe('Integrations: Mindbox', () => {
                 lastName: 'Dow',
                 subscriptions: [
                   {
+                    pointOfContact: 'Email',
                     isSubscribed: true,
                     valueByDefault: true,
                   },
@@ -529,6 +526,7 @@ describe('Integrations: Mindbox', () => {
                 lastName: 'Dow',
                 subscriptions: [
                   {
+                    pointOfContact: 'Email',
                     isSubscribed: true,
                     valueByDefault: true,
                   },
