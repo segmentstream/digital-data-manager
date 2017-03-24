@@ -48,7 +48,7 @@ describe('Integrations: RTBHouse', () => {
 
   describe('after loading', () => {
     beforeEach((done) => {
-      sinon.spy(rtbHouse, 'load');
+      sinon.stub(rtbHouse, 'load');
       ddManager.once('ready', done);
       ddManager.initialize({
         sendViewedPageEvent: false,

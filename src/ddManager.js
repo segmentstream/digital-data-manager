@@ -4,6 +4,7 @@ import size from './functions/size';
 import cleanObject from './functions/cleanObject';
 import after from './functions/after';
 import each from './functions/each';
+import noop from './functions/noop';
 import emitter from 'component-emitter';
 import Integration from './Integration';
 import EventManager from './EventManager';
@@ -16,6 +17,8 @@ import DDStorage from './DDStorage';
 import CookieStorage from './CookieStorage';
 import { isTestMode, logEnrichedIntegrationEvent, showTestModeOverlay } from './testMode';
 import { VIEWED_PAGE, mapEvent } from './events';
+
+window.console.warn = window.console.warn || window.console.log || noop;
 
 let ddManager;
 
@@ -170,21 +173,25 @@ function _addIntegrationsEventTracking() {
       }
 
       if (trackEvent) {
-        const mappedEventName = mapEvent(event.name);
-        if (
-          integration.getSemanticEvents().indexOf(mappedEventName) < 0
-          && !integration.allowCustomEvents()
-        ) {
-          return;
-        }
-        // important! cloned object is returned (not link)
-        let integrationEvent = clone(event, true);
-        integrationEvent.name = mappedEventName;
-        integrationEvent = EventDataEnricher.enrichIntegrationData(integrationEvent, _digitalData, integration);
-        if (integrationEvent.name === VIEWED_PAGE) {
-          _trackIntegrationPageEvent(integrationEvent, integration);
-        } else {
-          _trackIntegrationEvent(integrationEvent, integration);
+        try {
+          const mappedEventName = mapEvent(event.name);
+          if (
+            integration.getSemanticEvents().indexOf(mappedEventName) < 0
+            && !integration.allowCustomEvents()
+          ) {
+            return;
+          }
+          // important! cloned object is returned (not link)
+          let integrationEvent = clone(event, true);
+          integrationEvent.name = mappedEventName;
+          integrationEvent = EventDataEnricher.enrichIntegrationData(integrationEvent, _digitalData, integration);
+          if (integrationEvent.name === VIEWED_PAGE) {
+            _trackIntegrationPageEvent(integrationEvent, integration);
+          } else {
+            _trackIntegrationEvent(integrationEvent, integration);
+          }
+        } catch (e) {
+          console.warn(e); // eslint-disable-line
         }
       }
     });
@@ -211,6 +218,11 @@ function _initializeIntegrations(settings) {
           integration.once('load', loaded);
           integration.initialize(version);
         } else {
+          /* eslint-disable */
+          console.warn(
+            `Integration "${name}" can't be initialized properly because of the conflict`
+          );
+          /* eslint-enable */
           loaded();
         }
       });
@@ -225,7 +237,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.2.21',
+  VERSION: '1.2.22',
 
   setAvailableIntegrations: (availableIntegrations) => {
     _availableIntegrations = availableIntegrations;

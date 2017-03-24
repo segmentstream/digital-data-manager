@@ -6,5 +6,6 @@ import 'core-js/modules/es6.array.map';
 import 'core-js/modules/es6.function.bind';
 import 'core-js/modules/es6.object.assign';
 import 'core-js/modules/es6.string.trim';
+import 'core-js/modules/es6.string.ends-with';
 import 'core-js/modules/es6.date.to-iso-string';
 import 'core-js/modules/es6.date.now';

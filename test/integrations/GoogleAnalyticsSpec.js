@@ -864,7 +864,6 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.events.push({
             name: 'Viewed Page',
             callback: () => {
-              console.log();
               assert.ok(window.ga.args.length > 0);
               assert.equal(window.ga.q[1][0], 'require');
               assert.equal(window.ga.q[1][1], 'ec');
