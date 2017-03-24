@@ -183,6 +183,7 @@ class YandexMetrica extends Integration {
     deleteProperty(window, 'Ya');
     deleteProperty(window, 'yandex_metrika_callbacks');
     deleteProperty(window, this.dataLayerName);
+    this.pageCalled = false;
   }
 
   trackEvent(event) {
@@ -276,7 +277,7 @@ class YandexMetrica extends Integration {
 
   onCompletedTransaction(event) {
     const transaction = event.transaction;
-    if (!transaction.orderId) return;
+    if (!transaction || !transaction.orderId) return;
 
     const products = transaction.lineItems.filter((lineItem) => {
       const product = lineItem.product;

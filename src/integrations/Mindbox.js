@@ -232,17 +232,17 @@ class Mindbox extends Integration {
     if (getProp(event, 'user.isSubscribed')) {
       data.subscriptions = data.subscriptions || [];
       data.subscriptions.push({
-          pointOfContact: 'Email',
-          isSubscribed: true,
-          valueByDefault: true,
+        pointOfContact: 'Email',
+        isSubscribed: true,
+        valueByDefault: true,
       });
     }
     if (getProp(event, 'user.isSubscribedBySms')) {
       data.subscriptions = data.subscriptions || [];
       data.subscriptions.push({
-          pointOfContact: 'Sms',
-          isSubscribed: true,
-          valueByDefault: true,
+        pointOfContact: 'Sms',
+        isSubscribed: true,
+        valueByDefault: true,
       });
     }
     window.mindbox('identify', {

@@ -115,14 +115,22 @@ describe('Integrations: Criteo', () => {
     describe('#Viewed Page', () => {
 
       it('should define account id', (done) => {
-        viewedPage({}, () => {
+        viewedPage({
+          page: {
+            type: 'other'
+          }
+        }, () => {
           assert.deepEqual(window.criteo_q[0][0], { event: 'setAccount', account: options.account });
           done();
         });
       });
 
       it('should define "d" site type if other option is not specified', (done) => {
-        viewedPage({}, () => {
+        viewedPage({
+          page: {
+            type: 'other'
+          }
+        }, () => {
           assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "d" });
           done();
         });
@@ -130,6 +138,9 @@ describe('Integrations: Criteo', () => {
 
       it('should define "d" site type if website.type is not one of: "desktop", "tablet" or "mobile"', (done) => {
         viewedPage({
+          page: {
+            type: 'other'
+          },
           website: {
             type: "test"
           }
@@ -141,6 +152,9 @@ describe('Integrations: Criteo', () => {
 
       it('should define "d" site type if digitalData.website.type is "desktop"', (done) => {
         viewedPage({
+          page: {
+            type: 'other'
+          },
           website: {
             type: "desktop"
           }
@@ -152,6 +166,9 @@ describe('Integrations: Criteo', () => {
 
       it('should define "t" site type if digitalData.website.type is "tablet"', (done) => {
         viewedPage({
+          page: {
+            type: 'other'
+          },
           website: {
             type: "tablet"
           }
@@ -163,6 +180,9 @@ describe('Integrations: Criteo', () => {
 
       it('should define "m" site type if digitalData.website.type is "mobile"', (done) => {
         viewedPage({
+          page: {
+            type: 'other'
+          },
           website: {
             type: "mobile"
           }
@@ -174,6 +194,9 @@ describe('Integrations: Criteo', () => {
 
       it('should set email if digitalData.user.email is defined', (done) => {
         viewedPage({
+          page: {
+            type: 'other'
+          },
           user: {
             email: 'test@driveback.ru'
           }
@@ -190,7 +213,11 @@ describe('Integrations: Criteo', () => {
         window.digitalData.user = {
           email: 'test@driveback.ru'
         }
-        viewedPage({}, () => {
+        viewedPage({
+          page: {
+            type: 'other'
+          }
+        }, () => {
           assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "m" });
           assert.deepEqual(window.criteo_q[0][2], { event: 'setEmail', email: 'test@driveback.ru' });
           done();
@@ -202,6 +229,7 @@ describe('Integrations: Criteo', () => {
       it('should define "d" site type if digitalData.page.siteType is not one of: "desktop", "tablet" or "mobile"', (done) => {
         viewedPage({
           page: {
+            type: 'other',
             siteType: "test"
           },
           version: '1.0.11'
@@ -214,6 +242,7 @@ describe('Integrations: Criteo', () => {
       it('should define "d" site type if digitalData.page.siteType is "desktop"', (done) => {
         viewedPage({
           page: {
+            type: 'other',
             siteType: "desktop"
           },
           version: '1.0.11'
@@ -226,6 +255,7 @@ describe('Integrations: Criteo', () => {
       it('should define "t" site type if digitalData.page.siteType is "tablet"', (done) => {
         viewedPage({
           page: {
+            type: 'other',
             siteType: "tablet"
           },
           version: '1.0.11'
@@ -238,6 +268,7 @@ describe('Integrations: Criteo', () => {
       it('should define "m" site type if digitalData.page.siteType is "mobile"', (done) => {
         viewedPage({
           page: {
+            type: 'other',
             siteType: "mobile"
           },
           version: '1.0.11'
@@ -693,17 +724,10 @@ describe('Integrations: Criteo', () => {
             {
               product: {
                 id: '345',
-                unitPrice: 30
-              }
+                unitSalePrice: 30
+              },
+              quantity: 1
             },
-            {
-              product: {
-                id: '456',
-              }
-            },
-            {
-              product: {}
-            }
           ]
         };
         window.digitalData.events.push({
@@ -713,7 +737,6 @@ describe('Integrations: Criteo', () => {
               { id: '123', price: 100, quantity: 1 },
               { id: '234', price: 50, quantity: 2 },
               { id: '345', price: 30, quantity: 1 },
-              { id: '456', price: 0, quantity: 1 }
             ]});
             done();
           }
@@ -743,17 +766,10 @@ describe('Integrations: Criteo', () => {
               {
                 product: {
                   id: '345',
-                  unitPrice: 30
-                }
+                  unitSalePrice: 30
+                },
+                quantity: 1
               },
-              {
-                product: {
-                  id: '456',
-                }
-              },
-              {
-                product: {}
-              }
             ]
           },
           callback: () => {
@@ -761,7 +777,6 @@ describe('Integrations: Criteo', () => {
               { id: '123', price: 100, quantity: 1 },
               { id: '234', price: 50, quantity: 2 },
               { id: '345', price: 30, quantity: 1 },
-              { id: '456', price: 0, quantity: 1 }
             ]});
             done();
           }
@@ -834,17 +849,10 @@ describe('Integrations: Criteo', () => {
         {
           product: {
             id: '345',
-            unitPrice: 30
-          }
+            unitSalePrice: 30
+          },
+          quantity: 1
         },
-        {
-          product: {
-            id: '456',
-          }
-        },
-        {
-          product: {}
-        }
       ];
 
       it('should send trackTransaction event if transaction is completed (digitalData)', (done) => {
@@ -864,7 +872,6 @@ describe('Integrations: Criteo', () => {
                 { id: '123', price: 100, quantity: 1 },
                 { id: '234', price: 50, quantity: 2 },
                 { id: '345', price: 30, quantity: 1 },
-                { id: '456', price: 0, quantity: 1 }
               ]
             });
             done();
@@ -889,7 +896,6 @@ describe('Integrations: Criteo', () => {
                 { id: '123', price: 100, quantity: 1 },
                 { id: '234', price: 50, quantity: 2 },
                 { id: '345', price: 30, quantity: 1 },
-                { id: '456', price: 0, quantity: 1 }
               ]
             });
             done();
@@ -914,7 +920,6 @@ describe('Integrations: Criteo', () => {
                 { id: '123', price: 100, quantity: 1 },
                 { id: '234', price: 50, quantity: 2 },
                 { id: '345', price: 30, quantity: 1 },
-                { id: '456', price: 0, quantity: 1 }
               ]
             });
             done();
@@ -945,7 +950,6 @@ describe('Integrations: Criteo', () => {
                 { id: '123', price: 100, quantity: 1 },
                 { id: '234', price: 50, quantity: 2 },
                 { id: '345', price: 30, quantity: 1 },
-                { id: '456', price: 0, quantity: 1 }
               ]
             });
             done();
@@ -975,7 +979,6 @@ describe('Integrations: Criteo', () => {
                 { id: '123', price: 100, quantity: 1 },
                 { id: '234', price: 50, quantity: 2 },
                 { id: '345', price: 30, quantity: 1 },
-                { id: '456', price: 0, quantity: 1 }
 
               ]
             });
