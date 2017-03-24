@@ -145,6 +145,11 @@ class Criteo extends Integration {
         ['transaction.isFirst', { required: true }, ERROR_TYPE_NOTICE],
       ];
       break;
+    case SUBSCRIBED:
+      validations = [
+        ['user.email', { required: true }],
+      ];
+      break;
     default:
       // do nothing
     }

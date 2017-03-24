@@ -1,5 +1,4 @@
-import noop from './functions/noop';
-import { log, warn, error as errorLog, group, groupEnd } from './functions/safeConsole';
+import { log, info, warn, group, groupEnd } from './functions/safeConsole';
 
 export function isTestMode() {
   return window.localStorage.getItem('_ddm_test_mode') === '1';
@@ -28,23 +27,23 @@ export function showTestModeOverlay() {
   document.body.appendChild(overlayDiv);
 }
 
-export function logEnrichedIntegrationEvent(event, integrationName) {
-  group(`${event.name} -> ${integrationName}`);
-  log(event);
-  groupEnd();
-}
-
 export function logValidationResult(event, validationResult, integrationName) {
   const { errors, warnings } = validationResult;
-  group(`${event.name} -> ${integrationName}`);
   for (const error of errors) {
     const [field, message] = error;
-    errorLog(`Field '${field}' ${message}`);
+    warn(`Field '${field}' ${message}`);
   }
   for (const warning of warnings) {
     const [field, message] = warning;
-    console.log(warning);
-    warn(`Field '${field}' ${message}`);
+    info(`Field '${field}' ${message}`);
+  }
+}
+
+export function logEnrichedIntegrationEvent(event, integrationName, validationResult) {
+  group(`${event.name} -> ${integrationName}`);
+  log(event);
+  if (validationResult && validationResult.errors.length) {
+    logValidationResult(event, validationResult, integrationName);
   }
   groupEnd();
 }

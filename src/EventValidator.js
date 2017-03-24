@@ -24,7 +24,7 @@ const validateField = (field, value, rules, errorType) => {
   const errors = [];
   const warnings = [];
 
-  each (rules, (ruleName, ruleParam) => {
+  each(rules, (ruleName, ruleParam) => {
     const result = ruleHandlers[ruleName](value, ruleParam);
     if (result !== true) {
       if (errorType === ERROR_TYPE_NOTICE) {

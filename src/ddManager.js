@@ -4,7 +4,6 @@ import size from './functions/size';
 import cleanObject from './functions/cleanObject';
 import after from './functions/after';
 import each from './functions/each';
-import noop from './functions/noop';
 import emitter from 'component-emitter';
 import Integration from './Integration';
 import EventManager from './EventManager';
@@ -15,7 +14,7 @@ import DigitalDataEnricher from './DigitalDataEnricher';
 import Storage from './Storage';
 import DDStorage from './DDStorage';
 import CookieStorage from './CookieStorage';
-import { isTestMode, logEnrichedIntegrationEvent, logValidationResult, showTestModeOverlay } from './testMode';
+import { isTestMode, logEnrichedIntegrationEvent, showTestModeOverlay } from './testMode';
 import { VIEWED_PAGE, mapEvent } from './events';
 import { validateEvent } from './EventValidator';
 import { warn } from './functions/safeConsole';
@@ -121,16 +120,11 @@ function _validateIntegrationEvent(event, integration) {
 
 function _trackIntegrationEvent(event, integration) {
   const validationResult = _validateIntegrationEvent(event, integration);
-  if (validationResult && isTestMode()) {
-    if (validationResult.errors.length) {
-      logValidationResult(event, validationResult, integration.getName());
-    }
+  if (isTestMode()) {
+    logEnrichedIntegrationEvent(event, integration.getName(), validationResult);
   }
 
   if (!validationResult || !validationResult.errors.length) {
-    if (isTestMode()) {
-      logEnrichedIntegrationEvent(event, integration.getName());
-    }
     integration.trackEvent(event);
   }
 }

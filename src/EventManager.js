@@ -1,12 +1,10 @@
 import clone from './functions/clone';
-import async from 'async';
-import debug from 'debug';
 import noop from './functions/noop.js';
 import deleteProperty from './functions/deleteProperty.js';
 import size from './functions/size.js';
 import after from './functions/after.js';
 import jsonIsEqual from './functions/jsonIsEqual.js';
-import { error } from './functions/safeConsole';
+import { error as errorLog } from './functions/safeConsole';
 import DDHelper from './DDHelper.js';
 import EventDataEnricher from './EventDataEnricher.js';
 import { VIEWED_PAGE } from './events';
@@ -126,7 +124,7 @@ class EventManager {
           try {
             callback.handler(value);
           } catch (e) {
-            error(e);
+            errorLog(e);
           }
           _callbacks.define.splice(_callbacks.define.indexOf(callback), 1);
         }
@@ -140,7 +138,7 @@ class EventManager {
       try {
         handler(nv, pv);
       } catch (e) {
-        error(e);
+        errorLog(e);
       }
     };
 
@@ -213,7 +211,7 @@ class EventManager {
           eventCallbackOnComplete(null, result);
         } catch (e) {
           eventCallbackOnComplete(e);
-          error(e);
+          errorLog(e);
         }
       }
     } else {
