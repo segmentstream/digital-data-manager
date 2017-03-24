@@ -15,7 +15,7 @@ import DigitalDataEnricher from './DigitalDataEnricher';
 import Storage from './Storage';
 import DDStorage from './DDStorage';
 import CookieStorage from './CookieStorage';
-import { isTestMode, logEnrichedIntegrationEvent, logValidationError, showTestModeOverlay } from './testMode';
+import { isTestMode, logEnrichedIntegrationEvent, logValidationResult, showTestModeOverlay } from './testMode';
 import { VIEWED_PAGE, mapEvent } from './events';
 import { validateEvent } from './EventValidator';
 import { warn } from './functions/safeConsole';
@@ -122,8 +122,8 @@ function _validateIntegrationEvent(event, integration) {
 function _trackIntegrationEvent(event, integration) {
   const validationResult = _validateIntegrationEvent(event, integration);
   if (validationResult && isTestMode()) {
-    if (validationResult.errors.length || validationResult.warnings.length) {
-      logValidationError(event, validationResult, integration.getName());
+    if (validationResult.errors.length) {
+      logValidationResult(event, validationResult, integration.getName());
     }
   }
 

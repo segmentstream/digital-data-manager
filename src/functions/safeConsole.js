@@ -13,6 +13,7 @@ export function warn(message) {
 }
 
 export function error(error) {
+  console.log('Error:', error);
   window.console.error(error);
 }
 

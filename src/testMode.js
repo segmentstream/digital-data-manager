@@ -1,5 +1,5 @@
 import noop from './functions/noop';
-import { log, warn, group, groupEnd } from './functions/safeConsole';
+import { log, warn, error as errorLog, group, groupEnd } from './functions/safeConsole';
 
 export function isTestMode() {
   return window.localStorage.getItem('_ddm_test_mode') === '1';
@@ -34,10 +34,16 @@ export function logEnrichedIntegrationEvent(event, integrationName) {
   groupEnd();
 }
 
-export function logValidationError(event, errors, integrationName) {
+export function logValidationResult(event, validationResult, integrationName) {
+  const { errors, warnings } = validationResult;
   group(`${event.name} -> ${integrationName}`);
   for (const error of errors) {
-    const {field, message} = error;
+    const [field, message] = error;
+    errorLog(`Field '${field}' ${message}`);
+  }
+  for (const warning of warnings) {
+    const [field, message] = warning;
+    console.log(warning);
     warn(`Field '${field}' ${message}`);
   }
   groupEnd();
