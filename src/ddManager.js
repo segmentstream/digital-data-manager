@@ -239,7 +239,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.2.22',
+  VERSION: '1.2.23',
 
   setAvailableIntegrations: (availableIntegrations) => {
     _availableIntegrations = availableIntegrations;
