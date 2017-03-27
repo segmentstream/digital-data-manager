@@ -91,10 +91,6 @@ class FacebookPixel extends Integration {
     return this.SEMANTIC_EVENTS;
   }
 
-  allowCustomEvents() {
-    return true;
-  }
-
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
