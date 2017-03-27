@@ -103,6 +103,36 @@ class RetailRocket extends Integration {
     return enrichableProps;
   }
 
+  getEventValidations(event) {
+    switch (event.name) {
+    case VIEWED_PRODUCT_DETAIL:
+      return [
+        ['product.id', { required: true }],
+      ];
+    case ADDED_PRODUCT:
+      return [
+        ['product.id', { required: true }],
+      ];
+    case VIEWED_PRODUCT_LISTING:
+      return [
+        ['listing.categoryId', { required: true }],
+      ];
+    case SEARCHED_PRODUCTS:
+      return [
+        ['listing.query', { required: true }],
+      ];
+    case COMPLETED_TRANSACTION:
+      return [
+        ['transaction.orderId', { required: true }],
+        ['transaction.lineItems[].product.id', { required: true }],
+        ['transaction.lineItems[].product.unitSalePrice', { required: true }],
+        ['transaction.lineItems[].quantity', { required: true }],
+      ];
+    default:
+      return [];
+    }
+  }
+
   initialize() {
     if (this.getOption('partnerId')) {
       window.rrPartnerId = this.getOption('partnerId');

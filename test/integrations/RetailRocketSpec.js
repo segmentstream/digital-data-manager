@@ -566,35 +566,6 @@ describe('Integrations: RetailRocket', () => {
         });
       });
 
-      it('should track "Completed Transaction" with transaction param and product.unitPrice instead of product.unitSalePrice', (done) => {
-        window.digitalData.events.push({
-          name: 'Completed Transaction',
-          transaction: {
-            orderId: '123',
-            lineItems: [
-              {
-                product: {
-                  id: '327',
-                  unitPrice: 245,
-                },
-                quantity: 1,
-              },
-              {
-                product: {
-                  id: '328',
-                  unitPrice: 245,
-                },
-                quantity: 2,
-              },
-            ],
-          },
-          callback: () => {
-            assert.ok(window.rrApi.order.calledOnce);
-            done();
-          },
-        });
-      });
-
       it('should override product id for "Completed Transaction" event', (done) => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
