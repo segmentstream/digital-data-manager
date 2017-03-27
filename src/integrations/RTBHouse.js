@@ -1,5 +1,6 @@
 import Integration from './../Integration.js';
 import { getProp } from './../functions/dotProp';
+import { ERROR_TYPE_NOTICE } from './../EventValidator';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -119,6 +120,54 @@ class RTBHouse extends Integration {
         'context.campaign',
         'transaction',
       ];
+    default:
+      return [];
+    }
+  }
+
+  getEventValidations(event) {
+    switch (event.name) {
+    case VIEWED_PAGE:
+      const validations = [
+        ['page.type', { required: true }],
+        ['cart', { required: true }, ERROR_TYPE_NOTICE],
+      ];
+      if (event.cart && Array.isArray(event.cart.lineItems)) {
+        validations.push(['cart.lineItems[].product.id', { required: true }]);
+      }
+      return validations;
+      break;
+    case VIEWED_PRODUCT_DETAIL:
+      return [
+        ['product.id', { required: true }],
+      ];
+      break;
+    case ADDED_PRODUCT:
+      return [
+        ['product.id', { required: true }],
+      ];
+      break;
+    case VIEWED_PRODUCT_LISTING:
+      return [
+        ['listing.categoryId', { required: true }]
+      ];
+    case SEARCHED_PRODUCTS:
+      return [
+        ['listing.items[].id', { required: true }],
+      ];
+      break;
+    case VIEWED_CHECKOUT_STEP:
+      return [
+        ['step', { required: true }],
+      ];
+      break;
+    case COMPLETED_TRANSACTION:
+      return [
+        ['transaction.orderId', { required: true }],
+        ['transaction.total', { required: true }],
+        ['transaction.lineItems[].product.id', { required: true }],
+      ];
+      break;
     default:
       return [];
     }

@@ -99,7 +99,7 @@ class Criteo extends Integration {
       ];
       break;
     default:
-      // do nothing
+      // do nothing;
     }
 
     const userSegmentVar = this.getOption('userSegmentVar');
