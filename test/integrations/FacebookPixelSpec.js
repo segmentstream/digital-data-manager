@@ -7,7 +7,11 @@ import ddManager from './../../src/ddManager.js';
 describe('Integrations: FacebookPixel', () => {
   let fbPixel;
   const options = {
-    pixelId: '946986105422948'
+    pixelId: '946986105422948',
+    customEvents: {
+      'Downloaded Tutorial': 'TutorialDownload',
+      'Applied For Trial': 'Lead',
+    }
   };
 
   before(() => {
@@ -179,6 +183,46 @@ describe('Integrations: FacebookPixel', () => {
       });
     });
 
+    describe('#onSearchedProducts', () => {
+
+      it('should call fbq track Search', (done) => {
+        window.digitalData.events.push({
+          name: 'Searched Products',
+          listing: {
+            query: 'Test Query'
+          },
+          quantity: 2,
+          callback: () => {
+            assert.ok(window.fbq.calledWith('track', 'Search', {
+              search_string: 'Test Query',
+            }), 'fbq("track", "Search") was not called');
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onAddedProductToWishlist', () => {
+
+      it('should call fbq track AddToWishlist', (done) => {
+        window.digitalData.events.push({
+          name: 'Added Product to Wishlist',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            category: ['Category 1', 'Subcategory 1'],
+          },
+          callback: () => {
+            assert.ok(window.fbq.calledWith('track', 'AddToWishlist', {
+              content_ids: ['123'],
+              content_name: 'Test Product',
+              content_category: 'Category 1/Subcategory 1',
+            }), 'fbq("track", "AddToWishlist") was not called');
+            done();
+          }
+        });
+      });
+    });
 
     describe('#onAddedProduct', () => {
 
@@ -340,91 +384,6 @@ describe('Integrations: FacebookPixel', () => {
         });
       });
 
-      it('should call fbq track Purchase even if transaction.total and transaction.currency is not defined', (done) => {
-        window.digitalData.events.push({
-          name: 'Completed Transaction',
-          transaction: {
-            orderId: '123',
-            lineItems: [
-              {
-                product: {
-                  id: '123',
-                  name: 'Test Product',
-                  category: 'Category 1',
-                  currency: 'USD',
-                  unitSalePrice: 10000
-                },
-                quantity: 1,
-                subtotal: 10000,
-                currency: 'USD'
-              },
-              {
-                product: {
-                  id: '234',
-                  name: 'Test Product 2',
-                  category: 'Category 1',
-                  currency: 'USD',
-                  unitSalePrice: 5000
-                },
-                quantity: 2,
-                subtotal: 10000,
-                currency: 'USD'
-              }
-            ]
-          },
-          callback: () => {
-            assert.ok(window.fbq.calledWith('track', 'Purchase', {
-              content_ids: ['123', '234'],
-              content_type: 'product',
-              currency: 'USD',
-              value: 20000
-            }), 'fbq("track", "Purchase") was not called');
-            done();
-          }
-        });
-      });
-
-      it('should call fbq track Purchase even if lineItem.subtotal and lineItem.currency is not defined', (done) => {
-        window.digitalData.events.push({
-          name: 'Completed Transaction',
-          transaction: {
-            orderId: '123',
-            currency: 'USD',
-            lineItems: [
-              {
-                product: {
-                  id: '123',
-                  name: 'Test Product',
-                  category: 'Category 1',
-                  currency: 'USD',
-                  unitSalePrice: 10000
-                },
-                quantity: 1
-              },
-              {
-                product: {
-                  id: '234',
-                  name: 'Test Product 2',
-                  category: 'Category 1',
-                  currency: 'USD',
-                  unitSalePrice: 5000
-                },
-                quantity: 2
-              }
-            ]
-          },
-          callback: () => {
-            assert.ok(window.fbq.calledWith('track', 'Purchase', {
-              content_ids: ['123', '234'],
-              content_type: 'product',
-              currency: 'USD',
-              value: 20000
-            }), 'fbq("track", "Purchase") was not called');
-            done();
-          }
-        });
-      });
-
     });
 
 
@@ -433,7 +392,17 @@ describe('Integrations: FacebookPixel', () => {
         window.digitalData.events.push({
           name: 'Downloaded Tutorial',
           callback: () => {
-            assert.ok(window.fbq.calledWith('trackCustom', 'Downloaded Tutorial'), 'fbq("track", "Downloaded Tutorial") was not called');
+            assert.ok(window.fbq.calledWith('trackCustom', 'TutorialDownload'), 'fbq("track", "Downloaded Tutorial") was not called');
+            done();
+          }
+        });
+      });
+
+      it('should call fbq track for standard event', (done) => {
+        window.digitalData.events.push({
+          name: 'Applied For Trial',
+          callback: () => {
+            assert.ok(window.fbq.calledWith('track', 'Lead'), 'fbq("track", "Lead") was not called');
             done();
           }
         });

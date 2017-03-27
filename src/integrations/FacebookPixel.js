@@ -1,17 +1,27 @@
-import Integration from './../Integration.js';
-import deleteProperty from './../functions/deleteProperty.js';
+import Integration from './../Integration';
+import deleteProperty from './../functions/deleteProperty';
+import cleanObject from './../functions/cleanObject';
+import { getProp } from './../functions/dotProp';
+import { ERROR_TYPE_NOTICE } from './../EventValidator';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
+  SEARCHED_PRODUCTS,
   ADDED_PRODUCT,
+  ADDED_PRODUCT_TO_WISHLIST,
   COMPLETED_TRANSACTION,
 } from './../events';
 
-const SEMANTIC_EVENTS = [
-  VIEWED_PAGE,
-  VIEWED_PRODUCT_DETAIL,
-  ADDED_PRODUCT,
-  COMPLETED_TRANSACTION,
+const FB_STANDARD_EVENTS = [
+  'ViewContent',
+  'Search',
+  'AddToCart',
+  'AddToWishlist',
+  'InitiateCheckout',
+  'AddPaymentInfo',
+  'Purchase',
+  'Lead',
+  'CompleteRegistration',
 ];
 
 function getProductCategory(product) {
@@ -32,6 +42,22 @@ class FacebookPixel extends Integration {
     }, options);
 
     super(digitalData, optionsWithDefaults);
+
+    this.SEMANTIC_EVENTS = [
+      VIEWED_PAGE,
+      VIEWED_PRODUCT_DETAIL,
+      ADDED_PRODUCT,
+      ADDED_PRODUCT_TO_WISHLIST,
+      SEARCHED_PRODUCTS,
+      COMPLETED_TRANSACTION,
+    ];
+
+    this.customEvents = Object.keys(this.getOption('customEvents') || {});
+    for (const customEvent of this.customEvents) {
+      if (this.SEMANTIC_EVENTS.indexOf(customEvent) < 0) {
+        this.SEMANTIC_EVENTS.push(customEvent);
+      }
+    }
 
     this.addTag({
       type: 'script',
@@ -62,7 +88,7 @@ class FacebookPixel extends Integration {
   }
 
   getSemanticEvents() {
-    return SEMANTIC_EVENTS;
+    return this.SEMANTIC_EVENTS;
   }
 
   allowCustomEvents() {
@@ -72,13 +98,19 @@ class FacebookPixel extends Integration {
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case 'Viewed Product Detail':
+    case VIEWED_PRODUCT_DETAIL:
       enrichableProps = [
         'product',
       ];
       break;
-    case 'Completed Transaction':
+    case SEARCHED_PRODUCTS:
       enrichableProps = [
+        'listing.query',
+      ];
+      break;
+    case COMPLETED_TRANSACTION:
+      enrichableProps = [
+        'website.currency',
         'transaction',
       ];
       break;
@@ -87,6 +119,41 @@ class FacebookPixel extends Integration {
     }
 
     return enrichableProps;
+  }
+
+  getEventValidations(event) {
+    switch (event.name) {
+    case VIEWED_PRODUCT_DETAIL:
+    case ADDED_PRODUCT:
+      return [
+        ['product.id', { required: true }],
+        ['product.name', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.category', { required: true }, ERROR_TYPE_NOTICE],
+      ];
+      break;
+    case ADDED_PRODUCT_TO_WISHLIST:
+      return [
+        ['product.id', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.name', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.category', { required: true }, ERROR_TYPE_NOTICE],
+      ];
+    case SEARCHED_PRODUCTS:
+      return [
+        ['listing.query', { required: true }],
+      ];
+    case COMPLETED_TRANSACTION:
+      let validations = [
+        ['transaction.lineItems[].product.id', { required: true }],
+        ['transaction.total', { required: true }, ERROR_TYPE_NOTICE],
+      ];
+      if (!getProp(event, 'website.currency')) {
+        validations.push(['transaction.currency', { required: true }, ERROR_TYPE_NOTICE]);
+      }
+      return validations;
+      break;
+    default:
+      return [];
+    }
   }
 
   isLoaded() {
@@ -103,19 +170,14 @@ class FacebookPixel extends Integration {
     } else if (event.name === VIEWED_PRODUCT_DETAIL) {
       this.onViewedProductDetail(event.product);
     } else if (event.name === ADDED_PRODUCT) {
-      this.onAddedProduct(event.product, event.quantity);
+      this.onAddedProduct(event.product);
+    } else if (event.name === ADDED_PRODUCT_TO_WISHLIST) {
+      this.onAddedProductToWishlist(event.product);
+    } else if (event.name === SEARCHED_PRODUCTS) {
+      this.onSearchedProducts(event.listing);
     } else if (event.name === COMPLETED_TRANSACTION) {
       this.onCompletedTransaction(event.transaction);
-    } else if ([
-      'Viewed Product',
-      'Clicked Product',
-      'Viewed Campaign',
-      'Clicked Campaign',
-      'Removed Product',
-      'Viewed Checkout Step',
-      'Completed Checkout Step',
-      'Refunded Transaction',
-    ].indexOf(event.name) < 0) {
+    } else {
       this.onCustomEvent(event);
     }
   }
@@ -124,67 +186,70 @@ class FacebookPixel extends Integration {
     window.fbq('track', 'PageView');
   }
 
-  onViewedProductCategory(listing) {
-    window.fbq('track', 'ViewContent', {
-      content_ids: [listing.categoryId || ''],
-      content_type: 'product_group',
-    });
-  }
-
   onViewedProductDetail(product) {
     const category = getProductCategory(product);
     window.fbq('track', 'ViewContent', {
-      content_ids: [product.id || product.skuCode || ''],
+      content_ids: [product.id || ''],
       content_type: 'product',
       content_name: product.name || '',
       content_category: category || '',
     });
   }
 
-  onAddedProduct(product, quantity) {
+  onAddedProduct(product) {
     if (product && typeof product === 'object') {
       const category = getProductCategory(product);
-      quantity = quantity || 1;
-      window.fbq('track', 'AddToCart', {
-        content_ids: [product.id || product.skuCode || ''],
+      window.fbq('track', 'AddToCart', cleanObject({
+        content_ids: [product.id || ''],
         content_type: 'product',
-        content_name: product.name || '',
-        content_category: category || '',
-      });
+        content_name: product.name,
+        content_category: category,
+      }));
     }
+  }
+
+  onAddedProductToWishlist(product) {
+    product = product || {};
+    const category = getProductCategory(product);
+    window.fbq('track', 'AddToWishlist', cleanObject({
+      content_ids: [product.id || ''],
+      content_name: product.name,
+      content_category: category,
+    }));
+  }
+
+  onSearchedProducts(listing) {
+    listing = listing || {};
+    window.fbq('track', 'Search', cleanObject({
+      search_string: listing.query,
+    }));
   }
 
   onCompletedTransaction(transaction) {
     if (transaction.lineItems && transaction.lineItems.length) {
-      const contentIds = [];
-      let revenue1 = 0;
-      let revenue2 = 0;
-      let currency1 = null;
-      let currency2 = null;
-      for (const lineItem of transaction.lineItems) {
-        if (lineItem.product) {
-          const product = lineItem.product;
-          if (product.id) {
-            contentIds.push(product.id);
-          }
-          revenue2 += (lineItem.quantity || 1) * (product.unitSalePrice || product.unitPrice || 0);
-          currency2 = currency2 || product.currency;
-        }
-        revenue1 += lineItem.subtotal;
-        currency1 = currency1 || lineItem.currency;
-      }
+      const contentIds = transaction.lineItems.map((lineItem) => {
+        return getProp(lineItem, 'product.id');
+      });
 
-      window.fbq('track', 'Purchase', {
+      window.fbq('track', 'Purchase', cleanObject({
         content_ids: contentIds,
         content_type: 'product',
-        currency: transaction.currency || currency1 || currency2 || '',
-        value: transaction.total || revenue1 || revenue2 || 0,
-      });
+        currency: transaction.currency,
+        value: transaction.total,
+      }));
     }
   }
 
   onCustomEvent(event) {
-    window.fbq('trackCustom', event.name);
+    const customEvents = this.getOption('customEvents');
+    const customEventName = customEvents[event.name];
+    if (customEventName) {
+      if (FB_STANDARD_EVENTS.indexOf(customEventName) < 0) {
+        window.fbq('trackCustom', customEventName);
+      } else {
+        window.fbq('track', customEventName);
+      }
+    }
   }
 }
 

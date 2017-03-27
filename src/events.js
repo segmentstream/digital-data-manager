@@ -20,6 +20,8 @@ export const LOGGED_IN = 'Logged In';
 export const UPDATED_PROFILE_INFO = 'Updated Profile Info';
 export const VIEWED_EXPERIMENT = 'Viewed Experiment';
 export const ACHIEVED_EXPERIMENT_GOAL = 'Achieved Experiment Goal';
+export const ADDED_PRODUCT_TO_WISHLIST = 'Added Product to Wishlist';
+export const REMOVED_PRODUCT_FROM_WISHLIST = 'Removed Product from Wishlist';
 
 // legacy events
 export const VIEWED_PRODUCT_CATEGORY = 'Viewed Product Category';
