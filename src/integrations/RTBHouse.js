@@ -136,38 +136,32 @@ class RTBHouse extends Integration {
         validations.push(['cart.lineItems[].product.id', { required: true }]);
       }
       return validations;
-      break;
     case VIEWED_PRODUCT_DETAIL:
       return [
         ['product.id', { required: true }],
       ];
-      break;
     case ADDED_PRODUCT:
       return [
         ['product.id', { required: true }],
       ];
-      break;
     case VIEWED_PRODUCT_LISTING:
       return [
-        ['listing.categoryId', { required: true }]
+        ['listing.categoryId', { required: true }],
       ];
     case SEARCHED_PRODUCTS:
       return [
         ['listing.items[].id', { required: true }],
       ];
-      break;
     case VIEWED_CHECKOUT_STEP:
       return [
         ['step', { required: true }],
       ];
-      break;
     case COMPLETED_TRANSACTION:
       return [
         ['transaction.orderId', { required: true }],
         ['transaction.total', { required: true }],
         ['transaction.lineItems[].product.id', { required: true }],
       ];
-      break;
     default:
       return [];
     }

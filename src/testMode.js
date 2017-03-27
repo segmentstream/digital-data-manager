@@ -27,7 +27,7 @@ export function showTestModeOverlay() {
   document.body.appendChild(overlayDiv);
 }
 
-export function logValidationResult(event, validationResult, integrationName) {
+export function logValidationResult(event, validationResult) {
   const { errors, warnings } = validationResult;
   for (const error of errors) {
     const [field, message] = error;

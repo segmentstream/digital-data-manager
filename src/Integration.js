@@ -166,7 +166,7 @@ export class Integration extends EventEmitter
             attr[attrKey] = attrVal.replace(/\{\{\ *(\w+)\ *\}\}/g, (_, $1) => {
               return params[$1];
             });
-          }      
+          }
         });
       }
 

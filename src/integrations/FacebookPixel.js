@@ -130,7 +130,6 @@ class FacebookPixel extends Integration {
         ['product.name', { required: true }, ERROR_TYPE_NOTICE],
         ['product.category', { required: true }, ERROR_TYPE_NOTICE],
       ];
-      break;
     case ADDED_PRODUCT_TO_WISHLIST:
       return [
         ['product.id', { required: true }, ERROR_TYPE_NOTICE],
@@ -142,7 +141,7 @@ class FacebookPixel extends Integration {
         ['listing.query', { required: true }],
       ];
     case COMPLETED_TRANSACTION:
-      let validations = [
+      const validations = [
         ['transaction.lineItems[].product.id', { required: true }],
         ['transaction.total', { required: true }, ERROR_TYPE_NOTICE],
       ];
@@ -150,7 +149,6 @@ class FacebookPixel extends Integration {
         validations.push(['transaction.currency', { required: true }, ERROR_TYPE_NOTICE]);
       }
       return validations;
-      break;
     default:
       return [];
     }

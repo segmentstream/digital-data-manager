@@ -265,7 +265,7 @@ class Mindbox extends Integration {
         valueByDefault: true,
       }),
     ];
-    
+
     window.mindbox('identify', {
       operation,
       identificator,
