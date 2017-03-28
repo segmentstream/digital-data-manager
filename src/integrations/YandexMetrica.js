@@ -160,17 +160,21 @@ class YandexMetrica extends Integration {
 
     const id = this.getOption('counterId');
     if (id && !this.getOption('noConflict')) {
-      window.yandex_metrika_callbacks.push(() => {
-        this.yaCounter = window['yaCounter' + id] = new window.Ya.Metrika({
-          id,
-          clickmap: this.getOption('clickmap'),
-          webvisor: this.getOption('webvisor'),
-          trackLinks: this.getOption('trackLinks'),
-          trackHash: this.getOption('trackHash'),
-          ecommerce: this.dataLayerName,
+      if (!this.getOption('noConflict')) {
+        window.yandex_metrika_callbacks.push(() => {
+          this.yaCounter = window['yaCounter' + id] = new window.Ya.Metrika({
+            id,
+            clickmap: this.getOption('clickmap'),
+            webvisor: this.getOption('webvisor'),
+            trackLinks: this.getOption('trackLinks'),
+            trackHash: this.getOption('trackHash'),
+            ecommerce: this.dataLayerName,
+          });
         });
-      });
-      this.load((this.onLoad));
+        this.load((this.onLoad));
+      } else {
+        this.yaCounter = window['yaCounter' + id];
+      }
     } else {
       this.onLoad();
     }
@@ -179,17 +183,20 @@ class YandexMetrica extends Integration {
 
   enrichDigitalData() {
     const yandexClientId = cookie.get('_ym_uid');
+    this.digitalData.user = this.digitalData.user || {};
     if (yandexClientId) {
-      this.digitalData.user = this.digitalData.user || {};
       this.digitalData.user.yandexClientId = yandexClientId;
       this.onEnrich();
     } else {
-      window.yandex_metrika_callbacks.push(() => {
-        this.yaCounter = this.yaCounter || window['yaCounter' + this.getOption('counterId')];
-        this.digitalData.user = this.digitalData.user || {};
+      if (window.yandex_metrika_callbacks) {
+        window.yandex_metrika_callbacks.push(() => {
+          this.digitalData.user.yandexClientId = this.yaCounter.getClientID();
+          this.onEnrich();
+        });
+      } else {
         this.digitalData.user.yandexClientId = this.yaCounter.getClientID();
         this.onEnrich();
-      });
+      }
     }
   }
 

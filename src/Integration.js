@@ -3,6 +3,7 @@ import loadLink from './functions/loadLink';
 import loadIframe from './functions/loadIframe';
 import loadPixel from './functions/loadPixel';
 import format from './functions/format';
+import clone from './functions/clone';
 import noop from './functions/noop';
 import log from './functions/log';
 import each from './functions/each';
@@ -162,7 +163,7 @@ export class Integration extends EventEmitter
       callback = callback || noop;
 
       let el;
-      const attr = tag.attr;
+      const attr = clone(tag.attr); // should be cloned as modified later
 
       if (params) {
         each(attr, (attrKey, attrVal) => {

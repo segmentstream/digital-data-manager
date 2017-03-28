@@ -150,6 +150,9 @@ describe('Integrations: Yandex Metrica', () => {
           this.params = noop;
           this.userParams = noop;
           this.hit = noop;
+          this.getClientID = () => {
+            return '123';
+          };
         };
         let callback;
         do {
