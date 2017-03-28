@@ -106,10 +106,23 @@ describe('Integrations: MyTarget', () => {
     });
 
     describe('#onViewedPage', () => {
-      it('should send pageView for every "Viewed Page" event', (done) => {
+      it('should not send pageView for "Viewed Page" event if not valid', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {},
+          callback: () => {
+            assert.equal(window._tmr.length, 0);
+            done();
+          }
+        });
+      });
+
+      it('should send pageView for every "Viewed Page" event', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'other'
+          },
           callback: () => {
             assert.equal(window._tmr[0].id, myTarget.getOption('counterId'));
             assert.equal(window._tmr[0].type, 'pageView');
@@ -345,9 +358,6 @@ describe('Integrations: MyTarget', () => {
             product: {
               id: '456',
             }
-          },
-          {
-            product: {}
           }
         ],
         total: 230
@@ -414,9 +424,6 @@ describe('Integrations: MyTarget', () => {
             id: '456',
           }
         },
-        {
-          product: {}
-        }
       ];
 
       it('should send itemView event if transaction is completed', (done) => {
@@ -510,7 +517,13 @@ describe('Integrations: MyTarget', () => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
           transaction: {
-            orderId: '123123'
+            orderId: '123123',
+            lineItems: [{
+              product: {
+                id: '123'
+              }
+            }],
+            total: 1000,
           },
           callback: () => {
             // window._tmr[0] has sematic event tracking

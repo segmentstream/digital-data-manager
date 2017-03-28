@@ -1,6 +1,8 @@
 import Integration from './../Integration';
 import deleteProperty from './../functions/deleteProperty';
 import getVarValue from './../functions/getVarValue';
+import { ERROR_TYPE_NOTICE } from './../EventValidator';
+import { DIGITALDATA_VAR } from './../variableTypes';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -101,10 +103,51 @@ class MyTarget extends Integration {
     }
 
     const listVar = this.getOption('listVar');
-    if (listVar.type === 'digitalData') {
+    if (listVar && listVar.type === 'digitalData') {
       enrichableProps.push(listVar.value);
     }
     return enrichableProps;
+  }
+
+  getEventValidations(event) {
+    let validations = [];
+    switch (event.name) {
+    case VIEWED_PAGE:
+      validations = [
+        ['page.type', { required: true }],
+      ];
+      break;
+    case VIEWED_PRODUCT_DETAIL:
+      validations = [
+        ['product.id', { required: true }],
+        ['product.unitSalePrice', { required: true }, ERROR_TYPE_NOTICE],
+      ];
+      break;
+    case VIEWED_CART:
+      if (event.cart && Array.isArray(event.cart.lineItems)) {
+        validations = [
+          ['cart.lineItems[].product.id', { required: true }],
+          ['cart.total', { required: true }],
+        ];
+      }
+      break;
+    case COMPLETED_TRANSACTION:
+      validations = [
+        ['transaction.lineItems[].product.id', { required: true }],
+        ['transaction.total', { required: true }],
+      ];
+      break;
+    default:
+      // do nothing
+    }
+
+    // check if listVar presents in event
+    const listVar = this.getOption('listVar');
+    if (listVar && listVar.type === DIGITALDATA_VAR) {
+      validations.push([listVar.value, { required: true }]);
+    }
+
+    return validations;
   }
 
   isLoaded() {
@@ -185,7 +228,7 @@ class MyTarget extends Integration {
       type: 'itemView',
       productid: product.id || '',
       pagetype: 'product',
-      totalvalue: product.unitSalePrice || product.unitPrice || '',
+      totalvalue: product.unitSalePrice || '',
       list: this.getList(event),
     });
   }
@@ -194,7 +237,7 @@ class MyTarget extends Integration {
     const cart = event.cart;
     let productIds;
 
-    if (cart.lineItems || cart.lineItems.length > 0) {
+    if (cart.lineItems && cart.lineItems.length > 0) {
       productIds = lineItemsToProductIds(cart.lineItems);
     }
 
@@ -202,7 +245,7 @@ class MyTarget extends Integration {
       type: 'itemView',
       productid: productIds || '',
       pagetype: 'cart',
-      totalvalue: cart.total || cart.subtotal || '',
+      totalvalue: cart.total || '',
       list: this.getList(event),
     });
   }

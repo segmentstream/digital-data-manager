@@ -50,10 +50,7 @@ export class Integration extends EventEmitter
     this._isEnriched = false;
     this._productOverrideErrorFired = false;
 
-    const optionsOverrideFunction = this.getOptionsOverrideFunction();
-    if (optionsOverrideFunction) {
-      optionsOverrideFunction(options);
-    }
+    this.overrideOptions();
   }
 
   defineOverrideFunctions(overrideFunctions) {
@@ -100,6 +97,13 @@ export class Integration extends EventEmitter
 
   getOptionsOverrideFunction() {
     return this.overrideFunctions.options;
+  }
+
+  overrideOptions() {
+    const optionsOverrideFunction = this.getOptionsOverrideFunction();
+    if (optionsOverrideFunction) {
+      optionsOverrideFunction(this.options);
+    }
   }
 
   setName(name) {
