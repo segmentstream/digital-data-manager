@@ -7,6 +7,7 @@ import deleteProperty from './../functions/deleteProperty';
 import cleanObject from './../functions/cleanObject';
 import arrayMerge from './../functions/arrayMerge';
 import size from './../functions/size';
+import cookie from 'js-cookie';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -172,6 +173,23 @@ class YandexMetrica extends Integration {
       this.load((this.onLoad));
     } else {
       this.onLoad();
+    }
+    this.enrichDigitalData();
+  }
+
+  enrichDigitalData() {
+    const yandexClientId = cookie.get('_ym_uid');
+    if (yandexClientId) {
+      this.digitalData.user = this.digitalData.user || {};
+      this.digitalData.user.yandexClientId = yandexClientId;
+      this.onEnrich();
+    } else {
+      window.yandex_metrika_callbacks.push(() => {
+        this.yaCounter = this.yaCounter || window['yaCounter' + this.getOption('counterId')];
+        this.digitalData.user = this.digitalData.user || {};
+        this.digitalData.user.yandexClientId = this.yaCounter.getClientID();
+        this.onEnrich();
+      });
     }
   }
 
