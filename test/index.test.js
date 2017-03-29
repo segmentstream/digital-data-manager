@@ -1,4 +1,5 @@
 window.localStorage.clear();
+console.error = () => {};
 
 import './../src/polyfill.js';
 
