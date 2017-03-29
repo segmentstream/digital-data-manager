@@ -183,6 +183,9 @@ describe('Integrations: Yandex Metrica', () => {
         sinon.spy(ym.yaCounter, 'params');
         window.digitalData.events.push({
           name: 'Viewed Page',
+          page: {
+            type: 'home',
+          },
           testParam: 'testValue',
           callback: () => {
             assert.ok(ym.yaCounter.params.calledWith({
@@ -198,6 +201,9 @@ describe('Integrations: Yandex Metrica', () => {
         sinon.spy(ym.yaCounter, 'userParams');
         window.digitalData.events.push({
           name: 'Viewed Page',
+          page: {
+            type: 'home'
+          },
           testParam: 'testValue',
           callback: () => {
             assert.ok(ym.yaCounter.userParams.calledWith({
@@ -213,11 +219,17 @@ describe('Integrations: Yandex Metrica', () => {
         sinon.spy(ym.yaCounter, 'hit');
         window.digitalData.events.push({
           name: 'Viewed Page',
+          page: {
+            type: 'home'
+          },
           testParam: 'testValue',
         });
         sinon.spy(ym.yaCounter, 'userParams');
         window.digitalData.events.push({
           name: 'Viewed Page',
+          page: {
+            type: 'home'
+          },
           testParam: 'testValue',
           callback: () => {
             assert.ok(ym.yaCounter.userParams.calledWith({
@@ -233,10 +245,16 @@ describe('Integrations: Yandex Metrica', () => {
         sinon.spy(ym.yaCounter, 'hit');
         window.digitalData.events.push({
           name: 'Viewed Page',
+          page: {
+            type: 'home'
+          },
           testParam: 'testValue',
         });
         window.digitalData.events.push({
           name: 'Viewed Page',
+          page: {
+            type: 'home'
+          },
           testParam: 'testValue',
           callback: () => {
             assert.ok(ym.yaCounter.hit.calledWith(window.location.href, {
@@ -538,17 +556,10 @@ describe('Integrations: Yandex Metrica', () => {
         },
         {
           product: {
+            id: '345',
             name: 'Test Product',
             unitPrice: 30
           }
-        },
-        {
-          product: {
-            unitPrice: 30
-          }
-        },
-        {
-          product: {}
         }
       ];
 
@@ -584,6 +595,7 @@ describe('Integrations: Yandex Metrica', () => {
                       quantity: 2
                     },
                     {
+                      id: '345',
                       name: 'Test Product',
                       price: 30,
                       quantity: 1
@@ -628,6 +640,7 @@ describe('Integrations: Yandex Metrica', () => {
                       quantity: 2
                     },
                     {
+                      id: '345',
                       name: 'Test Product',
                       price: 30,
                       quantity: 1

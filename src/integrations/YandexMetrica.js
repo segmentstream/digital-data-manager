@@ -8,6 +8,7 @@ import cleanObject from './../functions/cleanObject';
 import arrayMerge from './../functions/arrayMerge';
 import size from './../functions/size';
 import cookie from 'js-cookie';
+import { ERROR_TYPE_NOTICE } from './../EventValidator';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -126,6 +127,51 @@ class YandexMetrica extends Integration {
       }
     }
     return enrichableProps;
+  }
+
+  getEventValidations(event) {
+    let validations = [];
+    switch (event.name) {
+    case VIEWED_PRODUCT_DETAIL:
+      validations = [
+        ['product.id', { required: true }],
+        ['product.name', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.category', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.unitSalePrice', { required: true }, ERROR_TYPE_NOTICE],
+      ];
+      break;
+    case ADDED_PRODUCT:
+      validations = [
+        ['product.id', { required: true }],
+        ['product.name', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.category', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.unitSalePrice', { required: true }, ERROR_TYPE_NOTICE],
+        ['quantity', { required: true }, ERROR_TYPE_NOTICE],
+      ];
+      break;
+    case REMOVED_PRODUCT:
+      validations = [
+        ['product.id', { required: true }],
+        ['product.name', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.category', { required: true }, ERROR_TYPE_NOTICE],
+        ['quantity', { required: true }, ERROR_TYPE_NOTICE],
+      ];
+      break;
+    case COMPLETED_TRANSACTION:
+      validations = [
+        ['transaction.orderId', { required: true }],
+        ['transaction.lineItems[].product.id', { required: true }],
+        ['transaction.lineItems[].product.name', { required: true }, ERROR_TYPE_NOTICE],
+        ['transaction.lineItems[].product.category', { required: true }, ERROR_TYPE_NOTICE],
+        ['transaction.lineItems[].product.unitSalePrice', { required: true }, ERROR_TYPE_NOTICE],
+        ['transaction.total', { required: true }, ERROR_TYPE_NOTICE],
+      ];
+      break;
+    default:
+      // do nothing
+    }
+
+    return validations;
   }
 
   getEnrichableUserParamsProps() {
