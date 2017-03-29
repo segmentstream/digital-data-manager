@@ -115,6 +115,17 @@ class Admitad extends Integration {
     return enrichableProps;
   }
 
+  getEventValidations(event) {
+    if (event.name === COMPLETED_TRANSACTION) {
+      return [
+        ['transaction.orderId', { required: true }],
+        ['transaction.lineItems[].product.id', { required: true }],
+        ['transaction.lineItems[].product.unitSalePrice', { required: true }],
+      ];
+    }
+    return [];
+  }
+
   isLoaded() {
     return this._isLoaded;
   }

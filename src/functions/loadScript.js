@@ -1,5 +1,4 @@
 import onLoad from './scriptOnLoad.js';
-import async from 'async';
 
 export default function(options, fn) {
   if (!options) throw new Error('Cant load nothing...');
@@ -34,11 +33,11 @@ export default function(options, fn) {
     onLoad(script, fn);
   }
 
-  async.nextTick(() => {
-    // Append after event listeners are attached for IE.
-    const firstScript = document.getElementsByTagName('script')[0];
-    firstScript.parentNode.insertBefore(script, firstScript);
-  });
+  // async.nextTick(() => {
+  // Append after event listeners are attached for IE.
+  const firstScript = document.getElementsByTagName('script')[0];
+  firstScript.parentNode.insertBefore(script, firstScript);
+  // });
 
   // Return the script element in case they want to do anything special, like
   // give it an ID or attributes.

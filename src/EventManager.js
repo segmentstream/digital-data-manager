@@ -1,5 +1,4 @@
 import clone from './functions/clone';
-import noop from './functions/noop.js';
 import deleteProperty from './functions/deleteProperty.js';
 import size from './functions/size.js';
 import after from './functions/after.js';

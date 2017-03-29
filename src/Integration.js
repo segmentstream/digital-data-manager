@@ -121,90 +121,88 @@ export class Integration extends EventEmitter
   }
 
   load(tagName, params, callback) {
-    setTimeout(() => {
-      const callbackCalled = false;
-      const safeCallback = () => {
-        if (!callbackCalled) {
-          callback();
+    const callbackCalled = false;
+    const safeCallback = () => {
+      if (!callbackCalled) {
+        callback();
+      }
+    };
+
+    // sometimes loadScript callback doesn't fire
+    // for https scripts in IE8, IE9 and opera
+    // in this case we check is script was loaded every 500ms
+    const intervalId = setInterval(() => {
+      if (this.isLoaded()) {
+        safeCallback();
+        clearInterval(intervalId);
+      }
+    }, 500);
+
+    // Argument shuffling
+    if (typeof tagName === 'function') {
+      callback = tagName;
+      params = null;
+      tagName = null;
+    }
+    if (tagName && typeof tagName === 'object') {
+      callback = params;
+      params = tagName;
+      tagName = null;
+    }
+    if (typeof params === 'function') {
+      callback = params;
+      params = null;
+    }
+
+    // Default arguments
+    tagName = tagName || 'library';
+
+    const tag = this.tags[tagName];
+    if (!tag) throw new Error(format('tag "%s" not defined.', tagName));
+    callback = callback || noop;
+
+    let el;
+    const attr = clone(tag.attr); // should be cloned as modified later
+
+    if (params) {
+      each(attr, (attrKey, attrVal) => {
+        if (attrVal) {
+          attr[attrKey] = attrVal.replace(/\{\{\ *(\w+)\ *\}\}/g, (_, $1) => {
+            return params[$1];
+          });
         }
-      };
+      });
+    }
 
-      // sometimes loadScript callback doesn't fire
-      // for https scripts in IE8, IE9 and opera
-      // in this case we check is script was loaded every 500ms
-      const intervalId = setInterval(() => {
-        if (this.isLoaded()) {
-          safeCallback();
-          clearInterval(intervalId);
-        }
-      }, 500);
-
-      // Argument shuffling
-      if (typeof tagName === 'function') {
-        callback = tagName;
-        params = null;
-        tagName = null;
-      }
-      if (tagName && typeof tagName === 'object') {
-        callback = params;
-        params = tagName;
-        tagName = null;
-      }
-      if (typeof params === 'function') {
-        callback = params;
-        params = null;
-      }
-
-      // Default arguments
-      tagName = tagName || 'library';
-
-      const tag = this.tags[tagName];
-      if (!tag) throw new Error(format('tag "%s" not defined.', tagName));
-      callback = callback || noop;
-
-      let el;
-      const attr = clone(tag.attr); // should be cloned as modified later
-
-      if (params) {
-        each(attr, (attrKey, attrVal) => {
-          if (attrVal) {
-            attr[attrKey] = attrVal.replace(/\{\{\ *(\w+)\ *\}\}/g, (_, $1) => {
-              return params[$1];
-            });
-          }
-        });
-      }
-
-      switch (tag.type) {
-      case 'img':
-        attr.width = 1;
-        attr.height = 1;
-        el = loadPixel(attr, safeCallback);
-        break;
-      case 'script':
-        el = loadScript(attr, (err) => {
-          if (!err) return safeCallback();
-          debug('error loading "%s" error="%s"', tagName, err);
-        });
-        // TODO: hack until refactoring load-script
-        deleteProperty(attr, 'src');
-        each(attr, (key, value) => {
-          el.setAttribute(key, value);
-        });
-        break;
-      case 'link':
-        el = loadLink(attr, (err) => {
-          if (!err) return safeCallback();
-          debug('error loading "%s" error="%s"', tagName, err);
-        });
-        break;
-      case 'iframe':
-        el = loadIframe(attr, safeCallback);
-        break;
-      default:
-        // No default case
-      }
-    }, 0);
+    switch (tag.type) {
+    case 'img':
+      attr.width = 1;
+      attr.height = 1;
+      el = loadPixel(attr, safeCallback);
+      break;
+    case 'script':
+      el = loadScript(attr, (err) => {
+        if (!err) return safeCallback();
+        debug('error loading "%s" error="%s"', tagName, err);
+      });
+      // TODO: hack until refactoring load-script
+      deleteProperty(attr, 'src');
+      each(attr, (key, value) => {
+        el.setAttribute(key, value);
+      });
+      break;
+    case 'link':
+      el = loadLink(attr, (err) => {
+        if (!err) return safeCallback();
+        debug('error loading "%s" error="%s"', tagName, err);
+      });
+      break;
+    case 'iframe':
+      el = loadIframe(attr, safeCallback);
+      break;
+    default:
+      // No default case
+    }
   }
 
   isLoaded() {

@@ -139,7 +139,7 @@ class FacebookPixel extends Integration {
     case COMPLETED_TRANSACTION:
       const validations = [
         ['transaction.lineItems[].product.id', { required: true }],
-        ['transaction.total', { required: true }, ERROR_TYPE_NOTICE],
+        ['transaction.total', { required: true }],
       ];
       if (!getProp(event, 'website.currency')) {
         validations.push(['transaction.currency', { required: true }, ERROR_TYPE_NOTICE]);
