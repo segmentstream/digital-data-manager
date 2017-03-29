@@ -1,5 +1,7 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
+import { ERROR_TYPE_NOTICE } from './../EventValidator';
+import { getProp } from './../functions/dotProp';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -83,6 +85,55 @@ class GoogleAdWords extends Integration {
     }
 
     return enrichableProps;
+  }
+
+  getEventValidations(event) {
+    let validations = [];
+    switch (event.name) {
+    case VIEWED_PAGE:
+      validations = [
+        ['page.type', { required: true }],
+      ];
+      break;
+    case VIEWED_PRODUCT_DETAIL:
+      validations = [
+        ['product.id', { required: true }],
+        ['product.unitSalePrice', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.category', { required: true }, ERROR_TYPE_NOTICE],
+      ];
+      break;
+    case VIEWED_PRODUCT_LISTING:
+      validations = [
+        ['listing.category', { required: true }],
+      ];
+      break;
+    case VIEWED_CART:
+      if (event.cart && Array.isArray(event.cart.lineItems)) {
+        validations = [
+          ['cart.lineItems[].product.id', { required: true }],
+        ];
+        const subtotalValidation = ['cart.subtotal', { required: true }];
+        if (getProp(event, 'cart.total')) {
+          subtotalValidation.push(ERROR_TYPE_NOTICE);
+        }
+        validations.push(subtotalValidation);
+      }
+      break;
+    case COMPLETED_TRANSACTION:
+      validations = [
+        ['transaction.lineItems[].product.id', { required: true }],
+      ];
+      const subtotalValidation = ['transaction.subtotal', { required: true }];
+      if (getProp(event, 'transaction.total')) {
+        subtotalValidation.push(ERROR_TYPE_NOTICE);
+      }
+      validations.push(subtotalValidation);
+      break;
+    default:
+      // do nothing
+    }
+
+    return validations;
   }
 
   initialize() {
@@ -177,9 +228,9 @@ class GoogleAdWords extends Integration {
     }
 
     this.trackConversion({
-      ecomm_prodid: product.id || product.skuCode || undefined,
+      ecomm_prodid: product.id,
       ecomm_pagetype: 'product',
-      ecomm_totalvalue: product.unitSalePrice || product.unitPrice || '',
+      ecomm_totalvalue: product.unitSalePrice || '',
       ecomm_category: category,
     });
   }

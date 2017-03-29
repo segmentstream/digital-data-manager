@@ -17,7 +17,7 @@ import CookieStorage from './CookieStorage';
 import { isTestMode, logEnrichedIntegrationEvent, showTestModeOverlay } from './testMode';
 import { VIEWED_PAGE, mapEvent } from './events';
 import { validateEvent } from './EventValidator';
-import { warn } from './functions/safeConsole';
+import { warn, error as errorLog } from './functions/safeConsole';
 
 let ddManager;
 
@@ -155,7 +155,6 @@ function _trackIntegrationPageEvent(event, integration) {
 function _addIntegrationsEventTracking() {
   _eventManager.addCallback(['on', 'event', (event) => {
     each(_integrations, (integrationName, integration) => {
-      // TODO: add EventValidator library
       let trackEvent = false;
       const ex = event.excludeIntegrations;
       const inc = event.includeIntegrations;
@@ -183,21 +182,25 @@ function _addIntegrationsEventTracking() {
       }
 
       if (trackEvent) {
-        const mappedEventName = mapEvent(event.name);
-        if (
-          integration.getSemanticEvents().indexOf(mappedEventName) < 0
-          && !integration.allowCustomEvents()
-        ) {
-          return;
-        }
-        // important! cloned object is returned (not link)
-        let integrationEvent = clone(event, true);
-        integrationEvent.name = mappedEventName;
-        integrationEvent = EventDataEnricher.enrichIntegrationData(integrationEvent, _digitalData, integration);
-        if (integrationEvent.name === VIEWED_PAGE) {
-          _trackIntegrationPageEvent(integrationEvent, integration);
-        } else {
-          _trackIntegrationEvent(integrationEvent, integration);
+        try {
+          const mappedEventName = mapEvent(event.name);
+          if (
+            integration.getSemanticEvents().indexOf(mappedEventName) < 0
+            && !integration.allowCustomEvents()
+          ) {
+            return;
+          }
+          // important! cloned object is returned (not link)
+          let integrationEvent = clone(event, true);
+          integrationEvent.name = mappedEventName;
+          integrationEvent = EventDataEnricher.enrichIntegrationData(integrationEvent, _digitalData, integration);
+          if (integrationEvent.name === VIEWED_PAGE) {
+            _trackIntegrationPageEvent(integrationEvent, integration);
+          } else {
+            _trackIntegrationEvent(integrationEvent, integration);
+          }
+        } catch (e) {
+          errorLog(e);
         }
       }
     });

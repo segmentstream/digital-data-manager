@@ -9,8 +9,6 @@ import DDHelper from './DDHelper.js';
 import EventDataEnricher from './EventDataEnricher.js';
 import { VIEWED_PAGE } from './events';
 
-window.console.error = noop;
-
 let _callbacks = {};
 let _ddListener = [];
 let _previousDigitalData = {};
@@ -251,7 +249,11 @@ class EventManager {
         if (eventCopy.enrichEventData !== false) {
           eventCopy = this.enrichEventWithData(eventCopy);
         }
-        handler(eventCopy, noop);
+        try {
+          handler(eventCopy);
+        } catch (e) {
+          errorLog(e);
+        }
       }
     }
   }
