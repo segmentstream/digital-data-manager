@@ -21,7 +21,7 @@ class CookieStorage
       cookie.set('__tld__', true, {
         domain: this.getOption('cookieDomain'),
       });
-      if (!this.get('__tld__')) {
+      if (!cookie.get('__tld__')) {
         this.setOption('cookieDomain', null);
       }
       cookie.remove('__tld__');
@@ -50,6 +50,10 @@ class CookieStorage
 
   getOption(name) {
     return this.options[name];
+  }
+
+  setOption(name, value) {
+    this.options[name] = value;
   }
 
   clear() {

@@ -47,8 +47,8 @@ class EventManager {
     // process events
     this.fireUnfiredEvents();
     events.push = (event) => {
-      this.fireEvent(event);
       events[events.length] = event;
+      this.fireEvent(event);
     };
 
     if (_viewabilityTracker) {
