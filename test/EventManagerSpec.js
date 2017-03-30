@@ -310,12 +310,16 @@ describe('EventManager', () => {
       _eventManager.initialize();
     });
 
-    it.only('should fire change callback using digitalData.changes interface', (done) => {
+    it('should fire change callback using digitalData.changes interface', (done) => {
       _ddListener.push(['on', 'change', () => {
         assert.equal(_digitalData.test2, 'test2');
+        assert.equal(_digitalData.page.categoryId, 2);
         done();
       }]);
       _digitalData.changes.push(['test2', 'test2']);
+      _digitalData.changes.push(['page', {
+        categoryId: 2
+      }]);
     });
 
     it('should fire change callback', (done) => {
