@@ -68,7 +68,9 @@ class FacebookPixel extends Integration {
   }
 
   initialize() {
-    if (this.getOption('pixelId') && !window.fbq) {
+    // non-documented support for multiple facebook ids (if comma-separated)
+    const pixelIds = this.getOption('pixelId');
+    if (pixelIds && !window.fbq) {
       window.fbq = window._fbq = function fbq() {
         if (window.fbq.callMethod) {
           window.fbq.callMethod.apply(window.fbq, arguments);
@@ -81,7 +83,10 @@ class FacebookPixel extends Integration {
       window.fbq.version = '2.0';
       window.fbq.queue = [];
       this.load(this.onLoad);
-      window.fbq('init', this.getOption('pixelId'));
+
+      for (const pixelId of pixelIds.split(',')) {
+        window.fbq('init', pixelId);
+      }
     } else {
       this.onLoad();
     }

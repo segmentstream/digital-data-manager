@@ -14,12 +14,12 @@ describe('Integrations: FacebookPixel', () => {
     }
   };
 
-  before(() => {
+  beforeEach(() => {
     fbPixel = new FacebookPixel(window.digitalData, options);
     ddManager.addIntegration('Facebook Pixel', fbPixel);
   });
 
-  after(() => {
+  afterEach(() => {
     fbPixel.reset();
     ddManager.reset();
     reset();
@@ -49,16 +49,12 @@ describe('Integrations: FacebookPixel', () => {
 
   describe('after loading', () => {
 
-    before((done) => {
-      if (!ddManager.isReady()) {
-        ddManager.once('ready', done);
-        ddManager.initialize();
-      } else {
-        done();
-      }
-    });
-
-    beforeEach(() => {
+    beforeEach((done) => {
+      sinon.stub(fbPixel, 'load', () => {
+        fbPixel.onLoad();
+      });
+      ddManager.once('ready', done);
+      ddManager.initialize();
       sinon.spy(window, 'fbq');
     });
 
@@ -67,10 +63,10 @@ describe('Integrations: FacebookPixel', () => {
     });
 
     it('should initialize fbq object', () => {
-      let fbq = window.fbq;
-
-      assert.ok(fbq);
+      assert.ok(window.fbq);
       assert.ok(typeof fbq === 'function');
+      assert.equal(window.fbq.queue[0][0], 'init');
+      assert.equal(window.fbq.queue[0][1], options.pixelId);
     });
 
     describe('#onViewedPage', () => {
