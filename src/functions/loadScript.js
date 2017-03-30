@@ -46,12 +46,6 @@ export default function(options, fn) {
     addScriptToHead();
   }
 
-  async.nextTick(() => {
-  // Append after event listeners are attached for IE.
-    const firstScript = document.getElementsByTagName('script')[0];
-    firstScript.parentNode.insertBefore(script, firstScript);
-  });
-
   // Return the script element in case they want to do anything special, like
   // give it an ID or attributes.
   return script;

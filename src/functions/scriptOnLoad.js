@@ -7,7 +7,9 @@
  */
 
 function addEventListener(el, fn) {
-  el.addEventListener('load', (_, e) => { fn(null, e); }, false);
+  el.addEventListener('load', (_, e) => {
+    fn(null, e);
+  }, false);
   el.addEventListener('error', (e) => {
     const err = new Error('script error "' + el.src + '"');
     err.event = e;

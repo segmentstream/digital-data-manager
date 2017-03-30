@@ -60,11 +60,11 @@ describe('Integrations: GoogleTagManager', () => {
           assert.ok(dl[0].event === 'gtm.js');
           assert.ok(typeof dl[0]['gtm.start'] === 'number');
           assert.ok(dl[1].event === 'DDManager Ready');
-          assert.ok(dl[2].event === 'gtm.dom');
-          assert.ok(dl[3].event === 'gtm.load');
-          assert.ok(dl[4].event === 'DDManager Loaded');
+          assert.ok(dl[2].event === 'DDManager Loaded');
+          assert.ok(dl[3].event === 'gtm.dom');
+          assert.ok(dl[4].event === 'gtm.load');
           done();
-        }, 10);
+        }, 100);
       });
 
       describe('#trackEvent', () => {
