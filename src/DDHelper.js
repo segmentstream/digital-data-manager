@@ -1,4 +1,4 @@
-import { getProp } from './functions/dotProp';
+import { getProp, setProp } from './functions/dotProp';
 import clone from './functions/clone';
 
 class DDHelper {
@@ -6,6 +6,10 @@ class DDHelper {
   static get(key, digitalData) {
     const value = getProp(digitalData, key);
     return clone(value);
+  }
+
+  static set(key, value, digitalData) {
+    setProp(digitalData, key, clone(value));
   }
 
   static getProduct(id, digitalData) {
