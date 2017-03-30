@@ -30,6 +30,9 @@ class EventManager {
     if (!Array.isArray(_digitalData.events)) {
       _digitalData.events = [];
     }
+    if (!Array.isArray(_digitalData.changes)) {
+      _digitalData.changes = [];
+    }
     _ddListener = ddListener || _ddListener;
     _previousDigitalData = _getCopyWithoutEvents(_digitalData);
   }
@@ -161,6 +164,15 @@ class EventManager {
           callHandler(callback.handler, newValue, previousValue);
         }
       }
+    }
+  }
+
+  applyEarlyChanges() {
+    const changes = _digitalData.changes;
+    let changeInfo;
+
+    for (changeInfo of changes) {
+      applyChange(changeInfo);
     }
   }
 
