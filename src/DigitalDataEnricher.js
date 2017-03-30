@@ -224,6 +224,7 @@ class DigitalDataEnricher
       this.digitalData.transaction = this.digitalData.transaction || {};
     }
     this.digitalData.events = this.digitalData.events || [];
+    this.digitalData.changes = this.digitalData.changes || [];
   }
 
   enrichPageData() {

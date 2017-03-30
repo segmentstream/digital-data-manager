@@ -36,6 +36,8 @@ class EventManager {
 
   initialize() {
     const events = _digitalData.events;
+    const changes = _digitalData.changes;
+
     // process callbacks
     this.addEarlyCallbacks();
     this.fireDefine();
@@ -50,6 +52,13 @@ class EventManager {
       events[events.length] = event;
       this.fireEvent(event);
     };
+
+    // process changes
+    this.applyEarlyChanges();
+    changes.push = (changeInfo) => {
+      changes[changes.length] = changeInfo;
+      this.applyChange(changeInfo);
+    }
 
     if (_viewabilityTracker) {
       _viewabilityTracker.initialize();
@@ -153,6 +162,11 @@ class EventManager {
         }
       }
     }
+  }
+
+  applyChange(changeInfo) {
+    const [key, value] = changeInfo;
+    DDHelper.set(key, value, _digitalData);
   }
 
   beforeFireEvent(event) {
