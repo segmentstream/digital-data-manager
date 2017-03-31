@@ -4,6 +4,7 @@
     window.ddListener = window.ddListener || [];
     var c = window.digitalData = window.digitalData || {};
     c.events = c.events || [];
+    с.changes = c.changes || [];
     if (!b.initialize) if (b.invoked) window.console && console.error && console.error("Digital Data Manager snippet included twice."); else {
         b.invoked = !0;
         b.methods = "initialize addIntegration persist unpersist on once off".split(" ");
