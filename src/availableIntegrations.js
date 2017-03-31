@@ -15,6 +15,7 @@ import Emarsys from './integrations/Emarsys';
 import OneSignal from './integrations/OneSignal';
 import Sociomantic from './integrations/Sociomantic';
 import Admitad from './integrations/Admitad';
+import Actionpay from './integrations/Actionpay';
 import Mindbox from './integrations/Mindbox.js';
 import DoubleClickFloodlight from './integrations/DoubleClickFloodlight';
 import RTBHouse from './integrations/RTBHouse';
@@ -38,6 +39,7 @@ const integrations = {
   'OneSignal': OneSignal,
   'Sociomantic': Sociomantic,
   'Admitad': Admitad,
+  'Actionpay': Actionpay,
   'Mindbox': Mindbox,
   'DoubleClick Floodlight': DoubleClickFloodlight,
   'RTB House': RTBHouse,
