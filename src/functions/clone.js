@@ -9,7 +9,7 @@ export default function clone(obj, preserveFunctions = false) {
 
   switch (typeof obj) {
   case 'object':
-    if (!obj.length) {
+    if (!Array.isArray(obj)) {
       if (obj instanceof Date) {
         return new Date(obj.getTime());
       }

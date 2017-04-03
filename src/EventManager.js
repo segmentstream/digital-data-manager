@@ -61,7 +61,7 @@ class EventManager {
     changes.push = (changeInfo) => {
       changes[changes.length] = changeInfo;
       this.applyChange(changeInfo);
-    }
+    };
 
     if (_viewabilityTracker) {
       _viewabilityTracker.initialize();
@@ -172,7 +172,7 @@ class EventManager {
     let changeInfo;
 
     for (changeInfo of changes) {
-      applyChange(changeInfo);
+      this.applyChange(changeInfo);
     }
   }
 
