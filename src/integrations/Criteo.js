@@ -3,6 +3,7 @@ import deleteProperty from './../functions/deleteProperty';
 import { getProp } from './../functions/dotProp';
 import { ERROR_TYPE_NOTICE } from './../EventValidator';
 import semver from './../functions/semver';
+import md5 from 'crypto-js/md5'
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -252,9 +253,15 @@ class Criteo extends Integration {
     });
 
     if (event.user && event.user.email) {
+      const emailMd5 = md5(event.user.email).toString();
       this.criteo_q.push({
         event: 'setEmail',
-        email: event.user.email,
+        email: emailMd5,
+      });
+    } else {
+      this.criteo_q.push({
+        event: 'setEmail',
+        email: '',
       });
     }
 
@@ -378,10 +385,11 @@ class Criteo extends Integration {
   onSubscribed(event) {
     const user = event.user;
     if (user && user.email) {
+      const emailMd5 = md5(user.email).toString();
       window.criteo_q.push(
         {
           event: 'setEmail',
-          email: user.email,
+          email: emailMd5,
         }
       );
     }
