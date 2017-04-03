@@ -144,7 +144,7 @@ class Actionpay extends Integration {
       return;
     }
 
-    const goalId = getProp(event, 'integrations.actionpay.goalId') || this.getOption('defaltGoalId');
+    const goalId = getProp(event, 'integrations.actionpay.goalId') || this.getOption('defaultGoalId');
     const actionId = transaction.orderId;
     const total = transaction.total;
 
