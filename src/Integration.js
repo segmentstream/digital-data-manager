@@ -9,7 +9,7 @@ import log from './functions/log';
 import each from './functions/each';
 import { getProp } from './functions/dotProp';
 import deleteProperty from './functions/deleteProperty';
-import debug from 'debug';
+import { errorLog } from './functions/safeConsole';
 import async from 'async';
 import EventEmitter from 'component-emitter';
 import { DIGITALDATA_VAR } from './variableTypes';
@@ -183,7 +183,7 @@ export class Integration extends EventEmitter
     case 'script':
       el = loadScript(attr, (err) => {
         if (!err) return safeCallback();
-        debug('error loading "%s" error="%s"', tagName, err);
+        errorLog('error loading "' + tagName + '" error="' + err + '"');
       });
       // TODO: hack until refactoring load-script
       deleteProperty(attr, 'src');
@@ -194,7 +194,7 @@ export class Integration extends EventEmitter
     case 'link':
       el = loadLink(attr, (err) => {
         if (!err) return safeCallback();
-        debug('error loading "%s" error="%s"', tagName, err);
+        errorLog('error loading "' + tagName + '" error="' + err + '"');
       });
       break;
     case 'iframe':

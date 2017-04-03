@@ -40,8 +40,6 @@
     "babelify": "^7.2.0",
     "browserify": "^12.0.1",
     "core-js": "^2.4.0",
-    "dottie": "^1.1.1",
-    "es5-shim": "^4.3.1",
     "eslint": "^1.10.1",
     "eslint-config-airbnb": "^1.0.0",
     "exorcist": "^0.4.0",
@@ -51,7 +49,6 @@
     "grunt-contrib-compress": "^1.3.0",
     "grunt-contrib-uglify": "^2.0.0",
     "grunt-eslint": "^19.0.0",
-    "js-cookie": "^2.1.0",
     "karma": "^1.3.0",
     "karma-babel-preprocessor": "^6.0.1",
     "karma-browserify": "^5.1.0",
@@ -65,10 +62,9 @@
     "uglifyify": "^3.0.1"
   },
   "dependencies": {
+    "js-cookie": "^2.1.0",
     "async": "2.1.1",
     "crypto-js": "^3.1.9-1",
-    "debug": "^2.2.0",
-    "lockr": "^0.8.4",
-    "uuid": "^2.0.1"
+    "lockr": "^0.8.4"
   }
 }

@@ -2,6 +2,7 @@ import Integration from './../Integration';
 import getQueryParam from './../functions/getQueryParam';
 import topDomain from './../functions/topDomain';
 import { getProp } from './../functions/dotProp';
+import normalizeString from './../functions/normalizeString';
 import { COMPLETED_TRANSACTION } from './../events';
 import cookie from 'js-cookie';
 
@@ -11,12 +12,10 @@ const DEFAULT_COOKIE_NAME = 'actionpay';
 function normalizeOptions(options) {
   if (options.deduplication) {
     if (options.utmSource) {
-      options.utmSource = options.utmSource.toLowerCase();
+      options.utmSource = normalizeString(options.utmSource);
     }
     if (options.deduplicationUtmMedium) {
-      options.deduplicationUtmMedium = options.deduplicationUtmMedium.map((utmMedium) => {
-        return utmMedium.toLowerCase();
-      });
+      options.deduplicationUtmMedium = options.deduplicationUtmMedium.map(normalizeString);
     }
   }
 }

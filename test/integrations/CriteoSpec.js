@@ -201,7 +201,7 @@ describe('Integrations: Criteo', () => {
             email: 'test@driveback.ru'
           }
         }, () => {
-          assert.deepEqual(window.criteo_q[0][2], { event: 'setEmail', email: 'test@driveback.ru' });
+          assert.deepEqual(window.criteo_q[0][2], { event: 'setEmail', email: '8cc94f335003012e00e1441e5666756f' });
           done();
         });
       });
@@ -219,7 +219,7 @@ describe('Integrations: Criteo', () => {
           }
         }, () => {
           assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "m" });
-          assert.deepEqual(window.criteo_q[0][2], { event: 'setEmail', email: 'test@driveback.ru' });
+          assert.deepEqual(window.criteo_q[0][2], { event: 'setEmail', email: '8cc94f335003012e00e1441e5666756f' });
           done();
         });
       });
@@ -283,7 +283,7 @@ describe('Integrations: Criteo', () => {
       it('should send viewHome event if digitalData.page.type is "home"', (done) => {
         window.digitalData.page.type = 'home';
         viewedPage({}, () => {
-          assert.deepEqual(window.criteo_q[0][2], {event: 'viewHome'})
+          assert.deepEqual(window.criteo_q[0][3], {event: 'viewHome'})
           done();
         });
       });
@@ -295,7 +295,7 @@ describe('Integrations: Criteo', () => {
             type: 'home'
           },
           callback: () => {
-            assert.deepEqual(window.criteo_q[0][2], {event: 'viewHome'})
+            assert.deepEqual(window.criteo_q[0][3], {event: 'viewHome'})
             done();
           }
         });
@@ -311,7 +311,7 @@ describe('Integrations: Criteo', () => {
             criteoSegment: '2'
           },
           callback: () => {
-            assert.deepEqual(window.criteo_q[0][2], {
+            assert.deepEqual(window.criteo_q[0][3], {
               event: 'viewHome',
             });
             done();
@@ -328,7 +328,7 @@ describe('Integrations: Criteo', () => {
             type: 'home'
           },
           callback: () => {
-            assert.deepEqual(window.criteo_q[0][2], {
+            assert.deepEqual(window.criteo_q[0][3], {
               event: 'viewHome',
               user_segment: '2'
             });
@@ -344,7 +344,7 @@ describe('Integrations: Criteo', () => {
             type: 'content'
           },
           callback: () => {
-            assert.ok(!window.criteo_q[0][2]);
+            assert.ok(!window.criteo_q[0][3]);
             done();
           }
         });
@@ -487,7 +487,7 @@ describe('Integrations: Criteo', () => {
             ]
           },
           callback: () => {
-            assert.deepEqual(window.criteo_q[0][2], {
+            assert.deepEqual(window.criteo_q[0][3], {
               event: 'viewList',
               user_segment: '2',
               item: ['123', '234', '345']
@@ -1034,7 +1034,7 @@ describe('Integrations: Criteo', () => {
             email: 'test@driveback.ru'
           },
           callback: () => {
-            assert.deepEqual(window.criteo_q[0], { event: 'setEmail', email: 'test@driveback.ru' });
+            assert.deepEqual(window.criteo_q[0], { event: 'setEmail', email: '8cc94f335003012e00e1441e5666756f' });
             done();
           }
         });
@@ -1048,7 +1048,7 @@ describe('Integrations: Criteo', () => {
             email: 'test@driveback.ru'
           },
           callback: () => {
-            assert.deepEqual(window.criteo_q[0], { event: 'setEmail', email: 'test@driveback.ru' });
+            assert.deepEqual(window.criteo_q[0], { event: 'setEmail', email: '8cc94f335003012e00e1441e5666756f' });
             done();
           }
         });
