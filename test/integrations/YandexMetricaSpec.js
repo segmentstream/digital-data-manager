@@ -13,6 +13,7 @@ describe('Integrations: Yandex Metrica', () => {
   beforeEach(() => {
     options = {
       counterId: '37510050',
+      sendUserId: false,
       clickmap: true,
       webvisor: true,
       trackLinks: false,
@@ -150,6 +151,7 @@ describe('Integrations: Yandex Metrica', () => {
           this.params = noop;
           this.userParams = noop;
           this.hit = noop;
+          this.setUserID = noop;
           this.getClientID = () => {
             return '123';
           };
@@ -265,6 +267,24 @@ describe('Integrations: Yandex Metrica', () => {
                 'customParam': 'testValue'
               }
             }));
+            done();
+          }
+        });
+      });
+
+      it('should send User ID if proper option specified', (done) => {
+        sinon.spy(ym.yaCounter, 'setUserID');
+        ym.setOption('sendUserId', true);
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'home',
+          },
+          user: {
+            userId: '123'
+          },
+          callback: () => {
+            assert.ok(ym.yaCounter.setUserID.calledWith('123'));
             done();
           }
         });

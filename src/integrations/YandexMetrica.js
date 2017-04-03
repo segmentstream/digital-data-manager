@@ -8,6 +8,7 @@ import cleanObject from './../functions/cleanObject';
 import arrayMerge from './../functions/arrayMerge';
 import size from './../functions/size';
 import cookie from 'js-cookie';
+import { getProp } from './../functions/dotProp';
 import { ERROR_TYPE_NOTICE } from './../EventValidator';
 import {
   VIEWED_PAGE,
@@ -53,6 +54,7 @@ class YandexMetrica extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       counterId: '',
+      sendUserId: true,
       clickmap: false,
       webvisor: false,
       trackLinks: true,
@@ -109,6 +111,13 @@ class YandexMetrica extends Integration {
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
+    case VIEWED_PAGE:
+      enrichableProps = [
+        'user.userId',
+      ];
+      arrayMerge(enrichableProps, this.getEnrichableUserParamsProps());
+      arrayMerge(enrichableProps, this.getEnrichableVisitParamsProps());
+      break;
     case VIEWED_PRODUCT_DETAIL:
       enrichableProps = [
         'product',
@@ -121,7 +130,7 @@ class YandexMetrica extends Integration {
       break;
     default:
       const goalEvents = this.getGoalEvents();
-      if (event.name === VIEWED_PAGE || goalEvents.indexOf(event.name) >= 0) {
+      if (goalEvents.indexOf(event.name) >= 0) {
         arrayMerge(enrichableProps, this.getEnrichableUserParamsProps());
         arrayMerge(enrichableProps, this.getEnrichableVisitParamsProps());
       }
@@ -296,8 +305,17 @@ class YandexMetrica extends Integration {
         params: visitParams,
       }]);
     }
+
     if (size(userParams)) {
       this.yaCounterCall('userParams', [userParams]);
+    }
+
+    // send userId
+    if (this.getOption('sendUserId')) {
+      const userId = getProp(event, 'user.userId');
+      if (userId) {
+        this.yaCounterCall('setUserID', [userId]);
+      }
     }
   }
 
