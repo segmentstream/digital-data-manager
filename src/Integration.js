@@ -9,7 +9,7 @@ import log from './functions/log';
 import each from './functions/each';
 import { getProp } from './functions/dotProp';
 import deleteProperty from './functions/deleteProperty';
-import { errorLog } from './functions/safeConsole';
+import { error as errorLog } from './functions/safeConsole';
 import async from 'async';
 import EventEmitter from 'component-emitter';
 import { DIGITALDATA_VAR } from './variableTypes';
