@@ -4,6 +4,7 @@ import each from './../functions/each';
 import cleanObject from './../functions/cleanObject';
 import { DIGITALDATA_VAR } from './../variableTypes';
 import {
+  VIEWED_PAGE,
   LOGGED_IN,
   REGISTERED,
   SUBSCRIBED,
@@ -27,6 +28,7 @@ class Mindbox extends Integration {
       pointOfContactSystemName: '',
       projectDomain: '',
       operationMapping: {},
+      setCartOperation: '',
       userVars: {},
       userIdProvider: undefined,
     }, options);
@@ -36,6 +38,7 @@ class Mindbox extends Integration {
     this.prepareEnrichableUserProps();
 
     this.SEMANTIC_EVENTS = [
+      VIEWED_PAGE,
       LOGGED_IN,
       REGISTERED,
       SUBSCRIBED,
@@ -93,6 +96,9 @@ class Mindbox extends Integration {
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
+    case VIEWED_PAGE:
+      enrichableProps.push('cart');
+      break;
     case LOGGED_IN:
       enrichableProps.push('user.userId');
       break;
@@ -188,6 +194,7 @@ class Mindbox extends Integration {
 
   trackEvent(event) {
     const eventMap = {
+      [VIEWED_PAGE]: this.onViewedPage.bind(this),
       [VIEWED_PRODUCT_DETAIL]: this.onViewedProductDetail.bind(this),
       [VIEWED_PRODUCT_LISTING]: this.onViewedProductListing.bind(this),
       [ADDED_PRODUCT]: this.onAddedProduct.bind(this),
@@ -201,12 +208,44 @@ class Mindbox extends Integration {
     // get operation name either from email or from integration settings
     const operation = getProp(event, 'integrations.mindbox.operation') || this.getOperationName(event.name);
 
-    if (!operation) return;
+    if (!operation && event.name !== VIEWED_PAGE) return;
 
     if (eventMap[event.name]) {
       eventMap[event.name](event, operation);
     } else {
       this.onCustomEvent(event, operation);
+    }
+  }
+
+  setCart(cart, operation) {
+    const lineItems = cart.lineItems;
+    if (!lineItems || !lineItems.length) {
+      return;
+    }
+
+    const mindboxItems = lineItems.map((lineItem) => {
+      const quantity = lineItem.quantity || 1;
+      return cleanObject({
+        productId: getProp(lineItem, 'product.id'),
+        skuId: getProp(lineItem, 'product.skuCode'),
+        count: quantity,
+        price: getProp(lineItem, 'product.unitSalePrice') * quantity,
+      });
+    });
+    window.mindbox('performOperation', {
+      operation,
+      data: {
+        action: {
+          personalOffers: mindboxItems,
+        },
+      },
+    });
+  }
+
+  onViewedPage(event) {
+    const setCartOperation = this.getOption('setCartOperation');
+    if (setCartOperation && event.cart) {
+      this.setCart(event.cart, setCartOperation);
     }
   }
 

@@ -79,13 +79,70 @@ describe('Integrations: Mindbox', () => {
         mindbox.onLoad();
       });
       ddManager.once('ready', done);
-      ddManager.initialize();
+      ddManager.initialize({
+        sendViewedPageEvent: false,
+      });
 
       sinon.spy(window, 'mindbox');
     });
 
     afterEach(() => {
       window.mindbox.restore();
+    });
+
+    describe('#onViewedPage', () => {
+      beforeEach(() => {
+        mindbox.setOption('setCartOperation', 'SetCart');
+      });
+
+      it('should track cart if set cart operation defined', () => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          cart: {
+            lineItems: [
+              {
+                product: {
+                  id: '123',
+                  unitSalePrice: 1000,
+                  skuCode: 'sku123',
+                },
+                quantity: 2
+              },
+              {
+                product: {
+                  id: '234',
+                  unitSalePrice: 1000,
+                  skuCode: 'sku234',
+                },
+                quantity: 1
+              }
+            ]
+          },
+          callback: () => {
+            assert.ok(window.mindbox.calledWith('performOperation', {
+              operation: 'SetCart',
+              data: {
+                action: {
+                  personalOffers: [
+                    {
+                      productId: '123',
+                      skuId: 'sku123',
+                      count: 2,
+                      price: 2000
+                    },
+                    {
+                      productId: '234',
+                      skuId: 'sku234',
+                      count: 1,
+                      price: 1000
+                    }
+                  ],
+                }
+              },
+            }));
+          }
+        })
+      });
     });
 
     describe('#onViewedProductDetail', () => {
