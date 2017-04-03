@@ -3,7 +3,8 @@ import deleteProperty from './../functions/deleteProperty';
 import { getProp } from './../functions/dotProp';
 import { ERROR_TYPE_NOTICE } from './../EventValidator';
 import semver from './../functions/semver';
-import md5 from 'crypto-js/md5'
+import normalizeString from './../functions/normalizeString';
+import md5 from 'crypto-js/md5';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -253,7 +254,8 @@ class Criteo extends Integration {
     });
 
     if (event.user && event.user.email) {
-      const emailMd5 = md5(event.user.email).toString();
+      const email = normalizeString(event.user.email);
+      const emailMd5 = md5(email).toString();
       this.criteo_q.push({
         event: 'setEmail',
         email: emailMd5,
@@ -385,7 +387,8 @@ class Criteo extends Integration {
   onSubscribed(event) {
     const user = event.user;
     if (user && user.email) {
-      const emailMd5 = md5(user.email).toString();
+      const email = normalizeString(user.email);
+      const emailMd5 = md5(email).toString();
       window.criteo_q.push(
         {
           event: 'setEmail',
