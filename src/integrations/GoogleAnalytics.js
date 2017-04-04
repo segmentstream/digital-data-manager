@@ -198,6 +198,23 @@ class GoogleAnalytics extends Integration {
         this.initializeTracker(this.getOption('alternativeTrackingId'), this.getOption('alternativeNamespace'));
       }
 
+      // display advertising
+      if (this.getOption('doubleClick')) {
+        this.ga(['require', 'displayfeatures'], this.getOption('noConflict'));
+      }
+      // https://support.google.com/analytics/answer/2558867?hl=en
+      if (this.getOption('enhancedLinkAttribution')) {
+        this.ga(['require', 'linkid', 'linkid.js'], this.getOption('noConflict'));
+      }
+
+      if (this.getOption('enhancedEcommerce')) {
+        this.loadEnhancedEcommerce();
+      }
+
+      // anonymize after initializing, otherwise a warning is shown
+      // in google analytics debugger
+      if (this.getOption('anonymizeIp')) this.ga(['set', 'anonymizeIp', true], this.getOption('noConflict'));
+
       if (this.getOption('noConflict')) {
         this.onLoad();
       } else {
@@ -269,24 +286,6 @@ class GoogleAnalytics extends Integration {
       allowLinker: true,
       name: namespace ? namespace : undefined,
     }));
-    // display advertising
-    if (this.getOption('doubleClick') && !this.displayfeatures) {
-      this.ga(['require', 'displayfeatures'], this.getOption('noConflict'));
-      this.displayfeatures = true;
-    }
-    // https://support.google.com/analytics/answer/2558867?hl=en
-    if (this.getOption('enhancedLinkAttribution') && !this.linkid) {
-      this.ga(['require', 'linkid', 'linkid.js'], this.getOption('noConflict'));
-      this.linkid = true;
-    }
-
-    if (this.getOption('enhancedEcommerce')) {
-      this.loadEnhancedEcommerce();
-    }
-
-    // anonymize after initializing, otherwise a warning is shown
-    // in google analytics debugger
-    if (this.getOption('anonymizeIp')) this.ga(['set', 'anonymizeIp', true], this.getOption('noConflict'));
   }
 
   hasAlternativeTracker() {
@@ -352,14 +351,12 @@ class GoogleAnalytics extends Integration {
   }
 
   loadEnhancedEcommerce() {
-    if (!this.enhancedEcommerceLoaded) {
-      let noConflict = this.getOption('noConflict');
-      if (this.getOption('namespace')) {
-        noConflict = false; // always load for custom namespace
-      }
-      this.ga(['require', 'ec'], noConflict);
-      this.enhancedEcommerceLoaded = true;
+    let noConflict = this.getOption('noConflict');
+    if (this.getOption('namespace')) {
+      noConflict = false; // always load for custom namespace
     }
+    this.ga(['require', 'ec'], noConflict);
+    this.enhancedEcommerceLoaded = true;
   }
 
   pushEnhancedEcommerce(event, noConflict) {
@@ -798,6 +795,7 @@ class GoogleAnalytics extends Integration {
   }
 
   enhancedEcommerceTrackProduct(product, quantity, position) {
+    if (!product) return;
     const custom = this.getCustomDimensions(product, true);
     const gaProduct = Object.assign({
       id: product.id || product.skuCode,
@@ -825,6 +823,8 @@ class GoogleAnalytics extends Integration {
     } else {
       product = event.product;
     }
+    if (!product || !product.id) return;
+
     this.enhancedEcommerceTrackProduct(product, event.quantity, position);
     this.ga(['ec:setAction', action, data || {}], this.getOption('noConflict'));
   }

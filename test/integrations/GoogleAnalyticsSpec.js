@@ -896,6 +896,7 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.events.push({
             name: 'Added Product',
             product: {
+              id: '123',
               currency: 'CAD',
               unitPrice: 24.75,
               name: 'my product',
@@ -905,7 +906,7 @@ describe('Integrations: GoogleAnalytics', () => {
             quantity: 1,
             callback: () => {
               assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: 'p-298',
+                id: '123',
                 name: 'my product',
                 category: 'cat 1',
                 quantity: 1,
@@ -931,6 +932,7 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.events.push({
             name: 'Added Product',
             product: {
+              id: '123',
               currency: 'CAD',
               unitPrice: 24.75,
               name: 'my product',
@@ -942,7 +944,7 @@ describe('Integrations: GoogleAnalytics', () => {
             quantity: 1,
             callback: () => {
               assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: 'p-298',
+                id: '123',
                 name: 'my product',
                 category: 'cat 1',
                 quantity: 1,
@@ -994,6 +996,7 @@ describe('Integrations: GoogleAnalytics', () => {
             name: 'Added Product',
             label: 'sample label',
             product: {
+              id: '123',
               currency: 'CAD',
               unitPrice: 24.75,
               name: 'my product',
@@ -1003,7 +1006,7 @@ describe('Integrations: GoogleAnalytics', () => {
             quantity: 1,
             callback: () => {
               assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: 'p-298',
+                id: '123',
                 name: 'my product',
                 category: 'cat 1',
                 quantity: 1,
@@ -1022,6 +1025,7 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.events.push({
             name: 'Removed Product',
             product: {
+              id: '123',
               currency: 'CAD',
               unitPrice: 24.75,
               name: 'my product',
@@ -1031,7 +1035,7 @@ describe('Integrations: GoogleAnalytics', () => {
             quantity: 1,
             callback: () => {
               assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: 'p-298',
+                id: '123',
                 name: 'my product',
                 category: 'cat 1',
                 quantity: 1,
@@ -1057,6 +1061,7 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.events.push({
             name: 'Removed Product',
             product: {
+              id: '123',
               currency: 'CAD',
               unitPrice: 24.75,
               name: 'my product',
@@ -1068,7 +1073,7 @@ describe('Integrations: GoogleAnalytics', () => {
             quantity: 1,
             callback: () => {
               assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: 'p-298',
+                id: '123',
                 name: 'my product',
                 category: 'cat 1',
                 quantity: 1,
@@ -1089,6 +1094,7 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.events.push({
             name: 'Viewed Product Detail',
             product: {
+              id: '123',
               currency: 'CAD',
               unitPrice: 24.75,
               name: 'my product',
@@ -1097,7 +1103,7 @@ describe('Integrations: GoogleAnalytics', () => {
             },
             callback: () => {
               assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: 'p-298',
+                id: '123',
                 name: 'my product',
                 category: 'cat 1',
                 price: 24.75,
@@ -1115,6 +1121,7 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.events.push({
             name: 'Viewed Product Detail',
             product: {
+              id: '123',
               currency: 'CAD',
               unitPrice: 24.75,
               name: 'my product',
@@ -1123,7 +1130,7 @@ describe('Integrations: GoogleAnalytics', () => {
             },
             callback: () => {
               assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: 'p-298',
+                id: '123',
                 name: 'my product',
                 category: 'cat 1/cat 2',
                 price: 24.75,
@@ -1139,6 +1146,7 @@ describe('Integrations: GoogleAnalytics', () => {
 
         it('should send viewed product detail data (digitalData)', function() {
           window.digitalData.product = {
+            id: '123',
             currency: 'CAD',
             unitPrice: 24.75,
             name: 'my product',
@@ -1149,7 +1157,7 @@ describe('Integrations: GoogleAnalytics', () => {
             name: 'Viewed Product Detail',
             callback: () => {
               assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: 'p-298',
+                id: '123',
                 name: 'my product',
                 category: 'cat 1/cat 2',
                 price: 24.75,
@@ -1174,6 +1182,7 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.events.push({
             name: 'Viewed Product Detail',
             product: {
+              id: '123',
               currency: 'CAD',
               unitPrice: 24.75,
               name: 'my product',
@@ -1184,7 +1193,7 @@ describe('Integrations: GoogleAnalytics', () => {
             },
             callback: () => {
               assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: 'p-298',
+                id: '123',
                 name: 'my product',
                 category: 'cat 1',
                 price: 24.75,
@@ -1218,6 +1227,7 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.events.push({
             name: 'Viewed Product Detail',
             product: {
+              id: '123',
               currency: 'CAD',
               unitPrice: 24.75,
               name: 'my product',
@@ -1228,7 +1238,7 @@ describe('Integrations: GoogleAnalytics', () => {
             },
             callback: () => {
               assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: 'p-298',
+                id: '123',
                 name: 'my product',
                 category: 'cat 1',
                 price: 24.75,
@@ -1256,6 +1266,7 @@ describe('Integrations: GoogleAnalytics', () => {
             name: 'Clicked Product',
             listItem: {
               product: {
+                id: '123',
                 currency: 'CAD',
                 unitPrice: 24.75,
                 name: 'my product',
@@ -1269,7 +1280,7 @@ describe('Integrations: GoogleAnalytics', () => {
             },
             callback: () => {
               assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: 'p-298',
+                id: '123',
                 name: 'my product',
                 category: 'cat 1',
                 price: 24.75,
