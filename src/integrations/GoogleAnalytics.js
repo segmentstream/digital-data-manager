@@ -1,6 +1,7 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
 import { getProp } from './../functions/dotProp';
+import { ERROR_TYPE_NOTICE } from './../EventValidator';
 import cleanObject from './../functions/cleanObject';
 import each from './../functions/each.js';
 import size from './../functions/size.js';
@@ -166,6 +167,51 @@ class GoogleAnalytics extends Integration {
     }
 
     return enrichableProps;
+  }
+
+  getEventValidations(event) {
+    let validations = [];
+    switch (event.name) {
+    case VIEWED_PRODUCT_DETAIL:
+      validations = [
+        ['product.id', { required: true }],
+        ['product.name', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.category', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.unitSalePrice', { required: true }, ERROR_TYPE_NOTICE],
+      ];
+      break;
+    case ADDED_PRODUCT:
+      validations = [
+        ['product.id', { required: true }],
+        ['product.name', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.category', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.unitSalePrice', { required: true }, ERROR_TYPE_NOTICE],
+        ['quantity', { required: true }, ERROR_TYPE_NOTICE],
+      ];
+      break;
+    case REMOVED_PRODUCT:
+      validations = [
+        ['product.id', { required: true }],
+        ['product.name', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.category', { required: true }, ERROR_TYPE_NOTICE],
+        ['quantity', { required: true }, ERROR_TYPE_NOTICE],
+      ];
+      break;
+    case COMPLETED_TRANSACTION:
+      validations = [
+        ['transaction.orderId', { required: true }],
+        ['transaction.lineItems[].product.id', { required: true }],
+        ['transaction.lineItems[].product.name', { required: true }, ERROR_TYPE_NOTICE],
+        ['transaction.lineItems[].product.category', { required: true }, ERROR_TYPE_NOTICE],
+        ['transaction.lineItems[].product.unitSalePrice', { required: true }, ERROR_TYPE_NOTICE],
+        ['transaction.total', { required: true }, ERROR_TYPE_NOTICE],
+      ];
+      break;
+    default:
+      // do nothing
+    }
+
+    return validations;
   }
 
   initialize(version) {

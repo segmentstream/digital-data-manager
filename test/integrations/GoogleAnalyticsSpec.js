@@ -632,7 +632,16 @@ describe('Integrations: GoogleAnalytics', () => {
             name: 'Completed Transaction',
             category: 'Ecommerce',
             transaction: {
-              orderId: 'e213e4da'
+              orderId: 'e213e4da',
+              lineItems: [
+                {
+                  product: {
+                    id: '123',
+                  },
+                  quantity: 1
+                }
+              ],
+              total: 1000
             },
             callback: () => {
               assert.ok(window.ga.calledWith('require', 'ecommerce'));
@@ -645,12 +654,22 @@ describe('Integrations: GoogleAnalytics', () => {
             name: 'Completed Transaction',
             category: 'Ecommerce',
             transaction: {
-              orderId: '7306cc06'
+              orderId: '7306cc06',
+              lineItems: [
+                {
+                  product: {
+                    id: '123',
+                  },
+                  quantity: 1
+                }
+              ],
+              total: 1000
             },
             callback: () => {
-              assert.ok(window.ga.args.length === 3);
+              assert.ok(window.ga.args.length === 4);
               assert.ok(window.ga.args[1][0] === 'ecommerce:addTransaction');
-              assert.ok(window.ga.args[2][0] === 'ecommerce:send');
+              assert.ok(window.ga.args[2][0] === 'ecommerce:addItem');
+              assert.ok(window.ga.args[3][0] === 'ecommerce:send');
             }
           });
         });
@@ -674,6 +693,7 @@ describe('Integrations: GoogleAnalytics', () => {
             },
             {
               product: {
+                id: '234',
                 unitPrice: 24.75,
                 unitSalePrice: 24.75,
                 name: 'other product',
@@ -709,7 +729,7 @@ describe('Integrations: GoogleAnalytics', () => {
               }]);
 
               assert.deepEqual(window.ga.args[3], ['ecommerce:addItem', {
-                id: undefined,
+                id: '234',
                 category: undefined,
                 name: 'other product',
                 price: 24.75,
@@ -748,7 +768,7 @@ describe('Integrations: GoogleAnalytics', () => {
               }]);
 
               assert.deepEqual(window.ga.args[3], ['ecommerce:addItem', {
-                id: undefined,
+                id: '234',
                 category: undefined,
                 name: 'other product',
                 price: 24.75,
@@ -1846,7 +1866,15 @@ describe('Integrations: GoogleAnalytics', () => {
             name: 'Completed Transaction',
             category: 'Ecommerce',
             transaction: {
-              orderId: '7306cc06'
+              orderId: '7306cc06',
+              lineItems: [
+                {
+                  product: {
+                    id: '123'
+                  },
+                  quantity: 1
+                }
+              ]
             },
             callback: () => {
               assert.ok(window.ga.calledWith('ec:setAction', 'purchase', {
@@ -1864,7 +1892,15 @@ describe('Integrations: GoogleAnalytics', () => {
 
         it('should send simple completed order data (digitalData)', function() {
           window.digitalData.transaction = {
-            orderId: '7306cc06'
+            orderId: '7306cc06',
+            lineItems: [
+              {
+                product: {
+                  id: '123'
+                },
+                quantity: 1
+              }
+            ]
           };
           window.digitalData.events.push({
             name: 'Completed Transaction',
@@ -1917,6 +1953,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 },
                 {
                   product: {
+                    id: '234',
                     unitSalePrice: 24.75,
                     name: 'other product',
                     category: 'cat 2',
@@ -1944,7 +1981,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 metric10: 100,
               }));
               assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: 'p-299',
+                id: '234',
                 name: 'other product',
                 category: 'cat 2',
                 quantity: 3,
@@ -1994,6 +2031,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 },
                 {
                   product: {
+                    id: '234',
                     unitSalePrice: 24.75,
                     name: 'other product',
                     category: 'cat 2',
@@ -2018,7 +2056,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 coupon: 'promo',
               }));
               assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: 'p-299',
+                id: '234',
                 name: 'other product',
                 category: 'cat 2',
                 quantity: 3,
