@@ -2,6 +2,7 @@ import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
 import noop from './../functions/noop.js';
 import {
+  VIEWED_PAGE,
   VIEWED_EXPERIMENT,
   ACHIEVED_EXPERIMENT_GOAL,
 } from './../events';
@@ -34,6 +35,7 @@ class Driveback extends Integration {
     super(digitalData, optionsWithDefaults);
 
     this.SEMANTIC_EVENTS = [
+      VIEWED_PAGE,
       VIEWED_EXPERIMENT,
       ACHIEVED_EXPERIMENT_GOAL,
     ];
@@ -105,8 +107,10 @@ class Driveback extends Integration {
   }
 
   trackEvent(event) {
-    if (this.getOption('experiments')) {
-      if (event.name === 'Viewed Experiment') {
+    if (event.name === VIEWED_PAGE) {
+      this.onViewedPage();
+    } else if (this.getOption('experiments')) {
+      if (event.name === VIEWED_EXPERIMENT) {
         const experiment = getExperment(event.experiment);
         if (!experiment) {
           return;
@@ -115,13 +119,29 @@ class Driveback extends Integration {
           window.dbex('setVariation', experiment.id, experiment.variationId);
         }
         window.dbex('trackSession', experiment.id);
-      } else if (event.name === 'Achieved Experiment Goal') {
+      } else if (event.name === ACHIEVED_EXPERIMENT_GOAL) {
         const experiment = getExperment(event.experiment);
         if (!experiment) {
           return;
         }
 
         window.dbex('trackConversion', experiment.id, event.value);
+      }
+    }
+  }
+
+  onViewedPage() {
+    if (window.Driveback.initInvoked) {
+      window.DriveBack.reactivateCampaigns(); // keep capital "B" in DriveBack
+    } else {
+      if (this.getOption('autoInit') === false) {
+        if (this.getOption('experiments')) {
+          window.dbex(function onDbexExperimentsLoaded() {
+            window.Driveback.init();
+          });
+        } else {
+          window.Driveback.init();
+        }
       }
     }
   }
