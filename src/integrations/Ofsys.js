@@ -106,7 +106,11 @@ class Ofsys extends Integration {
   }
 
   createCart(cart) {
-    if (!cart || !cart.id || !cart.lineItems || !cart.lineItems.length) return;
+    cart = cart || {};
+    if (!cart.id) return;
+
+    cart.total = cart.total || 0;
+
     this.cartId = cart.id;
     this.cart = cart;
 
@@ -118,18 +122,21 @@ class Ofsys extends Integration {
       }));
     });
 
-    this.asyncQueue.push(() => {
-      for (const lineItem of cart.lineItems) {
-        window.DI.Journey.ECommerce.AddCartItem({
-          idCart: cart.id,
-          idProduct: getProp(lineItem, 'product.id'),
-          productName: getProp(lineItem, 'product.name'),
-          priceunit: getProp(lineItem, 'product.unitSalePrice') || getProp(lineItem, 'product.unitPrice'),
-          quantity: lineItem.quantity || 1,
-        });
-      }
-      window.DI.Journey.ECommerce.SubmitCart();
-    });
+    if (cart.lineItems && cart.lineItems.length) {
+      // add products to cart and submit cart
+      this.asyncQueue.push(() => {
+        for (const lineItem of cart.lineItems) {
+          window.DI.Journey.ECommerce.AddCartItem({
+            idCart: cart.id,
+            idProduct: getProp(lineItem, 'product.id'),
+            productName: getProp(lineItem, 'product.name'),
+            priceunit: getProp(lineItem, 'product.unitSalePrice') || getProp(lineItem, 'product.unitPrice'),
+            quantity: lineItem.quantity || 1,
+          });
+        }
+        window.DI.Journey.ECommerce.SubmitCart();
+      });
+    }
   }
 
   getCartItemNewQuantity(productId, additionalQuantity) {
@@ -144,6 +151,13 @@ class Ofsys extends Integration {
       }
       return acc;
     }, 0);
+  }
+
+  getNewCartTotal(unitSalePrice, quantity) {
+    // quantity can be negative, if product price should be subtracted
+    const totalChange = unitSalePrice * quantity;
+    const newCartTotal = this.cart.total + totalChange;
+    return newCartTotal;
   }
 
   trackEvent(event) {
@@ -184,17 +198,24 @@ class Ofsys extends Integration {
 
   onAddedProduct(event) {
     const product = event.product;
-
     if (!product || !product.id || !this.cartId) return;
+
+    const newCartTotal = this.getNewCartTotal(product.unitSalePrice, event.quantity || 1);
 
     this.asyncQueue.push(() => {
       window.DI.Journey.ECommerce.AddCartItem({
         idCart: this.cartId,
         idProduct: product.id,
         productName: product.name,
-        priceunit: product.unitSalePrice || product.unitPrice,
-        quantity: this.getCartItemNewQuantity(product.id, event.quantity) || 1,
+        priceunit: product.unitSalePrice,
+        quantity: this.getCartItemNewQuantity(product.id, event.quantity),
       });
+      console.log('before update cart');
+      window.DI.Journey.ECommerce.UpdateCart({
+        idCart: this.cartId,
+        TotalPrice: newCartTotal
+      });
+      console.log('after update cart');
       window.DI.Journey.ECommerce.SubmitCart();
     });
   }
@@ -203,10 +224,17 @@ class Ofsys extends Integration {
     const product = event.product;
     if (!product || !product.id || !this.cartId) return;
 
+    const newCartTotal = this.getNewCartTotal(product.unitSalePrice, -event.quantity || -1);
+
+
     this.asyncQueue.push(() => {
       window.DI.Journey.ECommerce.RemoveCartItem({
         idCart: this.cartId,
         idProduct: product.id,
+      });
+      window.DI.Journey.ECommerce.UpdateCart({
+        idCart: this.cartId,
+        TotalPrice: newCartTotal
       });
       window.DI.Journey.ECommerce.SubmitCart();
     });
