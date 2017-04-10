@@ -73,10 +73,12 @@ class Driveback extends Integration {
         }
 
         // disable automatic Driveback init and init only when dbex is ready
-        window.DrivebackAsyncInit = noop;
-        window.dbex(function onDbexExperimentsLoaded() {
-          window.Driveback.init();
-        });
+        if (this.getOption('autoInit')) {
+          window.DrivebackAsyncInit = noop;
+          window.dbex(function onDbexExperimentsLoaded() {
+            window.Driveback.init();
+          });
+        }
       }
 
       if (this.getOption('experiments') && window.dbex) {
