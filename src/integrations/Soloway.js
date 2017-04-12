@@ -1,8 +1,9 @@
 import Integration from './../Integration';
 import { getProp } from './../functions/dotProp';
 import cleanObject from './../functions/cleanObject';
+import deletePropery from './../functions/deleteProperty';
 import normalizeString from './../functions/normalizeString';
-import md5 from 'async/md5';
+import md5 from 'crypto-js/md5';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -34,6 +35,7 @@ class Soloway extends Integration {
   adriverCounterFactory() {
     /* eslint-disable */
     return function k() {
+      var g = window.document;
       var a = function(d, b) {
         if (this instanceof AdriverCounter)
           d = a.items.length || 1,
@@ -57,13 +59,15 @@ class Soloway extends Integration {
           c.setAttribute("charset", "windows-1251");
           c.setAttribute("src", a.split("![rnd]").join(Math.round(1E6 * Math.random())));
           c.onreadystatechange = function() {
-            /loaded|complete/.test(this.readyState) && (c.onload = null, b.removeChild(c))
+            /loaded|complete/.test(this.readyState) && (c.onload = null, b.removeChild(c));
           };
           c.onload = function() {
-            b.removeChild(c)
+            b.removeChild(c);
           };
-          b.insertBefore(c, b.firstChild)
-        } catch (f) {}
+          b.insertBefore(c, b.firstChild);
+        } catch (f) {
+          console.error(f);
+        }
       };
       a.toQueryString = function(a, b, c) {
         b = b || "&";
@@ -101,6 +105,23 @@ class Soloway extends Integration {
 
   getSemanticEvents() {
     return SEMANTIC_EVENTS;
+  }
+
+  getEnrichableEventProps(event) {
+    switch (event.name) {
+    case VIEWED_PRODUCT_DETAIL:
+      return ['product.id', 'product.categoryId', 'user.email'];
+    case ADDED_PRODUCT:
+      return ['product.id', 'product.categoryId', 'user.email'];
+    case REMOVED_PRODUCT:
+      return ['product.id', 'product.categoryId', 'user.email'];
+    case COMPLETED_TRANSACTION:
+      return ['transaction.orderId', 'transaction.total', 'user.email'];
+    case REGISTERED:
+      return ['user.userId', 'user.email'];
+    default:
+      return ['user.email'];
+    }
   }
 
   getEventValidations(event) {
@@ -142,6 +163,11 @@ class Soloway extends Integration {
     return !!window.AdriverCounter;
   }
 
+  reset() {
+    deletePropery(window, 'AdriverCounter');
+    this.pageTracked = false;
+  }
+
   getEmailMd5(event) {
     const email = getProp(event, 'user.email');
     if (email) {
@@ -170,7 +196,6 @@ class Soloway extends Integration {
 
   onViewedPage(event) {
     this.pageTracked = false;
-
     setTimeout(() => {
       if (!this.pageTracked) {
         this.onViewedOther(event);
@@ -184,7 +209,6 @@ class Soloway extends Integration {
         153: this.getEmailMd5(event),
       },
     });
-
     this.pageTracked = true;
   }
 
