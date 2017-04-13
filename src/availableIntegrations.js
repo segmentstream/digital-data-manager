@@ -20,6 +20,7 @@ import Mindbox from './integrations/Mindbox.js';
 import DoubleClickFloodlight from './integrations/DoubleClickFloodlight';
 import RTBHouse from './integrations/RTBHouse';
 import Ofsys from './integrations/Ofsys';
+import Soloway from './integrations/Soloway';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -44,6 +45,7 @@ const integrations = {
   'DoubleClick Floodlight': DoubleClickFloodlight,
   'RTB House': RTBHouse,
   'Ofsys': Ofsys,
+  'Soloway': Soloway,
 };
 
 export default integrations;
