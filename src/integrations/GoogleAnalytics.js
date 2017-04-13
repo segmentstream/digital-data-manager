@@ -115,7 +115,7 @@ class GoogleAnalytics extends Integration {
     this.addTag({
       type: 'script',
       attr: {
-        src: '//www.google-analytics.com/analytics.js',
+        src: 'https://www.google-analytics.com/analytics.js',
       },
     });
   }
@@ -262,7 +262,15 @@ class GoogleAnalytics extends Integration {
       if (this.getOption('anonymizeIp')) this.ga(['set', 'anonymizeIp', true], this.getOption('noConflict'));
 
       if (this.getOption('noConflict')) {
-        this.onLoad();
+        if (
+          this.getOption('alternativeTrackingId') &&
+          this.getOption('alternativeNamespace') &&
+          !this.isLoaded()
+        ) {
+          this.load(this.onLoad);
+        } else {
+          this.onLoad();
+        }
       } else {
         this.load(this.onLoad);
       }
