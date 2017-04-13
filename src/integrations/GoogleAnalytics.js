@@ -23,6 +23,7 @@ import {
   REMOVED_PRODUCT,
   VIEWED_CAMPAIGN,
   CLICKED_CAMPAIGN,
+  EXCEPTION,
 } from './../events';
 import {
   EVENT_VAR,
@@ -48,6 +49,7 @@ const EC_SEMANTIC_EVENTS = [
   REMOVED_PRODUCT,
   VIEWED_CAMPAIGN,
   CLICKED_CAMPAIGN,
+  EXCEPTION,
 ];
 
 function getTransactionVoucher(transaction) {
@@ -498,6 +500,8 @@ class GoogleAnalytics extends Integration {
     }
     if (event.name === VIEWED_PAGE) {
       this.onViewedPage(event);
+    } else if (event.name === EXCEPTION) {
+      this.onException(event);
     } else if (this.getOption('enhancedEcommerce')) {
       const methods = {
         [VIEWED_PRODUCT]: this.onViewedProduct,
@@ -834,6 +838,15 @@ class GoogleAnalytics extends Integration {
 
     this.setEventCustomDimensions(event);
     this.ga(['send', 'event', payload]);
+  }
+
+  onException(event) {
+    if (event.exception && event.exception.message) {
+      this.ga(['send', 'exception', {
+        exDescription: event.exception.description || event.exception.message,
+        exFatal: event.exception.isFatal || false,
+      }]);
+    }
   }
 
   setEventCustomDimensions(event, noConflict) {
