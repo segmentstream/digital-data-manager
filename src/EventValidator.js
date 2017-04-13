@@ -99,3 +99,24 @@ export const validateEvent = (event, validations) => {
 
   return { errors, warnings };
 };
+
+export function validateIntegrationEvent(event, integration) {
+  const validations = integration.getEventValidations(event);
+  if (validations.length) {
+    return validateEvent(event, validations);
+  }
+}
+
+export function trackValidationErrors(digitalData, event, integrationName, validationResult) {
+  const errors = validationResult.errors || [];
+  for (const error of errors) {
+    const [field, message] = error;
+    digitalData.events.push({
+      name: 'Integration Validation Failed',
+      category: 'DDM Validations',
+      label: `${event.name} (${integrationName})`,
+      action: `Field '${field}' ${message}`,
+      nonInteraction: true,
+    });
+  }
+}

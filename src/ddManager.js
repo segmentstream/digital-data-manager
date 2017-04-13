@@ -16,7 +16,7 @@ import DDStorage from './DDStorage';
 import CookieStorage from './CookieStorage';
 import { isTestMode, logEnrichedIntegrationEvent, showTestModeOverlay } from './testMode';
 import { VIEWED_PAGE, mapEvent } from './events';
-import { validateEvent } from './EventValidator';
+import { validateIntegrationEvent, trackValidationErrors } from './EventValidator';
 import { warn, error as errorLog } from './functions/safeConsole';
 
 let ddManager;
@@ -111,21 +111,18 @@ function _addIntegrations(integrationSettings) {
   }
 }
 
-function _validateIntegrationEvent(event, integration) {
-  const validations = integration.getEventValidations(event);
-  if (validations.length) {
-    return validateEvent(event, validations);
-  }
-}
+function _trackIntegrationEvent(event, integration, trackValidationErrorsOption) {
+  const validationResult = validateIntegrationEvent(event, integration);
+  const integrationName = integration.getName();
 
-function _trackIntegrationEvent(event, integration) {
-  const validationResult = _validateIntegrationEvent(event, integration);
   if (isTestMode()) {
-    logEnrichedIntegrationEvent(event, integration.getName(), validationResult);
+    logEnrichedIntegrationEvent(event, integrationName, validationResult);
   }
 
   if (!validationResult || !validationResult.errors.length) {
     integration.trackEvent(event);
+  } else if (trackValidationErrorsOption) {
+    trackValidationErrors(_digitalData, event, integrationName, validationResult);
   }
 }
 
@@ -136,7 +133,7 @@ function _preparePageEvent(event, name) {
   return namedPageEvent;
 }
 
-function _trackIntegrationPageEvent(event, integration) {
+function _trackIntegrationPageEvent(event, integration, trackValidationErrorsOption) {
   if (integration.trackNamedPages() || integration.trackCategorizedPages()) {
     _trackIntegrationEvent(clone(event), integration);
     if (integration.trackNamedPages() && event.page && event.page.name) {
@@ -145,14 +142,14 @@ function _trackIntegrationPageEvent(event, integration) {
     }
     if (integration.trackCategorizedPages() && event.page && event.page.category) {
       const categorizedPageEvent = _preparePageEvent(event, event.page.category);
-      _trackIntegrationEvent(categorizedPageEvent, integration);
+      _trackIntegrationEvent(categorizedPageEvent, integration, trackValidationErrorsOption);
     }
   } else {
-    _trackIntegrationEvent(event, integration);
+    _trackIntegrationEvent(event, integration, trackValidationErrorsOption);
   }
 }
 
-function _addIntegrationsEventTracking() {
+function _addIntegrationsEventTracking(trackValidationErrorsOption) {
   _eventManager.addCallback(['on', 'event', (event) => {
     each(_integrations, (integrationName, integration) => {
       let trackEvent = false;
@@ -197,7 +194,7 @@ function _addIntegrationsEventTracking() {
           if (integrationEvent.name === VIEWED_PAGE) {
             _trackIntegrationPageEvent(integrationEvent, integration);
           } else {
-            _trackIntegrationEvent(integrationEvent, integration);
+            _trackIntegrationEvent(integrationEvent, integration, trackValidationErrorsOption);
           }
         } catch (e) {
           errorLog(e);
@@ -236,7 +233,7 @@ function _initializeIntegrations(settings) {
     }
 
     // add event tracking
-    _addIntegrationsEventTracking();
+    _addIntegrationsEventTracking(settings.trackValidationErrors);
   }
 }
 
@@ -281,6 +278,7 @@ ddManager = {
       sessionLength: 3600,
       sendViewedPageEvent: true,
       useCookieStorage: false,
+      trackValidationErrors: false,
     }, settings);
 
     if (_isReady) {

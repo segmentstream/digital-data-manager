@@ -210,12 +210,10 @@ class Ofsys extends Integration {
         priceunit: product.unitSalePrice,
         quantity: this.getCartItemNewQuantity(product.id, event.quantity),
       });
-      console.log('before update cart');
       window.DI.Journey.ECommerce.UpdateCart({
         idCart: this.cartId,
-        TotalPrice: newCartTotal
+        TotalPrice: newCartTotal,
       });
-      console.log('after update cart');
       window.DI.Journey.ECommerce.SubmitCart();
     });
   }
@@ -234,7 +232,7 @@ class Ofsys extends Integration {
       });
       window.DI.Journey.ECommerce.UpdateCart({
         idCart: this.cartId,
-        TotalPrice: newCartTotal
+        TotalPrice: newCartTotal,
       });
       window.DI.Journey.ECommerce.SubmitCart();
     });
