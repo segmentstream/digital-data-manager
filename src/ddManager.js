@@ -17,6 +17,7 @@ import CookieStorage from './CookieStorage';
 import { isTestMode, logEnrichedIntegrationEvent, showTestModeOverlay } from './testMode';
 import { VIEWED_PAGE, mapEvent } from './events';
 import { validateIntegrationEvent, trackValidationErrors } from './EventValidator';
+import { enableErrorTracking } from './ErrorTracker';
 import { warn, error as errorLog } from './functions/safeConsole';
 
 let ddManager;
@@ -279,6 +280,7 @@ ddManager = {
       sendViewedPageEvent: true,
       useCookieStorage: false,
       trackValidationErrors: false,
+      trackJsErrors: false,
     }, settings);
 
     if (_isReady) {
@@ -286,6 +288,10 @@ ddManager = {
     }
 
     _prepareGlobals();
+
+    if (settings.trackJsErrors) {
+      enableErrorTracking(_digitalData);
+    }
 
     let storage;
     if (settings.useCookieStorage) {
