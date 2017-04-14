@@ -21,6 +21,7 @@ import DoubleClickFloodlight from './integrations/DoubleClickFloodlight';
 import RTBHouse from './integrations/RTBHouse';
 import Ofsys from './integrations/Ofsys';
 import Soloway from './integrations/Soloway';
+import OneDMC from './integrations/OneDMC';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -46,6 +47,7 @@ const integrations = {
   'RTB House': RTBHouse,
   'Ofsys': Ofsys,
   'Soloway': Soloway,
+  '1DMC': OneDMC,
 };
 
 export default integrations;
