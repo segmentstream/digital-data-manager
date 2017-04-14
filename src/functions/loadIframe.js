@@ -24,8 +24,9 @@ export default function(options, fn) {
   // page, which is guaranteed to exist since this Javaiframe is running.
   const iframe = document.createElement('iframe');
   iframe.src = options.src;
-  iframe.width = options.width || 1;
-  iframe.height = options.height || 1;
+  iframe.width = options.width || 0;
+  iframe.height = options.height || 0;
+  iframe.frameBorder = options.frameBorder || 0;
   iframe.style.display = 'none';
 
   // If we have a fn, attach event handlers, even in IE. Based off of
@@ -37,8 +38,7 @@ export default function(options, fn) {
 
   async.nextTick(() => {
     // Append after event listeners are attached for IE.
-    const firstScript = document.getElementsByTagName('script')[0];
-    firstScript.parentNode.insertBefore(iframe, firstScript);
+    document.body.appendChild(iframe);
   });
 
   // Return the iframe element in case they want to do anything special, like
