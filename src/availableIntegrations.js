@@ -22,6 +22,7 @@ import RTBHouse from './integrations/RTBHouse';
 import Ofsys from './integrations/Ofsys';
 import Soloway from './integrations/Soloway';
 import OneDMC from './integrations/OneDMC';
+import AdSpire from './integrations/AdSpire';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -48,6 +49,7 @@ const integrations = {
   'Ofsys': Ofsys,
   'Soloway': Soloway,
   '1DMC': OneDMC,
+  'AdSpire': AdSpire,
 };
 
 export default integrations;
