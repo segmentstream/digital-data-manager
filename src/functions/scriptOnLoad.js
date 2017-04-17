@@ -8,7 +8,7 @@
 
 function addEventListener(el, fn) {
   el.addEventListener('load', (_, e) => {
-    console.log('load - addEventListener');
+    console.warn('load - addEventListener');
     fn(null, e);
   }, false);
   el.addEventListener('error', (e) => {
@@ -28,7 +28,7 @@ function addEventListener(el, fn) {
 
 function attachEvent(el, fn) {
   el.attachEvent('onreadystatechange', (e) => {
-    console.log('load - attachEvent');
+    console.warn('load - attachEvent');
     if (!/complete|loaded/.test(el.readyState)) return;
     // IE8 FIX
     if (el.readyState === 'loaded') {
