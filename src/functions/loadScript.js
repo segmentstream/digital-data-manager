@@ -42,10 +42,8 @@ export default function(options, fn) {
 
   if (navigator.appName === 'Microsoft Internet Explorer' || !!(navigator.userAgent.match(/Trident/) || navigator.userAgent.match(/rv:11/))) {
     // Append after event listeners are attached for IE.
-    console.warn('1', navigator.appName, navigator.userAgent);
     async.nextTick(addScriptToHead);
   } else {
-    console.warn('2', navigator.appName, navigator.userAgent);
     addScriptToHead();
   }
 

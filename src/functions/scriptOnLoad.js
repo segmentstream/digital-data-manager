@@ -13,6 +13,7 @@ function addEventListener(el, fn) {
     fn(null, e);
   }, false);
   el.addEventListener('error', (e) => {
+    console.warn('error - addEventListener');
     const err = new Error('script error "' + el.src + '"');
     err.event = e;
     fn(err);
