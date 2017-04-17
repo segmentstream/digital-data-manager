@@ -7,6 +7,7 @@
  */
 
 function addEventListener(el, fn) {
+  console.warn('addEventListener');
   el.addEventListener('load', (_, e) => {
     console.warn('load - addEventListener');
     fn(null, e);
@@ -27,6 +28,7 @@ function addEventListener(el, fn) {
  */
 
 function attachEvent(el, fn) {
+  console.warn('attachEvent');
   el.attachEvent('onreadystatechange', (e) => {
     console.warn('load - attachEvent');
     if (!/complete|loaded/.test(el.readyState)) return;
