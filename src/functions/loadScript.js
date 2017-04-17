@@ -43,7 +43,7 @@ export default function(options, fn) {
   if (navigator.appName === 'Microsoft Internet Explorer' || !!(navigator.userAgent.match(/Trident/) || navigator.userAgent.match(/rv:11/))) {
     // Append after event listeners are attached for IE.
     // async.nextTick(addScriptToHead);
-    setTimeout(addScriptToHead, 0);
+    setTimeout(addScriptToHead, 100);
   } else {
     addScriptToHead();
   }
