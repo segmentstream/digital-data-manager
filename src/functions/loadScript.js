@@ -35,16 +35,13 @@ export default function(options, fn) {
   }
 
   const addScriptToHead = () => {
-    console.warn('addScriptToHead', script);
     const firstScript = document.getElementsByTagName('script')[0];
-    console.log('firstScript', firstScript);
     firstScript.parentNode.insertBefore(script, firstScript);
   };
 
   if (navigator.appName === 'Microsoft Internet Explorer' || !!(navigator.userAgent.match(/Trident/) || navigator.userAgent.match(/rv:11/))) {
     // Append after event listeners are attached for IE.
-    // async.nextTick(addScriptToHead);
-    setTimeout(addScriptToHead, 100);
+    async.nextTick(addScriptToHead);
   } else {
     addScriptToHead();
   }

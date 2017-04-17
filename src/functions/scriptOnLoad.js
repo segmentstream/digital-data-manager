@@ -7,13 +7,10 @@
  */
 
 function addEventListener(el, fn) {
-  console.warn('addEventListener');
   el.addEventListener('load', (_, e) => {
-    console.warn('load - addEventListener');
     fn(null, e);
   }, false);
   el.addEventListener('error', (e) => {
-    console.warn('error - addEventListener');
     const err = new Error('script error "' + el.src + '"');
     err.event = e;
     fn(err);
@@ -29,9 +26,7 @@ function addEventListener(el, fn) {
  */
 
 function attachEvent(el, fn) {
-  console.warn('attachEvent');
   el.attachEvent('onreadystatechange', (e) => {
-    console.warn('load - attachEvent');
     if (!/complete|loaded/.test(el.readyState)) return;
     // IE8 FIX
     if (el.readyState === 'loaded') {
