@@ -147,7 +147,7 @@ describe('Integrations: GoogleAnalytics', () => {
     });
 
     describe('loading', function () {
-      it('should load', function (done) {
+      it.only('should load', function (done) {
         assert.ok(!ga.isLoaded());
         ddManager.once('load', () => {
           assert.ok(ga.isLoaded());
