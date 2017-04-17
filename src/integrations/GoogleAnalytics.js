@@ -453,22 +453,22 @@ class GoogleAnalytics extends Integration {
       if (googleClientId) {
         this.digitalData.user = this.digitalData.user || {};
         this.digitalData.user.googleClientId = googleClientId;
+        this.onEnrich();
       }
+    } else {
+      window.ga((tracker) => {
+        const trackerName = this.getOption('namespace');
+        tracker = tracker || window.ga.getByName(trackerName);
+        if (tracker) {
+          this.digitalData.user = this.digitalData.user || {};
+          this.digitalData.user.googleClientId = tracker.get('clientId');
+          this.digitalData.integrations.googleAnalytics = {
+            clientId: tracker.get('clientId'),
+          };
+        }
+        this.onEnrich();
+      });
     }
-
-    // TODO: remove asynс enrichment
-    window.ga((tracker) => {
-      const trackerName = this.getOption('namespace');
-      tracker = tracker || window.ga.getByName(trackerName);
-      if (tracker) {
-        this.digitalData.user = this.digitalData.user || {};
-        this.digitalData.user.googleClientId = tracker.get('clientId');
-        this.digitalData.integrations.googleAnalytics = {
-          clientId: tracker.get('clientId'),
-        };
-      }
-      this.onEnrich();
-    });
   }
 
   isPageviewDelayed(pageType) {
