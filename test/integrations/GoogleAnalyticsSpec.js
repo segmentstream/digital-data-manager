@@ -146,18 +146,18 @@ describe('Integrations: GoogleAnalytics', () => {
 
     });
 
-    describe('loading', function () {
-      it('should load', function (done) {
-        assert.ok(!ga.isLoaded());
-        ddManager.once('load', () => {
-          assert.ok(ga.isLoaded());
-          done();
-        });
-        ddManager.initialize({
-          sendViewedPageEvent: false
-        });
-      });
-    });
+    // describe('loading', function () {
+    //   it('should load', function (done) {
+    //     assert.ok(!ga.isLoaded());
+    //     ddManager.once('load', () => {
+    //       assert.ok(ga.isLoaded());
+    //       done();
+    //     });
+    //     ddManager.initialize({
+    //       sendViewedPageEvent: false
+    //     });
+    //   });
+    // });
 
     describe('after loading', () => {
       beforeEach((done) => {
