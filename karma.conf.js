@@ -109,7 +109,7 @@ module.exports = function(config) {
 
     client: {
       mocha: {
-        timeout : 5000
+        timeout : 10000
       }
     },
 
@@ -156,7 +156,7 @@ module.exports = function(config) {
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['dots', 'saucelabs'],
+    reporters: ['progress', 'saucelabs'],
 
 
     // web server port
@@ -190,10 +190,10 @@ module.exports = function(config) {
 
     // Concurrency level
     // how many browser should be started simultanous
-    // concurrency: 5,
-    //
-    // browserDisconnectTimeout: 10000,
-    // browserDisconnectTolerance: 10,
-    // browserNoActivityTimeout: 20000,
+    concurrency: 5,
+
+    browserDisconnectTimeout: 10000,
+    browserDisconnectTolerance: 10,
+    browserNoActivityTimeout: 20000,
   });
 };
