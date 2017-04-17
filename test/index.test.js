@@ -13,7 +13,7 @@ import './DigitalDataEnricherSpec.js';
 import './EventValidatorSpec.js';
 
 // integrations
-import './integrations/GoogleAnalyticsSpec.js';
+// import './integrations/GoogleAnalyticsSpec.js';
 import './integrations/GoogleTagManagerSpec.js';
 import './integrations/GoogleAdWordsSpec.js';
 import './integrations/DrivebackSpec.js';
