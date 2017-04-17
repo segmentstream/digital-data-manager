@@ -453,7 +453,6 @@ class GoogleAnalytics extends Integration {
       if (googleClientId) {
         this.digitalData.user = this.digitalData.user || {};
         this.digitalData.user.googleClientId = googleClientId;
-        this.onEnrich();
       }
     }
 
