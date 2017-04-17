@@ -35,7 +35,7 @@ export default function(options, fn) {
   }
 
   const addScriptToHead = () => {
-    console.warn('addScriptToHead');
+    console.warn('addScriptToHead', script);
     const firstScript = document.getElementsByTagName('script')[0];
     firstScript.parentNode.insertBefore(script, firstScript);
   };
