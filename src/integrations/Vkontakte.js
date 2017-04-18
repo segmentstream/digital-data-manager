@@ -32,8 +32,8 @@ class Vkontakte extends Integration {
 
   trackEvent(event) {
     const eventPixels = this.getOption('eventPixels');
-    if (eventPixels[event.name]) {
-      const pixelUrl = eventPixels[event.name];
+    const pixelUrl = eventPixels[event.name];
+    if (pixelUrl) {
       this.addPixel(pixelUrl);
     }
   }
