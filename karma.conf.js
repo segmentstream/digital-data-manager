@@ -109,7 +109,7 @@ module.exports = function(config) {
 
     client: {
       mocha: {
-        timeout : 7000
+        timeout : 10000
       }
     },
 
@@ -190,10 +190,10 @@ module.exports = function(config) {
 
     // Concurrency level
     // how many browser should be started simultanous
-    concurrency: 5,
-
-    browserDisconnectTimeout: 10000,
-    browserDisconnectTolerance: 10,
-    browserNoActivityTimeout: 20000,
+    // concurrency: 5,
+    //
+    // browserDisconnectTimeout: 10000,
+    // browserDisconnectTolerance: 10,
+    // browserNoActivityTimeout: 20000,
   });
 };
