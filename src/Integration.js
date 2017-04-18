@@ -168,7 +168,7 @@ export class Integration extends EventEmitter
       each(attr, (attrKey, attrVal) => {
         if (attrVal) {
           attr[attrKey] = attrVal.replace(/\{\{\ *(\w+)\ *\}\}/g, (_, $1) => {
-            return params[$1];
+            return (params[$1] !== undefined) ? params[$1] : '';
           });
         }
       });
