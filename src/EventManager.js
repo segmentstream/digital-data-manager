@@ -18,8 +18,12 @@ let _isInitialized = false;
 let _sendViewedPageEvent = false;
 
 function _getCopyWithoutEvents(digitalData) {
-  const digitalDataCopy = clone(digitalData);
-  deleteProperty(digitalDataCopy, 'events');
+  // not a deep copy for performance optimization and removal of events and changes
+  const unsafeDigitalDataCopy = Object.assign({}, digitalData);
+  deleteProperty(unsafeDigitalDataCopy, 'events');
+  deleteProperty(unsafeDigitalDataCopy, 'changes');
+
+  const digitalDataCopy = clone(unsafeDigitalDataCopy);
   return digitalDataCopy;
 }
 

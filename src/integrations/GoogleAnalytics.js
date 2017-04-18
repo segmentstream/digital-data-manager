@@ -467,6 +467,7 @@ class GoogleAnalytics extends Integration {
           clientId: tracker.get('clientId'),
         };
       }
+
       this.onEnrich();
     });
   }
