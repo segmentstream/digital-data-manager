@@ -115,7 +115,7 @@ class Driveback extends Integration {
         if (!experiment) {
           return;
         }
-        if (experiment.variationId) {
+        if (experiment.variationId !== undefined) {
           window.dbex('setVariation', experiment.id, experiment.variationId);
         }
         window.dbex('trackSession', experiment.id);
