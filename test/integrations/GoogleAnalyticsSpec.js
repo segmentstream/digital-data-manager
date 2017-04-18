@@ -148,6 +148,10 @@ describe('Integrations: GoogleAnalytics', () => {
 
     describe('loading', function () {
       it('should load', function (done) {
+        sinon.stub(ga, 'load', () => {
+          window.gaplugins = {};
+          ga.onLoad();
+        });
         assert.ok(!ga.isLoaded());
         ddManager.once('load', () => {
           assert.ok(ga.isLoaded());
@@ -161,6 +165,25 @@ describe('Integrations: GoogleAnalytics', () => {
 
     describe('after loading', () => {
       beforeEach((done) => {
+        sinon.stub(ga, 'load', () => {
+          window.gaplugins = {};
+          var tracker = {
+            get: (arg) => {
+              if (arg === 'clientId') {
+                return '123123141234'
+              }
+            }
+          }
+          window.ga = function(fn) {
+            if (fn instanceof Function) {
+              fn(tracker);
+            }
+            this.getByName = (trackerName) => {
+              return tracker;
+            }
+          }
+          ga.onLoad();
+        });
         ddManager.once('ready', done);
         ddManager.initialize({
           sendViewedPageEvent: false
