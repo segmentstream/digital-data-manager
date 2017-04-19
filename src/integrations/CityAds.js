@@ -182,7 +182,7 @@ class CityAds extends Integration {
 
     const lineItems = transaction.lineItems || [];
     const basket = encodeURI(JSON.stringify(mapLineItems(lineItems)));
-//
+
     this.load({
       orderId,
       clickId,
