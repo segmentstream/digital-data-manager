@@ -7,10 +7,8 @@ class Weborama extends Integration {
       siteId: '',
       eventTags: {},
       /* example:
-      eventTags: {
-        'Viewed Product Detail': {
-          conversionPage: '470',
-        }
+      eventPixels: {
+        'Viewed Product Detail': '470'
       },
       */
     }, options);
