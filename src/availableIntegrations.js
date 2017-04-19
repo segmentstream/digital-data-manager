@@ -23,6 +23,7 @@ import Ofsys from './integrations/Ofsys';
 import Soloway from './integrations/Soloway';
 import OneDMC from './integrations/OneDMC';
 import AdSpire from './integrations/AdSpire';
+import CityAds from './integrations/CityAds';
 import Aidata from './integrations/Aidata';
 import Segmento from './integrations/Segmento';
 
@@ -52,6 +53,7 @@ const integrations = {
   'Soloway': Soloway,
   '1DMC': OneDMC,
   'AdSpire': AdSpire,
+  'CityAds': CityAds,
   'Aidata': Aidata,
   'Segmento': Segmento,
 };
