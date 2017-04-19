@@ -95,7 +95,7 @@ class AdSpire extends Integration {
         ['cart.lineItems[].product.unitSalePrice', { required: true }, ERROR_TYPE_NOTICE],
         ['cart.lineItems[].product.currency', { required: true }, ERROR_TYPE_NOTICE],
         ['cart.lineItems[].quantity', { required: true }, ERROR_TYPE_NOTICE],
-      ]
+      ];
     case COMPLETED_TRANSACTION:
       return [
         ['transaction.orderId', { required: true }],
