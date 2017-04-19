@@ -15,7 +15,7 @@ class Aidata extends Integration {
     this.addTag({
       type: 'script',
       attr: {
-        src: `//x01.aidata.io/pixel.js?pixel={{ pixelId }}&v=` +  + Date.now(),
+        src: `//x01.aidata.io/pixel.js?pixel={{ pixelId }}&v=${Date.now()}`,
       },
     });
   }
