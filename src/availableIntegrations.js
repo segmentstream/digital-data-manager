@@ -24,6 +24,9 @@ import Soloway from './integrations/Soloway';
 import OneDMC from './integrations/OneDMC';
 import AdSpire from './integrations/AdSpire';
 import Weborama from './integrations/Weborama';
+import CityAds from './integrations/CityAds';
+import Aidata from './integrations/Aidata';
+import Segmento from './integrations/Segmento';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -52,6 +55,9 @@ const integrations = {
   '1DMC': OneDMC,
   'AdSpire': AdSpire,
   'Weborama': Weborama,
+  'CityAds': CityAds,
+  'Aidata': Aidata,
+  'Segmento': Segmento,
 };
 
 export default integrations;
