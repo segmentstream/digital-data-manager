@@ -66,7 +66,7 @@ class CityAds extends Integration {
     this.addTag({
       type: 'script',
       attr: {
-        src: `https://cityadspix.com/track/{{ orderId }}/ct/{{ targetName }}/c/${options.partnerId}?click_id={{ clickId }}&customer_type={{ customerType }}&payment_method={{ paymentMethod }}&order_total={{ orderTotal }}&currency={{ currency }}&coupon={{ coupon }}&discount={{ discount }}&basket={{ basket }}&md=2`,
+        src: `https://cityadspix.com/track/{{ orderId }}/ct/{{ targetName }}/c/${options.partnerId}?click_id={{ clickId }}&customer_type={{ customerType }}&customer_id={{ customerId }}&payment_method={{ paymentMethod }}&order_total={{ orderTotal }}&currency={{ currency }}&coupon={{ coupon }}&discount={{ discount }}&basket={{ basket }}&md=2`,
       },
     });
   }
@@ -170,7 +170,6 @@ class CityAds extends Integration {
 
     const orderId = transaction.orderId;
     const targetName = getProp(event, 'integrations.cityads.targetName') || this.getOption('defaultTargetName');
-    const partnerId = this.getOption('partnerId');
     const customerType = (transaction.isFirst) ? CUSTOMER_TYPE_NEW : CUSTOMER_TYPE_RETURNED;
     const paymentMethod = transaction.paymentMethod;
     const vouchers = transaction.vouchers || [];
@@ -179,7 +178,7 @@ class CityAds extends Integration {
     const customerId = getProp(event, 'user.userId');
     const orderTotal = transaction.total;
     let currency = transaction.currency;
-    if (currency === 'RUB') currency = 'RUR'; // for some reason city
+    if (currency === 'RUB') currency = 'RUR'; // for some reason cityads uses RUR instead of RUB
 
     const lineItems = transaction.lineItems || [];
     const basket = encodeURI(JSON.stringify(mapLineItems(lineItems)));
@@ -187,8 +186,8 @@ class CityAds extends Integration {
     this.load({
       orderId,
       clickId,
+      orderTotal,
       targetName,
-      partnerId,
       customerType,
       paymentMethod,
       coupon,

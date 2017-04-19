@@ -171,6 +171,9 @@ export class Integration extends EventEmitter
             return (params[$1] !== undefined) ? params[$1] : '';
           });
         }
+        if (attrKey === 'src' || attrKey === 'href') {
+          attr[attrKey] = attr[attrKey].replace(/[^=&]+=(&|$)/g,'').replace(/&$/,'');
+        }
       });
     }
 
