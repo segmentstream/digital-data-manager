@@ -172,7 +172,7 @@ export class Integration extends EventEmitter
           });
         }
         if (attrKey === 'src' || attrKey === 'href') {
-          attr[attrKey] = attr[attrKey].replace(/[^=&]+=(&|$)/g,'').replace(/&$/,'');
+          attr[attrKey] = attr[attrKey].replace(/[^=&]+=(&|$)/g, '').replace(/&$/, '');
         }
       });
     }
