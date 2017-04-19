@@ -28,7 +28,7 @@ function onClick(el, handler) {
 }
 
 export default function trackLink(links, handler) {
-  if (!links) return this;
+  if (!links) return;
   // always arrays, handles jquery
   if (isElement(links)) {
     links = [links];

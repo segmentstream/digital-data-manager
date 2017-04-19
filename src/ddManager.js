@@ -19,7 +19,7 @@ import { VIEWED_PAGE, mapEvent } from './events';
 import { validateIntegrationEvent, trackValidationErrors } from './EventValidator';
 import { enableErrorTracking } from './ErrorTracker';
 import { warn, error as errorLog } from './functions/safeConsole';
-import { trackLink } from './trackers';
+import { trackLink, trackImpression } from './trackers';
 
 let ddManager;
 
@@ -383,8 +383,12 @@ ddManager = {
     return _eventManager;
   },
 
-  trackLink: (el, handler) => {
-    trackLink(el, handler);
+  trackLink: (elements, handler) => {
+    trackLink(elements, handler);
+  },
+
+  trackImpression: (elements, handler) => {
+    trackImpression(elements, handler);
   },
 
   reset: () => {
