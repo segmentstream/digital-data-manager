@@ -1,10 +1,10 @@
-#Digital Data Manager
+# Digital Data Manager
 
 [![Build Status](https://travis-ci.org/driveback/digital-data-manager.svg?branch=master)](https://travis-ci.org/driveback/digital-data-manager)
 
 Digital Data Manager is an open source library which provides the hassle-free way to integrate Digital Data Layer on your website, collect customer data with one API and send it to hundreds of tools for analytics, marketing, and data warehousing. More info at [http://ddmanager.readme.io](http://digitaldata.readme.io).
 
-##Defining Digital Data Layer
+## Defining Digital Data Layer
 ```html
 <script type="text/javascript">
 window.digitalData = {
@@ -20,7 +20,7 @@ window.digitalData = {
 </script>
 ```
 
-##Sync Installation
+## Sync Installation
 ```html
 <script type="text/javascript" src="dd-manager.js"></script>
 <script type="text/javascript">
@@ -28,7 +28,7 @@ window.digitalData = {
 </script>
 ```
 
-##Async Installation
+## Async Installation
 ```html
 <script type="text/javascript">
 (function() {
@@ -71,7 +71,7 @@ window.digitalData = {
 </script>
 ```
 
-##Async Installation (not minified)
+## Async Installation (not minified)
 
 ```html
 <script type="text/javascript">
@@ -151,7 +151,7 @@ window.digitalData = {
 ```
 
 
-##Initialization With Integrations
+## Initialization With Integrations
 ```javascript
 ddManager.initialize({
   'integrations': {
@@ -167,9 +167,9 @@ ddManager.initialize({
 
 **Note.**You can even remove you GTM or Google Analytics tags from the code. Digital Data Manager will load them automatically.
 
-##Event tracking
+## Event tracking
 
-###Listening and reacting to events
+### Listening and reacting to events
 
 ```javascript
 window.ddListener.push(['on', 'event', function(event) {
@@ -179,7 +179,7 @@ window.ddListener.push(['on', 'event', function(event) {
 }]);
 ```
 
-###Firing events
+### Firing events
 ```javascript
 window.digitalData.events.push({
    'category': 'Email',
@@ -187,9 +187,9 @@ window.digitalData.events.push({
 });
 ```
 
-##Changes tracking
+## Changes tracking
 
-###Listening and reacting to changes inside DDL
+### Listening and reacting to changes inside DDL
 
 ```javascript
 window.ddListener.push(['on', 'change', function(newValue, previousValue) {
@@ -198,7 +198,7 @@ window.ddListener.push(['on', 'change', function(newValue, previousValue) {
 }]);
 ```
 
-###Listening and reacting to changes of specific key inside DDL
+### Listening and reacting to changes of specific key inside DDL
 
 ```javascript
 window.ddListener.push(['on', 'change:user.returning', function(newValue, previousValue) {
@@ -207,7 +207,7 @@ window.ddListener.push(['on', 'change:user.returning', function(newValue, previo
 }]);
 ```
 
-###Listening and reacting to changes of key property inside DDL
+### Listening and reacting to changes of key property inside DDL
 
 ```javascript
 window.ddListener.push(['on', 'change:cart.items.length', function(newValue, previousValue) {
@@ -216,7 +216,7 @@ window.ddListener.push(['on', 'change:cart.items.length', function(newValue, pre
 }]);
 ```
 
-###Firing changes to DDL
+### Firing changes to DDL
 
 ```javascript
 // user status changed to "returning"
