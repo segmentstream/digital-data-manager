@@ -10,3 +10,4 @@ import 'core-js/modules/es6.string.trim';
 import 'core-js/modules/es6.string.ends-with';
 import 'core-js/modules/es6.date.to-iso-string';
 import 'core-js/modules/es6.date.now';
+import 'core-js/modules/es6.symbol';
