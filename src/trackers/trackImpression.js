@@ -41,10 +41,7 @@ class BatchTable {
   }
 }
 
-/**
-* array of Batch
-*/
-let batches = [];
+const batchTable = new BatchTable();
 
 let isStarted = false;
 
@@ -125,14 +122,8 @@ function isVisible(el) {
   return (!!elementFromPoint && elementFromPoint === el);
 }
 
-updateTrackedComponents() {
-  for (const selector of this.selectors) {
-    this.$trackedComponents[selector] = window.jQuery(selector);
-  }
-}
-
 function trackViews() {
-  updateTrackedComponents();
+  batchTable.update();
 
   for (const batch of batches) {
     const newViewedBlocks = [];
@@ -169,23 +160,16 @@ function startTracking() {
   }, 500);
 }
 
-export default function trackImpression(blocks, handler) {
-  if (!blocks) return;
+export default function trackImpression(selector, handler) {
+  if (!selector) return;
 
   if (typeof handler !== 'function') {
     throw new TypeError('Must pass function handler to `ddManager.trackImpression`.');
   }
 
-  // always arrays, handles jquery
-  if (isElement(blocks)) {
-    blocks = [blocks];
-  } else if (blocks.toArray) {
-    blocks = blocks.toArray();
-  }
-
-  batches.push(new Batch(blocks, handler));
   if (!isStarted) {
     isStarted = true;
+    batchTable.add(selector, handler);
     startTracking();
   }
 }
