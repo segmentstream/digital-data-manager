@@ -30,7 +30,7 @@ function onClick(el, handler) {
 export default function trackLink(links, handler) {
   if (!links) return;
   if (typeof links === 'string') {
-    links = window.document.querySelectorAll(links);
+    links = Array.prototype.slice.call(window.document.querySelectorAll(links));
   } else if (isElement(links)) {
     links = [links];
   } else if (links.toArray) {   // handles jquery
