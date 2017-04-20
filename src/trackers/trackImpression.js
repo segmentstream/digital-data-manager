@@ -11,7 +11,6 @@ class Batch {
 
   addViewedBlock(block) {
     this.viewedBlocks.push(block);
-    console.log(this.viewedBlocks);
   }
 
   isViewedBlock(block) {
@@ -54,10 +53,7 @@ class BatchTable {
     let allBatches = [];
     for (const selector of this.selectors) {
       const batches = this.batches[selector];
-      for (const batch of batches) {
-        allBatches.push(batch);
-      }
-      // allBatches = [...allBatches, ...batches];
+      allBatches = [...allBatches, ...batches];
     }
     return allBatches;
   }
@@ -74,10 +70,13 @@ let docViewRight;
 
 function defineDocBoundaries(maxWebsiteWidth) {
   const _defineDocBoundaries = () => {
-    docViewTop = window.pageYOffset;
-    docViewBottom = docViewTop + window.document.documentElement.clientHeight;
-    docViewLeft = window.pageXOffset;
-    docViewRight = docViewLeft + window.document.documentElement.clientWidth;
+    const body = window.document.body;
+    const docEl = window.document.documentElement;
+
+    docViewTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;;
+    docViewBottom = docViewTop + docEl.clientHeight;
+    docViewLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft;
+    docViewRight = docViewLeft + docEl.clientWidth;
 
     if (maxWebsiteWidth && maxWebsiteWidth < this.docViewRight && this.docViewLeft === 0) {
       docViewLeft = (docViewRight - maxWebsiteWidth) / 2;
@@ -102,6 +101,8 @@ function defineDocBoundaries(maxWebsiteWidth) {
  * @returns boolean
  */
 function isVisible(el) {
+  const docEl = window.document.documentElement;
+
   const elemWidth = el.clientWidth;
   const elemHeight = el.clientHeight;
 
@@ -116,13 +117,13 @@ function isVisible(el) {
   }
 
   const fitsVertical = (
-    ((elemBottom - elemHeight / 4) <= docViewBottom) &&
-    ((elemTop + elemHeight / 4) >= docViewTop)
+    ((elemBottom - elemHeight / 4) <= docEl.clientHeight) &&
+    ((elemTop + elemHeight / 4) >= 0)
   );
 
   const fitsHorizontal = (
-    (elemLeft + elemWidth / 4 >= docViewLeft) &&
-    (elemRight - elemWidth / 4 <= docViewRight)
+    (elemLeft + elemWidth / 4 >= 0) &&
+    (elemRight - elemWidth / 4 <= docEl.clientWidth)
   );
 
   if (!fitsVertical || !fitsHorizontal) {
@@ -130,8 +131,8 @@ function isVisible(el) {
   }
 
   let elementFromPoint = document.elementFromPoint(
-    elemLeft - window.pageXOffset + elemWidth / 2,
-    elemTop - window.pageYOffset + elemHeight / 2
+    elemLeft + elemWidth / 2,
+    elemTop + elemHeight / 2
   );
 
   while (elementFromPoint && elementFromPoint !== el && elementFromPoint.parentNode !== document) {
@@ -144,16 +145,13 @@ function trackViews() {
   batchTable.update();
 
   const batches = batchTable.getAll();
-
   for (const batch of batches) {
     const newViewedBlocks = [];
 
     const blocks = batch.blocks;
     for (const block of blocks) {
-      // console.log(block, isVisible(block), !batch.isViewedBlock(block));
       if (isVisible(block) && !batch.isViewedBlock(block)) {
         newViewedBlocks.push(block);
-        console.log('batch.addViewedBlock(block)');
         batch.addViewedBlock(block);
       }
     }
