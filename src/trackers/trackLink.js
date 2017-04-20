@@ -14,11 +14,8 @@ function onClick(el, handler) {
       || el.getAttribute('xlink:href');
 
     try {
-      console.warn(el);
-      console.warn(handler);
       handler(el);
     } catch (error) {
-      console.warn(error);
       // TODO
     }
 
