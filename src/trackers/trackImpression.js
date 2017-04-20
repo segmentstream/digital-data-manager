@@ -68,10 +68,6 @@ let docViewBottom;
 let docViewLeft;
 let docViewRight;
 
-function isElement(el) {
-  return (el && el.nodeType === 1);
-}
-
 function defineDocBoundaries(maxWebsiteWidth) {
   const _defineDocBoundaries = () => {
     docViewTop = window.pageYOffset;

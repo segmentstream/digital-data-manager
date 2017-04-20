@@ -9,12 +9,13 @@ function isElement(el) {
 
 function onClick(el, handler) {
   return (e) => {
-    console.warn(el);
     const href = el.getAttribute('href')
       || el.getAttributeNS('http://www.w3.org/1999/xlink', 'href')
       || el.getAttribute('xlink:href');
 
     try {
+      console.warn(el);
+      console.warn(handler);
       handler(el);
     } catch (error) {
       // TODO
