@@ -3,8 +3,8 @@ import getStyle from './../functions/getStyle';
 import domQuery from './../functions/domQuery';
 
 class Batch {
-  constructor(blocks, handler) {
-    this.blocks = blocks;
+  constructor(handler) {
+    this.blocks = [];
     this.viewedBlocks = [];
     this.handler = handler;
   }
