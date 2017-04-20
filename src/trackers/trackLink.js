@@ -9,6 +9,7 @@ function isElement(el) {
 
 function onClick(el, handler) {
   return (e) => {
+    console.log(el);
     const href = el.getAttribute('href')
       || el.getAttributeNS('http://www.w3.org/1999/xlink', 'href')
       || el.getAttribute('xlink:href');
@@ -34,7 +35,7 @@ export default function trackLink(links, handler) {
     links = domQuery(links);
   } else if (isElement(links)) {
     links = [links];
-  } else if (links.toArray) {   // handles jquery
+  } else if (links.toArray) { // handles jquery
     links = links.toArray();
   }
 

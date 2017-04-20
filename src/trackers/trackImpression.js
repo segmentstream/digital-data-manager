@@ -1,10 +1,15 @@
 import { bind } from './../functions/eventListener';
 import getStyle from './../functions/getStyle';
+import domQuery from './../functions/domQuery';
 
 class Batch {
   constructor(blocks, handler) {
     this.blocks = blocks;
     this.handler = handler;
+  }
+
+  updateBlocks(blocks) {
+    this.blocks = blocks;
   }
 }
 
@@ -18,6 +23,20 @@ class BatchTable {
     if (this.selectors.indexOf(selector) < 0) {
       this.selectors.push(selector);
       this.batches[selector] = [];
+    }
+
+    const blocks = domQuery(selector);
+    const batch = new Batch(blocks, handler);
+    this.batches[selector].push(batch)
+  }
+
+  update() {
+    for (const selector of this.selectors) {
+      const batches = this.batches[selector];
+      const blocks = domQuery(selector);
+      for (const batch of batches) {
+        batch.updateBlocks(blocks);
+      }
     }
   }
 }
@@ -106,7 +125,15 @@ function isVisible(el) {
   return (!!elementFromPoint && elementFromPoint === el);
 }
 
+updateTrackedComponents() {
+  for (const selector of this.selectors) {
+    this.$trackedComponents[selector] = window.jQuery(selector);
+  }
+}
+
 function trackViews() {
+  updateTrackedComponents();
+
   for (const batch of batches) {
     const newViewedBlocks = [];
 
