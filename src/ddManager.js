@@ -19,6 +19,7 @@ import { VIEWED_PAGE, mapEvent } from './events';
 import { validateIntegrationEvent, trackValidationErrors } from './EventValidator';
 import { enableErrorTracking } from './ErrorTracker';
 import { warn, error as errorLog } from './functions/safeConsole';
+import { trackLink, trackImpression } from './trackers';
 
 let ddManager;
 
@@ -240,7 +241,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.2.31',
+  VERSION: '1.2.32',
 
   setAvailableIntegrations: (availableIntegrations) => {
     _availableIntegrations = availableIntegrations;
@@ -380,6 +381,14 @@ ddManager = {
 
   getEventManager: () => {
     return _eventManager;
+  },
+
+  trackLink: (elements, handler) => {
+    trackLink(elements, handler);
+  },
+
+  trackImpression: (elements, handler) => {
+    trackImpression(elements, handler);
   },
 
   reset: () => {
