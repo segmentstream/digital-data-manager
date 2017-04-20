@@ -13,7 +13,7 @@ function onClick(el, handler) {
       || el.getAttribute('xlink:href');
 
     try {
-      handler();
+      handler(el);
     } catch (error) {
       // TODO
     }
@@ -29,10 +29,11 @@ function onClick(el, handler) {
 
 export default function trackLink(links, handler) {
   if (!links) return;
-  // always arrays, handles jquery
-  if (isElement(links)) {
+  if (typeof links === 'string') {
+    links = window.document.querySelectorAll(links);
+  } else if (isElement(links)) {
     links = [links];
-  } else if (links.toArray) {
+  } else if (links.toArray) {   // handles jquery
     links = links.toArray();
   }
 
