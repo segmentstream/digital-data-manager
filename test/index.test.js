@@ -12,6 +12,9 @@ import './EventDataEnricherSpec.js';
 import './DigitalDataEnricherSpec.js';
 import './EventValidatorSpec.js';
 
+// trackers
+import './trackers/trackLinkSpec.js';
+
 // integrations
 import './integrations/GoogleAnalyticsSpec.js';
 import './integrations/GoogleTagManagerSpec.js';
