@@ -50,7 +50,7 @@ class BatchTable {
   }
 
   getAll() {
-    const allBatches = [];
+    let allBatches = [];
     for (const selector of this.selectors) {
       const batches = this.batches[selector];
       allBatches = [...allBatches, ...batches];
