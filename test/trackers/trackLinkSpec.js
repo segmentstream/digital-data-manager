@@ -27,7 +27,7 @@ describe('trackLink', () => {
       document.body.removeChild(div);
     });
 
-    it.only('should track click by class name', (done) => {
+    it('should track click by class name', (done) => {
       trackLink('.test-btn', (link) => {
         assert.equal(typeof link, 'object');
         done();
@@ -36,7 +36,7 @@ describe('trackLink', () => {
       fireEvent(btn, 'click');
     });
 
-    it.only('should track click by nested class name', (done) => {
+    it('should track click by nested class name', (done) => {
       trackLink('#test-div .test-btn', (link) => {
         assert.equal(typeof link, 'object');
         done();

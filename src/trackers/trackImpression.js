@@ -17,7 +17,7 @@ class Batch {
     return !(this.viewedBlocks.indexOf(block) < 0);
   }
 
-  updateBlocks(blocks) {
+  setBlocks(blocks) {
     this.blocks = blocks;
   }
 }
@@ -34,8 +34,7 @@ class BatchTable {
       this.batches[selector] = [];
     }
 
-    const blocks = domQuery(selector);
-    const batch = new Batch(blocks, handler);
+    const batch = new Batch(handler);
     this.batches[selector].push(batch)
   }
 
@@ -44,7 +43,7 @@ class BatchTable {
       const batches = this.batches[selector];
       const blocks = domQuery(selector);
       for (const batch of batches) {
-        batch.updateBlocks(blocks);
+        batch.setBlocks(blocks);
       }
     }
   }
@@ -171,7 +170,7 @@ function startTracking() {
   trackViews();
   setInterval(() => {
     trackViews();
-  }, 2000);
+  }, 500);
 }
 
 export default function trackImpression(selector, handler) {
@@ -181,9 +180,10 @@ export default function trackImpression(selector, handler) {
     throw new TypeError('Must pass function handler to `ddManager.trackImpression`.');
   }
 
+  batchTable.add(selector, handler);
+
   if (!isStarted) {
     isStarted = true;
-    batchTable.add(selector, handler);
     startTracking();
   }
 }
