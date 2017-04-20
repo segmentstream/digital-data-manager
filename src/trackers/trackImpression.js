@@ -5,7 +5,16 @@ import domQuery from './../functions/domQuery';
 class Batch {
   constructor(blocks, handler) {
     this.blocks = blocks;
+    this.viewedBlocks = [];
     this.handler = handler;
+  }
+
+  addViewedBlock(block) {
+    this.viewedBlocks.push(block);
+  }
+
+  isViewedBlock(block) {
+    return !(this.viewedBlocks.indexOf(block) < 0);
   }
 
   updateBlocks(blocks) {
@@ -38,6 +47,15 @@ class BatchTable {
         batch.updateBlocks(blocks);
       }
     }
+  }
+
+  getAll() {
+    const allBatches = [];
+    for (const selector of this.selectors) {
+      const batches = this.batches[selector];
+      allBatches = [...allBatches, ...batches];
+    }
+    return allBatches;
   }
 }
 
@@ -125,13 +143,16 @@ function isVisible(el) {
 function trackViews() {
   batchTable.update();
 
+  const batches = batchTable.getAll();
+
   for (const batch of batches) {
     const newViewedBlocks = [];
 
     const blocks = batch.blocks;
     for (const block of blocks) {
-      if (isVisible(block)) {
+      if (isVisible(block) && !batch.isViewedBlock(block)) {
         newViewedBlocks.push(block);
+        batch.addViewedBlock(block);
       }
     }
 
@@ -146,10 +167,6 @@ function trackViews() {
       }
     }
   }
-
-  batches = batches.filter((batch) => {
-    return batch.blocks.length > 0;
-  });
 }
 
 function startTracking() {

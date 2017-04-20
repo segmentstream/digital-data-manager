@@ -24,11 +24,11 @@ module.exports = function(config) {
       //   platform: 'Windows 7',
       //   version: '8'
       // },
-      slChromeWinXp: {
-        base: 'SauceLabs',
-        browserName: 'chrome',
-        platform: 'Windows XP'
-      },
+      // slChromeWinXp: {
+      //   base: 'SauceLabs',
+      //   browserName: 'chrome',
+      //   platform: 'Windows XP'
+      // },
       slIe10Win7: {
         base: 'SauceLabs',
         browserName: 'internet explorer',
@@ -41,12 +41,12 @@ module.exports = function(config) {
         platform: 'Windows 7',
         version: '9'
       },
-      slIe11Win10: {
-        base: 'SauceLabs',
-        browserName: 'internet explorer',
-        platform: 'Windows 10',
-        version: '11'
-      },
+      // slIe11Win10: {
+      //   base: 'SauceLabs',
+      //   browserName: 'internet explorer',
+      //   platform: 'Windows 10',
+      //   version: '11'
+      // },
       slME25Win10: {
         base: 'SauceLabs',
         browserName: 'microsoftedge',
