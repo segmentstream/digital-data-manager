@@ -146,6 +146,7 @@ function trackViews() {
 
     const blocks = batch.blocks;
     for (const block of blocks) {
+      console.log(block, isVisible(block), !batch.isViewedBlock(block));
       if (isVisible(block) && !batch.isViewedBlock(block)) {
         newViewedBlocks.push(block);
         batch.addViewedBlock(block);

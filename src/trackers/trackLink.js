@@ -18,6 +18,7 @@ function onClick(el, handler) {
       console.warn(handler);
       handler(el);
     } catch (error) {
+      console.warn(error);
       // TODO
     }
 
