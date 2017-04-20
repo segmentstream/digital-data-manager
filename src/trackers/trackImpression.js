@@ -8,6 +8,20 @@ class Batch {
   }
 }
 
+class BatchTable {
+  constructor() {
+    this.selectors = [];
+    this.batches = {};
+  }
+
+  add(selector, handler) {
+    if (this.selectors.indexOf(selector) < 0) {
+      this.selectors.push(selector);
+      this.batches[selector] = [];
+    }
+  }
+}
+
 /**
 * array of Batch
 */
