@@ -29,6 +29,7 @@ describe('trackLink', () => {
 
     it.only('should track click by class name', (done) => {
       trackLink('.test-btn', (link) => {
+        console.log(typeof link, link);
         assert.equal(typeof link, 'object');
         done();
       });

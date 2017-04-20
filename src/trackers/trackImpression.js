@@ -153,9 +153,6 @@ function trackViews() {
     }
 
     if (newViewedBlocks.length > 0) {
-      batch.blocks = blocks.filter((block) => {
-        return newViewedBlocks.indexOf(block) < 0;
-      });
       try {
         batch.handler(newViewedBlocks);
       } catch (error) {
@@ -170,7 +167,7 @@ function startTracking() {
   trackViews();
   setInterval(() => {
     trackViews();
-  }, 500);
+  }, 2000);
 }
 
 export default function trackImpression(selector, handler) {
