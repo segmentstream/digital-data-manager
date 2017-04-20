@@ -14,6 +14,7 @@ class Batch {
   }
 
   isViewedBlock(block) {
+    console.log('Viewed Blocks', this.viewedBlocks);
     return !(this.viewedBlocks.indexOf(block) < 0);
   }
 
