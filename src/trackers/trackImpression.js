@@ -11,10 +11,10 @@ class Batch {
 
   addViewedBlock(block) {
     this.viewedBlocks.push(block);
+    console.log(this.viewedBlocks);
   }
 
   isViewedBlock(block) {
-    console.log('Viewed Blocks', this.viewedBlocks);
     return !(this.viewedBlocks.indexOf(block) < 0);
   }
 
@@ -54,7 +54,10 @@ class BatchTable {
     let allBatches = [];
     for (const selector of this.selectors) {
       const batches = this.batches[selector];
-      allBatches = [...allBatches, ...batches];
+      for (const batch of batches) {
+        allBatches.push(batch);
+      }
+      // allBatches = [...allBatches, ...batches];
     }
     return allBatches;
   }
@@ -147,9 +150,10 @@ function trackViews() {
 
     const blocks = batch.blocks;
     for (const block of blocks) {
-      console.log(block, isVisible(block), !batch.isViewedBlock(block));
+      // console.log(block, isVisible(block), !batch.isViewedBlock(block));
       if (isVisible(block) && !batch.isViewedBlock(block)) {
         newViewedBlocks.push(block);
+        console.log('batch.addViewedBlock(block)');
         batch.addViewedBlock(block);
       }
     }

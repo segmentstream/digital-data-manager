@@ -47,12 +47,12 @@ module.exports = function(config) {
       //   platform: 'Windows 10',
       //   version: '11'
       // },
-      slME25Win10: {
-        base: 'SauceLabs',
-        browserName: 'microsoftedge',
-        platform: 'Windows 10',
-        version: '13'
-      },
+      // slME25Win10: {
+      //   base: 'SauceLabs',
+      //   browserName: 'microsoftedge',
+      //   platform: 'Windows 10',
+      //   version: '13'
+      // },
       // slSafariOsx: {
       //   base: 'SauceLabs',
       //   browserName: 'safari',
