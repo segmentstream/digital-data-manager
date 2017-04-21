@@ -1,5 +1,12 @@
 import { Integration } from './../Integration';
 import AsyncQueue from './utls/AsyncQueue';
+import { getProp } from './../functions/dotProp';
+import {
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  COMPLETED_TRANSACTION,
+} from './../events';
+
 
 const DEVELOPMENT_URL_PREFIX = 'integration';
 const PRODUCTION_URL_PREFIX = 'recs';
@@ -10,12 +17,12 @@ const PLACEMENT_TYPE_PURCHASE_COMPLETE_PAGE = 'purchase_complete_page';
 
 class RichRelevance extends Integration {
 
-  constructor() {
+  constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       apiKey: '',
       useProductionUrl: false,
       sessionIdVar: '',
-      placements: {}
+      placements: {},
     }, options);
     super(digitalData, optionsWithDefaults);
 
@@ -37,7 +44,7 @@ class RichRelevance extends Integration {
     this.asyncQueue.push(() => {
       window.RR.jsonCallback = () => {
         // Place your rendering logic here. Actual code varies depending on your website implementation.
-        console.dir(RR.data.JSON.placements);
+        console.dir(window.RR.data.JSON.placements);
         this.onEnrich();
       };
     });
@@ -76,8 +83,6 @@ class RichRelevance extends Integration {
     const methods = {
       [VIEWED_PAGE]: 'onViewedPage',
       [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
-      [ADDED_PRODUCT]: 'onAddedProduct',
-      [REMOVED_PRODUCT]: 'onRemovedProduct',
       [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
     };
 
@@ -88,12 +93,14 @@ class RichRelevance extends Integration {
   }
 
   onViewedPage(event) {
+    this.rrFlushed = false;
+
     const page = event.page || {};
     const user = event.user || {};
     const sessionId = getProp(event, this.getOption('sessionIdVar'));
 
     this.asyncQueue.push(() => {
-      window.R3_COMMON = new r3_common();
+      window.R3_COMMON = new r3_common(); // eslint-disable-line
       window.R3_COMMON.setApiKey(this.getOption('apiKey'));
       window.R3_COMMON.setBaseUrl(`${window.location.protocol}//${this.baseUrlSubdomain}.richrelevance.com/rrserver/`);
       window.R3_COMMON.setClickthruServer(`${window.location.protocol}//${window.location.host}`);
@@ -101,7 +108,7 @@ class RichRelevance extends Integration {
       if (user.userId) {
         window.R3_COMMON.setUserId(user.userId);
       }
-    })
+    });
 
     if (page.type === 'home') {
       this.onViewedHome(event);
@@ -114,11 +121,11 @@ class RichRelevance extends Integration {
     }, 100);
   }
 
-  onViewedHome(event) {
+  onViewedHome() {
     this.asyncQueue.push(() => {
       this.addPlacements(PLACEMENT_TYPE_HOME_PAGE);
 
-      window.R3_HOME = new window.r3_home();
+      window.R3_HOME = new window.r3_home(); // eslint-disable-line
       this.rrFlush();
     });
   }
@@ -133,7 +140,7 @@ class RichRelevance extends Integration {
         window.R3_COMMON.addCategoryHintId(product.categoryId);
       }
 
-      window.R3_ITEM = new window.r3_item();
+      window.R3_ITEM = new window.r3_item(); // eslint-disable-line
       window.R3_ITEM.setId(product.id);
       window.R3_ITEM.setName(product.name);
       this.rrFlush();
@@ -148,7 +155,7 @@ class RichRelevance extends Integration {
     this.asyncQueue.push(() => {
       this.addPlacements(PLACEMENT_TYPE_PURCHASE_COMPLETE_PAGE);
 
-      window.R3_PURCHASED = new window.r3_purchased();
+      window.R3_PURCHASED = new window.r3_purchased(); // eslint-disable-line
       window.R3_PURCHASED.setOrderNumber(transaction.orderId);
 
       for (const lineItem of lineItems) {

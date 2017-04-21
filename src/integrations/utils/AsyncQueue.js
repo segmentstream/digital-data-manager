@@ -30,3 +30,5 @@ class AsyncQueue {
     this.asyncQueue.push(handler);
   }
 }
+
+export default AsyncQueue;
