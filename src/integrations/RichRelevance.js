@@ -4,6 +4,8 @@ import AsyncQueue from './utls/AsyncQueue';
 const DEVELOPMENT_URL_PREFIX = 'integration';
 const PRODUCTION_URL_PREFIX = 'recs';
 
+const PLACEMENT_TYPE_HOME_PAGE = 'home_page';
+
 class RichRelevance extends Integration {
 
   constructor() {
@@ -11,6 +13,7 @@ class RichRelevance extends Integration {
       apiKey: '',
       useProductionUrl: false,
       sessionIdVar: '',
+      homePagePlacements: {}
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -31,6 +34,14 @@ class RichRelevance extends Integration {
 
   isLoaded() {
     retunr !!window.RR;
+  }
+
+  getPlacements(placementType) {
+    switch (placementType) {
+    case PLACEMENT_TYPE_HOME_PAGE:
+      return
+      break;
+    }
   }
 
   trackEvent(event) {
@@ -70,7 +81,18 @@ class RichRelevance extends Integration {
   }
 
   onViewedHome(event) {
+    this.asyncQueue.push(() => {
+      // Use this code if you are not requesting placement(s) for personalization
+      R3_COMMON.addPlacementType('home_page');
 
+      // Replace placement_name with the placement name you set up in Dashboard.
+      // Call multiple times to display more than one placement.
+      R3_COMMON.addPlacementType('home_page.placement_name');
+
+      var R3_HOME = new r3_home();
+      rr_flush_onload();
+      r3();
+    });
   }
 }
 
