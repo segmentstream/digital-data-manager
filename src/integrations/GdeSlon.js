@@ -118,7 +118,7 @@ class GdeSlon extends Integration {
     if (transaction.lineItems || Array.isArray(transaction.lineItems)) {
       productCodes = transaction.lineItems.reduce((acc, lineItem) => {
         const product = lineItem.product || {};
-        const quantity = lineItem.quanity || 1;
+        const quantity = lineItem.quantity || 1;
         let newVal = [product.id, product.unitSalePrice].join(':');
         if (quantity > 1) {
           newVal = Array(quantity).fill(newVal).join(',');
