@@ -19,10 +19,10 @@ import './trackers/trackLinkSpec.js';
 import './integrations/GoogleAnalyticsSpec.js';
 import './integrations/GoogleTagManagerSpec.js';
 import './integrations/GoogleAdWordsSpec.js';
-import './integrations/DrivebackSpec.js';
-import './integrations/RetailRocketSpec.js';
-import './integrations/FacebookPixelSpec.js';
-import './integrations/SegmentStreamSpec.js';
+// import './integrations/DrivebackSpec.js';
+// import './integrations/RetailRocketSpec.js';
+// import './integrations/FacebookPixelSpec.js';
+// import './integrations/SegmentStreamSpec.js';
 // import './integrations/SendPulseSpec.js';
 // import './integrations/OWOXBIStreamingSpec.js'
 // import './integrations/CriteoSpec.js';
