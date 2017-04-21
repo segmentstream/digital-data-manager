@@ -38,6 +38,10 @@ describe('Integrations: FacebookPixel', () => {
 
     it('should load', (done) => {
       assert.ok(!fbPixel.isLoaded());
+      sinon.stub(fbPixel, 'load', () => {
+        window.fbq.callMethod = () => {};
+        fbPixel.onLoad();
+      });
       ddManager.once('load', () => {
         assert.ok(fbPixel.isLoaded());
         done();

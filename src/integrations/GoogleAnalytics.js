@@ -431,7 +431,7 @@ class GoogleAnalytics extends Integration {
         event.action || event.name || 'not defined',
         event.label,
         {
-          nonInteraction: 1,
+          nonInteraction: !!event.nonInteraction,
         },
       ];
 
@@ -613,6 +613,8 @@ class GoogleAnalytics extends Integration {
   }
 
   onViewedProduct(event) {
+    event.nonInteraction = true;
+
     let listItems = event.listItems;
     if ((!listItems || !Array.isArray(listItems)) && event.listItem) {
       listItems = [event.listItem];
@@ -653,6 +655,7 @@ class GoogleAnalytics extends Integration {
   }
 
   onViewedProductDetail(event) {
+    event.nonInteraction = true;
     this.enhancedEcommerceProductAction(event, 'detail');
     this.pushEnhancedEcommerce(event, this.getOption('noConflict'));
   }
@@ -757,6 +760,8 @@ class GoogleAnalytics extends Integration {
   }
 
   onViewedCampaign(event) {
+    event.nonInteraction = true;
+
     let campaigns = event.campaigns;
     if ((!campaigns || !Array.isArray(campaigns)) && event.campaign) {
       campaigns = [event.campaign];
@@ -796,6 +801,8 @@ class GoogleAnalytics extends Integration {
   }
 
   onViewedCheckoutStep(event) {
+    event.nonInteraction = true;
+
     const cartOrTransaction = getProp(event, 'cart') || getProp(event, 'transaction');
 
     each(cartOrTransaction.lineItems, (key, lineItem) => {

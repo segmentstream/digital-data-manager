@@ -1,5 +1,6 @@
 import DDHelper from './DDHelper.js';
 import dotProp from './functions/dotProp';
+import deleteProperty from './functions/deleteProperty';
 
 class EventDataEnricher
 {
@@ -111,6 +112,10 @@ class EventDataEnricher
   static listItem(listItem, digitalData) {
     let productId;
 
+    if (!listItem.listId) {
+      deleteProperty(listItem, 'listId');
+    }
+
     if (typeof listItem.product === 'object') {
       productId = listItem.product.id;
     } else {
@@ -127,7 +132,6 @@ class EventDataEnricher
         listItem = Object.assign(ddlListItem, listItem);
       }
     }
-
     return listItem;
   }
 

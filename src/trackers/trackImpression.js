@@ -1,4 +1,3 @@
-import { bind } from './../functions/eventListener';
 import getStyle from './../functions/getStyle';
 import domQuery from './../functions/domQuery';
 
@@ -35,7 +34,7 @@ class BatchTable {
     }
 
     const batch = new Batch(handler);
-    this.batches[selector].push(batch)
+    this.batches[selector].push(batch);
   }
 
   update() {
@@ -61,36 +60,6 @@ class BatchTable {
 const batchTable = new BatchTable();
 
 let isStarted = false;
-
-let docViewTop;
-let docViewBottom;
-let docViewLeft;
-let docViewRight;
-
-function defineDocBoundaries(maxWebsiteWidth) {
-  const _defineDocBoundaries = () => {
-    const body = window.document.body;
-    const docEl = window.document.documentElement;
-
-    docViewTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;;
-    docViewBottom = docViewTop + docEl.clientHeight;
-    docViewLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft;
-    docViewRight = docViewLeft + docEl.clientWidth;
-
-    if (maxWebsiteWidth && maxWebsiteWidth < this.docViewRight && this.docViewLeft === 0) {
-      docViewLeft = (docViewRight - maxWebsiteWidth) / 2;
-      docViewRight = docViewLeft + maxWebsiteWidth;
-    }
-  };
-
-  _defineDocBoundaries();
-  bind(window, 'resize', () => {
-    _defineDocBoundaries();
-  });
-  bind(window, 'scroll', () => {
-    _defineDocBoundaries();
-  });
-}
 
 /**
  * Returns true if element is visible by css
@@ -166,7 +135,6 @@ function trackViews() {
 }
 
 function startTracking() {
-  defineDocBoundaries();
   trackViews();
   setInterval(() => {
     trackViews();
