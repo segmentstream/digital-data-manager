@@ -1,4 +1,3 @@
-import { bind } from './../functions/eventListener';
 import getStyle from './../functions/getStyle';
 import domQuery from './../functions/domQuery';
 

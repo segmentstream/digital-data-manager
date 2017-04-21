@@ -959,7 +959,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 currency: 'CAD',
               }));
               assert.ok(window.ga.calledWith('ec:setAction', 'add', {}));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: false }));
             }
           });
         });
@@ -999,7 +999,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 metric10: 100
               }));
               assert.ok(window.ga.calledWith('ec:setAction', 'add', {}));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: false }));
             }
           });
         });
@@ -1029,7 +1029,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 currency: 'CAD',
               }));
               assert.ok(window.ga.calledWith('ec:setAction', 'add', {}));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: false }));
             }
           });
         });
@@ -1059,7 +1059,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 currency: 'CAD',
               }));
               assert.ok(window.ga.calledWith('ec:setAction', 'add', {}));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', 'sample label', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', 'sample label', { nonInteraction: false }));
             }
           });
         });
@@ -1088,7 +1088,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 currency: 'CAD',
               }));
               assert.ok(window.ga.calledWith('ec:setAction', 'remove', {}));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: false }));
             }
           });
         });
@@ -1128,7 +1128,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 metric10: 100
               }));
               assert.ok(window.ga.calledWith('ec:setAction', 'remove', {}));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: false }));
             }
           });
         });
@@ -1155,7 +1155,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 currency: 'CAD',
               }));
               assert.ok(window.ga.calledWith('ec:setAction', 'detail', {}));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: true }));
             }
           });
         });
@@ -1182,7 +1182,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 currency: 'CAD',
               }));
               assert.ok(window.ga.calledWith('ec:setAction', 'detail', {}));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: true }));
             }
           });
         });
@@ -1209,7 +1209,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 currency: 'CAD',
               }));
               assert.ok(window.ga.calledWith('ec:setAction', 'detail', {}));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: true }));
             }
           });
         });
@@ -1247,7 +1247,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 metric10: 100
               }));
               assert.ok(window.ga.calledWith('ec:setAction', 'detail', {}));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: true }));
             }
           });
         });
@@ -1292,7 +1292,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 metric10: 100
               }));
               assert.ok(window.ga.calledWith('ec:setAction', 'detail', {}));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: true }));
             }
           });
         });
@@ -1336,7 +1336,7 @@ describe('Integrations: GoogleAnalytics', () => {
               assert.ok(window.ga.calledWith('ec:setAction', 'click', {
                 list: 'Search Results'
               }));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: false }));
             }
           });
         });
@@ -1376,7 +1376,7 @@ describe('Integrations: GoogleAnalytics', () => {
               assert.ok(window.ga.calledWith('ec:setAction', 'click', {
                 list: 'Search Results'
               }));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Clicked Product', { nonInteraction: false }));
             }
           });
         });
@@ -1419,7 +1419,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 dimension10: 25,
                 metric10: 100
               }));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: true }));
             }
           });
         });
@@ -1476,7 +1476,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 variant: undefined,
                 position: 2,
               }));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: true }));
             }
           });
         });
@@ -1523,7 +1523,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 variant: undefined,
                 position: 2,
               }));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: true }));
             }
           });
         });
@@ -1587,7 +1587,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 variant: undefined,
                 position: 2,
               }));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Product', { nonInteraction: true }));
             }
           });
         });
@@ -1609,7 +1609,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
               }));
-              assert.ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: true }));
             }
           });
         });
@@ -1632,7 +1632,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
               }));
-              assert.ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign #123', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign #123', { nonInteraction: true }));
             }
           });
         });
@@ -1668,7 +1668,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
               }));
-              assert.ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: true }));
             }
           });
         });
@@ -1691,7 +1691,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
               }));
-              assert.ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: true }));
             }
           });
         });
@@ -1728,7 +1728,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 creative: 'summer_banner2',
                 position: 'banner_slot1'
               }));
-              assert.ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Promo', 'Viewed Campaign', { nonInteraction: true }));
             }
           });
         });
@@ -1751,7 +1751,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 position: 'banner_slot1'
               }));
               assert.ok(window.ga.calledWith('ec:setAction', 'promo_click', {}));
-              assert.ok(window.ga.calledWith('send', 'event', 'Promo', 'Clicked Campaign', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Promo', 'Clicked Campaign', { nonInteraction: false }));
             }
           });
         });
@@ -1824,7 +1824,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 step: 1,
                 option: 'Visa'
               }));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Checkout Step', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Viewed Checkout Step', { nonInteraction: true }));
             }
           });
         });
@@ -1840,7 +1840,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 step: 2,
                 option: 'FedEx'
               }));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: false }));
             }
           });
         });
@@ -1857,7 +1857,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 step: 2,
                 option: 'Visa, FedEx'
               }));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: false }));
             }
           });
         });
@@ -1868,7 +1868,7 @@ describe('Integrations: GoogleAnalytics', () => {
             category: 'Ecommerce',
             paymentMethod: 'Visa',
             callback: () => {
-              assert.ok(!window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }));
+              assert.ok(!window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: false }));
             }
           });
         });
@@ -1879,7 +1879,7 @@ describe('Integrations: GoogleAnalytics', () => {
             category: 'Ecommerce',
             step: 2,
             callback: () => {
-              assert.ok(!window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: 1 }));
+              assert.ok(!window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Checkout Step', { nonInteraction: false }));
             }
           });
         });
@@ -1908,7 +1908,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 shipping: undefined,
                 coupon: undefined
               }));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: false }));
             }
           });
         });
@@ -1937,7 +1937,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 shipping: undefined,
                 coupon: undefined
               }));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: false }));
             }
           });
         });
@@ -2023,7 +2023,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 shipping: 13.99,
                 coupon: 'coupon'
               }));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: false }));
             }
           });
         });
@@ -2096,7 +2096,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 shipping: 13.99,
                 coupon: 'coupon'
               }));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Completed Transaction', { nonInteraction: false }));
             }
           });
         });
@@ -2142,7 +2142,7 @@ describe('Integrations: GoogleAnalytics', () => {
               assert.ok(window.ga.calledWith('ec:setAction', 'refund', {
                 id: '780bc55'
               }));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: false }));
             }
           });
         });
@@ -2163,7 +2163,7 @@ describe('Integrations: GoogleAnalytics', () => {
               assert.ok(window.ga.calledWith('ec:setAction', 'refund', {
                 id: '780bc55'
               }));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: false }));
             }
           });
         });
@@ -2216,7 +2216,7 @@ describe('Integrations: GoogleAnalytics', () => {
               assert.ok(window.ga.calledWith('ec:setAction', 'refund', {
                 id: '780bc55'
               }));
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: 1 }));
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Refunded Transaction', { nonInteraction: false }));
             }
           });
         });
