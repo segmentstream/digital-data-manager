@@ -15,9 +15,15 @@ class RichRelevance extends Integration {
       apiKey: '',
       useProductionUrl: false,
       sessionIdVar: '',
-      homePagePlacements: {}
+      placements: {
+        home_page: {
+          key: value
+        },
+        item_page: {
+          key: value
+        }
+      }
     }, options);
-
     super(digitalData, optionsWithDefaults);
 
     this.addTag({
@@ -45,15 +51,15 @@ class RichRelevance extends Integration {
   }
 
   isLoaded() {
-    retunr !!window.RR;
+    return !!window.RR;
   }
 
   getPlacements(placementType) {
-    switch (placementType) {
-    case PLACEMENT_TYPE_HOME_PAGE:
-      return
-      break;
+    const placements = (this.getOption('placements') || {})[placementType];
+    if (placements) {
+      Array.keys(placements);
     }
+    return [];
   }
 
   addPlacements(placementType) {
