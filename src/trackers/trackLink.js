@@ -48,6 +48,5 @@ export default function trackLink(links, handler) {
     }
     bind(el, 'click', onClick(el, handler));
   }
-
-  return this;
+  return;
 }

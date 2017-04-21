@@ -10,7 +10,7 @@ export default function domQuery(selector, context) {
       // Handle class-based selectors
       // Query by multiple classes by converting the selector
       // string into single spaced class names
-      var classes = selector.substr(1).replace(/\./g, ' ');
+      const classes = selector.substr(1).replace(/\./g, ' ');
       return [].slice.call(context.getElementsByClassName(classes));
     default:
       // Handle tag-based selectors
