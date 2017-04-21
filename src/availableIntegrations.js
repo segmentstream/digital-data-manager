@@ -28,6 +28,7 @@ import CityAds from './integrations/CityAds';
 import Aidata from './integrations/Aidata';
 import Segmento from './integrations/Segmento';
 import Mixmarket from './integrations/Mixmarket';
+import GdeSlon from './integrations/GdeSlon';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -60,6 +61,7 @@ const integrations = {
   'Aidata': Aidata,
   'Segmento': Segmento,
   'Mixmarket': Mixmarket,
+  'GdeSlon': GdeSlon,
 };
 
 export default integrations;

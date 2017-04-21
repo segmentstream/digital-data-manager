@@ -1,7 +1,6 @@
 import Integration from './../Integration';
 import getQueryParam from './../functions/getQueryParam';
 import { getProp } from './../functions/dotProp';
-import normalizeString from './../functions/normalizeString';
 import { COMPLETED_TRANSACTION } from './../events';
 import { isDeduplication, addAffiliateCookie, getAffiliateCookie } from './utils/affiliate';
 
@@ -49,11 +48,11 @@ class GdeSlon extends Integration {
       const domain = this.getOption('cookieDomain');
       if (clickRef) {
         const clickRefCookieName = this.getOption('clickIdCookieName');
-        addAffiliateCookie(clickRefCookieName, clickRef, ttl, domain);
+        addAffiliateCookie(clickRefCookieName, clickRef, expires, domain);
       }
       if (aid) {
         const aidCookieName = this.getOption('aidCookieName');
-        addAffiliateCookie(aidCookieName, aid, ttl, domain);
+        addAffiliateCookie(aidCookieName, aid, expires, domain);
       }
     }
 
@@ -117,12 +116,12 @@ class GdeSlon extends Integration {
 
     let productCodes = '';
     if (transaction.lineItems || Array.isArray(transaction.lineItems)) {
-      gdeslonProducts = transaction.lineItems.reduce((acc, lineItem) => {
+      productCodes = transaction.lineItems.reduce((acc, lineItem) => {
         const product = lineItem.product || {};
         const quantity = lineItem.quanity || 1;
-        newVal = [product.id, product.unitSalePrice].join(':');
-        if (lineItem.quanity > 1) {
-          newVal = Array(lineItem.quanity).fill(newVal).join(',');
+        let newVal = [product.id, product.unitSalePrice].join(':');
+        if (quantity > 1) {
+          newVal = Array(quantity).fill(newVal).join(',');
         }
         return [acc, newVal].join(',');
       }, '');
