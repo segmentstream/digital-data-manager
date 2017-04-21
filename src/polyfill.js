@@ -3,6 +3,7 @@ import 'core-js/modules/es6.array.is-array';
 import 'core-js/modules/es6.array.index-of';
 import 'core-js/modules/es6.array.filter';
 import 'core-js/modules/es6.array.find';
+import 'core-js/modules/es6.array.fill';
 import 'core-js/modules/es6.array.map';
 import 'core-js/modules/es6.function.bind';
 import 'core-js/modules/es6.object.assign';
