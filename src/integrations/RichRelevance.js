@@ -15,14 +15,7 @@ class RichRelevance extends Integration {
       apiKey: '',
       useProductionUrl: false,
       sessionIdVar: '',
-      placements: {
-        home_page: {
-          key: value
-        },
-        item_page: {
-          key: value
-        }
-      }
+      placements: {}
     }, options);
     super(digitalData, optionsWithDefaults);
 
