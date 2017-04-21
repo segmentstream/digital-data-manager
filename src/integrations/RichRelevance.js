@@ -5,6 +5,8 @@ const DEVELOPMENT_URL_PREFIX = 'integration';
 const PRODUCTION_URL_PREFIX = 'recs';
 
 const PLACEMENT_TYPE_HOME_PAGE = 'home_page';
+const PLACEMENT_TYPE_ITEM_PAGE = 'item_page';
+const PLACEMENT_TYPE_PURCHASE_COMPLETE_PAGE = 'purchase_complete_page';
 
 class RichRelevance extends Integration {
 
@@ -30,6 +32,16 @@ class RichRelevance extends Integration {
     this.baseUrlSubdomain = (this.getOption('useProductionUrl')) ? PRODUCTION_URL_PREFIX : DEVELOPMENT_URL_PREFIX;
     this.asyncQueue = new AsyncQueue(this.isLoaded);
     this.load(this.onLoad);
+  }
+
+  enrichDigitalData() {
+    this.asyncQueue.push(() => {
+      window.RR.jsonCallback = () => {
+        // Place your rendering logic here. Actual code varies depending on your website implementation.
+        console.dir(RR.data.JSON.placements);
+        this.onEnrich();
+      };
+    });
   }
 
   isLoaded() {
@@ -106,7 +118,45 @@ class RichRelevance extends Integration {
   onViewedHome(event) {
     this.asyncQueue.push(() => {
       this.addPlacements(PLACEMENT_TYPE_HOME_PAGE);
-      window.R3_HOME = new r3_home();
+
+      window.R3_HOME = new window.r3_home();
+      this.rrFlush();
+    });
+  }
+
+  onViewedProductDetail(event) {
+    const product = event.product;
+
+    this.asyncQueue.push(() => {
+      this.addPlacements(PLACEMENT_TYPE_ITEM_PAGE);
+
+      if (product.categoryId) {
+        window.R3_COMMON.addCategoryHintId(product.categoryId);
+      }
+
+      window.R3_ITEM = new window.r3_item();
+      window.R3_ITEM.setId(product.id);
+      window.R3_ITEM.setName(product.name);
+      this.rrFlush();
+    });
+  }
+
+  onCompletedTransaction(event) {
+    const transaction = event.transaction;
+    if (!transaction || !transaction.orderId) return;
+    const lineItems = transaction.lineItems || [];
+
+    this.asyncQueue.push(() => {
+      this.addPlacements(PLACEMENT_TYPE_PURCHASE_COMPLETE_PAGE);
+
+      window.R3_PURCHASED = new window.r3_purchased();
+      window.R3_PURCHASED.setOrderNumber(transaction.orderId);
+
+      for (const lineItem of lineItems) {
+        const product = lineItem.product || {};
+        const quantity = lineItem.quantity || 1;
+        window.R3_PURCHASED.addItemIdPriceQuantity(product.id, product.unitSalePrice, quantity, product.skuCode);
+      }
       this.rrFlush();
     });
   }
