@@ -1,36 +1,24 @@
 import Integration from './../Integration';
 import getQueryParam from './../functions/getQueryParam';
-import topDomain from './../functions/topDomain';
 import { getProp } from './../functions/dotProp';
 import normalizeString from './../functions/normalizeString';
 import { COMPLETED_TRANSACTION } from './../events';
-import cookie from 'js-cookie';
+import { isDeduplication, addAffiliateCookie, getAffiliateCookie } from './utils/affiliate';
 
 const DEFAULT_COOKIE_NAME = 'mixmarket';
-
-function normalizeOptions(options) {
-  if (options.deduplication) {
-    if (options.utmSource) {
-      options.utmSource = normalizeString(options.utmSource);
-    }
-    if (options.deduplicationUtmMedium) {
-      options.deduplicationUtmMedium = options.deduplicationUtmMedium.map(normalizeString);
-    }
-  }
-}
+const DEFAULT_UTM_SOURCE = 'mixmarket';
 
 class Mixmarket extends Integration {
 
   constructor(digitalData, options) {
-    normalizeOptions(options);
     const optionsWithDefaults = Object.assign({
       advertiserId: '',
       cookieName: DEFAULT_COOKIE_NAME,
       cookieTracking: true, // false - if advertiser wants to track cookies by itself
-      cookieDomain: topDomain(window.location.href),
+      cookieDomain: '',
       cookieTtl: 90, // days
       deduplication: false,
-      utmSource: 'mixmarket', // utm_source for mixmarket leads
+      utmSource: DEFAULT_UTM_SOURCE, // utm_source for mixmarket leads
       deduplicationUtmMedium: [], // by default deduplicate with any source/medium other then mixmarket source
     }, options);
 
@@ -50,24 +38,17 @@ class Mixmarket extends Integration {
     this._isLoaded = true;
 
     if (this.getOption('cookieTracking')) {
-      this.addAffiliateCookie();
+      const mixmarketUtmSource = normalizeString(this.getOption('utmSource'));
+      const urlUtmSource = getQueryParam('utm_source');
+      if (urlUtmSource === mixmarketUtmSource) {
+        const cookieName = this.getOption('cookieName');
+        const ttl = this.getOption('cookieTtl');
+        const domain = this.getOption('cookieDomain');
+        addAffiliateCookie(cookieName, 1, ttl, domain);
+      }
     }
 
     this.onLoad();
-  }
-
-  addAffiliateCookie() {
-    if (window.self !== window.top) {
-      return; // protect from iframe cookie-stuffing
-    }
-
-    const utmSource = getQueryParam('utm_source');
-    if (utmSource === this.getOption('utmSource')) {
-      cookie.set(this.getOption('cookieName'), 1, {
-        expires: this.getOption('cookieTtl'),
-        domain: this.getOption('cookieDomain'),
-      });
-    }
   }
 
   getSemanticEvents() {
@@ -102,33 +83,16 @@ class Mixmarket extends Integration {
   }
 
   trackEvent(event) {
-    const mixMarketCookie = cookie.get(this.getOption('cookieName'));
-    if (!mixMarketCookie) return;
-
-    if (this.isDeduplication(event)) return;
     if (event.name === COMPLETED_TRANSACTION) {
+      if (!getAffiliateCookie(this.getOption('cookieName'))) return;
+
+      const campaign = getProp(event, 'context.campaign');
+      const utmSource = this.getOption('utmSource');
+      const deduplicationUtmMedium = this.getOption('deduplicationUtmMedium');
+      if (isDeduplication(campaign, utmSource, deduplicationUtmMedium)) return;
+
       this.trackSale(event);
     }
-  }
-
-  isDeduplication(event) {
-    if (this.getOption('deduplication')) {
-      const campaignSource = getProp(event, 'context.campaign.source');
-      if (!campaignSource || campaignSource.toLowerCase() !== this.getOption('utmSource')) {
-        // last click source is not mixMarketCookie
-        const deduplicationUtmMedium = this.getOption('deduplicationUtmMedium') || [];
-        if (!deduplicationUtmMedium || deduplicationUtmMedium.length === 0) {
-          // deduplicate with everything
-          return true;
-        }
-        const campaignMedium = getProp(event, 'context.campaign.medium');
-        if (deduplicationUtmMedium.indexOf(campaignMedium.toLowerCase()) >= 0) {
-          // last click medium is deduplicated
-          return true;
-        }
-      }
-    }
-    return false;
   }
 
   trackSale(event) {
