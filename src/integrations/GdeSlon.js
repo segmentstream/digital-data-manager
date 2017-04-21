@@ -44,10 +44,10 @@ class GdeSlon extends Integration {
     if (this.getOption('cookieTracking')) {
       const clickRef = getQueryParam(CLICK_REF_URL_PARAM);
       const aid = getQueryParam(AID_URL_PARAM);
-      const expires = getQueryParam(COOKIE_TTL_URL_PARAM);
+      const expires = Number(getQueryParam(COOKIE_TTL_URL_PARAM));
       const domain = this.getOption('cookieDomain');
       if (clickRef) {
-        const clickRefCookieName = this.getOption('clickIdCookieName');
+        const clickRefCookieName = this.getOption('clickRefCookieName');
         addAffiliateCookie(clickRefCookieName, clickRef, expires, domain);
       }
       if (aid) {
