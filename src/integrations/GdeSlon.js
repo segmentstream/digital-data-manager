@@ -123,7 +123,10 @@ class GdeSlon extends Integration {
         if (quantity > 1) {
           newVal = Array(quantity).fill(newVal).join(',');
         }
-        return [acc, newVal].join(',');
+        if (acc) {
+          return [acc, newVal].join(',');
+        }
+        return newVal;
       }, '');
     }
     if (productCodes) productCodes += ',';
