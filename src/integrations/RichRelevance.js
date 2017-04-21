@@ -44,6 +44,23 @@ class RichRelevance extends Integration {
     }
   }
 
+  addPlacements(placementType) {
+    const placements = this.getPlacements(placementType);
+    if (placements.length) {
+      for (const placementName of placements) {
+        window.R3_COMMON.addPlacementType([placementType, placementName].join('.'));
+      }
+    } else {
+      window.R3_COMMON.addPlacementType(placementType);
+    }
+  }
+
+  rrFlush() {
+    window.rr_flush_onload();
+    window.r3();
+    this.rrFlushed = true;
+  }
+
   trackEvent(event) {
     const methods = {
       [VIEWED_PAGE]: 'onViewedPage',
@@ -78,20 +95,19 @@ class RichRelevance extends Integration {
     if (page.type === 'home') {
       this.onViewedHome(event);
     }
+
+    setTimeout(() => {
+      if (!this.rrFlushed) {
+        this.rrFlush();
+      }
+    }, 100);
   }
 
   onViewedHome(event) {
     this.asyncQueue.push(() => {
-      // Use this code if you are not requesting placement(s) for personalization
-      R3_COMMON.addPlacementType('home_page');
-
-      // Replace placement_name with the placement name you set up in Dashboard.
-      // Call multiple times to display more than one placement.
-      R3_COMMON.addPlacementType('home_page.placement_name');
-
-      var R3_HOME = new r3_home();
-      rr_flush_onload();
-      r3();
+      this.addPlacements(PLACEMENT_TYPE_HOME_PAGE);
+      window.R3_HOME = new r3_home();
+      this.rrFlush();
     });
   }
 }
