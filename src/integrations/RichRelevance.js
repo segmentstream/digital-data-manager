@@ -1,5 +1,5 @@
 import { Integration } from './../Integration';
-import AsyncQueue from './utls/AsyncQueue';
+import AsyncQueue from './utils/AsyncQueue';
 import { getProp } from './../functions/dotProp';
 import {
   VIEWED_PAGE,
@@ -34,6 +34,14 @@ class RichRelevance extends Integration {
     });
   }
 
+  getSemanticEvents() {
+    return [
+      VIEWED_PAGE,
+      VIEWED_PRODUCT_DETAIL,
+      COMPLETED_TRANSACTION,
+    ];
+  }
+
   initialize() {
     this.baseUrlSubdomain = (this.getOption('useProductionUrl')) ? PRODUCTION_URL_PREFIX : DEVELOPMENT_URL_PREFIX;
     this.asyncQueue = new AsyncQueue(this.isLoaded);
@@ -51,7 +59,7 @@ class RichRelevance extends Integration {
   }
 
   isLoaded() {
-    return !!window.RR;
+    return !!(window.RR && window.rr_flush_onload);
   }
 
   getPlacements(placementType) {
@@ -108,17 +116,16 @@ class RichRelevance extends Integration {
       if (user.userId) {
         window.R3_COMMON.setUserId(user.userId);
       }
+      setTimeout(() => {
+        if (!this.rrFlushed) {
+          this.rrFlush();
+        }
+      }, 100);
     });
 
     if (page.type === 'home') {
       this.onViewedHome(event);
     }
-
-    setTimeout(() => {
-      if (!this.rrFlushed) {
-        this.rrFlush();
-      }
-    }, 100);
   }
 
   onViewedHome() {

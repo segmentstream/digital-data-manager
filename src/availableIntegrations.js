@@ -29,6 +29,7 @@ import Aidata from './integrations/Aidata';
 import Segmento from './integrations/Segmento';
 import Mixmarket from './integrations/Mixmarket';
 import GdeSlon from './integrations/GdeSlon';
+import RichRelevance from './integrations/RichRelevance';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -62,6 +63,7 @@ const integrations = {
   'Segmento': Segmento,
   'Mixmarket': Mixmarket,
   'GdeSlon': GdeSlon,
+  'RichRelevance': RichRelevance,
 };
 
 export default integrations;
