@@ -1,11 +1,16 @@
 import { Integration } from './../Integration';
-import AsyncQueue from './utils/AsyncQueue';
 import { getProp } from './../functions/dotProp';
+import AsyncQueue from './utils/AsyncQueue';
+import cleanObject from './../functions/cleanObject';
+import deleteProperty from './../functions/deleteProperty';
+import { ERROR_TYPE_NOTICE } from './../EventValidator';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
+  ADDED_PRODUCT,
   VIEWED_PRODUCT_LISTING,
   SEARCHED_PRODUCTS,
+  VIEWED_CART,
   COMPLETED_TRANSACTION,
 } from './../events';
 
@@ -15,10 +20,22 @@ const PRODUCTION_URL_PREFIX = 'recs';
 const PLACEMENT_TYPE_HOME_PAGE = 'home_page';
 const PLACEMENT_TYPE_GENERIC_PAGE = 'generic_page';
 const PLACEMENT_TYPE_ITEM_PAGE = 'item_page';
+const PLACEMENT_TYPE_ADD_TO_CART_PAGE = 'add_to_cart_page';
 const PLACEMENT_TYPE_CATEGORY_PAGE = 'category_page';
 const PLACEMENT_TYPE_SEARCH_PAGE = 'search_page';
 const PLACEMENT_TYPE_CART_PAGE = 'cart_page';
 const PLACEMENT_TYPE_PURCHASE_COMPLETE_PAGE = 'purchase_complete_page';
+
+function mapItem(item) {
+  return cleanObject({
+    id: item.id,
+    name: item.name,
+    imageUrl: item.imageURL,
+    url: item.linkURL,
+    unitSalePrice: Number(item.price.replace(/[^0-9.]/g, '')),
+    manufacturer: item.brand,
+  });
+}
 
 class RichRelevance extends Integration {
 
@@ -27,7 +44,7 @@ class RichRelevance extends Integration {
       apiKey: '',
       useProductionUrl: false,
       sessionIdVar: '',
-      placements: {},
+      placements: [],
     }, options);
     super(digitalData, optionsWithDefaults);
 
@@ -57,7 +74,60 @@ class RichRelevance extends Integration {
     case SEARCHED_PRODUCTS:
       return [
         'listing',
-      ]
+      ];
+    case VIEWED_CART:
+      return [
+        'cart',
+      ];
+    case COMPLETED_TRANSACTION:
+      return [
+        'transaction',
+      ];
+    default:
+      return [];
+    }
+  }
+
+  getEventValidations(event) {
+    switch (event.name) {
+    case VIEWED_PAGE:
+      return [
+        ['page.type', { required: true }],
+        [this.getOption('sessionIdVar'), { required: true }],
+      ];
+    case VIEWED_PRODUCT_LISTING:
+      return [
+        ['listing.categoryId', { required: true }],
+        ['listing.category', { required: true }, ERROR_TYPE_NOTICE],
+      ];
+    case SEARCHED_PRODUCTS:
+      return [
+        ['listing.query', { required: true }],
+      ];
+    case VIEWED_PRODUCT_DETAIL:
+      return [
+        ['product.id', { required: true }],
+        ['product.name', { required: true }],
+        ['product.categoryId', { required: true }, ERROR_TYPE_NOTICE],
+      ];
+    case ADDED_PRODUCT:
+      return [
+        ['product.id', { required: true }],
+        ['product.skuCode', { required: true }, ERROR_TYPE_NOTICE],
+      ];
+    case VIEWED_CART:
+      return [
+        ['cart.lineItems[].product.id', { required: true }],
+        ['cart.lineItems[].product.skuCode', { required: true }, ERROR_TYPE_NOTICE],
+      ];
+    case COMPLETED_TRANSACTION:
+      return [
+        ['transaction.orderId', { required: true }],
+        ['transaction.lineItems[].product.id', { required: true }],
+        ['transaction.lineItems[].product.skuCode', { required: true }, ERROR_TYPE_NOTICE],
+        ['transaction.lineItems[].product.unitSalePrice', { required: true }],
+        ['transaction.lineItems[].quantity', { required: true }],
+      ];
     default:
       return [];
     }
@@ -67,8 +137,10 @@ class RichRelevance extends Integration {
     return [
       VIEWED_PAGE,
       VIEWED_PRODUCT_DETAIL,
+      ADDED_PRODUCT,
       VIEWED_PRODUCT_LISTING,
       SEARCHED_PRODUCTS,
+      VIEWED_CART,
       COMPLETED_TRANSACTION,
     ];
   }
@@ -76,14 +148,33 @@ class RichRelevance extends Integration {
   initialize() {
     this.baseUrlSubdomain = (this.getOption('useProductionUrl')) ? PRODUCTION_URL_PREFIX : DEVELOPMENT_URL_PREFIX;
     this.asyncQueue = new AsyncQueue(this.isLoaded);
+    this.enrichDigitalData();
     this.load(this.onLoad);
   }
 
   enrichDigitalData() {
     this.asyncQueue.push(() => {
       window.RR.jsonCallback = () => {
-        // Place your rendering logic here. Actual code varies depending on your website implementation.
-        console.dir(window.RR.data.JSON.placements);
+        const placements = getProp(window, 'RR.data.JSON.placements');
+        if (!placements || !placements.length) {
+          this.onEnrich();
+          return;
+        }
+        let recommendation = this.digitalData.recommendation = this.digitalData.recommendation || [];
+        if (!Array.isArray(recommendation)) {
+          recommendation = [recommendation];
+        }
+
+        for (const placement of placements) {
+          recommendation.push({
+            listId: placement.placement_name,
+            listName: placement.message,
+            strategy: placement.strategy,
+            items: placement.items.map(mapItem),
+          });
+          this.digitalData.changes.push(['recommendation', recommendation, `${this.getName()} Integration`]);
+        }
+
         this.onEnrich();
       };
     });
@@ -94,9 +185,11 @@ class RichRelevance extends Integration {
   }
 
   getPlacements(placementType) {
-    const placements = (this.getOption('placements') || {})[placementType];
+    const placements = this.getOption('placements');
     if (placements) {
-      return Object.keys(placements);
+      return placements.filter((placementName) => {
+        return placementName.indexOf(`${placementType}.`) === 0;
+      });
     }
     return [];
   }
@@ -105,7 +198,7 @@ class RichRelevance extends Integration {
     const placements = this.getPlacements(placementType);
     if (placements.length) {
       for (const placementName of placements) {
-        window.R3_COMMON.addPlacementType([placementType, placementName].join('.'));
+        window.R3_COMMON.addPlacementType(placementName);
       }
     } else {
       window.R3_COMMON.addPlacementType(placementType);
@@ -125,8 +218,22 @@ class RichRelevance extends Integration {
     }
   }
 
+  rrResetContext() {
+    if (window.R3_ITEM !== undefined) {
+      deleteProperty(window, 'R3_ITEM');
+    }
+    if (window.R3_COMMON.placementTypes) {
+      deleteProperty(window.R3_COMMON, 'placementTypes');
+    }
+    if (window.R3_COMMON.categoryHintIds) {
+      deleteProperty(window.R3_COMMON, 'categoryHintIds');
+    }
+  }
+
   rrFlush() {
-    window.rr_flush_onload();
+    if (!this.rrFlushed) {
+      window.rr_flush_onload();
+    }
     window.r3();
     this.rrFlushed = true;
   }
@@ -135,13 +242,18 @@ class RichRelevance extends Integration {
     const methods = {
       [VIEWED_PAGE]: 'onViewedPage',
       [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
+      [ADDED_PRODUCT]: 'onAddedProduct',
       [VIEWED_PRODUCT_LISTING]: 'onViewedProductListing',
       [SEARCHED_PRODUCTS]: 'onSearchedProducts',
+      [VIEWED_CART]: 'onViewedCart',
       [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
     };
 
     const method = methods[event.name];
     if (method) {
+      if (this.rrFlushed) {
+        this.rrResetContext();
+      }
       this[method](event);
     }
   }
@@ -166,7 +278,7 @@ class RichRelevance extends Integration {
         window.R3_COMMON.setRegionId(website.regionId);
       }
       if (website.currency) {
-        window.R3_COMMON.setRegionId(website.currency);
+        window.R3_COMMON.setCurrency(website.currency);
       }
       setTimeout(() => {
         if (!this.rrFlushed) {
@@ -213,6 +325,19 @@ class RichRelevance extends Integration {
       window.R3_ITEM = new window.r3_item(); // eslint-disable-line
       window.R3_ITEM.setId(product.id);
       window.R3_ITEM.setName(product.name);
+      this.rrFlush();
+    });
+  }
+
+  onAddedProduct(event) {
+    const product = event.product || {};
+
+    this.asyncQueue.push(() => {
+      this.addPlacements(PLACEMENT_TYPE_ADD_TO_CART_PAGE);
+
+      window.R3_ADDTOCART = new window.r3_addtocart(); // eslint-disable-line
+      window.R3_ADDTOCART.addItemIdToCart(product.id, product.skuCode);
+
       this.rrFlush();
     });
   }
