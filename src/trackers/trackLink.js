@@ -76,10 +76,12 @@ export default function trackLink(links, handler, trackingId) {
     linkTracker = namedTrackers[trackingId];
     if (linkTracker) {
       linkTracker.reset();
-    } else {
-      linkTracker = new LinkTracker();
-      namedTrackers[trackingId] = linkTracker;
     }
+  }
+  
+  if (!linkTracker) {
+    linkTracker = new LinkTracker();
+    namedTrackers[trackingId] = linkTracker;
   }
 
   for (const el of links) {
