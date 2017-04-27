@@ -29,7 +29,7 @@ export function bind(el, type, fn, capture) {
  * @api public
  */
 
-export function undbin(el, type, fn, capture) {
+export function unbind(el, type, fn, capture) {
   el[unbindName](prefix + type, fn, capture || false);
   return fn;
 }
