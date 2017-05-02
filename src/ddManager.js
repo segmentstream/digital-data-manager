@@ -383,8 +383,8 @@ ddManager = {
     return _eventManager;
   },
 
-  trackLink: (elements, handler, trackingId) => {
-    trackLink(elements, handler, trackingId);
+  trackLink: (elements, handler) => {
+    trackLink(elements, handler);
   },
 
   trackImpression: (elements, handler) => {
