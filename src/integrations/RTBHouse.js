@@ -149,9 +149,13 @@ class RTBHouse extends Integration {
         ['listing.categoryId', { required: true }],
       ];
     case SEARCHED_PRODUCTS:
-      return [
-        ['listing.items[].id', { required: true }],
-      ];
+      const listing = event.listing || {};
+      if (!listing.items || !Array.isArray(listing.items) || listing.length > 0) {
+        return [
+          ['listing.items[].id', { required: true }],
+        ];
+      }
+      return [];
     case VIEWED_CHECKOUT_STEP:
       return [
         ['step', { required: true }],
