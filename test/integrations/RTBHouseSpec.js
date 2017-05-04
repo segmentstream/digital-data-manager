@@ -87,13 +87,12 @@ describe('Integrations: RTBHouse', () => {
           }
         })
       });
+    });
 
+    describe('#onViewedCart', () => {
       it('should track cart info', (done) => {
         window.digitalData.events.push({
-          name: 'Viewed Page',
-          page: {
-            type: 'content'
-          },
+          name: 'Viewed Cart',
           cart: {
             lineItems: [
               {

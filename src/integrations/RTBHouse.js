@@ -9,6 +9,7 @@ import {
   ADDED_PRODUCT,
   VIEWED_CHECKOUT_STEP,
   COMPLETED_TRANSACTION,
+  VIEWED_CART,
 } from './../events';
 
 const SEMANTIC_EVENTS = [
@@ -19,6 +20,7 @@ const SEMANTIC_EVENTS = [
   ADDED_PRODUCT,
   VIEWED_CHECKOUT_STEP,
   COMPLETED_TRANSACTION,
+  VIEWED_CART,
 ];
 
 const DEFAULT_DEDUPLICATION = 'default';
@@ -101,7 +103,6 @@ class RTBHouse extends Integration {
     case VIEWED_PAGE:
       return [
         'page.type',
-        'cart',
       ];
     case VIEWED_PRODUCT_DETAIL:
       return [
@@ -114,6 +115,10 @@ class RTBHouse extends Integration {
     case SEARCHED_PRODUCTS:
       return [
         'listing.items',
+      ];
+    case VIEWED_CART:
+      return [
+        'cart'
       ];
     case COMPLETED_TRANSACTION:
       return [
@@ -156,6 +161,10 @@ class RTBHouse extends Integration {
         ];
       }
       return [];
+    case VIEWED_CART:
+      return [
+        ['cart.lineItems[].product.id', { required: true }]
+      ];
     case VIEWED_CHECKOUT_STEP:
       return [
         ['step', { required: true }],
@@ -188,6 +197,7 @@ class RTBHouse extends Integration {
       [SEARCHED_PRODUCTS]: 'onSearchedProducts',
       [VIEWED_CHECKOUT_STEP]: 'onViewedCheckoutStep',
       [ADDED_PRODUCT]: 'onAddedProduct',
+      [VIEWED_CART]: 'onViewedCart',
     };
 
     const method = methods[event.name];
@@ -204,10 +214,6 @@ class RTBHouse extends Integration {
       this.onViewedHome();
     }
 
-    if (cart && cart.lineItems && cart.lineItems.length) {
-      this.trackCart(cart);
-    }
-
     if (!this.pageTracked) {
       setTimeout(() => {
         if (!this.pageTracked) {
@@ -217,7 +223,9 @@ class RTBHouse extends Integration {
     }
   }
 
-  trackCart(cart) {
+  onViewedCart(event) {
+    const cart = event.cart;
+    if (!cart || !cart.lineItems || !cart.lineItems.length) return;
     const productIds = cart.lineItems.reduce((str, lineItem, index) => {
       const productId = getProp(lineItem, 'product.id');
       if (index > 0) {
@@ -277,7 +285,7 @@ class RTBHouse extends Integration {
   }
 
   onViewedCheckoutStep(event) {
-    const step = event.step || 1;
+    const step = (event.step !== undefined) ? event.step : 1;
     if (step === 1) {
       this.load('startorder');
     }
