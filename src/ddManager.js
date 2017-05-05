@@ -309,10 +309,14 @@ ddManager = {
     _digitalDataEnricher = new DigitalDataEnricher(_digitalData, _ddListener, _ddStorage, {
       sessionLength: settings.sessionLength,
     });
-    _digitalDataEnricher.enrichDigitalData();
 
     // initialize event manager
     _eventManager = new EventManager(_digitalData, _ddListener);
+    _eventManager.addCallback(['on', 'beforeEvent', (event) => {
+      if (event.name === VIEWED_PAGE) {
+        _digitalDataEnricher.enrichDigitalData();
+      }
+    }]);
     _eventManager.setSendViewedPageEvent(settings.sendViewedPageEvent);
     _eventManager.setViewabilityTracker(new ViewabilityTracker({
       websiteMaxWidth: settings.websiteMaxWidth,

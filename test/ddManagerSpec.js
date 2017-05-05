@@ -29,7 +29,7 @@ describe('DDManager', () => {
 
     it('should initialize website, page, user and cart objects', () => {
       ddManager.initialize({
-        sendViewedPageEvent: false
+        sendViewedPageEvent: true
       });
       assert.ok(window.digitalData.website);
       assert.ok(window.digitalData.page);
@@ -188,7 +188,7 @@ describe('DDManager', () => {
 
     it('it should enrich digital data', (done) => {
       ddManager.initialize({
-        sendViewedPageEvent: false
+        sendViewedPageEvent: true
       });
       if (ddManager.isReady()) {
         ddManager.once('ready', () => {
@@ -232,52 +232,48 @@ describe('DDManager', () => {
         }, 101);
       });
       ddManager.initialize({
-        sendViewedPageEvent: false
+        sendViewedPageEvent: true
       });
     });
 
-    /* TODO: check this test later
     it('should update user.isReturning status', (done) => {
       window.localStorage.clear(); // just to be sure
       ddManager.initialize({
         sessionLength: 0.01,
-        sendViewedPageEvent: false
+        sendViewedPageEvent: true
       });
 
-      window.digitalData.events.push({
-        name: 'Viewed Page',
-        callback: () => {
-          assert.ok(!window.digitalData.user.isReturning, 'isReturning should be false');
-          setTimeout(() => {
-            window.digitalData.events.push({
-              name: 'Viewed Page',
-              callback: () => {
-                assert.ok(window.digitalData.user.isReturning, 'isReturning should be true');
-                done();
-              }
-            });
-          }, 200);
-        }
-      });
+      assert.ok(!window.digitalData.user.isReturning, 'isReturning should be false');
+      setTimeout(() => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          callback: () => {
+            assert.ok(window.digitalData.user.isReturning, 'isReturning should be true');
+            done();
+          }
+        });
+      }, 300);
     });
-    */
 
     it('should not update user.isReturning status', (done) => {
       ddManager.once('ready', () => {
         window.digitalData.events.push({
-          name: 'Viewed Page'
-        });
-
-        assert.ok(!window.digitalData.user.isReturning);
-        setTimeout(() => {
-          window.digitalData.events.push({
-            name: 'Viewed Page'
-          });
-          setTimeout(() => {
+          name: 'Viewed Page',
+          callback: () => {
             assert.ok(!window.digitalData.user.isReturning);
-            done();
-          }, 110);
-        }, 110);
+            setTimeout(() => {
+              window.digitalData.events.push({
+                name: 'Viewed Page',
+                callback: () => {
+                  setTimeout(() => {
+                    assert.ok(!window.digitalData.user.isReturning);
+                    done();
+                  }, 110);
+                }
+              });
+            }, 110);
+          }
+        });
       });
       ddManager.initialize({
         sessionLength: 20,

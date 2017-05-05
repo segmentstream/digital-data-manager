@@ -41,6 +41,10 @@ class DigitalDataEnricher
     this.options = Object.assign({
       sessionLength: 3600,
     }, options);
+
+    // when all enrichments are done
+    this.listenToUserDataChanges();
+    this.listenToEvents();
   }
 
   setDigitalData(digitalData) {
@@ -80,10 +84,6 @@ class DigitalDataEnricher
     // enrich required fields if still not defined
     this.enrichDefaultUserData();
     this.enrichIsReturningStatus();
-
-    // when all enrichments are done
-    this.listenToUserDataChanges();
-    this.listenToEvents();
 
     this.ddStorage.setLastEventTimestamp(Date.now());
   }

@@ -50,7 +50,7 @@ describe('DDStorage', () => {
           'user.email'
         ]);
         done();
-      }, 150);
+      }, 200);
     });
 
   });

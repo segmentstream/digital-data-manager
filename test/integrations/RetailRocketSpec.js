@@ -810,7 +810,9 @@ describe('Integrations: RetailRocket', () => {
             value: 'user.firstName',
           },
         });
+        window.digitalData.website = window.digitalData.website || {}
         window.digitalData.website.language = 'en';
+        window.digitalData.user = window.digitalData.user || {};
         window.digitalData.user.firstName = 'John Dow';
         window.digitalData.events.push({
           name: 'Subscribed',

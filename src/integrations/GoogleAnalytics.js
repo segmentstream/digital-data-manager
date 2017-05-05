@@ -1,6 +1,6 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
-import { getProp } from './../functions/dotProp';
+import { setProp, getProp } from './../functions/dotProp';
 import { ERROR_TYPE_NOTICE } from './../EventValidator';
 import cleanObject from './../functions/cleanObject';
 import each from './../functions/each.js';
@@ -463,9 +463,7 @@ class GoogleAnalytics extends Integration {
       if (tracker) {
         this.digitalData.user = this.digitalData.user || {};
         this.digitalData.user.googleClientId = tracker.get('clientId');
-        this.digitalData.integrations.googleAnalytics = {
-          clientId: tracker.get('clientId'),
-        };
+        setProp(this.digitalData, 'integrations.googleAnalytics.clientId', tracker.get('clientId'));
       }
 
       this.onEnrich();
