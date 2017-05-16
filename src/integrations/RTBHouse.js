@@ -266,6 +266,7 @@ class RTBHouse extends Integration {
       return product.id;
     }, '');
     this.load('listing', { productIds });
+    this.pageTracked = true;
   }
 
   onViewedProductDetail(event) {
