@@ -1,6 +1,5 @@
 import Integration from './../Integration.js';
 import { getProp } from './../functions/dotProp';
-import { ERROR_TYPE_NOTICE } from './../EventValidator';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -118,7 +117,7 @@ class RTBHouse extends Integration {
       ];
     case VIEWED_CART:
       return [
-        'cart'
+        'cart',
       ];
     case COMPLETED_TRANSACTION:
       return [
@@ -135,7 +134,6 @@ class RTBHouse extends Integration {
     case VIEWED_PAGE:
       const validations = [
         ['page.type', { required: true }],
-        ['cart', { required: true }, ERROR_TYPE_NOTICE],
       ];
       if (event.cart && Array.isArray(event.cart.lineItems)) {
         validations.push(['cart.lineItems[].product.id', { required: true }]);
@@ -163,7 +161,7 @@ class RTBHouse extends Integration {
       return [];
     case VIEWED_CART:
       return [
-        ['cart.lineItems[].product.id', { required: true }]
+        ['cart.lineItems[].product.id', { required: true }],
       ];
     case VIEWED_CHECKOUT_STEP:
       return [
@@ -208,7 +206,6 @@ class RTBHouse extends Integration {
 
   onViewedPage(event) {
     const page = event.page;
-    const cart = event.cart;
 
     if (page && page.type === 'home') {
       this.onViewedHome();
