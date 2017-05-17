@@ -300,7 +300,7 @@ class EventManager {
         }
       }
       if (!viewedPageEventIsSent) {
-        events.unshift({ name: VIEWED_PAGE });
+        events.unshift({ name: VIEWED_PAGE, source: 'DDManager' });
       }
     }
 
