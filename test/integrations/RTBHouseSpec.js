@@ -175,6 +175,7 @@ describe('Integrations: RTBHouse', () => {
       });
     });
 
+    /*
     describe('#onAddedProduct', () => {
       it('should track added product event', (done) => {
         window.digitalData.events.push({
@@ -192,6 +193,7 @@ describe('Integrations: RTBHouse', () => {
         })
       });
     });
+    */
 
     describe('#onViewedCheckoutStep', () => {
       it('should track first checkout step', (done) => {

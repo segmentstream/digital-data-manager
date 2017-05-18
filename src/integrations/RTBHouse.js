@@ -5,7 +5,6 @@ import {
   VIEWED_PRODUCT_DETAIL,
   VIEWED_PRODUCT_LISTING,
   SEARCHED_PRODUCTS,
-  ADDED_PRODUCT,
   VIEWED_CHECKOUT_STEP,
   COMPLETED_TRANSACTION,
   VIEWED_CART,
@@ -16,7 +15,6 @@ const SEMANTIC_EVENTS = [
   VIEWED_PRODUCT_DETAIL,
   VIEWED_PRODUCT_LISTING,
   SEARCHED_PRODUCTS,
-  ADDED_PRODUCT,
   VIEWED_CHECKOUT_STEP,
   COMPLETED_TRANSACTION,
   VIEWED_CART,
@@ -143,10 +141,6 @@ class RTBHouse extends Integration {
       return [
         ['product.id', { required: true }],
       ];
-    case ADDED_PRODUCT:
-      return [
-        ['product.id', { required: true }],
-      ];
     case VIEWED_PRODUCT_LISTING:
       return [
         ['listing.categoryId', { required: true }],
@@ -194,7 +188,6 @@ class RTBHouse extends Integration {
       [VIEWED_PRODUCT_LISTING]: 'onViewedProductListing',
       [SEARCHED_PRODUCTS]: 'onSearchedProducts',
       [VIEWED_CHECKOUT_STEP]: 'onViewedCheckoutStep',
-      [ADDED_PRODUCT]: 'onAddedProduct',
       [VIEWED_CART]: 'onViewedCart',
     };
 
@@ -274,13 +267,14 @@ class RTBHouse extends Integration {
     }
   }
 
+  /*
   onAddedProduct(event) {
     const product = event.product;
     if (product && product.id) {
       this.load('basketadd', { productId: product.id });
       this.pageTracked = true;
     }
-  }
+  }*/
 
   onViewedCheckoutStep(event) {
     const step = (event.step !== undefined) ? event.step : 1;
