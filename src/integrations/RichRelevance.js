@@ -3,7 +3,6 @@ import { getProp } from './../functions/dotProp';
 import AsyncQueue from './utils/AsyncQueue';
 import cleanObject from './../functions/cleanObject';
 import deleteProperty from './../functions/deleteProperty';
-import { ERROR_TYPE_NOTICE } from './../EventValidator';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -98,7 +97,7 @@ class RichRelevance extends Integration {
     case VIEWED_PRODUCT_LISTING:
       return [
         ['listing.categoryId', { required: true }],
-        ['listing.category', { required: true }, ERROR_TYPE_NOTICE],
+        ['listing.category', { required: true }, { critical: false }],
       ];
     case SEARCHED_PRODUCTS:
       return [
@@ -108,23 +107,23 @@ class RichRelevance extends Integration {
       return [
         ['product.id', { required: true }],
         ['product.name', { required: true }],
-        ['product.categoryId', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.categoryId', { required: true }, { critical: false }],
       ];
     case ADDED_PRODUCT:
       return [
         ['product.id', { required: true }],
-        ['product.skuCode', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.skuCode', { required: true }, { critical: false }],
       ];
     case VIEWED_CART:
       return [
         ['cart.lineItems[].product.id', { required: true }],
-        ['cart.lineItems[].product.skuCode', { required: true }, ERROR_TYPE_NOTICE],
+        ['cart.lineItems[].product.skuCode', { required: true }, { critical: false }],
       ];
     case COMPLETED_TRANSACTION:
       return [
         ['transaction.orderId', { required: true }],
         ['transaction.lineItems[].product.id', { required: true }],
-        ['transaction.lineItems[].product.skuCode', { required: true }, ERROR_TYPE_NOTICE],
+        ['transaction.lineItems[].product.skuCode', { required: true }, { critical: false }],
         ['transaction.lineItems[].product.unitSalePrice', { required: true }],
         ['transaction.lineItems[].quantity', { required: true }],
       ];

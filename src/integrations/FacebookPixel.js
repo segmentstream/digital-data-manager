@@ -2,7 +2,6 @@ import Integration from './../Integration';
 import deleteProperty from './../functions/deleteProperty';
 import cleanObject from './../functions/cleanObject';
 import { getProp } from './../functions/dotProp';
-import { ERROR_TYPE_NOTICE } from './../EventValidator';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -128,14 +127,14 @@ class FacebookPixel extends Integration {
     case ADDED_PRODUCT:
       return [
         ['product.id', { required: true }],
-        ['product.name', { required: true }, ERROR_TYPE_NOTICE],
-        ['product.category', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.name', { required: true }, { critical: false }],
+        ['product.category', { required: true }, { critical: false }],
       ];
     case ADDED_PRODUCT_TO_WISHLIST:
       return [
-        ['product.id', { required: true }, ERROR_TYPE_NOTICE],
-        ['product.name', { required: true }, ERROR_TYPE_NOTICE],
-        ['product.category', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.id', { required: true }, { critical: false }],
+        ['product.name', { required: true }, { critical: false }],
+        ['product.category', { required: true }, { critical: false }],
       ];
     case SEARCHED_PRODUCTS:
       return [
@@ -147,7 +146,7 @@ class FacebookPixel extends Integration {
         ['transaction.total', { required: true }],
       ];
       if (!getProp(event, 'website.currency')) {
-        validations.push(['transaction.currency', { required: true }, ERROR_TYPE_NOTICE]);
+        validations.push(['transaction.currency', { required: true }, { critical: false }]);
       }
       return validations;
     default:

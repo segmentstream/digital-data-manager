@@ -1,7 +1,6 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
 import { setProp, getProp } from './../functions/dotProp';
-import { ERROR_TYPE_NOTICE } from './../EventValidator';
 import cleanObject from './../functions/cleanObject';
 import each from './../functions/each.js';
 import size from './../functions/size.js';
@@ -177,36 +176,36 @@ class GoogleAnalytics extends Integration {
     case VIEWED_PRODUCT_DETAIL:
       validations = [
         ['product.id', { required: true }],
-        ['product.name', { required: true }, ERROR_TYPE_NOTICE],
-        ['product.category', { required: true }, ERROR_TYPE_NOTICE],
-        ['product.unitSalePrice', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.name', { required: true }, { critical: false }],
+        ['product.category', { required: true }, { critical: false }],
+        ['product.unitSalePrice', { required: true }, { critical: false }],
       ];
       break;
     case ADDED_PRODUCT:
       validations = [
         ['product.id', { required: true }],
-        ['product.name', { required: true }, ERROR_TYPE_NOTICE],
-        ['product.category', { required: true }, ERROR_TYPE_NOTICE],
-        ['product.unitSalePrice', { required: true }, ERROR_TYPE_NOTICE],
-        ['quantity', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.name', { required: true }, { critical: false }],
+        ['product.category', { required: true }, { critical: false }],
+        ['product.unitSalePrice', { required: true }, { critical: false }],
+        ['quantity', { required: true }, { critical: false }],
       ];
       break;
     case REMOVED_PRODUCT:
       validations = [
         ['product.id', { required: true }],
-        ['product.name', { required: true }, ERROR_TYPE_NOTICE],
-        ['product.category', { required: true }, ERROR_TYPE_NOTICE],
-        ['quantity', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.name', { required: true }, { critical: false }],
+        ['product.category', { required: true }, { critical: false }],
+        ['quantity', { required: true }, { critical: false }],
       ];
       break;
     case COMPLETED_TRANSACTION:
       validations = [
         ['transaction.orderId', { required: true }],
         ['transaction.lineItems[].product.id', { required: true }],
-        ['transaction.lineItems[].product.name', { required: true }, ERROR_TYPE_NOTICE],
-        ['transaction.lineItems[].product.category', { required: true }, ERROR_TYPE_NOTICE],
-        ['transaction.lineItems[].product.unitSalePrice', { required: true }, ERROR_TYPE_NOTICE],
-        ['transaction.total', { required: true }, ERROR_TYPE_NOTICE],
+        ['transaction.lineItems[].product.name', { required: true }, { critical: false }],
+        ['transaction.lineItems[].product.category', { required: true }, { critical: false }],
+        ['transaction.lineItems[].product.unitSalePrice', { required: true }, { critical: false }],
+        ['transaction.total', { required: true }, { critical: false }],
       ];
       break;
     default:

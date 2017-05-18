@@ -7,8 +7,8 @@ window.console.error = window.console.error || window.console.warn;
 
 const browserSupportsGroups = !!window.console.group;
 
-export function log(message) {
-  window.console.log(message);
+export function log(message, style) {
+  window.console.log(message, style);
 }
 
 export function warn(message) {
