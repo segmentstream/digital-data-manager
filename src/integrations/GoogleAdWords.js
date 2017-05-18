@@ -1,6 +1,5 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
-import { ERROR_TYPE_NOTICE } from './../EventValidator';
 import { getProp } from './../functions/dotProp';
 import {
   VIEWED_PAGE,
@@ -98,8 +97,8 @@ class GoogleAdWords extends Integration {
     case VIEWED_PRODUCT_DETAIL:
       validations = [
         ['product.id', { required: true }],
-        ['product.unitSalePrice', { required: true }, ERROR_TYPE_NOTICE],
-        ['product.category', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.unitSalePrice', { required: true }, { critical: false }],
+        ['product.category', { required: true }, { critical: false }],
       ];
       break;
     case VIEWED_PRODUCT_LISTING:
@@ -114,7 +113,7 @@ class GoogleAdWords extends Integration {
         ];
         const subtotalValidation = ['cart.subtotal', { required: true }];
         if (getProp(event, 'cart.total')) {
-          subtotalValidation.push(ERROR_TYPE_NOTICE);
+          subtotalValidation.push({ critical: false });
         }
         validations.push(subtotalValidation);
       }
@@ -125,7 +124,7 @@ class GoogleAdWords extends Integration {
       ];
       const subtotalValidation = ['transaction.subtotal', { required: true }];
       if (getProp(event, 'transaction.total')) {
-        subtotalValidation.push(ERROR_TYPE_NOTICE);
+        subtotalValidation.push({ critical: false });
       }
       validations.push(subtotalValidation);
       break;

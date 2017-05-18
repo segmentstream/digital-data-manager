@@ -1,7 +1,6 @@
 import Integration from './../Integration';
 import deleteProperty from './../functions/deleteProperty';
 import getVarValue from './../functions/getVarValue';
-import { ERROR_TYPE_NOTICE } from './../EventValidator';
 import { DIGITALDATA_VAR } from './../variableTypes';
 import {
   VIEWED_PAGE,
@@ -120,7 +119,7 @@ class MyTarget extends Integration {
     case VIEWED_PRODUCT_DETAIL:
       validations = [
         ['product.id', { required: true }],
-        ['product.unitSalePrice', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.unitSalePrice', { required: true }, { critical: false }],
       ];
       break;
     case VIEWED_CART:

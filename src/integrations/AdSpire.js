@@ -4,7 +4,6 @@ import { getProp } from './../functions/dotProp';
 import ipToLong from './../functions/ipToLong';
 import normalizeString from './../functions/normalizeString';
 import md5 from 'crypto-js/md5';
-import { ERROR_TYPE_NOTICE } from './../EventValidator';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -73,40 +72,40 @@ class AdSpire extends Integration {
     case VIEWED_PRODUCT_DETAIL:
       return [
         ['product.id', { required: true }],
-        ['product.name', { required: true }, ERROR_TYPE_NOTICE],
-        ['product.categoryId', { required: true }, ERROR_TYPE_NOTICE],
-        ['product.category', { required: true }, ERROR_TYPE_NOTICE],
-        ['product.unitSalePrice', { required: true }, ERROR_TYPE_NOTICE],
-        ['product.currency', { required: true }, ERROR_TYPE_NOTICE],
-        ['product.url', { required: true }, ERROR_TYPE_NOTICE],
-        ['product.imageUrl', { required: true }, ERROR_TYPE_NOTICE],
+        ['product.name', { required: true }, { critical: false }],
+        ['product.categoryId', { required: true }, { critical: false }],
+        ['product.category', { required: true }, { critical: false }],
+        ['product.unitSalePrice', { required: true }, { critical: false }],
+        ['product.currency', { required: true }, { critical: false }],
+        ['product.url', { required: true }, { critical: false }],
+        ['product.imageUrl', { required: true }, { critical: false }],
       ];
     case VIEWED_PRODUCT_LISTING:
       return [
-        ['listing.categoryId', { required: true }, ERROR_TYPE_NOTICE],
-        ['listing.category', { required: true }, ERROR_TYPE_NOTICE],
+        ['listing.categoryId', { required: true }, { critical: false }],
+        ['listing.category', { required: true }, { critical: false }],
       ];
     case VIEWED_CART:
       return [
         ['cart.lineItems[].product.id', { required: true }],
-        ['cart.lineItems[].product.name', { required: true }, ERROR_TYPE_NOTICE],
-        ['cart.lineItems[].product.categoryId', { required: true }, ERROR_TYPE_NOTICE],
-        ['cart.lineItems[].product.category', { required: true }, ERROR_TYPE_NOTICE],
-        ['cart.lineItems[].product.unitSalePrice', { required: true }, ERROR_TYPE_NOTICE],
-        ['cart.lineItems[].product.currency', { required: true }, ERROR_TYPE_NOTICE],
-        ['cart.lineItems[].quantity', { required: true }, ERROR_TYPE_NOTICE],
+        ['cart.lineItems[].product.name', { required: true }, { critical: false }],
+        ['cart.lineItems[].product.categoryId', { required: true }, { critical: false }],
+        ['cart.lineItems[].product.category', { required: true }, { critical: false }],
+        ['cart.lineItems[].product.unitSalePrice', { required: true }, { critical: false }],
+        ['cart.lineItems[].product.currency', { required: true }, { critical: false }],
+        ['cart.lineItems[].quantity', { required: true }, { critical: false }],
       ];
     case COMPLETED_TRANSACTION:
       return [
         ['transaction.orderId', { required: true }],
-        ['transaction.total', { required: true }, ERROR_TYPE_NOTICE],
-        ['transaction.lineItems[].product.id', { required: true }, ERROR_TYPE_NOTICE],
-        ['transaction.lineItems[].product.name', { required: true }, ERROR_TYPE_NOTICE],
-        ['transaction.lineItems[].product.categoryId', { required: true }, ERROR_TYPE_NOTICE],
-        ['transaction.lineItems[].product.category', { required: true }, ERROR_TYPE_NOTICE],
-        ['transaction.lineItems[].product.unitSalePrice', { required: true }, ERROR_TYPE_NOTICE],
-        ['transaction.lineItems[].product.currency', { required: true }, ERROR_TYPE_NOTICE],
-        ['transaction.lineItems[].quantity', { required: true }, ERROR_TYPE_NOTICE],
+        ['transaction.total', { required: true }, { critical: false }],
+        ['transaction.lineItems[].product.id', { required: true }, { critical: false }],
+        ['transaction.lineItems[].product.name', { required: true }, { critical: false }],
+        ['transaction.lineItems[].product.categoryId', { required: true }, { critical: false }],
+        ['transaction.lineItems[].product.category', { required: true }, { critical: false }],
+        ['transaction.lineItems[].product.unitSalePrice', { required: true }, { critical: false }],
+        ['transaction.lineItems[].product.currency', { required: true }, { critical: false }],
+        ['transaction.lineItems[].quantity', { required: true }, { critical: false }],
       ];
     default:
       return [];
