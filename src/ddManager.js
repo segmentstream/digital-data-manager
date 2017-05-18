@@ -116,12 +116,13 @@ function _addIntegrations(integrationSettings) {
 function _trackIntegrationEvent(event, integration, trackValidationErrorsOption) {
   const [result, messages] = validateIntegrationEvent(event, integration);
   const integrationName = integration.getName();
+  const isInitialized = integration.isInitialized();
 
   if (isTestMode()) {
-    logEnrichedIntegrationEvent(event, integrationName, messages);
+    logEnrichedIntegrationEvent(event, integrationName, messages, isInitialized);
   }
 
-  if (result) {
+  if (result && isInitialized) {
     integration.trackEvent(event);
   } else if (trackValidationErrorsOption) {
     trackValidationErrors(_digitalData, event, integrationName, messages);
@@ -225,6 +226,7 @@ function _initializeIntegrations(settings) {
         if (!integration.isLoaded() || integration.getOption('noConflict')) {
           integration.once('load', loaded);
           integration.initialize(version);
+          integration.setInitialized(true);
         } else {
           warn(`Integration "${name}" can't be initialized properly because of the conflict`);
           loaded();

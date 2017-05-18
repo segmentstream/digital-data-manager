@@ -66,8 +66,12 @@ export function logValidationResult(event, messages) {
   }
 }
 
-export function logEnrichedIntegrationEvent(event, integrationName, messages) {
-  group(`[EVENT] ${event.name} -> ${integrationName}`);
+export function logEnrichedIntegrationEvent(event, integrationName, messages, isInitialized) {
+  if (isInitialized) {
+    group(`[EVENT] ${event.name} -> ${integrationName}`);
+  } else {
+    group(`[EVENT] ${event.name} x> ${integrationName} (not initialized)`);
+  }
 
   if (messages && messages.length) {
     logValidationResult(event, messages, integrationName);

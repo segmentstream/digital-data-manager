@@ -49,6 +49,7 @@ export class Integration extends EventEmitter
     this.tags = tags || {};
     this.onLoad = this.onLoad.bind(this);
     this._isEnriched = false;
+    this._isInitialized = false;
     this._productOverrideErrorFired = false;
 
     this.overrideOptions();
@@ -281,6 +282,14 @@ export class Integration extends EventEmitter
 
   isEnriched() {
     return this._isEnriched;
+  }
+
+  isInitialized() {
+    return this._isInitialized;
+  }
+
+  setInitialized(initialized) {
+    this._isInitialized = initialized;
   }
 
   setDDManager(ddManager) {
