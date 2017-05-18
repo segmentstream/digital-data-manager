@@ -114,17 +114,17 @@ function _addIntegrations(integrationSettings) {
 }
 
 function _trackIntegrationEvent(event, integration, trackValidationErrorsOption) {
-  const validationResult = validateIntegrationEvent(event, integration);
+  const [result, messages] = validateIntegrationEvent(event, integration);
   const integrationName = integration.getName();
 
   if (isTestMode()) {
-    logEnrichedIntegrationEvent(event, integrationName, validationResult);
+    logEnrichedIntegrationEvent(event, integrationName, messages);
   }
 
-  if (!validationResult || !validationResult.errors.length) {
+  if (result) {
     integration.trackEvent(event);
   } else if (trackValidationErrorsOption) {
-    trackValidationErrors(_digitalData, event, integrationName, validationResult);
+    trackValidationErrors(_digitalData, event, integrationName, messages);
   }
 }
 

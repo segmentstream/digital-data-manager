@@ -1,7 +1,6 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty';
 import { getProp } from './../functions/dotProp';
-import { ERROR_TYPE_NOTICE } from './../EventValidator';
 import semver from './../functions/semver';
 import normalizeString from './../functions/normalizeString';
 import md5 from 'crypto-js/md5';
@@ -128,7 +127,7 @@ class Criteo extends Integration {
     case VIEWED_PRODUCT_LISTING:
     case SEARCHED_PRODUCTS:
       validations = [
-        ['listing.items[].id', { required: true }],
+        ['listing.items[].id', { required: true }, { limit: 4 }],
       ];
       break;
     case VIEWED_CART:
@@ -144,7 +143,7 @@ class Criteo extends Integration {
         ['transaction.lineItems[].product.id', { required: true }],
         ['transaction.lineItems[].product.unitSalePrice', { required: true }],
         ['transaction.lineItems[].quantity', { required: true }],
-        ['transaction.isFirst', { required: true }, ERROR_TYPE_NOTICE],
+        ['transaction.isFirst', { required: true }, { critical: false }],
       ];
       break;
     case SUBSCRIBED:
@@ -158,7 +157,7 @@ class Criteo extends Integration {
 
     const userSegmentVar = this.getOption('userSegmentVar');
     if (userSegmentVar) {
-      validations.push([userSegmentVar, { required: true }, ERROR_TYPE_NOTICE]);
+      validations.push([userSegmentVar, { required: true }, { critical: false }]);
     }
 
     return validations;

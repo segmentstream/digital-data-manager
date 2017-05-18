@@ -4,7 +4,6 @@ import topDomain from './../functions/topDomain';
 import { getProp } from './../functions/dotProp';
 import normalizeString from './../functions/normalizeString';
 import { COMPLETED_TRANSACTION } from './../events';
-import { ERROR_TYPE_NOTICE } from './../EventValidator';
 import cookie from 'js-cookie';
 
 const CLICK_ID_GET_PARAM = 'click_id';
@@ -118,10 +117,10 @@ class CityAds extends Integration {
     if (event.name === COMPLETED_TRANSACTION) {
       return [
         ['transaction.orderId', { required: true }],
-        ['transaction.lineItems[].product.id', { required: true }, ERROR_TYPE_NOTICE],
-        ['transaction.lineItems[].product.name', { required: true }, ERROR_TYPE_NOTICE],
-        ['transaction.lineItems[].product.category', { required: true }, ERROR_TYPE_NOTICE],
-        ['transaction.lineItems[].product.unitSalePrice', { required: true }, ERROR_TYPE_NOTICE],
+        ['transaction.lineItems[].product.id', { required: true }, { critical: false }],
+        ['transaction.lineItems[].product.name', { required: true }, { critical: false }],
+        ['transaction.lineItems[].product.category', { required: true }, { critical: false }],
+        ['transaction.lineItems[].product.unitSalePrice', { required: true }, { critical: false }],
       ];
     }
     return [];

@@ -1,11 +1,13 @@
 import { getProp } from './functions/dotProp';
 import each from './functions/each';
 
-export const ERROR_TYPE_NOTICE = 'notice';
-
 const MSG_IS_REQUIRED = 'is required';
 
 const RULE_REQUIRED = 'required';
+
+export const TYPE_ERROR = 'ERR';
+export const TYPE_WARNING = 'WARN';
+export const TYPE_SUCCESS = 'OK';
 
 const required = (value, isRequired) => {
   if (isRequired) {
@@ -20,84 +22,90 @@ const ruleHandlers = {
   [RULE_REQUIRED]: required,
 };
 
-const validateField = (field, value, rules, errorType) => {
-  const errors = [];
-  const warnings = [];
+const validateField = (field, value, rules, options = {}) => {
+  const messages = [];
+  let result = true;
 
   each(rules, (ruleName, ruleParam) => {
-    const result = ruleHandlers[ruleName](value, ruleParam);
-    if (result !== true) {
-      if (errorType === ERROR_TYPE_NOTICE) {
-        warnings.push([field, result]);
+    const errorMsg = ruleHandlers[ruleName](value, ruleParam);
+    let resultType = TYPE_SUCCESS;
+    if (errorMsg !== true) {
+      if (options.critical === false) {
+        resultType = TYPE_WARNING;
       } else {
-        errors.push([field, result]);
+        resultType = TYPE_ERROR;
+        result = false;
       }
     }
+    messages.push([field, errorMsg, value, resultType]);
   });
 
-  return { errors, warnings };
+  return [result, messages];
 };
 
-const validateArrayField = (arrayField, arrayFieldValues, subfield, rules, errorType) => {
-  const errors = [];
-  const warnings = [];
+const validateArrayField = (arrayField, arrayFieldValues, subfield, rules, options = {}) => {
+  const messages = [];
+  let result = true;
 
-  const pushResult = (fieldName, result) => {
-    if (result !== true) {
-      if (errorType === ERROR_TYPE_NOTICE) {
-        warnings.push([fieldName, result]);
+  const pushResult = (fieldName, errorMsg, value) => {
+    let resultType = TYPE_SUCCESS;
+    if (errorMsg !== true) {
+      if (options.critical === false) {
+        resultType = TYPE_WARNING;
       } else {
-        errors.push([fieldName, result]);
+        resultType = TYPE_ERROR;
+        result = false;
       }
     }
+    messages.push([fieldName, errorMsg, value, resultType]);
   };
 
   each(rules, (ruleName, ruleParam) => {
-    let result;
     if (!Array.isArray(arrayFieldValues)) {
-      result = ruleHandlers[ruleName](undefined, ruleParam);
+      const errorMsg = ruleHandlers[ruleName](undefined, ruleParam);
       const fieldName = [arrayField, subfield].join('[].');
-      pushResult(fieldName, result);
+      pushResult(fieldName, errorMsg);
     } else {
       let i = 1;
       for (const arrayFieldValue of arrayFieldValues) {
         const value = getProp(arrayFieldValue, subfield);
-        result = ruleHandlers[ruleName](value, ruleParam);
+        const errorMsg = ruleHandlers[ruleName](value, ruleParam);
         const fieldName = [arrayField, i, subfield].join('.');
-        pushResult(fieldName, result);
+        pushResult(fieldName, errorMsg, value);
+        if (options.limit && i >= options.limit) break;
         i += 1;
       }
     }
   });
 
-  return { errors, warnings };
+  return [result, messages];
 };
 
 export const validateEvent = (event, validations) => {
-  const errors = [];
-  const warnings = [];
+  const allMessages = [];
+  let finalResult = true;
+
   for (const validation of validations) {
-    const [ field, rules, errorType ] = validation;
+    const [ field, rules, options ] = validation;
     let result;
+    let messages;
 
     if (field.indexOf('[]') > 0) {
       const [ arrayField, subfield ] = field.split('[].');
       const value = getProp(event, arrayField);
-      result = validateArrayField(arrayField, value, subfield, rules, errorType);
+      [result, messages] = validateArrayField(arrayField, value, subfield, rules, options);
     } else {
       const value = getProp(event, field);
-      result = validateField(field, value, rules, errorType);
+      [result, messages] = validateField(field, value, rules, options);
     }
 
-    for (const resultError of result.errors) {
-      errors.push(resultError);
-    }
-    for (const resultWarning of result.warnings) {
-      warnings.push(resultWarning);
+    if (!result) finalResult = false;
+    for (const message of messages) {
+      allMessages.push(message);
     }
   }
 
-  return { errors, warnings };
+  return [finalResult, allMessages];
 };
 
 export function validateIntegrationEvent(event, integration) {
@@ -105,18 +113,20 @@ export function validateIntegrationEvent(event, integration) {
   if (validations.length) {
     return validateEvent(event, validations);
   }
+  return [true];
 }
 
-export function trackValidationErrors(digitalData, event, integrationName, validationResult) {
-  const errors = validationResult.errors || [];
-  for (const error of errors) {
-    const [field, message] = error;
-    digitalData.events.push({
-      name: 'Integration Validation Failed',
-      category: 'DDM Validations',
-      label: `${event.name} (${integrationName})`,
-      action: `Field '${field}' ${message}`,
-      nonInteraction: true,
-    });
+export function trackValidationErrors(digitalData, event, integrationName, messages) {
+  for (const message of messages) {
+    const [field, errorMsg, , resultType] = message;
+    if (resultType === TYPE_ERROR) {
+      digitalData.events.push({
+        name: 'Integration Validation Failed',
+        category: 'DDM Validations',
+        label: `${event.name} (${integrationName})`,
+        action: `Field '${field}' ${errorMsg}`,
+        nonInteraction: true,
+      });
+    }
   }
 }

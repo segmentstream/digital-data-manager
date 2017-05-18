@@ -1,7 +1,28 @@
-import { log, info, warn, group, groupEnd } from './functions/safeConsole';
+import { log, group, groupEnd } from './functions/safeConsole';
+import { TYPE_ERROR, TYPE_SUCCESS, TYPE_WARNING } from './EventValidator';
+
+const validationMessagesColors = {
+  [TYPE_ERROR]: 'red',
+  [TYPE_WARNING]: '#ee9a00',
+  [TYPE_SUCCESS]: 'green',
+};
 
 export function isTestMode() {
   return window.localStorage.getItem('_ddm_test_mode') === '1';
+}
+
+export function valueIsLogable(value) {
+  return (value !== undefined && value !== null && !(Array.isArray(value) && typeof(value[0]) === 'object'));
+}
+
+export function prepareValueForLog(value) {
+  if (typeof value === 'object') {
+    return JSON.stringify(value);
+  }
+  if (typeof value === 'string') {
+    return '"' + value + '"';
+  }
+  return value;
 }
 
 export function showTestModeOverlay() {
@@ -27,24 +48,31 @@ export function showTestModeOverlay() {
   document.body.appendChild(overlayDiv);
 }
 
-export function logValidationResult(event, validationResult) {
-  const { errors, warnings } = validationResult;
-  for (const error of errors) {
-    const [field, message] = error;
-    warn(`Field '${field}' ${message}`);
-  }
-  for (const warning of warnings) {
-    const [field, message] = warning;
-    info(`Field '${field}' ${message}`);
+export function logValidationResult(event, messages) {
+  for (const [field, errorMsg, value, resultType] of messages) {
+    if (resultType === TYPE_SUCCESS) {
+      if (!valueIsLogable(value)) {
+        log(`%c[${resultType}] ${field}`, `color: ${validationMessagesColors[resultType]};`);
+      } else {
+        log(`%c[${resultType}] ${field}: ${prepareValueForLog(value)}`, `color: ${validationMessagesColors[resultType]};`);
+      }
+    } else {
+      if (!valueIsLogable(value)) {
+        log(`%c[${resultType}] ${field} ${errorMsg}`, `color: ${validationMessagesColors[resultType]};`);
+      } else {
+        log(`%c[${resultType}] ${field} ${errorMsg}: ${prepareValueForLog(value)}`, `color: ${validationMessagesColors[resultType]};`);
+      }
+    }
   }
 }
 
-export function logEnrichedIntegrationEvent(event, integrationName, validationResult) {
-  group(`${event.name} -> ${integrationName}`);
-  log(event);
-  if (validationResult) {
-    logValidationResult(event, validationResult, integrationName);
+export function logEnrichedIntegrationEvent(event, integrationName, messages) {
+  group(`[EVENT] ${event.name} -> ${integrationName}`);
+
+  if (messages && messages.length) {
+    logValidationResult(event, messages, integrationName);
   }
+
   groupEnd();
 }
 
