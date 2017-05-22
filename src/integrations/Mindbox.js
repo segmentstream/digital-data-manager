@@ -50,6 +50,13 @@ class Mindbox extends Integration {
       COMPLETED_TRANSACTION,
     ];
 
+    this.operationEvents = Object.keys(this.getOption('operationMapping'));
+    for (const operationEvent of this.operationEvents) {
+      if (this.SEMANTIC_EVENTS.indexOf(operationEvent) < 0) {
+        this.SEMANTIC_EVENTS.push(operationEvent);
+      }
+    }
+
     this.addTag({
       type: 'script',
       attr: {
@@ -77,10 +84,6 @@ class Mindbox extends Integration {
 
   getSemanticEvents() {
     return this.SEMANTIC_EVENTS;
-  }
-
-  allowCustomEvents() {
-    return true;
   }
 
   prepareEnrichableUserProps() {
@@ -125,6 +128,63 @@ class Mindbox extends Integration {
     }
 
     return enrichableProps;
+  }
+
+  getEventValidations(event) {
+    let validations = [];
+    switch (event.name) {
+    case VIEWED_PAGE:
+      const setCartOperation = this.getOption('setCartOperation');
+      if (setCartOperation && getProp(event, 'cart.lineItems.length') > 0) {
+        validations = [
+          ['cart.lineItems[].product.id', { required: true }],
+          ['cart.lineItems[].product.unitSalePrice', { required: true }],
+          ['cart.lineItems[].product.skuCode', { required: true }, { critical: false }],
+          ['cart.lineItems[].quantity', { required: true }],
+        ];
+      }
+      break;
+    case VIEWED_PRODUCT_DETAIL:
+      validations = [
+        ['product.id', { required: true }],
+      ];
+      break;
+    case VIEWED_PRODUCT_LISTING:
+      validations = [
+        ['listing.categoryId', { required: true }],
+      ];
+      break;
+    case ADDED_PRODUCT:
+      validations = [
+        ['product.id', { required: true }],
+        ['product.unitSalePrice', { required: true }],
+        ['product.skuCode', { required: true }, { critical: false }],
+      ];
+      break;
+    case REMOVED_PRODUCT:
+      validations = [
+        ['product.id', { required: true }],
+        ['product.unitSalePrice', { required: true }],
+        ['product.skuCode', { required: true }, { critical: false }],
+      ];
+      break;
+    case COMPLETED_TRANSACTION:
+      validations = [
+        ['transaction.orderId', { required: true }],
+        ['transaction.total', { required: true }],
+        ['transaction.shippingMethod', { required: true }, { critical: false }],
+        ['transaction.paymentMethod', { required: true }, { critical: false }],
+        ['transaction.lineItems[].product.id', { required: true }],
+        ['transaction.lineItems[].product.skuCode', { required: true }, { critical: false }],
+        ['transaction.lineItems[].product.unitSalePrice', { required: true }],
+        ['transaction.lineItems[].quantity', { required: true }],
+      ];
+      break;
+    default:
+      // do nothing
+    }
+
+    return validations;
   }
 
   getEnrichableUserProps() {

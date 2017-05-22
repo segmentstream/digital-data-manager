@@ -9,9 +9,14 @@ describe('EventValidator', () => {
         name: 'Test'
       }
     };
-    const result = validateEvent(event, [
-      [ 'product.id', { required: true } ]
-    ]);
+    const result = validateEvent(event, {
+      fields: ['product.id'],
+      validations: {
+        'product.id': {
+          errors: ['required'],
+        },
+      }
+    });
 
     assert.deepEqual(result, [false,[['product.id', 'is required', undefined, 'ERR']]]);
   });
@@ -20,9 +25,14 @@ describe('EventValidator', () => {
     const event = {
       name: 'Viewed Product Detail'
     };
-    const result = validateEvent(event, [
-      [ 'product.id', { required: true } ]
-    ]);
+    const result = validateEvent(event, {
+      fields: ['product.id'],
+      validations: {
+        'product.id': {
+          errors: ['required'],
+        },
+      }
+    });
 
     assert.deepEqual(result, [false,[['product.id', 'is required', undefined, 'ERR']]]);
   });
@@ -45,9 +55,14 @@ describe('EventValidator', () => {
     const event = {
       name: 'Viewed Product Detail'
     };
-    const result = validateEvent(event, [
-      [ 'product.id', { required: true }, { critical: false } ]
-    ]);
+    const result = validateEvent(event, {
+      fields: ['product.id'],
+      validations: {
+        'product.id': {
+          warnings: ['required'],
+        },
+      },
+    });
 
     assert.deepEqual(result, [true, [['product.id', 'is required', undefined, 'WARN']]]);
   });
@@ -56,9 +71,14 @@ describe('EventValidator', () => {
     const event = {
       name: 'Viewed Product Listing',
     };
-    const result = validateEvent(event, [
-      [ 'listing.items[].product.id', { required: true } ]
-    ]);
+    const result = validateEvent(event, {
+      fields: ['listing.items[].product.id'],
+      validations: {
+        'listing.items[].product.id': {
+          errors: ['required'],
+        },
+      },
+    });
 
     assert.deepEqual(result, [false,[['listing.items[].product.id', 'is required', undefined, 'ERR']]]);
   });
@@ -67,9 +87,14 @@ describe('EventValidator', () => {
     const event = {
       name: 'Viewed Product Listing',
     };
-    const result = validateEvent(event, [
-      [ 'listing.items[].product.id', { required: true }, { critical: false } ]
-    ]);
+    const result = validateEvent(event, {
+      fields: ['listing.items[].product.id'],
+      validations: {
+        'listing.items[].product.id': {
+          warnings: ['required'],
+        },
+      },
+    });
 
     assert.deepEqual(result, [true, [['listing.items[].product.id', 'is required', undefined, 'WARN']]]);
   });

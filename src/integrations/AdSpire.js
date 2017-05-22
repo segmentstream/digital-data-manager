@@ -63,53 +63,157 @@ class AdSpire extends Integration {
     }
   }
 
-  getEventValidations(event) {
-    switch (event.name) {
-    case VIEWED_PAGE:
-      return [
-        ['page.type', { required: true }],
-      ];
-    case VIEWED_PRODUCT_DETAIL:
-      return [
-        ['product.id', { required: true }],
-        ['product.name', { required: true }, { critical: false }],
-        ['product.categoryId', { required: true }, { critical: false }],
-        ['product.category', { required: true }, { critical: false }],
-        ['product.unitSalePrice', { required: true }, { critical: false }],
-        ['product.currency', { required: true }, { critical: false }],
-        ['product.url', { required: true }, { critical: false }],
-        ['product.imageUrl', { required: true }, { critical: false }],
-      ];
-    case VIEWED_PRODUCT_LISTING:
-      return [
-        ['listing.categoryId', { required: true }, { critical: false }],
-        ['listing.category', { required: true }, { critical: false }],
-      ];
-    case VIEWED_CART:
-      return [
-        ['cart.lineItems[].product.id', { required: true }],
-        ['cart.lineItems[].product.name', { required: true }, { critical: false }],
-        ['cart.lineItems[].product.categoryId', { required: true }, { critical: false }],
-        ['cart.lineItems[].product.category', { required: true }, { critical: false }],
-        ['cart.lineItems[].product.unitSalePrice', { required: true }, { critical: false }],
-        ['cart.lineItems[].product.currency', { required: true }, { critical: false }],
-        ['cart.lineItems[].quantity', { required: true }, { critical: false }],
-      ];
-    case COMPLETED_TRANSACTION:
-      return [
-        ['transaction.orderId', { required: true }],
-        ['transaction.total', { required: true }, { critical: false }],
-        ['transaction.lineItems[].product.id', { required: true }, { critical: false }],
-        ['transaction.lineItems[].product.name', { required: true }, { critical: false }],
-        ['transaction.lineItems[].product.categoryId', { required: true }, { critical: false }],
-        ['transaction.lineItems[].product.category', { required: true }, { critical: false }],
-        ['transaction.lineItems[].product.unitSalePrice', { required: true }, { critical: false }],
-        ['transaction.lineItems[].product.currency', { required: true }, { critical: false }],
-        ['transaction.lineItems[].quantity', { required: true }, { critical: false }],
-      ];
-    default:
-      return [];
-    }
+  getEventValidationConfig(event) {
+    const config = {
+      [VIEWED_PAGE]: {
+        fields: ['page.type'],
+        validations: {
+          errors: ['required'],
+          warnings: ['string'],
+        },
+      },
+      [VIEWED_PRODUCT_DETAIL]: {
+        fields: [
+          'product.id',
+          'product.name',
+          'product.categoryId',
+          'product.category',
+          'product.unitSalePrice',
+          'product.currency',
+          'product.url',
+          'product.imageUrl',
+        ],
+        validations: {
+          'product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'product.name': {
+            warnings: ['required', 'string'],
+          },
+          'product.categoryId': {
+            warnings: ['required', 'string'],
+          },
+          'product.category': {
+            warnings: ['required', 'array'],
+          },
+          'product.unitSalePrice': {
+            warnings: ['required', 'numeric'],
+          },
+          'product.currency': {
+            warnings: ['required', 'string'],
+          },
+          'product.url': {
+            warnings: ['required', 'string'],
+          },
+          'product.imageUrl': {
+            warnings: ['required', 'string'],
+          },
+        },
+      },
+      [VIEWED_PRODUCT_LISTING]: {
+        fields: [
+          'listing.categoryId',
+          'listing.category',
+        ],
+        validations: {
+          'listing.categoryId': {
+            warnings: ['required', 'string'],
+          },
+          'listing.category': {
+            warnings: ['required', 'string'],
+          },
+        },
+      },
+      [VIEWED_CART]: {
+        fields: [
+          'cart.lineItems[].product.id',
+          'cart.lineItems[].product.name',
+          'cart.lineItems[].product.categoryId',
+          'cart.lineItems[].product.category',
+          'cart.lineItems[].product.unitSalePrice',
+          'cart.lineItems[].product.currency',
+          'cart.lineItems[].quantity',
+        ],
+        validations: {
+          'cart.lineItems[].product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'cart.lineItems[].product.name': {
+            warnings: ['required', 'string'],
+          },
+          'cart.lineItems[].product.categoryId': {
+            warnings: ['required', 'string'],
+          },
+          'cart.lineItems[].product.category': {
+            warnings: ['required', 'array'],
+          },
+          'cart.lineItems[].product.unitSalePrice': {
+            warnings: ['required', 'numeric'],
+          },
+          'cart.lineItems[].product.currency': {
+            warnings: ['required', 'string'],
+          },
+          'cart.lineItems[].quantity': {
+            warnings: ['required', 'numeric'],
+          },
+        },
+      },
+      [COMPLETED_TRANSACTION]: {
+        fields: [
+          'transaction.orderId',
+          'transaction.total',
+          'transaction.isFirst',
+          'transaction.vouchers',
+          'transaction.lineItems[].product.id',
+          'transaction.lineItems[].product.name',
+          'transaction.lineItems[].product.categoryId',
+          'transaction.lineItems[].product.category',
+          'transaction.lineItems[].product.unitSalePrice',
+          'transaction.lineItems[].product.currency',
+          'transaction.lineItems[].quantity',
+        ],
+        validations: {
+          'transaction.orderId': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'transaction.total': {
+            warnings: ['required', 'string'],
+          },
+          'transaction.lineItems[].product.id': {
+            warnings: ['required', 'string'],
+          },
+          'transaction.lineItems[].product.name': {
+            warnings: ['required', 'string'],
+          },
+          'transaction.lineItems[].product.categoryId': {
+            warnings: ['required', 'string'],
+          },
+          'transaction.lineItems[].product.category': {
+            warnings: ['required', 'array'],
+          },
+          'transaction.lineItems[].product.unitSalePrice': {
+            warnings: ['required', 'numeric'],
+          },
+          'transaction.lineItems[].product.currency': {
+            warnings: ['required', 'string'],
+          },
+          'transaction.lineItems[].quantity': {
+            warnings: ['required', 'numeric'],
+          },
+          'transaction.isFirst': {
+            warnings: ['boolean'],
+          },
+          'transaction.vouchers': {
+            warning: ['array'],
+          },
+        },
+      },
+    };
+
+    return config[event.name];
   }
 
   getSemanticEvents() {

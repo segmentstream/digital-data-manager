@@ -1,117 +1,160 @@
 import { getProp } from './functions/dotProp';
-import each from './functions/each';
 
 const MSG_IS_REQUIRED = 'is required';
+const MSG_NOT_STRING = 'should be a string';
+const MSG_NOT_NUMERIC = 'should be numeric';
+const MSG_NOT_ARRAY = 'should be an array';
+const MSG_NOT_BOOLEAN = 'shoule be boolean';
 
 const RULE_REQUIRED = 'required';
+const RULE_STRING = 'string';
+const RULE_NUMERIC = 'numeric';
+const RULE_ARRAY = 'array';
+const RULE_BOOLEAN = 'boolean';
 
 export const TYPE_ERROR = 'ERR';
 export const TYPE_WARNING = 'WARN';
 export const TYPE_SUCCESS = 'OK';
 
-const required = (value, isRequired) => {
-  if (isRequired) {
-    if (value === undefined || value === null || value === '') {
-      return MSG_IS_REQUIRED;
-    }
+const empty = (value) => {
+  return (value === undefined || value === null || value === '');
+};
+
+const required = (value) => {
+  if (empty(value)) {
+    return MSG_IS_REQUIRED;
+  }
+  return true;
+};
+
+const string = (value) => {
+  if (empty(value)) return null;
+  if (typeof value !== 'string') {
+    return MSG_NOT_STRING;
+  }
+  return true;
+};
+
+const numeric = (value) => {
+  if (empty(value)) return null;
+  if (typeof value !== 'number') {
+    return MSG_NOT_NUMERIC;
+  }
+  return true;
+};
+
+const array = (value) => {
+  if (empty(value)) return null;
+  if (!Array.isArray(value)) {
+    return MSG_NOT_ARRAY;
+  }
+  return true;
+};
+
+const boolean = (value) => {
+  if (empty(value)) return null;
+  if (typeof value !== 'boolean') {
+    return MSG_NOT_BOOLEAN;
   }
   return true;
 };
 
 const ruleHandlers = {
   [RULE_REQUIRED]: required,
+  [RULE_STRING]: string,
+  [RULE_NUMERIC]: numeric,
+  [RULE_ARRAY]: array,
+  [RULE_BOOLEAN]: boolean,
 };
 
-const validateField = (field, value, rules, options = {}) => {
-  const messages = [];
-  let result = true;
+const validateField = (field, value, validations = {}) => {
+  const errors = validations.errors || [];
+  const warnings = validations.warnings || [];
 
-  each(rules, (ruleName, ruleParam) => {
-    const errorMsg = ruleHandlers[ruleName](value, ruleParam);
-    let resultType = TYPE_SUCCESS;
-    if (errorMsg !== true) {
-      if (options.critical === false) {
-        resultType = TYPE_WARNING;
-      } else {
-        resultType = TYPE_ERROR;
-        result = false;
+  // validate errors
+  for (const ruleName of errors) {
+    const errorMsg = ruleHandlers[ruleName](value);
+    if (!empty(errorMsg)) {
+      if (errorMsg !== true) {
+        return [false, [field, errorMsg, value, TYPE_ERROR]];
       }
-    }
-    messages.push([field, errorMsg, value, resultType]);
-  });
-
-  return [result, messages];
-};
-
-const validateArrayField = (arrayField, arrayFieldValues, subfield, rules, options = {}) => {
-  const messages = [];
-  let result = true;
-
-  const pushResult = (fieldName, errorMsg, value) => {
-    let resultType = TYPE_SUCCESS;
-    if (errorMsg !== true) {
-      if (options.critical === false) {
-        resultType = TYPE_WARNING;
-      } else {
-        resultType = TYPE_ERROR;
-        result = false;
-      }
-    }
-    messages.push([fieldName, errorMsg, value, resultType]);
-  };
-
-  each(rules, (ruleName, ruleParam) => {
-    if (!Array.isArray(arrayFieldValues)) {
-      const errorMsg = ruleHandlers[ruleName](undefined, ruleParam);
-      const fieldName = [arrayField, subfield].join('[].');
-      pushResult(fieldName, errorMsg);
-    } else {
-      let i = 1;
-      for (const arrayFieldValue of arrayFieldValues) {
-        const value = getProp(arrayFieldValue, subfield);
-        const errorMsg = ruleHandlers[ruleName](value, ruleParam);
-        const fieldName = [arrayField, i, subfield].join('.');
-        pushResult(fieldName, errorMsg, value);
-        if (options.limit && i >= options.limit) break;
-        i += 1;
-      }
-    }
-  });
-
-  return [result, messages];
-};
-
-export const validateEvent = (event, validations) => {
-  const allMessages = [];
-  let finalResult = true;
-
-  for (const validation of validations) {
-    const [ field, rules, options ] = validation;
-    let result;
-    let messages;
-
-    if (field.indexOf('[]') > 0) {
-      const [ arrayField, subfield ] = field.split('[].');
-      const value = getProp(event, arrayField);
-      [result, messages] = validateArrayField(arrayField, value, subfield, rules, options);
-    } else {
-      const value = getProp(event, field);
-      [result, messages] = validateField(field, value, rules, options);
-    }
-
-    if (!result) finalResult = false;
-    for (const message of messages) {
-      allMessages.push(message);
     }
   }
+
+  // validate warnings
+  for (const ruleName of warnings) {
+    const errorMsg = ruleHandlers[ruleName](value);
+    if (!empty(errorMsg)) {
+      if (errorMsg !== true) {
+        return [true, [field, errorMsg, value, TYPE_WARNING]];
+      }
+    }
+  }
+
+  if (!empty(value)) {
+    return [true, [field, true, value, TYPE_SUCCESS]];
+  }
+
+  return [true];
+};
+
+const validateArrayField = (arrayField, arrayFieldValues, subfield, validations) => {
+  const messages = [];
+  let result = true;
+
+  if (!Array.isArray(arrayFieldValues)) {
+    const fieldName = [arrayField, subfield].join('[].');
+    let message;
+    [result, message] = validateField(fieldName, undefined, validations);
+    messages.push(message);
+  } else {
+    let i = 0;
+    for (const arrayFieldValue of arrayFieldValues) {
+      const value = getProp(arrayFieldValue, subfield);
+      const fieldName = [arrayField, i, subfield].join('.');
+      const [fieldResult, fieldMessage] = validateField(fieldName, value, validations);
+      if (!fieldResult) result = false;
+      messages.push(fieldMessage);
+      i += 1;
+    }
+  }
+
+  return [result, messages];
+};
+
+export const validateEvent = (event, validationConfig) => {
+  const fields = validationConfig.fields || [];
+  let allMessages = [];
+  let finalResult = true;
+
+  for (const field of fields) {
+    const validations = validationConfig.validations || {};
+    const fieldValidations = validations[field];
+    let result;
+    if (field.indexOf('[]') > 0) {
+      let messages;
+      const [ arrayField, subfield ] = field.split('[].');
+      const value = getProp(event, arrayField);
+      [result, messages] = validateArrayField(arrayField, value, subfield, fieldValidations);
+      allMessages = allMessages.concat(messages);
+    } else {
+      let message;
+      const value = getProp(event, field);
+      [result, message] = validateField(field, value, fieldValidations);
+      if (message) allMessages.push(message);
+    }
+    if (!result) finalResult = false;
+  }
+
+  // console.log(finalResult, allMessages);
 
   return [finalResult, allMessages];
 };
 
 export function validateIntegrationEvent(event, integration) {
-  const validations = integration.getEventValidations(event);
-  if (validations.length) {
-    return validateEvent(event, validations);
+  const validationConfig = integration.getEventValidationConfig(event);
+  if (validationConfig) {
+    return validateEvent(event, validationConfig);
   }
   return [true];
 }

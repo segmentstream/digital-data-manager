@@ -7,6 +7,7 @@ import size from './../functions/size.js';
 import clone from './../functions/clone';
 import cookie from 'js-cookie';
 import {
+  SESSION_STARTED,
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
   VIEWED_PRODUCT_LISTING,
@@ -128,6 +129,10 @@ class GoogleAnalytics extends Integration {
     return SEMANTIC_EVENTS;
   }
 
+  getIgnoredEvents() {
+    return [SESSION_STARTED, VIEWED_PRODUCT_LISTING, SEARCHED_PRODUCTS, VIEWED_CART];
+  }
+
   allowCustomEvents() {
     return true;
   }
@@ -170,49 +175,87 @@ class GoogleAnalytics extends Integration {
     return enrichableProps;
   }
 
-  getEventValidations(event) {
-    let validations = [];
-    switch (event.name) {
-    case VIEWED_PRODUCT_DETAIL:
-      validations = [
-        ['product.id', { required: true }],
-        ['product.name', { required: true }, { critical: false }],
-        ['product.category', { required: true }, { critical: false }],
-        ['product.unitSalePrice', { required: true }, { critical: false }],
-      ];
-      break;
-    case ADDED_PRODUCT:
-      validations = [
-        ['product.id', { required: true }],
-        ['product.name', { required: true }, { critical: false }],
-        ['product.category', { required: true }, { critical: false }],
-        ['product.unitSalePrice', { required: true }, { critical: false }],
-        ['quantity', { required: true }, { critical: false }],
-      ];
-      break;
-    case REMOVED_PRODUCT:
-      validations = [
-        ['product.id', { required: true }],
-        ['product.name', { required: true }, { critical: false }],
-        ['product.category', { required: true }, { critical: false }],
-        ['quantity', { required: true }, { critical: false }],
-      ];
-      break;
-    case COMPLETED_TRANSACTION:
-      validations = [
-        ['transaction.orderId', { required: true }],
-        ['transaction.lineItems[].product.id', { required: true }],
-        ['transaction.lineItems[].product.name', { required: true }, { critical: false }],
-        ['transaction.lineItems[].product.category', { required: true }, { critical: false }],
-        ['transaction.lineItems[].product.unitSalePrice', { required: true }, { critical: false }],
-        ['transaction.total', { required: true }, { critical: false }],
-      ];
-      break;
-    default:
-      // do nothing
-    }
+  getEventValidationConfig(event) {
+    const productFields = [
+      'product.id',
+      'product.name',
+      'product.category',
+      'product.unitSalePrice',
+      'product.manufacturer',
+      'product.variation',
+      'product.voucher',
+    ];
+    const productValidations = {
+      'product.id': {
+        errors: ['required'],
+        warnings: ['string'],
+      },
+      'product.name': {
+        warnings: ['required', 'string'],
+      },
+      'product.category': {
+        warnings: ['required', 'array'],
+      },
+      'product.unitSalePrice': {
+        errors: ['numeric'],
+        warnings: ['required'],
+      },
+      'product.manufacturer': {
+        warnings: ['string'],
+      },
+      'product.variant': {
+        warnings: ['string'],
+      },
+    };
 
-    return validations;
+    const config = {
+      [VIEWED_PRODUCT_DETAIL]: {
+        fields: productFields,
+        validations: productValidations,
+      },
+      [ADDED_PRODUCT]: {
+        fields: productFields,
+        validations: productValidations,
+      },
+      [REMOVED_PRODUCT]: {
+        fields: productFields,
+        validations: productValidations,
+      },
+      [COMPLETED_TRANSACTION]: {
+        fields: [
+          'transaction.orderId',
+          'transaction.lineItems[].product.id',
+          'transaction.lineItems[].product.name',
+          'transaction.lineItems[].product.category',
+          'transaction.lineItems[].product.unitSalePrice',
+          'transaction.total',
+        ],
+        validations: {
+          'transaction.orderId': {
+            errors: ['required'],
+            warning: ['string'],
+          },
+          'transaction.lineItems[].product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'transaction.lineItems[].product.name': {
+            warnings: ['required', 'string'],
+          },
+          'transaction.lineItems[].product.category': {
+            warnings: ['required', 'array'],
+          },
+          'transaction.lineItems[].product.unitSalePrice': {
+            warnings: ['required', 'numeric'],
+          },
+          'transaction.total': {
+            warnings: ['required', 'numeric'],
+          },
+        },
+      },
+    };
+
+    return config[event.name];
   }
 
   initialize(version) {
@@ -493,9 +536,6 @@ class GoogleAnalytics extends Integration {
   }
 
   trackEvent(event) {
-    if ([VIEWED_PRODUCT_LISTING, SEARCHED_PRODUCTS, VIEWED_CART].indexOf(event.name) >= 0) {
-      return; // ignore events (not semantic for GA)
-    }
     if (event.name === VIEWED_PAGE) {
       this.onViewedPage(event);
     } else if (event.name === EXCEPTION) {

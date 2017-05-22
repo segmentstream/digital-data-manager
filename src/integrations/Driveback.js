@@ -49,6 +49,21 @@ class Driveback extends Integration {
     });
   }
 
+  getEventValidations(event) {
+    if (event.name === VIEWED_EXPERIMENT || event.name === ACHIEVED_EXPERIMENT_GOAL) {
+      if (typeof event.experiment === 'string') {
+        return [
+          ['experiment', { required: true, string: true }],
+        ];
+      }
+      return [
+        ['experiment.id', { required: true, string: true }],
+        ['experiment.variationId', { numeric: true }],
+      ];
+    }
+    return [];
+  }
+
   initialize() {
     if (this.getOption('websiteToken')) {
       window.DrivebackNamespace = 'Driveback';
