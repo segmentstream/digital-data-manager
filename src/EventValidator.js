@@ -106,15 +106,19 @@ const validateArrayField = (arrayField, arrayFieldValues, subfield, validations)
     const fieldName = [arrayField, subfield].join('[].');
     let message;
     [result, message] = validateField(fieldName, undefined, validations);
-    messages.push(message);
+    if (message) {
+      messages.push(message);
+    }
   } else {
     let i = 0;
     for (const arrayFieldValue of arrayFieldValues) {
       const value = getProp(arrayFieldValue, subfield);
       const fieldName = [arrayField, i, subfield].join('.');
-      const [fieldResult, fieldMessage] = validateField(fieldName, value, validations);
+      const [fieldResult, message] = validateField(fieldName, value, validations);
       if (!fieldResult) result = false;
-      messages.push(fieldMessage);
+      if (message) {
+        messages.push(message);
+      }
       i += 1;
     }
   }

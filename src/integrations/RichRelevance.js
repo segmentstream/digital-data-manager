@@ -87,49 +87,116 @@ class RichRelevance extends Integration {
     }
   }
 
-  getEventValidations(event) {
-    switch (event.name) {
-    case VIEWED_PAGE:
-      return [
-        ['page.type', { required: true }],
-        [this.getOption('sessionIdVar'), { required: true }],
-      ];
-    case VIEWED_PRODUCT_LISTING:
-      return [
-        ['listing.categoryId', { required: true }],
-        ['listing.category', { required: true }, { critical: false }],
-      ];
-    case SEARCHED_PRODUCTS:
-      return [
-        ['listing.query', { required: true }],
-      ];
-    case VIEWED_PRODUCT_DETAIL:
-      return [
-        ['product.id', { required: true }],
-        ['product.name', { required: true }],
-        ['product.categoryId', { required: true }, { critical: false }],
-      ];
-    case ADDED_PRODUCT:
-      return [
-        ['product.id', { required: true }],
-        ['product.skuCode', { required: true }, { critical: false }],
-      ];
-    case VIEWED_CART:
-      return [
-        ['cart.lineItems[].product.id', { required: true }],
-        ['cart.lineItems[].product.skuCode', { required: true }, { critical: false }],
-      ];
-    case COMPLETED_TRANSACTION:
-      return [
-        ['transaction.orderId', { required: true }],
-        ['transaction.lineItems[].product.id', { required: true }],
-        ['transaction.lineItems[].product.skuCode', { required: true }, { critical: false }],
-        ['transaction.lineItems[].product.unitSalePrice', { required: true }],
-        ['transaction.lineItems[].quantity', { required: true }],
-      ];
-    default:
-      return [];
-    }
+  getEventValidationConfig(event) {
+    const config = {
+      [VIEWED_PAGE]: {
+        fields: ['page.type', this.getOption('sessionIdVar')],
+        validations: {
+          'page.type': {
+            errors: ['required', 'string'],
+          },
+          [this.getOption('sessionIdVar')]: {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+      [VIEWED_PRODUCT_LISTING]: {
+        fields: ['listing.categoryId', 'listing.category'],
+        validations: {
+          'listing.categoryId': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'listing.category': {
+            errors: ['array'],
+            warnings: ['required'],
+          },
+        },
+      },
+      [SEARCHED_PRODUCTS]: {
+        fields: ['listing.query'],
+        validations: {
+          'listing.query': {
+            errors: ['required', 'string'],
+          },
+        },
+      },
+      [VIEWED_PRODUCT_DETAIL]: {
+        fields: ['product.id', 'product.name', 'product.categoryId'],
+        validation: {
+          'product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'product.name': {
+            errors: ['required', 'string'],
+          },
+          'product.categoryId': {
+            warnings: ['required', 'string'],
+          },
+        },
+      },
+      [ADDED_PRODUCT]: {
+        fields: ['product.id', 'product.skuCode'],
+        validations: {
+          'product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'product.skuCode': {
+            warnings: ['required', 'string'],
+          },
+        },
+      },
+      [VIEWED_CART]: {
+        fields: [
+          'cart.lineItems[].product.id',
+          'cart.lineItems[].product.skuCode',
+        ],
+        validations: {
+          'cart.lineItems[].product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'cart.lineItems[].product.skuCode': {
+            warnings: ['required', 'string'],
+          },
+        },
+      },
+      [COMPLETED_TRANSACTION]: {
+        fields: [
+          'transaction.orderId',
+          'transaction.lineItems[].product.id',
+          'transaction.lineItems[].product.skuCode',
+          'transaction.lineItems[].product.unitSalePrice',
+          'transaction.lineItems[].quantity',
+        ],
+        validation: {
+          'transaction.orderId': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'transaction.lineItems[].product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'transaction.lineItems[].product.skuCode': {
+            warnings: ['required', 'string'],
+          },
+          'transaction.lineItems[].product.unitSalePrice': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+          'transaction.lineItems[].quantity': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+        },
+      },
+    };
+
+    return config[event.name];
   }
 
   getSemanticEvents() {

@@ -124,35 +124,49 @@ class Soloway extends Integration {
     }
   }
 
-  getEventValidations(event) {
-    switch (event.name) {
-    case VIEWED_PRODUCT_DETAIL:
-      return [
-        ['product.id', { required: true }],
-        ['product.categoryId', { required: true }],
-      ];
-    case ADDED_PRODUCT:
-      return [
-        ['product.id', { required: true }],
-        ['product.categoryId', { required: true }],
-      ];
-    case REMOVED_PRODUCT:
-      return [
-        ['product.id', { required: true }],
-        ['product.categoryId', { required: true }],
-      ];
-    case COMPLETED_TRANSACTION:
-      return [
-        ['transaction.orderId', { required: true }],
-        ['transaction.total', { required: true }],
-      ];
-    case REGISTERED:
-      return [
-        ['user.userId', { required: true }],
-      ];
-    default:
-      return [];
-    }
+  getEventValidationConfig(event) {
+    const productValidationConfig = {
+      fields: ['product.id', 'product.categoryId'],
+      validations: {
+        'product.id': {
+          errors: ['required'],
+          warnings: ['string'],
+        },
+        'product.categoryId': {
+          errors: ['required'],
+          warnings: ['string'],
+        },
+      },
+    };
+    const config = {
+      [VIEWED_PRODUCT_DETAIL]: productValidationConfig,
+      [ADDED_PRODUCT]: productValidationConfig,
+      [REMOVED_PRODUCT]: productValidationConfig,
+      [COMPLETED_TRANSACTION]: {
+        fields: ['transaction.orderId', 'transaction.total'],
+        validations: {
+          'transaction.orderId': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'transaction.total': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+        },
+      },
+      [REGISTERED]: {
+        fields: ['user.userId'],
+        validations: {
+          'user.userId': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+    };
+
+    return config[event.name];
   }
 
   initialize() {

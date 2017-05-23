@@ -99,6 +99,7 @@ class Actionpay extends Integration {
           'transaction.orderId',
           'transaction.total',
           'context.campaign.source',
+          'context.campaign.medium',
           'integrations.actionpay.goalId',
         ],
         validations: {

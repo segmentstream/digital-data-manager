@@ -5,6 +5,9 @@ import Emarsys from './../../src/integrations/Emarsys';
 import ddManager from './../../src/ddManager';
 
 function viewedPage(callback, page = {}) {
+  if (!window.digitalData.page.type) {
+    page.type = page.type || 'other';
+  }
   window.digitalData.events.push({
     name: 'Viewed Page',
     category: 'Content',

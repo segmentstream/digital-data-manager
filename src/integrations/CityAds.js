@@ -123,6 +123,7 @@ class CityAds extends Integration {
           'transaction.lineItems[].product.category',
           'transaction.lineItems[].product.unitSalePrice',
           'context.campaign.source',
+          'context.campaign.medium',
           'integrations.cityads.targetName',
         ],
         validations: {

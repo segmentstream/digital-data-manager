@@ -127,49 +127,84 @@ class RTBHouse extends Integration {
     }
   }
 
-  getEventValidations(event) {
-    switch (event.name) {
-    case VIEWED_PAGE:
-      const validations = [
-        ['page.type', { required: true }],
-      ];
-      if (event.cart && Array.isArray(event.cart.lineItems)) {
-        validations.push(['cart.lineItems[].product.id', { required: true }]);
-      }
-      return validations;
-    case VIEWED_PRODUCT_DETAIL:
-      return [
-        ['product.id', { required: true }],
-      ];
-    case VIEWED_PRODUCT_LISTING:
-      return [
-        ['listing.categoryId', { required: true }],
-      ];
-    case SEARCHED_PRODUCTS:
-      const listing = event.listing || {};
-      if (!listing.items || !Array.isArray(listing.items) || listing.length > 0) {
-        return [
-          ['listing.items[].id', { required: true }],
-        ];
-      }
-      return [];
-    case VIEWED_CART:
-      return [
-        ['cart.lineItems[].product.id', { required: true }],
-      ];
-    case VIEWED_CHECKOUT_STEP:
-      return [
-        ['step', { required: true }],
-      ];
-    case COMPLETED_TRANSACTION:
-      return [
-        ['transaction.orderId', { required: true }],
-        ['transaction.total', { required: true }],
-        ['transaction.lineItems[].product.id', { required: true }],
-      ];
-    default:
-      return [];
-    }
+  getEventValidationConfig(event) {
+    const config = {
+      [VIEWED_PAGE]: {
+        fields: ['page.type'],
+        validations: {
+          'page.type': {
+            errors: ['required', 'string'],
+          },
+        },
+      },
+      [VIEWED_PRODUCT_DETAIL]: {
+        fields: ['product.id'],
+        validations: {
+          'product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+      [VIEWED_PRODUCT_LISTING]: {
+        fields: ['listing.categoryId'],
+        validations: {
+          'listing.categoryId': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+      [SEARCHED_PRODUCTS]: {
+        fields: ['listing.items[].id'],
+        validations: {
+          'listing.items[].id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+      [VIEWED_CART]: {
+        fields: ['cart.lineItems[].product.id'],
+        validations: {
+          'cart.lineItems[].product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+      [VIEWED_CHECKOUT_STEP]: {
+        fields: ['step'],
+        validations: {
+          'step': {
+            warnings: ['required'],
+          },
+        },
+      },
+      [COMPLETED_TRANSACTION]: {
+        fields: [
+          'transaction.orderId',
+          'transaction.total',
+          'transaction.lineItems[].product.id',
+        ],
+        validation: {
+          'transaction.orderId': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'transaction.total': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+          'transaction.lineItems[].product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+    };
+
+    return config[event.name];
   }
 
   initialize() {

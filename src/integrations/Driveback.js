@@ -49,19 +49,41 @@ class Driveback extends Integration {
     });
   }
 
-  getEventValidations(event) {
-    if (event.name === VIEWED_EXPERIMENT || event.name === ACHIEVED_EXPERIMENT_GOAL) {
-      if (typeof event.experiment === 'string') {
-        return [
-          ['experiment', { required: true, string: true }],
-        ];
-      }
-      return [
-        ['experiment.id', { required: true, string: true }],
-        ['experiment.variationId', { numeric: true }],
-      ];
+  getEventValidationConfig(event) {
+    let fields;
+    let validations;
+
+    if (typeof event.experiment === 'string') {
+      fields = ['experiment'];
+      validations = {
+        'experiment': {
+          errors: ['required', 'string'],
+        },
+      };
+    } else {
+      fields = ['experiment.id', 'experiment.variationId'];
+      validations = {
+        'experiment.id': {
+          errors: ['required', 'string'],
+        },
+        'experiment.variationId': {
+          errors: ['numeric'],
+        },
+      };
     }
-    return [];
+
+    const config = {
+      [VIEWED_EXPERIMENT]: {
+        fields: fields,
+        validations: validations,
+      },
+      [ACHIEVED_EXPERIMENT_GOAL]: {
+        fields: fields,
+        validations: validations,
+      },
+    };
+
+    return config[event.name];
   }
 
   initialize() {

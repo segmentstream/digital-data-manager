@@ -130,61 +130,133 @@ class Mindbox extends Integration {
     return enrichableProps;
   }
 
-  getEventValidations(event) {
-    let validations = [];
-    switch (event.name) {
-    case VIEWED_PAGE:
-      const setCartOperation = this.getOption('setCartOperation');
-      if (setCartOperation && getProp(event, 'cart.lineItems.length') > 0) {
-        validations = [
-          ['cart.lineItems[].product.id', { required: true }],
-          ['cart.lineItems[].product.unitSalePrice', { required: true }],
-          ['cart.lineItems[].product.skuCode', { required: true }, { critical: false }],
-          ['cart.lineItems[].quantity', { required: true }],
-        ];
-      }
-      break;
-    case VIEWED_PRODUCT_DETAIL:
-      validations = [
-        ['product.id', { required: true }],
+  getEventValidationConfig(event) {
+    let viewedPageFields = [];
+    let viewedPageValidations = {};
+
+    const setCartOperation = this.getOption('setCartOperation');
+    if (setCartOperation) {
+      viewedPageFields = [
+        'cart.lineItems[].product.id',
+        'cart.lineItems[].product.unitSalePrice',
+        'cart.lineItems[].product.skuCode',
+        'cart.lineItems[].quantity',
       ];
-      break;
-    case VIEWED_PRODUCT_LISTING:
-      validations = [
-        ['listing.categoryId', { required: true }],
-      ];
-      break;
-    case ADDED_PRODUCT:
-      validations = [
-        ['product.id', { required: true }],
-        ['product.unitSalePrice', { required: true }],
-        ['product.skuCode', { required: true }, { critical: false }],
-      ];
-      break;
-    case REMOVED_PRODUCT:
-      validations = [
-        ['product.id', { required: true }],
-        ['product.unitSalePrice', { required: true }],
-        ['product.skuCode', { required: true }, { critical: false }],
-      ];
-      break;
-    case COMPLETED_TRANSACTION:
-      validations = [
-        ['transaction.orderId', { required: true }],
-        ['transaction.total', { required: true }],
-        ['transaction.shippingMethod', { required: true }, { critical: false }],
-        ['transaction.paymentMethod', { required: true }, { critical: false }],
-        ['transaction.lineItems[].product.id', { required: true }],
-        ['transaction.lineItems[].product.skuCode', { required: true }, { critical: false }],
-        ['transaction.lineItems[].product.unitSalePrice', { required: true }],
-        ['transaction.lineItems[].quantity', { required: true }],
-      ];
-      break;
-    default:
-      // do nothing
+      viewedPageValidations = {
+        'cart.lineItems[].product.id': {
+          errors: ['required'],
+          warnings: ['string'],
+        },
+        'cart.lineItems[].product.unitSalePrice': {
+          errors: ['required'],
+          warnings: ['numeric'],
+        },
+        'cart.lineItems[].quantity': {
+          errors: ['required'],
+          warnings: ['numeric'],
+        },
+        'cart.lineItems[].product.skuCode': {
+          warnings: ['required', 'string'],
+        },
+      };
     }
 
-    return validations;
+    const addRemoveProductFields = [
+      'product.id',
+      'product.skuCode',
+      'product.unitSalePrice',
+    ];
+    const addRemoveProductValidations = {
+      'product.id': {
+        errors: ['required'],
+        warnings: ['string'],
+      },
+      'product.skuCode': {
+        warnings: ['required', 'string'],
+      },
+      'product.unitSalePrice': {
+        errors: ['required'],
+        warnings: ['numeric'],
+      },
+    };
+
+    const config = {
+      [VIEWED_PAGE]: {
+        fields: viewedPageFields,
+        validations: viewedPageValidations,
+      },
+      [VIEWED_PRODUCT_DETAIL]: {
+        fields: ['product.id'],
+        validation: {
+          'product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+      [VIEWED_PRODUCT_LISTING]: {
+        fields: ['listing.categoryId'],
+        validations: {
+          'listing.categoryId': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+      [ADDED_PRODUCT]: {
+        fields: addRemoveProductFields,
+        validations: addRemoveProductValidations,
+      },
+      [REMOVED_PRODUCT]: {
+        fields: addRemoveProductFields,
+        validations: addRemoveProductValidations,
+      },
+      [COMPLETED_TRANSACTION]: {
+        fields: [
+          'transaction.orderId',
+          'transaction.total',
+          'transaction.shippingMethod',
+          'transaction.paymentMethod',
+          'transaction.lineItems[].product.id',
+          'transaction.lineItems[].product.skuCode',
+          'transaction.lineItems[].product.unitSalePrice',
+          'transaction.lineItems[].quantity',
+        ],
+        validations: {
+          'transaction.orderId': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'transaction.total': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+          'transaction.shippingMethod': {
+            warnings: ['required', 'string'],
+          },
+          'transaction.paymentMethod': {
+            warnings: ['required', 'string'],
+          },
+          'transaction.lineItems[].product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'transaction.lineItems[].product.skuCode': {
+            warnings: ['required', 'string'],
+          },
+          'transaction.lineItems[].product.unitSalePrice': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+          'transaction.lineItems[].quantity': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+        },
+      },
+    };
+
+    return config[event.name];
   }
 
   getEnrichableUserProps() {

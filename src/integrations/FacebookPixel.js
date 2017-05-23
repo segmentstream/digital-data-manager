@@ -121,37 +121,63 @@ class FacebookPixel extends Integration {
     return enrichableProps;
   }
 
-  getEventValidations(event) {
-    switch (event.name) {
-    case VIEWED_PRODUCT_DETAIL:
-    case ADDED_PRODUCT:
-      return [
-        ['product.id', { required: true }],
-        ['product.name', { required: true }, { critical: false }],
-        ['product.category', { required: true }, { critical: false }],
-      ];
-    case ADDED_PRODUCT_TO_WISHLIST:
-      return [
-        ['product.id', { required: true }, { critical: false }],
-        ['product.name', { required: true }, { critical: false }],
-        ['product.category', { required: true }, { critical: false }],
-      ];
-    case SEARCHED_PRODUCTS:
-      return [
-        ['listing.query', { required: true }],
-      ];
-    case COMPLETED_TRANSACTION:
-      const validations = [
-        ['transaction.lineItems[].product.id', { required: true }],
-        ['transaction.total', { required: true }],
-      ];
-      if (!getProp(event, 'website.currency')) {
-        validations.push(['transaction.currency', { required: true }, { critical: false }]);
-      }
-      return validations;
-    default:
-      return [];
-    }
+  getEventValidationConfig(event) {
+    const productFields = ['product.id', 'product.name', 'product.category'];
+    const productValidations = {
+      'product.id': {
+        errors: ['required'],
+        warnings: ['string'],
+      },
+      'product.name': {
+        warnings: ['required', 'string'],
+      },
+      'product.category': {
+        warnings: ['required', 'array'],
+      },
+    };
+    const config = {
+      [VIEWED_PRODUCT_DETAIL]: {
+        fields: productFields,
+        validations: productValidations,
+      },
+      [ADDED_PRODUCT]: {
+        fields: productFields,
+        validations: productValidations,
+      },
+      [ADDED_PRODUCT_TO_WISHLIST]: {
+        fields: productFields,
+        validations: productValidations,
+      },
+      [SEARCHED_PRODUCTS]: {
+        fields: ['listing.query'],
+        validations: {
+          'listing.query': {
+            errors: ['required'],
+          },
+        },
+      },
+      [COMPLETED_TRANSACTION]: {
+        fields: [
+          'transaction.total',
+          'transaction.currency',
+          'transaction.lineItems[].product.id',
+        ],
+        validations: {
+          'transaction.total': {
+            errors: ['required', 'numeric'],
+          },
+          'transaction.currency': {
+            errors: ['required', 'string'],
+          },
+          'transaction.lineItems[].product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+    };
+
+    return config[event.name];
   }
 
   isLoaded() {

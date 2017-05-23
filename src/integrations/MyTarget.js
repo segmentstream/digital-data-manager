@@ -108,45 +108,71 @@ class MyTarget extends Integration {
     return enrichableProps;
   }
 
-  getEventValidations(event) {
-    let validations = [];
-    switch (event.name) {
-    case VIEWED_PAGE:
-      validations = [
-        ['page.type', { required: true }],
-      ];
-      break;
-    case VIEWED_PRODUCT_DETAIL:
-      validations = [
-        ['product.id', { required: true }],
-        ['product.unitSalePrice', { required: true }, { critical: false }],
-      ];
-      break;
-    case VIEWED_CART:
-      if (event.cart && Array.isArray(event.cart.lineItems)) {
-        validations = [
-          ['cart.lineItems[].product.id', { required: true }],
-          ['cart.total', { required: true }],
-        ];
+  getEventValidationConfig(event) {
+    const config = {
+      [VIEWED_PAGE]: {
+        fields: ['page.type'],
+        validations: {
+          'page.type': {
+            errors: ['required', 'string'],
+          },
+        },
+      },
+      [VIEWED_PRODUCT_DETAIL]: {
+        fields: ['product.id', 'product.unitSalePrice'],
+        validations: {
+          'product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'product.unitSalePrice': {
+            warings: ['required', 'numeric'],
+          },
+        },
+      },
+      [VIEWED_CART]: {
+        fields: ['cart.total', 'cart.lineItems[].product.id'],
+        validations: {
+          'cart.total': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+          'cart.lineItems[].product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+      [COMPLETED_TRANSACTION]: {
+        fields: ['transaction.total', 'transaction.lineItems[].product.id'],
+        validations: {
+          'transaction.total': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+          'transaction.lineItems[].product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+    };
+
+    const validationConfig = config[event.name];
+
+    if (validationConfig) {
+      // check if listVar presents in event
+      const listVar = this.getOption('listVar');
+      if (listVar && listVar.type === DIGITALDATA_VAR) {
+        validationConfig.fields.push('listVar.value');
+        validationConfig.validations[listVar.value] = {
+          errors: ['required'],
+          warnings: ['numeric'],
+        };
       }
-      break;
-    case COMPLETED_TRANSACTION:
-      validations = [
-        ['transaction.lineItems[].product.id', { required: true }],
-        ['transaction.total', { required: true }],
-      ];
-      break;
-    default:
-      // do nothing
     }
 
-    // check if listVar presents in event
-    const listVar = this.getOption('listVar');
-    if (listVar && listVar.type === DIGITALDATA_VAR) {
-      validations.push([listVar.value, { required: true }]);
-    }
-
-    return validations;
+    return validationConfig;
   }
 
   isLoaded() {

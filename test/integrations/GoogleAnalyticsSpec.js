@@ -1393,6 +1393,7 @@ describe('Integrations: GoogleAnalytics', () => {
             name: 'Viewed Product',
             listItem: {
               product: {
+                id: 'p-298',
                 currency: 'CAD',
                 unitPrice: 24.75,
                 name: 'my product',

@@ -121,7 +121,7 @@ class AdSpire extends Integration {
             warnings: ['required', 'string'],
           },
           'listing.category': {
-            warnings: ['required', 'string'],
+            warnings: ['required', 'array'],
           },
         },
       },
@@ -180,7 +180,7 @@ class AdSpire extends Integration {
             warnings: ['string'],
           },
           'transaction.total': {
-            warnings: ['required', 'string'],
+            warnings: ['required', 'numeric'],
           },
           'transaction.lineItems[].product.id': {
             warnings: ['required', 'string'],

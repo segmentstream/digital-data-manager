@@ -122,6 +122,7 @@ class Admitad extends Integration {
           'transaction.lineItems[].product.id',
           'transaction.lineItems[].product.unitSalePrice',
           'context.campaign.source',
+          'context.campaign.medium',
           'integrations.admitad.actionCode',
         ],
         validations: {

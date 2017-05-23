@@ -1,6 +1,5 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
-import { getProp } from './../functions/dotProp';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -86,53 +85,73 @@ class GoogleAdWords extends Integration {
     return enrichableProps;
   }
 
-  getEventValidations(event) {
-    let validations = [];
-    switch (event.name) {
-    case VIEWED_PAGE:
-      validations = [
-        ['page.type', { required: true }],
-      ];
-      break;
-    case VIEWED_PRODUCT_DETAIL:
-      validations = [
-        ['product.id', { required: true }],
-        ['product.unitSalePrice', { required: true }, { critical: false }],
-        ['product.category', { required: true }, { critical: false }],
-      ];
-      break;
-    case VIEWED_PRODUCT_LISTING:
-      validations = [
-        ['listing.category', { required: true }],
-      ];
-      break;
-    case VIEWED_CART:
-      if (event.cart && Array.isArray(event.cart.lineItems)) {
-        validations = [
-          ['cart.lineItems[].product.id', { required: true }],
-        ];
-        const subtotalValidation = ['cart.subtotal', { required: true }];
-        if (getProp(event, 'cart.total')) {
-          subtotalValidation.push({ critical: false });
-        }
-        validations.push(subtotalValidation);
-      }
-      break;
-    case COMPLETED_TRANSACTION:
-      validations = [
-        ['transaction.lineItems[].product.id', { required: true }],
-      ];
-      const subtotalValidation = ['transaction.subtotal', { required: true }];
-      if (getProp(event, 'transaction.total')) {
-        subtotalValidation.push({ critical: false });
-      }
-      validations.push(subtotalValidation);
-      break;
-    default:
-      // do nothing
-    }
+  getEventValidationConfig(event) {
+    const config = {
+      [VIEWED_PAGE]: {
+        fields: ['page.type'],
+        validations: {
+          'page.type': {
+            errors: ['required', 'string'],
+          },
+        },
+      },
+      [VIEWED_PRODUCT_DETAIL]: {
+        fields: [
+          'product.id',
+          'product.unitSalePrice',
+          'product.category',
+        ],
+        validations: {
+          'product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'product.unitSalePrice': {
+            warnings: ['required', 'numeric'],
+          },
+          'product.category': {
+            warnings: ['required', 'array'],
+          },
+        },
+        [VIEWED_PRODUCT_LISTING]: {
+          fields: ['listing.category'],
+          validations: {
+            'listing.category': {
+              errors: ['required'],
+              warnings: ['array'],
+            },
+          },
+        },
+        [VIEWED_CART]: {
+          fields: ['cart.subtotal', 'cart.lineItems[].product.id'],
+          validations: {
+            'cart.subtotal': {
+              errors: ['required'],
+              warnings: ['string'],
+            },
+            'cart.lineItems[].product.id': {
+              errors: ['required'],
+              warnings: ['string'],
+            },
+          },
+        },
+        [COMPLETED_TRANSACTION]: {
+          fields: ['transaction.subtotal', 'transaction.lineItems[].product.id'],
+          validations: {
+            'transaction.subtotal': {
+              errors: ['required'],
+              warnings: ['string'],
+            },
+            'transaction.lineItems[].product.id': {
+              errors: ['required'],
+              warnings: ['string'],
+            },
+          },
+        },
+      },
+    };
 
-    return validations;
+    return config[event.name];
   }
 
   initialize() {

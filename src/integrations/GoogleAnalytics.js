@@ -184,7 +184,18 @@ class GoogleAnalytics extends Integration {
       'product.manufacturer',
       'product.variation',
       'product.voucher',
+      'product.currency',
     ];
+    const listItemFields = [];
+    const listItemsFields = [];
+    for (const productField of productFields) {
+      listItemFields.push(['listItem', productField].join('.'));
+      listItemsFields.push(['listItem[]', productField].join('.'));
+    }
+    for (const field of ['listName', 'position']) {
+      listItemFields.push(['listItem', field].join('.'));
+      listItemsFields.push(['listItem[]', field].join('.'));
+    }
     const productValidations = {
       'product.id': {
         errors: ['required'],
@@ -206,6 +217,71 @@ class GoogleAnalytics extends Integration {
       'product.variant': {
         warnings: ['string'],
       },
+      'product.currency': {
+        warnings: ['required', 'string'],
+      },
+    };
+    const listItemValidations = {
+      'listItem.listName': {
+        warnings: ['string'],
+      },
+      'listItem.position': {
+        warnings: ['numeric'],
+      },
+    };
+    const listItemsValidations = {
+      'listItems[].listName': {
+        warnings: ['string'],
+      },
+      'listItems[].position': {
+        warnings: ['numeric'],
+      },
+    };
+    each(productValidations, (key, value) => {
+      listItemValidations[['listItem', key].join('.')] = value;
+      listItemsValidations[['listItems[]', key].join('.')] = value;
+    });
+    const campaignFields = [
+      'campaign.id',
+      'campaign.name',
+      'campaign.design',
+      'campaign.position',
+    ];
+    const campaignsFields = [
+      'campaigns[].id',
+      'campaigns[].name',
+      'campaigns[].design',
+      'campaigns[].position',
+    ];
+    const campaignValidations = {
+      'campaign.id': {
+        errors: ['required'],
+        warnings: ['string'],
+      },
+      'campaign.name': {
+        warnings: ['required', 'string'],
+      },
+      'campaign.design': {
+        warnings: ['string'],
+      },
+      'campaign.position': {
+        warnings: ['required', 'string'],
+      },
+    };
+    const campaignsValidations = {
+      'campaigns[].id': {
+        errors: ['required'],
+        warnings: ['string'],
+      },
+      'campaigns[].name': {
+        warnings: ['required', 'string'],
+      },
+      'campaigns[].design': {
+        warnings: ['required', 'string'],
+      },
+      'campaigns[].position': {
+        warnings: ['required', 'string'],
+      },
     };
 
     const config = {
@@ -221,6 +297,22 @@ class GoogleAnalytics extends Integration {
         fields: productFields,
         validations: productValidations,
       },
+      [CLICKED_PRODUCT]: {
+        fields: listItemFields,
+        validations: listItemValidations,
+      },
+      [VIEWED_PRODUCT]: {
+        fields: event.listItem ? listItemFields : listItemsFields,
+        validations: event.listItem ? listItemValidations : listItemsValidations,
+      },
+      [CLICKED_CAMPAIGN]: {
+        fields: campaignFields,
+        validations: campaignValidations,
+      },
+      [VIEWED_CAMPAIGN]: {
+        fields: event.campaign ? campaignFields : campaignsFields,
+        validations: event.campaign ? campaignValidations : campaignsValidations,
+      },
       [COMPLETED_TRANSACTION]: {
         fields: [
           'transaction.orderId',
@@ -229,6 +321,10 @@ class GoogleAnalytics extends Integration {
           'transaction.lineItems[].product.category',
           'transaction.lineItems[].product.unitSalePrice',
           'transaction.total',
+          'transaction.affiliation',
+          'transaction.tax',
+          'transaction.shippingCost',
+          'transaction.vouchers',
         ],
         validations: {
           'transaction.orderId': {
@@ -250,6 +346,15 @@ class GoogleAnalytics extends Integration {
           },
           'transaction.total': {
             warnings: ['required', 'numeric'],
+          },
+          'transaction.currency': {
+            warnings: ['required', 'string'],
+          },
+          'transaction.vouchers': {
+            warnings: ['array'],
+          },
+          'transaction.tax': {
+            warnings: ['numeric'],
           },
         },
       },

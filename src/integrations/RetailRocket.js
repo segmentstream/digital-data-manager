@@ -103,34 +103,84 @@ class RetailRocket extends Integration {
     return enrichableProps;
   }
 
-  getEventValidations(event) {
-    switch (event.name) {
-    case VIEWED_PRODUCT_DETAIL:
-      return [
-        ['product.id', { required: true }],
-      ];
-    case ADDED_PRODUCT:
-      return [
-        ['product.id', { required: true }],
-      ];
-    case VIEWED_PRODUCT_LISTING:
-      return [
-        ['listing.categoryId', { required: true }],
-      ];
-    case SEARCHED_PRODUCTS:
-      return [
-        ['listing.query', { required: true }],
-      ];
-    case COMPLETED_TRANSACTION:
-      return [
-        ['transaction.orderId', { required: true }],
-        ['transaction.lineItems[].product.id', { required: true }],
-        ['transaction.lineItems[].product.unitSalePrice', { required: true }],
-        ['transaction.lineItems[].quantity', { required: true }],
-      ];
-    default:
-      return [];
-    }
+  getEventValidationConfig(event) {
+    const config = {
+      [VIEWED_PAGE]: {
+        fields: ['user.email', 'user.isSubscribed'],
+        validations: {
+          'user.email': {
+            warnings: ['string'],
+          },
+          'user.isSubscribed': {
+            warnings: ['boolean'],
+          },
+        },
+      },
+      [VIEWED_PRODUCT_DETAIL]: {
+        fields: ['product.id'],
+        validations: {
+          'product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+      [ADDED_PRODUCT]: {
+        fields: ['product.id'],
+        validations: {
+          'product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+      [VIEWED_PRODUCT_LISTING]: {
+        fields: ['listing.categoryId'],
+        validations: {
+          'listing.categoryId': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+      [SEARCHED_PRODUCTS]: {
+        fields: ['listing.query'],
+        validations: {
+          'listing.query': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+      [COMPLETED_TRANSACTION]: {
+        fields: [
+          'transaction.orderId',
+          'transaction.lineItems[].product.id',
+          'transaction.lineItems[].product.unitSalePrice',
+          'transaction.lineItems[].quantity',
+        ],
+        validations: {
+          'transaction.orderId': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'transaction.lineItems[].product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'transaction.lineItems[].product.unitSalePrice': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+          'transaction.lineItems[].quantity': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+        },
+      },
+    };
+
+    return config[event.name];
   }
 
   initialize() {
