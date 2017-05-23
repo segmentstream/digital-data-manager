@@ -277,7 +277,7 @@ class GoogleAnalytics extends Integration {
         warnings: ['required', 'string'],
       },
       'campaigns[].design': {
-        warnings: ['required', 'string'],
+        warnings: ['string'],
       },
       'campaigns[].position': {
         warnings: ['required', 'string'],
