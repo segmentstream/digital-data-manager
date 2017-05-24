@@ -17,10 +17,6 @@ const SEMANTIC_EVENTS = [
   COMPLETED_TRANSACTION,
 ];
 
-function go() {
-  window.ScarabQueue.push(['go']);
-}
-
 function calculateLineItemSubtotal(lineItem) {
   const product = lineItem.product;
   const price = product.unitSalePrice || product.unitPrice || 0;
@@ -234,6 +230,11 @@ class Emarsys extends Integration {
     */
   }
 
+  go() {
+    window.ScarabQueue.push(['go']);
+    this.pageTracked = true;
+  }
+
   trackEvent(event) {
     const methods = {
       [VIEWED_PAGE]: 'onViewedPage',
@@ -254,9 +255,10 @@ class Emarsys extends Integration {
   }
 
   onViewedPage(event) {
+    this.pageTracked = false;
+
     const user = event.user || {};
     const cart = event.cart || {};
-    const page = event.page;
 
     if (user.email) {
       window.ScarabQueue.push(['setEmail', user.email]);
@@ -269,9 +271,12 @@ class Emarsys extends Integration {
       window.ScarabQueue.push(['cart', []]);
     }
 
-    // product, category, search and confirmation pages are tracked separately
-    if (['product', 'category', 'search', 'confirmation'].indexOf(page.type) < 0) {
-      go();
+    if (!this.pageTracked) {
+      setTimeout(() => {
+        if (!this.pageTracked) {
+          this.go();
+        }
+      }, 100);
     }
   }
 
@@ -284,7 +289,7 @@ class Emarsys extends Integration {
       }
       window.ScarabQueue.push(['category', category]);
     }
-    go();
+    this.go();
   }
 
   onViewedProductDetail(event) {
@@ -292,7 +297,7 @@ class Emarsys extends Integration {
     if (product.id || product.skuCode) {
       window.ScarabQueue.push(['view', product.id || product.skuCode]);
     }
-    go();
+    this.go();
   }
 
   onSearchedProducts(event) {
@@ -300,7 +305,7 @@ class Emarsys extends Integration {
     if (listing.query) {
       window.ScarabQueue.push(['searchTerm', listing.query]);
     }
-    go();
+    this.go();
   }
 
   onCompletedTransaction(event) {
@@ -311,7 +316,7 @@ class Emarsys extends Integration {
         items: mapLineItems(transaction.lineItems),
       }]);
     }
-    go();
+    this.go();
   }
 }
 

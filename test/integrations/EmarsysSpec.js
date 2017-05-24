@@ -316,16 +316,20 @@ describe('Integrations: Emarsys', () => {
 
       it('should send "go" for any other page', (done) => {
         viewedPageOfType('home', () => {
-          assert.ok(window.ScarabQueue.push.calledWith(['go']));
-          done();
+          setTimeout(() => {
+            assert.ok(window.ScarabQueue.push.calledWith(['go']));
+            done();
+          }, 101);
         });
       });
 
       it('should send "go" for any other page (digitalData)', (done) => {
         window.digitalData.page.type = 'home';
         viewedPage(() => {
-          assert.ok(window.ScarabQueue.push.calledWith(['go']));
-          done();
+          setTimeout(() => {
+            assert.ok(window.ScarabQueue.push.calledWith(['go']));
+            done();
+          }, 101);
         });
       });
     });
