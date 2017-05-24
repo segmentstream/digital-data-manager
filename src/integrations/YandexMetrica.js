@@ -165,7 +165,7 @@ class YandexMetrica extends Integration {
           'product.currency': {
             warnings: ['required', 'string'],
           },
-        }
+        },
       },
       [ADDED_PRODUCT]: {
         fields: [
