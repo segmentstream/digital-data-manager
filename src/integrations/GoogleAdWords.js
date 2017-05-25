@@ -223,14 +223,16 @@ class GoogleAdWords extends Integration {
 
   onViewedPage(event) {
     const page = event.page;
-    // product, category, listing, cart, checkout and confirmation pages are tracked separately
-    if (['product', 'listing', 'search', 'category', 'cart', 'checkout', 'confirmation'].indexOf(page.type) < 0) {
-      this.trackConversion({
-        ecomm_prodid: '',
-        ecomm_pagetype: (page.type === 'home') ? 'home' : 'other',
-        ecomm_totalvalue: '',
-      });
-    }
+    this.pageTracked = false;
+    setTimeout(() => {
+      if (!this.pageTracked) {
+        this.trackConversion({
+          ecomm_prodid: '',
+          ecomm_pagetype: (page.type === 'home') ? 'home' : 'other',
+          ecomm_totalvalue: '',
+        });
+      }
+    }, 100);
   }
 
   onViewedProductDetail(event) {
@@ -251,6 +253,7 @@ class GoogleAdWords extends Integration {
       ecomm_totalvalue: product.unitSalePrice || '',
       ecomm_category: category,
     });
+    this.pageTracked = true;
   }
 
   onSearchedProducts() {
@@ -259,6 +262,7 @@ class GoogleAdWords extends Integration {
       ecomm_pagetype: 'searchresults',
       ecomm_totalvalue: '',
     });
+    this.pageTracked = true;
   }
 
   onViewedProductListing(event) {
@@ -283,6 +287,7 @@ class GoogleAdWords extends Integration {
       ecomm_pagetype: 'other',
       ecomm_totalvalue: '',
     }, params));
+    this.pageTracked = true;
   }
 
   onViewedCart(event) {
@@ -296,6 +301,7 @@ class GoogleAdWords extends Integration {
       ecomm_pagetype: 'cart',
       ecomm_totalvalue: cart.subtotal || cart.total || '',
     });
+    this.pageTracked = true;
   }
 
   onCompletedTransaction(event) {
@@ -308,6 +314,7 @@ class GoogleAdWords extends Integration {
       ecomm_pagetype: 'purchase',
       ecomm_totalvalue: transaction.subtotal || transaction.total || '',
     });
+    this.pageTracked = true;
   }
 }
 
