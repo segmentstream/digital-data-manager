@@ -173,6 +173,9 @@ class AdSpire extends Integration {
           'transaction.lineItems[].product.unitSalePrice',
           'transaction.lineItems[].product.currency',
           'transaction.lineItems[].quantity',
+          'user.email',
+          'user.firstName',
+          'user.lastName',
         ],
         validations: {
           'transaction.orderId': {

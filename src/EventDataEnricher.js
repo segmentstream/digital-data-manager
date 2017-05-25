@@ -1,6 +1,10 @@
 import DDHelper from './DDHelper.js';
 import dotProp from './functions/dotProp';
 import deleteProperty from './functions/deleteProperty';
+import {
+  VIEWED_PRODUCT_DETAIL,
+  COMPLETED_TRANSACTION,
+} from './events';
 
 class EventDataEnricher
 {
@@ -19,6 +23,12 @@ class EventDataEnricher
         const eventVar = event[enrichableVar];
         event[enrichableVar] = enricherMethod(eventVar, digitalData);
       }
+    }
+
+    if (event.name === VIEWED_PRODUCT_DETAIL && !event.product && digitalData.product) {
+      event.product = DDHelper.get('product', digitalData);
+    } else if (event.name === COMPLETED_TRANSACTION && !event.transaction && digitalData.transaction) {
+      event.transaction = DDHelper.get('transaction', digitalData);
     }
 
     // enrich digitalData version
