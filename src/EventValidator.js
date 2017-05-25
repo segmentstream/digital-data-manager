@@ -163,7 +163,7 @@ export function validateIntegrationEvent(event, integration) {
   return [true];
 }
 
-export function trackValidationErrors(digitalData, event, integrationName, messages) {
+export function trackValidationErrors(digitalData, event, integrationName, messages = []) {
   for (const message of messages) {
     const [field, errorMsg, , resultType] = message;
     if (resultType === TYPE_ERROR) {

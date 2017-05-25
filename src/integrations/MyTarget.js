@@ -1,6 +1,7 @@
 import Integration from './../Integration';
 import deleteProperty from './../functions/deleteProperty';
 import getVarValue from './../functions/getVarValue';
+import { getProp } from './../functions/dotProp';
 import { DIGITALDATA_VAR } from './../variableTypes';
 import {
   VIEWED_PAGE,
@@ -111,15 +112,18 @@ class MyTarget extends Integration {
   getEventValidationConfig(event) {
     const config = {
       [VIEWED_PAGE]: {
-        fields: ['page.type'],
+        fields: ['page.type', 'integrations.mytarget.list'],
         validations: {
           'page.type': {
             errors: ['required', 'string'],
           },
+          'integrations.mytarget.list': {
+            warnings: ['numeric'],
+          },
         },
       },
       [VIEWED_PRODUCT_DETAIL]: {
-        fields: ['product.id', 'product.unitSalePrice'],
+        fields: ['product.id', 'product.unitSalePrice', 'integrations.mytarget.list'],
         validations: {
           'product.id': {
             errors: ['required'],
@@ -128,10 +132,13 @@ class MyTarget extends Integration {
           'product.unitSalePrice': {
             warings: ['required', 'numeric'],
           },
+          'integrations.mytarget.list': {
+            warnings: ['numeric'],
+          },
         },
       },
       [VIEWED_CART]: {
-        fields: ['cart.total', 'cart.lineItems[].product.id'],
+        fields: ['cart.total', 'cart.lineItems[].product.id', 'integrations.mytarget.list'],
         validations: {
           'cart.total': {
             errors: ['required'],
@@ -141,10 +148,13 @@ class MyTarget extends Integration {
             errors: ['required'],
             warnings: ['string'],
           },
+          'integrations.mytarget.list': {
+            warnings: ['numeric'],
+          },
         },
       },
       [COMPLETED_TRANSACTION]: {
-        fields: ['transaction.total', 'transaction.lineItems[].product.id'],
+        fields: ['transaction.total', 'transaction.lineItems[].product.id', 'integrations.mytarget.list'],
         validations: {
           'transaction.total': {
             errors: ['required'],
@@ -153,6 +163,9 @@ class MyTarget extends Integration {
           'transaction.lineItems[].product.id': {
             errors: ['required'],
             warnings: ['string'],
+          },
+          'integrations.mytarget.list': {
+            warnings: ['numeric'],
           },
         },
       },
@@ -184,11 +197,17 @@ class MyTarget extends Integration {
   }
 
   getList(event) {
-    const listVar = this.getOption('listVar');
     let list;
-    if (listVar) {
-      list = getVarValue(listVar, event);
+    if (event) {
+      list = getProp(event, 'integrations.mytarget.list');
     }
+    if (list === undefined) {
+      const listVar = this.getOption('listVar');
+      if (listVar) {
+        list = getVarValue(listVar, event);
+      }
+    }
+
     return list;
   }
 
@@ -211,19 +230,25 @@ class MyTarget extends Integration {
   }
 
   onViewedPage(event) {
+    this.pageTracked = false;
+
     window._tmr.push({
       id: this.getOption('counterId'),
       type: 'pageView',
       start: Date.now(),
     });
 
-    const page = event.page;
-    if (page) {
-      if (page.type === 'home') {
-        this.onViewedHome(event);
-      } else if (['product', 'listing', 'category', 'checkout', 'confirmation', 'cart'].indexOf(page.type) < 0) {
-        this.onViewedOtherPage(event);
-      }
+    const page = event.page || {};
+    if (page.type === 'home') {
+      this.onViewedHome(event);
+    }
+
+    if (!this.pageTracked) {
+      setTimeout(() => {
+        if (!this.pageTracked) {
+          this.onViewedOtherPage(event);
+        }
+      }, 100);
     }
   }
 
@@ -235,6 +260,7 @@ class MyTarget extends Integration {
       totalvalue: '',
       list: this.getList(event),
     });
+    this.pageTracked = true;
   }
 
   onViewedProductCategory(event) {
@@ -245,6 +271,7 @@ class MyTarget extends Integration {
       totalvalue: '',
       list: this.getList(event),
     });
+    this.pageTracked = true;
   }
 
   onViewedProductDetail(event) {
@@ -256,6 +283,7 @@ class MyTarget extends Integration {
       totalvalue: product.unitSalePrice || '',
       list: this.getList(event),
     });
+    this.pageTracked = true;
   }
 
   onViewedCart(event) {
@@ -273,6 +301,7 @@ class MyTarget extends Integration {
       totalvalue: cart.total || '',
       list: this.getList(event),
     });
+    this.pageTracked = true;
   }
 
   onViewedOtherPage(event) {
@@ -283,6 +312,7 @@ class MyTarget extends Integration {
       totalvalue: '',
       list: this.getList(event),
     });
+    this.pageTracked = true;
   }
 
   onCompletedTransaction(event) {
@@ -299,6 +329,7 @@ class MyTarget extends Integration {
       totalvalue: transaction.total || transaction.subtotal || '',
       list: this.getList(event),
     });
+    this.pageTracked = true;
   }
 
   trackCustomEvent(event) {

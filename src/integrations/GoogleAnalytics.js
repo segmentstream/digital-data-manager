@@ -186,15 +186,16 @@ class GoogleAnalytics extends Integration {
       'product.voucher',
       'product.currency',
     ];
+    const addProductFields = productFields.concat('quantity');
     const listItemFields = [];
     const listItemsFields = [];
     for (const productField of productFields) {
       listItemFields.push(['listItem', productField].join('.'));
-      listItemsFields.push(['listItem[]', productField].join('.'));
+      listItemsFields.push(['listItems[]', productField].join('.'));
     }
     for (const field of ['listName', 'position']) {
       listItemFields.push(['listItem', field].join('.'));
-      listItemsFields.push(['listItem[]', field].join('.'));
+      listItemsFields.push(['listItems[]', field].join('.'));
     }
     const productValidations = {
       'product.id': {
@@ -221,6 +222,11 @@ class GoogleAnalytics extends Integration {
         warnings: ['required', 'string'],
       },
     };
+    const addProductValidations = Object.assign(productValidations, {
+      'quantity': {
+        warnings: ['required', 'numeric'],
+      },
+    });
     const listItemValidations = {
       'listItem.listName': {
         warnings: ['string'],
@@ -283,15 +289,39 @@ class GoogleAnalytics extends Integration {
         warnings: ['required', 'string'],
       },
     };
+    const pageValidations = {
+      'page.url': {
+        warnings: ['string'],
+      },
+      'page.path': {
+        warnings: ['string'],
+      },
+      'page.queryString': {
+        warnings: ['string'],
+      },
+      'page.name': {
+        warnings: ['string'],
+      },
+      'page.title': {
+        warnings: ['string'],
+      },
+    };
+    if (!this.pageCalled) {
+      pageValidations['page.url'].warnings.push('required');
+    }
 
     const config = {
+      [VIEWED_PAGE]: {
+        fields: ['page.url', 'page.path', 'page.queryString', 'page.name', 'page.title'],
+        validations: pageValidations,
+      },
       [VIEWED_PRODUCT_DETAIL]: {
         fields: productFields,
         validations: productValidations,
       },
       [ADDED_PRODUCT]: {
-        fields: productFields,
-        validations: productValidations,
+        fields: addProductFields,
+        validations: addProductValidations,
       },
       [REMOVED_PRODUCT]: {
         fields: productFields,
@@ -312,6 +342,27 @@ class GoogleAnalytics extends Integration {
       [VIEWED_CAMPAIGN]: {
         fields: event.campaign ? campaignFields : campaignsFields,
         validations: event.campaign ? campaignValidations : campaignsValidations,
+      },
+      [VIEWED_CHECKOUT_STEP]: {
+        fields: ['step', 'option'],
+        validations: {
+          'step': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+        },
+      },
+      [COMPLETED_CHECKOUT_STEP]: {
+        fields: ['step', 'option'],
+        validations: {
+          'step': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+          'option': {
+            warnings: ['required', 'string'],
+          },
+        },
       },
       [COMPLETED_TRANSACTION]: {
         fields: [
@@ -360,7 +411,30 @@ class GoogleAnalytics extends Integration {
       },
     };
 
-    return config[event.name];
+    if (config[event.name]) {
+      return config[event.name];
+    }
+
+    return {
+      fields: ['label', 'action', 'category', 'value', 'nonInteraction'],
+      validations: {
+        'label': {
+          warnings: ['string'],
+        },
+        'action': {
+          warnings: ['string'],
+        },
+        'category': {
+          warnings: ['string'],
+        },
+        'value': {
+          warnings: ['numeric'],
+        },
+        nonInteraction: {
+          warnings: ['boolean'],
+        },
+      },
+    };
   }
 
   initialize(version) {
@@ -756,7 +830,6 @@ class GoogleAnalytics extends Integration {
 
   onViewedProduct(event) {
     event.nonInteraction = true;
-
     let listItems = event.listItems;
     if ((!listItems || !Array.isArray(listItems)) && event.listItem) {
       listItems = [event.listItem];
