@@ -215,6 +215,7 @@ describe('Integrations: FacebookPixel', () => {
           callback: () => {
             assert.ok(window.fbq.calledWith('track', 'AddToWishlist', {
               content_ids: ['123'],
+              content_type: 'product',
               content_name: 'Test Product',
               content_category: 'Category 1/Subcategory 1',
             }), 'fbq("track", "AddToWishlist") was not called');
