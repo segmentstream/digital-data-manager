@@ -113,39 +113,39 @@ class GoogleAdWords extends Integration {
             warnings: ['required', 'array'],
           },
         },
-        [VIEWED_PRODUCT_LISTING]: {
-          fields: ['listing.category'],
-          validations: {
-            'listing.category': {
-              errors: ['required'],
-              warnings: ['array'],
-            },
+      },
+      [VIEWED_PRODUCT_LISTING]: {
+        fields: ['listing.category'],
+        validations: {
+          'listing.category': {
+            errors: ['required'],
+            warnings: ['array'],
           },
         },
-        [VIEWED_CART]: {
-          fields: ['cart.subtotal', 'cart.lineItems[].product.id'],
-          validations: {
-            'cart.subtotal': {
-              errors: ['required'],
-              warnings: ['string'],
-            },
-            'cart.lineItems[].product.id': {
-              errors: ['required'],
-              warnings: ['string'],
-            },
+      },
+      [VIEWED_CART]: {
+        fields: ['cart.subtotal', 'cart.lineItems[].product.id'],
+        validations: {
+          'cart.subtotal': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+          'cart.lineItems[].product.id': {
+            errors: ['required'],
+            warnings: ['string'],
           },
         },
-        [COMPLETED_TRANSACTION]: {
-          fields: ['transaction.subtotal', 'transaction.lineItems[].product.id'],
-          validations: {
-            'transaction.subtotal': {
-              errors: ['required'],
-              warnings: ['string'],
-            },
-            'transaction.lineItems[].product.id': {
-              errors: ['required'],
-              warnings: ['string'],
-            },
+      },
+      [COMPLETED_TRANSACTION]: {
+        fields: ['transaction.subtotal', 'transaction.lineItems[].product.id'],
+        validations: {
+          'transaction.subtotal': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+          'transaction.lineItems[].product.id': {
+            errors: ['required'],
+            warnings: ['string'],
           },
         },
       },
