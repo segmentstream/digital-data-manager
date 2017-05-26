@@ -237,6 +237,7 @@ class FacebookPixel extends Integration {
     const category = getProductCategory(product);
     window.fbq('track', 'AddToWishlist', cleanObject({
       content_ids: [product.id || ''],
+      content_type: 'product',
       content_name: product.name,
       content_category: category,
     }));
