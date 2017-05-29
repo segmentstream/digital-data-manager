@@ -124,11 +124,14 @@ class Driveback extends Integration {
 
   enrichDigitalData() {
     if (!window.dbex.chooseVariations) return; // TODO: hotfix, remove later
-    window.dbex(() => {
-      this.digitalData.user = this.digitalData.user || {};
-      this.digitalData.user.experiments = window.dbex.chooseVariations();
-      this.onEnrich();
-    });
+    window.ddListener.push(['on', 'beforeEvent', (event) => {
+      if (event.name === VIEWED_PAGE) {
+        window.dbex(() => {
+          window.digitalData.changes.push(['user.experiments', window.dbex.chooseVariations(), 'DDM Driveback Integration']);
+          this.onEnrich();
+        });
+      }
+    }]);
   }
 
   trackEvent(event) {
