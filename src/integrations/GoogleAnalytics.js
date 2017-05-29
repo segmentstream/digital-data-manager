@@ -6,6 +6,7 @@ import each from './../functions/each.js';
 import size from './../functions/size.js';
 import clone from './../functions/clone';
 import cookie from 'js-cookie';
+import arrayMerge from './../functions/arrayMerge';
 import {
   SESSION_STARTED,
   VIEWED_PAGE,
@@ -100,6 +101,7 @@ class GoogleAnalytics extends Integration {
       includeSearch: false,
       siteSpeedSampleRate: 1,
       defaultCurrency: 'USD',
+      fields: {},
       metrics: {},
       dimensions: {},
       contentGroupings: {}, // legacy version
@@ -411,30 +413,33 @@ class GoogleAnalytics extends Integration {
       },
     };
 
-    if (config[event.name]) {
-      return config[event.name];
+    let validationConfig = config[event.name];
+    if (!validationConfig) {
+      validationConfig = {
+        fields: ['label', 'action', 'category', 'value', 'nonInteraction'],
+        validations: {
+          'label': {
+            warnings: ['string'],
+          },
+          'action': {
+            warnings: ['string'],
+          },
+          'category': {
+            warnings: ['string'],
+          },
+          'value': {
+            warnings: ['numeric'],
+          },
+          nonInteraction: {
+            warnings: ['boolean'],
+          },
+        },
+      };
     }
 
-    return {
-      fields: ['label', 'action', 'category', 'value', 'nonInteraction'],
-      validations: {
-        'label': {
-          warnings: ['string'],
-        },
-        'action': {
-          warnings: ['string'],
-        },
-        'category': {
-          warnings: ['string'],
-        },
-        'value': {
-          warnings: ['numeric'],
-        },
-        nonInteraction: {
-          warnings: ['boolean'],
-        },
-      },
-    };
+    arrayMerge(validationConfig.fields, this.getAllDimensionsProps());
+
+    return validationConfig;
   }
 
   initialize(version) {
@@ -505,13 +510,15 @@ class GoogleAnalytics extends Integration {
 
   prepareCustomDimensions() {
     this.enrichableDimensionsProps = [];
+    this.allDimensionsProps = [];
     this.productLevelDimensions = {};
     this.hitLevelDimensions = {};
 
     let settings = Object.assign(
       this.getOption('metrics'),
       this.getOption('dimensions'),
-      this.getOption('contentGroups')
+      this.getOption('contentGroups'),
+      this.getOption('fields')
     );
 
     if (!this.initVersion) {
@@ -534,8 +541,10 @@ class GoogleAnalytics extends Integration {
         } else {
           if (variable.type === DIGITALDATA_VAR) {
             this.enrichableDimensionsProps.push(variable.value);
+            this.allDimensionsProps.push(variable.value);
             this.hitLevelDimensions[key] = variable.value;
           } else if (variable.type === EVENT_VAR) {
+            this.allDimensionsProps.push(variable.value);
             this.hitLevelDimensions[key] = variable.value;
           }
         }
@@ -545,6 +554,10 @@ class GoogleAnalytics extends Integration {
 
   getEnrichableDimensionsProps() {
     return this.enrichableDimensionsProps || [];
+  }
+
+  getAllDimensionsProps() {
+    return this.allDimensionsProps || [];
   }
 
   getProductLevelDimensions() {
