@@ -114,14 +114,16 @@ class Criteo extends Integration {
   getEventValidationConfig(event) {
     const listingValidations = {};
     const listingFields = [];
-    for (let i = 0; i < 4; i++) {
+    const listingItemsCount = getProp(event, 'listing.items.length') || 0;
+    for (let i = 0; i < Math.min(listingItemsCount, 4); i++) {
       const fieldName = ['listing.items', i, 'id'].join('.');
       listingFields.push(fieldName);
       listingValidations[fieldName] = {
-        errors: i === 0 ? ['required'] : [], // at least one item is required
+        errors: ['required'],
         warnings: ['string'],
       };
     }
+
     const config = {
       [VIEWED_PAGE]: {
         fields: [
@@ -242,6 +244,7 @@ class Criteo extends Integration {
       window.criteo_q.push(this.criteo_q);
     }
     this.criteo_q = [];
+    this.pageTracked = true;
   }
 
   initialize() {
@@ -283,6 +286,8 @@ class Criteo extends Integration {
   }
 
   onViewedPage(event) {
+    this.pageTracked = false;
+
     const page = event.page;
     let siteType;
     if (event.version && page && semver.cmp(event.version, '1.1.0') < 0) {
@@ -324,14 +329,15 @@ class Criteo extends Integration {
     if (page) {
       if (page.type === 'home') {
         this.onViewedHome(event);
-      } else if (
-        !page.type ||
-        ['category', 'product', 'search', 'cart', 'confirmation'].indexOf(page.type) < 0
-      ) {
-        this.pushCriteoQueue();
       }
-    } else {
-      this.pushCriteoQueue();
+    }
+
+    if (!this.pageTracked) {
+      setTimeout(() => {
+        if (!this.pageTracked) {
+          this.pushCriteoQueue();
+        }
+      }, 100);
     }
   }
 

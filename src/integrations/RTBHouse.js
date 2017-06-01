@@ -128,6 +128,18 @@ class RTBHouse extends Integration {
   }
 
   getEventValidationConfig(event) {
+    const listingValidations = {};
+    const listingFields = [];
+    const listingItemsCount = getProp(event, 'listing.items.length') || 0;
+    for (let i = 0; i < Math.min(listingItemsCount, 5); i++) {
+      const fieldName = ['listing.items', i, 'id'].join('.');
+      listingFields.push(fieldName);
+      listingValidations[fieldName] = {
+        errors: ['required'],
+        warnings: ['string'],
+      };
+    }
+
     const config = {
       [VIEWED_PAGE]: {
         fields: ['page.type'],
@@ -156,13 +168,8 @@ class RTBHouse extends Integration {
         },
       },
       [SEARCHED_PRODUCTS]: {
-        fields: ['listing.items[].id'],
-        validations: {
-          'listing.items[].id': {
-            errors: ['required'],
-            warnings: ['string'],
-          },
-        },
+        fields: listingFields,
+        validations: listingValidations,
       },
       [VIEWED_CART]: {
         fields: ['cart.lineItems[].product.id'],
@@ -286,10 +293,14 @@ class RTBHouse extends Integration {
 
     const productIds = listing.items.reduce((str, product, index) => {
       if (index > 0) {
-        return [str, product.id].join(',');
+        if (index < 5) {
+          return [str, product.id].join(',');
+        }
+        return str;
       }
       return product.id;
     }, '');
+
     this.load('listing', { productIds });
     this.pageTracked = true;
   }

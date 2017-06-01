@@ -8,7 +8,9 @@ function viewedPage(eventData, callback) {
   window.digitalData.events.push(Object.assign({
     name: 'Viewed Page',
     callback: () => {
-      callback();
+      setTimeout(() => {
+        callback();
+      }, 101);
     }
   }, eventData));
 }
@@ -289,91 +291,68 @@ describe('Integrations: Criteo', () => {
       });
 
       it('should send viewHome event if user visits home page', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Page',
+        viewedPage({
           page: {
             type: 'home'
           },
-          callback: () => {
-            assert.deepEqual(window.criteo_q[0][3], {event: 'viewHome'})
-            done();
-          }
+        }, () => {
+          assert.deepEqual(window.criteo_q[0][3], {event: 'viewHome'})
+          done();
         });
       });
 
       it('should send viewHome event without segment if userSegment option is not defined', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Page',
+        viewedPage({
           page: {
             type: 'home'
           },
           user: {
             criteoSegment: '2'
           },
-          callback: () => {
-            assert.deepEqual(window.criteo_q[0][3], {
-              event: 'viewHome',
-            });
-            done();
-          }
+        }, () => {
+          assert.deepEqual(window.criteo_q[0][3], {
+            event: 'viewHome',
+          });
+          done();
         });
       });
 
       it('should send viewHome event with segment if user visits home page', (done) => {
         criteo.setOption('userSegmentVar', 'user.criteoSegment');
         window.digitalData.user.criteoSegment = '2';
-        window.digitalData.events.push({
-          name: 'Viewed Page',
+        viewedPage({
           page: {
             type: 'home'
           },
-          callback: () => {
-            assert.deepEqual(window.criteo_q[0][3], {
-              event: 'viewHome',
-              user_segment: '2'
-            });
-            done();
-          }
+        }, () => {
+          assert.deepEqual(window.criteo_q[0][3], {
+            event: 'viewHome',
+            user_segment: '2'
+          });
+          done();
         });
       });
 
       it('should not send viewHome event if user visits other pages', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Page',
+        viewedPage({
           page: {
             type: 'content'
           },
-          callback: () => {
-            assert.ok(!window.criteo_q[0][3]);
-            done();
-          }
-        });
-      });
-
-      it('should not send any hit if user visits specific pages', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          page: {
-            type: 'product'
-          },
-          callback: () => {
-            assert.ok(!window.criteo_q[0]);
-            done();
-          }
+        }, () => {
+          assert.ok(!window.criteo_q[0][3]);
+          done();
         });
       });
 
       it('should not send viewHome event if noConflict setting is true', (done) => {
         criteo.setOption('noConflict', true);
-        window.digitalData.events.push({
-          name: 'Viewed Page',
+        viewedPage({
           page: {
             type: 'home'
           },
-          callback: () => {
-            assert.ok(!window.criteo_q[0]);
-            done();
-          }
+        }, () => {
+          assert.ok(!window.criteo_q[0]);
+          done();
         });
       });
     });
@@ -458,6 +437,7 @@ describe('Integrations: Criteo', () => {
       });
 
       it('should send viewList event with user_segment if user visits listing page with more than 3 items', (done) => {
+        sinon.spy(criteo, 'pushCriteoQueue');
         criteo.setOption('userSegmentVar', 'user.criteoSegment');
         window.digitalData.user = {
           criteoSegment: '2'
@@ -487,12 +467,16 @@ describe('Integrations: Criteo', () => {
             ]
           },
           callback: () => {
-            assert.deepEqual(window.criteo_q[0][3], {
-              event: 'viewList',
-              user_segment: '2',
-              item: ['123', '234', '345']
-            });
-            done();
+            setTimeout(() => {
+              assert.deepEqual(window.criteo_q[0][3], {
+                event: 'viewList',
+                user_segment: '2',
+                item: ['123', '234', '345']
+              });
+              assert.ok(criteo.pushCriteoQueue.calledOnce);
+              criteo.pushCriteoQueue.restore();
+              done();
+            }, 101);
           }
         });
       });

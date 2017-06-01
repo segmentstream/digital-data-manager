@@ -85,9 +85,11 @@ describe('Integrations: Sociomantic', () => {
             type: 'home',
           },
           callback: () => {
-            assert.deepEqual(window[options.prefix + 'customer'], { identifier: '55123' });
-            assert.ok(sociomantic.loadTrackingScript.calledOnce);
-            done();
+            setTimeout(() => {
+              assert.deepEqual(window[options.prefix + 'customer'], { identifier: '55123' });
+              assert.ok(sociomantic.loadTrackingScript.calledOnce);
+              done();
+            }, 101);
           },
         });
       });
@@ -102,10 +104,12 @@ describe('Integrations: Sociomantic', () => {
             type: 'home',
           },
           callback: () => {
-            const hash = '0e1fe3da996f0c7089514661961912be86d73adf59dc0e689ebdc3e67a897ba9';
-            assert.equal(window[options.prefix + 'customer'].mhash, hash);
-            assert.ok(sociomantic.loadTrackingScript.calledOnce);
-            done();
+            setTimeout(() => {
+              const hash = '0e1fe3da996f0c7089514661961912be86d73adf59dc0e689ebdc3e67a897ba9';
+              assert.equal(window[options.prefix + 'customer'].mhash, hash);
+              assert.ok(sociomantic.loadTrackingScript.calledOnce);
+              done();
+            }, 101);
           },
         });
       });
@@ -117,9 +121,11 @@ describe('Integrations: Sociomantic', () => {
             type: 'home',
           },
           callback: () => {
-            assert.ok(!window[options.prefix + 'customer']);
-            assert.ok(sociomantic.loadTrackingScript.calledOnce);
-            done();
+            setTimeout(() => {
+              assert.ok(!window[options.prefix + 'customer']);
+              assert.ok(sociomantic.loadTrackingScript.calledOnce);
+              done();
+            }, 101);
           },
         });
       });
@@ -132,9 +138,11 @@ describe('Integrations: Sociomantic', () => {
             type: 'home',
           },
           callback: () => {
-            assert.ok(!window[options.prefix + 'customer']);
-            assert.ok(sociomantic.loadTrackingScript.calledOnce);
-            done();
+            setTimeout(() => {
+              assert.ok(!window[options.prefix + 'customer']);
+              assert.ok(sociomantic.loadTrackingScript.calledOnce);
+              done();
+            }, 101);
           },
         });
       });
@@ -143,8 +151,10 @@ describe('Integrations: Sociomantic', () => {
         window.digitalData.events.push({
           name: 'Viewed Page',
           callback: () => {
-            assert.ok(!window[options.prefix + 'basket']);
-            done();
+            setTimeout(() => {
+              assert.ok(!window[options.prefix + 'basket']);
+              done();
+            }, 101);
           },
         });
       });
@@ -274,10 +284,12 @@ describe('Integrations: Sociomantic', () => {
                 type: 'home',
               },
               callback: () => {
-                assert.deepEqual(window[options.prefix + 'customer'], { identifier: '55123' });
-                assert.ok(sociomantic.loadTrackingScript.calledTwice);
-                assert.ok(sociomantic.clearTrackingObjects.calledOnce);
-                done();
+                setTimeout(() => {
+                  assert.deepEqual(window[options.prefix + 'customer'], { identifier: '55123' });
+                  assert.ok(sociomantic.loadTrackingScript.calledTwice);
+                  assert.ok(sociomantic.clearTrackingObjects.calledOnce);
+                  done();
+                }, 101);
               },
             });
           },

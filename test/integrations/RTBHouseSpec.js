@@ -162,12 +162,24 @@ describe('Integrations: RTBHouse', () => {
               },
               {
                 id: '234'
-              }
+              },
+              {
+                id: '345'
+              },
+              {
+                id: '456'
+              },
+              {
+                id: '567'
+              },
+              {
+                id: '678'
+              },
             ]
           },
           callback: () => {
             assert.ok(rtbHouse.load.calledWith('listing', {
-              productIds: '123,234'
+              productIds: '123,234,345,456,567'
             }));
             done();
           }
