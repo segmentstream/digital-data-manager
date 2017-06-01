@@ -276,6 +276,10 @@ export class Integration extends EventEmitter
     return false;
   }
 
+  allowNoConflictInitialization() {
+    return false;
+  }
+
   trackCategorizedPages() {
     return false;
   }

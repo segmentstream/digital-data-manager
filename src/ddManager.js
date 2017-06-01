@@ -223,7 +223,11 @@ function _initializeIntegrations(settings) {
     const loaded = after(size(_integrations), onLoad);
     if (size(_integrations) > 0) {
       each(_integrations, (name, integration) => {
-        if (!integration.isLoaded() || integration.getOption('noConflict')) {
+        if (
+          !integration.isLoaded()
+          || integration.getOption('noConflict')
+          || integration.allowNoConflictInitialization()
+        ) {
           integration.once('load', loaded);
           integration.initialize(version);
           integration.setInitialized(true);

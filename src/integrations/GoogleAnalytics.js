@@ -139,6 +139,10 @@ class GoogleAnalytics extends Integration {
     return true;
   }
 
+  allowNoConflictInitialization() {
+    return true;
+  }
+
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
