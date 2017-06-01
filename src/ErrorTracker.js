@@ -9,7 +9,7 @@ export function enableErrorTracking(digitalData) {
     // In case the "errorObject" is available, use its data, else fallback
     // on the default "errorMessage" provided:
     let exceptionDescription = errorMessage;
-    if (typeof errorObject !== 'undefined' && typeof errorObject.message !== 'undefined') {
+    if (errorObject && typeof errorObject.message !== 'undefined') {
       exceptionDescription = errorObject.message;
     }
 

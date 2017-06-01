@@ -11,13 +11,15 @@ export function isTestMode() {
   return window.localStorage.getItem('_ddm_test_mode') === '1';
 }
 
-export function valueIsLogable(value) {
-  return (value !== undefined && value !== null && !(Array.isArray(value) && typeof(value[0]) === 'object'));
-}
-
 export function prepareValueForLog(value) {
-  if (typeof value === 'object') {
+  if (Array.isArray(value)) {
+    if (value[0] && typeof value[0] === 'object') {
+      return '[Array of Objects]';
+    }
     return JSON.stringify(value);
+  }
+  if (typeof value === 'object') {
+    return '[Object]';
   }
   if (typeof value === 'string') {
     return '"' + value + '"';
@@ -51,17 +53,9 @@ export function showTestModeOverlay() {
 export function logValidationResult(event, messages) {
   for (const [field, errorMsg, value, resultType] of messages) {
     if (resultType === TYPE_SUCCESS) {
-      if (!valueIsLogable(value)) {
-        log(`%c[${resultType}] ${field}`, `color: ${validationMessagesColors[resultType]};`);
-      } else {
-        log(`%c[${resultType}] ${field}: ${prepareValueForLog(value)}`, `color: ${validationMessagesColors[resultType]};`);
-      }
+      log(`%c[${resultType}] ${field}: ${prepareValueForLog(value)}`, `color: ${validationMessagesColors[resultType]};`);
     } else {
-      if (!valueIsLogable(value)) {
-        log(`%c[${resultType}] ${field} ${errorMsg}`, `color: ${validationMessagesColors[resultType]};`);
-      } else {
-        log(`%c[${resultType}] ${field} ${errorMsg}: ${prepareValueForLog(value)}`, `color: ${validationMessagesColors[resultType]};`);
-      }
+      log(`%c[${resultType}] ${field} ${errorMsg}: ${prepareValueForLog(value)}`, `color: ${validationMessagesColors[resultType]};`);
     }
   }
 }

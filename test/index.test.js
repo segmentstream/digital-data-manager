@@ -1,6 +1,8 @@
 window.localStorage.clear();
 console.error = () => {};
 
+// window.__DEV_MODE__ = true; // disable catching exceptions
+
 import './../src/polyfill.js';
 
 // tests

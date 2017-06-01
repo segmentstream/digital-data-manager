@@ -176,8 +176,7 @@ class Criteo extends Integration {
             warnings: ['numeric'],
           },
           'cart.lineItems[].quantity': {
-            errors: ['required'],
-            warnings: ['numeric'],
+            warnings: ['required', 'numeric'],
           },
         },
       },
@@ -204,8 +203,7 @@ class Criteo extends Integration {
             warnings: ['numeric'],
           },
           'transaction.lineItems[].quantity': {
-            errors: ['required'],
-            warnings: ['numeric'],
+            warnings: ['required', 'numeric'],
           },
           'transaction.isFirst': {
             warnings: ['boolean'],

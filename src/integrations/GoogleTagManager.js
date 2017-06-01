@@ -21,6 +21,12 @@ class GoogleTagManager extends Integration {
     return true;
   }
 
+  getEventValidationConfig(event) {
+    return {
+      fields: Object.keys(event),
+    };
+  }
+
   initialize() {
     window.dataLayer = window.dataLayer || [];
     this.ddManager.on('ready', () => {
