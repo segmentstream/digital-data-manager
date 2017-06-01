@@ -17,7 +17,7 @@ class DDHelper {
       return clone(digitalData.product);
     }
     // search in listings
-    for (const listingKey of ['listing', 'recommendation']) {
+    for (const listingKey of ['listing', 'recommendation', 'wishlist']) {
       let listings = digitalData[listingKey];
       if (listings) {
         if (!Array.isArray(listings)) {
@@ -48,7 +48,7 @@ class DDHelper {
   static getListItem(id, digitalData, listId) {
     // search in listings
     const listingItem = {};
-    for (const listingKey of ['listing', 'recommendation']) {
+    for (const listingKey of ['listing', 'recommendation', 'wishlist']) {
       let listings = digitalData[listingKey];
       if (listings) {
         if (!Array.isArray(listings)) {
