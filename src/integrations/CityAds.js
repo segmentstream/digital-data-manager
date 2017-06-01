@@ -113,17 +113,41 @@ class CityAds extends Integration {
     return [];
   }
 
-  getEventValidations(event) {
-    if (event.name === COMPLETED_TRANSACTION) {
-      return [
-        ['transaction.orderId', { required: true }],
-        ['transaction.lineItems[].product.id', { required: true }, { critical: false }],
-        ['transaction.lineItems[].product.name', { required: true }, { critical: false }],
-        ['transaction.lineItems[].product.category', { required: true }, { critical: false }],
-        ['transaction.lineItems[].product.unitSalePrice', { required: true }, { critical: false }],
-      ];
-    }
-    return [];
+  getEventValidationConfig(event) {
+    const config = {
+      [COMPLETED_TRANSACTION]: {
+        fields: [
+          'transaction.orderId',
+          'transaction.lineItems[].product.id',
+          'transaction.lineItems[].product.name',
+          'transaction.lineItems[].product.category',
+          'transaction.lineItems[].product.unitSalePrice',
+          'context.campaign.source',
+          'context.campaign.medium',
+          'integrations.cityads.targetName',
+        ],
+        validations: {
+          'transaction.orderId': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'transaction.lineItems[].product.id': {
+            warnings: ['required', 'string'],
+          },
+          'transaction.lineItems[].product.name': {
+            warnings: ['required', 'string'],
+          },
+          'transaction.lineItems[].product.category': {
+            warnings: ['required', 'array'],
+          },
+          'transaction.lineItems[].product.unitSalePrice': {
+            warnings: ['required', 'numeric'],
+          },
+        },
+      },
+    };
+
+    return config[event.name];
   }
 
   isLoaded() {

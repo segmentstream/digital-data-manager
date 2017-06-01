@@ -111,56 +111,111 @@ class Criteo extends Integration {
     return enrichableProps;
   }
 
-  getEventValidations(event) {
-    let validations = [];
-    switch (event.name) {
-    case VIEWED_PAGE:
-      validations = [
-        ['page.type', { required: true }],
-      ];
-      break;
-    case VIEWED_PRODUCT_DETAIL:
-      validations = [
-        ['product.id', { required: true }],
-      ];
-      break;
-    case VIEWED_PRODUCT_LISTING:
-    case SEARCHED_PRODUCTS:
-      validations = [
-        ['listing.items[].id', { required: true }, { limit: 4 }],
-      ];
-      break;
-    case VIEWED_CART:
-      validations = [
-        ['cart.lineItems[].product.id', { required: true }],
-        ['cart.lineItems[].product.unitSalePrice', { required: true }],
-        ['cart.lineItems[].quantity', { required: true }],
-      ];
-      break;
-    case COMPLETED_TRANSACTION:
-      validations = [
-        ['transaction.orderId', { required: true }],
-        ['transaction.lineItems[].product.id', { required: true }],
-        ['transaction.lineItems[].product.unitSalePrice', { required: true }],
-        ['transaction.lineItems[].quantity', { required: true }],
-        ['transaction.isFirst', { required: true }, { critical: false }],
-      ];
-      break;
-    case SUBSCRIBED:
-      validations = [
-        ['user.email', { required: true }],
-      ];
-      break;
-    default:
-      // do nothing
+  getEventValidationConfig(event) {
+    const listingValidations = {};
+    const listingFields = [];
+    for (let i = 0; i < 4; i++) {
+      const fieldName = ['listing.items', i, 'id'].join('.');
+      listingFields.push(fieldName);
+      listingValidations[fieldName] = {
+        errors: i === 0 ? ['required'] : [], // at least one item is required
+        warnings: ['string'],
+      };
     }
+    const config = {
+      [VIEWED_PAGE]: {
+        fields: [
+          'website.type',
+          'page.type',
+          'user.email',
+        ],
+        validations: {
+          'website.type': {
+            warnings: ['string'],
+          },
+          'page.type': {
+            errors: ['required', 'string'],
+          },
+          'user.email': {
+            errors: ['string'],
+          },
+        },
+      },
+      [VIEWED_PRODUCT_DETAIL]: {
+        fields: [
+          'product.id',
+        ],
+        validations: {
+          'product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+      [VIEWED_PRODUCT_LISTING]: {
+        fields: listingFields,
+        validations: listingValidations,
+      },
+      [SEARCHED_PRODUCTS]: {
+        fields: listingFields,
+        validations: listingValidations,
+      },
+      [VIEWED_CART]: {
+        fields: [
+          'cart.lineItems[].product.id',
+          'cart.lineItems[].product.unitSalePrice',
+          'cart.lineItems[].quantity',
+        ],
+        validations: {
+          'cart.lineItems[].product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'cart.lineItems[].product.unitSalePrice': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+          'cart.lineItems[].quantity': {
+            warnings: ['required', 'numeric'],
+          },
+        },
+      },
+      [COMPLETED_TRANSACTION]: {
+        fields: [
+          'transaction.orderId',
+          'transaction.lineItems[].product.id',
+          'transaction.lineItems[].product.unitSalePrice',
+          'transaction.lineItems[].quantity',
+          'transaction.isFirst',
+          'context.campaign.source',
+        ],
+        validations: {
+          'transaction.orderId': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'transaction.lineItems[].product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'transaction.lineItems[].product.unitSalePrice': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+          'transaction.lineItems[].quantity': {
+            warnings: ['required', 'numeric'],
+          },
+          'transaction.isFirst': {
+            warnings: ['boolean'],
+          },
+          'context.campaign.source': {
+            warnings: ['string'],
+          },
+        },
+      },
+    };
 
-    const userSegmentVar = this.getOption('userSegmentVar');
-    if (userSegmentVar) {
-      validations.push([userSegmentVar, { required: true }, { critical: false }]);
-    }
-
-    return validations;
+    return config[event.name];
   }
 
   getUserSegment(event) {

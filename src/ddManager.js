@@ -119,7 +119,7 @@ function _trackIntegrationEvent(event, integration, trackValidationErrorsOption)
   const isInitialized = integration.isInitialized();
 
   if (isTestMode()) {
-    logEnrichedIntegrationEvent(event, integrationName, messages, isInitialized);
+    logEnrichedIntegrationEvent(event, integrationName, result, messages, isInitialized);
   }
 
   if (result && isInitialized) {
@@ -184,10 +184,10 @@ function _addIntegrationsEventTracking(trackValidationErrorsOption) {
       if (trackEvent) {
         try {
           const mappedEventName = mapEvent(event.name);
-          if (
-            integration.getSemanticEvents().indexOf(mappedEventName) < 0
-            && !integration.allowCustomEvents()
-          ) {
+          if (integration.getIgnoredEvents().indexOf(mappedEventName) >= 0) {
+            return;
+          }
+          if (integration.getSemanticEvents().indexOf(mappedEventName) < 0 && !integration.allowCustomEvents()) {
             return;
           }
           // important! cloned object is returned (not link)
@@ -243,7 +243,7 @@ function _initializeIntegrations(settings) {
 
 ddManager = {
 
-  VERSION: '1.2.36',
+  VERSION: '1.2.37',
 
   setAvailableIntegrations: (availableIntegrations) => {
     _availableIntegrations = availableIntegrations;

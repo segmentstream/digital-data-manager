@@ -56,16 +56,21 @@ class OneDMC extends Integration {
     return [];
   }
 
-  getEventValidations(event) {
+  getEventValidationConfig(event) {
     if (event.name === VIEWED_PAGE) {
       const anonymousIdVar = this.getOption('anonymousIdVar');
       if (anonymousIdVar) {
-        return [
-          [anonymousIdVar, { required: true }],
-        ];
+        return {
+          fields: [anonymousIdVar],
+          validations: {
+            [anonymousIdVar]: {
+              errors: ['required'],
+            },
+          },
+        };
       }
     }
-    return [];
+    return undefined;
   }
 
   initialize() {

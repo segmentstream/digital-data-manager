@@ -23,6 +23,7 @@ export const ACHIEVED_EXPERIMENT_GOAL = 'Achieved Experiment Goal';
 export const ADDED_PRODUCT_TO_WISHLIST = 'Added Product to Wishlist';
 export const REMOVED_PRODUCT_FROM_WISHLIST = 'Removed Product from Wishlist';
 export const EXCEPTION = 'Exception';
+export const SESSION_STARTED = 'Session Started';
 
 // legacy events
 export const VIEWED_PRODUCT_CATEGORY = 'Viewed Product Category';

@@ -124,9 +124,11 @@ describe('Integrations: MyTarget', () => {
             type: 'other'
           },
           callback: () => {
-            assert.equal(window._tmr[0].id, myTarget.getOption('counterId'));
-            assert.equal(window._tmr[0].type, 'pageView');
-            done();
+            setTimeout(() => {
+              assert.equal(window._tmr[0].id, myTarget.getOption('counterId'));
+              assert.equal(window._tmr[0].type, 'pageView');
+              done();
+            }, 101);
           }
         });
       });
@@ -139,8 +141,10 @@ describe('Integrations: MyTarget', () => {
             type: 'home'
           },
           callback: () => {
-            assert.equal(window._tmr.length, 0);
-            done();
+            setTimeout(() => {
+              assert.equal(window._tmr.length, 0);
+              done();
+            }, 101);
           }
         });
       });
@@ -154,15 +158,17 @@ describe('Integrations: MyTarget', () => {
             type: 'home'
           },
           callback: () => {
-            assert.equal(window._tmr.length, 2);
-            assert.deepEqual(window._tmr[1], {
-              type: 'itemView',
-              productid: '',
-              pagetype: 'home',
-              totalvalue: '',
-              list: myTarget.getList(),
-            });
-            done();
+            setTimeout(() => {
+              assert.equal(window._tmr.length, 2);
+              assert.deepEqual(window._tmr[1], {
+                type: 'itemView',
+                productid: '',
+                pagetype: 'home',
+                totalvalue: '',
+                list: myTarget.getList(),
+              });
+              done();
+            }, 101);
           }
         });
       });

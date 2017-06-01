@@ -167,35 +167,6 @@ describe('Integrations: GoogleAdWords', () => {
 
     describe('#onViewedPage', () => {
 
-      it('should not track conversion for page.type = product', (done) => {
-        viewedPageOfType('product', () => {
-          assert.ok(!window.google_trackConversion.called);
-          done();
-        });
-      });
-
-      it('should not track conversion for page.type = product (digitalData)', (done) => {
-        window.digitalData.page.type = 'product';
-        viewedPage(() => {
-          assert.ok(!window.google_trackConversion.called);
-          done();
-        });
-      });
-
-      it('should not track conversion for page.type = category', (done) => {
-        viewedPageOfType('category', () => {
-          assert.ok(!window.google_trackConversion.called);
-          done();
-        });
-      });
-
-      it('should not track conversion for page.type = confirmation', (done) => {
-        viewedPageOfType('confirmation', () => {
-          assert.ok(!window.google_trackConversion.called);
-          done();
-        });
-      });
-
       it('should track conversion for home page', (done) => {
         viewedPageOfType('home', () => {
           assert.ok(window.google_trackConversion.calledWith({
@@ -219,21 +190,6 @@ describe('Integrations: GoogleAdWords', () => {
             google_custom_params: {
               ecomm_prodid: '',
               ecomm_pagetype: 'home',
-              ecomm_totalvalue: ''
-            },
-            google_remarketing_only: adwords.getOption('remarketingOnly'),
-          }));
-          done();
-        });
-      });
-
-      it('should not track conversion for search page', (done) => {
-        viewedPageOfType('search', () => {
-          assert.ok(!window.google_trackConversion.calledWith({
-            google_conversion_id: adwords.getOption('conversionId'),
-            google_custom_params: {
-              ecomm_prodid: '',
-              ecomm_pagetype: 'searchresults',
               ecomm_totalvalue: ''
             },
             google_remarketing_only: adwords.getOption('remarketingOnly'),
@@ -275,7 +231,9 @@ describe('Integrations: GoogleAdWords', () => {
 
     describe('#onViewedProductListing', () => {
       it('should send category with default separator', (done) => {
+        viewedPageOfType('listing', () => {});
         viewedProductCategory(['Category', 'Subcategory 1', 'Subcategory 2'], () => {
+          assert.ok(window.google_trackConversion.calledOnce);
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
@@ -294,7 +252,9 @@ describe('Integrations: GoogleAdWords', () => {
         window.digitalData.listing = {
           category: ['Category', 'Subcategory 1', 'Subcategory 2']
         };
+        viewedPageOfType('listing', () => {});
         viewedProductCategory(undefined, () => {
+          assert.ok(window.google_trackConversion.calledOnce);
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
@@ -310,7 +270,9 @@ describe('Integrations: GoogleAdWords', () => {
       });
 
       it('should send "category" without separator', (done) => {
+        viewedPageOfType('listing', () => {});
         viewedProductCategory('Category 1', () => {
+          assert.ok(window.google_trackConversion.calledOnce);
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
@@ -326,7 +288,9 @@ describe('Integrations: GoogleAdWords', () => {
       });
 
       it('should track conversion for search page', (done) => {
+        viewedPageOfType('search', () => {});
         viewedSearchResults('test query', () => {
+          assert.ok(window.google_trackConversion.calledOnce);
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
@@ -345,11 +309,13 @@ describe('Integrations: GoogleAdWords', () => {
     describe('#onViewedProductDetail', () => {
 
       it('should send product id, value and category', (done) => {
+        viewedPageOfType('product', () => {});
         viewedProductDetail({
           id: '123',
           unitSalePrice: 100,
           category: ['Category', 'Subcategory']
         }, () => {
+          assert.ok(window.google_trackConversion.calledOnce);
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
@@ -370,7 +336,9 @@ describe('Integrations: GoogleAdWords', () => {
           unitSalePrice: 100,
           category: ['Category', 'Subcategory']
         };
+        viewedPageOfType('product', () => {});
         viewedProductDetail(undefined, () => {
+          assert.ok(window.google_trackConversion.calledOnce);
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
@@ -386,12 +354,14 @@ describe('Integrations: GoogleAdWords', () => {
       });
 
       it('should send product id, value and category for legacy DDL', (done) => {
+        viewedPageOfType('product', () => {});
         viewedProductDetail({
           id: '123',
           unitSalePrice: 100,
           category: 'Category',
           subcategory: 'Subcategory'
         }, () => {
+          assert.ok(window.google_trackConversion.calledOnce);
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
@@ -430,7 +400,9 @@ describe('Integrations: GoogleAdWords', () => {
       };
 
       it('should send product ids, value and pagetype', (done) => {
+        viewedPageOfType('cart', () => {});
         viewedCart(cart , () => {
+          assert.ok(window.google_trackConversion.calledOnce);
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
@@ -446,7 +418,9 @@ describe('Integrations: GoogleAdWords', () => {
 
       it('should send product ids, value and pagetype (digitalData)', (done) => {
         window.digitalData.cart = cart;
+        viewedPageOfType('cart', () => {});
         viewedCart(undefined , () => {
+          assert.ok(window.google_trackConversion.calledOnce);
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
@@ -464,6 +438,7 @@ describe('Integrations: GoogleAdWords', () => {
     describe('#onCompletedTransaction', () => {
 
       it('should send product ids, value and pagetype', (done) => {
+        viewedPageOfType('confirmation', () => {});
         completedTransaction({
           orderId: '123',
           lineItems: [
@@ -485,6 +460,7 @@ describe('Integrations: GoogleAdWords', () => {
           ],
           subtotal: 300
         }, () => {
+          assert.ok(window.google_trackConversion.calledOnce);
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
@@ -520,7 +496,9 @@ describe('Integrations: GoogleAdWords', () => {
           ],
           subtotal: 300
         };
+        viewedPageOfType('confirmation', () => {});
         completedTransaction(undefined, () => {
+          assert.ok(window.google_trackConversion.calledOnce);
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {

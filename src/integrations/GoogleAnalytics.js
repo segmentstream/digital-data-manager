@@ -6,7 +6,9 @@ import each from './../functions/each.js';
 import size from './../functions/size.js';
 import clone from './../functions/clone';
 import cookie from 'js-cookie';
+import arrayMerge from './../functions/arrayMerge';
 import {
+  SESSION_STARTED,
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
   VIEWED_PRODUCT_LISTING,
@@ -99,6 +101,7 @@ class GoogleAnalytics extends Integration {
       includeSearch: false,
       siteSpeedSampleRate: 1,
       defaultCurrency: 'USD',
+      fields: {},
       metrics: {},
       dimensions: {},
       contentGroupings: {}, // legacy version
@@ -126,6 +129,10 @@ class GoogleAnalytics extends Integration {
       return EC_SEMANTIC_EVENTS;
     }
     return SEMANTIC_EVENTS;
+  }
+
+  getIgnoredEvents() {
+    return [SESSION_STARTED, VIEWED_PRODUCT_LISTING, SEARCHED_PRODUCTS, VIEWED_CART];
   }
 
   allowCustomEvents() {
@@ -170,49 +177,349 @@ class GoogleAnalytics extends Integration {
     return enrichableProps;
   }
 
-  getEventValidations(event) {
-    let validations = [];
-    switch (event.name) {
-    case VIEWED_PRODUCT_DETAIL:
-      validations = [
-        ['product.id', { required: true }],
-        ['product.name', { required: true }, { critical: false }],
-        ['product.category', { required: true }, { critical: false }],
-        ['product.unitSalePrice', { required: true }, { critical: false }],
-      ];
-      break;
-    case ADDED_PRODUCT:
-      validations = [
-        ['product.id', { required: true }],
-        ['product.name', { required: true }, { critical: false }],
-        ['product.category', { required: true }, { critical: false }],
-        ['product.unitSalePrice', { required: true }, { critical: false }],
-        ['quantity', { required: true }, { critical: false }],
-      ];
-      break;
-    case REMOVED_PRODUCT:
-      validations = [
-        ['product.id', { required: true }],
-        ['product.name', { required: true }, { critical: false }],
-        ['product.category', { required: true }, { critical: false }],
-        ['quantity', { required: true }, { critical: false }],
-      ];
-      break;
-    case COMPLETED_TRANSACTION:
-      validations = [
-        ['transaction.orderId', { required: true }],
-        ['transaction.lineItems[].product.id', { required: true }],
-        ['transaction.lineItems[].product.name', { required: true }, { critical: false }],
-        ['transaction.lineItems[].product.category', { required: true }, { critical: false }],
-        ['transaction.lineItems[].product.unitSalePrice', { required: true }, { critical: false }],
-        ['transaction.total', { required: true }, { critical: false }],
-      ];
-      break;
-    default:
-      // do nothing
+  getEventValidationConfig(event) {
+    const productFields = [
+      'product.id',
+      'product.name',
+      'product.category',
+      'product.unitSalePrice',
+      'product.manufacturer',
+      'product.variation',
+      'product.voucher',
+      'product.currency',
+    ];
+    const productValidations = {
+      'product.id': {
+        errors: ['required'],
+        warnings: ['string'],
+      },
+      'product.name': {
+        warnings: ['required', 'string'],
+      },
+      'product.category': {
+        warnings: ['required', 'array'],
+      },
+      'product.unitSalePrice': {
+        errors: ['numeric'],
+        warnings: ['required'],
+      },
+      'product.manufacturer': {
+        warnings: ['string'],
+      },
+      'product.variant': {
+        warnings: ['string'],
+      },
+      'product.currency': {
+        warnings: ['required', 'string'],
+      },
+    };
+    const addProductFields = () => {
+      return productFields.concat('quantity');
+    };
+    const listItemFields = () => {
+      return productFields.map((productField) => {
+        return ['listItem', productField].join('.');
+      }).concat(['listItem.listName', 'listItem.position']);
+    };
+    const listItemsFields = () => {
+      return productFields.map((productField) => {
+        return ['listItems[]', productField].join('.');
+      }).concat(['listItems[].listName', 'listItems[].position']);
+    };
+    const cartLineItemsFields = () => {
+      return productFields.map((productField) => {
+        return ['cart.lineItems[]', productField].join('.');
+      }).concat(['cart.lineItems[].quantity']);
+    };
+    const transactionLineItemsFields = () => {
+      return productFields.map((productField) => {
+        return ['transaction.lineItems[]', productField].join('.');
+      }).concat(['transaction.lineItems[].quantity']);
+    };
+    const viewedCheckoutStepFields = () => {
+      const fields = (event.transaction) ? transactionLineItemsFields() : cartLineItemsFields();
+      arrayMerge(fields, ['step', 'option']);
+      return fields;
+    };
+
+    const addProductValidations = () => {
+      return Object.assign(productValidations, {
+        'quantity': {
+          warnings: ['required', 'numeric'],
+        },
+      });
+    };
+    const listItemValidations = () => {
+      return Object.keys(productValidations).reduce((validations, productField) => {
+        const key = ['listItem', productField].join('.');
+        validations[key] = productValidations[productField];
+        return validations;
+      }, {
+        'listItem.listName': {
+          warnings: ['string'],
+        },
+        'listItem.position': {
+          warnings: ['numeric'],
+        },
+      });
+    };
+    const listItemsValidations = () => {
+      return Object.keys(productValidations).reduce((validations, productField) => {
+        const key = ['listItems[]', productField].join('.');
+        validations[key] = productValidations[productField];
+        return validations;
+      }, {
+        'listItems[].listName': {
+          warnings: ['string'],
+        },
+        'listItems[].position': {
+          warnings: ['numeric'],
+        },
+      });
+    };
+    const cartLineItemsValidations = () => {
+      return Object.keys(productValidations).reduce((validations, productField) => {
+        const key = ['cart.lineItems[]', productField].join('.');
+        validations[key] = productValidations[productField];
+        return validations;
+      }, {
+        'cart.lineItems[].quantity': {
+          warnings: ['required', 'numeric'],
+        },
+      });
+    };
+    const transactionLineItemsValidations = () => {
+      return Object.keys(productValidations).reduce((validations, productField) => {
+        const key = ['transaction.lineItems[]', productField].join('.');
+        validations[key] = productValidations[productField];
+        return validations;
+      }, {
+        'transaction.lineItems[].quantity': {
+          warnings: ['required', 'numeric'],
+        },
+      });
+    };
+    const viewedCheckoutStepValidations = () => {
+      const validations = (event.transaction) ? transactionLineItemsValidations() : cartLineItemsValidations();
+      return Object.assign(validations, {
+        'step': {
+          errors: ['required'],
+          warnings: ['numeric'],
+        },
+      });
+    };
+
+    const campaignFields = [
+      'campaign.id',
+      'campaign.name',
+      'campaign.design',
+      'campaign.position',
+    ];
+    const campaignsFields = [
+      'campaigns[].id',
+      'campaigns[].name',
+      'campaigns[].design',
+      'campaigns[].position',
+    ];
+    const campaignValidations = {
+      'campaign.id': {
+        errors: ['required'],
+        warnings: ['string'],
+      },
+      'campaign.name': {
+        warnings: ['required', 'string'],
+      },
+      'campaign.design': {
+        warnings: ['string'],
+      },
+      'campaign.position': {
+        warnings: ['required', 'string'],
+      },
+    };
+    const campaignsValidations = {
+      'campaigns[].id': {
+        errors: ['required'],
+        warnings: ['string'],
+      },
+      'campaigns[].name': {
+        warnings: ['required', 'string'],
+      },
+      'campaigns[].design': {
+        warnings: ['string'],
+      },
+      'campaigns[].position': {
+        warnings: ['required', 'string'],
+      },
+    };
+    const pageValidations = {
+      'page.url': {
+        warnings: ['string'],
+      },
+      'page.path': {
+        warnings: ['string'],
+      },
+      'page.queryString': {
+        warnings: ['string'],
+      },
+      'page.name': {
+        warnings: ['string'],
+      },
+      'page.title': {
+        warnings: ['string'],
+      },
+    };
+
+    if (!this.pageCalled) {
+      pageValidations['page.url'].warnings.push('required');
     }
 
-    return validations;
+    const config = {
+      [VIEWED_PAGE]: () => {
+        return {
+          fields: ['page.url', 'page.path', 'page.queryString', 'page.name', 'page.title'],
+          validations: pageValidations,
+        };
+      },
+      [VIEWED_PRODUCT_DETAIL]: () => {
+        return {
+          fields: productFields,
+          validations: productValidations,
+        };
+      },
+      [ADDED_PRODUCT]: () => {
+        return {
+          fields: addProductFields(),
+          validations: addProductValidations(),
+        };
+      },
+      [REMOVED_PRODUCT]: () => {
+        return {
+          fields: productFields,
+          validations: productValidations,
+        };
+      },
+      [CLICKED_PRODUCT]: () => {
+        return {
+          fields: listItemFields(),
+          validations: listItemValidations(),
+        };
+      },
+      [VIEWED_PRODUCT]: () => {
+        return {
+          fields: event.listItem ? listItemFields() : listItemsFields(),
+          validations: event.listItem ? listItemValidations() : listItemsValidations(),
+        };
+      },
+      [CLICKED_CAMPAIGN]: () => {
+        return {
+          fields: campaignFields,
+          validations: campaignValidations,
+        };
+      },
+      [VIEWED_CAMPAIGN]: () => {
+        return {
+          fields: event.campaign ? campaignFields : campaignsFields,
+          validations: event.campaign ? campaignValidations : campaignsValidations,
+        };
+      },
+      [VIEWED_CHECKOUT_STEP]: () => {
+        return {
+          fields: viewedCheckoutStepFields(),
+          validations: viewedCheckoutStepValidations(),
+        };
+      },
+      [COMPLETED_CHECKOUT_STEP]: () => {
+        return {
+          fields: ['step', 'option'],
+          validations: {
+            'step': {
+              errors: ['required'],
+              warnings: ['numeric'],
+            },
+            'option': {
+              warnings: ['required', 'string'],
+            },
+          },
+        };
+      },
+      [COMPLETED_TRANSACTION]: () => {
+        return {
+          fields: [
+            'transaction.orderId',
+            'transaction.lineItems[].product.id',
+            'transaction.lineItems[].product.name',
+            'transaction.lineItems[].product.category',
+            'transaction.lineItems[].product.unitSalePrice',
+            'transaction.total',
+            'transaction.affiliation',
+            'transaction.tax',
+            'transaction.shippingCost',
+            'transaction.vouchers',
+          ],
+          validations: {
+            'transaction.orderId': {
+              errors: ['required'],
+              warning: ['string'],
+            },
+            'transaction.lineItems[].product.id': {
+              errors: ['required'],
+              warnings: ['string'],
+            },
+            'transaction.lineItems[].product.name': {
+              warnings: ['required', 'string'],
+            },
+            'transaction.lineItems[].product.category': {
+              warnings: ['required', 'array'],
+            },
+            'transaction.lineItems[].product.unitSalePrice': {
+              warnings: ['required', 'numeric'],
+            },
+            'transaction.total': {
+              warnings: ['required', 'numeric'],
+            },
+            'transaction.currency': {
+              warnings: ['required', 'string'],
+            },
+            'transaction.vouchers': {
+              warnings: ['array'],
+            },
+            'transaction.tax': {
+              warnings: ['numeric'],
+            },
+          },
+        };
+      },
+    };
+
+    let validationConfig = config[event.name];
+    if (!validationConfig) {
+      validationConfig = {
+        fields: ['label', 'action', 'category', 'value', 'nonInteraction'],
+        validations: {
+          'label': {
+            warnings: ['string'],
+          },
+          'action': {
+            warnings: ['string'],
+          },
+          'category': {
+            warnings: ['string'],
+          },
+          'value': {
+            warnings: ['numeric'],
+          },
+          nonInteraction: {
+            warnings: ['boolean'],
+          },
+        },
+      };
+    } else {
+      validationConfig = validationConfig();
+    }
+
+    arrayMerge(validationConfig.fields, this.getAllDimensionsProps());
+
+    return validationConfig;
   }
 
   initialize(version) {
@@ -283,13 +590,15 @@ class GoogleAnalytics extends Integration {
 
   prepareCustomDimensions() {
     this.enrichableDimensionsProps = [];
+    this.allDimensionsProps = [];
     this.productLevelDimensions = {};
     this.hitLevelDimensions = {};
 
     let settings = Object.assign(
       this.getOption('metrics'),
       this.getOption('dimensions'),
-      this.getOption('contentGroups')
+      this.getOption('contentGroups'),
+      this.getOption('fields')
     );
 
     if (!this.initVersion) {
@@ -312,8 +621,10 @@ class GoogleAnalytics extends Integration {
         } else {
           if (variable.type === DIGITALDATA_VAR) {
             this.enrichableDimensionsProps.push(variable.value);
+            this.allDimensionsProps.push(variable.value);
             this.hitLevelDimensions[key] = variable.value;
           } else if (variable.type === EVENT_VAR) {
+            this.allDimensionsProps.push(variable.value);
             this.hitLevelDimensions[key] = variable.value;
           }
         }
@@ -323,6 +634,10 @@ class GoogleAnalytics extends Integration {
 
   getEnrichableDimensionsProps() {
     return this.enrichableDimensionsProps || [];
+  }
+
+  getAllDimensionsProps() {
+    return this.allDimensionsProps || [];
   }
 
   getProductLevelDimensions() {
@@ -493,9 +808,6 @@ class GoogleAnalytics extends Integration {
   }
 
   trackEvent(event) {
-    if ([VIEWED_PRODUCT_LISTING, SEARCHED_PRODUCTS, VIEWED_CART].indexOf(event.name) >= 0) {
-      return; // ignore events (not semantic for GA)
-    }
     if (event.name === VIEWED_PAGE) {
       this.onViewedPage(event);
     } else if (event.name === EXCEPTION) {
@@ -611,7 +923,6 @@ class GoogleAnalytics extends Integration {
 
   onViewedProduct(event) {
     event.nonInteraction = true;
-
     let listItems = event.listItems;
     if ((!listItems || !Array.isArray(listItems)) && event.listItem) {
       listItems = [event.listItem];

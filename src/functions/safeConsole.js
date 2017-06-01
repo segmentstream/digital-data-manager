@@ -20,6 +20,9 @@ export function info(message) {
 }
 
 export function error(errorMsg) {
+  if (window.__DEV_MODE__) {
+    throw errorMsg;
+  }
   window.console.error(errorMsg);
 }
 

@@ -137,49 +137,126 @@ class YandexMetrica extends Integration {
     return enrichableProps;
   }
 
-  getEventValidations(event) {
-    let validations = [];
-    switch (event.name) {
-    case VIEWED_PRODUCT_DETAIL:
-      validations = [
-        ['product.id', { required: true }],
-        ['product.name', { required: true }, { critical: false }],
-        ['product.category', { required: true }, { critical: false }],
-        ['product.unitSalePrice', { required: true }, { critical: false }],
-      ];
-      break;
-    case ADDED_PRODUCT:
-      validations = [
-        ['product.id', { required: true }],
-        ['product.name', { required: true }, { critical: false }],
-        ['product.category', { required: true }, { critical: false }],
-        ['product.unitSalePrice', { required: true }, { critical: false }],
-        ['quantity', { required: true }, { critical: false }],
-      ];
-      break;
-    case REMOVED_PRODUCT:
-      validations = [
-        ['product.id', { required: true }],
-        ['product.name', { required: true }, { critical: false }],
-        ['product.category', { required: true }, { critical: false }],
-        ['quantity', { required: true }, { critical: false }],
-      ];
-      break;
-    case COMPLETED_TRANSACTION:
-      validations = [
-        ['transaction.orderId', { required: true }],
-        ['transaction.lineItems[].product.id', { required: true }],
-        ['transaction.lineItems[].product.name', { required: true }, { critical: false }],
-        ['transaction.lineItems[].product.category', { required: true }, { critical: false }],
-        ['transaction.lineItems[].product.unitSalePrice', { required: true }, { critical: false }],
-        ['transaction.total', { required: true }, { critical: false }],
-      ];
-      break;
-    default:
-      // do nothing
-    }
+  getEventValidationConfig(event) {
+    const config = {
+      [VIEWED_PRODUCT_DETAIL]: {
+        fields: [
+          'product.id',
+          'product.name',
+          'product.category',
+          'product.unitSalePrice',
+          'product.currency',
+        ],
+        validations: {
+          'product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'product.name': {
+            warnings: ['required', 'string'],
+          },
+          'product.category': {
+            warnings: ['required', 'array'],
+          },
+          'product.unitSalePrice': {
+            errors: ['numeric'],
+            warnings: ['required'],
+          },
+          'product.currency': {
+            warnings: ['required', 'string'],
+          },
+        },
+      },
+      [ADDED_PRODUCT]: {
+        fields: [
+          'product.id',
+          'product.name',
+          'product.category',
+          'product.unitSalePrice',
+          'product.currency',
+          'quantity',
+        ],
+        validations: {
+          'product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'product.name': {
+            warnings: ['required', 'string'],
+          },
+          'product.category': {
+            warnings: ['required', 'array'],
+          },
+          'product.unitSalePrice': {
+            errors: ['numeric'],
+            warnings: ['required'],
+          },
+          'product.currency': {
+            warnings: ['required', 'string'],
+          },
+          'quantity': {
+            warnings: ['required', 'numeric'],
+          },
+        },
+      },
+      [REMOVED_PRODUCT]: {
+        fields: [
+          'product.id',
+          'product.name',
+          'product.category',
+          'quantity',
+        ],
+        validations: {
+          'product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'product.name': {
+            warnings: ['required', 'string'],
+          },
+          'product.category': {
+            warnings: ['required', 'array'],
+          },
+          'quantity': {
+            warnings: ['required', 'numeric'],
+          },
+        },
+      },
+      [COMPLETED_TRANSACTION]: {
+        fields: [
+          'transaction.orderId',
+          'transaction.lineItems[].product.id',
+          'transaction.lineItems[].product.name',
+          'transaction.lineItems[].product.category',
+          'transaction.lineItems[].product.unitSalePrice',
+          'transaction.total',
+        ],
+        validations: {
+          'transaction.orderId': {
+            errors: ['required'],
+            warning: ['string'],
+          },
+          'transaction.lineItems[].product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'transaction.lineItems[].product.name': {
+            warnings: ['required', 'string'],
+          },
+          'transaction.lineItems[].product.category': {
+            warnings: ['required', 'array'],
+          },
+          'transaction.lineItems[].product.unitSalePrice': {
+            warnings: ['required', 'numeric'],
+          },
+          'transaction.total': {
+            warnings: ['required', 'numeric'],
+          },
+        },
+      },
+    };
 
-    return validations;
+    return config[event.name];
   }
 
   getEnrichableUserParamsProps() {

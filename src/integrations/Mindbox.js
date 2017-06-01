@@ -50,6 +50,13 @@ class Mindbox extends Integration {
       COMPLETED_TRANSACTION,
     ];
 
+    this.operationEvents = Object.keys(this.getOption('operationMapping'));
+    for (const operationEvent of this.operationEvents) {
+      if (this.SEMANTIC_EVENTS.indexOf(operationEvent) < 0) {
+        this.SEMANTIC_EVENTS.push(operationEvent);
+      }
+    }
+
     this.addTag({
       type: 'script',
       attr: {
@@ -77,10 +84,6 @@ class Mindbox extends Integration {
 
   getSemanticEvents() {
     return this.SEMANTIC_EVENTS;
-  }
-
-  allowCustomEvents() {
-    return true;
   }
 
   prepareEnrichableUserProps() {
@@ -125,6 +128,135 @@ class Mindbox extends Integration {
     }
 
     return enrichableProps;
+  }
+
+  getEventValidationConfig(event) {
+    let viewedPageFields = [];
+    let viewedPageValidations = {};
+
+    const setCartOperation = this.getOption('setCartOperation');
+    if (setCartOperation) {
+      viewedPageFields = [
+        'cart.lineItems[].product.id',
+        'cart.lineItems[].product.unitSalePrice',
+        'cart.lineItems[].product.skuCode',
+        'cart.lineItems[].quantity',
+      ];
+      viewedPageValidations = {
+        'cart.lineItems[].product.id': {
+          errors: ['required'],
+          warnings: ['string'],
+        },
+        'cart.lineItems[].product.unitSalePrice': {
+          errors: ['required'],
+          warnings: ['numeric'],
+        },
+        'cart.lineItems[].quantity': {
+          errors: ['required'],
+          warnings: ['numeric'],
+        },
+        'cart.lineItems[].product.skuCode': {
+          warnings: ['required', 'string'],
+        },
+      };
+    }
+
+    const addRemoveProductFields = [
+      'product.id',
+      'product.skuCode',
+      'product.unitSalePrice',
+    ];
+    const addRemoveProductValidations = {
+      'product.id': {
+        errors: ['required'],
+        warnings: ['string'],
+      },
+      'product.skuCode': {
+        warnings: ['required', 'string'],
+      },
+      'product.unitSalePrice': {
+        errors: ['required'],
+        warnings: ['numeric'],
+      },
+    };
+
+    const config = {
+      [VIEWED_PAGE]: {
+        fields: viewedPageFields,
+        validations: viewedPageValidations,
+      },
+      [VIEWED_PRODUCT_DETAIL]: {
+        fields: ['product.id'],
+        validation: {
+          'product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+      [VIEWED_PRODUCT_LISTING]: {
+        fields: ['listing.categoryId'],
+        validations: {
+          'listing.categoryId': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+      [ADDED_PRODUCT]: {
+        fields: addRemoveProductFields,
+        validations: addRemoveProductValidations,
+      },
+      [REMOVED_PRODUCT]: {
+        fields: addRemoveProductFields,
+        validations: addRemoveProductValidations,
+      },
+      [COMPLETED_TRANSACTION]: {
+        fields: [
+          'transaction.orderId',
+          'transaction.total',
+          'transaction.shippingMethod',
+          'transaction.paymentMethod',
+          'transaction.lineItems[].product.id',
+          'transaction.lineItems[].product.skuCode',
+          'transaction.lineItems[].product.unitSalePrice',
+          'transaction.lineItems[].quantity',
+        ],
+        validations: {
+          'transaction.orderId': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'transaction.total': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+          'transaction.shippingMethod': {
+            warnings: ['required', 'string'],
+          },
+          'transaction.paymentMethod': {
+            warnings: ['required', 'string'],
+          },
+          'transaction.lineItems[].product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'transaction.lineItems[].product.skuCode': {
+            warnings: ['required', 'string'],
+          },
+          'transaction.lineItems[].product.unitSalePrice': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+          'transaction.lineItems[].quantity': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+        },
+      },
+    };
+
+    return config[event.name];
   }
 
   getEnrichableUserProps() {

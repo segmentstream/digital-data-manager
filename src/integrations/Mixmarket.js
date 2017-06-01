@@ -68,14 +68,28 @@ class Mixmarket extends Integration {
     return enrichableProps;
   }
 
-  getEventValidations(event) {
-    if (event.name === COMPLETED_TRANSACTION) {
-      return [
-        ['transaction.orderId', { required: true }],
-        ['transaction.total', { required: true }],
-      ];
-    }
-    return [];
+  getEventValidationConfig(event) {
+    const config = {
+      [COMPLETED_TRANSACTION]: {
+        fields: [
+          'transaction.orderId',
+          'transaction.total',
+          'context.campaign.medium',
+        ],
+        validations: {
+          'transaction.orderId': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'transaction.total': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+        },
+      },
+    };
+
+    return config[event.name];
   }
 
   isLoaded() {

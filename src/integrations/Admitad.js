@@ -114,15 +114,35 @@ class Admitad extends Integration {
     return enrichableProps;
   }
 
-  getEventValidations(event) {
-    if (event.name === COMPLETED_TRANSACTION) {
-      return [
-        ['transaction.orderId', { required: true }],
-        ['transaction.lineItems[].product.id', { required: true }],
-        ['transaction.lineItems[].product.unitSalePrice', { required: true }],
-      ];
-    }
-    return [];
+  getEventValidationConfig(event) {
+    const config = {
+      [COMPLETED_TRANSACTION]: {
+        fields: [
+          'transaction.orderId',
+          'transaction.lineItems[].product.id',
+          'transaction.lineItems[].product.unitSalePrice',
+          'context.campaign.source',
+          'context.campaign.medium',
+          'integrations.admitad.actionCode',
+        ],
+        validations: {
+          'transaction.orderId': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'transaction.lineItems[].product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'transaction.lineItems[].product.unitSalePrice': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+        },
+      },
+    };
+
+    return config[event.name];
   }
 
   isLoaded() {

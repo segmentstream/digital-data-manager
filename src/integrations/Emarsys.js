@@ -1,5 +1,6 @@
-import Integration from './../Integration.js';
-import deleteProperty from './../functions/deleteProperty.js';
+import Integration from './../Integration';
+import deleteProperty from './../functions/deleteProperty';
+import { getProp } from './../functions/dotProp';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -15,10 +16,6 @@ const SEMANTIC_EVENTS = [
   SEARCHED_PRODUCTS,
   COMPLETED_TRANSACTION,
 ];
-
-function go() {
-  window.ScarabQueue.push(['go']);
-}
 
 function calculateLineItemSubtotal(lineItem) {
   const product = lineItem.product;
@@ -111,6 +108,102 @@ class Emarsys extends Integration {
     return enrichableProps;
   }
 
+  getEventValidationConfig(event) {
+    let viewedPageValidations = {
+      'page.type': {
+        errors: ['required', 'string'],
+      },
+      'user.email': {
+        errors: ['string'],
+      },
+      'user.userId': {
+        warnings: ['string'],
+      },
+    };
+
+    // validate cart if it is not empty
+    const lineItems = getProp(event, 'cart.lineItems');
+    if (lineItems && lineItems.length) {
+      viewedPageValidations = Object.assign(viewedPageValidations, {
+        'cart.lineItems[].product.id': {
+          warnings: ['required', 'string'],
+        },
+        'cart.lineItems[].product.unitSalePrice': {
+          warnings: ['required', 'numeric'],
+        },
+        'cart.lineItems[].qantity': {
+          warnings: ['required', 'numeric'],
+        },
+      });
+    }
+    const config = {
+      [VIEWED_PAGE]: {
+        fields: [
+          'page.type',
+          'user.email',
+          'user.userId',
+          'cart.lineItems',
+          'cart.lineItems[].product.id',
+          'cart.lineItems[].product.unitSalePrice',
+          'cart.lineItems[].quantity',
+        ],
+        validations: viewedPageValidations,
+      },
+      [VIEWED_PRODUCT_LISTING]: {
+        fields: ['listing.category'],
+        validations: {
+          'listing.category': {
+            errors: ['required'],
+            warnings: ['array'],
+          },
+        },
+      },
+      [SEARCHED_PRODUCTS]: {
+        fields: ['listing.query'],
+        validations: {
+          'listing.query': {
+            errors: ['required', 'string'],
+          },
+        },
+      },
+      [VIEWED_PRODUCT_DETAIL]: {
+        fields: ['product.id'],
+        validations: {
+          'product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+      [COMPLETED_TRANSACTION]: {
+        fields: [
+          'transaction.orderId',
+          'transaction.lineItems[].product.id',
+          'transaction.lineItems[].product.unitSalePrice',
+          'transaction.lineItems[].qantity',
+        ],
+        validations: {
+          'transaction.orderId': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'transaction.lineItems[].product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'transaction.lineItems[].product.unitSalePrice': {
+            warnings: ['required', 'numeric'],
+          },
+          'transaction.lineItems[].qantity': {
+            warnings: ['required', 'numeric'],
+          },
+        },
+      },
+    };
+
+    return config[event.name];
+  }
+
   isLoaded() {
     return (typeof ScarabQueue === 'object');
   }
@@ -137,6 +230,11 @@ class Emarsys extends Integration {
     */
   }
 
+  go() {
+    window.ScarabQueue.push(['go']);
+    this.pageTracked = true;
+  }
+
   trackEvent(event) {
     const methods = {
       [VIEWED_PAGE]: 'onViewedPage',
@@ -157,9 +255,10 @@ class Emarsys extends Integration {
   }
 
   onViewedPage(event) {
+    this.pageTracked = false;
+
     const user = event.user || {};
     const cart = event.cart || {};
-    const page = event.page;
 
     if (user.email) {
       window.ScarabQueue.push(['setEmail', user.email]);
@@ -172,9 +271,12 @@ class Emarsys extends Integration {
       window.ScarabQueue.push(['cart', []]);
     }
 
-    // product, category, search and confirmation pages are tracked separately
-    if (['product', 'category', 'search', 'confirmation'].indexOf(page.type) < 0) {
-      go();
+    if (!this.pageTracked) {
+      setTimeout(() => {
+        if (!this.pageTracked) {
+          this.go();
+        }
+      }, 100);
     }
   }
 
@@ -187,7 +289,7 @@ class Emarsys extends Integration {
       }
       window.ScarabQueue.push(['category', category]);
     }
-    go();
+    this.go();
   }
 
   onViewedProductDetail(event) {
@@ -195,7 +297,7 @@ class Emarsys extends Integration {
     if (product.id || product.skuCode) {
       window.ScarabQueue.push(['view', product.id || product.skuCode]);
     }
-    go();
+    this.go();
   }
 
   onSearchedProducts(event) {
@@ -203,7 +305,7 @@ class Emarsys extends Integration {
     if (listing.query) {
       window.ScarabQueue.push(['searchTerm', listing.query]);
     }
-    go();
+    this.go();
   }
 
   onCompletedTransaction(event) {
@@ -214,7 +316,7 @@ class Emarsys extends Integration {
         items: mapLineItems(transaction.lineItems),
       }]);
     }
-    go();
+    this.go();
   }
 }
 

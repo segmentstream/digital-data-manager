@@ -1,6 +1,5 @@
 import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
-import { getProp } from './../functions/dotProp';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -86,53 +85,73 @@ class GoogleAdWords extends Integration {
     return enrichableProps;
   }
 
-  getEventValidations(event) {
-    let validations = [];
-    switch (event.name) {
-    case VIEWED_PAGE:
-      validations = [
-        ['page.type', { required: true }],
-      ];
-      break;
-    case VIEWED_PRODUCT_DETAIL:
-      validations = [
-        ['product.id', { required: true }],
-        ['product.unitSalePrice', { required: true }, { critical: false }],
-        ['product.category', { required: true }, { critical: false }],
-      ];
-      break;
-    case VIEWED_PRODUCT_LISTING:
-      validations = [
-        ['listing.category', { required: true }],
-      ];
-      break;
-    case VIEWED_CART:
-      if (event.cart && Array.isArray(event.cart.lineItems)) {
-        validations = [
-          ['cart.lineItems[].product.id', { required: true }],
-        ];
-        const subtotalValidation = ['cart.subtotal', { required: true }];
-        if (getProp(event, 'cart.total')) {
-          subtotalValidation.push({ critical: false });
-        }
-        validations.push(subtotalValidation);
-      }
-      break;
-    case COMPLETED_TRANSACTION:
-      validations = [
-        ['transaction.lineItems[].product.id', { required: true }],
-      ];
-      const subtotalValidation = ['transaction.subtotal', { required: true }];
-      if (getProp(event, 'transaction.total')) {
-        subtotalValidation.push({ critical: false });
-      }
-      validations.push(subtotalValidation);
-      break;
-    default:
-      // do nothing
-    }
+  getEventValidationConfig(event) {
+    const config = {
+      [VIEWED_PAGE]: {
+        fields: ['page.type'],
+        validations: {
+          'page.type': {
+            errors: ['required', 'string'],
+          },
+        },
+      },
+      [VIEWED_PRODUCT_DETAIL]: {
+        fields: [
+          'product.id',
+          'product.unitSalePrice',
+          'product.category',
+        ],
+        validations: {
+          'product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+          'product.unitSalePrice': {
+            warnings: ['required', 'numeric'],
+          },
+          'product.category': {
+            warnings: ['required', 'array'],
+          },
+        },
+      },
+      [VIEWED_PRODUCT_LISTING]: {
+        fields: ['listing.category'],
+        validations: {
+          'listing.category': {
+            errors: ['required'],
+            warnings: ['array'],
+          },
+        },
+      },
+      [VIEWED_CART]: {
+        fields: ['cart.subtotal', 'cart.lineItems[].product.id'],
+        validations: {
+          'cart.subtotal': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+          'cart.lineItems[].product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+      [COMPLETED_TRANSACTION]: {
+        fields: ['transaction.subtotal', 'transaction.lineItems[].product.id'],
+        validations: {
+          'transaction.subtotal': {
+            errors: ['required'],
+            warnings: ['numeric'],
+          },
+          'transaction.lineItems[].product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+    };
 
-    return validations;
+    return config[event.name];
   }
 
   initialize() {
@@ -204,14 +223,16 @@ class GoogleAdWords extends Integration {
 
   onViewedPage(event) {
     const page = event.page;
-    // product, category, listing, cart, checkout and confirmation pages are tracked separately
-    if (['product', 'listing', 'search', 'category', 'cart', 'checkout', 'confirmation'].indexOf(page.type) < 0) {
-      this.trackConversion({
-        ecomm_prodid: '',
-        ecomm_pagetype: (page.type === 'home') ? 'home' : 'other',
-        ecomm_totalvalue: '',
-      });
-    }
+    this.pageTracked = false;
+    setTimeout(() => {
+      if (!this.pageTracked) {
+        this.trackConversion({
+          ecomm_prodid: '',
+          ecomm_pagetype: (page.type === 'home') ? 'home' : 'other',
+          ecomm_totalvalue: '',
+        });
+      }
+    }, 100);
   }
 
   onViewedProductDetail(event) {
@@ -232,6 +253,7 @@ class GoogleAdWords extends Integration {
       ecomm_totalvalue: product.unitSalePrice || '',
       ecomm_category: category,
     });
+    this.pageTracked = true;
   }
 
   onSearchedProducts() {
@@ -240,6 +262,7 @@ class GoogleAdWords extends Integration {
       ecomm_pagetype: 'searchresults',
       ecomm_totalvalue: '',
     });
+    this.pageTracked = true;
   }
 
   onViewedProductListing(event) {
@@ -264,6 +287,7 @@ class GoogleAdWords extends Integration {
       ecomm_pagetype: 'other',
       ecomm_totalvalue: '',
     }, params));
+    this.pageTracked = true;
   }
 
   onViewedCart(event) {
@@ -277,6 +301,7 @@ class GoogleAdWords extends Integration {
       ecomm_pagetype: 'cart',
       ecomm_totalvalue: cart.subtotal || cart.total || '',
     });
+    this.pageTracked = true;
   }
 
   onCompletedTransaction(event) {
@@ -289,6 +314,7 @@ class GoogleAdWords extends Integration {
       ecomm_pagetype: 'purchase',
       ecomm_totalvalue: transaction.subtotal || transaction.total || '',
     });
+    this.pageTracked = true;
   }
 }
 
