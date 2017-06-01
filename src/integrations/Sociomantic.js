@@ -177,8 +177,6 @@ class Sociomantic extends Integration {
     const prefix = this.getOption('prefix');
     const trackingObjectCustomerName = prefix + 'customer';
     const user = event.user;
-    const page = event.page;
-    const specialPages = ['product', 'category', 'cart', 'search', 'confirmation'];
 
     if (user && (user.userId || user.email)) {
       let userId;
@@ -196,9 +194,7 @@ class Sociomantic extends Integration {
       deleteEmptyProperties(trackingObjectCustomerName);
     }
 
-    if (page && specialPages.indexOf(page.type) < 0) {
-      this.loadTrackingScript();
-    } else {
+    if (!this.trackingScriptCalled) {
       setTimeout(() => {
         if (!this.trackingScriptCalled) {
           this.loadTrackingScript();
