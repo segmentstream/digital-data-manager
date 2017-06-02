@@ -89,7 +89,7 @@ describe('Integrations: Sociomantic', () => {
               assert.deepEqual(window[options.prefix + 'customer'], { identifier: '55123' });
               assert.ok(sociomantic.loadTrackingScript.calledOnce);
               done();
-            }, 101);
+            }, 150);
           },
         });
       });
@@ -109,7 +109,7 @@ describe('Integrations: Sociomantic', () => {
               assert.equal(window[options.prefix + 'customer'].mhash, hash);
               assert.ok(sociomantic.loadTrackingScript.calledOnce);
               done();
-            }, 101);
+            }, 150);
           },
         });
       });
@@ -125,11 +125,11 @@ describe('Integrations: Sociomantic', () => {
       //         assert.ok(!window[options.prefix + 'customer']);
       //         assert.ok(sociomantic.loadTrackingScript.calledOnce);
       //         done();
-      //       }, 101);
+      //       }, 150);
       //     },
       //   });
       // });
-      
+
       it('should not set customer object if user ID and email are not defined', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
@@ -142,7 +142,7 @@ describe('Integrations: Sociomantic', () => {
               assert.ok(!window[options.prefix + 'customer']);
               assert.ok(sociomantic.loadTrackingScript.calledOnce);
               done();
-            }, 101);
+            }, 150);
           },
         });
       });
@@ -154,7 +154,7 @@ describe('Integrations: Sociomantic', () => {
             setTimeout(() => {
               assert.ok(!window[options.prefix + 'basket']);
               done();
-            }, 101);
+            }, 150);
           },
         });
       });
@@ -174,7 +174,7 @@ describe('Integrations: Sociomantic', () => {
       //           setTimeout(() => {
       //             assert.ok(sociomantic.loadTrackingScript.calledOnce, 'tracker should be called once');
       //             done();
-      //           }, 101);
+      //           }, 150);
       //         },
       //       });
       //     },
@@ -237,7 +237,7 @@ describe('Integrations: Sociomantic', () => {
                     setTimeout(() => {
                       assert.ok(sociomantic.loadTrackingScript.calledTwice, 'tracker should be called twice');
                       done();
-                    }, 101);
+                    }, 150);
                   },
                 });
               },
@@ -289,7 +289,7 @@ describe('Integrations: Sociomantic', () => {
                   assert.ok(sociomantic.loadTrackingScript.calledTwice);
                   assert.ok(sociomantic.clearTrackingObjects.calledOnce);
                   done();
-                }, 101);
+                }, 150);
               },
             });
           },
