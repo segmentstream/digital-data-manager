@@ -158,7 +158,7 @@ describe('Integrations: Sociomantic', () => {
           },
         });
       });
-      
+
       // it('should call tracking code after timeout on specials pages', (done) => {
       //   window.digitalData.events.push({
       //     name: 'Viewed Page',
@@ -212,39 +212,39 @@ describe('Integrations: Sociomantic', () => {
       //     },
       //   });
       // });
-      //
-      // it('should track single page application with special second page', (done) => {
-      //   window.digitalData.events.push({
-      //     name: 'Viewed Page',
-      //     page: {
-      //       type: 'product',
-      //     },
-      //     callback: () => {
-      //       assert.ok(!sociomantic.loadTrackingScript.called, 'tracker should not be called');
-      //       window.digitalData.events.push({
-      //         name: 'Viewed Product Detail',
-      //         product: {
-      //           id: '114123',
-      //         },
-      //         callback: () => {
-      //           assert.ok(sociomantic.loadTrackingScript.calledOnce, 'tracker should be called once');
-      //           window.digitalData.events.push({
-      //             name: 'Viewed Page',
-      //             page: {
-      //               type: 'product',
-      //             },
-      //             callback: () => {
-      //               setTimeout(() => {
-      //                 assert.ok(sociomantic.loadTrackingScript.calledTwice, 'tracker should be called twice');
-      //                 done();
-      //               }, 101);
-      //             },
-      //           });
-      //         },
-      //       });
-      //     },
-      //   });
-      // });
+      
+      it('should track single page application with special second page', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'product',
+          },
+          callback: () => {
+            assert.ok(!sociomantic.loadTrackingScript.called, 'tracker should not be called');
+            window.digitalData.events.push({
+              name: 'Viewed Product Detail',
+              product: {
+                id: '114123',
+              },
+              callback: () => {
+                assert.ok(sociomantic.loadTrackingScript.calledOnce, 'tracker should be called once');
+                window.digitalData.events.push({
+                  name: 'Viewed Page',
+                  page: {
+                    type: 'product',
+                  },
+                  callback: () => {
+                    setTimeout(() => {
+                      assert.ok(sociomantic.loadTrackingScript.calledTwice, 'tracker should be called twice');
+                      done();
+                    }, 101);
+                  },
+                });
+              },
+            });
+          },
+        });
+      });
     });
 
     describe('#onViewedProductDetail', () => {
