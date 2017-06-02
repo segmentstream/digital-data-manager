@@ -94,26 +94,26 @@ describe('Integrations: Sociomantic', () => {
         });
       });
 
-      // it('should set customer object if user visits any pages', (done) => {
-      //   window.digitalData.events.push({
-      //     name: 'Viewed Page',
-      //     user: {
-      //       email: 'test@driveback.ru',
-      //     },
-      //     page: {
-      //       type: 'home',
-      //     },
-      //     callback: () => {
-      //       setTimeout(() => {
-      //         const hash = '0e1fe3da996f0c7089514661961912be86d73adf59dc0e689ebdc3e67a897ba9';
-      //         assert.equal(window[options.prefix + 'customer'].mhash, hash);
-      //         assert.ok(sociomantic.loadTrackingScript.calledOnce);
-      //         done();
-      //       }, 101);
-      //     },
-      //   });
-      // });
-      //
+      it('should set customer object if user visits any pages', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          user: {
+            email: 'test@driveback.ru',
+          },
+          page: {
+            type: 'home',
+          },
+          callback: () => {
+            setTimeout(() => {
+              const hash = '0e1fe3da996f0c7089514661961912be86d73adf59dc0e689ebdc3e67a897ba9';
+              assert.equal(window[options.prefix + 'customer'].mhash, hash);
+              assert.ok(sociomantic.loadTrackingScript.calledOnce);
+              done();
+            }, 101);
+          },
+        });
+      });
+      
       // it('should not set customer object if user is not defined', (done) => {
       //   window.digitalData.events.push({
       //     name: 'Viewed Page',
