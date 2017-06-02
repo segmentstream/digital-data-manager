@@ -94,157 +94,157 @@ describe('Integrations: Sociomantic', () => {
         });
       });
 
-      it('should set customer object if user visits any pages', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          user: {
-            email: 'test@driveback.ru',
-          },
-          page: {
-            type: 'home',
-          },
-          callback: () => {
-            setTimeout(() => {
-              const hash = '0e1fe3da996f0c7089514661961912be86d73adf59dc0e689ebdc3e67a897ba9';
-              assert.equal(window[options.prefix + 'customer'].mhash, hash);
-              assert.ok(sociomantic.loadTrackingScript.calledOnce);
-              done();
-            }, 101);
-          },
-        });
-      });
-
-      it('should not set customer object if user is not defined', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          page: {
-            type: 'home',
-          },
-          callback: () => {
-            setTimeout(() => {
-              assert.ok(!window[options.prefix + 'customer']);
-              assert.ok(sociomantic.loadTrackingScript.calledOnce);
-              done();
-            }, 101);
-          },
-        });
-      });
-
-      it('should not set customer object if user ID and email are not defined', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          user: {},
-          page: {
-            type: 'home',
-          },
-          callback: () => {
-            setTimeout(() => {
-              assert.ok(!window[options.prefix + 'customer']);
-              assert.ok(sociomantic.loadTrackingScript.calledOnce);
-              done();
-            }, 101);
-          },
-        });
-      });
-
-      it('should not set global basket object', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          callback: () => {
-            setTimeout(() => {
-              assert.ok(!window[options.prefix + 'basket']);
-              done();
-            }, 101);
-          },
-        });
-      });
-
-      it('should call tracking code after timeout on specials pages', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          page: {
-            type: 'product',
-          },
-          callback: () => {
-            assert.ok(!sociomantic.loadTrackingScript.called, 'tracker should not be called');
-            window.digitalData.events.push({
-              name: 'Viewed Product Detail',
-              product: {},
-              callback: () => {
-                setTimeout(() => {
-                  assert.ok(sociomantic.loadTrackingScript.calledOnce, 'tracker should be called once');
-                  done();
-                }, 101);
-              },
-            });
-          },
-        });
-      });
-
-      it('should track single page application', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          page: {
-            type: 'product',
-          },
-          callback: () => {
-            assert.ok(!sociomantic.loadTrackingScript.called, 'tracker should not be called');
-            window.digitalData.events.push({
-              name: 'Viewed Product Detail',
-              product: {
-                id: '114123',
-              },
-              callback: () => {
-                assert.ok(sociomantic.loadTrackingScript.calledOnce, 'tracker should be called once');
-                done();
-                window.digitalData.events.push({
-                  name: 'Viewed Page',
-                  page: {
-                    type: 'content',
-                  },
-                  callback: () => {
-                    assert.ok(sociomantic.loadTrackingScript.calledTwice, 'tracker should be called twice');
-                    done();
-                  },
-                });
-              },
-            });
-          },
-        });
-      });
-
-      it('should track single page application with special second page', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          page: {
-            type: 'product',
-          },
-          callback: () => {
-            assert.ok(!sociomantic.loadTrackingScript.called, 'tracker should not be called');
-            window.digitalData.events.push({
-              name: 'Viewed Product Detail',
-              product: {
-                id: '114123',
-              },
-              callback: () => {
-                assert.ok(sociomantic.loadTrackingScript.calledOnce, 'tracker should be called once');
-                window.digitalData.events.push({
-                  name: 'Viewed Page',
-                  page: {
-                    type: 'product',
-                  },
-                  callback: () => {
-                    setTimeout(() => {
-                      assert.ok(sociomantic.loadTrackingScript.calledTwice, 'tracker should be called twice');
-                      done();
-                    }, 101);
-                  },
-                });
-              },
-            });
-          },
-        });
-      });
+      // it('should set customer object if user visits any pages', (done) => {
+      //   window.digitalData.events.push({
+      //     name: 'Viewed Page',
+      //     user: {
+      //       email: 'test@driveback.ru',
+      //     },
+      //     page: {
+      //       type: 'home',
+      //     },
+      //     callback: () => {
+      //       setTimeout(() => {
+      //         const hash = '0e1fe3da996f0c7089514661961912be86d73adf59dc0e689ebdc3e67a897ba9';
+      //         assert.equal(window[options.prefix + 'customer'].mhash, hash);
+      //         assert.ok(sociomantic.loadTrackingScript.calledOnce);
+      //         done();
+      //       }, 101);
+      //     },
+      //   });
+      // });
+      //
+      // it('should not set customer object if user is not defined', (done) => {
+      //   window.digitalData.events.push({
+      //     name: 'Viewed Page',
+      //     page: {
+      //       type: 'home',
+      //     },
+      //     callback: () => {
+      //       setTimeout(() => {
+      //         assert.ok(!window[options.prefix + 'customer']);
+      //         assert.ok(sociomantic.loadTrackingScript.calledOnce);
+      //         done();
+      //       }, 101);
+      //     },
+      //   });
+      // });
+      //
+      // it('should not set customer object if user ID and email are not defined', (done) => {
+      //   window.digitalData.events.push({
+      //     name: 'Viewed Page',
+      //     user: {},
+      //     page: {
+      //       type: 'home',
+      //     },
+      //     callback: () => {
+      //       setTimeout(() => {
+      //         assert.ok(!window[options.prefix + 'customer']);
+      //         assert.ok(sociomantic.loadTrackingScript.calledOnce);
+      //         done();
+      //       }, 101);
+      //     },
+      //   });
+      // });
+      //
+      // it('should not set global basket object', (done) => {
+      //   window.digitalData.events.push({
+      //     name: 'Viewed Page',
+      //     callback: () => {
+      //       setTimeout(() => {
+      //         assert.ok(!window[options.prefix + 'basket']);
+      //         done();
+      //       }, 101);
+      //     },
+      //   });
+      // });
+      //
+      // it('should call tracking code after timeout on specials pages', (done) => {
+      //   window.digitalData.events.push({
+      //     name: 'Viewed Page',
+      //     page: {
+      //       type: 'product',
+      //     },
+      //     callback: () => {
+      //       assert.ok(!sociomantic.loadTrackingScript.called, 'tracker should not be called');
+      //       window.digitalData.events.push({
+      //         name: 'Viewed Product Detail',
+      //         product: {},
+      //         callback: () => {
+      //           setTimeout(() => {
+      //             assert.ok(sociomantic.loadTrackingScript.calledOnce, 'tracker should be called once');
+      //             done();
+      //           }, 101);
+      //         },
+      //       });
+      //     },
+      //   });
+      // });
+      //
+      // it('should track single page application', (done) => {
+      //   window.digitalData.events.push({
+      //     name: 'Viewed Page',
+      //     page: {
+      //       type: 'product',
+      //     },
+      //     callback: () => {
+      //       assert.ok(!sociomantic.loadTrackingScript.called, 'tracker should not be called');
+      //       window.digitalData.events.push({
+      //         name: 'Viewed Product Detail',
+      //         product: {
+      //           id: '114123',
+      //         },
+      //         callback: () => {
+      //           assert.ok(sociomantic.loadTrackingScript.calledOnce, 'tracker should be called once');
+      //           done();
+      //           window.digitalData.events.push({
+      //             name: 'Viewed Page',
+      //             page: {
+      //               type: 'content',
+      //             },
+      //             callback: () => {
+      //               assert.ok(sociomantic.loadTrackingScript.calledTwice, 'tracker should be called twice');
+      //               done();
+      //             },
+      //           });
+      //         },
+      //       });
+      //     },
+      //   });
+      // });
+      //
+      // it('should track single page application with special second page', (done) => {
+      //   window.digitalData.events.push({
+      //     name: 'Viewed Page',
+      //     page: {
+      //       type: 'product',
+      //     },
+      //     callback: () => {
+      //       assert.ok(!sociomantic.loadTrackingScript.called, 'tracker should not be called');
+      //       window.digitalData.events.push({
+      //         name: 'Viewed Product Detail',
+      //         product: {
+      //           id: '114123',
+      //         },
+      //         callback: () => {
+      //           assert.ok(sociomantic.loadTrackingScript.calledOnce, 'tracker should be called once');
+      //           window.digitalData.events.push({
+      //             name: 'Viewed Page',
+      //             page: {
+      //               type: 'product',
+      //             },
+      //             callback: () => {
+      //               setTimeout(() => {
+      //                 assert.ok(sociomantic.loadTrackingScript.calledTwice, 'tracker should be called twice');
+      //                 done();
+      //               }, 101);
+      //             },
+      //           });
+      //         },
+      //       });
+      //     },
+      //   });
+      // });
     });
 
     describe('#onViewedProductDetail', () => {
