@@ -180,39 +180,39 @@ describe('Integrations: Sociomantic', () => {
       //     },
       //   });
       // });
-      //
-      // it('should track single page application', (done) => {
-      //   window.digitalData.events.push({
-      //     name: 'Viewed Page',
-      //     page: {
-      //       type: 'product',
-      //     },
-      //     callback: () => {
-      //       assert.ok(!sociomantic.loadTrackingScript.called, 'tracker should not be called');
-      //       window.digitalData.events.push({
-      //         name: 'Viewed Product Detail',
-      //         product: {
-      //           id: '114123',
-      //         },
-      //         callback: () => {
-      //           assert.ok(sociomantic.loadTrackingScript.calledOnce, 'tracker should be called once');
-      //           done();
-      //           window.digitalData.events.push({
-      //             name: 'Viewed Page',
-      //             page: {
-      //               type: 'content',
-      //             },
-      //             callback: () => {
-      //               assert.ok(sociomantic.loadTrackingScript.calledTwice, 'tracker should be called twice');
-      //               done();
-      //             },
-      //           });
-      //         },
-      //       });
-      //     },
-      //   });
-      // });
       
+      it('should track single page application', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'product',
+          },
+          callback: () => {
+            assert.ok(!sociomantic.loadTrackingScript.called, 'tracker should not be called');
+            window.digitalData.events.push({
+              name: 'Viewed Product Detail',
+              product: {
+                id: '114123',
+              },
+              callback: () => {
+                assert.ok(sociomantic.loadTrackingScript.calledOnce, 'tracker should be called once');
+                done();
+                window.digitalData.events.push({
+                  name: 'Viewed Page',
+                  page: {
+                    type: 'content',
+                  },
+                  callback: () => {
+                    assert.ok(sociomantic.loadTrackingScript.calledTwice, 'tracker should be called twice');
+                    done();
+                  },
+                });
+              },
+            });
+          },
+        });
+      });
+
       it('should track single page application with special second page', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
