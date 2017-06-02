@@ -179,7 +179,7 @@ describe('Integrations: Sociomantic', () => {
       //       });
       //     },
       //   });
-      });
+      // });
 
       it('should track single page application', (done) => {
         window.digitalData.events.push({
