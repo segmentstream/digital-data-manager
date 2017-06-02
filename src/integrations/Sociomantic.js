@@ -106,6 +106,7 @@ class Sociomantic extends Integration {
 
   reset() {
     deleteProperty(window, 'sociomantic');
+    this._isLoaded = false;
   }
 
   getSemanticEvents() {
