@@ -130,23 +130,23 @@ describe('Integrations: Sociomantic', () => {
         });
       });
 
-      it('should not set customer object if user ID and email are not defined', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          user: {},
-          page: {
-            type: 'home',
-          },
-          callback: () => {
-            setTimeout(() => {
-              assert.ok(!window[options.prefix + 'customer']);
-              assert.ok(sociomantic.loadTrackingScript.calledOnce);
-              done();
-            }, 101);
-          },
-        });
-      });
-      
+      // it('should not set customer object if user ID and email are not defined', (done) => {
+      //   window.digitalData.events.push({
+      //     name: 'Viewed Page',
+      //     user: {},
+      //     page: {
+      //       type: 'home',
+      //     },
+      //     callback: () => {
+      //       setTimeout(() => {
+      //         assert.ok(!window[options.prefix + 'customer']);
+      //         assert.ok(sociomantic.loadTrackingScript.calledOnce);
+      //         done();
+      //       }, 101);
+      //     },
+      //   });
+      // });
+      // 
       // it('should not set global basket object', (done) => {
       //   window.digitalData.events.push({
       //     name: 'Viewed Page',
