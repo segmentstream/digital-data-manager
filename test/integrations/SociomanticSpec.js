@@ -114,22 +114,22 @@ describe('Integrations: Sociomantic', () => {
         });
       });
 
-      it('should not set customer object if user is not defined', (done) => {
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          page: {
-            type: 'home',
-          },
-          callback: () => {
-            setTimeout(() => {
-              assert.ok(!window[options.prefix + 'customer']);
-              assert.ok(sociomantic.loadTrackingScript.calledOnce);
-              done();
-            }, 101);
-          },
-        });
-      });
-      
+      // it('should not set customer object if user is not defined', (done) => {
+      //   window.digitalData.events.push({
+      //     name: 'Viewed Page',
+      //     page: {
+      //       type: 'home',
+      //     },
+      //     callback: () => {
+      //       setTimeout(() => {
+      //         assert.ok(!window[options.prefix + 'customer']);
+      //         assert.ok(sociomantic.loadTrackingScript.calledOnce);
+      //         done();
+      //       }, 101);
+      //     },
+      //   });
+      // });
+      //
       // it('should not set customer object if user ID and email are not defined', (done) => {
       //   window.digitalData.events.push({
       //     name: 'Viewed Page',
@@ -146,19 +146,19 @@ describe('Integrations: Sociomantic', () => {
       //     },
       //   });
       // });
-      //
-      // it('should not set global basket object', (done) => {
-      //   window.digitalData.events.push({
-      //     name: 'Viewed Page',
-      //     callback: () => {
-      //       setTimeout(() => {
-      //         assert.ok(!window[options.prefix + 'basket']);
-      //         done();
-      //       }, 101);
-      //     },
-      //   });
-      // });
-      //
+
+      it('should not set global basket object', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          callback: () => {
+            setTimeout(() => {
+              assert.ok(!window[options.prefix + 'basket']);
+              done();
+            }, 101);
+          },
+        });
+      });
+      
       // it('should call tracking code after timeout on specials pages', (done) => {
       //   window.digitalData.events.push({
       //     name: 'Viewed Page',
