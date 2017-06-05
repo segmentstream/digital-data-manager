@@ -28,7 +28,6 @@ describe('Integrations: Sociomantic', () => {
   });
 
   afterEach(() => {
-    console.log('reset');
     sociomantic.reset();
     ddManager.reset();
     reset();
@@ -59,7 +58,19 @@ describe('Integrations: Sociomantic', () => {
 
   describe('after loading', () => {
     beforeEach((done) => {
-      sinon.spy(sociomantic, 'loadTrackingScript');
+      sinon.stub(sociomantic, 'loadTrackingScript', () => {
+        window.sociomantic = {
+          sonar: {
+            adv: {
+              [options.advertiserToken]: {
+                track: () => {},
+                clear: () => {},
+              },
+            },
+          }
+        };
+        sociomantic.trackingScriptCalled = true;
+      });
       sinon.spy(sociomantic, 'clearTrackingObjects');
       ddManager.once('ready', done);
       ddManager.initialize({
@@ -208,7 +219,7 @@ describe('Integrations: Sociomantic', () => {
       //   });
       // });
 
-      it('should track single page application with special second page', (done) => {
+      it.only('should track single page application with special second page', (done) => {
         console.log('X -> Before Page View');
         window.digitalData.events.push({
           name: 'Viewed Page',
