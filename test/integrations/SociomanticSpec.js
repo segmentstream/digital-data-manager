@@ -28,6 +28,7 @@ describe('Integrations: Sociomantic', () => {
   });
 
   afterEach(() => {
+    console.log('reset');
     sociomantic.reset();
     ddManager.reset();
     reset();
