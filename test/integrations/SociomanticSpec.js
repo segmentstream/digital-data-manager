@@ -215,7 +215,7 @@ describe('Integrations: Sociomantic', () => {
         });
       });
 
-      it.only('should track single page application with special second page', (done) => {
+      it('should track single page application with special second page', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {
