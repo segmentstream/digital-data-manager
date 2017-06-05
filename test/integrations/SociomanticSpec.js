@@ -202,6 +202,7 @@ describe('Integrations: Sociomantic', () => {
       // });
 
       it('should track single page application with special second page', (done) => {
+        console.log('X -> Before Page View');
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {
@@ -209,6 +210,7 @@ describe('Integrations: Sociomantic', () => {
           },
           callback: () => {
             assert.ok(!sociomantic.loadTrackingScript.called, 'tracker should not be called');
+            console.log('X -> Before Viewed Product Detail');
             window.digitalData.events.push({
               name: 'Viewed Product Detail',
               product: {
@@ -216,6 +218,7 @@ describe('Integrations: Sociomantic', () => {
               },
               callback: () => {
                 assert.ok(sociomantic.loadTrackingScript.calledOnce, 'tracker should be called once');
+                console.log('X -> Before Page View 2');
                 window.digitalData.events.push({
                   name: 'Viewed Page',
                   page: {

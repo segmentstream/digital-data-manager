@@ -87,6 +87,7 @@ class Sociomantic extends Integration {
   }
 
   loadTrackingScript() {
+    console.log('loadTrackingScript()');
     const advertiserToken = this.getOption('advertiserToken');
     if (this.isLoaded()) {
       window.sociomantic.sonar.adv[advertiserToken].track();
