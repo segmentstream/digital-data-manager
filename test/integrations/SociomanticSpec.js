@@ -47,7 +47,9 @@ describe('Integrations: Sociomantic', () => {
     describe('#initialize', () => {
       it('should call ready after initialization', () => {
         sinon.spy(sociomantic, 'onLoad');
-        ddManager.initialize();
+        ddManager.initialize({
+          sendViewedPageEvent: false
+        });
         assert.ok(sociomantic.onLoad.calledOnce);
         sociomantic.onLoad.restore();
       });
@@ -76,6 +78,7 @@ describe('Integrations: Sociomantic', () => {
       });
 
       it('should set customer object if user visits any pages', (done) => {
+        console.log('X -> Before Page View');
         window.digitalData.events.push({
           name: 'Viewed Page',
           user: {
@@ -95,6 +98,7 @@ describe('Integrations: Sociomantic', () => {
       });
 
       it('should set customer object if user visits any pages', (done) => {
+        console.log('X -> Before Page View');
         window.digitalData.events.push({
           name: 'Viewed Page',
           user: {
@@ -115,6 +119,7 @@ describe('Integrations: Sociomantic', () => {
       });
 
       it('should not set customer object if user is not defined', (done) => {
+        console.log('X -> Before Page View');
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {
@@ -131,6 +136,7 @@ describe('Integrations: Sociomantic', () => {
       });
 
       it('should not set customer object if user ID and email are not defined', (done) => {
+        console.log('X -> Before Page View');
         window.digitalData.events.push({
           name: 'Viewed Page',
           user: {},
