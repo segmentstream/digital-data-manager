@@ -30,6 +30,7 @@ import Segmento from './integrations/Segmento';
 import Mixmarket from './integrations/Mixmarket';
 import GdeSlon from './integrations/GdeSlon';
 import RichRelevance from './integrations/RichRelevance';
+import Linkprofit from './integrations/Linkprofit';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -64,6 +65,7 @@ const integrations = {
   'Mixmarket': Mixmarket,
   'GdeSlon': GdeSlon,
   'RichRelevance': RichRelevance,
+  'Linkprofit': Linkprofit,
 };
 
 export default integrations;
