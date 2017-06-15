@@ -2,11 +2,11 @@ import { getProp, setProp } from './functions/dotProp';
 import clone from './functions/clone';
 
 function matchProductById(id, product) {
-  return product.id && String(product.id) === String(id)
+  return product.id && String(product.id) === String(id);
 }
 
 function matchProductBySkuCode(skuCode, product) {
-  return product.skuCode && String(product.skuCode) === String(skuCode)
+  return product.skuCode && String(product.skuCode) === String(skuCode);
 }
 
 function matchProduct(id, skuCode, product) {
