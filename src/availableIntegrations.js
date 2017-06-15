@@ -31,6 +31,7 @@ import Mixmarket from './integrations/Mixmarket';
 import GdeSlon from './integrations/GdeSlon';
 import RichRelevance from './integrations/RichRelevance';
 import Linkprofit from './integrations/Linkprofit';
+import Flocktory from './integrations/Flocktory';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -66,6 +67,7 @@ const integrations = {
   'GdeSlon': GdeSlon,
   'RichRelevance': RichRelevance,
   'Linkprofit': Linkprofit,
+  'Flocktory': Flocktory,
 };
 
 export default integrations;
