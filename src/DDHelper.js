@@ -1,6 +1,18 @@
 import { getProp, setProp } from './functions/dotProp';
 import clone from './functions/clone';
 
+function matchProductById(id, product) {
+  return product.id && String(product.id) === String(id)
+}
+
+function matchProductBySkuCode(skuCode, product) {
+  return product.skuCode && String(product.skuCode) === String(skuCode)
+}
+
+function matchProduct(id, skuCode, product) {
+  return (!skuCode || matchProductBySkuCode(skuCode, product)) && matchProductById(id, product);
+}
+
 class DDHelper {
 
   static get(key, digitalData) {
@@ -12,7 +24,7 @@ class DDHelper {
     setProp(digitalData, key, clone(value));
   }
 
-  static getProduct(id, digitalData) {
+  static getProduct(id, skuCode, digitalData) {
     if (digitalData.product && String(digitalData.product.id) === String(id)) {
       return clone(digitalData.product);
     }
@@ -25,9 +37,9 @@ class DDHelper {
         }
         for (const listing of listings) {
           if (listing.items && listing.items.length) {
-            for (let i = 0, length = listing.items.length; i < length; i++) {
-              if (listing.items[i].id && String(listing.items[i].id) === String(id)) {
-                const product = clone(listing.items[i]);
+            for (const listingItem of listing.items) {
+              if (matchProduct(id, skuCode, listingItem)) {
+                const product = clone(listingItem);
                 return product;
               }
             }
@@ -38,7 +50,7 @@ class DDHelper {
     // search in cart
     if (digitalData.cart && digitalData.cart.lineItems && digitalData.cart.lineItems.length) {
       for (const lineItem of digitalData.cart.lineItems) {
-        if (lineItem.product && String(lineItem.product.id) === String(id)) {
+        if (matchProduct(id, skuCode, lineItem.product)) {
           return clone(lineItem.product);
         }
       }
@@ -57,7 +69,7 @@ class DDHelper {
         for (const listing of listings) {
           if (listing.items && listing.items.length && (!listId || listId === listing.listId)) {
             for (let i = 0, length = listing.items.length; i < length; i++) {
-              if (listing.items[i].id && String(listing.items[i].id) === String(id)) {
+              if (matchProductById(id, listing.items[i])) {
                 const product = clone(listing.items[i]);
                 listingItem.product = product;
                 listingItem.position = (i + 1);

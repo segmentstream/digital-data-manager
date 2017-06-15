@@ -381,8 +381,8 @@ ddManager = {
     return _ddStorage.unpersist(key);
   },
 
-  getProduct: (id) => {
-    return DDHelper.getProduct(id, _digitalData);
+  getProduct: (id, skuCode) => {
+    return DDHelper.getProduct(id, skuCode, _digitalData);
   },
 
   getCampaign: (id) => {
