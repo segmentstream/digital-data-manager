@@ -1,8 +1,8 @@
-import htmlGlobals from './functions/htmlGlobals';
-import semver from './functions/semver';
-import getQueryParam from './functions/getQueryParam';
-import cleanObject from './functions/cleanObject';
-import { getProp, setProp } from './functions/dotProp';
+import htmlGlobals from './../functions/htmlGlobals';
+import semver from './../functions/semver';
+import getQueryParam from './../functions/getQueryParam';
+import cleanObject from './../functions/cleanObject';
+import { getProp, setProp } from './../functions/dotProp';
 
 /**
  * fields which will be overriden even

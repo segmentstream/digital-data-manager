@@ -329,7 +329,7 @@ class Flocktory extends Integration {
           });
         }),
       },
-      spot: getProp('integrations.flocktory.spot')
+      spot: getProp('integrations.flocktory.spot'),
     })]);
   }
 }

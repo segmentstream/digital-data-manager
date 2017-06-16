@@ -1,6 +1,6 @@
 import assert from 'assert';
 import deleteProperty from './../src/functions/deleteProperty.js';
-import EventDataEnricher from './../src/EventDataEnricher.js';
+import EventDataEnricher from './../src/enrichments/EventDataEnricher.js';
 import Emarsys from './../src/integrations/Emarsys';
 
 describe('EventDataEnricher', () => {

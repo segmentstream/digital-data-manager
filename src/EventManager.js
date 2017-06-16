@@ -5,7 +5,7 @@ import after from './functions/after.js';
 import jsonIsEqual from './functions/jsonIsEqual.js';
 import { error as errorLog } from './functions/safeConsole';
 import DDHelper from './DDHelper.js';
-import EventDataEnricher from './EventDataEnricher.js';
+import EventDataEnricher from './enrichments/EventDataEnricher.js';
 import { VIEWED_PAGE } from './events';
 
 let _callbacks = {};

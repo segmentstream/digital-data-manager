@@ -1,10 +1,10 @@
-import DDHelper from './DDHelper.js';
-import dotProp from './functions/dotProp';
-import deleteProperty from './functions/deleteProperty';
+import DDHelper from './../DDHelper.js';
+import dotProp from './../functions/dotProp';
+import deleteProperty from './../functions/deleteProperty';
 import {
   VIEWED_PRODUCT_DETAIL,
   COMPLETED_TRANSACTION,
-} from './events';
+} from './../events';
 
 class EventDataEnricher
 {
