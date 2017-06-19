@@ -41,14 +41,16 @@ class Linkprofit extends Integration {
     this._isLoaded = true;
 
     if (this.getOption('cookieTracking')) {
-      const clickHashCookieName = this.getOption('clickHashCookieName');
-      const affiliateIdCookieName = this.getOption('affiliateIdCookieName');
       const clickHash = getQueryParam(CLICK_HASH_GET_PARAM);
       const affiliateId = getQueryParam(AFFILIATE_ID_GET_PARAM);
-      const ttl = this.getOption('cookieTtl');
-      const domain = this.getOption('cookieDomain');
-      addAffiliateCookie(clickHashCookieName, clickHash, ttl, domain);
-      addAffiliateCookie(affiliateIdCookieName, affiliateId, ttl, domain);
+      if (clickHash && affiliateId) {
+        const clickHashCookieName = this.getOption('clickHashCookieName');
+        const affiliateIdCookieName = this.getOption('affiliateIdCookieName');
+        const ttl = this.getOption('cookieTtl');
+        const domain = this.getOption('cookieDomain');
+        addAffiliateCookie(clickHashCookieName, clickHash, ttl, domain);
+        addAffiliateCookie(affiliateIdCookieName, affiliateId, ttl, domain);
+      }
     }
 
     this.onLoad();
@@ -102,7 +104,6 @@ class Linkprofit extends Integration {
     const utmSource = this.getOption('utmSource');
     const deduplicationUtmMedium = this.getOption('deduplicationUtmMedium');
     if (isDeduplication(campaign, utmSource, deduplicationUtmMedium)) return;
-
     if (event.name === COMPLETED_TRANSACTION) {
       this.onCompletedTransaction(event, clickHash, affiliateId);
     }
