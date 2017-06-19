@@ -6,7 +6,7 @@ import jsonIsEqual from './functions/jsonIsEqual.js';
 import { error as errorLog } from './functions/safeConsole';
 import DDHelper from './DDHelper.js';
 import EventDataEnricher from './enrichments/EventDataEnricher.js';
-import { VIEWED_PAGE } from './events';
+import { VIEWED_PAGE } from './events/semanticEvents';
 
 let _callbacks = {};
 let _ddListener = [];

@@ -3,7 +3,7 @@ import getQueryParam from './../functions/getQueryParam';
 import topDomain from './../functions/topDomain';
 import { getProp } from './../functions/dotProp';
 import normalizeString from './../functions/normalizeString';
-import { COMPLETED_TRANSACTION } from './../events';
+import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
 import cookie from 'js-cookie';
 
 const CLICK_ID_GET_PARAM = 'click_id';

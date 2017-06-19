@@ -11,7 +11,7 @@ import {
   REGISTERED,
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
-} from './../events';
+} from './../events/semanticEvents';
 
 const SEMANTIC_EVENTS = [
   VIEWED_PAGE,

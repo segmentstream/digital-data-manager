@@ -8,7 +8,7 @@ import {
   VIEWED_CART,
   SEARCHED_PRODUCTS,
   COMPLETED_TRANSACTION,
-} from './../events';
+} from './../events/semanticEvents';
 
 function lineItemsToSociomanticsItems(lineItems) {
   const products = [];

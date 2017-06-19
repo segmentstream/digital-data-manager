@@ -2,7 +2,7 @@ import Integration from './../Integration';
 import getQueryParam from './../functions/getQueryParam';
 import { getProp } from './../functions/dotProp';
 import normalizeString from './../functions/normalizeString';
-import { COMPLETED_TRANSACTION } from './../events';
+import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
 import { isDeduplication, addAffiliateCookie, getAffiliateCookie } from './utils/affiliate';
 
 const DEFAULT_COOKIE_NAME = 'mixmarket';

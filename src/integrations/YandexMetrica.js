@@ -15,7 +15,7 @@ import {
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
   COMPLETED_TRANSACTION,
-} from './../events';
+} from './../events/semanticEvents';
 
 function getProductCategory(product) {
   let category = product.category;

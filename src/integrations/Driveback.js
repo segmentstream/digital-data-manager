@@ -5,7 +5,7 @@ import {
   VIEWED_PAGE,
   VIEWED_EXPERIMENT,
   ACHIEVED_EXPERIMENT_GOAL,
-} from './../events';
+} from './../events/semanticEvents';
 
 function getExperment(experiment) {
   if (typeof experiment === 'object') {

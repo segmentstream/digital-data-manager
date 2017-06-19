@@ -6,7 +6,7 @@ import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
   ADDED_PRODUCT,
-} from './../events';
+} from './../events/semanticEvents';
 
 const SEMANTIC_EVENTS = [
   VIEWED_PAGE,

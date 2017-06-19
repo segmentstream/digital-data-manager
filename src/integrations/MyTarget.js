@@ -9,7 +9,7 @@ import {
   VIEWED_PRODUCT_LISTING,
   VIEWED_CART,
   COMPLETED_TRANSACTION,
-} from './../events';
+} from './../events/semanticEvents';
 
 function lineItemsToProductIds(lineItems) {
   const productIds = lineItems.filter((lineItem) => {

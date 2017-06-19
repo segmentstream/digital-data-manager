@@ -12,7 +12,7 @@ import {
   SEARCHED_PRODUCTS,
   COMPLETED_TRANSACTION,
   SUBSCRIBED,
-} from './../events';
+} from './../events/semanticEvents';
 
 const SEMANTIC_EVENTS = [
   VIEWED_PAGE,

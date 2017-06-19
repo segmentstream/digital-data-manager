@@ -6,7 +6,7 @@ import after from './../functions/after';
 import {
   VIEWED_PAGE,
   SUBSCRIBED,
-} from './../events';
+} from './../events/semanticEvents';
 import { DIGITALDATA_VAR } from './../variableTypes';
 
 function isHttps() {

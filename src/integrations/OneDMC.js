@@ -1,6 +1,6 @@
 import Integration from './../Integration';
 import { getProp, setProp } from './../functions/dotProp';
-import { VIEWED_PAGE } from './../events';
+import { VIEWED_PAGE } from './../events/semanticEvents';
 import cookie from 'js-cookie';
 import topDomain from './../functions/topDomain';
 

@@ -14,7 +14,7 @@ import {
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
   COMPLETED_TRANSACTION,
-} from './../events';
+} from './../events/semanticEvents';
 
 const PROVIDER_USER_ID = 'userId';
 const PROVIDER_EMAIL = 'email';

@@ -1,12 +1,51 @@
-import { setProp } from './../functions/dotProp';
+import { getProp, setProp } from './../functions/dotProp';
 import EnrichmentHandler from './EnrichmentHandler';
+import CustomEnrichmentsCollection from './CustomEnrichmentsCollection';
 import { error as errorLog } from './../functions/safeConsole';
 
 const ENRICHMENT_TYPE_DIGITAL_DATA = 'digitalData';
 
-const digitalDataEnrichments = {};
+const ENRICHMENT_TRIGGER_EVENT = 'event';
+const ENRICHMENT_TRIGGER_INIT = 'init';
+
+const storage = {
+  [ENRICHMENT_TYPE_DIGITAL_DATA]: {
+    [ENRICHMENT_TRIGGER_INIT]: null,
+    [ENRICHMENT_TRIGGER_EVENT]: {},
+  },
+};
+
+// enrichments
+const digitalDataEnrichments = {
+  [ENRICHMENT_TRIGGER_INIT]:
+  [ENRICHMENT_TRIGGER_EVENT]: {},
+};
 const eventEnrichments = {};
 const productEnrichments = {};
+
+// atrtibutes
+const digitalDataEnrichableAttributes = {
+  [ENRICHMENT_TRIGGER_INIT]: [],
+  [ENRICHMENT_TRIGGER_EVENT]: {},
+};
+
+const prepareArray = (dest, key) => {
+  dest[key] = dest[key] || [];
+}
+
+const prepareCollection = (type, trigger, event) => {
+  if (trigger == ENRICHMENT_TRIGGER_EVENT) {
+    if (!storage[type][trigger][event]) {
+      storage[type][trigger][event] = CustomEnrichmentsCollection(type, trigger, event);
+    }
+    return storage[type][trigger][event];
+  } else {
+    if (!storage[type][trigger]) {
+      storage[type][trigger] = CustomEnrichmentsCollection(type, trigger);
+    }
+    return storage[type][trigger];
+  }
+}
 
 const checkEnrichment = (enrichment) => {
   return (
@@ -14,30 +53,6 @@ const checkEnrichment = (enrichment) => {
     typeof enrichment.handler === 'function' &&
     typeof enrichment.prop === 'string'
   );
-};
-
-const getDigitalDataEnrichments = (event) => {
-  return digitalDataEnrichments[event] || [];
-};
-
-const getEventEnrichments = (event) => {
-  return eventEnrichments[event] || [];
-};
-
-const getProductEnrichments = (integration) => {
-  return productEnrichments[integration] || [];
-};
-
-const addDigitalDataEnrichment = (prop, handler, options) => {
-  const events = options.events || [];
-  for (const event of events) {
-    digitalDataEnrichments[event] = digitalDataEnrichments[event] || [];
-    digitalDataEnrichments[event].push({
-      prop,
-      handler,
-      options,
-    });
-  }
 };
 
 class CustomEnrichments {
@@ -54,31 +69,32 @@ class CustomEnrichments {
   }
 
   addEnrichment(type, prop, handler, options) {
-    if (type === ENRICHMENT_TYPE_DIGITAL_DATA) {
-      addDigitalDataEnrichment(prop, handler, options);
+    const events = options.events || [];
+    const enrichment = { prop, handler, options };
+    let collection;
+    if (events.length === 0) {
+      collection = prepareCollection(type, ENRICHMENT_TRIGGER_INIT)
+    } else {
+      for (const event of events) {
+        collection = prepareCollection(type, ENRICHMENT_TRIGGER_EVENT, event);
+      }
     }
+    collection.addEnrichment(enrichment);
   }
 
-  enrichDigitalData(digitalData, event) {
+  enrichDigitalData(digitalData, event = null) {
     const eventName = event.name;
     if (!eventName) return;
 
-    const enrichments = getDigitalDataEnrichments(eventName);
-    for (const enrichment of enrichments) {
-      const options = enrichment.options;
-      const prop = enrichment.prop;
-      const handler = new EnrichmentHandler(enrichment.handler, digitalData, event);
-      let value;
-      try {
-        value = handler.run();
-        digitalData.changes.push([prop, value, 'DDManager Custom Enrichment']);
-        if (options.persist) {
-          this.ddStorage.persist(prop, options.persistTtl);
-        }
-      } catch (e) {
-        errorLog(e);
-      }
+
+    let collection;
+    if (!event) {
+      collection = prepareCollection(ENRICHMENT_TYPE_DIGITAL_DATA, ENRICHMENT_TRIGGER_INIT);
+    } else {
+      collection = prepareCollection(ENRICHMENT_TYPE_DIGITAL_DATA, ENRICHMENT_TRIGGER_EVENT, event);
     }
+
+    collection.enrich(digitalData, [event], options);
   }
 
   enrichEvent(event, integration) {

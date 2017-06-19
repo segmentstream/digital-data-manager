@@ -8,7 +8,7 @@ import {
   VIEWED_CHECKOUT_STEP,
   COMPLETED_TRANSACTION,
   VIEWED_CART,
-} from './../events';
+} from './../events/semanticEvents';
 
 const SEMANTIC_EVENTS = [
   VIEWED_PAGE,

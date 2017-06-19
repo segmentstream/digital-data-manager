@@ -4,7 +4,7 @@ import deleteProperty from './../functions/deleteProperty';
 import {
   VIEWED_PRODUCT_DETAIL,
   COMPLETED_TRANSACTION,
-} from './../events';
+} from './../events/semanticEvents';
 
 class EventDataEnricher
 {

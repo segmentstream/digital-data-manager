@@ -9,7 +9,7 @@ import {
   ADDED_PRODUCT,
   ADDED_PRODUCT_TO_WISHLIST,
   COMPLETED_TRANSACTION,
-} from './../events';
+} from './../events/semanticEvents';
 
 const FB_STANDARD_EVENTS = [
   'ViewContent',

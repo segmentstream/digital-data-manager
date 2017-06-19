@@ -9,7 +9,7 @@ import {
   REMOVED_PRODUCT,
   VIEWED_CHECKOUT_STEP,
   COMPLETED_TRANSACTION,
-} from './../events';
+} from './../events/semanticEvents';
 
 const SEMANTIC_EVENTS = [
   VIEWED_PAGE,

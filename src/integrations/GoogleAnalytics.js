@@ -25,7 +25,7 @@ import {
   VIEWED_CAMPAIGN,
   CLICKED_CAMPAIGN,
   EXCEPTION,
-} from './../events';
+} from './../events/semanticEvents';
 import {
   EVENT_VAR,
   DIGITALDATA_VAR,

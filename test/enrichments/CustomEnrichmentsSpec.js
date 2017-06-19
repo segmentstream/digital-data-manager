@@ -17,7 +17,7 @@ describe('CustomEnrichments', () => {
     ddStorage = new DDStorage(digitalData, new Storage());
   });
 
-  it('should enrich digitalData', () => {
+  it.only('should enrich digitalData', () => {
     customEnrichments.addEnrichment('digitalData', 'user.hasTransacted', function() {
       this.getQueryParam('test');
       this.get('user.test');

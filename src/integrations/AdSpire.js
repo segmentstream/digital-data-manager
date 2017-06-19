@@ -10,7 +10,7 @@ import {
   VIEWED_PRODUCT_LISTING,
   COMPLETED_TRANSACTION,
   VIEWED_CART,
-} from './../events';
+} from './../events/semanticEvents';
 
 function mapLineItems(lineItems) {
   lineItems = lineItems || [];

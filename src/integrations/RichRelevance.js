@@ -11,7 +11,7 @@ import {
   SEARCHED_PRODUCTS,
   VIEWED_CART,
   COMPLETED_TRANSACTION,
-} from './../events';
+} from './../events/semanticEvents';
 
 const DEVELOPMENT_URL_PREFIX = 'integration';
 const PRODUCTION_URL_PREFIX = 'recs';

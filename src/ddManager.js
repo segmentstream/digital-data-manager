@@ -16,7 +16,7 @@ import Storage from './Storage';
 import DDStorage from './DDStorage';
 import CookieStorage from './CookieStorage';
 import { isTestMode, logEnrichedIntegrationEvent, showTestModeOverlay } from './testMode';
-import { VIEWED_PAGE, mapEvent } from './events';
+import { VIEWED_PAGE, mapEvent } from './events/semanticEvents';
 import { validateIntegrationEvent, trackValidationErrors } from './EventValidator';
 import { enableErrorTracking } from './ErrorTracker';
 import { warn, error as errorLog } from './functions/safeConsole';
