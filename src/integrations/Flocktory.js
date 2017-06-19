@@ -168,7 +168,7 @@ class Flocktory extends Integration {
         ],
         validations: {
           'user.email': {
-            errors: ['required', 'string'],
+            warnings: ['required', 'string'],
           },
           'user.firstName': {
             errors: ['string'],
@@ -329,7 +329,7 @@ class Flocktory extends Integration {
           });
         }),
       },
-      spot: getProp('integrations.flocktory.spot'),
+      spot: getProp(event, 'integrations.flocktory.spot'),
     })]);
   }
 }
