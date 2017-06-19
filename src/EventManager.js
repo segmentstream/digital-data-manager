@@ -327,7 +327,11 @@ class EventManager {
     while (_ddListener.length) {
       _ddListener.pop();
     }
+    while (_digitalData.changes.length) {
+      _digitalData.changes.pop();
+    }
     _ddListener.push = Array.prototype.push;
+    _digitalData.changes.push = Array.prototype.push;
     _callbacks = {};
     _viewabilityTracker = null;
     _sendViewedPageEvent = false;

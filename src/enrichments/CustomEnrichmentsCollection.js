@@ -9,12 +9,12 @@ class CustomEnrichmentsCollection {
     this.enrichmentsIndex = {};
   }
 
-  addEnrichment(enrichmentConfig) {
+  addEnrichment(enrichmentConfig, ddStorage) {
     const prop = enrichmentConfig.prop;
     const handler = enrichmentConfig.handler;
     const options = enrichmentConfig.options;
 
-    const enrichment = new CustomEnrichment(prop, handler, options, this);
+    const enrichment = new CustomEnrichment(prop, handler, options, this, ddStorage);
     this.enrichments.push(enrichment);
     this.enrichmentsIndex[enrichment.prop] = enrichment;
   }
@@ -29,9 +29,12 @@ class CustomEnrichmentsCollection {
     }
   }
 
-  enrich(target, args, options, direct) {
+  enrich(target, args, direct = false) {
+    this.reset();
     for (const enrichment of this.enrichments) {
-      enrichment.enrich(target, args, options, direct);
+      enrichment.enrich(target, args, direct);
     }
   }
 }
+
+export default CustomEnrichmentsCollection;

@@ -11,7 +11,7 @@ import EventDataEnricher from './enrichments/EventDataEnricher';
 import ViewabilityTracker from './ViewabilityTracker';
 import DDHelper from './DDHelper';
 import DigitalDataEnricher from './enrichments/DigitalDataEnricher';
-import CustomEnrichments from './enrichments/CustomEnrichments';
+import CustomEnricher from './enrichments/CustomEnricher';
 import Storage from './Storage';
 import DDStorage from './DDStorage';
 import CookieStorage from './CookieStorage';
@@ -55,10 +55,10 @@ let _eventManager;
 let _digitalDataEnricher;
 
 /**
-* @type {CustomEnrichments}
+* @type {CustomEnricher}
 * @private
 */
-let _customEnrichments;
+let _customEnricher;
 
 /**
  * @type {DDStorage}
@@ -324,16 +324,17 @@ ddManager = {
     });
 
     // initialize custom enrichments
-    _customEnrichments = new CustomEnrichments(_ddStorage);
-    _customEnrichments.import(settings.enrichments);
+    _customEnricher = new CustomEnricher(_ddStorage);
+    _customEnricher.import(settings.enrichments);
 
     // initialize event manager
     _eventManager = new EventManager(_digitalData, _ddListener);
     _eventManager.addCallback(['on', 'beforeEvent', (event) => {
       if (event.name === VIEWED_PAGE) {
         _digitalDataEnricher.enrichDigitalData();
+        _customEnricher.enrichDigitalData(_digitalData);
       }
-      _customEnrichments.enrichDigitalData(_digitalData, event);
+      _customEnricher.enrichDigitalData(_digitalData, event);
     }]);
     _eventManager.setSendViewedPageEvent(settings.sendViewedPageEvent);
     _eventManager.setViewabilityTracker(new ViewabilityTracker({
@@ -414,7 +415,7 @@ ddManager = {
   },
 
   addEnrichment: (type, prop, handler, options) => {
-    _customEnrichments.addEnrichment(type, prop, handler, options);
+    _customEnricher.addEnrichment(type, prop, handler, options);
   },
 
   reset: () => {
