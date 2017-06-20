@@ -246,7 +246,7 @@ class Soloway extends Integration {
     if (!transaction.orderId) return;
 
     this.initAdriverCounter({
-      sz: 'order',
+      sz: 'confirm',
       custom: {
         150: transaction.orderId,
         151: transaction.total,
