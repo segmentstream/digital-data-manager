@@ -128,7 +128,7 @@ class Soloway extends Integration {
     case LOGGED_IN:
       return ['user.userId', 'user.email'];
     case VIEWED_CART:
-      return ['user.email']
+      return ['user.email'];
     default:
       return ['user.email'];
     }

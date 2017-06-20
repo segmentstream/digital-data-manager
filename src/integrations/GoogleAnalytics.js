@@ -1165,6 +1165,7 @@ class GoogleAnalytics extends Integration {
       this.ga(['send', 'exception', {
         exDescription: event.exception.description || event.exception.message,
         exFatal: event.exception.isFatal || false,
+        nonInteraction: true,
       }]);
     }
   }

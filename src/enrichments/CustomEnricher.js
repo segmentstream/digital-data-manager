@@ -65,11 +65,12 @@ class CustomEnrichments {
     let collection;
     if (!event) {
       collection = prepareCollection(ENRICHMENT_TYPE_DIGITAL_DATA, ENRICHMENT_TRIGGER_INIT);
+      collection.enrich(digitalData, [event], true);
     } else {
       const eventName = event.name;
       collection = prepareCollection(ENRICHMENT_TYPE_DIGITAL_DATA, ENRICHMENT_TRIGGER_EVENT, eventName);
+      collection.enrich(digitalData, [event]);
     }
-    collection.enrich(digitalData, [event]);
   }
 
   reset() {

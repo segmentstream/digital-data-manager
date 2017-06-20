@@ -46,9 +46,9 @@ describe('CustomEnricher', () => {
     });
 
     customEnricher.enrichDigitalData(digitalData);
-    assert.deepEqual(digitalData.changes[0], ['user.visitedWebsite1', true, 'DDManager Custom Enrichment']);
-    assert.deepEqual(digitalData.changes[1], ['user.visitedWebsite2', true, 'DDManager Custom Enrichment']);
-    assert.deepEqual(digitalData.changes[2], ['user.visitedWebsite', true, 'DDManager Custom Enrichment']);
+    assert.equal(digitalData.user.visitedWebsite1, true);
+    assert.equal(digitalData.user.visitedWebsite2, true);
+    assert.equal(digitalData.user.visitedWebsite1, true);
   });
 
   it('should enrich digitalData with recursion protection', () => {

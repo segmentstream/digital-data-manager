@@ -33,7 +33,7 @@ class CustomEnrichment {
       for (const dependencyProp of dependencies) {
         const enrichment = this.collection.getEnrichment(dependencyProp);
         if (enrichment) {
-          enrichment.enrich(target, direct);
+          enrichment.enrich(target, args, direct);
         }
       }
     }
