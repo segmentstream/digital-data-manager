@@ -190,7 +190,7 @@ describe('Integrations: Soloway', () => {
             assert.ok(!window.AdriverCounter.items[0]);
             assert.ok(window.AdriverCounter.request.calledOnce);
             assert.ok(window.AdriverCounter.request.calledWith(
-              'sz=order&custom=150%3Dord123%3B151%3D1000%3B153%3D8cc94f335003012e00e1441e5666756f&sid=123&bt=62&ph=1'
+              'sz=confirm&custom=150%3Dord123%3B151%3D1000%3B153%3D8cc94f335003012e00e1441e5666756f&sid=123&bt=62&ph=1'
             ));
             done();
           }

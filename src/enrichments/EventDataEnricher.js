@@ -110,7 +110,7 @@ class EventDataEnricher
     }
 
     if (productId) {
-      const ddlProduct = DDHelper.getProduct(productId, digitalData) || {};
+      const ddlProduct = DDHelper.getProduct(productId, product.skuCode, digitalData) || {};
       if (ddlProduct) {
         product = Object.assign(ddlProduct, product);
       }

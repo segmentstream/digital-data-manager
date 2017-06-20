@@ -87,7 +87,17 @@ describe('DDHelper', () => {
           lineItems: [
             {
               product: {
-                id: '6'
+                id: '6',
+                skuCode: '1',
+                color: 'red',
+              },
+              quantity: 2
+            },
+            {
+              product: {
+                id: '6',
+                skuCode: '2',
+                color: 'blue',
               },
               quantity: 2
             }
@@ -97,24 +107,29 @@ describe('DDHelper', () => {
     });
 
     it('should get product from product key', () => {
-      assert.ok(DDHelper.getProduct('1', _digitalData).id === '1');
+      assert.ok(DDHelper.getProduct('1', undefined, _digitalData).id === '1');
     });
 
     it('should get product from listing key', () => {
-      assert.ok(DDHelper.getProduct('2', _digitalData).id === '2');
+      assert.ok(DDHelper.getProduct('2', undefined, _digitalData).id === '2');
     });
 
     it('should get product from recommendation key', () => {
-      assert.ok(DDHelper.getProduct('4', _digitalData).id === '4');
+      assert.ok(DDHelper.getProduct('4', undefined, _digitalData).id === '4');
     });
 
     it('should get product from list key without any listId properties', () => {
-      assert.ok(DDHelper.getProduct('5', _digitalData, 'recom').id === '5');
-      assert.ok(!DDHelper.getProduct('5', _digitalData, 'recom').listId);
+      assert.ok(DDHelper.getProduct('5', undefined, _digitalData, 'recom').id === '5');
+      assert.ok(!DDHelper.getProduct('5', undefined, _digitalData, 'recom').listId);
     });
 
     it('should get product from cart key', () => {
-      assert.ok(DDHelper.getProduct('6', _digitalData).id === '6');
+      assert.ok(DDHelper.getProduct('6', undefined, _digitalData).id === '6');
+    });
+
+    it('should get product from cart key using skuCode', () => {
+      assert.ok(DDHelper.getProduct('6', '1', _digitalData).color === 'red');
+      assert.ok(DDHelper.getProduct('6', '2', _digitalData).color === 'blue');
     });
   });
 
