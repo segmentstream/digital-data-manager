@@ -129,6 +129,7 @@ class DigitalDataEnricher
     ) {
       this.digitalData.events.push({
         name: 'Session Started',
+        source: 'DDManager',
         includeIntegrations: [], // do not send this event to any integration
       });
     }
