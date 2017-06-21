@@ -20,7 +20,7 @@ describe('EventManager', () => {
   describe('working with events:', () => {
 
     const eventTemplate = {
-      action: 'Added Product',
+      name: 'Added Product',
       category: 'Ecommerce'
     };
 
@@ -33,6 +33,7 @@ describe('EventManager', () => {
       };
       _ddListener = [];
       _eventManager = new EventManager(_digitalData, _ddListener);
+      _eventManager.setSendViewedPageEvent(true);
     });
 
     it('should add time and hasFired fields to event', () => {
@@ -42,9 +43,11 @@ describe('EventManager', () => {
 
       _digitalData.events.push(event);
 
-      assert.ok(_digitalData.events.length == 1);
+      assert.ok(_digitalData.events.length == 2);
       assert.ok(_digitalData.events[0].timestamp > 100000);
       assert.ok(_digitalData.events[0].hasFired);
+      assert.ok(_digitalData.events[1].timestamp > 100000);
+      assert.ok(_digitalData.events[1].hasFired);
     });
 
     it('should process callback for event', (done) => {
@@ -62,7 +65,7 @@ describe('EventManager', () => {
 
       event.callback = () => {
         assert.ok(callbackFired);
-        assert.equal(receivedEvent.action, event.action);
+        assert.equal(receivedEvent.name, event.name);
         assert.equal(receivedEvent.category, event.category);
         done();
       };
@@ -87,7 +90,7 @@ describe('EventManager', () => {
 
       event.callback = () => {
         assert.ok(callbackFired);
-        assert.equal(receivedEvent.action, event.action);
+        assert.equal(receivedEvent.name, event.name);
         assert.equal(receivedEvent.category, event.category);
         assert.equal(receivedEvent.newVar, 'test');
         done();
@@ -103,8 +106,10 @@ describe('EventManager', () => {
       _eventManager.initialize();
 
       _ddListener.push(['on', 'event', (e) => {
-        callbackFired = true;
-        receivedEvent = e;
+        if (e.name === event.name) {
+          callbackFired = true;
+          receivedEvent = e;
+        }
       }]);
       _ddListener.push(['on', 'beforeEvent', (e) => {
         return false;
@@ -119,7 +124,7 @@ describe('EventManager', () => {
 
       _ddListener.push(['on', 'event', (e) => {
         assert.ok(true);
-        assert.equal(e.action, event.action);
+        assert.equal(e.name, event.name);
         assert.equal(e.category, event.category);
       }]);
 
@@ -133,7 +138,7 @@ describe('EventManager', () => {
 
       _ddListener.push(['on', 'event', (e) => {
         assert.ok(true);
-        assert.equal(e.action, event.action);
+        assert.equal(e.name, event.name);
         assert.equal(e.category, event.category);
       }]);
       _digitalData.events.push(event);
@@ -146,7 +151,7 @@ describe('EventManager', () => {
 
       _ddListener.push(['on', 'event', (e) => {
         assert.ok(true);
-        assert.equal(e.action, event.action);
+        assert.equal(e.name, event.name);
         assert.equal(e.category, event.category);
         assert.equal(e.newVar, 'test');
       }]);
@@ -191,13 +196,13 @@ describe('EventManager', () => {
         category: 'Test',
         callback: (results, errors) => {
           assert.ok(errors);
-          assert.ok(results[0] == 'test result');
-          assert.ok(results[1] == 'test result 2');
+          assert.equal(results[0], 'test result');
+          assert.equal(results[1], 'test result 2');
         }
       });
 
       setTimeout(() => {
-        assert.ok(window.console.error.calledOnce);
+        assert.ok(window.console.error.called);
         window.console.error.restore();
         done();
       }, 100)

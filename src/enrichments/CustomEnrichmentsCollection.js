@@ -9,12 +9,28 @@ class CustomEnrichmentsCollection {
     this.enrichmentsIndex = {};
   }
 
-  addEnrichment(enrichmentConfig, ddStorage) {
+  setDigitalData(digitalData) {
+    this.digitalData = digitalData;
+  }
+
+  getDigitalData() {
+    return this.digitalData;
+  }
+
+  setDDStorage(ddStorage) {
+    this.ddStorage = ddStorage;
+  }
+
+  getDDStorage() {
+    return this.ddStorage;
+  }
+
+  addEnrichment(enrichmentConfig) {
     const prop = enrichmentConfig.prop;
     const handler = enrichmentConfig.handler;
     const options = enrichmentConfig.options;
 
-    const enrichment = new CustomEnrichment(prop, handler, options, this, ddStorage);
+    const enrichment = new CustomEnrichment(prop, handler, options, this);
     this.enrichments.push(enrichment);
     this.enrichmentsIndex[enrichment.prop] = enrichment;
   }

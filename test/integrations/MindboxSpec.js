@@ -79,9 +79,7 @@ describe('Integrations: Mindbox', () => {
         mindbox.onLoad();
       });
       ddManager.once('ready', done);
-      ddManager.initialize({
-        sendViewedPageEvent: false,
-      });
+      ddManager.initialize();
 
       sinon.spy(window, 'mindbox');
     });

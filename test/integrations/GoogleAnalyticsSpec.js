@@ -295,7 +295,6 @@ describe('Integrations: GoogleAnalytics', () => {
                 title: document.title,
                 location: window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '') + window.location.pathname + window.location.search
               }));
-
               window.digitalData.events.push({
                 name: 'Viewed Page',
                 page: window.digitalData.page,
@@ -2273,6 +2272,7 @@ describe('Integrations: GoogleAnalytics', () => {
         });
 
         it('should use custom namespace in requests', (done) => {
+          window.digitalData.events.push({ name: 'Viewed Page' });
           window.digitalData.events.push({
             name: 'Test',
             category: 'Test',

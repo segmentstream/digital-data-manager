@@ -292,6 +292,10 @@ describe('Integrations: Yandex Metrica', () => {
     });
 
     describe('#onViewedProductDetail', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
+
       it('should push product detail into dataLayer (legacy DDL product.category)', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
@@ -428,6 +432,10 @@ describe('Integrations: Yandex Metrica', () => {
     });
 
     describe('#onAddedProduct', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
+
       it('should push added product into dataLayer', (done) => {
         window.digitalData.events.push({
           name: 'Added Product',
@@ -495,6 +503,10 @@ describe('Integrations: Yandex Metrica', () => {
     });
 
     describe('#onRemovedProduct', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
+
       it('should push removed product into dataLayer', (done) => {
         window.digitalData.events.push({
           name: 'Removed Product',
@@ -558,6 +570,10 @@ describe('Integrations: Yandex Metrica', () => {
     });
 
     describe('#onCompletedTransaction', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
+
       const lineItems = [
         {
           product: {
@@ -722,6 +738,10 @@ describe('Integrations: Yandex Metrica', () => {
     });
 
     describe('#onCustomEvent', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
+      
       it('should track custom event as a goal', (done) => {
         sinon.stub(ym.yaCounter, 'reachGoal');
         window.digitalData.events.push({

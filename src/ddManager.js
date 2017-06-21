@@ -324,7 +324,7 @@ ddManager = {
     });
 
     // initialize custom enrichments
-    _customEnricher = new CustomEnricher(_ddStorage);
+    _customEnricher = new CustomEnricher(_digitalData, _ddStorage);
     _customEnricher.import(settings.enrichments);
 
     // initialize event manager
@@ -336,6 +336,7 @@ ddManager = {
       }
       _customEnricher.enrichDigitalData(_digitalData, event);
     }]);
+    _eventManager.import(settings.events); // import custom events
     _eventManager.setSendViewedPageEvent(settings.sendViewedPageEvent);
     _eventManager.setViewabilityTracker(new ViewabilityTracker({
       websiteMaxWidth: settings.websiteMaxWidth,

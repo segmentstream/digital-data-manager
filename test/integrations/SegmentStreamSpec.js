@@ -39,9 +39,7 @@ describe('SegmentStream', function() {
     describe('#initialize', function () {
 
       it('it should initialize all stub functions', function () {
-        ddManager.initialize({
-          sendViewedPageEvent: false
-        });
+        ddManager.initialize();
         ddManager.on('ready', () => {
           assert.ok(window.ssApi.initialize);
           assert.ok(window.ssApi.getData);
@@ -95,6 +93,7 @@ describe('SegmentStream', function() {
       });
 
       it('should track Viewed Product Detail semantic event', (done) => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           product: {
@@ -114,6 +113,7 @@ describe('SegmentStream', function() {
       });
 
       it('should track Viewed Product Detail semantic event (digitalData)', (done) => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
         window.digitalData.product = {
           id: '123',
           unitSalePrice: 100
@@ -133,6 +133,7 @@ describe('SegmentStream', function() {
       });
 
       it('should track Added Product semantic event', (done) => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
         window.digitalData.events.push({
           name: 'Added Product',
           category: 'Ecommerce',

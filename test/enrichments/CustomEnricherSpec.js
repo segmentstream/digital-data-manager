@@ -14,7 +14,7 @@ describe('CustomEnricher', () => {
   };
   let ddListener = [];
   let ddStorage = new DDStorage(digitalData, new Storage());
-  let customEnricher = new CustomEnricher(ddStorage);
+  let customEnricher = new CustomEnricher(digitalData, ddStorage);
   let eventManager;
 
   beforeEach(() => {

@@ -1,5 +1,6 @@
 import assert from 'assert';
 import reset from './../reset.js';
+import sinon from 'sinon';
 import GoogleTagManager from './../../src/integrations/GoogleTagManager.js';
 import ddManager from './../../src/ddManager.js';
 
@@ -48,9 +49,7 @@ describe('Integrations: GoogleTagManager', () => {
     describe('after loading', () => {
       beforeEach((done) => {
         ddManager.once('load', done);
-        ddManager.initialize({
-          sendViewedPageEvent: false
-        });
+        ddManager.initialize();
       });
 
       it('should update dataLayer', (done) => {
@@ -80,6 +79,11 @@ describe('Integrations: GoogleTagManager', () => {
 
         beforeEach(() => {
           window.dataLayer = [];
+          sinon.stub(window.dataLayer, 'push');
+        });
+
+        afterEach(() => {
+          window.dataLayer.push.restore();
         });
 
         it('should send event', (done) => {
@@ -88,8 +92,10 @@ describe('Integrations: GoogleTagManager', () => {
             category: 'some-category',
             callback: () => {
               let dl = window.dataLayer;
-              assert.ok(dl[0].event === 'some-event');
-              assert.ok(dl[0].eventCategory === 'some-category');
+              assert.ok(window.dataLayer.push.calledWithMatch({
+                event: 'some-event',
+                eventCategory: 'some-category',
+              }));
               done();
             }
           });
@@ -101,14 +107,14 @@ describe('Integrations: GoogleTagManager', () => {
             category: 'some-category',
             additionalParam: true,
             callback: () => {
-              let dl = window.dataLayer;
-              assert.ok(dl[0].event === 'some-event');
-              assert.ok(dl[0].additionalParam === true);
+              assert.ok(window.dataLayer.push.calledWithMatch({
+                event: 'some-event',
+                additionalParam: true,
+              }));
               done();
             }
           });
         });
-
       });
     });
 
@@ -138,9 +144,12 @@ describe('Integrations: GoogleTagManager', () => {
     describe('after loading', () => {
       beforeEach((done) => {
         ddManager.once('ready', done);
-        ddManager.initialize({
-          sendViewedPageEvent: false
-        });
+        ddManager.initialize();
+        sinon.stub(window.dataLayer, 'push');
+      });
+
+      afterEach(() => {
+        window.dataLayer.push.restore();
       });
 
       describe('#trackEvent', () => {
@@ -151,9 +160,10 @@ describe('Integrations: GoogleTagManager', () => {
             category: 'some-category',
             additionalParam: true,
             callback: () => {
-              let dl = window.dataLayer;
-              assert.ok(dl[2].event === 'some-event');
-              assert.ok(dl[2].additionalParam === true);
+              assert.ok(window.dataLayer.push.calledWithMatch({
+                event: 'some-event',
+                additionalParam: true
+              }));
               done();
             }
           });

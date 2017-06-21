@@ -252,6 +252,7 @@ describe('Integrations: Sociomantic', () => {
     describe('#onViewedProductDetail', () => {
       beforeEach(() => {
         window[options.prefix + 'product'] = undefined;
+        window.digitalData.events.push({ name: 'Viewed Page' });
       });
 
 
@@ -325,6 +326,7 @@ describe('Integrations: Sociomantic', () => {
     describe('#onViewedProductListing', () => {
       beforeEach(() => {
         window[options.prefix + 'product'] = undefined;
+        window.digitalData.events.push({ name: 'Viewed Page' });
       });
 
       it('should set global product object if user visits product category page', (done) => {
@@ -383,6 +385,7 @@ describe('Integrations: Sociomantic', () => {
     describe('#onSearchedProducts', () => {
       beforeEach(() => {
         window[options.prefix + 'search'] = undefined;
+        window.digitalData.events.push({ name: 'Viewed Page' });
       });
 
       it('should set global search object if user search products', (done) => {
@@ -429,6 +432,7 @@ describe('Integrations: Sociomantic', () => {
     describe('#onViewedCart', () => {
       beforeEach(() => {
         window[options.prefix + 'basket'] = undefined;
+        window.digitalData.events.push({ name: 'Viewed Page' });
       });
 
       it('should set global basket object if user visits cart page', (done) => {
@@ -470,6 +474,7 @@ describe('Integrations: Sociomantic', () => {
     describe('#onCompletedTransaction', () => {
       beforeEach(() => {
         window[options.prefix + 'basket'] = undefined;
+        window.digitalData.events.push({ name: 'Viewed Page' });
       });
 
       it('should set global basket object if user visits completed transaction page', (done) => {

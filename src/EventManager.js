@@ -1,11 +1,12 @@
 import clone from './functions/clone';
-import deleteProperty from './functions/deleteProperty.js';
-import size from './functions/size.js';
-import after from './functions/after.js';
-import jsonIsEqual from './functions/jsonIsEqual.js';
+import deleteProperty from './functions/deleteProperty';
+import size from './functions/size';
+import after from './functions/after';
+import jsonIsEqual from './functions/jsonIsEqual';
 import { error as errorLog } from './functions/safeConsole';
-import DDHelper from './DDHelper.js';
-import EventDataEnricher from './enrichments/EventDataEnricher.js';
+import DDHelper from './DDHelper';
+import EventDataEnricher from './enrichments/EventDataEnricher';
+import CustomEvent from './events/CustomEvent';
 import { VIEWED_PAGE } from './events/semanticEvents';
 
 let _callbacks = {};
@@ -16,6 +17,7 @@ let _checkForChangesIntervalId;
 let _viewabilityTracker;
 let _isInitialized = false;
 let _sendViewedPageEvent = false;
+const _customEvents = [];
 
 function _getCopyWithoutEvents(digitalData) {
   // not a deep copy for performance optimization and removal of events and changes
@@ -41,9 +43,28 @@ class EventManager {
     _previousDigitalData = _getCopyWithoutEvents(_digitalData);
   }
 
+  import(eventsConfig) {
+    eventsConfig = eventsConfig || [];
+    for (const eventConfig of eventsConfig) {
+      const customEvent = new CustomEvent(
+        eventConfig.trigger,
+        eventConfig.settings,
+        eventConfig.handler,
+        _digitalData,
+        this
+      );
+      _customEvents.push(customEvent);
+    }
+  }
+
   initialize() {
     const events = _digitalData.events;
     const changes = _digitalData.changes;
+
+    // initialize custom events tracking
+    for (const customEvent of _customEvents) {
+      customEvent.track();
+    }
 
     // process callbacks
     this.addEarlyCallbacks();
@@ -54,28 +75,58 @@ class EventManager {
     };
 
     // process events
-    this.fireUnfiredEvents();
+    // TODO: refactoring
+    if (this.isViewedPageSent()) {
+      this.fireUnfiredEvents();
+      this.enableEventsTracking();
+    } else if (_sendViewedPageEvent && !this.isViewedPageSent()) {
+      this.addViewedPageEvent();
+      this.fireUnfiredEvents();
+      this.enableEventsTracking();
+    } else {
+      events.push = (event) => {
+        // waiting for "Viewed Page" event
+        if (event.name === VIEWED_PAGE) {
+          this.addViewedPageEvent(event);
+          this.enableEventsTracking();
+          this.fireUnfiredEvents();
+        } else {
+          events[events.length] = event;
+        }
+      }
+    }
+
+    // process changes
+    this.applyEarlyChanges();
+    this.enableChangesTracking();
+
+    if (_viewabilityTracker) {
+      _viewabilityTracker.initialize();
+    }
+
+    _isInitialized = true;
+  }
+
+  enableEventsTracking() {
+    const events = _digitalData.events;
     events.push = (event) => {
       events[events.length] = event;
       this.fireEvent(event);
     };
+  }
 
-    // process changes
-    this.applyEarlyChanges();
+  enableChangesTracking() {
+    const changes = _digitalData.changes;
+
     changes.push = (changeInfo) => {
       changes[changes.length] = changeInfo;
       this.applyChange(changeInfo);
     };
 
-    if (_viewabilityTracker) {
-      _viewabilityTracker.initialize();
-    }
     _checkForChangesIntervalId = setInterval(() => {
       this.fireDefine();
       this.checkForChanges();
     }, 100);
-
-    _isInitialized = true;
   }
 
   setSendViewedPageEvent(sendViewedPageEvent) {
@@ -117,9 +168,26 @@ class EventManager {
       }
       const handler = callbackInfo[2];
       this.on(callbackInfo[1], handler, processPastEvents);
-    } if (callbackInfo[0] === 'off') {
+    } else if (callbackInfo[0] === 'off') {
       // TODO
     }
+  }
+
+  isViewedPageSent() {
+    const events = _digitalData.events;
+    for (const event of events) {
+      if (event.name === VIEWED_PAGE) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  addViewedPageEvent(event) {
+    if (!event) {
+      event = { name: VIEWED_PAGE, source: 'DDManager' };
+    }
+    _digitalData.events.unshift(event);
   }
 
   fireDefine() {
@@ -202,15 +270,17 @@ class EventManager {
   }
 
   fireEvent(event) {
-    event.timestamp = Date.now();
+    if (!event.timestamp) { // do not override if defined in unit tests
+      event.timestamp = Date.now();
+    }
 
     if (!this.beforeFireEvent(event)) {
       return false;
     }
-
     if (_callbacks.event) {
       const results = [];
       const errors = [];
+
       const ready = after(size(_callbacks.event), () => {
         if (typeof event.callback === 'function') {
           event.callback(results, errors);
@@ -289,22 +359,7 @@ class EventManager {
 
   fireUnfiredEvents() {
     const events = _digitalData.events;
-    let event;
-
-    if (_sendViewedPageEvent) {
-      let viewedPageEventIsSent = false;
-      for (event of events) {
-        if (event.name === VIEWED_PAGE) {
-          viewedPageEventIsSent = true;
-          break;
-        }
-      }
-      if (!viewedPageEventIsSent) {
-        events.unshift({ name: VIEWED_PAGE, source: 'DDManager' });
-      }
-    }
-
-    for (event of events) {
+    for (const event of events) {
       if (!event.hasFired) {
         this.fireEvent(event);
       }

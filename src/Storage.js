@@ -26,7 +26,7 @@ class Storage
     const info = store.get(key);
     if (info !== undefined) {
       if (info.val !== undefined && info.exp && info.time) {
-        if (Date.now() - info.time > info.exp) {
+        if ((Date.now() - info.time) > info.exp) {
           store.rm(key);
           return undefined;
         }
