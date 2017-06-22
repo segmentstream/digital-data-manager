@@ -47,8 +47,9 @@ class EventManager {
     eventsConfig = eventsConfig || [];
     for (const eventConfig of eventsConfig) {
       const customEvent = new CustomEvent(
+        eventConfig.name,
         eventConfig.trigger,
-        eventConfig.settings,
+        eventConfig.event || eventConfig.cssSelector,
         eventConfig.handler,
         _digitalData,
         this
@@ -57,9 +58,13 @@ class EventManager {
     }
   }
 
+  addEvent(name, trigger, setting, handler) {
+    const customEvent = new CustomEvent(name, trigger, setting, handler, _digitalData, this);
+    _customEvents.push(customEvent);
+  }
+
   initialize() {
     const events = _digitalData.events;
-    const changes = _digitalData.changes;
 
     // initialize custom events tracking
     for (const customEvent of _customEvents) {
@@ -93,7 +98,7 @@ class EventManager {
         } else {
           events[events.length] = event;
         }
-      }
+      };
     }
 
     // process changes

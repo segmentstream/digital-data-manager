@@ -419,6 +419,10 @@ ddManager = {
     _customEnricher.addEnrichment(type, prop, handler, options);
   },
 
+  addEvent: (name, trigger, setting, handler) => {
+    _eventManager.addEvent(name, trigger, setting, handler);
+  },
+
   reset: () => {
     if (_ddStorage) {
       _ddStorage.clear();

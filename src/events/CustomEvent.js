@@ -1,15 +1,17 @@
 import trackImpression from './../trackers/trackImpression';
 import trackLink from './../trackers/trackLink';
 import EventHandler from './EventHandler';
+import { error as errorLog } from './../functions/safeConsole';
 
 const TRIGGER_EVENT = 'event';
 const TRIGGER_IMPRESSION = 'impression';
 const TRIGGER_CLICK = 'click';
 
 class CustomEvent {
-  constructor(trigger, settings, handler, digitalData, eventManager) {
+  constructor(name, trigger, setting, handler, digitalData, eventManager) {
+    this.name = name;
     this.trigger = trigger;
-    this.settings = settings;
+    this.setting = setting;
     this.handler = handler;
     this.digitalData = digitalData;
     this.eventManager = eventManager;
@@ -30,29 +32,50 @@ class CustomEvent {
   }
 
   trackEvent() {
-    if (!this.settings.event) return;
+    if (!this.setting) return;
     this.eventManager.addCallback(['on', 'event', (event) => {
-      if (event.name === this.settings.event) {
+      if (event.name === this.setting) {
         const handler = this.newHandler(event);
-        handler.run();
+        const resultEvent = handler.run();
+        if (resultEvent && resultEvent.name && resultEvent.name === event.name) {
+          errorLog(`Custom Event "${this.name}" was disabled: recursion error`);
+        } else {
+          this.fireEvent(resultEvent);
+        }
       }
     }]);
   }
 
   trackImpression() {
-    if (!this.settings.cssSelector) return;
-    trackImpression(this.settings.cssSeelctor, (elements) => {
+    if (!this.setting) return;
+    trackImpression(this.setting, (elements) => {
       const handler = this.newHandler(elements);
-      handler.run();
+      const resultEvent = handler.run();
+      this.fireEvent(resultEvent);
     });
   }
 
   trackClick() {
-    if (!this.settings.cssSelector) return;
-    trackLink(this.settings.cssSelector, (element) => {
+    if (!this.setting) return;
+    trackLink(this.setting, (element) => {
       const handler = this.newHandler(element);
-      handler.run();
+      const resultEvent = handler.run();
+      this.fireEvent(resultEvent);
     });
+  }
+
+  fireEvent(event) {
+    if (!event) return;
+    if (typeof event !== 'object') {
+      errorLog(`Custom Event "${this.name}" was disabled: returned event should be object`);
+    }
+    if (!event.name) {
+      errorLog(`Custom Event "${this.name}" was disabled: returned event name is undefined`);
+    }
+    if (!event.source) {
+      event.source = 'DDManager Custom Event';
+    }
+    this.digitalData.events.push(event);
   }
 }
 
