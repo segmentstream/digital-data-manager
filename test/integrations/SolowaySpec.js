@@ -52,8 +52,7 @@ describe('Integrations: Soloway', () => {
 
     beforeEach((done) => {
       ddManager.once('ready', () => {
-        sinon.stub(window.AdriverCounter, 'request', (d) => {
-        });
+        sinon.stub(window.AdriverCounter, 'request', (d) => {});
         done();
       });
       ddManager.initialize({
@@ -76,9 +75,30 @@ describe('Integrations: Soloway', () => {
             setTimeout(() => {
               assert.ok(!window.AdriverCounter.items[0]);
               assert.ok(window.AdriverCounter.request.calledOnce);
-              // assert.ok(window.AdriverCounter.request.calledWith(
-              //   'custom=153%3D8cc94f335003012e00e1441e5666756f&sid=123&bt=62&ph=1'
-              // ));
+              assert.ok(window.AdriverCounter.request.calledWith(
+                'custom=153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=1'
+              ));
+              done();
+            }, 101);
+          }
+        });
+      });
+
+      it('should track general page with custom segment', (done) => {
+        soloway.setOption('userSegmentVar', 'user.solowaySegment');
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          user: {
+            email: 'test@driveback.ru',
+            solowaySegment: 'test',
+          },
+          callback: () => {
+            setTimeout(() => {
+              assert.ok(!window.AdriverCounter.items[0]);
+              assert.ok(window.AdriverCounter.request.calledOnce);
+              assert.ok(window.AdriverCounter.request.calledWith(
+                'custom=153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0%3B162%3Dtest&sid=123&bt=62&ph=1'
+              ));
               done();
             }, 101);
           }
@@ -100,7 +120,7 @@ describe('Integrations: Soloway', () => {
               assert.ok(!window.AdriverCounter.items[0]);
               assert.ok(window.AdriverCounter.request.calledOnce);
               assert.ok(!window.AdriverCounter.request.calledWith(
-                'custom=153%3D8cc94f335003012e00e1441e5666756f&sid=123&bt=62&ph=1'
+                'custom=153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=1'
               ));
               done();
             }, 101);
@@ -127,7 +147,7 @@ describe('Integrations: Soloway', () => {
             assert.ok(!window.AdriverCounter.items[0]);
             assert.ok(window.AdriverCounter.request.calledOnce);
             assert.ok(window.AdriverCounter.request.calledWith(
-              'custom=10%3Dpr123%3B11%3Dcart123%3B153%3D8cc94f335003012e00e1441e5666756f&sid=123&bt=62&ph=1'
+              'custom=10%3Dpr123%3B11%3Dcart123%3B153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=1'
             ));
             done();
           }
@@ -153,7 +173,7 @@ describe('Integrations: Soloway', () => {
             assert.ok(!window.AdriverCounter.items[0]);
             assert.ok(window.AdriverCounter.request.calledOnce);
             assert.ok(window.AdriverCounter.request.calledWith(
-              'sz=add_basket&custom=10%3Dpr123%3B11%3Dcart123%3B153%3D8cc94f335003012e00e1441e5666756f&sid=123&bt=62&ph=1'
+              'sz=add_basket&custom=10%3Dpr123%3B11%3Dcart123%3B153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=1'
             ));
             done();
           }
@@ -178,7 +198,7 @@ describe('Integrations: Soloway', () => {
             assert.ok(!window.AdriverCounter.items[0]);
             assert.ok(window.AdriverCounter.request.calledOnce);
             assert.ok(window.AdriverCounter.request.calledWith(
-              'sz=del_basket&custom=10%3Dpr123%3B11%3Dcart123%3B153%3D8cc94f335003012e00e1441e5666756f&sid=123&bt=62&ph=1'
+              'sz=del_basket&custom=10%3Dpr123%3B11%3Dcart123%3B153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=1'
             ));
             done();
           }
@@ -203,7 +223,7 @@ describe('Integrations: Soloway', () => {
             assert.ok(!window.AdriverCounter.items[0]);
             assert.ok(window.AdriverCounter.request.calledOnce);
             assert.ok(window.AdriverCounter.request.calledWith(
-              'sz=confirm&custom=150%3Dord123%3B151%3D1000%3B153%3D8cc94f335003012e00e1441e5666756f&sid=123&bt=62&ph=1'
+              'sz=confirm&custom=150%3Dord123%3B151%3D1000%3B153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=1'
             ));
             done();
           }
@@ -222,10 +242,10 @@ describe('Integrations: Soloway', () => {
             assert.ok(!window.AdriverCounter.items[0]);
             assert.ok(window.AdriverCounter.request.calledTwice);
             assert.ok(window.AdriverCounter.request.calledWith(
-              'sz=new_buyer&custom=150%3Dord123%3B151%3D1000%3B153%3D8cc94f335003012e00e1441e5666756f&sid=123&bt=62&ph=1'
+              'sz=new_buyer&custom=150%3Dord123%3B151%3D1000%3B153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=1'
             ));
             assert.ok(window.AdriverCounter.request.calledWith(
-              'sz=confirm&custom=150%3Dord123%3B151%3D1000%3B153%3D8cc94f335003012e00e1441e5666756f&sid=123&bt=62&ph=2'
+              'sz=confirm&custom=150%3Dord123%3B151%3D1000%3B153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=2'
             ));
             done();
           }
@@ -246,7 +266,7 @@ describe('Integrations: Soloway', () => {
             assert.ok(!window.AdriverCounter.items[0]);
             assert.ok(window.AdriverCounter.request.calledOnce);
             assert.ok(window.AdriverCounter.request.calledWith(
-              'sz=basket&custom=153%3D8cc94f335003012e00e1441e5666756f&sid=123&bt=62&ph=1'
+              'sz=basket&custom=153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=1'
             ));
             done();
           }
@@ -270,7 +290,7 @@ describe('Integrations: Soloway', () => {
             assert.ok(!window.AdriverCounter.items[0]);
             assert.ok(window.AdriverCounter.request.calledOnce);
             assert.ok(window.AdriverCounter.request.calledWith(
-              'sz=regist&custom=152%3Du123%3B153%3D8cc94f335003012e00e1441e5666756f&sid=123&bt=62&ph=1'
+              'sz=regist&custom=152%3Du123%3B153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=1'
             ));
             done();
           }
@@ -294,7 +314,7 @@ describe('Integrations: Soloway', () => {
             assert.ok(!window.AdriverCounter.items[0]);
             assert.ok(window.AdriverCounter.request.calledOnce);
             assert.ok(window.AdriverCounter.request.calledWith(
-              'sz=authorization&custom=152%3Du123%3B153%3D8cc94f335003012e00e1441e5666756f&sid=123&bt=62&ph=1'
+              'sz=authorization&custom=152%3Du123%3B153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=1'
             ));
             done();
           }
@@ -318,7 +338,7 @@ describe('Integrations: Soloway', () => {
             assert.ok(!window.AdriverCounter.items[0]);
             assert.ok(window.AdriverCounter.request.calledOnce);
             assert.ok(window.AdriverCounter.request.calledWith(
-              'sz=newsletter&custom=153%3D8cc94f335003012e00e1441e5666756f&sid=123&bt=62&ph=1'
+              'sz=newsletter&custom=153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=1'
             ));
             done();
           }

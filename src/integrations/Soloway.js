@@ -33,6 +33,7 @@ class Soloway extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       siteId: '',
+      userSegmentVar: undefined,
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -100,7 +101,14 @@ class Soloway extends Integration {
     /* eslint-enable */
   }
 
-  initAdriverCounter(params) {
+  initAdriverCounter(event, params) {
+    params = params || {};
+    params.custom = params.custom || {};
+    params.custom = Object.assign(params.custom, {
+      153: this.getEmailMd5(event),
+      160: getProp(event, 'user.hasTransacted') ? 1 : 0,
+      162: this.getUserSegment(event),
+    });
     params = Object.assign(params, {
       sid: this.getOption('siteId'),
       bt: 62,
@@ -114,24 +122,38 @@ class Soloway extends Integration {
   }
 
   getEnrichableEventProps(event) {
+    let enrichableProps;
     switch (event.name) {
     case VIEWED_PRODUCT_DETAIL:
-      return ['product.id', 'product.categoryId', 'user.email'];
+      enrichableProps = ['product.id', 'product.categoryId'];
+      break;
     case ADDED_PRODUCT:
-      return ['product.id', 'product.categoryId', 'user.email'];
+      enrichableProps = ['product.id', 'product.categoryId'];
+      break;
     case REMOVED_PRODUCT:
-      return ['product.id', 'product.categoryId', 'user.email'];
+      enrichableProps = ['product.id', 'product.categoryId'];
+      break;
     case COMPLETED_TRANSACTION:
-      return ['transaction.orderId', 'transaction.total', 'user.email'];
+      enrichableProps = ['transaction.orderId', 'transaction.total'];
+      break;
     case REGISTERED:
-      return ['user.userId', 'user.email'];
+      enrichableProps = ['user.userId'];
+      break;
     case LOGGED_IN:
-      return ['user.userId', 'user.email'];
-    case VIEWED_CART:
-      return ['user.email'];
+      enrichableProps = ['user.userId'];
+      break;
     default:
-      return ['user.email'];
+      enrichableProps = [];
     }
+
+    enrichableProps.push('user.email', 'user.hasTransacted');
+
+    const userSegmentVar = this.getOption('userSegmentVar');
+    if (userSegmentVar) {
+      enrichableProps.push(userSegmentVar);
+    }
+
+    return enrichableProps;
   }
 
   getEventValidationConfig(event) {
@@ -202,7 +224,21 @@ class Soloway extends Integration {
       },
     };
 
-    return config[event.name];
+    let validationConfig = config[event.name];
+    const userSegmentVar = this.getOption('userSegmentVar');
+
+    if (userSegmentVar) {
+      if (!validationConfig) {
+        validationConfig = {
+          fields: [userSegmentVar],
+        };
+      } else {
+        validationConfig.fields = validationConfig.fields || [];
+        validationConfig.fields.push(userSegmentVar);
+      }
+    }
+
+    return validationConfig;
   }
 
   initialize() {
@@ -224,6 +260,14 @@ class Soloway extends Integration {
       const emailNorm = normalizeString(email);
       const emailMd5 = md5(emailNorm).toString();
       return emailMd5;
+    }
+    return undefined;
+  }
+
+  getUserSegment(event) {
+    const userSegmentVar = this.getOption('userSegmentVar');
+    if (userSegmentVar) {
+      return getProp(event, userSegmentVar);
     }
     return undefined;
   }
@@ -257,11 +301,7 @@ class Soloway extends Integration {
   }
 
   onViewedOther(event) {
-    this.initAdriverCounter({
-      custom: {
-        153: this.getEmailMd5(event),
-      },
-    });
+    this.initAdriverCounter(event);
     this.pageTracked = true;
   }
 
@@ -269,11 +309,10 @@ class Soloway extends Integration {
     const product = event.product || {};
     if (!product.id) return;
 
-    this.initAdriverCounter({
+    this.initAdriverCounter(event, {
       custom: {
         10: product.id,
         11: product.categoryId,
-        153: this.getEmailMd5(event),
       },
     });
 
@@ -284,12 +323,11 @@ class Soloway extends Integration {
     const transaction = event.transaction || {};
     if (!transaction.orderId) return;
 
-    this.initAdriverCounter({
+    this.initAdriverCounter(event, {
       sz: 'new_buyer',
       custom: {
         150: transaction.orderId,
         151: transaction.total,
-        153: this.getEmailMd5(event),
       },
     });
 
@@ -304,12 +342,11 @@ class Soloway extends Integration {
       this.onNewBuyer(event);
     }
 
-    this.initAdriverCounter({
+    this.initAdriverCounter(event, {
       sz: 'confirm',
       custom: {
         150: transaction.orderId,
         151: transaction.total,
-        153: this.getEmailMd5(event),
       },
     });
 
@@ -320,12 +357,11 @@ class Soloway extends Integration {
     const product = event.product || {};
     if (!product.id) return;
 
-    this.initAdriverCounter({
+    this.initAdriverCounter(event, {
       sz: 'add_basket',
       custom: {
         10: product.id,
         11: product.categoryId,
-        153: this.getEmailMd5(event),
       },
     });
 
@@ -336,12 +372,11 @@ class Soloway extends Integration {
     const product = event.product || {};
     if (!product.id) return;
 
-    this.initAdriverCounter({
+    this.initAdriverCounter(event, {
       sz: 'del_basket',
       custom: {
         10: product.id,
         11: product.categoryId,
-        153: this.getEmailMd5(event),
       },
     });
 
@@ -349,11 +384,8 @@ class Soloway extends Integration {
   }
 
   onViewedCart(event) {
-    this.initAdriverCounter({
+    this.initAdriverCounter(event, {
       sz: 'basket',
-      custom: {
-        153: this.getEmailMd5(event),
-      },
     });
 
     this.pageTracked = true;
@@ -363,11 +395,10 @@ class Soloway extends Integration {
     const user = event.user || {};
     if (!user.userId) return;
 
-    this.initAdriverCounter({
+    this.initAdriverCounter(event, {
       sz: 'regist',
       custom: {
         152: user.userId,
-        153: this.getEmailMd5(event),
       },
     });
 
@@ -378,11 +409,10 @@ class Soloway extends Integration {
     const user = event.user || {};
     if (!user.userId) return;
 
-    this.initAdriverCounter({
+    this.initAdriverCounter(event, {
       sz: 'authorization',
       custom: {
         152: user.userId,
-        153: this.getEmailMd5(event),
       },
     });
 
@@ -393,11 +423,8 @@ class Soloway extends Integration {
     const user = event.user || {};
     if (!user.email) return;
 
-    this.initAdriverCounter({
+    this.initAdriverCounter(event, {
       sz: 'newsletter',
-      custom: {
-        153: this.getEmailMd5(event),
-      },
     });
 
     this.pageTracked = true;
