@@ -65,9 +65,7 @@ describe('Integrations: RetailRocket', () => {
 
     describe('#initialize', () => {
       it('should initialize all methods', () => {
-        ddManager.initialize({
-          sendViewedPageEvent: false
-        });
+        ddManager.initialize();
         assert.ok(window.rrPartnerId, 'window.rrPartnerId is not defined');
         assert.ok(window.rrApi, 'window.rrApi is not defined');
         assert.ok(window.rrApiOnReady, 'window.rrApiOnReady is not defined');
@@ -81,9 +79,7 @@ describe('Integrations: RetailRocket', () => {
 
       it('should set window.rrPartnerUserId if possible', () => {
         window.digitalData.user.email = 'test@test.com';
-        ddManager.initialize({
-          sendViewedPageEvent: false
-        });
+        ddManager.initialize();
         assert.equal(window.rrPartnerUserId, 'test@test.com');
       });
     });
@@ -123,9 +119,7 @@ describe('Integrations: RetailRocket', () => {
       });
 
       ddManager.once('ready', done);
-      ddManager.initialize({
-        sendViewedPageEvent: false
-      });
+      ddManager.initialize();
       prepareStubs();
     });
 

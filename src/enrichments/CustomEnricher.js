@@ -12,19 +12,6 @@ const storage = {
   },
 };
 
-const prepareCollection = (type, trigger, event) => {
-  if (trigger === ENRICHMENT_TRIGGER_EVENT) {
-    if (!storage[type][trigger][event]) {
-      storage[type][trigger][event] = new CustomEnrichmentsCollection(type, trigger, event);
-    }
-    return storage[type][trigger][event];
-  }
-  if (!storage[type][trigger]) {
-    storage[type][trigger] = new CustomEnrichmentsCollection(type, trigger);
-  }
-  return storage[type][trigger];
-};
-
 const checkEnrichment = (enrichment) => {
   return (
     typeof enrichment === 'object' &&
@@ -34,8 +21,9 @@ const checkEnrichment = (enrichment) => {
 };
 
 class CustomEnrichments {
-  constructor(ddStorage) {
+  constructor(digitalData, ddStorage) {
     this.ddStorage = ddStorage;
+    this.digitalData = digitalData;
   }
 
   import(enrichments) {
@@ -52,10 +40,10 @@ class CustomEnrichments {
     const enrichment = { prop, handler, options };
     let collection;
     if (events.length === 0) {
-      collection = prepareCollection(type, ENRICHMENT_TRIGGER_INIT);
+      collection = this.prepareCollection(type, ENRICHMENT_TRIGGER_INIT);
     } else {
       for (const eventName of events) {
-        collection = prepareCollection(type, ENRICHMENT_TRIGGER_EVENT, eventName);
+        collection = this.prepareCollection(type, ENRICHMENT_TRIGGER_EVENT, eventName);
       }
     }
     collection.addEnrichment(enrichment, this.ddStorage);
@@ -64,13 +52,34 @@ class CustomEnrichments {
   enrichDigitalData(digitalData, event = null) {
     let collection;
     if (!event) {
-      collection = prepareCollection(ENRICHMENT_TYPE_DIGITAL_DATA, ENRICHMENT_TRIGGER_INIT);
+      collection = this.prepareCollection(ENRICHMENT_TYPE_DIGITAL_DATA, ENRICHMENT_TRIGGER_INIT);
       collection.enrich(digitalData, [event], true);
     } else {
       const eventName = event.name;
-      collection = prepareCollection(ENRICHMENT_TYPE_DIGITAL_DATA, ENRICHMENT_TRIGGER_EVENT, eventName);
+      collection = this.prepareCollection(ENRICHMENT_TYPE_DIGITAL_DATA, ENRICHMENT_TRIGGER_EVENT, eventName);
       collection.enrich(digitalData, [event]);
     }
+  }
+
+  prepareCollection(type, trigger, event) {
+    if (trigger === ENRICHMENT_TRIGGER_EVENT) {
+      if (!storage[type][trigger][event]) {
+        storage[type][trigger][event] = this.newCollection(type, trigger, event);
+      }
+      return storage[type][trigger][event];
+    }
+    if (!storage[type][trigger]) {
+      storage[type][trigger] = this.newCollection(type, trigger);
+    }
+    return storage[type][trigger];
+  }
+
+  newCollection(type, trigger, event) {
+    const collection = new CustomEnrichmentsCollection(type, trigger, event);
+    collection.setDigitalData(this.digitalData);
+    collection.setDDStorage(this.ddStorage);
+
+    return collection;
   }
 
   reset() {

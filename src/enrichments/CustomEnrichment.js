@@ -3,12 +3,13 @@ import { error as errorLog } from './../functions/safeConsole';
 import { setProp } from './../functions/dotProp';
 
 class CustomEnrichment {
-  constructor(prop, handler, options, collection, ddStorage) {
+  constructor(prop, handler, options, collection) {
     this.prop = prop;
     this.handler = handler;
     this.options = options || {};
     this.collection = collection;
-    this.ddStorage = ddStorage;
+    this.digitalData = collection.getDigitalData();
+    this.ddStorage = collection.getDDStorage();
 
     this.done = false;
     this.recursionFreeze = false;
@@ -38,7 +39,7 @@ class CustomEnrichment {
       }
     }
 
-    const handler = new EnrichmentHandler(this.handler, target, args);
+    const handler = new EnrichmentHandler(this.handler, this.digitalData, args);
     let value;
     try {
       value = handler.run();

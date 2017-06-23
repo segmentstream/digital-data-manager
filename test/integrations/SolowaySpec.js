@@ -112,6 +112,9 @@ describe('Integrations: Soloway', () => {
 
 
     describe('#Product Page Tracker', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
 
       it('it should track product page', (done) => {
         window.digitalData.events.push({
@@ -135,6 +138,9 @@ describe('Integrations: Soloway', () => {
 
 
     describe('#Add Product Tracker', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
 
       it('it should track added product', (done) => {
         window.digitalData.events.push({
@@ -157,6 +163,9 @@ describe('Integrations: Soloway', () => {
     });
 
     describe('#Remove Product Tracker', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
 
       it('it should track removed product', (done) => {
         window.digitalData.events.push({
@@ -179,6 +188,9 @@ describe('Integrations: Soloway', () => {
     });
 
     describe('#Order Confirmation Tracker', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
 
       it('it should track completed transaction', (done) => {
         window.digitalData.events.push({
@@ -223,6 +235,9 @@ describe('Integrations: Soloway', () => {
     });
 
     describe('#Basket Tracker', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
 
       it('it should track completed transaction', (done) => {
         window.digitalData.events.push({
@@ -241,6 +256,9 @@ describe('Integrations: Soloway', () => {
     });
 
     describe('#Registration Tracker', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
 
       it('it should track registered user', (done) => {
         window.digitalData.events.push({
@@ -262,6 +280,9 @@ describe('Integrations: Soloway', () => {
     });
 
     describe('#Authorization Tracker', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
 
       it('it should track registered user', (done) => {
         window.digitalData.events.push({
@@ -283,6 +304,9 @@ describe('Integrations: Soloway', () => {
     });
 
     describe('#Newsletter Tracker', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
 
       it('it should track registered user', (done) => {
         window.digitalData.events.push({

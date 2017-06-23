@@ -21,6 +21,7 @@ function viewedPageOfType(type, callback) {
 }
 
 function viewedProductCategory(category, callback) {
+  window.digitalData.events.push({ name: 'Viewed Page' });
   window.digitalData.events.push({
     name: 'Viewed Product Category',
     listing: { category },
@@ -29,6 +30,7 @@ function viewedProductCategory(category, callback) {
 }
 
 function searched(query, callback) {
+  window.digitalData.events.push({ name: 'Viewed Page' });
   window.digitalData.events.push({
     name: 'Searched Products',
     listing: { query },
@@ -37,6 +39,7 @@ function searched(query, callback) {
 }
 
 function viewedProductDetail(productId, callback) {
+  window.digitalData.events.push({ name: 'Viewed Page' });
   window.digitalData.events.push({
     name: 'Viewed Product Detail',
     product: {
@@ -47,6 +50,7 @@ function viewedProductDetail(productId, callback) {
 }
 
 function completedTransaction(transaction, callback) {
+  window.digitalData.events.push({ name: 'Viewed Page' });
   window.digitalData.events.push({
     name: 'Completed Transaction',
     transaction,

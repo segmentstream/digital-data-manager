@@ -90,6 +90,10 @@ describe('Integrations: RTBHouse', () => {
     });
 
     describe('#onViewedCart', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
+
       it('should track cart info', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Cart',
@@ -118,6 +122,10 @@ describe('Integrations: RTBHouse', () => {
     });
 
     describe('#onViewedProductDetail', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
+
       it('should track product detail page', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
@@ -135,6 +143,10 @@ describe('Integrations: RTBHouse', () => {
     });
 
     describe('#onViewedProductListing', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
+
       it('should track product category listing page', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Product Listing',
@@ -152,6 +164,10 @@ describe('Integrations: RTBHouse', () => {
     });
 
     describe('#onSearchedProducts', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
+
       it('should track search results page', (done) => {
         window.digitalData.events.push({
           name: 'Searched Products',
@@ -208,6 +224,10 @@ describe('Integrations: RTBHouse', () => {
     */
 
     describe('#onViewedCheckoutStep', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
+
       it('should track first checkout step', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Checkout Step',
@@ -220,6 +240,7 @@ describe('Integrations: RTBHouse', () => {
       });
 
       it('should not track second+ checkout step', (done) => {
+
         window.digitalData.events.push({
           name: 'Viewed Checkout Step',
           step: 2,
@@ -232,6 +253,10 @@ describe('Integrations: RTBHouse', () => {
     });
 
     describe('#onCompletedTransaction', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
+
       const transaction = {
         orderId: '123',
         lineItems: [

@@ -2,7 +2,7 @@ import getQueryParam from './../functions/getQueryParam';
 import cookie from 'js-cookie';
 import DDHelper from './../DDHelper';
 
-class EnrichmentHandler {
+class EventHandler {
   constructor(handler, digitalData, args) {
     this.handler = handler;
     this.args = args;
@@ -21,4 +21,4 @@ class EnrichmentHandler {
   }
 }
 
-export default EnrichmentHandler;
+export default EventHandler;
