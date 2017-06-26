@@ -230,27 +230,27 @@ describe('Integrations: Soloway', () => {
         });
       });
 
-      it('it should track completed transaction and new buyer', (done) => {
-        window.digitalData.events.push({
-          name: 'Completed Transaction',
-          transaction: {
-            isFirst: true,
-            orderId: 'ord123',
-            total: 1000,
-          },
-          callback: () => {
-            assert.ok(!window.AdriverCounter.items[0]);
-            assert.ok(window.AdriverCounter.request.calledTwice);
-            assert.ok(window.AdriverCounter.request.calledWith(
-              'sz=new_buyer&custom=150%3Dord123%3B151%3D1000%3B153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=1'
-            ));
-            assert.ok(window.AdriverCounter.request.calledWith(
-              'sz=confirm&custom=150%3Dord123%3B151%3D1000%3B153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=2'
-            ));
-            done();
-          }
-        });
-      });
+      // it('it should track completed transaction and new buyer', (done) => {
+      //   window.digitalData.events.push({
+      //     name: 'Completed Transaction',
+      //     transaction: {
+      //       isFirst: true,
+      //       orderId: 'ord123',
+      //       total: 1000,
+      //     },
+      //     callback: () => {
+      //       assert.ok(!window.AdriverCounter.items[0]);
+      //       assert.ok(window.AdriverCounter.request.calledTwice);
+      //       assert.ok(window.AdriverCounter.request.calledWith(
+      //         'sz=new_buyer&custom=150%3Dord123%3B151%3D1000%3B153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=1'
+      //       ));
+      //       assert.ok(window.AdriverCounter.request.calledWith(
+      //         'sz=confirm&custom=150%3Dord123%3B151%3D1000%3B153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=2'
+      //       ));
+      //       done();
+      //     }
+      //   });
+      // });
 
     });
 
