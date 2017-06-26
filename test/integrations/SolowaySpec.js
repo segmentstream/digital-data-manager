@@ -322,30 +322,30 @@ describe('Integrations: Soloway', () => {
       });
 
     });
-    //
-    // describe('#Newsletter Tracker', () => {
-    //   beforeEach(() => {
-    //     window.digitalData.events.push({ name: 'Viewed Page' });
-    //   });
-    //
-    //   it('it should track registered user', (done) => {
-    //     window.digitalData.events.push({
-    //       name: 'Subscribed',
-    //       user: {
-    //         email: 'test@driveback.ru',
-    //       },
-    //       callback: () => {
-    //         assert.ok(!window.AdriverCounter.items[0]);
-    //         assert.ok(window.AdriverCounter.request.calledOnce);
-    //         assert.ok(window.AdriverCounter.request.calledWith(
-    //           'sz=newsletter&custom=153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=1'
-    //         ));
-    //         done();
-    //       }
-    //     });
-    //   });
-    //
-    // });
+
+    describe('#Newsletter Tracker', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
+
+      it('it should track registered user', (done) => {
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          user: {
+            email: 'test@driveback.ru',
+          },
+          callback: () => {
+            assert.ok(!window.AdriverCounter.items[0]);
+            assert.ok(window.AdriverCounter.request.calledOnce);
+            assert.ok(window.AdriverCounter.request.calledWith(
+              'sz=newsletter&custom=153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=1'
+            ));
+            done();
+          }
+        });
+      });
+
+    });
 
   });
 });
