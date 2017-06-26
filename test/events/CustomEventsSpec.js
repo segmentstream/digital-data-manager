@@ -82,7 +82,7 @@ describe('CustomEvents', () => {
     ]);
     _eventManager.initialize();
 
-    fireEvent(btn, 'click');
+    // fireEvent(btn, 'click');
 
     setTimeout(() => {
       assert.equal(_digitalData.events[0].name, 'Viewed Page');
