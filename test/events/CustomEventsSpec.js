@@ -59,26 +59,26 @@ describe('CustomEvents', () => {
           }
         }
       },
-      {
-        name: 'Event: Clicked Product',
-        trigger: 'click',
-        cssSelector: '.test-btn',
-        handler: function() {
-          return {
-            name: 'Clicked Product',
-          };
-        },
-      },
-      {
-        name: 'Test Name',
-        trigger: 'impression',
-        cssSelector: '.ddl_product',
-        handler: function() {
-          return {
-            name: 'Viewed Product',
-          };
-        }
-      }
+      // {
+      //   name: 'Event: Clicked Product',
+      //   trigger: 'click',
+      //   cssSelector: '.test-btn',
+      //   handler: function() {
+      //     return {
+      //       name: 'Clicked Product',
+      //     };
+      //   },
+      // },
+      // {
+      //   name: 'Test Name',
+      //   trigger: 'impression',
+      //   cssSelector: '.ddl_product',
+      //   handler: function() {
+      //     return {
+      //       name: 'Viewed Product',
+      //     };
+      //   }
+      // }
     ]);
     _eventManager.initialize();
 
@@ -87,7 +87,7 @@ describe('CustomEvents', () => {
     setTimeout(() => {
       assert.equal(_digitalData.events[0].name, 'Viewed Page');
       assert.equal(_digitalData.events[1].name, 'Viewed Product Detail');
-      assert.equal(_digitalData.events[2].name, 'Clicked Product');
+      // assert.equal(_digitalData.events[2].name, 'Clicked Product');
       done();
     }, 10);
   });
