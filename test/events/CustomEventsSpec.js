@@ -23,18 +23,18 @@ describe('CustomEvents', () => {
     _eventManager = new EventManager(_digitalData, _ddListener);
     _eventManager.setSendViewedPageEvent(true);
 
-    // create button
-    btn = document.createElement('button');
-    const t = document.createTextNode('click me');
-    btn.appendChild(t);
-    btn.className = 'test-btn';
-
-    // create div
-    div = document.createElement('div');
-    div.appendChild(btn);
-    div.id = 'test-div';
-
-    document.body.appendChild(div);
+    // // create button
+    // btn = document.createElement('button');
+    // const t = document.createTextNode('click me');
+    // btn.appendChild(t);
+    // btn.className = 'test-btn';
+    //
+    // // create div
+    // div = document.createElement('div');
+    // div.appendChild(btn);
+    // div.id = 'test-div';
+    //
+    // document.body.appendChild(div);
   });
 
   afterEach(() => {
