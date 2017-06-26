@@ -131,82 +131,82 @@ describe('Integrations: Soloway', () => {
     });
 
 
-    // describe('#Product Page Tracker', () => {
-    //   beforeEach(() => {
-    //     window.digitalData.events.push({ name: 'Viewed Page' });
-    //   });
-    //
-    //   it('it should track product page', (done) => {
-    //     window.digitalData.events.push({
-    //       name: 'Viewed Product Detail',
-    //       product: {
-    //         id: 'pr123',
-    //         categoryId: 'cart123',
-    //       },
-    //       callback: () => {
-    //         assert.ok(!window.AdriverCounter.items[0]);
-    //         assert.ok(window.AdriverCounter.request.calledOnce);
-    //         assert.ok(window.AdriverCounter.request.calledWith(
-    //           'custom=10%3Dpr123%3B11%3Dcart123%3B153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=1'
-    //         ));
-    //         done();
-    //       }
-    //     });
-    //   });
-    //
-    // });
-    //
-    //
-    // describe('#Add Product Tracker', () => {
-    //   beforeEach(() => {
-    //     window.digitalData.events.push({ name: 'Viewed Page' });
-    //   });
-    //
-    //   it('it should track added product', (done) => {
-    //     window.digitalData.events.push({
-    //       name: 'Added Product',
-    //       product: {
-    //         id: 'pr123',
-    //         categoryId: 'cart123',
-    //       },
-    //       callback: () => {
-    //         assert.ok(!window.AdriverCounter.items[0]);
-    //         assert.ok(window.AdriverCounter.request.calledOnce);
-    //         assert.ok(window.AdriverCounter.request.calledWith(
-    //           'sz=add_basket&custom=10%3Dpr123%3B11%3Dcart123%3B153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=1'
-    //         ));
-    //         done();
-    //       }
-    //     });
-    //   });
-    //
-    // });
-    //
-    // describe('#Remove Product Tracker', () => {
-    //   beforeEach(() => {
-    //     window.digitalData.events.push({ name: 'Viewed Page' });
-    //   });
-    //
-    //   it('it should track removed product', (done) => {
-    //     window.digitalData.events.push({
-    //       name: 'Removed Product',
-    //       product: {
-    //         id: 'pr123',
-    //         categoryId: 'cart123',
-    //       },
-    //       callback: () => {
-    //         assert.ok(!window.AdriverCounter.items[0]);
-    //         assert.ok(window.AdriverCounter.request.calledOnce);
-    //         assert.ok(window.AdriverCounter.request.calledWith(
-    //           'sz=del_basket&custom=10%3Dpr123%3B11%3Dcart123%3B153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=1'
-    //         ));
-    //         done();
-    //       }
-    //     });
-    //   });
-    //
-    // });
-    //
+    describe('#Product Page Tracker', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
+
+      it('it should track product page', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {
+            id: 'pr123',
+            categoryId: 'cart123',
+          },
+          callback: () => {
+            assert.ok(!window.AdriverCounter.items[0]);
+            assert.ok(window.AdriverCounter.request.calledOnce);
+            assert.ok(window.AdriverCounter.request.calledWith(
+              'custom=10%3Dpr123%3B11%3Dcart123%3B153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=1'
+            ));
+            done();
+          }
+        });
+      });
+
+    });
+
+
+    describe('#Add Product Tracker', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
+
+      it('it should track added product', (done) => {
+        window.digitalData.events.push({
+          name: 'Added Product',
+          product: {
+            id: 'pr123',
+            categoryId: 'cart123',
+          },
+          callback: () => {
+            assert.ok(!window.AdriverCounter.items[0]);
+            assert.ok(window.AdriverCounter.request.calledOnce);
+            assert.ok(window.AdriverCounter.request.calledWith(
+              'sz=add_basket&custom=10%3Dpr123%3B11%3Dcart123%3B153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=1'
+            ));
+            done();
+          }
+        });
+      });
+
+    });
+
+    describe('#Remove Product Tracker', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
+
+      it('it should track removed product', (done) => {
+        window.digitalData.events.push({
+          name: 'Removed Product',
+          product: {
+            id: 'pr123',
+            categoryId: 'cart123',
+          },
+          callback: () => {
+            assert.ok(!window.AdriverCounter.items[0]);
+            assert.ok(window.AdriverCounter.request.calledOnce);
+            assert.ok(window.AdriverCounter.request.calledWith(
+              'sz=del_basket&custom=10%3Dpr123%3B11%3Dcart123%3B153%3D8cc94f335003012e00e1441e5666756f%3B160%3D0&sid=123&bt=62&ph=1'
+            ));
+            done();
+          }
+        });
+      });
+
+    });
+    
     // describe('#Order Confirmation Tracker', () => {
     //   beforeEach(() => {
     //     window.digitalData.events.push({ name: 'Viewed Page' });
