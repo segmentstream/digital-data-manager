@@ -43,7 +43,7 @@ describe('CustomEvents', () => {
       _eventManager = undefined;
     }
 
-    div.parentNode.removeChild(div);
+    // div.parentNode.removeChild(div);
     _digitalData.events = [];
   });
 
