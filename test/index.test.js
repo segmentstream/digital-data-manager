@@ -5,22 +5,22 @@ window.__DEV_MODE__ = true; // disable catching exceptions
 
 import './../src/polyfill.js';
 
-// // tests
-// import './ddManagerSpec.js';
-// import './DDHelperSpec.js';
-// import './DDStorageSpec.js';
-// import './EventManagerSpec.js';
-// import './EventDataEnricherSpec.js';
-// import './DigitalDataEnricherSpec.js';
-// import './EventValidatorSpec.js';
-//
-// // enrichments & events
-// import './enrichments/CustomEnricherSpec';
-// import './events/CustomEventsSpec';
-//
-// // trackers
-// import './trackers/trackLinkSpec.js';
-//
+// tests
+import './ddManagerSpec.js';
+import './DDHelperSpec.js';
+import './DDStorageSpec.js';
+import './EventManagerSpec.js';
+import './EventDataEnricherSpec.js';
+import './DigitalDataEnricherSpec.js';
+import './EventValidatorSpec.js';
+
+// enrichments & events
+import './enrichments/CustomEnricherSpec';
+import './events/CustomEventsSpec';
+
+// trackers
+import './trackers/trackLinkSpec.js';
+
 // // integrations
 // import './integrations/GoogleAnalyticsSpec.js';
 // import './integrations/GoogleTagManagerSpec.js';
