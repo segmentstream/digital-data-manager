@@ -252,6 +252,9 @@ class Soloway extends Integration {
   reset() {
     deletePropery(window, 'AdriverCounter');
     this.pageTracked = false;
+    if (this.timeoutHandle) {
+      clearTimeout(timeoutHandle);
+    }
   }
 
   getEmailMd5(event) {
@@ -293,7 +296,7 @@ class Soloway extends Integration {
 
   onViewedPage(event) {
     this.pageTracked = false;
-    setTimeout(() => {
+    this.timeoutHandle = setTimeout(() => {
       if (!this.pageTracked) {
         this.onViewedOther(event);
       }
