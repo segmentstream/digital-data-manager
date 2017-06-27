@@ -41,4 +41,4 @@ import './integrations/SociomanticSpec.js';
 import './integrations/MindboxSpec.js';
 import './integrations/DoubleClickFloodlightSpec.js';
 import './integrations/RTBHouseSpec.js';
-// import './integrations/SolowaySpec.js';
+import './integrations/SolowaySpec.js';
