@@ -253,7 +253,7 @@ class Soloway extends Integration {
     deletePropery(window, 'AdriverCounter');
     this.pageTracked = false;
     if (this.timeoutHandle) {
-      clearTimeout(timeoutHandle);
+      clearTimeout(this.timeoutHandle);
     }
   }
 
