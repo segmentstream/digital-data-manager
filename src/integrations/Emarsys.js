@@ -210,6 +210,9 @@ class Emarsys extends Integration {
 
   reset() {
     deleteProperty(window, 'ScarabQueue');
+    if (this.timeoutHandle) {
+      clearTimeout(this.timeoutHandle);
+    }
   }
 
   enrichDigitalData() {
@@ -272,7 +275,7 @@ class Emarsys extends Integration {
     }
 
     if (!this.pageTracked) {
-      setTimeout(() => {
+      this.timeoutHandle = setTimeout(() => {
         if (!this.pageTracked) {
           this.go();
         }

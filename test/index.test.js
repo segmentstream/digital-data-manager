@@ -14,14 +14,14 @@ import './EventDataEnricherSpec.js';
 import './DigitalDataEnricherSpec.js';
 import './EventValidatorSpec.js';
 
-// enrichments
+// enrichments & events
 import './enrichments/CustomEnricherSpec';
 import './events/CustomEventsSpec';
 
 // trackers
 import './trackers/trackLinkSpec.js';
 
-// integrations
+// // integrations
 import './integrations/GoogleAnalyticsSpec.js';
 import './integrations/GoogleTagManagerSpec.js';
 import './integrations/GoogleAdWordsSpec.js';

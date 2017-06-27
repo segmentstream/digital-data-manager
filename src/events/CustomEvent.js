@@ -27,7 +27,7 @@ class CustomEvent {
     }
   }
 
-  newHandler(...args) {
+  newHandler(args) {
     return new EventHandler(this.handler, this.digitalData, args);
   }
 
@@ -35,7 +35,7 @@ class CustomEvent {
     if (!this.setting) return;
     this.eventManager.addCallback(['on', 'event', (event) => {
       if (event.name === this.setting) {
-        const handler = this.newHandler(event);
+        const handler = this.newHandler([event]);
         const resultEvent = handler.run();
         if (resultEvent && resultEvent.name && resultEvent.name === event.name) {
           errorLog(`Custom Event "${this.name}" was disabled: recursion error`);
@@ -49,7 +49,7 @@ class CustomEvent {
   trackImpression() {
     if (!this.setting) return;
     trackImpression(this.setting, (elements) => {
-      const handler = this.newHandler(elements);
+      const handler = this.newHandler([elements]);
       const resultEvent = handler.run();
       this.fireEvent(resultEvent);
     });
@@ -58,7 +58,7 @@ class CustomEvent {
   trackClick() {
     if (!this.setting) return;
     trackLink(this.setting, (element) => {
-      const handler = this.newHandler(element);
+      const handler = this.newHandler([element]);
       const resultEvent = handler.run();
       this.fireEvent(resultEvent);
     });
