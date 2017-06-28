@@ -38,6 +38,7 @@ class FacebookPixel extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       pixelId: '',
+      customEvents: {},
     }, options);
 
     super(digitalData, optionsWithDefaults);
