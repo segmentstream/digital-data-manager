@@ -1,6 +1,7 @@
 import assert from 'assert';
 import sinon from 'sinon';
 import reset from './../reset.js';
+import noop from './../../src/functions/noop';
 import Vkontakte from './../../src/integrations/Vkontakte.js';
 import ddManager from './../../src/ddManager.js';
 
@@ -8,6 +9,10 @@ describe('Integrations: Vkontakte', () => {
 
   let vk;
   const options = {
+    pixelId: 'VK-RTRG-96471-KZ24cpR',
+    customEvents: {
+      'Viewed Product Detail': 'product-detail'
+    },
     eventPixels: {
       'Viewed Product Detail': '//vk.com/rtrg?r=Ug6K6tdSZ*shxgTtjsI9bzDBp1ShCs3q3RdXVNHK1asqy2mLKDvJxuvWw8M7hqktulxtbSlnJsT7*/7Jf5MzEfqO3K5TF9z2zwlFLTuWCy3PiRkO9Ga1I6yOoseM*lfVbhVlQRoHjI5Bt66fOiB1TZLJEZ5nGwFALsuVd5WmSrk-'
     },
@@ -21,6 +26,17 @@ describe('Integrations: Vkontakte', () => {
     };
     vk = new Vkontakte(window.digitalData, options);
     ddManager.addIntegration('Vkontakte', vk);
+
+    sinon.stub(vk, 'onLoad', () => { return true; });
+    window.VK = window.VK || {};
+    window.VK.Retargeting = window.VK.Retargeting || {
+      Init: noop,
+      Event: noop,
+      Hit: noop,
+    };
+    sinon.stub(window.VK.Retargeting, 'Init');
+    sinon.stub(window.VK.Retargeting, 'Event');
+    sinon.stub(window.VK.Retargeting, 'Hit');
   });
 
   afterEach(() => {
@@ -38,24 +54,9 @@ describe('Integrations: Vkontakte', () => {
     });
 
     describe('#initialize', () => {
-      it('should call ready after initialization', () => {
-        sinon.stub(vk, 'onLoad');
+      it('should call init after initialization', () => {
         ddManager.initialize();
-        assert.ok(vk.onLoad.calledOnce);
-        vk.onLoad.restore();
-      });
-    });
-  });
-
-  describe('loading', function () {
-    it('should load', function (done) {
-      assert.ok(!vk.isLoaded());
-      ddManager.once('load', () => {
-        assert.ok(vk.isLoaded());
-        done();
-      });
-      ddManager.initialize({
-        sendViewedPageEvent: false
+        assert.ok(window.VK.Retargeting.Init.calledWith(vk.getOption('pixelId')));
       });
     });
   });
@@ -71,6 +72,19 @@ describe('Integrations: Vkontakte', () => {
       vk.addPixel.restore();
     });
 
+    describe('#onViewedPageEvent', () => {
+      it('shoud send hit', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {},
+          callback: () => {
+            assert.ok(window.VK.Retargeting.Hit.calledTwice);
+            done();
+          }
+        });
+      })
+    });
+
     describe('#onAnyEvent', () => {
       it('should add pixel to the page', (done) => {
         window.digitalData.events.push({
@@ -78,6 +92,17 @@ describe('Integrations: Vkontakte', () => {
           page: {},
           callback: () => {
             assert.ok(vk.addPixel.called);
+            done();
+          }
+        });
+      });
+
+      it('should call custom event in universal pixel', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          page: {},
+          callback: () => {
+            assert.ok(window.VK.Retargeting.Event.calledWith('product-detail'));
             done();
           }
         });

@@ -1,5 +1,6 @@
 class AsyncQueue {
   constructor(isLoadedDelegate) {
+    this.isLoadedDelegate = isLoadedDelegate;
     this.asyncQueue = [];
 
     // emulate async queue for Ofsys sync script
@@ -27,7 +28,11 @@ class AsyncQueue {
   }
 
   push(handler) {
-    this.asyncQueue.push(handler);
+    if (this.isLoadedDelegate()) {
+      handler();
+    } else {
+      this.asyncQueue.push(handler);
+    }
   }
 }
 
