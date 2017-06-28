@@ -339,7 +339,7 @@ class YandexMetrica extends Integration {
   enrichDigitalData() {
     const pushClientId = (clientId) => {
       this.digitalData.changes.push(['user.yandexClientId', clientId, 'DDM Yandex Metrica Integration']);
-    }
+    };
 
     const yandexClientId = cookie.get('_ym_uid');
     this.digitalData.user = this.digitalData.user || {};
