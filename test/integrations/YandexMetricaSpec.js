@@ -42,7 +42,6 @@ describe('Integrations: Yandex Metrica', () => {
           value: 'testParam'
         }
       },
-      noConflict: false,
     };
 
     window.digitalData = {
@@ -97,7 +96,6 @@ describe('Integrations: Yandex Metrica', () => {
         });
         assert.ok(window.yandex_metrika_callbacks);
         assert.ok(window.yandex_metrika_callbacks.push);
-        assert.ok(window.yandex_metrika_callbacks.length, 1);
       });
 
       it('should call tags load after initialization', () => {
@@ -120,7 +118,6 @@ describe('Integrations: Yandex Metrica', () => {
           assert.equal(options.trackLinks, ym.getOption('trackLinks'));
           assert.equal(options.trackHash, ym.getOption('trackHash'));
         };
-        window.yandex_metrika_callbacks.pop()();
         window.yandex_metrika_callbacks = undefined;
         ym.onLoad();
       });
@@ -178,11 +175,14 @@ describe('Integrations: Yandex Metrica', () => {
       if (ym.yaCounter.userParams.restore) {
         ym.yaCounter.userParams.restore();
       }
+      if (ym.yaCounterCall.restore) {
+        ym.yaCounterCall.restore();
+      }
     });
 
     describe('#onViewedPage', () => {
       it('should track params on first pageview', (done) => {
-        sinon.spy(ym.yaCounter, 'params');
+        sinon.spy(window.Ya, 'Metrika');
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {
@@ -190,9 +190,11 @@ describe('Integrations: Yandex Metrica', () => {
           },
           testParam: 'testValue',
           callback: () => {
-            assert.ok(ym.yaCounter.params.calledWith({
-              'websiteType': 'desktop',
-              'customParam': 'testValue'
+            assert.ok(window.Ya.Metrika.calledWithMatch({
+              params: {
+                'websiteType': 'desktop',
+                'customParam': 'testValue'
+              }
             }));
             done();
           }
@@ -200,7 +202,7 @@ describe('Integrations: Yandex Metrica', () => {
       });
 
       it('should track userParams on first pageview', (done) => {
-        sinon.spy(ym.yaCounter, 'userParams');
+        sinon.spy(window.Ya, 'Metrika');
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {
@@ -208,9 +210,11 @@ describe('Integrations: Yandex Metrica', () => {
           },
           testParam: 'testValue',
           callback: () => {
-            assert.ok(ym.yaCounter.userParams.calledWith({
-              'userRfm': 'rfm1',
-              'customParam': 'testValue'
+            assert.ok(window.Ya.Metrika.calledWithMatch({
+              userParams: {
+                'userRfm': 'rfm1',
+                'customParam': 'testValue'
+              }
             }));
             done();
           }
@@ -218,7 +222,6 @@ describe('Integrations: Yandex Metrica', () => {
       });
 
       it('should send additional hit with params on second pageview (ajax websites)', (done) => {
-        sinon.spy(ym.yaCounter, 'hit');
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {
@@ -226,7 +229,11 @@ describe('Integrations: Yandex Metrica', () => {
           },
           testParam: 'testValue',
         });
+
+        // spy once counter created after 1st pageview
+        sinon.spy(ym.yaCounter, 'hit');
         sinon.spy(ym.yaCounter, 'userParams');
+
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {
@@ -244,7 +251,6 @@ describe('Integrations: Yandex Metrica', () => {
       });
 
       it('should send userParams on second pageview (ajax websites)', (done) => {
-        sinon.spy(ym.yaCounter, 'hit');
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {
@@ -252,6 +258,10 @@ describe('Integrations: Yandex Metrica', () => {
           },
           testParam: 'testValue',
         });
+
+        // spy once counter created after 1st pageview
+        sinon.spy(ym.yaCounter, 'hit');
+
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {
@@ -273,7 +283,7 @@ describe('Integrations: Yandex Metrica', () => {
       });
 
       it('should send User ID if proper option specified', (done) => {
-        sinon.spy(ym.yaCounter, 'setUserID');
+        sinon.spy(ym, 'yaCounterCall');
         ym.setOption('sendUserId', true);
         window.digitalData.events.push({
           name: 'Viewed Page',
@@ -284,7 +294,7 @@ describe('Integrations: Yandex Metrica', () => {
             userId: '123'
           },
           callback: () => {
-            assert.ok(ym.yaCounter.setUserID.calledWith('123'));
+            assert.ok(ym.yaCounterCall.calledWith('setUserID', ['123']));
             done();
           }
         });
@@ -415,20 +425,6 @@ describe('Integrations: Yandex Metrica', () => {
           }
         });
       });
-
-      it('should not push product detail into dataLayer event if noConflict option is true', (done) => {
-        ym.setOption('noConflict', true);
-        window.digitalData.events.push({
-          name: 'Viewed Product Detail',
-          product: {
-            id: '123'
-          },
-          callback: () => {
-            assert.ok(!window.yandexDL[0]);
-            done();
-          }
-        });
-      });
     });
 
     describe('#onAddedProduct', () => {
@@ -479,20 +475,6 @@ describe('Integrations: Yandex Metrica', () => {
           name: 'Added Product',
           product: {
             price: 1500
-          },
-          callback: () => {
-            assert.ok(!window.yandexDL[0]);
-            done();
-          }
-        });
-      });
-
-      it('should not push added product into dataLayer event if noConflict option is true', (done) => {
-        ym.setOption('noConflict', true);
-        window.digitalData.events.push({
-          name: 'Added Product',
-          product: {
-            id: '123'
           },
           callback: () => {
             assert.ok(!window.yandexDL[0]);
@@ -554,19 +536,6 @@ describe('Integrations: Yandex Metrica', () => {
         });
       });
 
-      it('should not push removed product into dataLayer event if noConflict option is true', (done) => {
-        ym.setOption('noConflict', true);
-        window.digitalData.events.push({
-          name: 'Removed Product',
-          product: {
-            id: '123'
-          },
-          callback: () => {
-            assert.ok(!window.yandexDL[0]);
-            done();
-          }
-        });
-      });
     });
 
     describe('#onCompletedTransaction', () => {
@@ -721,27 +690,13 @@ describe('Integrations: Yandex Metrica', () => {
         });
       });
 
-      it('should not send trackTransaction event if noConflict option is true', (done) => {
-        ym.setOption('noConflict', true);
-        window.digitalData.events.push({
-          name: 'Completed Transaction',
-          transaction: {
-            orderId: '123',
-            lineItems: lineItems
-          },
-          callback: () => {
-            assert.ok(!window.yandexDL[0]);
-            done();
-          }
-        });
-      });
     });
 
     describe('#onCustomEvent', () => {
       beforeEach(() => {
         window.digitalData.events.push({ name: 'Viewed Page' });
       });
-      
+
       it('should track custom event as a goal', (done) => {
         sinon.stub(ym.yaCounter, 'reachGoal');
         window.digitalData.events.push({

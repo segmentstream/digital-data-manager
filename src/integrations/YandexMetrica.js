@@ -16,6 +16,8 @@ import {
   REMOVED_PRODUCT,
   COMPLETED_TRANSACTION,
 } from './../events/semanticEvents';
+import { bind } from './../functions/eventListener';
+
 
 function getProductCategory(product) {
   let category = product.category;
@@ -62,7 +64,6 @@ class YandexMetrica extends Integration {
       goals: {},
       visitParamsVars: {},
       userParamsVars: {},
-      noConflict: false,
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -138,7 +139,14 @@ class YandexMetrica extends Integration {
   }
 
   getEventValidationConfig(event) {
+    const viewedPageFields = [];
+    arrayMerge(viewedPageFields, this.getEnrichableUserParamsProps());
+    arrayMerge(viewedPageFields, this.getEnrichableVisitParamsProps());
+
     const config = {
+      [VIEWED_PAGE]: {
+        fields: viewedPageFields,
+      },
       [VIEWED_PRODUCT_DETAIL]: {
         fields: [
           'product.id',
@@ -285,49 +293,64 @@ class YandexMetrica extends Integration {
     }
   }
 
+  onYaCounterInited(handler) {
+    if (this.yaCounter) {
+      handler();
+    } else {
+      const id = this.getOption('counterId');
+      bind(document, `yacounter${id}inited`, handler);
+    }
+  }
+
+  yaCounterCreate(params, userParams) {
+    const id = this.getOption('counterId');
+
+    const newCounter = () => {
+      this.yaCounter = window['yaCounter' + id] = new window.Ya.Metrika({
+        id,
+        clickmap: this.getOption('clickmap'),
+        webvisor: this.getOption('webvisor'),
+        trackLinks: this.getOption('trackLinks'),
+        trackHash: this.getOption('trackHash'),
+        triggerEvent: true,
+        ecommerce: this.dataLayerName,
+        params: params,
+        userParams: userParams,
+      });
+    };
+
+    if (window.yandex_metrika_callbacks) {
+      window.yandex_metrika_callbacks.push(() => {
+        newCounter();
+      });
+    } else {
+      newCounter();
+    }
+  }
+
   initialize() {
     window.yandex_metrika_callbacks = window.yandex_metrika_callbacks || [];
     this.dataLayer = window[this.dataLayerName] = window[this.dataLayerName] || [];
 
-    const id = this.getOption('counterId');
-    if (id && !this.getOption('noConflict')) {
-      if (!this.getOption('noConflict')) {
-        window.yandex_metrika_callbacks.push(() => {
-          this.yaCounter = window['yaCounter' + id] = new window.Ya.Metrika({
-            id,
-            clickmap: this.getOption('clickmap'),
-            webvisor: this.getOption('webvisor'),
-            trackLinks: this.getOption('trackLinks'),
-            trackHash: this.getOption('trackHash'),
-            ecommerce: this.dataLayerName,
-          });
-        });
-        this.load((this.onLoad));
-      } else {
-        this.yaCounter = window['yaCounter' + id];
-      }
-    } else {
-      this.onLoad();
-    }
+    this.load(this.onLoad);
     this.enrichDigitalData();
   }
 
   enrichDigitalData() {
+    const pushClientId = (clientId) => {
+      this.digitalData.changes.push(['user.yandexClientId', clientId, 'DDM Yandex Metrica Integration']);
+    }
+
     const yandexClientId = cookie.get('_ym_uid');
     this.digitalData.user = this.digitalData.user || {};
     if (yandexClientId) {
-      this.digitalData.user.yandexClientId = yandexClientId;
+      pushClientId(yandexClientId);
       this.onEnrich();
     } else {
-      if (window.yandex_metrika_callbacks) {
-        window.yandex_metrika_callbacks.push(() => {
-          this.digitalData.user.yandexClientId = this.yaCounter.getClientID();
-          this.onEnrich();
-        });
-      } else {
-        this.digitalData.user.yandexClientId = this.yaCounter.getClientID();
+      this.onYaCounterInited(() => {
+        pushClientId(this.yaCounter.getClientID());
         this.onEnrich();
-      }
+      });
     }
   }
 
@@ -352,7 +375,7 @@ class YandexMetrica extends Integration {
     };
     if (this.getOption('counterId')) {
       const method = methods[event.name];
-      if (method && !this.getOption('noConflict')) {
+      if (method) {
         this[method](event);
       }
       this.trackCustomEvent(event);
@@ -367,23 +390,24 @@ class YandexMetrica extends Integration {
     const userParams = cleanObject(this.getUserParams(event));
 
     if (!this.pageCalled) {
-      if (size(visitParams)) {
-        this.yaCounterCall('params', [visitParams]);
-      }
+      this.yaCounterCreate(visitParams, userParams);
       this.pageCalled = true;
     } else {
       // ajax pageview
       const page = event.page || {};
       const url = page.url || window.location.href;
+
+      // send hit with visit params
       this.yaCounterCall('hit', [ url, {
         referer: page.referrer || document.referrer,
         title: page.title || document.title,
         params: visitParams,
       }]);
-    }
 
-    if (size(userParams)) {
-      this.yaCounterCall('userParams', [userParams]);
+      // send user params
+      if (size(userParams)) {
+        this.yaCounterCall('userParams', [userParams]);
+      }
     }
 
     // send userId
