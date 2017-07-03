@@ -29,6 +29,7 @@ class RTBHouse extends Integration {
     const optionsWithDefaults = Object.assign({
       accountKey: '',
       customDeduplication: false,
+      userSegmentVar: undefined,
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -38,55 +39,55 @@ class RTBHouse extends Integration {
     this.addTag({
       type: 'script',
       attr: {
-        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}`,
+        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}{{ userSegmentParams }}`,
       },
     });
     this.addTag('home', {
       type: 'script',
       attr: {
-        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_home`,
+        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_home{{ userSegmentParams }}`,
       },
     });
     this.addTag('category2', {
       type: 'script',
       attr: {
-        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_category2_{{ categoryId }}`,
+        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_category2_{{ categoryId }}{{ userSegmentParams }}`,
       },
     });
     this.addTag('offer', {
       type: 'script',
       attr: {
-        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_offer_{{ productId }}`,
+        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_offer_{{ productId }}{{ userSegmentParams }}`,
       },
     });
     this.addTag('listing', {
       type: 'script',
       attr: {
-        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_listing_{{ productIds }}`,
+        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_listing_{{ productIds }}{{ userSegmentParams }}`,
       },
     });
     this.addTag('basketadd', {
       type: 'script',
       attr: {
-        src: `//creativecdn.com/tags?type=script&id=pr_VB82iQFyqcxTg1HWJlJM_basketadd_{{ productId }}`,
+        src: `//creativecdn.com/tags?type=script&id=pr_VB82iQFyqcxTg1HWJlJM_basketadd_{{ productId }}{{ userSegmentParams }}`,
       },
     });
     this.addTag('basketstatus', {
       type: 'script',
       attr: {
-        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_basketstatus_{{ productIds }}`,
+        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_basketstatus_{{ productIds }}{{ userSegmentParams }}`,
       },
     });
     this.addTag('startorder', {
       type: 'script',
       attr: {
-        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_startorder`,
+        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_startorder{{ userSegmentParams }}`,
       },
     });
     this.addTag('orderstatus2', {
       type: 'script',
       attr: {
-        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_orderstatus2_{{ total }}_{{ orderId }}_{{ productIds }}&cd={{ deduplication }}`,
+        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_orderstatus2_{{ total }}_{{ orderId }}_{{ productIds }}&cd={{ deduplication }}{{ userSegmentParams }}`,
       },
     });
   }
@@ -96,35 +97,51 @@ class RTBHouse extends Integration {
   }
 
   getEnrichableEventProps(event) {
+    let enrichableProps;
+
     switch (event.name) {
     case VIEWED_PAGE:
-      return [
+      enrichableProps = [
         'page.type',
       ];
+      break;
     case VIEWED_PRODUCT_DETAIL:
-      return [
+      enrichableProps = [
         'product.id',
       ];
+      break;
     case VIEWED_PRODUCT_LISTING:
-      return [
+      enrichableProps = [
         'listing.categoryId',
       ];
+      break;
     case SEARCHED_PRODUCTS:
-      return [
+      enrichableProps = [
         'listing.items',
       ];
+      break;
     case VIEWED_CART:
-      return [
+      enrichableProps = [
         'cart',
       ];
+      break;
     case COMPLETED_TRANSACTION:
-      return [
+      enrichableProps = [
         'context.campaign',
         'transaction',
       ];
+      break;
     default:
-      return [];
+      enrichableProps = [];
+      break;
     }
+
+    const userSegmentVar = this.getOption('userSegmentVar');
+    if (userSegmentVar) {
+      enrichableProps.push(userSegmentVar);
+    }
+
+    return enrichableProps;
   }
 
   getEventValidationConfig(event) {
@@ -211,7 +228,33 @@ class RTBHouse extends Integration {
       },
     };
 
-    return config[event.name];
+    let validationConfig = config[event.name];
+    const userSegmentVar = this.getOption('userSegmentVar');
+
+    if (userSegmentVar) {
+      if (!validationConfig) {
+        validationConfig = {
+          fields: [userSegmentVar],
+        };
+      } else {
+        validationConfig.fields = validationConfig.fields || [];
+        validationConfig.fields.push(userSegmentVar);
+      }
+    }
+
+    return validationConfig;
+  }
+
+  getUserSegmentParams(event) {
+    const userSegmentVar = this.getOption('userSegmentVar');
+    let userSegment;
+    if (userSegmentVar) {
+      userSegment = getProp(event, userSegmentVar);
+    }
+    if (userSegment !== undefined) {
+      return `&id1=pr_${this.getOption('accountKey')}_custom_user_${userSegment}`;
+    }
+    return '';
   }
 
   initialize() {
@@ -243,13 +286,13 @@ class RTBHouse extends Integration {
     const page = event.page;
 
     if (page && page.type === 'home') {
-      this.onViewedHome();
+      this.onViewedHome(event);
     }
 
     if (!this.pageTracked) {
       setTimeout(() => {
         if (!this.pageTracked) {
-          this.onViewedOther();
+          this.onViewedOther(event);
         }
       }, 100);
     }
@@ -265,17 +308,24 @@ class RTBHouse extends Integration {
       }
       return productId;
     }, '');
-    this.load('basketstatus', { productIds });
+    this.load('basketstatus', {
+      productIds,
+      userSegmentParams: this.getUserSegmentParams(event),
+    });
     this.pageTracked = true;
   }
 
-  onViewedHome() {
-    this.load('home');
+  onViewedHome(event) {
+    this.load('home', {
+      userSegmentParams: this.getUserSegmentParams(event),
+    });
     this.pageTracked = true;
   }
 
-  onViewedOther() {
-    this.load();
+  onViewedOther(event) {
+    this.load({
+      userSegmentParams: this.getUserSegmentParams(event),
+    });
     this.pageTracked = true;
   }
 
@@ -283,7 +333,10 @@ class RTBHouse extends Integration {
     const listing = event.listing;
     if (!listing || !listing.categoryId) return;
 
-    this.load('category2', { categoryId: listing.categoryId });
+    this.load('category2', {
+      categoryId: listing.categoryId,
+      userSegmentParams: this.getUserSegmentParams(event),
+    });
     this.pageTracked = true;
   }
 
@@ -301,14 +354,20 @@ class RTBHouse extends Integration {
       return product.id;
     }, '');
 
-    this.load('listing', { productIds });
+    this.load('listing', {
+      productIds,
+      userSegmentParams: this.getUserSegmentParams(event),
+    });
     this.pageTracked = true;
   }
 
   onViewedProductDetail(event) {
     const product = event.product;
     if (product && product.id) {
-      this.load('offer', { productId: product.id });
+      this.load('offer', {
+        productId: product.id,
+        userSegmentParams: this.getUserSegmentParams(event),
+      });
       this.pageTracked = true;
     }
   }
@@ -325,7 +384,9 @@ class RTBHouse extends Integration {
   onViewedCheckoutStep(event) {
     const step = (event.step !== undefined) ? event.step : 1;
     if (step === 1) {
-      this.load('startorder');
+      this.load('startorder', {
+        userSegmentParams: this.getUserSegmentParams(event),
+      });
     }
   }
 
@@ -352,7 +413,13 @@ class RTBHouse extends Integration {
         }
       }
 
-      this.load('orderstatus2', { productIds, orderId, total, deduplication });
+      this.load('orderstatus2', {
+        productIds,
+        orderId,
+        total,
+        deduplication,
+        userSegmentParams: this.getUserSegmentParams(event),
+      });
       this.pageTracked = true;
     }
   }
