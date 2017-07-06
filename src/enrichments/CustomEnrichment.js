@@ -1,4 +1,4 @@
-import EnrichmentHandler from './EnrichmentHandler';
+import Handler from './../Handler';
 import { error as errorLog } from './../functions/safeConsole';
 import { setProp } from './../functions/dotProp';
 
@@ -39,7 +39,7 @@ class CustomEnrichment {
       }
     }
 
-    const handler = new EnrichmentHandler(this.handler, this.digitalData, args);
+    const handler = new Handler(this.handler, this.digitalData, args);
     let value;
     try {
       value = handler.run();

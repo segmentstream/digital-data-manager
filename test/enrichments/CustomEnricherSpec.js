@@ -12,6 +12,9 @@ describe('CustomEnricher', () => {
     test: 1,
     changes: [],
   };
+  window.test = {
+    test2: 'test3'
+  };
   let ddListener = [];
   let ddStorage = new DDStorage(digitalData, new Storage());
   let customEnricher = new CustomEnricher(digitalData, ddStorage);
@@ -72,8 +75,14 @@ describe('CustomEnricher', () => {
   it('should enrich digitalData on event', () => {
     customEnricher.addEnrichment('digitalData', 'user.hasTransacted', function() {
       this.getQueryParam('test');
+      this.queryParam('test');
       this.get('user.test');
+      this.digitalData('user.test');
       this.getCookie('test');
+      this.cookie('test');
+      this.global('test.test2');
+      this.dataLayer('test.test');
+      this.domQuery('.class');
       return true;
     }, {
       events: ['Completed Transaction'],

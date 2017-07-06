@@ -1,6 +1,6 @@
 import trackImpression from './../trackers/trackImpression';
 import trackLink from './../trackers/trackLink';
-import EventHandler from './EventHandler';
+import Handler from './../Handler';
 import { error as errorLog } from './../functions/safeConsole';
 
 const TRIGGER_EVENT = 'event';
@@ -28,7 +28,7 @@ class CustomEvent {
   }
 
   newHandler(args) {
-    return new EventHandler(this.handler, this.digitalData, args);
+    return new Handler(this.handler, this.digitalData, args);
   }
 
   trackEvent() {
