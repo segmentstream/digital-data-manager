@@ -49,7 +49,7 @@ class EventManager {
       const customEvent = new CustomEvent(
         eventConfig.name,
         eventConfig.trigger,
-        eventConfig.event || eventConfig.cssSelector,
+        eventConfig.event || eventConfig.selector,
         eventConfig.handler,
         _digitalData,
         this

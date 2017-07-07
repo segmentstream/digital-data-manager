@@ -62,7 +62,7 @@ describe('CustomEvents', () => {
       {
         name: 'Event: Clicked Product',
         trigger: 'click',
-        cssSelector: '.test-btn',
+        selector: '.test-btn',
         handler: function() {
           return {
             name: 'Clicked Product',
@@ -72,7 +72,7 @@ describe('CustomEvents', () => {
       {
         name: 'Test Name',
         trigger: 'impression',
-        cssSelector: '.ddl_product',
+        selector: '.ddl_product',
         handler: function() {
           return {
             name: 'Viewed Product',
