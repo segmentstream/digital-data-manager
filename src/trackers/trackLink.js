@@ -35,10 +35,11 @@ export default function trackLink(selector, handler) {
     throw new TypeError('Must pass function handler to `ddManager.trackLink`.');
   }
 
-  const trackedLinks = [];
+  let trackedLinks;
 
   bind(window.document, 'click', function bindClickListeners() {
     const links = domQuery(selector);
+    trackedLinks = [];
     for (const el of links) {
       const onClickHandler = onClick(el, handler);
       bind(el, 'click', onClickHandler);
