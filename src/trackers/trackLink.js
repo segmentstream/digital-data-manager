@@ -13,8 +13,14 @@ function applyHandler(event, el, handler) {
   } catch (error) {
     // TODO
   }
-
-  if (href && el.target !== '_blank' && !isMeta(event)) {
+  
+  if (
+    href &&
+    el.target !== '_blank' &&
+    !isMeta(event) &&
+    !event.defaultPrevented &&
+    event.returnValue !== false
+  ) {
     preventDefault(event);
     setTimeout(() => {
       window.location.href = href;
