@@ -122,10 +122,11 @@ export class Integration extends EventEmitter
   }
 
   load(tagName, params, callback) {
-    const callbackCalled = false;
+    let callbackCalled = false;
     const safeCallback = () => {
       if (!callbackCalled) {
         callback();
+        callbackCalled = true;
       }
     };
 
