@@ -13,7 +13,7 @@ function applyHandler(event, el, handler) {
   } catch (error) {
     // TODO
   }
-  
+
   if (
     href &&
     el.target !== '_blank' &&

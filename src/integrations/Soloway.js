@@ -106,7 +106,7 @@ class Soloway extends Integration {
     params.custom = params.custom || {};
     params.custom = Object.assign(params.custom, {
       153: this.getEmailMd5(event),
-      160: getProp(event, 'user.hasTransacted') ? 1 : 0,
+      160: getProp(event, 'user.hasTransacted') ? 0 : 1,
       162: this.getUserSegment(event),
     });
     params = Object.assign(params, {
