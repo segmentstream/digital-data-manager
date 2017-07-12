@@ -30,13 +30,15 @@ class Handler {
           callback = options; // arguments shift
           options = undefined;
         }
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
           window.fetch(url, options).then((response) => {
             return response.text();
           }).then((text) => {
             try {
               text = JSON.parse(text);
-            } catch (error) { }
+            } catch (error) {
+              // do nothing
+            }
             resolve(callback(text));
           });
         });

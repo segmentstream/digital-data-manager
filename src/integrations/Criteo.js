@@ -265,6 +265,32 @@ class Criteo extends Integration {
     deleteProperty(window, 'criteo_q');
   }
 
+  getDeviceType(siteType) {
+    let deviceType;
+
+    if (!siteType || siteType === 'adaptive') {
+      const tablet = /iPad/.test(navigator.userAgent);
+      const mobile = /Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Silk/.test(navigator.userAgent);
+      if (tablet) {
+        deviceType = 't';
+      } else if (mobile) {
+        deviceType = 'm';
+      } else {
+        deviceType = 'd';
+      }
+    } else {
+      if (siteType) {
+        siteType = siteType.toLocaleLowerCase();
+      }
+      if (['desktop', 'tablet', 'mobile'].indexOf(siteType) < 0) {
+        siteType = 'desktop';
+      }
+      deviceType = siteType.charAt(0); // "d", "m", "t"
+    }
+
+    return deviceType;
+  }
+
   trackEvent(event) {
     const methods = {
       [VIEWED_PAGE]: 'onViewedPage',
@@ -296,20 +322,13 @@ class Criteo extends Integration {
       siteType = event.website.type;
     }
 
-    if (siteType) {
-      siteType = siteType.toLocaleLowerCase();
-    }
-
-    if (['desktop', 'tablet', 'mobile'].indexOf(siteType) < 0) {
-      siteType = 'desktop';
-    }
     this.criteo_q.push({
       event: 'setAccount',
       account: this.getOption('account'),
     });
     this.criteo_q.push({
       event: 'setSiteType',
-      type: siteType.charAt(0), // "d", "m", "t"
+      type: this.getDeviceType(siteType),
     });
 
     if (event.user && event.user.email) {

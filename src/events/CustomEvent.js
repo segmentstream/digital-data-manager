@@ -48,7 +48,7 @@ class CustomEvent {
     if (!this.setting) return;
     this.eventManager.addCallback(['on', 'event', (event) => {
       if (event.name === this.setting) {
-        this.resolveHandlerAndFireEvent(...event);
+        this.resolveHandlerAndFireEvent([event]);
       }
     }]);
   }
@@ -56,14 +56,14 @@ class CustomEvent {
   trackImpression() {
     if (!this.setting) return;
     trackImpression(this.setting, (elements) => {
-      this.resolveHandlerAndFireEvent(...elements);
+      this.resolveHandlerAndFireEvent([elements]);
     });
   }
 
   trackClick() {
     if (!this.setting) return;
     trackLink(this.setting, (element) => {
-      this.resolveHandlerAndFireEvent(...element);
+      this.resolveHandlerAndFireEvent([element]);
     });
   }
 

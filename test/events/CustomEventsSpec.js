@@ -53,7 +53,8 @@ describe('CustomEvents', () => {
         name: 'Event: Viewed Product Detail',
         trigger: 'event',
         event: 'Viewed Page',
-        handler: function() {
+        handler: function(event) {
+          assert.equal(event.name, 'Viewed Page');
           return {
             name: 'Viewed Product Detail',
           }
@@ -63,7 +64,8 @@ describe('CustomEvents', () => {
         name: 'Event: Clicked Product',
         trigger: 'click',
         selector: '.test-btn',
-        handler: function() {
+        handler: function(element) {
+          assert.ok(element);
           return {
             name: 'Clicked Product',
           };
