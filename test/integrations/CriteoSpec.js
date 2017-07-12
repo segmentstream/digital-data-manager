@@ -131,7 +131,15 @@ describe('Integrations: Criteo', () => {
             type: 'other'
           }
         }, () => {
-          assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "d" });
+          const tablet = /iPad/.test(navigator.userAgent);
+          const mobile = /Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Silk/.test(navigator.userAgent);
+          if (mobile) {
+            assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "m" });
+          } else if (tablet) {
+            assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "t" });
+          } else {
+            assert.deepEqual(window.criteo_q[0][1], { event: 'setSiteType', type: "d" });
+          }
           done();
         });
       });
