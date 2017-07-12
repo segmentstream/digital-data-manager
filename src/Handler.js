@@ -25,6 +25,22 @@ class Handler {
         return getProp(window, key);
       },
       dataLayer: getDataLayerProp,
+      fetch: (url, options, callback) => {
+        if (!callback) {
+          callback = options; // arguments shift
+          options = undefined;
+        }
+        return new Promise((resolve, reject) => {
+          window.fetch(url, options).then((response) => {
+            return response.text();
+          }).then((text) => {
+            try {
+              text = JSON.parse(text);
+            } catch (error) { }
+            resolve(callback(text));
+          });
+        });
+      },
     };
   }
 

@@ -1,6 +1,7 @@
 import Handler from './../Handler';
 import { error as errorLog } from './../functions/safeConsole';
 import { setProp } from './../functions/dotProp';
+import isPromise from './../functions/isPromise';
 
 class CustomEnrichment {
   constructor(prop, handler, options, collection) {
@@ -24,6 +25,21 @@ class CustomEnrichment {
   }
 
   enrich(target, args, direct = false) {
+    const onValueReceived = (value) => {
+      if (value !== undefined) {
+        if (direct) {
+          setProp(target, this.prop, value);
+        } else {
+          target.changes.push([this.prop, value, 'DDManager Custom Enrichment']);
+        }
+
+        if (this.options.persist) {
+          this.ddStorage.persist(this.prop, this.options.persistTtl);
+        }
+      }
+      this.done = true;
+    };
+
     if (this.recursionFreeze) return;
     this.recursionFreeze = true;
 
@@ -40,26 +56,19 @@ class CustomEnrichment {
     }
 
     const handler = new Handler(this.handler, this.digitalData, args);
-    let value;
+    let result;
     try {
-      value = handler.run();
+      result = handler.run();
+      if (isPromise(result)) {
+        result.then((value) => {
+          onValueReceived(value);
+        });
+      } else {
+        onValueReceived(result);
+      }
     } catch (e) {
       errorLog(e);
     }
-
-    if (value !== undefined) {
-      if (direct) {
-        setProp(target, this.prop, value);
-      } else {
-        target.changes.push([this.prop, value, 'DDManager Custom Enrichment']);
-      }
-
-      if (this.options.persist) {
-        this.ddStorage.persist(this.prop, this.options.persistTtl);
-      }
-    }
-
-    this.done = true;
   }
 
   isDone() {

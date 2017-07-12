@@ -94,4 +94,7 @@ describe('CustomEnricher', () => {
     assert.deepEqual(digitalData.changes[0], ['user.hasTransacted', true, 'DDManager Custom Enrichment']);
   });
 
+  it('should support window.fetch()', () => {
+    assert.ok(window.fetch);
+  });
 });
