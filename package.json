@@ -2,7 +2,7 @@
   "name": "digital-data-manager",
   "description": "The hassle-free way to integrate Digital Data Layer on your website.",
   "author": "Driveback LLC <opensource@driveback.ru>",
-  "version": "1.2.40",
+  "version": "1.2.41",
   "license": "MIT",
   "main": "dist/dd-manager.js",
   "scripts": {
@@ -62,9 +62,10 @@
     "uglifyify": "^3.0.1"
   },
   "dependencies": {
-    "js-cookie": "^2.1.0",
     "async": "2.1.1",
     "crypto-js": "^3.1.9-1",
-    "lockr": "^0.8.4"
+    "js-cookie": "^2.1.0",
+    "lockr": "^0.8.4",
+    "whatwg-fetch": "^2.0.3"
   }
 }
