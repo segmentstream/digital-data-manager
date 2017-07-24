@@ -79,6 +79,11 @@ class EventManager {
       _ddListener[_ddListener.length] = callbackInfo;
     };
 
+    // process changes
+    // IMPORTANT: should be processed before events
+    this.applyEarlyChanges();
+    this.enableChangesTracking();
+
     // process events
     // TODO: refactoring
     if (this.isViewedPageSent()) {
@@ -100,10 +105,6 @@ class EventManager {
         }
       };
     }
-
-    // process changes
-    this.applyEarlyChanges();
-    this.enableChangesTracking();
 
     if (_viewabilityTracker) {
       _viewabilityTracker.initialize();

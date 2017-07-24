@@ -32,7 +32,6 @@ class CustomEnrichment {
         } else {
           target.changes.push([this.prop, value, 'DDManager Custom Enrichment']);
         }
-
         if (this.options.persist) {
           this.ddStorage.persist(this.prop, this.options.persistTtl);
         }
