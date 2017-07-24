@@ -17,6 +17,7 @@ import './EventValidatorSpec.js';
 // enrichments & events
 import './enrichments/CustomEnricherSpec';
 import './events/CustomEventsSpec';
+import './scripts/CustomScriptsSpec';
 
 // trackers
 import './trackers/trackLinkSpec.js';

@@ -12,6 +12,7 @@ import ViewabilityTracker from './ViewabilityTracker';
 import DDHelper from './DDHelper';
 import DigitalDataEnricher from './enrichments/DigitalDataEnricher';
 import CustomEnricher from './enrichments/CustomEnricher';
+import CustomScripts from './scripts/CustomScripts';
 import Storage from './Storage';
 import DDStorage from './DDStorage';
 import CookieStorage from './CookieStorage';
@@ -59,6 +60,12 @@ let _digitalDataEnricher;
 * @private
 */
 let _customEnricher;
+
+/**
+* @type {CustomScripts}
+* @private
+*/
+let _customScripts;
 
 /**
  * @type {DDStorage}
@@ -252,6 +259,28 @@ function _initializeIntegrations(settings) {
   }
 }
 
+function _initializeCustomScripts(settings) {
+  // initialize custom scripts
+  _customScripts = new CustomScripts(_digitalData);
+  _customScripts.import(settings.scripts);
+  _customScripts.run();
+  _eventManager.addCallback(['on', 'event', (event) => {
+    _customScripts.run(event);
+  }]);
+}
+
+function _initializeCustomEnrichments(settings) {
+  _customEnricher = new CustomEnricher(_digitalData, _ddStorage);
+  _customEnricher.import(settings.enrichments);
+  _eventManager.addCallback(['on', 'beforeEvent', (event) => {
+    if (event.name === VIEWED_PAGE) {
+      _digitalDataEnricher.enrichDigitalData();
+      _customEnricher.enrichDigitalData(_digitalData);
+    }
+    _customEnricher.enrichDigitalData(_digitalData, event);
+  }]);
+}
+
 ddManager = {
 
   VERSION: '1.2.41',
@@ -323,26 +352,22 @@ ddManager = {
       sessionLength: settings.sessionLength,
     });
 
-    // initialize custom enrichments
-    _customEnricher = new CustomEnricher(_digitalData, _ddStorage);
-    _customEnricher.import(settings.enrichments);
-
     // initialize event manager
     _eventManager = new EventManager(_digitalData, _ddListener);
-    _eventManager.addCallback(['on', 'beforeEvent', (event) => {
-      if (event.name === VIEWED_PAGE) {
-        _digitalDataEnricher.enrichDigitalData();
-        _customEnricher.enrichDigitalData(_digitalData);
-      }
-      _customEnricher.enrichDigitalData(_digitalData, event);
-    }]);
-    _eventManager.import(settings.events); // import custom events
+
+    // initialize custom enrichments
+    _initializeCustomEnrichments(settings);
+
+    // import custom events
+    _eventManager.import(settings.events);
+
     _eventManager.setSendViewedPageEvent(settings.sendViewedPageEvent);
     _eventManager.setViewabilityTracker(new ViewabilityTracker({
       websiteMaxWidth: settings.websiteMaxWidth,
     }));
 
     _initializeIntegrations(settings);
+    _initializeCustomScripts(settings);
 
     _isReady = true;
     ddManager.emit('ready');
