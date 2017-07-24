@@ -342,7 +342,6 @@ ddManager = {
       websiteMaxWidth: settings.websiteMaxWidth,
     }));
 
-    
     _initializeIntegrations(settings);
 
     _isReady = true;

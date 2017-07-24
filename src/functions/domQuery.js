@@ -5,7 +5,11 @@ export default function domQuery(selector, context) {
     switch (selector.charAt(0)) {
     case '#':
       // Handle ID-based selectors
-      return [context.getElementById(selector.substr(1))];
+      const el = context.getElementById(selector.substr(1));
+      if (el) {
+        return [el];
+      }
+      return [];
     case '.':
       // Handle class-based selectors
       // Query by multiple classes by converting the selector
