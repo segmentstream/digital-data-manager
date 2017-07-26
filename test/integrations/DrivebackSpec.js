@@ -4,6 +4,21 @@ import sinon from 'sinon';
 import Driveback from './../../src/integrations/Driveback.js';
 import ddManager from './../../src/ddManager.js';
 
+function emulateDrivebackLoad(driveback) {
+  sinon.stub(driveback, 'load', () => {
+    window.DrivebackOnLoad = {
+      push: function(fn) {
+        fn();
+      }
+    };
+    window.Driveback = {};
+    window.DriveBack = {};
+    window.Driveback.Loader = {};
+    window.dbex = () => {};
+    driveback.onLoad();
+  });
+}
+
 describe('Integrations: Driveback', () => {
   let driveback;
   window.digitalData = {
@@ -38,6 +53,7 @@ describe('Integrations: Driveback', () => {
 
     it('should load', (done) => {
       assert.ok(!driveback.isLoaded());
+      emulateDrivebackLoad(driveback);
       ddManager.once('load', () => {
         assert.ok(driveback.isLoaded());
         done();
@@ -49,6 +65,7 @@ describe('Integrations: Driveback', () => {
 
   describe('after loading', () => {
     beforeEach((done) => {
+      emulateDrivebackLoad(driveback);
       ddManager.once('load', done);
       ddManager.initialize();
     });
@@ -57,12 +74,7 @@ describe('Integrations: Driveback', () => {
       assert.ok(window.DrivebackNamespace);
       assert.ok(window.DriveBack);
       assert.ok(window.Driveback);
-      assert.ok(Array.isArray(DrivebackOnLoad));
-      assert.ok(typeof window.DrivebackLoaderAsyncInit === 'function');
-    });
-
-    it('should not add dbex snippet by default', () => {
-      assert.ok(!window.dbex);
+      assert.ok(DrivebackOnLoad.push);
     });
   });
 
@@ -70,18 +82,16 @@ describe('Integrations: Driveback', () => {
     beforeEach((done) => {
       driveback.setOption('experiments', true);
       driveback.setOption('experimentsToken', '123123');
-      ddManager.once('load', done);
+      emulateDrivebackLoad(driveback);
+      ddManager.once('load', () => {
+        done();
+      });
       ddManager.initialize();
     });
 
-    it('should add dbex snippet if specified in options', () => {
-      assert.ok(window.dbex);
-    });
-
-    it('should initialize dbex and fire callback function', (done) => {
-      window.dbex(function() {
-        assert.ok(true);
-        done();
+    it('should add dbex snippet', () => {
+      DrivebackOnLoad.push(() => {
+        assert.ok(window.dbex);
       });
     });
 
