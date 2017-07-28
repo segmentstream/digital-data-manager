@@ -4,9 +4,14 @@ import preventDefault from './../functions/preventDefault';
 import domQuery from './../functions/domQuery';
 
 function applyHandler(event, el, handler) {
-  const href = el.getAttribute('href')
-    || el.getAttributeNS('http://www.w3.org/1999/xlink', 'href')
-    || el.getAttribute('xlink:href');
+  const href = (
+    el.tagName === 'A' &&
+    (
+      el.getAttribute('href')
+      || el.getAttributeNS('http://www.w3.org/1999/xlink', 'href')
+      || el.getAttribute('xlink:href')
+    )
+  );
 
   try {
     handler(el);

@@ -10,12 +10,10 @@ class Handler {
     this.handler = handler;
     this.args = args;
     this.utils = {
-      getQueryParam: getQueryParam,
       queryParam: getQueryParam,
-      getCookie: cookie.get,
       cookie: cookie.get,
-      get: (key) => {
-        return DDHelper.get(key, digitalData);
+      get: (target, key) => {
+        return getProp(target, key);
       },
       digitalData: (key) => {
         return DDHelper.get(key, digitalData);
@@ -41,6 +39,13 @@ class Handler {
             }
             resolve(callback(text));
           });
+        });
+      },
+      timeout: (delay, callback) => {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve(callback());
+          }, delay);
         });
       },
     };

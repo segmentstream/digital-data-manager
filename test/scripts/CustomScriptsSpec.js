@@ -23,11 +23,8 @@ describe('CustomScripts', () => {
         {
           name: 'Test 1',
           handler: function() {
-            this.getQueryParam('test');
             this.queryParam('test');
-            this.get('user.test');
             this.digitalData('user.test');
-            this.getCookie('test');
             this.cookie('test');
             this.global('test.test2');
             this.dataLayer('test.test');
@@ -45,12 +42,10 @@ describe('CustomScripts', () => {
         {
           name: 'Test 1',
           event: 'Test Event',
-          handler: function() {
-            this.getQueryParam('test');
+          handler: function(event) {
             this.queryParam('test');
-            this.get('user.test');
+            this.get(event, 'name');
             this.digitalData('user.test');
-            this.getCookie('test');
             this.cookie('test');
             this.global('test.test2');
             this.dataLayer('test.test');
@@ -71,12 +66,10 @@ describe('CustomScripts', () => {
         {
           name: 'Test 1',
           event: 'Test Event',
-          handler: function() {
-            this.getQueryParam('test');
+          handler: function(event) {
             this.queryParam('test');
-            this.get('user.test');
+            this.get(event, 'name');
             this.digitalData('user.test');
-            this.getCookie('test');
             this.cookie('test');
             this.global('test.test2');
             this.dataLayer('test.test');

@@ -35,7 +35,7 @@ describe('CustomEnricher', () => {
 
   it('should enrich digitalData', () => {
     customEnricher.addEnrichment('digitalData', 'user.visitedWebsite', function() {
-      return this.get('user.visitedWebsite1') && this.get('user.visitedWebsite2');
+      return this.digitalData('user.visitedWebsite1') && this.digitalData('user.visitedWebsite2');
     }, {
       dependencies: ['user.visitedWebsite1', 'user.visitedWebsite2'],
     });
@@ -57,13 +57,13 @@ describe('CustomEnricher', () => {
   it('should enrich digitalData with recursion protection', () => {
 
     customEnricher.addEnrichment('digitalData', 'user.visitedWebsite1', function() {
-      return this.get('user.visitedWebsite2');
+      return this.digitalData('user.visitedWebsite2');
     }, {
       dependencies: ['user.visitedWebsite2'],
     });
 
     customEnricher.addEnrichment('digitalData', 'user.visitedWebsite2', function() {
-      return this.get('user.visitedWebsite1');
+      return this.digitalData('user.visitedWebsite1');
     }, {
       dependencies: ['user.visitedWebsite1'],
     });
@@ -74,11 +74,9 @@ describe('CustomEnricher', () => {
 
   it('should enrich digitalData on event', () => {
     customEnricher.addEnrichment('digitalData', 'user.hasTransacted', function() {
-      this.getQueryParam('test');
       this.queryParam('test');
-      this.get('user.test');
+      this.get(window.digitalData, 'user.test');
       this.digitalData('user.test');
-      this.getCookie('test');
       this.cookie('test');
       this.global('test.test2');
       this.dataLayer('test.test');
