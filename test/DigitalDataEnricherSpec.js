@@ -231,7 +231,7 @@ describe('DigitalDataEnricher', () => {
 
       assert.ok(_ddStorage.get('user.hasCoffeeMachine'));
       assert.ok(_ddStorage.get('user.isSubscribed'));
-      assert.ok(_ddStorage.get('user.hasFerrari') === undefined);
+      assert.ok(_ddStorage.get('user.hasFerrari') === true);
     })
   });
 
