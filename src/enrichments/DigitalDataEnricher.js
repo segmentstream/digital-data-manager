@@ -15,21 +15,8 @@ const ddStorageForcedFields = [
   'user.isReturning',
 ];
 
-/**
- * this fields are always persisted if were set in DDL
- */
-const ddStorageAlwaysPersistedFields = [
-  'user.email',
-  'user.lastTransactionDate',
-  'context.campaign',
-];
-
 function isForcedField(field) {
   return (ddStorageForcedFields.indexOf(field) >= 0);
-}
-
-function isAlwaysPersistedField(field) {
-  return (ddStorageAlwaysPersistedFields.indexOf(field) >= 0);
 }
 
 class DigitalDataEnricher
@@ -267,9 +254,6 @@ class DigitalDataEnricher
       }
       if (getProp(this.digitalData, key) === undefined || isForcedField(key)) {
         setProp(this.digitalData, key, value);
-      } else if (!isAlwaysPersistedField(key)) {
-        // remove persistance if server defined it's own value
-        this.ddStorage.unpersist(key);
       }
     }
   }
