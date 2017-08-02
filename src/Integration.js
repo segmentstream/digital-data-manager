@@ -10,7 +10,7 @@ import each from './functions/each';
 import { getProp } from './functions/dotProp';
 import deleteProperty from './functions/deleteProperty';
 import { error as errorLog } from './functions/safeConsole';
-import async from 'async';
+import nextTick from 'async/nextTick';
 import EventEmitter from 'component-emitter';
 import { DIGITALDATA_VAR } from './variableTypes';
 
@@ -119,7 +119,7 @@ export class Integration extends EventEmitter
   initialize() {
     const onLoad = this.onLoad;
     this._isLoaded = true;
-    async.nextTick(onLoad);
+    nextTick(onLoad);
   }
 
   load(tagName, params, callback) {

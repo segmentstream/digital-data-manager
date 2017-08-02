@@ -1,6 +1,6 @@
 import clone from './functions/clone';
 import each from './functions/each';
-import async from 'async';
+import nextTick from 'async/nextTick';
 import cleanObject from './functions/cleanObject';
 import emitter from 'component-emitter';
 import Integration from './Integration';
@@ -230,7 +230,7 @@ ddManager = {
       if (ddManager[method]) {
         if (method === 'initialize' && earlyStubCalls.length > 0) {
           // run initialize stub after all other stubs
-          async.nextTick(methodCallPromise(method, args));
+          nextTick(methodCallPromise(method, args));
         } else {
           ddManager[method].apply(ddManager, args);
         }

@@ -110,7 +110,6 @@ const IntegrationsLoader = {
       const timeoutId = setTimeout(() => {
         if (integrationsLoaded) return;
         integrationsLoaded = true;
-        console.log('load (3 sec):', afterList);
         IntegrationsLoader.loadIntegrationsFromList(afterList, loaded);
       }, pageLoadTimeout || 3000);
 

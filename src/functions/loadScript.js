@@ -1,5 +1,5 @@
 import onLoad from './scriptOnLoad.js';
-import async from 'async';
+import nextTick from 'async/nextTick';
 
 export default function(options, fn) {
   if (!options) throw new Error('Cant load nothing...');
@@ -41,7 +41,7 @@ export default function(options, fn) {
 
   if (navigator.appName === 'Microsoft Internet Explorer' || !!(navigator.userAgent.match(/Trident/) || navigator.userAgent.match(/rv:11/))) {
     // Append after event listeners are attached for IE.
-    async.nextTick(addScriptToHead);
+    nextTick(addScriptToHead);
   } else {
     addScriptToHead();
   }
