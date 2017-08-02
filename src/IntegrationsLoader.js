@@ -99,7 +99,6 @@ const IntegrationsLoader = {
     const loaded = after(size(_integrations), onLoad);
 
     // before
-    console.log('load:', beforeList);
     IntegrationsLoader.loadIntegrationsFromList(beforeList, loaded);
 
     // after
@@ -120,11 +119,9 @@ const IntegrationsLoader = {
         if (integrationsLoaded) return;
         integrationsLoaded = true;
         clearTimeout(timeoutId);
-        console.log('load (after page load):', afterList);
         IntegrationsLoader.loadIntegrationsFromList(afterList, loaded);
       });
     } else {
-      console.log('load (after immediate):', afterList);
       IntegrationsLoader.loadIntegrationsFromList(afterList, loaded);
     }
   },
