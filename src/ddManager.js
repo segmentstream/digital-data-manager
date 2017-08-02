@@ -283,7 +283,7 @@ function _initializeCustomEnrichments(settings) {
 
 ddManager = {
 
-  VERSION: '1.2.43',
+  VERSION: '1.2.44',
 
   setAvailableIntegrations: (availableIntegrations) => {
     _availableIntegrations = availableIntegrations;
