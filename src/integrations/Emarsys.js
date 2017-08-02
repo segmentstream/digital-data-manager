@@ -58,11 +58,6 @@ class Emarsys extends Integration {
 
   initialize() {
     window.ScarabQueue = window.ScarabQueue || [];
-    if (!this.getOption('noConflict')) {
-      this.load(this.onLoad);
-    } else {
-      this.onLoad();
-    }
   }
 
   getSemanticEvents() {
@@ -205,7 +200,7 @@ class Emarsys extends Integration {
   }
 
   isLoaded() {
-    return (typeof ScarabQueue === 'object');
+    return !!(window.ScarabQueue && !Array.isArray(window.ScarabQueue));
   }
 
   reset() {

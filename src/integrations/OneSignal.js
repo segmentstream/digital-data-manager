@@ -190,11 +190,9 @@ class OneSignal extends Integration {
     this.enrichDigitalData();
     this.prepareEnrichableTagProps();
 
-    const loaded = after((isHttps() ? 2 : 1), this.onLoad);
     if (isHttps()) {
-      this.load('manifest', loaded);
+      this.load('manifest');
     }
-    this.load(loaded);
     this.initialized = true;
   }
 

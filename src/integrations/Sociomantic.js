@@ -10,6 +10,8 @@ import {
   COMPLETED_TRANSACTION,
 } from './../events/semanticEvents';
 
+let timeoutHandler;
+
 function lineItemsToSociomanticsItems(lineItems) {
   const products = [];
   for (let i = 0, length = lineItems.length; i < length; i++) {
@@ -78,36 +80,39 @@ class Sociomantic extends Integration {
 
   initialize() {
     this._isLoaded = true;
-    this.onLoad();
   }
 
   isLoaded() {
-    const advertiserToken = this.getOption('advertiserToken');
-    return window.sociomantic && window.sociomantic.sonar && window.sociomantic.sonar.adv[advertiserToken];
+    return this._isLoaded;
   }
 
   loadTrackingScript() {
     const advertiserToken = this.getOption('advertiserToken');
-    if (this.isLoaded()) {
+    if (this.trackingScriptCalled) {
       window.sociomantic.sonar.adv[advertiserToken].track();
     } else {
       this.load();
     }
     this.trackingScriptCalled = true;
+    this.pageTracked = true;
   }
 
   clearTrackingObjects() {
     const advertiserToken = this.getOption('advertiserToken');
-    if (this.isLoaded()) {
+    if (this.trackingScriptCalled) {
       window.sociomantic.sonar.adv[advertiserToken].clear();
     }
     this.trackingScriptCalled = false;
   }
 
   reset() {
-    deleteProperty(window, 'sociomantic');
     this.clearTrackingObjects();
+    deleteProperty(window, 'sociomantic');
+    this.trackingScriptCalled = false;
     this._isLoaded = false;
+    if (timeoutHandler) {
+      clearTimeout(timeoutHandler);
+    }
   }
 
   getSemanticEvents() {
@@ -176,6 +181,8 @@ class Sociomantic extends Integration {
   }
 
   onViewedPage(event) {
+    this.pageTracked = false;
+
     const prefix = this.getOption('prefix');
     const trackingObjectCustomerName = prefix + 'customer';
     const user = event.user;
@@ -196,13 +203,11 @@ class Sociomantic extends Integration {
       deleteEmptyProperties(trackingObjectCustomerName);
     }
 
-    if (!this.trackingScriptCalled) {
-      setTimeout(() => {
-        if (!this.trackingScriptCalled) {
-          this.loadTrackingScript();
-        }
-      }, 100);
-    }
+    timeoutHandler = setTimeout(() => {
+      if (!this.pageTracked) {
+        this.loadTrackingScript();
+      }
+    }, 100);
   }
 
   onViewedProductDetail(event) {

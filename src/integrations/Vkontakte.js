@@ -37,12 +37,6 @@ class Vkontakte extends Integration {
     this.asyncQueue.push(() => {
       window.VK.Retargeting.Init(this.getOption('pixelId')); // eslint-disable-line new-cap
     });
-
-    if (!this.isLoaded()) {
-      this.load(this.onLoad);
-    } else {
-      this.onLoad();
-    }
   }
 
   getSemanticEvents() {

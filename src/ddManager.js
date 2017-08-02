@@ -210,7 +210,7 @@ function _initializeCustomEnrichments(settings) {
 
 ddManager = {
 
-  VERSION: '1.2.43',
+  VERSION: '1.2.44',
 
   setAvailableIntegrations: (availableIntegrations) => {
     IntegrationsLoader.setAvailableIntegrations(availableIntegrations);
@@ -294,7 +294,7 @@ ddManager = {
     }));
 
     IntegrationsLoader.addIntegrations(settings.integrations, ddManager);
-    IntegrationsLoader.initializeIntegrations();
+    IntegrationsLoader.initializeIntegrations(settings.version);
     IntegrationsLoader.loadIntegrations(settings.integrationsPriority, settings.pageLoadTimeout, () => {
       _isLoaded = true;
       ddManager.emit('load');
@@ -328,7 +328,7 @@ ddManager = {
     if (_isReady) {
       throw new Error('Adding integrations after ddManager initialization is not allowed');
     }
-    IntegrationsLoader.addIntegration(name, integration);
+    IntegrationsLoader.addIntegration(name, integration, ddManager);
   },
 
   getIntegration: (name) => {

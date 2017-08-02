@@ -64,9 +64,7 @@ const IntegrationsLoader = {
     }
   },
 
-  initializeIntegrations(settings) {
-    const version = settings.version;
-
+  initializeIntegrations(version) {
     // initialize integrations
     if (size(_integrations) > 0) {
       each(_integrations, (name, integration) => {
@@ -86,15 +84,22 @@ const IntegrationsLoader = {
 
   loadIntegrations: (integrationsPriority, pageLoadTimeout, callback) => {
     integrationsPriority = integrationsPriority || {};
-    const beforeList = integrationsPriority.before || [];
+    
+    let beforeList = integrationsPriority.before || [];
     const afterList = integrationsPriority.after || [];
+    const beforeAndAfter = beforeList.concat(afterList);
+    const allIntegrations = Object.keys(_integrations);
+    const diff = allIntegrations.filter(x => beforeAndAfter.indexOf(x) === -1);
 
+    // add integrations to beforeList if were not defined in before or after
+    beforeList = beforeList.concat(diff);
     const onLoad = () => {
       callback();
     };
     const loaded = after(size(_integrations), onLoad);
 
     // before
+    console.log('load:', beforeList);
     IntegrationsLoader.loadIntegrationsFromList(beforeList, loaded);
 
     // after
@@ -106,6 +111,7 @@ const IntegrationsLoader = {
       const timeoutId = setTimeout(() => {
         if (integrationsLoaded) return;
         integrationsLoaded = true;
+        console.log('load (3 sec):', afterList);
         IntegrationsLoader.loadIntegrationsFromList(afterList, loaded);
       }, pageLoadTimeout || 3000);
 
@@ -114,9 +120,11 @@ const IntegrationsLoader = {
         if (integrationsLoaded) return;
         integrationsLoaded = true;
         clearTimeout(timeoutId);
+        console.log('load (after page load):', afterList);
         IntegrationsLoader.loadIntegrationsFromList(afterList, loaded);
       });
     } else {
+      console.log('load (after immediate):', afterList);
       IntegrationsLoader.loadIntegrationsFromList(afterList, loaded);
     }
   },
@@ -134,6 +142,7 @@ const IntegrationsLoader = {
         integration.load(integration.onLoad);
         integration.once('load', callback);
       } else {
+        integration.onLoad();
         callback();
       }
     }

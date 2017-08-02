@@ -75,7 +75,6 @@ class OneDMC extends Integration {
 
   initialize() {
     this._isLoaded = true;
-    this.onLoad();
 
     const token = this.getOption('token');
     const enrichmentCookie = cookie.get(COOKIE_ENRICHMENT_NAME);

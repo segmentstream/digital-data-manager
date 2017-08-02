@@ -85,12 +85,11 @@ class SegmentStream extends Integration {
     }
 
     ssApi.initialize(this._options);
-    this.load(this.onLoad);
     this.enrichDigitalData();
   }
 
   isLoaded() {
-    return !!(window.ssApi && window.ssApi.initialize);
+    return !!(window.ssApi && !Array.isArray(window.ssApi));
   }
 
   reset() {

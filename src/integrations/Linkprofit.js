@@ -52,8 +52,6 @@ class Linkprofit extends Integration {
         addAffiliateCookie(affiliateIdCookieName, affiliateId, ttl, domain);
       }
     }
-
-    this.onLoad();
   }
 
   getSemanticEvents() {

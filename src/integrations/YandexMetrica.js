@@ -332,7 +332,6 @@ class YandexMetrica extends Integration {
     window.yandex_metrika_callbacks = window.yandex_metrika_callbacks || [];
     this.dataLayer = window[this.dataLayerName] = window[this.dataLayerName] || [];
 
-    this.load(this.onLoad);
     this.enrichDigitalData();
   }
 

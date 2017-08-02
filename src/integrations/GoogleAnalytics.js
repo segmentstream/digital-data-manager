@@ -572,23 +572,8 @@ class GoogleAnalytics extends Integration {
       // anonymize after initializing, otherwise a warning is shown
       // in google analytics debugger
       if (this.getOption('anonymizeIp')) this.ga(['set', 'anonymizeIp', true], this.getOption('noConflict'));
-
-      if (this.getOption('noConflict')) {
-        if (
-          this.getOption('alternativeTrackingId') &&
-          this.getOption('alternativeNamespace') &&
-          !this.isLoaded()
-        ) {
-          this.load(this.onLoad);
-        } else {
-          this.onLoad();
-        }
-      } else {
-        this.load(this.onLoad);
-      }
-    } else {
-      super.onLoad();
     }
+    
     this.enrichDigitalData();
   }
 

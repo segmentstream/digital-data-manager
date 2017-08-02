@@ -250,15 +250,10 @@ class Criteo extends Integration {
   initialize() {
     window.criteo_q = window.criteo_q || [];
     this.criteo_q = [];
-    if (this.getOption('account') && !this.getOption('noConflict')) {
-      this.load(this.onLoad);
-    } else {
-      this.onLoad();
-    }
   }
 
   isLoaded() {
-    return !!window.criteo_q && typeof window.criteo_q === 'object';
+    return !!(window.criteo_q && !Array.isArray(window.criteo_q));
   }
 
   reset() {

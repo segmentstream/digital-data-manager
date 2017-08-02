@@ -82,13 +82,10 @@ class FacebookPixel extends Integration {
       window.fbq.loaded = true;
       window.fbq.version = '2.0';
       window.fbq.queue = [];
-      this.load(this.onLoad);
 
       for (const pixelId of pixelIds.split(',')) {
         window.fbq('init', pixelId);
       }
-    } else {
-      this.onLoad();
     }
   }
 

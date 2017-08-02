@@ -62,7 +62,7 @@ describe('SendPulse', function() {
                   }
                 }
               });
-            }, 0);
+            }, 1);
           },
           storeSubscription: () => {},
           push: (key, value) => {},
@@ -83,13 +83,14 @@ describe('SendPulse', function() {
 
     describe('#enrichDigitalData', () => {
 
-      it('should enrich digitalData.user', () => {
+      it('should enrich digitalData.user', (done) => {
         _sp.on('enrich', () => {
           assert.ok(window.digitalData.user.pushNotifications);
+          done();
         });
       });
 
-      it('should not support push notifications for IE and Edge', () => {
+      it('should not support push notifications for IE and Edge', (done) => {
         _sp.on('enrich', () => {
           window.oSpP.detectBrowser = () => {
             return {
@@ -98,6 +99,7 @@ describe('SendPulse', function() {
             }
           };
           assert.ok(!_sp.checkPushNotificationsSupport());
+          done();
         });
       });
     });
@@ -108,51 +110,57 @@ describe('SendPulse', function() {
         window.oSpP.push.restore();
       });
 
-      it('should add additional params to SendPulse once integration is initialized (legacy version)', () => {
+      it('should add additional params to SendPulse once integration is initialized (legacy version)', (done) => {
         _sp.setOption('userVariables', ['test']);
         _sp.once('enrich', () => {
           assert.ok(window.oSpP.push.calledWith('test', 'test'));
+          done();
         })
       });
 
-      it('should not add additional params to SendPulse once integration is initialized (legacy version)', () => {
+      it('should not add additional params to SendPulse once integration is initialized (legacy version)', (done) => {
+        _sp.once('load', () => {
+          assert.ok(!window.oSpP.push.calledWith('test', 'test'));
+          done();
+        })
+      });
+
+      // it('should add additional params to SendPulse once integration is initialized', (done) => {
+      //   _sp.setOption('userVariables', ['user.test']);
+      //   _sp.once('load', () => {
+      //     assert.ok(window.oSpP.push.calledWith('test', 'test'));
+      //     done();
+      //   })
+      // });
+
+      it('should not add additional params to SendPulse once integration is initialized', (done) => {
         _sp.once('enrich', () => {
           assert.ok(!window.oSpP.push.calledWith('test', 'test'));
-        })
-      });
-
-      it('should add additional params to SendPulse once integration is initialized', () => {
-        _sp.setOption('userVariables', ['user.test']);
-        _sp.once('enrich', () => {
-          assert.ok(window.oSpP.push.calledWith('test', 'test'));
-        })
-      });
-
-      it('should not add additional params to SendPulse once integration is initialized', () => {
-        _sp.once('enrich', () => {
-          assert.ok(!window.oSpP.push.calledWith('test', 'test'));
+          done();
         })
       });
     });
 
     describe('oSpP.storeSubscription', () => {
 
-      it('should send user attributes if any', () => {
+      it('should send user attributes if any', (done) => {
         _sp.setOption('userVariables', ['test']);
         _sp.once('enrich', () => {
           window.digitalData.user.test = 'test';
           //sinon.spy(window.oSpP, 'push');
           window.oSpP.storeSubscription('DUMMY');
           assert.ok(window.oSpP.push.calledWith('test', 'test'));
+          done();
         });
       });
 
-      it('should not send user attributes if any', () => {
+      it('should not send user attributes if any', (done) => {
         _sp.once('enrich', () => {
           window.digitalData.user.test = 'test';
           //sinon.spy(window.oSpP, 'push');
           window.oSpP.storeSubscription('DUMMY');
           assert.ok(!window.oSpP.push.calledWith('test', 'test'));
+          done();
         });
       });
 

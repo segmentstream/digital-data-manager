@@ -34,7 +34,6 @@ class Flocktory extends Integration {
 
   initialize() {
     window.flocktory = window.flocktory || [];
-    this.load(this.onLoad);
   }
 
   getSemanticEvents() {

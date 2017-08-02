@@ -174,7 +174,6 @@ class Segmento extends Integration {
     window.rtgNoSync = false;
     window.rtgSyncFrame = true;
     window._rutarget = window._rutarget || [];
-    this.load(this.onLoad);
   }
 
   isLoaded() {

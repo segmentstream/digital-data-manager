@@ -165,25 +165,22 @@ describe('Integrations: GoogleAnalytics', () => {
 
     describe('after loading', () => {
       beforeEach((done) => {
-        sinon.stub(ga, 'load', () => {
-          window.gaplugins = {};
-          var tracker = {
-            get: (arg) => {
-              if (arg === 'clientId') {
-                return '123123141234'
-              }
+        window.gaplugins = {};
+        var tracker = {
+          get: (arg) => {
+            if (arg === 'clientId') {
+              return '123123141234'
             }
           }
-          window.ga = function(fn) {
-            if (fn instanceof Function) {
-              fn(tracker);
-            }
-            this.getByName = (trackerName) => {
-              return tracker;
-            }
+        }
+        window.ga = function(fn) {
+          if (fn instanceof Function) {
+            fn(tracker);
           }
-          ga.onLoad();
-        });
+          this.getByName = (trackerName) => {
+            return tracker;
+          }
+        }
         ddManager.once('ready', done);
         ddManager.initialize({
           sendViewedPageEvent: false
@@ -192,10 +189,8 @@ describe('Integrations: GoogleAnalytics', () => {
 
       describe('#enrichDigitalData', () => {
         it('should add clientId', (done) => {
-          ga.on('ready', () => {
-            assert.ok(window.digitalData.user.googleClientId);
-          });
           ga.on('enrich', () => {
+            assert.ok(window.digitalData.user.googleClientId);
             assert.ok(window.digitalData.integrations.googleAnalytics);
             assert.ok(window.digitalData.integrations.googleAnalytics.clientId);
             done();
