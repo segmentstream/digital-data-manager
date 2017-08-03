@@ -172,7 +172,7 @@ class Driveback extends Integration {
         window.DriveBack.newPage(); // keep capital "B" in DriveBack
       } else {
         window.DriveBack.reactivateCampaigns(); // remove later
-      }  
+      }
     } else {
       if (this.getOption('experiments')) {
         window.DrivebackOnLoad.push(() => {

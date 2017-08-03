@@ -7,7 +7,7 @@ export default function getDataLayerProp(prop) {
       const value = getProp(window.dataLayer[i], prop);
       if (value !== undefined) {
         return value;
-      }  
+      }
     }
   }
   return undefined;
