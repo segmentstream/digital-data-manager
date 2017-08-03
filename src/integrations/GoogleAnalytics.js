@@ -573,7 +573,7 @@ class GoogleAnalytics extends Integration {
       // in google analytics debugger
       if (this.getOption('anonymizeIp')) this.ga(['set', 'anonymizeIp', true], this.getOption('noConflict'));
     }
-    
+
     this.enrichDigitalData();
   }
 

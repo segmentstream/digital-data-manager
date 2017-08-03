@@ -84,7 +84,7 @@ const IntegrationsLoader = {
 
   loadIntegrations: (integrationsPriority, pageLoadTimeout, callback) => {
     integrationsPriority = integrationsPriority || {};
-    
+
     let beforeList = integrationsPriority.before || [];
     const afterList = integrationsPriority.after || [];
     const beforeAndAfter = beforeList.concat(afterList);
