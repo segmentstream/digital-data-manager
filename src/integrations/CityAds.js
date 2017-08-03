@@ -76,8 +76,6 @@ class CityAds extends Integration {
     if (this.getOption('cookieTracking')) {
       this.addAffiliateCookie();
     }
-
-    this.onLoad();
   }
 
   addAffiliateCookie() {

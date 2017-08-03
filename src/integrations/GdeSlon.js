@@ -55,8 +55,6 @@ class GdeSlon extends Integration {
         addAffiliateCookie(aidCookieName, aid, expires, domain);
       }
     }
-
-    this.onLoad();
   }
 
   getSemanticEvents() {

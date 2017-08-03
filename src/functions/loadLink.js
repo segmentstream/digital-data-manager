@@ -1,5 +1,5 @@
 import onLoad from './scriptOnLoad.js';
-import async from 'async';
+import nextTick from 'async/nextTick';
 
 export default function(options, fn) {
   if (!options) throw new Error('Cant load nothing...');
@@ -31,7 +31,7 @@ export default function(options, fn) {
     onLoad(link, fn);
   }
 
-  async.nextTick(() => {
+  nextTick(() => {
     // Append after event listeners are attached for IE.
     const firstLink = document.getElementsByTagName('link')[0];
     firstLink.parentNode.insertBefore(link, firstLink);

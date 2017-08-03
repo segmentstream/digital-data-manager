@@ -28,7 +28,6 @@ class Weborama extends Integration {
 
   initialize() {
     this._isLoaded = true;
-    this.onLoad();
   }
 
   getSemanticEvents() {

@@ -78,8 +78,6 @@ class Mindbox extends Integration {
       pointOfContactSystemName: this.getOption('pointOfContactSystemName'),
       projectDomain: this.getOption('projectDomain'),
     });
-
-    this.load(this.onLoad);
   }
 
   getSemanticEvents() {

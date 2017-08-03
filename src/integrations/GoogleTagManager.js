@@ -29,6 +29,7 @@ class GoogleTagManager extends Integration {
 
   initialize() {
     window.dataLayer = window.dataLayer || [];
+
     this.ddManager.on('ready', () => {
       window.dataLayer.push({ event: 'DDManager Ready' });
     });
@@ -37,9 +38,6 @@ class GoogleTagManager extends Integration {
     });
     if (this.getOption('containerId') && this.getOption('noConflict') === false) {
       window.dataLayer.push({ 'gtm.start': Number(new Date()), event: 'gtm.js' });
-      this.load(this.onLoad);
-    } else {
-      this.onLoad();
     }
   }
 

@@ -259,7 +259,6 @@ class RTBHouse extends Integration {
 
   initialize() {
     this._isLoaded = true;
-    this.onLoad();
   }
 
   isLoaded() {

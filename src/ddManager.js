@@ -1,12 +1,11 @@
 import clone from './functions/clone';
-import async from 'async';
-import size from './functions/size';
-import cleanObject from './functions/cleanObject';
-import after from './functions/after';
 import each from './functions/each';
+import nextTick from 'async/nextTick';
+import cleanObject from './functions/cleanObject';
 import emitter from 'component-emitter';
 import Integration from './Integration';
 import EventManager from './EventManager';
+import IntegrationsLoader from './IntegrationsLoader';
 import EventDataEnricher from './enrichments/EventDataEnricher';
 import ViewabilityTracker from './ViewabilityTracker';
 import DDHelper from './DDHelper';
@@ -20,7 +19,7 @@ import { isTestMode, logEnrichedIntegrationEvent, showTestModeOverlay } from './
 import { VIEWED_PAGE, mapEvent } from './events/semanticEvents';
 import { validateIntegrationEvent, trackValidationErrors } from './EventValidator';
 import { enableErrorTracking } from './ErrorTracker';
-import { warn, error as errorLog } from './functions/safeConsole';
+import { error as errorLog } from './functions/safeConsole';
 import { trackLink, trackImpression } from './trackers';
 
 let ddManager;
@@ -36,12 +35,6 @@ let _digitalData = {};
  * @private
  */
 let _ddListener = [];
-
-/**
- * @type {Object}
- * @private
- */
-let _availableIntegrations;
 
 /**
  * @type {EventManager}
@@ -74,12 +67,6 @@ let _customScripts;
 let _ddStorage;
 
 /**
- * @type {Object}
- * @private
- */
-let _integrations = {};
-
-/**
  * @type {boolean}
  * @private
  */
@@ -102,28 +89,6 @@ function _prepareGlobals() {
     _ddListener = window.ddListener;
   } else {
     window.ddListener = _ddListener;
-  }
-}
-
-function _addIntegrations(integrationSettings) {
-  if (integrationSettings) {
-    if (Array.isArray(integrationSettings)) {
-      for (const integrationSetting of integrationSettings) {
-        const name = integrationSetting.name;
-        const options = clone(integrationSetting.options, true);
-        if (typeof _availableIntegrations[name] === 'function') {
-          const integration = new _availableIntegrations[name](_digitalData, options || {});
-          ddManager.addIntegration(name, integration);
-        }
-      }
-    } else {
-      each(integrationSettings, (name, options) => {
-        if (typeof _availableIntegrations[name] === 'function') {
-          const integration = new _availableIntegrations[name](_digitalData, clone(options, true));
-          ddManager.addIntegration(name, integration);
-        }
-      });
-    }
   }
 }
 
@@ -168,7 +133,7 @@ function _trackIntegrationPageEvent(event, integration, trackValidationErrorsOpt
 
 function _addIntegrationsEventTracking(trackValidationErrorsOption) {
   _eventManager.addCallback(['on', 'event', (event) => {
-    each(_integrations, (integrationName, integration) => {
+    each(IntegrationsLoader.getIntegrations(), (integrationName, integration) => {
       let trackEvent = false;
       const ex = event.excludeIntegrations;
       const inc = event.includeIntegrations;
@@ -221,44 +186,6 @@ function _addIntegrationsEventTracking(trackValidationErrorsOption) {
   }], true);
 }
 
-function _initializeIntegrations(settings) {
-  const version = settings.version;
-  const onLoad = () => {
-    _isLoaded = true;
-    ddManager.emit('load');
-  };
-
-  if (settings && typeof settings === 'object') {
-    // add integrations
-    const integrationSettings = settings.integrations;
-    _addIntegrations(integrationSettings);
-
-    // initialize and load integrations
-    const loaded = after(size(_integrations), onLoad);
-    if (size(_integrations) > 0) {
-      each(_integrations, (name, integration) => {
-        if (
-          !integration.isLoaded()
-          || integration.getOption('noConflict')
-          || integration.allowNoConflictInitialization()
-        ) {
-          integration.once('load', loaded);
-          integration.initialize(version);
-          integration.setInitialized(true);
-        } else {
-          warn(`Integration "${name}" can't be initialized properly because of the conflict`);
-          loaded();
-        }
-      });
-    } else {
-      loaded();
-    }
-
-    // add event tracking
-    _addIntegrationsEventTracking(settings.trackValidationErrors);
-  }
-}
-
 function _initializeCustomScripts(settings) {
   // initialize custom scripts
   _customScripts = new CustomScripts(_digitalData);
@@ -283,10 +210,10 @@ function _initializeCustomEnrichments(settings) {
 
 ddManager = {
 
-  VERSION: '1.2.44',
+  VERSION: '1.2.45',
 
   setAvailableIntegrations: (availableIntegrations) => {
-    _availableIntegrations = availableIntegrations;
+    IntegrationsLoader.setAvailableIntegrations(availableIntegrations);
   },
 
   processEarlyStubCalls: (earlyStubsQueue) => {
@@ -303,7 +230,7 @@ ddManager = {
       if (ddManager[method]) {
         if (method === 'initialize' && earlyStubCalls.length > 0) {
           // run initialize stub after all other stubs
-          async.nextTick(methodCallPromise(method, args));
+          nextTick(methodCallPromise(method, args));
         } else {
           ddManager[method].apply(ddManager, args);
         }
@@ -366,7 +293,15 @@ ddManager = {
       websiteMaxWidth: settings.websiteMaxWidth,
     }));
 
-    _initializeIntegrations(settings);
+    IntegrationsLoader.addIntegrations(settings.integrations, ddManager);
+    IntegrationsLoader.initializeIntegrations(settings.version);
+    IntegrationsLoader.loadIntegrations(settings.integrationsPriority, settings.pageLoadTimeout, () => {
+      _isLoaded = true;
+      ddManager.emit('load');
+    });
+
+    _addIntegrationsEventTracking(settings.trackValidationErrors);
+
     _initializeCustomScripts(settings);
 
     _isReady = true;
@@ -393,19 +328,11 @@ ddManager = {
     if (_isReady) {
       throw new Error('Adding integrations after ddManager initialization is not allowed');
     }
-
-    if (!integration instanceof Integration || !name) {
-      throw new TypeError('attempted to add an invalid integration');
-    }
-
-    integration.setName(name);
-    integration.setDDManager(ddManager);
-
-    _integrations[name] = integration;
+    IntegrationsLoader.addIntegration(name, integration, ddManager);
   },
 
   getIntegration: (name) => {
-    return _integrations[name];
+    return IntegrationsLoader.getIntegration(name);
   },
 
   get: (key) => {
@@ -432,6 +359,10 @@ ddManager = {
     return _eventManager;
   },
 
+  getDigitalData() {
+    return _digitalData;
+  },
+
   trackLink: (elements, handler) => {
     trackLink(elements, handler);
   },
@@ -456,13 +387,9 @@ ddManager = {
     if (_eventManager instanceof EventManager) {
       _eventManager.reset();
     }
-    each(_integrations, (name, integration) => {
-      integration.removeAllListeners();
-      integration.reset();
-    });
+    IntegrationsLoader.reset();
     ddManager.removeAllListeners();
     _eventManager = null;
-    _integrations = {};
     _isLoaded = false;
     _isReady = false;
   },

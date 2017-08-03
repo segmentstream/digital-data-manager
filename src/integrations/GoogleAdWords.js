@@ -168,12 +168,6 @@ class GoogleAdWords extends Integration {
         clearInterval(invervalId);
       }
     }, 100);
-
-    if (!this.getOption('noConflict')) {
-      this.load(this.onLoad);
-    } else {
-      this.onLoad();
-    }
   }
 
   isLoaded() {

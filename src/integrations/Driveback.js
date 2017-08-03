@@ -86,36 +86,27 @@ class Driveback extends Integration {
   }
 
   initialize() {
-    if (this.getOption('websiteToken')) {
-      window.DrivebackNamespace = 'Driveback';
-      window.Driveback = window.Driveback || {};
-      window.DrivebackOnLoad = window.DrivebackOnLoad || [];
-      window.Driveback.initStubCalled = false;
-      window.Driveback.init = () => {
-        window.Driveback.initStubCalled = true;
-      };
-      window.DrivebackLoaderAsyncInit = () => {
-        window.Driveback.Loader.init(this.getOption('websiteToken'));
-      };
-      window.DrivebackAsyncInit = noop;
+    window.DrivebackNamespace = 'Driveback';
+    window.Driveback = window.Driveback || {};
+    window.DrivebackOnLoad = window.DrivebackOnLoad || [];
+    window.Driveback.initStubCalled = false;
+    window.Driveback.init = () => {
+      window.Driveback.initStubCalled = true;
+    };
+    window.DrivebackLoaderAsyncInit = () => {
+      window.Driveback.Loader.init(this.getOption('websiteToken'));
+    };
+    window.DrivebackAsyncInit = noop;
 
-      // init Driveback Experiments
-      if (this.getOption('experiments') && this.getOption('experimentsToken')) {
-        window.DrivebackOnLoad.push(() => {
-          window.dbex('init', this.getOption('experimentsToken'));
-        });
-      }
-
-      if (this.getOption('experiments')) {
-        this.enrichDigitalData();
-      }
-
+    // init Driveback Experiments
+    if (this.getOption('experiments') && this.getOption('experimentsToken')) {
       window.DrivebackOnLoad.push(() => {
-        this.onLoad();
+        window.dbex('init', this.getOption('experimentsToken'));
       });
-      this.load();
-    } else {
-      this.onLoad();
+    }
+
+    if (this.getOption('experiments')) {
+      this.enrichDigitalData();
     }
   }
 

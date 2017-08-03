@@ -28,18 +28,20 @@ class SendPulse extends Integration {
   }
 
   initialize() {
-    this.load(() => {
-      const original = window.oSpP.storeSubscription;
-      window.oSpP.storeSubscription = (value) => {
-        original(value);
-        if (value !== 'DENY') {
-          this.digitalData.user.pushNotifications.isSubscribed = true;
-          this.sendUserAttributes(this.digitalData);
-        }
-      };
-      this.enrichDigitalData();
-      this.onLoad();
-    });
+    // do nothing
+  }
+
+  onLoad() {
+    const original = window.oSpP.storeSubscription;
+    window.oSpP.storeSubscription = (value) => {
+      original(value);
+      if (value !== 'DENY') {
+        this.digitalData.user.pushNotifications.isSubscribed = true;
+        this.sendUserAttributes(this.digitalData);
+      }
+    };
+    this.enrichDigitalData();
+    super.onLoad();
   }
 
   getSemanticEvents() {

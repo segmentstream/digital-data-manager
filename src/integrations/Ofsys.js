@@ -81,8 +81,6 @@ class Ofsys extends Integration {
         clearInterval(invervalId);
       }
     }, 100);
-
-    this.load(this.onLoad);
   }
 
   flushQueue() {

@@ -231,7 +231,6 @@ class AdSpire extends Integration {
 
   initialize() {
     window.adspire_track = window.adspire_track || [];
-    this.load(this.onLoad);
   }
 
   isLoaded() {

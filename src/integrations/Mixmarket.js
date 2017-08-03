@@ -47,8 +47,6 @@ class Mixmarket extends Integration {
         addAffiliateCookie(cookieName, 1, ttl, domain);
       }
     }
-
-    this.onLoad();
   }
 
   getSemanticEvents() {

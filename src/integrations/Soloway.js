@@ -243,7 +243,6 @@ class Soloway extends Integration {
 
   initialize() {
     window.AdriverCounter = this.adriverCounterFactory()();
-    this.onLoad();
   }
 
   isLoaded() {

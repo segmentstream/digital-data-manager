@@ -34,7 +34,6 @@ class OWOXBIStreaming extends Integration {
         f=window[window.GoogleAnalyticsObject||'ga'];'function'==typeof f&&f('provide','OWOXBIStreaming',g)})();
     /* eslint-enable */
     this._loaded = true;
-    this.onLoad();
   }
 
   isLoaded() {

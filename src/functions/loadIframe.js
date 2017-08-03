@@ -1,5 +1,5 @@
 import onLoad from './scriptOnLoad.js';
-import async from 'async';
+import nextTick from 'async/nextTick';
 
 export default function(options, fn) {
   if (!options) throw new Error('Cant load nothing...');
@@ -36,7 +36,7 @@ export default function(options, fn) {
     onLoad(iframe, fn);
   }
 
-  async.nextTick(() => {
+  nextTick(() => {
     // Append after event listeners are attached for IE.
     document.body.appendChild(iframe);
   });

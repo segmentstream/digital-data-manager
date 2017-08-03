@@ -184,22 +184,16 @@ class RetailRocket extends Integration {
   }
 
   initialize() {
-    if (this.getOption('partnerId')) {
-      window.rrPartnerId = this.getOption('partnerId');
-      const userId = getProp(this.digitalData, this.getOption('userIdProperty'));
-      if (userId) {
-        window.rrPartnerUserId = userId;
-      }
-      window.rrApi = {};
-      window.rrApiOnReady = window.rrApiOnReady || [];
-      window.rrApi.pageView = window.rrApi.addToBasket =
-          window.rrApi.order = window.rrApi.categoryView = window.rrApi.setEmail = window.rrApi.view =
-          window.rrApi.recomMouseDown = window.rrApi.recomAddToCart = window.rrApi.search = () => {};
-
-      this.load(this.onLoad);
-    } else {
-      this.onLoad();
+    window.rrPartnerId = this.getOption('partnerId');
+    const userId = getProp(this.digitalData, this.getOption('userIdProperty'));
+    if (userId) {
+      window.rrPartnerUserId = userId;
     }
+    window.rrApi = {};
+    window.rrApiOnReady = window.rrApiOnReady || [];
+    window.rrApi.pageView = window.rrApi.addToBasket =
+        window.rrApi.order = window.rrApi.categoryView = window.rrApi.setEmail = window.rrApi.view =
+        window.rrApi.recomMouseDown = window.rrApi.recomAddToCart = window.rrApi.search = () => {};
   }
 
   isLoaded() {

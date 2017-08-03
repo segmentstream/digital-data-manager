@@ -2,7 +2,6 @@ import Integration from './../Integration';
 import deleteProperty from './../functions/deleteProperty';
 import { getProp } from './../functions/dotProp';
 import each from './../functions/each';
-import after from './../functions/after';
 import {
   VIEWED_PAGE,
   SUBSCRIBED,
@@ -190,11 +189,9 @@ class OneSignal extends Integration {
     this.enrichDigitalData();
     this.prepareEnrichableTagProps();
 
-    const loaded = after((isHttps() ? 2 : 1), this.onLoad);
     if (isHttps()) {
-      this.load('manifest', loaded);
+      this.load('manifest');
     }
-    this.load(loaded);
     this.initialized = true;
   }
 

@@ -10,7 +10,7 @@ import each from './functions/each';
 import { getProp } from './functions/dotProp';
 import deleteProperty from './functions/deleteProperty';
 import { error as errorLog } from './functions/safeConsole';
-import async from 'async';
+import nextTick from 'async/nextTick';
 import EventEmitter from 'component-emitter';
 import { DIGITALDATA_VAR } from './variableTypes';
 
@@ -40,7 +40,7 @@ export class Integration extends EventEmitter
 {
   constructor(digitalData, options, tags) {
     super();
-    this.options = options;
+    this.options = options || {};
     this.overrideFunctions = {};
     if (options && options.overrideFunctions) {
       this.defineOverrideFunctions(options.overrideFunctions);
@@ -118,7 +118,8 @@ export class Integration extends EventEmitter
 
   initialize() {
     const onLoad = this.onLoad;
-    async.nextTick(onLoad);
+    this._isLoaded = true;
+    nextTick(onLoad);
   }
 
   load(tagName, params, callback) {
@@ -211,7 +212,7 @@ export class Integration extends EventEmitter
   }
 
   isLoaded() {
-    return false;
+    return !!this._isLoaded;
   }
 
   onLoad() {
@@ -245,7 +246,7 @@ export class Integration extends EventEmitter
   }
 
   reset() {
-    // abstract
+    this._isLoaded = false;
   }
 
   onEnrich() {

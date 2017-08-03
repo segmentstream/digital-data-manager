@@ -215,7 +215,6 @@ class RichRelevance extends Integration {
     this.baseUrlSubdomain = (this.getOption('useProductionUrl')) ? PRODUCTION_URL_PREFIX : DEVELOPMENT_URL_PREFIX;
     this.asyncQueue = new AsyncQueue(this.isLoaded);
     this.enrichDigitalData();
-    this.load(this.onLoad);
   }
 
   enrichDigitalData() {
