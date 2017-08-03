@@ -159,7 +159,11 @@ class Driveback extends Integration {
 
   onViewedPage() {
     if (window.Driveback.initInvoked) {
-      window.DriveBack.reactivateCampaigns(); // keep capital "B" in DriveBack
+      if (window.DriveBack.newPage) {
+        window.DriveBack.newPage(); // keep capital "B" in DriveBack
+      } else {
+        window.DriveBack.reactivateCampaigns(); // remove later
+      }
     } else {
       if (this.getOption('experiments')) {
         window.DrivebackOnLoad.push(() => {
