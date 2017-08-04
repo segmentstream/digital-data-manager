@@ -310,6 +310,27 @@ export class Integration extends EventEmitter
     // abstract
   }
 
+  pushEventQueue(event) {
+    if (this.eventQueueFlushed) {
+      this.trackEvent(event);
+    } else {
+      this.eventQueue = this.eventQueue || [];
+      this.eventQueue.push(event);
+    }
+  }
+
+  flushEventQueue() {
+    this.eventQueue = this.eventQueue || [];
+
+    let event = this.eventQueue.shift();
+    while (event) {
+      this.trackEvent(event);
+      event = this.eventQueue.shift();
+    }
+
+    this.eventQueueFlushed = true;
+  }
+
   on(event, handler) {
     this.addEventListener(event, handler);
   }

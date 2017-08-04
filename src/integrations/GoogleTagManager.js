@@ -29,7 +29,6 @@ class GoogleTagManager extends Integration {
 
   initialize() {
     window.dataLayer = window.dataLayer || [];
-
     this.ddManager.on('ready', () => {
       window.dataLayer.push({ event: 'DDManager Ready' });
     });

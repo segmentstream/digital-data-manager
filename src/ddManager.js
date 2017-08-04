@@ -102,7 +102,7 @@ function _trackIntegrationEvent(event, integration, trackValidationErrorsOption)
   }
 
   if (result && isInitialized) {
-    integration.trackEvent(event);
+    integration.pushEventQueue(event);
   } else if (trackValidationErrorsOption) {
     trackValidationErrors(_digitalData, event, integrationName, messages);
   }
