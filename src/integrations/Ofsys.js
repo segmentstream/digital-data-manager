@@ -71,14 +71,14 @@ class Ofsys extends Integration {
     const config = {
       [VIEWED_PAGE]: {
         fields: [
-          'user.email', 
+          'user.email',
           'cart.id',
           'cart.total',
           'cart.checkoutStep',
           'cart.lineItems[].product.id',
           'cart.lineItems[].product.unitSalePrice',
           'cart.lineItems[].product.name',
-          'cart.lineItems[].quantity'
+          'cart.lineItems[].quantity',
         ],
       },
       [VIEWED_PRODUCT_DETAIL]: {
@@ -103,7 +103,7 @@ class Ofsys extends Integration {
           'transaction.lineItems[].product.name',
           'transaction.lineItems[].product.unitSalePrice',
           'transaction.lineItems[].subtotal',
-          'transaction.lineItems[].quantity'
+          'transaction.lineItems[].quantity',
         ],
       },
     };
