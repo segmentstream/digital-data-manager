@@ -67,6 +67,50 @@ class Ofsys extends Integration {
     return enrichableProps;
   }
 
+  getEventValidationConfig(event) {
+    const config = {
+      [VIEWED_PAGE]: {
+        fields: [
+          'user.email', 
+          'cart.id',
+          'cart.total',
+          'cart.checkoutStep',
+          'cart.lineItems[].product.id',
+          'cart.lineItems[].product.unitSalePrice',
+          'cart.lineItems[].product.name',
+          'cart.lineItems[].quantity'
+        ],
+      },
+      [VIEWED_PRODUCT_DETAIL]: {
+        fields: ['product.id'],
+      },
+      [ADDED_PRODUCT]: {
+        fields: ['product.id', 'product.name', 'product.unitSalePrice', 'quantity'],
+      },
+      [REMOVED_PRODUCT]: {
+        fields: ['product.id'],
+      },
+      [COMPLETED_TRANSACTION]: {
+        fields: [
+          'transaction.total',
+          'transaction.lineItems[].product.id',
+          'transaction.orderId',
+          'transaction.cartId',
+          'transaction.shippingCost',
+          'transaction.affiliation',
+          'transaction.tax',
+          'transaction.lineItems[].product.id',
+          'transaction.lineItems[].product.name',
+          'transaction.lineItems[].product.unitSalePrice',
+          'transaction.lineItems[].subtotal',
+          'transaction.lineItems[].quantity'
+        ],
+      },
+    };
+
+    return config[event.name];
+  }
+
   initialize() {
     this.asyncQueue = [];
 
@@ -222,7 +266,6 @@ class Ofsys extends Integration {
 
     const newCartTotal = this.getNewCartTotal(product.unitSalePrice, -event.quantity || -1);
 
-
     this.asyncQueue.push(() => {
       window.DI.Journey.ECommerce.RemoveCartItem({
         idCart: this.cartId,
@@ -243,7 +286,7 @@ class Ofsys extends Integration {
     this.asyncQueue.push(() => {
       window.DI.Journey.ECommerce.AddTransaction(cleanObject({
         idTransaction: transaction.orderId,
-        idCart: transaction.cartId,
+        idCart: transaction.cartId || this.cartId,
         affiliation: transaction.affiliation,
         revenue: transaction.total,
         tax: transaction.tax,
@@ -258,7 +301,7 @@ class Ofsys extends Integration {
           const quantity = lineItem.quantity || 1;
           window.DI.Journey.ECommerce.AddItem({
             idTransaction: transaction.orderId,
-            idCart: transaction.cartId,
+            idCart: transaction.cartId || this.cartId,
             idProduct: getProp(lineItem, 'product.id'),
             productName: getProp(lineItem, 'product.name'),
             Price_unit: unitSalePrice,
