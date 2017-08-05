@@ -102,7 +102,6 @@ class Sociomantic extends Integration {
     if (this.trackingScriptCalled) {
       window.sociomantic.sonar.adv[advertiserToken].clear();
     }
-    this.trackingScriptCalled = false;
   }
 
   reset() {

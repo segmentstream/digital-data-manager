@@ -134,6 +134,7 @@ const IntegrationsLoader = {
   loadIntegration(integrationName, callback) {
     if (_integrations[integrationName]) {
       const integration = _integrations[integrationName];
+      integration.flushEventQueue();
       if (!integration.isLoaded()) {
         integration.load(integration.onLoad);
         integration.once('load', callback);
@@ -148,6 +149,7 @@ const IntegrationsLoader = {
     each(_integrations, (name, integration) => {
       integration.removeAllListeners();
       integration.reset();
+      integration.eventQueueFlushed = false;
     });
     _integrations = {};
   },
