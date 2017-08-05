@@ -879,6 +879,7 @@ class GoogleAnalytics extends Integration {
     // set
     if (this.getOption('sendUserId')) {
       const userId = getProp(event, 'user.userId');
+      console.log(event, userId);
       if (userId) {
         this.ga(['set', 'userId', userId], this.getOption('noConflict'));
       }

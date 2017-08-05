@@ -136,7 +136,6 @@ describe('Integrations: GoogleAnalytics', () => {
           digitalData.events.push({
             name: 'Viewed Page',
             callback: () => {
-              console.log(window.ga.q[3]);
               assert.deepEqual(argumentsToArray(window.ga.q[3]), ['set', 'userId', 'baz']);
               done();
             }
