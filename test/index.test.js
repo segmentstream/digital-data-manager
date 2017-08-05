@@ -6,24 +6,24 @@ console.error = () => {};
 import './../src/polyfill.js';
 
 // tests
-import './ddManagerSpec.js';
-import './DDHelperSpec.js';
-import './DDStorageSpec.js';
-import './EventManagerSpec.js';
-import './EventDataEnricherSpec.js';
-import './DigitalDataEnricherSpec.js';
-import './EventValidatorSpec.js';
+// import './ddManagerSpec.js';
+// import './DDHelperSpec.js';
+// import './DDStorageSpec.js';
+// import './EventManagerSpec.js';
+// import './EventDataEnricherSpec.js';
+// import './DigitalDataEnricherSpec.js';
+// import './EventValidatorSpec.js';
 
-// enrichments & events
-import './enrichments/CustomEnricherSpec';
-import './events/CustomEventsSpec';
-import './scripts/CustomScriptsSpec';
+// // enrichments & events
+// import './enrichments/CustomEnricherSpec';
+// import './events/CustomEventsSpec';
+// import './scripts/CustomScriptsSpec';
 
-// trackers
-import './trackers/trackLinkSpec.js';
+// // trackers
+// import './trackers/trackLinkSpec.js';
 
 // // integrations
-// import './integrations/GoogleAnalyticsSpec.js';
+import './integrations/GoogleAnalyticsSpec.js';
 // import './integrations/GoogleTagManagerSpec.js';
 // import './integrations/GoogleAdWordsSpec.js';
 // import './integrations/DrivebackSpec.js';
