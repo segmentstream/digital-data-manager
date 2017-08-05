@@ -1,8 +1,8 @@
 import Integration from './../Integration';
-import { getProp } from './../functions/dotProp';
-import cleanObject from './../functions/cleanObject';
-import deletePropery from './../functions/deleteProperty';
-import normalizeString from './../functions/normalizeString';
+import { getProp } from 'driveback-utils/dotProp';
+import cleanObject from 'driveback-utils/cleanObject';
+import deletePropery from 'driveback-utils/deleteProperty';
+import normalizeString from 'driveback-utils/normalizeString';
 import md5 from 'crypto-js/md5';
 import {
   VIEWED_PAGE,

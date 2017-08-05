@@ -1,6 +1,6 @@
 import Integration from './../Integration.js';
-import deleteProperty from './../functions/deleteProperty.js';
-import { getProp } from './../functions/dotProp';
+import deleteProperty from 'driveback-utils/deleteProperty.js';
+import { getProp } from 'driveback-utils/dotProp';
 
 class SendPulse extends Integration {
 

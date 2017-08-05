@@ -3,8 +3,8 @@ import {
   getEnrichableVariableMappingProps,
   extractVariableMappingValues,
 } from './../Integration';
-import { stringify } from './../functions/queryString';
-import cleanObject from './../functions/cleanObject';
+import { stringify } from 'driveback-utils/queryString';
+import cleanObject from 'driveback-utils/cleanObject';
 import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
 
 class DoubleClickFloodlight extends Integration {

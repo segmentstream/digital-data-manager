@@ -3,7 +3,7 @@ import sinon from 'sinon';
 import reset from './../reset.js';
 import Mindbox from './../../src/integrations/Mindbox';
 import ddManager from './../../src/ddManager';
-import noop from './../../src/functions/noop';
+import noop from 'driveback-utils/noop';
 
 describe('Integrations: Mindbox', () => {
   let mindbox;

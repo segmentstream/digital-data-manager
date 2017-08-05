@@ -1,8 +1,8 @@
 import Integration from './../Integration';
-import { getProp, setProp } from './../functions/dotProp';
+import { getProp, setProp } from 'driveback-utils/dotProp';
 import { VIEWED_PAGE } from './../events/semanticEvents';
 import cookie from 'js-cookie';
-import topDomain from './../functions/topDomain';
+import topDomain from 'driveback-utils/topDomain';
 
 const TAG_COOKIE_SYNC = 'cookieSync';
 const TAG_SUPER_SYNC = 'superSync';

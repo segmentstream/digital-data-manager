@@ -1,8 +1,8 @@
 import Integration from './../Integration';
-import getQueryParam from './../functions/getQueryParam';
-import topDomain from './../functions/topDomain';
-import { getProp } from './../functions/dotProp';
-import normalizeString from './../functions/normalizeString';
+import getQueryParam from 'driveback-utils/getQueryParam';
+import topDomain from 'driveback-utils/topDomain';
+import { getProp } from 'driveback-utils/dotProp';
+import normalizeString from 'driveback-utils/normalizeString';
 import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
 import cookie from 'js-cookie';
 

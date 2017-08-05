@@ -1,9 +1,9 @@
-import clone from './functions/clone';
-import deleteProperty from './functions/deleteProperty';
-import size from './functions/size';
-import after from './functions/after';
-import jsonIsEqual from './functions/jsonIsEqual';
-import { error as errorLog } from './functions/safeConsole';
+import clone from 'driveback-utils/clone';
+import deleteProperty from 'driveback-utils/deleteProperty';
+import size from 'driveback-utils/size';
+import after from 'driveback-utils/after';
+import jsonIsEqual from 'driveback-utils/jsonIsEqual';
+import { error as errorLog } from 'driveback-utils/safeConsole';
 import DDHelper from './DDHelper';
 import EventDataEnricher from './enrichments/EventDataEnricher';
 import CustomEvent from './events/CustomEvent';

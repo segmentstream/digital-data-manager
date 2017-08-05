@@ -1,7 +1,7 @@
-import { bind, unbind } from './../functions/eventListener';
-import isMeta from './../functions/isMeta';
-import preventDefault from './../functions/preventDefault';
-import domQuery from './../functions/domQuery';
+import { bind, unbind } from 'driveback-utils/eventListener';
+import isMeta from 'driveback-utils/isMeta';
+import preventDefault from 'driveback-utils/preventDefault';
+import domQuery from 'driveback-utils/domQuery';
 
 function applyHandler(event, el, handler) {
   const href = (

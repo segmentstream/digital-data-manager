@@ -1,4 +1,4 @@
-import { getProp } from './functions/dotProp';
+import { getProp } from 'driveback-utils/dotProp';
 
 const MSG_IS_REQUIRED = 'is required';
 const MSG_NOT_STRING = 'should be a string';

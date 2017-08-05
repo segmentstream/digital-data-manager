@@ -1,12 +1,12 @@
 import Integration from './../Integration.js';
-import deleteProperty from './../functions/deleteProperty.js';
-import { setProp, getProp } from './../functions/dotProp';
-import cleanObject from './../functions/cleanObject';
-import each from './../functions/each.js';
-import size from './../functions/size.js';
-import clone from './../functions/clone';
+import deleteProperty from 'driveback-utils/deleteProperty.js';
+import { setProp, getProp } from 'driveback-utils/dotProp';
+import cleanObject from 'driveback-utils/cleanObject';
+import each from 'driveback-utils/each.js';
+import size from 'driveback-utils/size.js';
+import clone from 'driveback-utils/clone';
 import cookie from 'js-cookie';
-import arrayMerge from './../functions/arrayMerge';
+import arrayMerge from 'driveback-utils/arrayMerge';
 import {
   SESSION_STARTED,
   VIEWED_PAGE,

@@ -1,7 +1,7 @@
-import clone from './functions/clone';
-import each from './functions/each';
+import clone from 'driveback-utils/clone';
+import each from 'driveback-utils/each';
 import nextTick from 'async/nextTick';
-import cleanObject from './functions/cleanObject';
+import cleanObject from 'driveback-utils/cleanObject';
 import emitter from 'component-emitter';
 import Integration from './Integration';
 import EventManager from './EventManager';
@@ -19,7 +19,7 @@ import { isTestMode, logEnrichedIntegrationEvent, showTestModeOverlay } from './
 import { VIEWED_PAGE, mapEvent } from './events/semanticEvents';
 import { validateIntegrationEvent, trackValidationErrors } from './EventValidator';
 import { enableErrorTracking } from './ErrorTracker';
-import { error as errorLog } from './functions/safeConsole';
+import { error as errorLog } from 'driveback-utils/safeConsole';
 import { trackLink, trackImpression } from './trackers';
 
 let ddManager;

@@ -1,8 +1,8 @@
 import Integration from './../Integration.js';
-import deleteProperty from './../functions/deleteProperty';
-import { getProp } from './../functions/dotProp';
-import getVarValue from './../functions/getVarValue';
-import each from './../functions/each';
+import deleteProperty from 'driveback-utils/deleteProperty';
+import { getProp } from 'driveback-utils/dotProp';
+import getVarValue from 'driveback-utils/getVarValue';
+import each from 'driveback-utils/each';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,

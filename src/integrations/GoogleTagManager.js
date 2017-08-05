@@ -1,5 +1,5 @@
 import Integration from './../Integration.js';
-import deleteProperty from './../functions/deleteProperty.js';
+import deleteProperty from 'driveback-utils/deleteProperty.js';
 
 class GoogleTagManager extends Integration {
 

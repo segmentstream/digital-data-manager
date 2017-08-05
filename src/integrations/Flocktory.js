@@ -1,7 +1,7 @@
 import Integration from './../Integration';
-import deleteProperty from './../functions/deleteProperty';
-import { getProp } from './../functions/dotProp';
-import cleanObject from './../functions/cleanObject';
+import deleteProperty from 'driveback-utils/deleteProperty';
+import { getProp } from 'driveback-utils/dotProp';
+import cleanObject from 'driveback-utils/cleanObject';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,

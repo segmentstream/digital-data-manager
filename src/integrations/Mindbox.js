@@ -1,7 +1,7 @@
 import Integration from './../Integration.js';
-import { getProp } from './../functions/dotProp';
-import each from './../functions/each';
-import cleanObject from './../functions/cleanObject';
+import { getProp } from 'driveback-utils/dotProp';
+import each from 'driveback-utils/each';
+import cleanObject from 'driveback-utils/cleanObject';
 import { DIGITALDATA_VAR } from './../variableTypes';
 import {
   VIEWED_PAGE,

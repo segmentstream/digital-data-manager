@@ -1,8 +1,8 @@
 import { Integration } from './../Integration';
-import { getProp } from './../functions/dotProp';
+import { getProp } from 'driveback-utils/dotProp';
 import AsyncQueue from './utils/AsyncQueue';
-import cleanObject from './../functions/cleanObject';
-import deleteProperty from './../functions/deleteProperty';
+import cleanObject from 'driveback-utils/cleanObject';
+import deleteProperty from 'driveback-utils/deleteProperty';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,

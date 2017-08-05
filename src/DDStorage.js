@@ -1,4 +1,4 @@
-import { getProp } from './functions/dotProp';
+import { getProp } from 'driveback-utils/dotProp';
 
 const keyPersistedKeys = '_persistedKeys';
 const keyLastEventTimestamp = '_lastEventTimestamp';

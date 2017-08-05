@@ -1,4 +1,4 @@
-import noop from './functions/noop.js';
+import noop from 'driveback-utils/noop.js';
 
 class ViewabilityTracker
 {

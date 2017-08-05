@@ -1,7 +1,7 @@
 import Integration from './../Integration';
-import deleteProperty from './../functions/deleteProperty';
-import getVarValue from './../functions/getVarValue';
-import { getProp } from './../functions/dotProp';
+import deleteProperty from 'driveback-utils/deleteProperty';
+import getVarValue from 'driveback-utils/getVarValue';
+import { getProp } from 'driveback-utils/dotProp';
 import { DIGITALDATA_VAR } from './../variableTypes';
 import {
   VIEWED_PAGE,

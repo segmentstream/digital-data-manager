@@ -1,9 +1,9 @@
-import getQueryParam from './functions/getQueryParam';
+import getQueryParam from 'driveback-utils/getQueryParam';
 import cookie from 'js-cookie';
 import DDHelper from './DDHelper';
-import domQuery from './functions/domQuery';
-import { getProp } from './functions/dotProp';
-import getDataLayerProp from './functions/getDataLayerProp';
+import domQuery from 'driveback-utils/domQuery';
+import { getProp } from 'driveback-utils/dotProp';
+import getDataLayerProp from 'driveback-utils/getDataLayerProp';
 
 class Handler {
   constructor(handler, digitalData, args) {
