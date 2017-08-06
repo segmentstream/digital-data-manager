@@ -85,12 +85,12 @@ class EventManager {
     // process events
     // TODO: refactoring
     if (this.isViewedPageSent()) {
-      this.fireUnfiredEvents();
       this.enableEventsTracking();
+      this.fireUnfiredEvents();
     } else if (_sendViewedPageEvent && !this.isViewedPageSent()) {
       this.addViewedPageEvent();
-      this.fireUnfiredEvents();
       this.enableEventsTracking();
+      this.fireUnfiredEvents();
     } else {
       events.push = (event) => {
         // waiting for "Viewed Page" event
@@ -341,7 +341,7 @@ class EventManager {
 
   fireUnfiredEvents() {
     const events = _digitalData.events;
-    events.forEach((event) => {
+    events.forEach((event, index, originalArray) => {
       if (!event.hasFired) {
         this.fireEvent(event);
       }

@@ -161,8 +161,11 @@ export default class Integration extends EventEmitter {
         break;
       case 'script':
         el = loadScript(attr, (err) => {
-          if (!err) safeCallback();
-          errorLog(`error loading "${tagName}" error="${err}"`);
+          if (!err) {
+            safeCallback();
+          } else {
+            errorLog(`error loading "${tagName}" error="${err}"`);
+          }  
         });
         // TODO: hack until refactoring load-script
         deleteProperty(attr, 'src');
@@ -172,8 +175,11 @@ export default class Integration extends EventEmitter {
         break;
       case 'link':
         el = loadLink(attr, (err) => {
-          if (!err) safeCallback();
-          errorLog(`error loading "${tagName}" error="${err}"`);
+          if (!err) {
+            safeCallback();
+          } else {
+            errorLog(`error loading "${tagName}" error="${err}"`);
+          }
         });
         break;
       case 'iframe':

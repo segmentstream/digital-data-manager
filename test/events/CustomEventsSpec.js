@@ -17,7 +17,9 @@ describe('CustomEvents', () => {
         categoryId: 1
       },
       type: 'product',
-      events: []
+      events: [{
+        name: 'Test Event'
+      }]
     };
     _ddListener = [];
     _eventManager = new EventManager(_digitalData, _ddListener);
@@ -48,6 +50,20 @@ describe('CustomEvents', () => {
   });
 
   it('should track custom events', (done) => {
+    let currentAssert = 'Viewed Page'
+    const nextAssert = {
+      'Viewed Page': 'Viewed Product Detail',
+      'Viewed Product Detail': 'Test Event',
+      'Viewed Product Detail': 'Clicked Product',
+    };
+    _eventManager.addCallback(['on', 'event', (event) => {
+      assert.equal(event.name, currentAssert);
+      if (event.name === 'Clicked Product') {
+        done();
+      } else {
+        currentAssert = nextAssert[currentAssert];
+      }
+    }]);
     _eventManager.import([
       {
         name: 'Event: Viewed Product Detail',
@@ -85,12 +101,5 @@ describe('CustomEvents', () => {
     _eventManager.initialize();
 
     fireEvent(btn, 'click');
-
-    setTimeout(() => {
-      assert.equal(_digitalData.events[0].name, 'Viewed Page');
-      assert.equal(_digitalData.events[1].name, 'Viewed Product Detail');
-      assert.equal(_digitalData.events[2].name, 'Clicked Product');
-      done();
-    }, 10);
   });
 });
