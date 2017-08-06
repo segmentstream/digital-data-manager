@@ -21,7 +21,7 @@ class Linkprofit extends Integration {
       cookieTtl: 90, // days
       deduplication: false,
       utmSource: 'linkprofit', // utm_source which is sent with ClickHash get param
-      deduplicationUtmMedium: [], // by default deduplicate with any source/medium other then linkprofit source
+      deduplicationUtmMedium: [],
     }, options);
 
     super(digitalData, optionsWithDefaults);

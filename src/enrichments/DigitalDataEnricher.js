@@ -246,15 +246,15 @@ class DigitalDataEnricher {
 
   enrichDDStorageData() {
     const persistedKeys = this.ddStorage.getPersistedKeys();
-    for (const key of persistedKeys) {
+    persistedKeys.forEach((key) => {
       const value = this.ddStorage.get(key);
       if (value === undefined) {
-        continue;
+        return;
       }
       if (getProp(this.digitalData, key) === undefined || isForcedField(key)) {
         setProp(this.digitalData, key, value);
       }
-    }
+    });
   }
 
   enrichLegacyVersions() {
@@ -270,11 +270,11 @@ class DigitalDataEnricher {
       if (!Array.isArray(recommendations)) {
         recommendations = [recommendations];
       }
-      for (const recommendation of recommendations) {
+      recommendations.forEach((recommendation) => {
         if (recommendation && recommendation.listName && !recommendation.listId) {
           recommendation.listId = recommendation.listName;
         }
-      }
+      });
     }
 
     // compatibility with version <1.1.0

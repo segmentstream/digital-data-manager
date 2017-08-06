@@ -1,4 +1,4 @@
-import Integration from './../Integration.js';
+import Integration from './../Integration';
 import { getProp } from 'driveback-utils/dotProp';
 import each from 'driveback-utils/each';
 import cleanObject from 'driveback-utils/cleanObject';
@@ -50,11 +50,11 @@ class Mindbox extends Integration {
     ];
 
     this.operationEvents = Object.keys(this.getOption('operationMapping'));
-    for (const operationEvent of this.operationEvents) {
+    this.operationEvents.forEach((operationEvent) => {
       if (this.SEMANTIC_EVENTS.indexOf(operationEvent) < 0) {
         this.SEMANTIC_EVENTS.push(operationEvent);
       }
-    }
+    });
 
     this.addTag({
       type: 'script',

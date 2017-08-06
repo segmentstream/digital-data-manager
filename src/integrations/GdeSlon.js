@@ -22,7 +22,7 @@ class GdeSlon extends Integration {
       cookieDomain: '',
       deduplication: false,
       utmSource: DEFAULT_UTM_SOURCE, // utm_source for mixmarket leads
-      deduplicationUtmMedium: [], // by default deduplicate with any source/medium other then mixmarket source
+      deduplicationUtmMedium: [],
     }, options);
 
     super(digitalData, optionsWithDefaults);

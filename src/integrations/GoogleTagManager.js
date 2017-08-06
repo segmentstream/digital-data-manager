@@ -1,5 +1,5 @@
-import Integration from './../Integration.js';
-import deleteProperty from 'driveback-utils/deleteProperty.js';
+import Integration from './../Integration';
+import deleteProperty from 'driveback-utils/deleteProperty';
 
 class GoogleTagManager extends Integration {
   constructor(digitalData, options) {

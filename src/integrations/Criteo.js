@@ -1,4 +1,4 @@
-import Integration from './../Integration.js';
+import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import { getProp } from 'driveback-utils/dotProp';
 import semver from 'driveback-utils/semver';
@@ -26,7 +26,7 @@ const SEMANTIC_EVENTS = [
 
 function lineItemsToCriteoItems(lineItems) {
   const products = [];
-  for (let i = 0, length = lineItems.length; i < length; i++) {
+  for (let i = 0, length = lineItems.length; i < length; i += 1) {
     const lineItem = lineItems[i];
     if (lineItem.product) {
       const productId = lineItem.product.id;
@@ -114,7 +114,7 @@ class Criteo extends Integration {
     const listingValidations = {};
     const listingFields = [];
     const listingItemsCount = getProp(event, 'listing.items.length') || 0;
-    for (let i = 0; i < Math.min(listingItemsCount, 4); i++) {
+    for (let i = 0; i < Math.min(listingItemsCount, 4); i += 1) {
       const fieldName = ['listing.items', i, 'id'].join('.');
       listingFields.push(fieldName);
       listingValidations[fieldName] = {
@@ -371,7 +371,7 @@ class Criteo extends Integration {
     if (items.length < 3) {
       length = items.length;
     }
-    for (let i = 0; i < length; i++) {
+    for (let i = 0; i < length; i += 1) {
       const productId = items[i].id;
       if (productId) {
         productIds.push(productId);

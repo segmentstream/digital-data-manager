@@ -52,11 +52,11 @@ class FacebookPixel extends Integration {
     ];
 
     this.customEvents = Object.keys(this.getOption('customEvents') || {});
-    for (const customEvent of this.customEvents) {
+    this.customEvents.forEach((customEvent) => {
       if (this.SEMANTIC_EVENTS.indexOf(customEvent) < 0) {
         this.SEMANTIC_EVENTS.push(customEvent);
       }
-    }
+    });
 
     this.addTag({
       type: 'script',
@@ -82,9 +82,9 @@ class FacebookPixel extends Integration {
       window.fbq.version = '2.0';
       window.fbq.queue = [];
 
-      for (const pixelId of pixelIds.split(',')) {
+      pixelIds.split(',').forEach((pixelId) => {
         window.fbq('init', pixelId);
-      }
+      });
     }
   }
 

@@ -1,4 +1,4 @@
-import Integration from './../Integration.js';
+import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import cleanObject from 'driveback-utils/cleanObject';
 import { getProp } from 'driveback-utils/dotProp';
@@ -116,7 +116,7 @@ class Ofsys extends Integration {
     // emulate async queue for Ofsys sync script
     let invervalCounter = 0;
     const invervalId = setInterval(() => {
-      invervalCounter++;
+      invervalCounter += 1;
       if (this.isLoaded()) {
         this.flushQueue();
         clearInterval(invervalId);
@@ -166,7 +166,7 @@ class Ofsys extends Integration {
     if (cart.lineItems && cart.lineItems.length) {
       // add products to cart and submit cart
       this.asyncQueue.push(() => {
-        for (const lineItem of cart.lineItems) {
+        cart.lineItems.forEach((lineItem) => {
           window.DI.Journey.ECommerce.AddCartItem({
             idCart: cart.id,
             idProduct: getProp(lineItem, 'product.id'),
@@ -174,7 +174,7 @@ class Ofsys extends Integration {
             priceunit: getProp(lineItem, 'product.unitSalePrice') || getProp(lineItem, 'product.unitPrice'),
             quantity: lineItem.quantity || 1,
           });
-        }
+        });
         window.DI.Journey.ECommerce.SubmitCart();
       });
     }
@@ -295,7 +295,7 @@ class Ofsys extends Integration {
 
     if (transaction.lineItems && Array.isArray(transaction.lineItems)) {
       this.asyncQueue.push(() => {
-        for (const lineItem of transaction.lineItems) {
+        transaction.lineItems.forEach((lineItem) => {
           const unitSalePrice = getProp(lineItem, 'product.unitSalePrice') || getProp(lineItem, 'product.unitPrice');
           const quantity = lineItem.quantity || 1;
           window.DI.Journey.ECommerce.AddItem({
@@ -307,7 +307,7 @@ class Ofsys extends Integration {
             Price_total: lineItem.subtotal || unitSalePrice * quantity,
             quantity,
           });
-        }
+        });
       });
     }
 

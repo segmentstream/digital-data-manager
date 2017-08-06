@@ -12,7 +12,9 @@ import {
 } from './../events/semanticEvents';
 
 function lineItemsToProductIds(lineItems) {
-  const productIds = lineItems.filter(lineItem => !!(lineItem.product.id)).map(lineItem => lineItem.product.id);
+  const productIds = lineItems
+    .filter(lineItem => !!(lineItem.product.id))
+    .map(lineItem => lineItem.product.id);
   return productIds;
 }
 
@@ -54,11 +56,11 @@ class MyTarget extends Integration {
 
   addGoalsToSemanticEvents() {
     const goalEvents = Object.keys(this.getOption('goals'));
-    for (const goalEvent of goalEvents) {
+    goalEvents.forEach((goalEvent) => {
       if (this.SEMANTIC_EVENTS.indexOf(goalEvent) < 0) {
         this.SEMANTIC_EVENTS.push(goalEvent);
       }
-    }
+    });
   }
 
   getSemanticEvents() {

@@ -1,5 +1,5 @@
-import Integration from './../Integration.js';
-import deleteProperty from 'driveback-utils/deleteProperty.js';
+import Integration from './../Integration';
+import deleteProperty from 'driveback-utils/deleteProperty';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -20,7 +20,9 @@ const SEMANTIC_EVENTS = [
 
 function lineItemsToProductIds(lineItems) {
   lineItems = lineItems || [];
-  const productIds = lineItems.filter(lineItem => !!(lineItem.product.id || lineItem.product.skuCode)).map(lineItem => lineItem.product.id || lineItem.product.skuCode);
+  const productIds = lineItems
+    .filter(lineItem => !!(lineItem.product.id || lineItem.product.skuCode))
+    .map(lineItem => lineItem.product.id || lineItem.product.skuCode);
   return productIds;
 }
 
@@ -155,7 +157,7 @@ class GoogleAdWords extends Integration {
     // emulate async queue for Google AdWords sync script
     let invervalCounter = 0;
     const invervalId = setInterval(() => {
-      invervalCounter++;
+      invervalCounter += 1;
       if (this.isLoaded()) {
         this.flushQueue();
         clearInterval(invervalId);

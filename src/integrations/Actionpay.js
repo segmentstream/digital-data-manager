@@ -31,7 +31,7 @@ class Actionpay extends Integration {
       cookieTtl: 90, // days
       deduplication: false,
       utmSource: 'actionpay', // utm_source which is sent with actionpay get param
-      deduplicationUtmMedium: [], // by default deduplicate with any source/medium other then actionpay source
+      deduplicationUtmMedium: [],
     }, options);
 
     super(digitalData, optionsWithDefaults);

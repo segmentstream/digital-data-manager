@@ -54,7 +54,7 @@ class CityAds extends Integration {
       cookieTtl: 90, // days
       deduplication: false,
       utmSource: 'cityads', // utm_source which is sent with admitad_uid get param
-      deduplicationUtmMedium: [], // by default deduplicate with any source/medium other then admitad source
+      deduplicationUtmMedium: [],
     }, options);
 
     super(digitalData, optionsWithDefaults);

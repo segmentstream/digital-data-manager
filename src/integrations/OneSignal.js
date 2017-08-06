@@ -115,9 +115,9 @@ class OneSignal extends Integration {
 
     if (this.SEMANTIC_EVENTS.indexOf(event.name) >= 0) {
       const enrichableTagProps = this.getEnrichableTagProps();
-      for (const enrichableTagProp of enrichableTagProps) {
+      enrichableTagProps.forEach((enrichableTagProp) => {
         enrichableProps.push(enrichableTagProp);
-      }
+      });
     }
     return enrichableProps;
   }
@@ -157,7 +157,8 @@ class OneSignal extends Integration {
 
     if (this.getOption('path') && this.getOption('path') !== '/') {
       window.OneSignal.push(() => {
-        // This registers the workers at the root scope, which is allowed by the HTTP header "Service-Worker-Allowed: /"
+        // This registers the workers at the root scope, which is allowed
+        // by the HTTP header "Service-Worker-Allowed: /"
         window.OneSignal.SERVICE_WORKER_PARAM = { scope: '/' };
       });
     }
@@ -231,12 +232,12 @@ class OneSignal extends Integration {
     const newTagsKeys = Object.keys(newTags);
     const tagsToSend = {};
     let tagsToSendCount = 0;
-    for (const key of newTagsKeys) {
+    newTagsKeys.forEach((key) => {
       if (String(newTags[key]) !== String(currentTags[key])) {
         tagsToSend[key] = newTags[key];
         tagsToSendCount += 1;
       }
-    }
+    });
     if (tagsToSendCount > 0) {
       return tagsToSend;
     }
@@ -299,9 +300,9 @@ class OneSignal extends Integration {
         }
         if (tagsToDelete) {
           window.OneSignal.deleteTags(tagsToDelete);
-          for (const tagKeyToDelete of tagsToDelete) {
+          tagsToDelete.forEach((tagKeyToDelete) => {
             deleteProperty(this.currentTags, tagKeyToDelete);
-          }
+          });
         }
       });
     });

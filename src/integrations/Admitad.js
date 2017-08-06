@@ -44,7 +44,7 @@ class Admitad extends Integration {
       cookieTtl: 90, // days
       deduplication: false,
       utmSource: 'admitad', // utm_source which is sent with admitad_uid get param
-      deduplicationUtmMedium: [], // by default deduplicate with any source/medium other then admitad source
+      deduplicationUtmMedium: [],
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -203,7 +203,7 @@ class Admitad extends Integration {
 
     const lineItems = transaction.lineItems;
     let index = 1;
-    for (const lineItem of lineItems) {
+    lineItems.forEach((lineItem) => {
       window[ADMITAD_POSITIONS_VAR].push(cleanObject({
         uid,
         order_id: transaction.orderId,
@@ -221,7 +221,7 @@ class Admitad extends Integration {
         payment_type: PAYMENT_TYPE_SALE,
       }));
       index += 1;
-    }
+    });
 
     this.load('trackingPixel');
   }

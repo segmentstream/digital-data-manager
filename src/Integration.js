@@ -6,7 +6,6 @@ import format from 'driveback-utils/format';
 import clone from 'driveback-utils/clone';
 import noop from 'driveback-utils/noop';
 import log from 'driveback-utils/log';
-import { getProp } from 'driveback-utils/dotProp';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import { error as errorLog } from 'driveback-utils/safeConsole';
 import each from 'driveback-utils/each';
@@ -162,7 +161,7 @@ export default class Integration extends EventEmitter {
         break;
       case 'script':
         el = loadScript(attr, (err) => {
-          if (!err) return safeCallback();
+          if (!err) safeCallback();
           errorLog(`error loading "${tagName}" error="${err}"`);
         });
         // TODO: hack until refactoring load-script
@@ -173,7 +172,7 @@ export default class Integration extends EventEmitter {
         break;
       case 'link':
         el = loadLink(attr, (err) => {
-          if (!err) return safeCallback();
+          if (!err) safeCallback();
           errorLog(`error loading "${tagName}" error="${err}"`);
         });
         break;

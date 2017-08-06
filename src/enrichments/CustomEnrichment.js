@@ -46,12 +46,12 @@ class CustomEnrichment {
 
     if (this.hasDependencies()) {
       const dependencies = this.getDependencies();
-      for (const dependencyProp of dependencies) {
+      dependencies.forEach((dependencyProp) => {
         const enrichment = this.collection.getEnrichment(dependencyProp);
         if (enrichment) {
           enrichment.enrich(target, args, direct);
         }
-      }
+      });
     }
 
     const handler = new Handler(this.handler, this.digitalData, args);

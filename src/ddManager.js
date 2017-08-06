@@ -21,8 +21,6 @@ import { enableErrorTracking } from './ErrorTracker';
 import { error as errorLog } from 'driveback-utils/safeConsole';
 import { trackLink, trackImpression } from './trackers';
 
-let ddManager;
-
 /**
  * @type {Object}
  * @private
@@ -165,13 +163,18 @@ function _addIntegrationsEventTracking(trackValidationErrorsOption) {
           if (integration.getIgnoredEvents().indexOf(mappedEventName) >= 0) {
             return;
           }
-          if (integration.getSemanticEvents().indexOf(mappedEventName) < 0 && !integration.allowCustomEvents()) {
+          if (
+            integration.getSemanticEvents().indexOf(mappedEventName) < 0 &&
+            !integration.allowCustomEvents()
+          ) {
             return;
           }
           // important! cloned object is returned (not link)
           let integrationEvent = clone(event, true);
           integrationEvent.name = mappedEventName;
-          integrationEvent = EventDataEnricher.enrichIntegrationData(integrationEvent, _digitalData, integration);
+          integrationEvent = EventDataEnricher.enrichIntegrationData(
+            integrationEvent, _digitalData, integration,
+          );
           if (integrationEvent.name === VIEWED_PAGE) {
             _trackIntegrationPageEvent(integrationEvent, integration);
           } else {
@@ -207,7 +210,7 @@ function _initializeCustomEnrichments(settings) {
   }]);
 }
 
-ddManager = {
+const ddManager = {
 
   VERSION: '1.2.45',
 
@@ -289,10 +292,14 @@ ddManager = {
 
     IntegrationsLoader.addIntegrations(settings.integrations, ddManager);
     IntegrationsLoader.initializeIntegrations(settings.version);
-    IntegrationsLoader.loadIntegrations(settings.integrationsPriority, settings.pageLoadTimeout, () => {
-      _isLoaded = true;
-      ddManager.emit('load');
-    });
+    IntegrationsLoader.loadIntegrations(
+      settings.integrationsPriority,
+      settings.pageLoadTimeout,
+      () => {
+        _isLoaded = true;
+        ddManager.emit('load');
+      },
+    );
 
     _addIntegrationsEventTracking(settings.trackValidationErrors);
 

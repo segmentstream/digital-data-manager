@@ -1,6 +1,6 @@
-import './polyfill.js';
-import ddManager from './ddManager.js';
-import availableIntegrations from './availableIntegrations.js';
+import './polyfill';
+import ddManager from './ddManager';
+import availableIntegrations from './availableIntegrations';
 
 const earlyStubsQueue = window.ddManager;
 window.ddManager = ddManager;

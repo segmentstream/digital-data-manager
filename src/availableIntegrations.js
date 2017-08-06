@@ -16,7 +16,7 @@ import OneSignal from './integrations/OneSignal';
 import Sociomantic from './integrations/Sociomantic';
 import Admitad from './integrations/Admitad';
 import Actionpay from './integrations/Actionpay';
-import Mindbox from './integrations/Mindbox.js';
+import Mindbox from './integrations/Mindbox';
 import DoubleClickFloodlight from './integrations/DoubleClickFloodlight';
 import RTBHouse from './integrations/RTBHouse';
 import Ofsys from './integrations/Ofsys';

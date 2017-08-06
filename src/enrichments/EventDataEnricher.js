@@ -1,4 +1,4 @@
-import DDHelper from './../DDHelper.js';
+import DDHelper from './../DDHelper';
 import dotProp from 'driveback-utils/dotProp';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import {
@@ -16,17 +16,20 @@ class EventDataEnricher {
       'campaigns',
     ];
 
-    for (const enrichableVar of enrichableVars) {
+    enrichableVars.forEach((enrichableVar) => {
       if (event[enrichableVar]) {
         const enricherMethod = EventDataEnricher[enrichableVar];
         const eventVar = event[enrichableVar];
         event[enrichableVar] = enricherMethod(eventVar, digitalData);
       }
-    }
+    });
 
     if (event.name === VIEWED_PRODUCT_DETAIL && !event.product && digitalData.product) {
       event.product = DDHelper.get('product', digitalData);
-    } else if (event.name === COMPLETED_TRANSACTION && !event.transaction && digitalData.transaction) {
+    } else if (
+      event.name === COMPLETED_TRANSACTION
+      && !event.transaction && digitalData.transaction
+    ) {
       event.transaction = DDHelper.get('transaction', digitalData);
     }
 
@@ -40,7 +43,7 @@ class EventDataEnricher {
 
   static enrichIntegrationData(event, digitalData, integration) {
     const enrichableProps = integration.getEnrichableEventProps(event);
-    for (const prop of enrichableProps) {
+    enrichableProps.forEach((prop) => {
       if (!dotProp.getProp(event, prop) && digitalData) {
         let propToEnrich = prop;
 
@@ -55,7 +58,7 @@ class EventDataEnricher {
           dotProp.setProp(event, propToEnrich, ddlPropValue);
         }
       }
-    }
+    });
 
     // handle event override
     if (integration.getEventOverrideFunction()) {
@@ -73,24 +76,24 @@ class EventDataEnricher {
     if (event.product) {
       integration.getProductOverrideFunction()(event.product);
     } else if (event.listing && event.listing.items) {
-      for (const product of event.listing.items) {
+      event.listing.items.forEach((product) => {
         integration.getProductOverrideFunction()(product);
-      }
+      });
     } else if (event.cart && event.cart.lineItems) {
-      for (const lineItem of event.cart.lineItems) {
+      event.cart.lineItems.forEach((lineItem) => {
         integration.getProductOverrideFunction()(lineItem.product);
-      }
+      });
     } else if (event.transaction && event.transaction.lineItems) {
-      for (const lineItem of event.transaction.lineItems) {
+      event.transaction.lineItems.forEach((lineItem) => {
         integration.getProductOverrideFunction()(lineItem.product);
-      }
+      });
     } else if (event.listItem || event.listItems) {
       if (event.listItem) {
         integration.getProductOverrideFunction()(event.listItem.product);
       } else if (event.listItems) {
-        for (const listItem of event.listItems) {
+        event.listItems.forEach((listItem) => {
           integration.getProductOverrideFunction()(listItem.product);
-        }
+        });
       }
     }
     return event;
@@ -146,10 +149,10 @@ class EventDataEnricher {
 
   static listItems(listItems, digitalData) {
     const result = [];
-    for (const listItem of listItems) {
+    listItems.forEach((listItem) => {
       const enrichedListItem = EventDataEnricher.listItem(listItem, digitalData);
       result.push(enrichedListItem);
-    }
+    });
     return result;
   }
 
@@ -176,9 +179,9 @@ class EventDataEnricher {
 
   static campaigns(campaigns, digitalData) {
     const result = [];
-    for (const campaign of campaigns) {
+    campaigns.forEach((campaign) => {
       result.push(EventDataEnricher.campaign(campaign, digitalData));
-    }
+    });
     return result;
   }
 }

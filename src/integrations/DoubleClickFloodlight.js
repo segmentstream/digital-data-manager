@@ -36,13 +36,14 @@ class DoubleClickFloodlight extends Integration {
     this.enrichableEventProps = [];
     this.SEMANTIC_EVENTS = [];
 
-    for (const tagEvent of this.tagEvents) {
+    this.tagEvents.forEach((tagEvent) => {
       const tagOptions = this.getOption('eventTags')[tagEvent];
       if (tagOptions) {
-        this.enrichableEventProps[tagEvent] = getEnrichableVariableMappingProps(tagOptions.customVars);
+        this.enrichableEventProps[tagEvent] =
+          getEnrichableVariableMappingProps(tagOptions.customVars);
         this.SEMANTIC_EVENTS.push(tagEvent);
       }
-    }
+    });
 
     this.addTag({
       type: 'img',
@@ -105,7 +106,8 @@ class DoubleClickFloodlight extends Integration {
       return cleanObject({
         ord: transaction.orderId,
         cost: transaction.total || transaction.subtotal,
-        qty: (hasLineItems) ? lineItems.reduce((acc, lineItem) => acc + lineItem.quantity || 1, 0) : undefined,
+        qty: (hasLineItems) ?
+          lineItems.reduce((acc, lineItem) => acc + lineItem.quantity || 1, 0) : undefined,
       });
     }
     return this.getCustomEventTagParams();

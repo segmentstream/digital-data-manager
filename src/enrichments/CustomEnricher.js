@@ -26,10 +26,10 @@ class CustomEnrichments {
 
   import(enrichments) {
     if (!enrichments || !Array.isArray(enrichments)) return;
-    for (const config of enrichments) {
-      if (!checkEnrichment(config)) continue;
+    enrichments.forEach((config) => {
+      if (!checkEnrichment(config)) return;
       this.addEnrichment(config.type, config.prop, config.handler, config.options);
-    }
+    });
   }
 
   addEnrichment(type, prop, handler, options) {
@@ -40,9 +40,9 @@ class CustomEnrichments {
     if (events.length === 0) {
       collection = this.prepareCollection(type, ENRICHMENT_TRIGGER_INIT);
     } else {
-      for (const eventName of events) {
+      events.forEach((eventName) => {
         collection = this.prepareCollection(type, ENRICHMENT_TRIGGER_EVENT, eventName);
-      }
+      });
     }
     collection.addEnrichment(enrichment, this.ddStorage);
   }
@@ -50,11 +50,13 @@ class CustomEnrichments {
   enrichDigitalData(digitalData, event = null) {
     let collection;
     if (!event) {
-      collection = this.prepareCollection(ENRICHMENT_TYPE_DIGITAL_DATA, ENRICHMENT_TRIGGER_INIT);
+      collection =
+        this.prepareCollection(ENRICHMENT_TYPE_DIGITAL_DATA, ENRICHMENT_TRIGGER_INIT);
       collection.enrich(digitalData, [event], true);
     } else {
       const eventName = event.name;
-      collection = this.prepareCollection(ENRICHMENT_TYPE_DIGITAL_DATA, ENRICHMENT_TRIGGER_EVENT, eventName);
+      collection =
+        this.prepareCollection(ENRICHMENT_TYPE_DIGITAL_DATA, ENRICHMENT_TRIGGER_EVENT, eventName);
       collection.enrich(digitalData, [event]);
     }
   }

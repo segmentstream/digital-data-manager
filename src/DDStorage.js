@@ -17,7 +17,7 @@ class DDStorage {
         persistedKeys.push(key);
         this.updatePersistedKeys(persistedKeys);
       }
-      return this.storage.set(key, value, exp);
+      this.storage.set(key, value, exp);
     }
   }
 
@@ -62,9 +62,9 @@ class DDStorage {
 
   clear() {
     const persistedKeys = this.getPersistedKeys();
-    for (const key of persistedKeys) {
+    persistedKeys.forEach((key) => {
       this.storage.remove(key);
-    }
+    });
     this.storage.remove(keyPersistedKeys);
     this.storage.remove(keyLastEventTimestamp);
   }

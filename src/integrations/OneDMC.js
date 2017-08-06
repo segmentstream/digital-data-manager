@@ -115,7 +115,7 @@ class OneDMC extends Integration {
       const ttlInSeconds = PROFILE_ENRICHMENT_FOUND_TTL * 24 * 60 * 60;
       const attributes = profile.attributes;
       const attributesMapping = this.getOption('attributesMapping');
-      for (const attribute of attributes) {
+      attributes.forEach((attribute) => {
         let key = attribute.primary;
         if (key) {
           let enrichableVar = attributesMapping[key];
@@ -135,7 +135,7 @@ class OneDMC extends Integration {
             }
           }
         }
-      }
+      });
     });
   }
 
