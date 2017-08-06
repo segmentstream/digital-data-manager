@@ -8,7 +8,6 @@ import cleanObject from './../functions/cleanObject';
 import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
 
 class DoubleClickFloodlight extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       advertiserId: '',
@@ -48,7 +47,7 @@ class DoubleClickFloodlight extends Integration {
     this.addTag({
       type: 'img',
       attr: {
-        src: `//ad.doubleclick.net/activity;src={{ src }};type={{ type }};cat={{ cat }};ord={{ ord }};{{ customVariables }}?`,
+        src: '//ad.doubleclick.net/activity;src={{ src }};type={{ type }};cat={{ cat }};ord={{ ord }};{{ customVariables }}?',
       },
     });
   }
@@ -106,9 +105,7 @@ class DoubleClickFloodlight extends Integration {
       return cleanObject({
         ord: transaction.orderId,
         cost: transaction.total || transaction.subtotal,
-        qty: (hasLineItems) ? lineItems.reduce(function countLineItemsQuantity(acc, lineItem) {
-          return acc + lineItem.quantity || 1;
-        }, 0) : undefined,
+        qty: (hasLineItems) ? lineItems.reduce((acc, lineItem) => acc + lineItem.quantity || 1, 0) : undefined,
       });
     }
     return this.getCustomEventTagParams();

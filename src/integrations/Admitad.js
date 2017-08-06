@@ -31,7 +31,6 @@ function normalizeOptions(options) {
 }
 
 class Admitad extends Integration {
-
   constructor(digitalData, options) {
     normalizeOptions(options);
     const optionsWithDefaults = Object.assign({
@@ -206,7 +205,7 @@ class Admitad extends Integration {
     let index = 1;
     for (const lineItem of lineItems) {
       window[ADMITAD_POSITIONS_VAR].push(cleanObject({
-        uid: uid,
+        uid,
         order_id: transaction.orderId,
         position_id: index,
         client_id: getProp(event, 'user.userId'),
@@ -235,7 +234,7 @@ class Admitad extends Integration {
     this.setupPixel(event);
 
     window[ADMITAD_POSITIONS_VAR].push(cleanObject({
-      uid: uid,
+      uid,
       order_id: getProp(event, 'lead.id'),
       client_id: getProp(event, 'user.userId'),
       tariff_code: getProp(event, 'admitad.tariffCode') || '1',

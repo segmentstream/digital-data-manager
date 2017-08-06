@@ -59,7 +59,6 @@ function clickListenerWorkaround() {
 }
 
 class OneSignal extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       appId: '',
@@ -89,7 +88,7 @@ class OneSignal extends Integration {
       type: 'link',
       attr: {
         rel: 'manifest',
-        href: optionsWithDefaults.path.replace(/\/$/, '') + '/manifest.json',
+        href: `${optionsWithDefaults.path.replace(/\/$/, '')}/manifest.json`,
       },
     });
     this.addTag({
@@ -264,22 +263,22 @@ class OneSignal extends Integration {
       if (isSupported) {
         window.OneSignal.push(['getNotificationPermission', (permission) => {
           switch (permission) {
-          case 'granted':
-            pushNotification.isSubscribed = true;
-            window.OneSignal.push(['getUserId', (userId) => {
-              pushNotification.userId = userId;
+            case 'granted':
+              pushNotification.isSubscribed = true;
+              window.OneSignal.push(['getUserId', (userId) => {
+                pushNotification.userId = userId;
+                this.onEnrich();
+              }]);
+              break;
+            case 'denied':
+              pushNotification.isSubscribed = false;
+              pushNotification.isDenied = true;
               this.onEnrich();
-            }]);
-            break;
-          case 'denied':
-            pushNotification.isSubscribed = false;
-            pushNotification.isDenied = true;
-            this.onEnrich();
-            break;
-          default:
-            pushNotification.isSubscribed = false;
-            this.onEnrich();
-            break;
+              break;
+            default:
+              pushNotification.isSubscribed = false;
+              this.onEnrich();
+              break;
           }
         }]);
       } else {

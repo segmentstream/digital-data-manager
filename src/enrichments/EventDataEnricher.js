@@ -6,8 +6,7 @@ import {
   COMPLETED_TRANSACTION,
 } from './../events/semanticEvents';
 
-class EventDataEnricher
-{
+class EventDataEnricher {
   static enrichCommonData(event, digitalData) {
     const enrichableVars = [
       'product',

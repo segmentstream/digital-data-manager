@@ -37,7 +37,6 @@ function mapItem(item) {
 }
 
 class RichRelevance extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       apiKey: '',
@@ -57,33 +56,33 @@ class RichRelevance extends Integration {
 
   getEnrichableEventProps(event) {
     switch (event.name) {
-    case VIEWED_PAGE:
-      return [
-        'page.type',
-        'user.userId',
-        'website.currency',
-        'website.regionId',
-        this.getOption('sessionIdVar'),
-      ];
-    case VIEWED_PRODUCT_DETAIL:
-      return [
-        'product',
-      ];
-    case VIEWED_PRODUCT_LISTING:
-    case SEARCHED_PRODUCTS:
-      return [
-        'listing',
-      ];
-    case VIEWED_CART:
-      return [
-        'cart',
-      ];
-    case COMPLETED_TRANSACTION:
-      return [
-        'transaction',
-      ];
-    default:
-      return [];
+      case VIEWED_PAGE:
+        return [
+          'page.type',
+          'user.userId',
+          'website.currency',
+          'website.regionId',
+          this.getOption('sessionIdVar'),
+        ];
+      case VIEWED_PRODUCT_DETAIL:
+        return [
+          'product',
+        ];
+      case VIEWED_PRODUCT_LISTING:
+      case SEARCHED_PRODUCTS:
+        return [
+          'listing',
+        ];
+      case VIEWED_CART:
+        return [
+          'cart',
+        ];
+      case COMPLETED_TRANSACTION:
+        return [
+          'transaction',
+        ];
+      default:
+        return [];
     }
   }
 
@@ -252,9 +251,7 @@ class RichRelevance extends Integration {
   getPlacements(placementType) {
     const placements = this.getOption('placements');
     if (placements) {
-      return placements.filter((placementName) => {
-        return placementName.indexOf(`${placementType}.`) === 0;
-      });
+      return placements.filter(placementName => placementName.indexOf(`${placementType}.`) === 0);
     }
     return [];
   }

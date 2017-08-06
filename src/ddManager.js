@@ -7,7 +7,6 @@ import Integration from './Integration';
 import EventManager from './EventManager';
 import IntegrationsLoader from './IntegrationsLoader';
 import EventDataEnricher from './enrichments/EventDataEnricher';
-import ViewabilityTracker from './ViewabilityTracker';
 import DDHelper from './DDHelper';
 import DigitalDataEnricher from './enrichments/DigitalDataEnricher';
 import CustomEnricher from './enrichments/CustomEnricher';
@@ -218,10 +217,8 @@ ddManager = {
 
   processEarlyStubCalls: (earlyStubsQueue) => {
     const earlyStubCalls = earlyStubsQueue || [];
-    const methodCallPromise = (method, args) => {
-      return () => {
-        ddManager[method].apply(ddManager, args);
-      };
+    const methodCallPromise = (method, args) => () => {
+      ddManager[method](...args);
     };
 
     while (earlyStubCalls.length > 0) {
@@ -232,7 +229,7 @@ ddManager = {
           // run initialize stub after all other stubs
           nextTick(methodCallPromise(method, args));
         } else {
-          ddManager[method].apply(ddManager, args);
+          ddManager[method](...args);
         }
       }
     }
@@ -289,9 +286,6 @@ ddManager = {
     _eventManager.import(settings.events);
 
     _eventManager.setSendViewedPageEvent(settings.sendViewedPageEvent);
-    _eventManager.setViewabilityTracker(new ViewabilityTracker({
-      websiteMaxWidth: settings.websiteMaxWidth,
-    }));
 
     IntegrationsLoader.addIntegrations(settings.integrations, ddManager);
     IntegrationsLoader.initializeIntegrations(settings.version);
@@ -316,13 +310,9 @@ ddManager = {
     }
   },
 
-  isLoaded: () => {
-    return _isLoaded;
-  },
+  isLoaded: () => _isLoaded,
 
-  isReady: () => {
-    return _isReady;
-  },
+  isReady: () => _isReady,
 
   addIntegration: (name, integration) => {
     if (_isReady) {
@@ -331,33 +321,19 @@ ddManager = {
     IntegrationsLoader.addIntegration(name, integration, ddManager);
   },
 
-  getIntegration: (name) => {
-    return IntegrationsLoader.getIntegration(name);
-  },
+  getIntegration: name => IntegrationsLoader.getIntegration(name),
 
-  get: (key) => {
-    return DDHelper.get(key, _digitalData);
-  },
+  get: key => DDHelper.get(key, _digitalData),
 
-  persist: (key, exp) => {
-    return _ddStorage.persist(key, exp);
-  },
+  persist: (key, exp) => _ddStorage.persist(key, exp),
 
-  unpersist: (key) => {
-    return _ddStorage.unpersist(key);
-  },
+  unpersist: key => _ddStorage.unpersist(key),
 
-  getProduct: (id, skuCode) => {
-    return DDHelper.getProduct(id, skuCode, _digitalData);
-  },
+  getProduct: (id, skuCode) => DDHelper.getProduct(id, skuCode, _digitalData),
 
-  getCampaign: (id) => {
-    return DDHelper.getCampaign(id, _digitalData);
-  },
+  getCampaign: id => DDHelper.getCampaign(id, _digitalData),
 
-  getEventManager: () => {
-    return _eventManager;
-  },
+  getEventManager: () => _eventManager,
 
   getDigitalData() {
     return _digitalData;
@@ -394,7 +370,7 @@ ddManager = {
     _isReady = false;
   },
 
-  Integration: Integration,
+  Integration,
 };
 
 emitter(ddManager);

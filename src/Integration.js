@@ -36,8 +36,7 @@ export function extractVariableMappingValues(source, variableMapping) {
   return values;
 }
 
-export class Integration extends EventEmitter
-{
+export class Integration extends EventEmitter {
   constructor(digitalData, options, tags) {
     super();
     this.options = options || {};
@@ -170,9 +169,7 @@ export class Integration extends EventEmitter
     if (params) {
       each(attr, (attrKey, attrVal) => {
         if (attrVal) {
-          attr[attrKey] = attrVal.replace(/\{\{\ *(\w+)\ *\}\}/g, (_, $1) => {
-            return (params[$1] !== undefined) ? params[$1] : '';
-          });
+          attr[attrKey] = attrVal.replace(/\{\{\ *(\w+)\ *\}\}/g, (_, $1) => ((params[$1] !== undefined) ? params[$1] : ''));
         }
         if (attrKey === 'src' || attrKey === 'href') {
           attr[attrKey] = attr[attrKey].replace(/[^=&]+=(&|$)/g, '').replace(/&$/, '');
@@ -181,32 +178,32 @@ export class Integration extends EventEmitter
     }
 
     switch (tag.type) {
-    case 'img':
-      attr.width = 1;
-      attr.height = 1;
-      el = loadPixel(attr, safeCallback);
-      break;
-    case 'script':
-      el = loadScript(attr, (err) => {
-        if (!err) return safeCallback();
-        errorLog('error loading "' + tagName + '" error="' + err + '"');
-      });
-      // TODO: hack until refactoring load-script
-      deleteProperty(attr, 'src');
-      each(attr, (key, value) => {
-        el.setAttribute(key, value);
-      });
-      break;
-    case 'link':
-      el = loadLink(attr, (err) => {
-        if (!err) return safeCallback();
-        errorLog('error loading "' + tagName + '" error="' + err + '"');
-      });
-      break;
-    case 'iframe':
-      el = loadIframe(attr, safeCallback);
-      break;
-    default:
+      case 'img':
+        attr.width = 1;
+        attr.height = 1;
+        el = loadPixel(attr, safeCallback);
+        break;
+      case 'script':
+        el = loadScript(attr, (err) => {
+          if (!err) return safeCallback();
+          errorLog(`error loading "${tagName}" error="${err}"`);
+        });
+        // TODO: hack until refactoring load-script
+        deleteProperty(attr, 'src');
+        each(attr, (key, value) => {
+          el.setAttribute(key, value);
+        });
+        break;
+      case 'link':
+        el = loadLink(attr, (err) => {
+          if (!err) return safeCallback();
+          errorLog(`error loading "${tagName}" error="${err}"`);
+        });
+        break;
+      case 'iframe':
+        el = loadIframe(attr, safeCallback);
+        break;
+      default:
       // No default case
     }
   }
@@ -263,7 +260,7 @@ export class Integration extends EventEmitter
   }
 
   getEventValidationConfig() {
-    return;
+
   }
 
   getSemanticEvents() {

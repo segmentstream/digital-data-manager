@@ -19,8 +19,7 @@ function isForcedField(field) {
   return (ddStorageForcedFields.indexOf(field) >= 0);
 }
 
-class DigitalDataEnricher
-{
+class DigitalDataEnricher {
   constructor(digitalData, ddListener, ddStorage, options) {
     this.digitalData = digitalData;
     this.ddListener = ddListener;

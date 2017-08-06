@@ -8,29 +8,29 @@ export default function clone(obj, preserveFunctions = false) {
   }
 
   switch (typeof obj) {
-  case 'object':
-    if (!Array.isArray(obj)) {
-      if (obj instanceof Date) {
-        return new Date(obj.getTime());
-      }
-      // plain object
-      const copy = {};
-      for (const key in obj) {
-        if (obj.hasOwnProperty(key)) {
-          copy[key] = clone(obj[key], preserveFunctions);
+    case 'object':
+      if (!Array.isArray(obj)) {
+        if (obj instanceof Date) {
+          return new Date(obj.getTime());
         }
+        // plain object
+        const copy = {};
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            copy[key] = clone(obj[key], preserveFunctions);
+          }
+        }
+        return copy;
+      }
+      // array
+      const copy = new Array(obj.length);
+
+      for (let i = 0, l = obj.length; i < l; i += 1) {
+        copy[i] = clone(obj[i], preserveFunctions);
       }
       return copy;
-    }
-    // array
-    const copy = new Array(obj.length);
 
-    for (let i = 0, l = obj.length; i < l; i += 1) {
-      copy[i] = clone(obj[i], preserveFunctions);
-    }
-    return copy;
-
-  default: // string, number, boolean, …
-    return obj;
+    default: // string, number, boolean, …
+      return obj;
   }
 }

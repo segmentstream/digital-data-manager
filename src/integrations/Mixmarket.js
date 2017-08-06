@@ -9,7 +9,6 @@ const DEFAULT_COOKIE_NAME = 'mixmarket';
 const DEFAULT_UTM_SOURCE = 'mixmarket';
 
 class Mixmarket extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       advertiserId: '',
@@ -50,7 +49,7 @@ class Mixmarket extends Integration {
   }
 
   getSemanticEvents() {
-    return [ COMPLETED_TRANSACTION ];
+    return [COMPLETED_TRANSACTION];
   }
 
   getEnrichableEventProps(event) {

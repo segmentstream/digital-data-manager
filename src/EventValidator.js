@@ -16,9 +16,7 @@ export const TYPE_ERROR = 'ERR';
 export const TYPE_WARNING = 'WARN';
 export const TYPE_SUCCESS = 'OK';
 
-const empty = (value) => {
-  return (value === undefined || value === null || value === '');
-};
+const empty = value => (value === undefined || value === null || value === '');
 
 const required = (value) => {
   if (empty(value)) {
@@ -137,7 +135,7 @@ export const validateEvent = (event, validationConfig) => {
     let result;
     if (field.indexOf('[]') > 0) {
       let messages;
-      const [ arrayField, subfield ] = field.split('[].');
+      const [arrayField, subfield] = field.split('[].');
       const value = getProp(event, arrayField);
       [result, messages] = validateArrayField(arrayField, value, subfield, fieldValidations);
       allMessages = allMessages.concat(messages);

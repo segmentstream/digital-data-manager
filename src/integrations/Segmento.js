@@ -24,18 +24,15 @@ const SEMANTIC_EVENTS = [
 
 function mapLineItems(lineItems) {
   lineItems = lineItems || [];
-  const products = lineItems.map((lineItem) => {
-    return {
-      qty: lineItem.quantity,
-      price: getProp(lineItem, 'product.unitSalePrice'),
-      sku: getProp(lineItem, 'product.id'),
-    };
-  });
+  const products = lineItems.map(lineItem => ({
+    qty: lineItem.quantity,
+    price: getProp(lineItem, 'product.unitSalePrice'),
+    sku: getProp(lineItem, 'product.id'),
+  }));
   return products;
 }
 
 class Segmento extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       accountKey: '',
@@ -59,27 +56,27 @@ class Segmento extends Integration {
 
   getEnrichableEventProps(event) {
     switch (event.name) {
-    case VIEWED_PRODUCT_DETAIL:
-      return [
-        'product.id',
-        'product.unitSalePrice',
-      ];
-    case VIEWED_PRODUCT_LISTING:
-      return [
-        'listing.categoryId',
-        'listing.category',
-      ];
-    case VIEWED_CART:
-    case VIEWED_CHECKOUT_STEP:
-      return [
-        'cart',
-      ];
-    case COMPLETED_TRANSACTION:
-      return [
-        'transaction',
-      ];
-    default:
-      return [];
+      case VIEWED_PRODUCT_DETAIL:
+        return [
+          'product.id',
+          'product.unitSalePrice',
+        ];
+      case VIEWED_PRODUCT_LISTING:
+        return [
+          'listing.categoryId',
+          'listing.category',
+        ];
+      case VIEWED_CART:
+      case VIEWED_CHECKOUT_STEP:
+        return [
+          'cart',
+        ];
+      case COMPLETED_TRANSACTION:
+        return [
+          'transaction',
+        ];
+      default:
+        return [];
     }
   }
 
@@ -201,7 +198,7 @@ class Segmento extends Integration {
   onViewedPage() {
     setTimeout(() => {
       if (!this.pageTracked) {
-        window._rutarget.push({ 'event': 'otherPage' });
+        window._rutarget.push({ event: 'otherPage' });
       }
     }, 100);
   }
@@ -219,7 +216,7 @@ class Segmento extends Integration {
     window._rutarget.push({
       event: 'showCategory',
       categoryCode: listing.categoryId,
-      categoryName: categoryName,
+      categoryName,
     });
     this.pageTracked = true;
   }

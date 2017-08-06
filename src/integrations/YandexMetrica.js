@@ -24,7 +24,7 @@ function getProductCategory(product) {
   if (Array.isArray(category)) {
     category = category.join('/');
   } else if (category && product.subcategory) {
-    category = category + '/' + product.subcategory;
+    category = `${category}/${product.subcategory}`;
   }
   return category;
 }
@@ -51,7 +51,6 @@ function getProduct(product, quantity) {
 }
 
 class YandexMetrica extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       counterId: '',
@@ -111,29 +110,29 @@ class YandexMetrica extends Integration {
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case VIEWED_PAGE:
-      enrichableProps = [
-        'user.userId',
-      ];
-      arrayMerge(enrichableProps, this.getEnrichableUserParamsProps());
-      arrayMerge(enrichableProps, this.getEnrichableVisitParamsProps());
-      break;
-    case VIEWED_PRODUCT_DETAIL:
-      enrichableProps = [
-        'product',
-      ];
-      break;
-    case COMPLETED_TRANSACTION:
-      enrichableProps = [
-        'transaction',
-      ];
-      break;
-    default:
-      const goalEvents = this.getGoalEvents();
-      if (goalEvents.indexOf(event.name) >= 0) {
+      case VIEWED_PAGE:
+        enrichableProps = [
+          'user.userId',
+        ];
         arrayMerge(enrichableProps, this.getEnrichableUserParamsProps());
         arrayMerge(enrichableProps, this.getEnrichableVisitParamsProps());
-      }
+        break;
+      case VIEWED_PRODUCT_DETAIL:
+        enrichableProps = [
+          'product',
+        ];
+        break;
+      case COMPLETED_TRANSACTION:
+        enrichableProps = [
+          'transaction',
+        ];
+        break;
+      default:
+        const goalEvents = this.getGoalEvents();
+        if (goalEvents.indexOf(event.name) >= 0) {
+          arrayMerge(enrichableProps, this.getEnrichableUserParamsProps());
+          arrayMerge(enrichableProps, this.getEnrichableVisitParamsProps());
+        }
     }
     return enrichableProps;
   }
@@ -202,7 +201,7 @@ class YandexMetrica extends Integration {
           'product.currency': {
             warnings: ['required', 'string'],
           },
-          'quantity': {
+          quantity: {
             warnings: ['required', 'numeric'],
           },
         },
@@ -225,7 +224,7 @@ class YandexMetrica extends Integration {
           'product.category': {
             warnings: ['required', 'array'],
           },
-          'quantity': {
+          quantity: {
             warnings: ['required', 'numeric'],
           },
         },
@@ -306,7 +305,7 @@ class YandexMetrica extends Integration {
     const id = this.getOption('counterId');
 
     const newCounter = () => {
-      this.yaCounter = window['yaCounter' + id] = new window.Ya.Metrika({
+      this.yaCounter = window[`yaCounter${id}`] = new window.Ya.Metrika({
         id,
         clickmap: this.getOption('clickmap'),
         webvisor: this.getOption('webvisor'),
@@ -314,8 +313,8 @@ class YandexMetrica extends Integration {
         trackHash: this.getOption('trackHash'),
         triggerEvent: true,
         ecommerce: this.dataLayerName,
-        params: params,
-        userParams: userParams,
+        params,
+        userParams,
       });
     };
 
@@ -397,7 +396,7 @@ class YandexMetrica extends Integration {
       const url = page.url || window.location.href;
 
       // send hit with visit params
-      this.yaCounterCall('hit', [ url, {
+      this.yaCounterCall('hit', [url, {
         referer: page.referrer || document.referrer,
         title: page.title || document.title,
         params: visitParams,
@@ -424,7 +423,7 @@ class YandexMetrica extends Integration {
     this.dataLayer.push({
       ecommerce: {
         detail: {
-          products: [ getProduct(product) ],
+          products: [getProduct(product)],
         },
       },
     });
@@ -437,7 +436,7 @@ class YandexMetrica extends Integration {
     this.dataLayer.push({
       ecommerce: {
         add: {
-          products: [ getProduct(product, quantity) ],
+          products: [getProduct(product, quantity)],
         },
       },
     });
@@ -455,7 +454,7 @@ class YandexMetrica extends Integration {
               id: getProductId(product),
               name: product.name,
               category: getProductCategory(product),
-              quantity: quantity,
+              quantity,
             },
           ],
         },

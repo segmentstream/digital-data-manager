@@ -1,4 +1,4 @@
-import {parse} from './url.js';
+import { parse } from './url.js';
 import cookie from 'js-cookie';
 
 /**
@@ -71,7 +71,7 @@ export default function topDomain(url) {
     const cname = '__tld__';
     const domain = levels[i];
     const opts = {
-      domain: '.' + domain,
+      domain: `.${domain}`,
     };
     cookie.set(cname, 1, opts);
     if (cookie.get(cname)) {

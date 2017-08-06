@@ -14,7 +14,6 @@ function matchProduct(id, skuCode, product) {
 }
 
 class DDHelper {
-
   static get(key, digitalData) {
     const value = getProp(digitalData, key);
     return clone(value);
@@ -93,7 +92,6 @@ class DDHelper {
       }
     }
   }
-
 }
 
 export default DDHelper;

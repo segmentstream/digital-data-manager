@@ -1,4 +1,4 @@
-import {parse} from './queryString.js';
+import { parse } from './queryString.js';
 import each from './each.js';
 
 export default function utmParams(query) {

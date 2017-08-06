@@ -22,7 +22,7 @@ export function prepareValueForLog(value) {
     return '[Object]';
   }
   if (typeof value === 'string') {
-    return '"' + value + '"';
+    return `"${value}"`;
   }
   return value;
 }
@@ -51,16 +51,18 @@ export function showTestModeOverlay() {
 }
 
 export function logValidationResult(event, messages) {
-  for (const [field, errorMsg, value, resultType] of messages) {
+  messages.forEach(([field, errorMsg, value, resultType]) => {
     if (resultType === TYPE_SUCCESS) {
       log(`%c[${resultType}] ${field}: ${prepareValueForLog(value)}`, `color: ${validationMessagesColors[resultType]};`);
     } else {
       log(`%c[${resultType}] ${field} ${errorMsg}: ${prepareValueForLog(value)}`, `color: ${validationMessagesColors[resultType]};`);
     }
-  }
+  });
 }
 
-export function logEnrichedIntegrationEvent(event, integrationName, result, messages, isInitialized) {
+export function logEnrichedIntegrationEvent(
+  event, integrationName, result, messages, isInitialized,
+) {
   if (isInitialized && result) {
     group(`[EVENT] ${event.name} -> ${integrationName}`);
   } else if (!isInitialized) {

@@ -18,7 +18,7 @@ function error(fn, message, img) {
   };
 }
 
-export default function(options, fn) {
+export default function (options, fn) {
   fn = fn || function onPixelLoaded() {};
   const img = new Image();
   img.onerror = error(fn, 'failed to load pixel', img);

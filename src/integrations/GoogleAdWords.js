@@ -20,16 +20,11 @@ const SEMANTIC_EVENTS = [
 
 function lineItemsToProductIds(lineItems) {
   lineItems = lineItems || [];
-  const productIds = lineItems.filter((lineItem) => {
-    return !!(lineItem.product.id || lineItem.product.skuCode);
-  }).map((lineItem) => {
-    return lineItem.product.id || lineItem.product.skuCode;
-  });
+  const productIds = lineItems.filter(lineItem => !!(lineItem.product.id || lineItem.product.skuCode)).map(lineItem => lineItem.product.id || lineItem.product.skuCode);
   return productIds;
 }
 
 class GoogleAdWords extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       conversionId: '',
@@ -53,32 +48,32 @@ class GoogleAdWords extends Integration {
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case VIEWED_PAGE:
-      enrichableProps = [
-        'page.type',
-      ];
-      break;
-    case VIEWED_PRODUCT_DETAIL:
-      enrichableProps = [
-        'product',
-      ];
-      break;
-    case VIEWED_PRODUCT_LISTING:
-      enrichableProps = [
-        'listing.category',
-      ];
-      break;
-    case VIEWED_CART:
-      enrichableProps = [
-        'cart',
-      ];
-      break;
-    case COMPLETED_TRANSACTION:
-      enrichableProps = [
-        'transaction',
-      ];
-      break;
-    default:
+      case VIEWED_PAGE:
+        enrichableProps = [
+          'page.type',
+        ];
+        break;
+      case VIEWED_PRODUCT_DETAIL:
+        enrichableProps = [
+          'product',
+        ];
+        break;
+      case VIEWED_PRODUCT_LISTING:
+        enrichableProps = [
+          'listing.category',
+        ];
+        break;
+      case VIEWED_CART:
+        enrichableProps = [
+          'cart',
+        ];
+        break;
+      case COMPLETED_TRANSACTION:
+        enrichableProps = [
+          'transaction',
+        ];
+        break;
+      default:
       // do nothing
     }
 
@@ -238,7 +233,7 @@ class GoogleAdWords extends Integration {
     if (Array.isArray(category)) {
       category = category.join('/');
     } else if (category && product.subcategory) { // legacy DDL support
-      category = category + '/' + product.subcategory;
+      category = `${category}/${product.subcategory}`;
     }
 
     this.trackConversion({

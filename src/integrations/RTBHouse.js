@@ -24,7 +24,6 @@ const DEFAULT_DEDUPLICATION = 'default';
 const RTBHOUSE_UTM_SOURCE = 'rtbhouse';
 
 class RTBHouse extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       accountKey: '',
@@ -69,7 +68,7 @@ class RTBHouse extends Integration {
     this.addTag('basketadd', {
       type: 'script',
       attr: {
-        src: `//creativecdn.com/tags?type=script&id=pr_VB82iQFyqcxTg1HWJlJM_basketadd_{{ productId }}{{ userSegmentParams }}`,
+        src: '//creativecdn.com/tags?type=script&id=pr_VB82iQFyqcxTg1HWJlJM_basketadd_{{ productId }}{{ userSegmentParams }}',
       },
     });
     this.addTag('basketstatus', {
@@ -100,40 +99,40 @@ class RTBHouse extends Integration {
     let enrichableProps;
 
     switch (event.name) {
-    case VIEWED_PAGE:
-      enrichableProps = [
-        'page.type',
-      ];
-      break;
-    case VIEWED_PRODUCT_DETAIL:
-      enrichableProps = [
-        'product.id',
-      ];
-      break;
-    case VIEWED_PRODUCT_LISTING:
-      enrichableProps = [
-        'listing.categoryId',
-      ];
-      break;
-    case SEARCHED_PRODUCTS:
-      enrichableProps = [
-        'listing.items',
-      ];
-      break;
-    case VIEWED_CART:
-      enrichableProps = [
-        'cart',
-      ];
-      break;
-    case COMPLETED_TRANSACTION:
-      enrichableProps = [
-        'context.campaign',
-        'transaction',
-      ];
-      break;
-    default:
-      enrichableProps = [];
-      break;
+      case VIEWED_PAGE:
+        enrichableProps = [
+          'page.type',
+        ];
+        break;
+      case VIEWED_PRODUCT_DETAIL:
+        enrichableProps = [
+          'product.id',
+        ];
+        break;
+      case VIEWED_PRODUCT_LISTING:
+        enrichableProps = [
+          'listing.categoryId',
+        ];
+        break;
+      case SEARCHED_PRODUCTS:
+        enrichableProps = [
+          'listing.items',
+        ];
+        break;
+      case VIEWED_CART:
+        enrichableProps = [
+          'cart',
+        ];
+        break;
+      case COMPLETED_TRANSACTION:
+        enrichableProps = [
+          'context.campaign',
+          'transaction',
+        ];
+        break;
+      default:
+        enrichableProps = [];
+        break;
     }
 
     const userSegmentVar = this.getOption('userSegmentVar');
@@ -200,7 +199,7 @@ class RTBHouse extends Integration {
       [VIEWED_CHECKOUT_STEP]: {
         fields: ['step'],
         validations: {
-          'step': {
+          step: {
             warnings: ['required'],
           },
         },
@@ -379,7 +378,7 @@ class RTBHouse extends Integration {
       this.load('basketadd', { productId: product.id });
       this.pageTracked = true;
     }
-  }*/
+  } */
 
   onViewedCheckoutStep(event) {
     const step = (event.step !== undefined) ? event.step : 1;

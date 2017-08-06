@@ -48,18 +48,18 @@ class AdSpire extends Integration {
 
   getEnrichableEventProps(event) {
     switch (event.name) {
-    case VIEWED_PAGE:
-      return ['page.type'];
-    case VIEWED_PRODUCT_DETAIL:
-      return ['product'];
-    case COMPLETED_TRANSACTION:
-      return ['transaction', 'user.email', 'user.firstName', 'user.lastName'];
-    case VIEWED_PRODUCT_LISTING:
-      return ['listing.categoryId', 'listing.category'];
-    case VIEWED_CART:
-      return ['cart'];
-    default:
-      return [];
+      case VIEWED_PAGE:
+        return ['page.type'];
+      case VIEWED_PRODUCT_DETAIL:
+        return ['product'];
+      case COMPLETED_TRANSACTION:
+        return ['transaction', 'user.email', 'user.firstName', 'user.lastName'];
+      case VIEWED_PRODUCT_LISTING:
+        return ['listing.categoryId', 'listing.category'];
+      case VIEWED_CART:
+        return ['cart'];
+      default:
+        return [];
     }
   }
 

@@ -29,7 +29,6 @@ const SEMANTIC_EVENTS = [
 ];
 
 class Soloway extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       siteId: '',
@@ -124,26 +123,26 @@ class Soloway extends Integration {
   getEnrichableEventProps(event) {
     let enrichableProps;
     switch (event.name) {
-    case VIEWED_PRODUCT_DETAIL:
-      enrichableProps = ['product.id', 'product.categoryId'];
-      break;
-    case ADDED_PRODUCT:
-      enrichableProps = ['product.id', 'product.categoryId'];
-      break;
-    case REMOVED_PRODUCT:
-      enrichableProps = ['product.id', 'product.categoryId'];
-      break;
-    case COMPLETED_TRANSACTION:
-      enrichableProps = ['transaction.orderId', 'transaction.total'];
-      break;
-    case REGISTERED:
-      enrichableProps = ['user.userId'];
-      break;
-    case LOGGED_IN:
-      enrichableProps = ['user.userId'];
-      break;
-    default:
-      enrichableProps = [];
+      case VIEWED_PRODUCT_DETAIL:
+        enrichableProps = ['product.id', 'product.categoryId'];
+        break;
+      case ADDED_PRODUCT:
+        enrichableProps = ['product.id', 'product.categoryId'];
+        break;
+      case REMOVED_PRODUCT:
+        enrichableProps = ['product.id', 'product.categoryId'];
+        break;
+      case COMPLETED_TRANSACTION:
+        enrichableProps = ['transaction.orderId', 'transaction.total'];
+        break;
+      case REGISTERED:
+        enrichableProps = ['user.userId'];
+        break;
+      case LOGGED_IN:
+        enrichableProps = ['user.userId'];
+        break;
+      default:
+        enrichableProps = [];
     }
 
     enrichableProps.push('user.email', 'user.hasTransacted');

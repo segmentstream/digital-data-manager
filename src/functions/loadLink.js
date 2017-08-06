@@ -1,7 +1,7 @@
 import onLoad from './scriptOnLoad.js';
 import nextTick from 'async/nextTick';
 
-export default function(options, fn) {
+export default function (options, fn) {
   if (!options) throw new Error('Cant load nothing...');
 
   const https = document.location.protocol === 'https:' ||
@@ -10,7 +10,7 @@ export default function(options, fn) {
   // If you use protocol relative URLs, third-party scripts like Google
   // Analytics break when testing with `file:` so this fixes that.
   if (options.href && options.href.indexOf('//') === 0) {
-    options.href = https ? 'https:' + options.href : 'http:' + options.href;
+    options.href = https ? `https:${options.href}` : `http:${options.href}`;
   }
 
   // Allow them to pass in different URLs depending on the protocol.

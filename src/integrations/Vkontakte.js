@@ -5,7 +5,6 @@ import deleteProperty from './../functions/deleteProperty';
 import { VIEWED_PAGE } from './../events/semanticEvents';
 
 class Vkontakte extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       pixelId: '',

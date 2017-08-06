@@ -63,8 +63,8 @@ export function parse(str) {
     }
 
     obj[parts[0]] = parts[1] === null
-        ? ''
-        : decode(parts[1]);
+      ? ''
+      : decode(parts[1]);
   }
 
   return obj;
@@ -85,12 +85,12 @@ export function stringify(obj) {
   each(obj, (key, value) => {
     if (typeof (value) === 'object' && value.length) {
       for (let i = 0; i < value.length; ++i) {
-        pairs.push(encode(key + '[' + i + ']') + '=' + encode(value[i]));
+        pairs.push(`${encode(`${key}[${i}]`)}=${encode(value[i])}`);
       }
       return;
     }
 
-    pairs.push(encode(key) + '=' + encode(obj[key]));
+    pairs.push(`${encode(key)}=${encode(obj[key])}`);
   });
 
   return pairs.join('&');

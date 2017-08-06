@@ -12,22 +12,17 @@ import {
 } from './../events/semanticEvents';
 
 function lineItemsToProductIds(lineItems) {
-  const productIds = lineItems.filter((lineItem) => {
-    return !!(lineItem.product.id);
-  }).map((lineItem) => {
-    return lineItem.product.id;
-  });
+  const productIds = lineItems.filter(lineItem => !!(lineItem.product.id)).map(lineItem => lineItem.product.id);
   return productIds;
 }
 
 class MyTarget extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       counterId: '',
       listVar: {
-        'type': 'constant',
-        'value': '1',
+        type: 'constant',
+        value: '1',
       },
       noConflict: false,
       goals: {},
@@ -73,27 +68,27 @@ class MyTarget extends Integration {
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case VIEWED_PAGE:
-      enrichableProps = [
-        'page.type',
-      ];
-      break;
-    case VIEWED_PRODUCT_DETAIL:
-      enrichableProps = [
-        'product',
-      ];
-      break;
-    case VIEWED_CART:
-      enrichableProps = [
-        'cart',
-      ];
-      break;
-    case COMPLETED_TRANSACTION:
-      enrichableProps = [
-        'transaction',
-      ];
-      break;
-    default:
+      case VIEWED_PAGE:
+        enrichableProps = [
+          'page.type',
+        ];
+        break;
+      case VIEWED_PRODUCT_DETAIL:
+        enrichableProps = [
+          'product',
+        ];
+        break;
+      case VIEWED_CART:
+        enrichableProps = [
+          'cart',
+        ];
+        break;
+      case COMPLETED_TRANSACTION:
+        enrichableProps = [
+          'transaction',
+        ];
+        break;
+      default:
       // do nothing
     }
 

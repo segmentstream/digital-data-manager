@@ -14,7 +14,6 @@ let _ddListener = [];
 let _previousDigitalData = {};
 let _digitalData = {};
 let _checkForChangesIntervalId;
-let _viewabilityTracker;
 let _isInitialized = false;
 let _sendViewedPageEvent = false;
 const _customEvents = [];
@@ -30,7 +29,6 @@ function _getCopyWithoutEvents(digitalData) {
 }
 
 class EventManager {
-
   constructor(digitalData, ddListener) {
     _digitalData = digitalData || _digitalData;
     if (!Array.isArray(_digitalData.events)) {
@@ -52,7 +50,7 @@ class EventManager {
         eventConfig.event || eventConfig.selector,
         eventConfig.handler,
         _digitalData,
-        this
+        this,
       );
       _customEvents.push(customEvent);
     }
@@ -106,10 +104,6 @@ class EventManager {
       };
     }
 
-    if (_viewabilityTracker) {
-      _viewabilityTracker.initialize();
-    }
-
     _isInitialized = true;
   }
 
@@ -143,12 +137,8 @@ class EventManager {
     return _sendViewedPageEvent;
   }
 
-  setViewabilityTracker(viewabilityTracker) {
-    _viewabilityTracker = viewabilityTracker;
-  }
-
   checkForChanges() {
-    if (_callbacks.change && _callbacks.change.length > 0 || _callbacks.define && _callbacks.define.length > 0 ) {
+    if (_callbacks.change && _callbacks.change.length > 0 || _callbacks.define && _callbacks.define.length > 0) {
       const digitalDataWithoutEvents = _getCopyWithoutEvents(_digitalData);
       if (!jsonIsEqual(_previousDigitalData, digitalDataWithoutEvents)) {
         const previousDigitalDataWithoutEvents = _getCopyWithoutEvents(_previousDigitalData);
@@ -317,10 +307,8 @@ class EventManager {
           errorLog(e);
         }
       }
-    } else {
-      if (typeof event.callback === 'function') {
-        event.callback();
-      }
+    } else if (typeof event.callback === 'function') {
+      event.callback();
     }
 
     event.hasFired = true;
@@ -328,11 +316,6 @@ class EventManager {
 
   on(eventInfo, handler, processPastEvents) {
     const [type, key] = eventInfo.split(':');
-
-    if (type === 'view') {
-      _viewabilityTracker.addTracker(key, handler);
-      return; // delegate view tracking to ViewabilityTracker
-    }
 
     _callbacks[type] = _callbacks[type] || [];
     _callbacks[type].push({
@@ -394,7 +377,6 @@ class EventManager {
     _ddListener.push = Array.prototype.push;
     _digitalData.changes.push = Array.prototype.push;
     _callbacks = {};
-    _viewabilityTracker = null;
     _sendViewedPageEvent = false;
   }
 }

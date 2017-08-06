@@ -3,7 +3,6 @@ import deleteProperty from './../functions/deleteProperty.js';
 import { getProp } from './../functions/dotProp';
 
 class SendPulse extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       https: false,
@@ -65,14 +64,12 @@ class SendPulse extends Integration {
               pushNotification.isDenied = true;
             }
           }
+        } else if (subscriptionInfo.value === 'DENY') {
+          pushNotification.isSubscribed = false;
+          pushNotification.isDenied = true;
         } else {
-          if (subscriptionInfo.value === 'DENY') {
-            pushNotification.isSubscribed = false;
-            pushNotification.isDenied = true;
-          } else {
-            pushNotification.isSubscribed = true;
-            pushNotification.subscriptionId = subscriptionInfo.value;
-          }
+          pushNotification.isSubscribed = true;
+          pushNotification.subscriptionId = subscriptionInfo.value;
         }
         this.onSubscriptionStatusReceived();
         this.onEnrich();

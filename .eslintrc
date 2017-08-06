@@ -1,8 +1,11 @@
 {
-  "extends": "airbnb",
+  "extends": "airbnb-base",
   "rules": {
     "react/jsx-quotes": 0,
     "jsx-quotes": [2, "prefer-double"],
     "no-param-reassign": 0
+  },
+  "env": {
+    "browser": true
   }
 }

@@ -12,7 +12,6 @@ import {
 } from './../events/semanticEvents';
 
 class Flocktory extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       siteId: '',
@@ -54,40 +53,40 @@ class Flocktory extends Integration {
 
   getEnrichableEventProps(event) {
     switch (event.name) {
-    case VIEWED_PAGE:
-      return [
-        'user.email',
-        'user.isLoggedIn',
-        'user.firstName',
-        'user.lastName',
-        'user.fullName',
-      ];
-    case VIEWED_PRODUCT_DETAIL:
-      return [
-        'product',
-      ];
-    case VIEWED_PRODUCT_LISTING:
-      return [
-        'listing.categoryId',
-      ];
-    case ADDED_PRODUCT:
-      return [
-        'product',
-      ];
-    case REMOVED_PRODUCT:
-      return [
-        'product',
-      ];
-    case COMPLETED_TRANSACTION:
-      return [
-        'user.email',
-        'user.firstName',
-        'user.lastName',
-        'user.fullName',
-        'transaction',
-      ];
-    default:
-      return [];
+      case VIEWED_PAGE:
+        return [
+          'user.email',
+          'user.isLoggedIn',
+          'user.firstName',
+          'user.lastName',
+          'user.fullName',
+        ];
+      case VIEWED_PRODUCT_DETAIL:
+        return [
+          'product',
+        ];
+      case VIEWED_PRODUCT_LISTING:
+        return [
+          'listing.categoryId',
+        ];
+      case ADDED_PRODUCT:
+        return [
+          'product',
+        ];
+      case REMOVED_PRODUCT:
+        return [
+          'product',
+        ];
+      case COMPLETED_TRANSACTION:
+        return [
+          'user.email',
+          'user.firstName',
+          'user.lastName',
+          'user.fullName',
+          'transaction',
+        ];
+      default:
+        return [];
     }
   }
 
@@ -122,7 +121,7 @@ class Flocktory extends Integration {
             errors: ['required'],
             warnings: ['numeric'],
           },
-          'quantity': {
+          quantity: {
             errors: ['required'],
             warnings: ['numeric'],
           },
@@ -135,7 +134,7 @@ class Flocktory extends Integration {
             errors: ['required'],
             warnings: ['string'],
           },
-          'quantity': {
+          quantity: {
             errors: ['required'],
             warnings: ['numeric'],
           },
@@ -318,15 +317,13 @@ class Flocktory extends Integration {
       order: {
         id: String(getProp(event, 'transaction.orderId')),
         price: getProp(event, 'transaction.total'),
-        items: lineItems.map((lineItem) => {
-          return cleanObject({
-            id: String(getProp(lineItem, 'product.id')),
-            title: getProp(lineItem, 'product.name'),
-            price: getProp(lineItem, 'product.unitSalePrice'),
-            image: getProp(lineItem, 'product.imageUrl'),
-            count: getProp(lineItem, 'quantity'),
-          });
-        }),
+        items: lineItems.map(lineItem => cleanObject({
+          id: String(getProp(lineItem, 'product.id')),
+          title: getProp(lineItem, 'product.name'),
+          price: getProp(lineItem, 'product.unitSalePrice'),
+          image: getProp(lineItem, 'product.imageUrl'),
+          count: getProp(lineItem, 'quantity'),
+        })),
       },
       spot: getProp(event, 'integrations.flocktory.spot'),
     })]);

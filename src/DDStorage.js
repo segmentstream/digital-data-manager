@@ -3,8 +3,7 @@ import { getProp } from './functions/dotProp';
 const keyPersistedKeys = '_persistedKeys';
 const keyLastEventTimestamp = '_lastEventTimestamp';
 
-class DDStorage
-{
+class DDStorage {
   constructor(digitalData, storage) {
     this.digitalData = digitalData;
     this.storage = storage;

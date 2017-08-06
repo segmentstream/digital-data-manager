@@ -12,13 +12,11 @@ const storage = {
   },
 };
 
-const checkEnrichment = (enrichment) => {
-  return (
-    typeof enrichment === 'object' &&
+const checkEnrichment = enrichment => (
+  typeof enrichment === 'object' &&
     typeof enrichment.handler === 'function' &&
     typeof enrichment.prop === 'string'
-  );
-};
+);
 
 class CustomEnrichments {
   constructor(digitalData, ddStorage) {

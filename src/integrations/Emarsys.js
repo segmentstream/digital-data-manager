@@ -37,7 +37,6 @@ function mapLineItems(lineItems) {
 }
 
 class Emarsys extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       merchantId: '',
@@ -67,36 +66,36 @@ class Emarsys extends Integration {
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case VIEWED_PAGE:
-      enrichableProps = [
-        'page.type',
-        'user.email',
-        'user.userId',
-        'cart',
-      ];
-      break;
-    case VIEWED_PRODUCT_DETAIL:
-      enrichableProps = [
-        'product.id',
-        'product.skuCode',
-      ];
-      break;
-    case VIEWED_PRODUCT_LISTING:
-      enrichableProps = [
-        'listing.category',
-      ];
-      break;
-    case SEARCHED_PRODUCTS:
-      enrichableProps = [
-        'listing.query',
-      ];
-      break;
-    case COMPLETED_TRANSACTION:
-      enrichableProps = [
-        'transaction',
-      ];
-      break;
-    default:
+      case VIEWED_PAGE:
+        enrichableProps = [
+          'page.type',
+          'user.email',
+          'user.userId',
+          'cart',
+        ];
+        break;
+      case VIEWED_PRODUCT_DETAIL:
+        enrichableProps = [
+          'product.id',
+          'product.skuCode',
+        ];
+        break;
+      case VIEWED_PRODUCT_LISTING:
+        enrichableProps = [
+          'listing.category',
+        ];
+        break;
+      case SEARCHED_PRODUCTS:
+        enrichableProps = [
+          'listing.query',
+        ];
+        break;
+      case COMPLETED_TRANSACTION:
+        enrichableProps = [
+          'transaction',
+        ];
+        break;
+      default:
       // do nothing
     }
 

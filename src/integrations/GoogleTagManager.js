@@ -2,7 +2,6 @@ import Integration from './../Integration.js';
 import deleteProperty from './../functions/deleteProperty.js';
 
 class GoogleTagManager extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       containerId: null,

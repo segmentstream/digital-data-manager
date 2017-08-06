@@ -42,7 +42,6 @@ function mapLineItems(lineItems) {
 }
 
 class CityAds extends Integration {
-
   constructor(digitalData, options) {
     normalizeOptions(options);
     const optionsWithDefaults = Object.assign({
@@ -96,7 +95,7 @@ class CityAds extends Integration {
   }
 
   getSemanticEvents() {
-    return [ COMPLETED_TRANSACTION ];
+    return [COMPLETED_TRANSACTION];
   }
 
   getEnrichableEventProps(event) {

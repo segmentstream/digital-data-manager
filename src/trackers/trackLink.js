@@ -48,22 +48,20 @@ export default function trackLink(selector, handler) {
 
   let trackedLinks;
 
-  bind(window.document, 'click', function bindClickListeners() {
+  bind(window.document, 'click', () => {
     const links = domQuery(selector);
     trackedLinks = [];
-    for (const el of links) {
+    links.forEach((el) => {
       const onClickHandler = onClick(el, handler);
       bind(el, 'click', onClickHandler);
       trackedLinks.push([el, onClickHandler]);
-    }
+    });
   }, true); // capturing phase
 
-  bind(window.document, 'click', function unbindClickListeners() {
-    for (const trackedLink of trackedLinks) {
+  bind(window.document, 'click', () => {
+    trackedLinks.forEach((trackedLink) => {
       const [el, onClickHandler] = trackedLink;
       unbind(el, 'click', onClickHandler);
-    }
+    });
   }); // bubbling phase
-
-  return;
 }

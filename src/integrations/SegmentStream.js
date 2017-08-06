@@ -15,7 +15,6 @@ const SEMANTIC_EVENTS = [
 ];
 
 class SegmentStream extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       sessionLength: 1800, // 30 min
@@ -40,12 +39,12 @@ class SegmentStream extends Integration {
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case 'Viewed Product Detail':
-      enrichableProps = [
-        'product',
-      ];
-      break;
-    default:
+      case 'Viewed Product Detail':
+        enrichableProps = [
+          'product',
+        ];
+        break;
+      default:
       // do nothing
     }
     return enrichableProps;
@@ -70,13 +69,11 @@ class SegmentStream extends Integration {
       'pushOnReady',
     ];
 
-    ssApi.factory = (method) => {
-      return function stub() {
-        const args = Array.prototype.slice.call(arguments);
-        args.unshift(method);
-        ssApi.push(args);
-        return ssApi;
-      };
+    ssApi.factory = method => function stub() {
+      const args = Array.prototype.slice.call(arguments);
+      args.unshift(method);
+      ssApi.push(args);
+      return ssApi;
     };
 
     for (let i = 0; i < ssApi.methods.length; i++) {

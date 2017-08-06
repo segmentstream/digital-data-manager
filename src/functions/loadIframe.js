@@ -1,7 +1,7 @@
 import onLoad from './scriptOnLoad.js';
 import nextTick from 'async/nextTick';
 
-export default function(options, fn) {
+export default function (options, fn) {
   if (!options) throw new Error('Cant load nothing...');
 
   // Allow for the simplest case, just passing a `src` string.
@@ -13,7 +13,7 @@ export default function(options, fn) {
   // If you use protocol relative URLs, third-party scripts like Google
   // Analytics break when testing with `file:` so this fixes that.
   if (options.src && options.src.indexOf('//') === 0) {
-    options.src = https ? 'https:' + options.src : 'http:' + options.src;
+    options.src = https ? `https:${options.src}` : `http:${options.src}`;
   }
 
   // Allow them to pass in different URLs depending on the protocol.

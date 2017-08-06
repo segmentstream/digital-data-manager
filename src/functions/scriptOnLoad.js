@@ -11,7 +11,7 @@ function addEventListener(el, fn) {
     fn(null, e);
   }, false);
   el.addEventListener('error', (e) => {
-    const err = new Error('script error "' + el.src + '"');
+    const err = new Error(`script error "${el.src}"`);
     err.event = e;
     fn(err);
   }, false);
@@ -38,14 +38,14 @@ function attachEvent(el, fn) {
     }
   });
   el.attachEvent('onerror', (e) => {
-    const err = new Error('failed to load the script "' + el.src + '"');
+    const err = new Error(`failed to load the script "${el.src}"`);
     err.event = e || window.event;
     fn(err);
   });
 }
 
-export default function(el, fn) {
+export default function (el, fn) {
   return el.addEventListener
-      ? addEventListener(el, fn)
-      : attachEvent(el, fn);
+    ? addEventListener(el, fn)
+    : attachEvent(el, fn);
 }

@@ -12,7 +12,6 @@ const DEFAULT_CLICK_REF_COOKIE_NAME = 'gdeslon_ref';
 const DEFAULT_AID_COOKIE_NAME = 'gdeslon_aid';
 
 class GdeSlon extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       merchantId: '',
@@ -58,7 +57,7 @@ class GdeSlon extends Integration {
   }
 
   getSemanticEvents() {
-    return [ COMPLETED_TRANSACTION ];
+    return [COMPLETED_TRANSACTION];
   }
 
   getEnrichableEventProps(event) {

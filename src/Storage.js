@@ -1,7 +1,6 @@
 import store from 'lockr';
 
-class Storage
-{
+class Storage {
   constructor(options = {}) {
     this.options = Object.assign({
       prefix: 'ddl:',
@@ -12,7 +11,7 @@ class Storage
     key = this.getOption('prefix') + key;
     if (exp !== undefined) {
       store.set(key, {
-        val: val,
+        val,
         exp: exp * 1000,
         time: Date.now(),
       });

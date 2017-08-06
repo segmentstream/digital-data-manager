@@ -23,7 +23,6 @@ function getExperment(experiment) {
 }
 
 class Driveback extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       websiteToken: '',
@@ -55,7 +54,7 @@ class Driveback extends Integration {
     if (typeof event.experiment === 'string') {
       fields = ['experiment'];
       validations = {
-        'experiment': {
+        experiment: {
           errors: ['required', 'string'],
         },
       };
@@ -73,12 +72,12 @@ class Driveback extends Integration {
 
     const config = {
       [VIEWED_EXPERIMENT]: {
-        fields: fields,
-        validations: validations,
+        fields,
+        validations,
       },
       [ACHIEVED_EXPERIMENT_GOAL]: {
-        fields: fields,
-        validations: validations,
+        fields,
+        validations,
       },
     };
 
@@ -164,16 +163,14 @@ class Driveback extends Integration {
       } else {
         window.DriveBack.reactivateCampaigns(); // remove later
       }
-    } else {
-      if (this.getOption('experiments')) {
-        window.DrivebackOnLoad.push(() => {
-          window.dbex(function onDbexExperimentsLoaded() {
-            window.Driveback.init();
-          });
+    } else if (this.getOption('experiments')) {
+      window.DrivebackOnLoad.push(() => {
+        window.dbex(() => {
+          window.Driveback.init();
         });
-      } else {
-        window.Driveback.init();
-      }
+      });
+    } else {
+      window.Driveback.init();
     }
   }
 

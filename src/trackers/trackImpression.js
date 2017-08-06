@@ -38,21 +38,22 @@ class BatchTable {
   }
 
   update() {
-    for (const selector of this.selectors) {
+    this.selectors.forEach((selector) => {
       const batches = this.batches[selector];
       const blocks = domQuery(selector);
-      for (const batch of batches) {
+      batches.forEach((batch) => {
         batch.setBlocks(blocks);
-      }
-    }
+      });
+    });
   }
 
   getAll() {
     let allBatches = [];
-    for (const selector of this.selectors) {
+    this.selectors.forEach((selector) => {
       const batches = this.batches[selector];
       allBatches = [...allBatches, ...batches];
-    }
+    });
+
     return allBatches;
   }
 }
@@ -85,13 +86,13 @@ function isVisible(el) {
   }
 
   const fitsVertical = (
-    ((elemBottom - elemHeight / 4) <= docEl.clientHeight) &&
-    ((elemTop + elemHeight / 4) >= 0)
+    ((elemBottom - (elemHeight / 4)) <= docEl.clientHeight) &&
+    ((elemTop + (elemHeight / 4)) >= 0)
   );
 
   const fitsHorizontal = (
-    (elemLeft + elemWidth / 4 >= 0) &&
-    (elemRight - elemWidth / 4 <= docEl.clientWidth)
+    (elemLeft + (elemWidth / 4) >= 0) &&
+    (elemRight - (elemWidth / 4) <= docEl.clientWidth)
   );
 
   if (!fitsVertical || !fitsHorizontal) {
@@ -99,8 +100,8 @@ function isVisible(el) {
   }
 
   let elementFromPoint = document.elementFromPoint(
-    elemLeft + elemWidth / 2,
-    elemTop + elemHeight / 2
+    elemLeft + (elemWidth / 2),
+    elemTop + (elemHeight / 2),
   );
 
   while (elementFromPoint && elementFromPoint !== el && elementFromPoint.parentNode !== document) {
@@ -113,16 +114,16 @@ function trackViews() {
   batchTable.update();
 
   const batches = batchTable.getAll();
-  for (const batch of batches) {
+  batches.forEach((batch) => {
     const newViewedBlocks = [];
 
     const blocks = batch.blocks;
-    for (const block of blocks) {
+    blocks.forEach((block) => {
       if (isVisible(block) && !batch.isViewedBlock(block)) {
         newViewedBlocks.push(block);
         batch.addViewedBlock(block);
       }
-    }
+    });
 
     if (newViewedBlocks.length > 0) {
       try {
@@ -131,7 +132,7 @@ function trackViews() {
         // TODO
       }
     }
-  }
+  });
 }
 
 function startTracking() {

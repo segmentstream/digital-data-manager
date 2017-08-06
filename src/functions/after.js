@@ -6,7 +6,7 @@
  * @param {Function} fn
  */
 
-export default function(times, fn) {
+export default function (times, fn) {
   let timeLeft = times;
   return function afterAll() {
     if (--timeLeft < 1) {

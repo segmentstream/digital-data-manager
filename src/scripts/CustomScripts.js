@@ -21,7 +21,7 @@ class CustomScripts {
         scriptConfig.name,
         eventName,
         scriptConfig.handler,
-        this.digitalData
+        this.digitalData,
       );
 
       if (!eventName) {

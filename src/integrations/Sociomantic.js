@@ -42,7 +42,6 @@ function deleteEmptyProperties(objName) {
 }
 
 class Sociomantic extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       region: '',
@@ -70,7 +69,7 @@ class Sociomantic extends Integration {
       attr: {
         type: 'text/javascript',
         async: true,
-        src: src,
+        src,
       },
     });
 
@@ -122,39 +121,39 @@ class Sociomantic extends Integration {
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case VIEWED_PAGE:
-      enrichableProps = [
-        'page.type',
-        'user.userId',
-        'user.email',
-      ];
-      break;
-    case VIEWED_PRODUCT_DETAIL:
-      enrichableProps = [
-        'product',
-      ];
-      break;
-    case VIEWED_PRODUCT_LISTING:
-      enrichableProps = [
-        'listing.category',
-      ];
-      break;
-    case VIEWED_CART:
-      enrichableProps = [
-        'cart.lineItems',
-      ];
-      break;
-    case SEARCHED_PRODUCTS:
-      enrichableProps = [
-        'listing.query',
-      ];
-      break;
-    case COMPLETED_TRANSACTION:
-      enrichableProps = [
-        'transaction',
-      ];
-      break;
-    default:
+      case VIEWED_PAGE:
+        enrichableProps = [
+          'page.type',
+          'user.userId',
+          'user.email',
+        ];
+        break;
+      case VIEWED_PRODUCT_DETAIL:
+        enrichableProps = [
+          'product',
+        ];
+        break;
+      case VIEWED_PRODUCT_LISTING:
+        enrichableProps = [
+          'listing.category',
+        ];
+        break;
+      case VIEWED_CART:
+        enrichableProps = [
+          'cart.lineItems',
+        ];
+        break;
+      case SEARCHED_PRODUCTS:
+        enrichableProps = [
+          'listing.query',
+        ];
+        break;
+      case COMPLETED_TRANSACTION:
+        enrichableProps = [
+          'transaction',
+        ];
+        break;
+      default:
       // do nothing
     }
 
@@ -184,7 +183,7 @@ class Sociomantic extends Integration {
     this.pageTracked = false;
 
     const prefix = this.getOption('prefix');
-    const trackingObjectCustomerName = prefix + 'customer';
+    const trackingObjectCustomerName = `${prefix}customer`;
     const user = event.user;
 
     if (user && (user.userId || user.email)) {
@@ -212,7 +211,7 @@ class Sociomantic extends Integration {
 
   onViewedProductDetail(event) {
     const prefix = this.getOption('prefix');
-    const trackingObjectName = prefix + 'product';
+    const trackingObjectName = `${prefix}product`;
     const product = event.product;
 
     if (product && (product.id || product.skuCode)) {
@@ -233,7 +232,7 @@ class Sociomantic extends Integration {
 
   onViewedProductListing(event) {
     const prefix = this.getOption('prefix');
-    const trackingObjectName = prefix + 'product';
+    const trackingObjectName = `${prefix}product`;
     const listing = event.listing;
 
     if (listing && listing.category && listing.category.length) {
@@ -246,7 +245,7 @@ class Sociomantic extends Integration {
 
   onSearchedProducts(event) {
     const prefix = this.getOption('prefix');
-    const trackingObjectName = prefix + 'search';
+    const trackingObjectName = `${prefix}search`;
     const listing = event.listing;
 
     if (listing && listing.query) {
@@ -260,14 +259,14 @@ class Sociomantic extends Integration {
 
   onViewedCart(event) {
     const prefix = this.getOption('prefix');
-    const trackingObjectBasketName = prefix + 'basket';
+    const trackingObjectBasketName = `${prefix}basket`;
     const cart = event.cart;
 
     if (cart && cart.lineItems) {
       const products = lineItemsToSociomanticsItems(cart.lineItems);
       if (products.length) {
         window[trackingObjectBasketName] = {
-          products: products,
+          products,
         };
         this.loadTrackingScript();
       }
@@ -276,7 +275,7 @@ class Sociomantic extends Integration {
 
   onCompletedTransaction(event) {
     const prefix = this.getOption('prefix');
-    const trackingObjectBasketName = prefix + 'basket';
+    const trackingObjectBasketName = `${prefix}basket`;
     const transaction = event.transaction;
 
     if (transaction && transaction.lineItems) {
@@ -287,7 +286,7 @@ class Sociomantic extends Integration {
           transactionOrderId = String(transaction.orderId);
         }
         window[trackingObjectBasketName] = {
-          products: products,
+          products,
           transaction: transactionOrderId || '',
           amount: transaction.total || '',
           currency: transaction.currency || '',

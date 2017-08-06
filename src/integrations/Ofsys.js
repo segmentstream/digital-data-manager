@@ -21,7 +21,6 @@ const SEMANTIC_EVENTS = [
 /* eslint-disable new-cap */
 
 class Ofsys extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       accountKey: '',
@@ -44,23 +43,23 @@ class Ofsys extends Integration {
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case VIEWED_PAGE:
-      enrichableProps = [
-        'user.email',
-        'cart',
-      ];
-      break;
-    case VIEWED_PRODUCT_DETAIL:
-      enrichableProps = [
-        'product.id',
-      ];
-      break;
-    case COMPLETED_TRANSACTION:
-      enrichableProps = [
-        'transaction',
-      ];
-      break;
-    default:
+      case VIEWED_PAGE:
+        enrichableProps = [
+          'user.email',
+          'cart',
+        ];
+        break;
+      case VIEWED_PRODUCT_DETAIL:
+        enrichableProps = [
+          'product.id',
+        ];
+        break;
+      case COMPLETED_TRANSACTION:
+        enrichableProps = [
+          'transaction',
+        ];
+        break;
+      default:
       // do nothing
     }
 
@@ -306,7 +305,7 @@ class Ofsys extends Integration {
             productName: getProp(lineItem, 'product.name'),
             Price_unit: unitSalePrice,
             Price_total: lineItem.subtotal || unitSalePrice * quantity,
-            quantity: quantity,
+            quantity,
           });
         }
       });

@@ -21,7 +21,6 @@ function normalizeOptions(options) {
 }
 
 class Actionpay extends Integration {
-
   constructor(digitalData, options) {
     normalizeOptions(options);
     const optionsWithDefaults = Object.assign({
@@ -46,7 +45,7 @@ class Actionpay extends Integration {
     this.addTag('trackingPixel', {
       type: 'img',
       attr: {
-        src: `//apypx.com/ok/{{ goalId }}.png?actionpay={{ partnerId }}&apid={{ actionId }}&price={{ total }}`,
+        src: '//apypx.com/ok/{{ goalId }}.png?actionpay={{ partnerId }}&apid={{ actionId }}&price={{ total }}',
       },
     });
   }

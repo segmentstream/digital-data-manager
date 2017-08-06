@@ -1,8 +1,7 @@
 import cookie from 'js-cookie';
 import topDomain from './functions/topDomain.js';
 
-class CookieStorage
-{
+class CookieStorage {
   constructor(options = {}) {
     this.options = Object.assign({
       cookieDomain: topDomain(location.href),
@@ -62,7 +61,7 @@ class CookieStorage
       const cookieVal = cookies[i];
       const eqPos = cookieVal.indexOf('=');
       const name = eqPos > -1 ? cookieVal.substr(0, eqPos) : cookieVal;
-      document.cookieVal = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      document.cookieVal = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT`;
     }
   }
 }

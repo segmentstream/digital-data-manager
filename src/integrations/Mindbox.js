@@ -20,7 +20,6 @@ const PROVIDER_USER_ID = 'userId';
 const PROVIDER_EMAIL = 'email';
 
 class Mindbox extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       projectSystemName: '',
@@ -97,31 +96,31 @@ class Mindbox extends Integration {
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case VIEWED_PAGE:
-      enrichableProps.push('cart');
-      break;
-    case LOGGED_IN:
-      enrichableProps.push('user.userId');
-      break;
-    case REGISTERED:
-    case SUBSCRIBED:
-    case UPDATED_PROFILE_INFO:
-      enrichableProps = this.getEnrichableUserProps();
-      enrichableProps.push('user.userId');
-      enrichableProps.push('user.isSubscribed');
-      break;
-    case COMPLETED_TRANSACTION:
-      enrichableProps = this.getEnrichableUserProps();
-      enrichableProps.push('user.userId');
-      enrichableProps.push('transaction');
-      break;
-    case VIEWED_PRODUCT_DETAIL:
-      enrichableProps = ['product'];
-      break;
-    case VIEWED_PRODUCT_LISTING:
-      enrichableProps = ['listing.categoryId'];
-      break;
-    default:
+      case VIEWED_PAGE:
+        enrichableProps.push('cart');
+        break;
+      case LOGGED_IN:
+        enrichableProps.push('user.userId');
+        break;
+      case REGISTERED:
+      case SUBSCRIBED:
+      case UPDATED_PROFILE_INFO:
+        enrichableProps = this.getEnrichableUserProps();
+        enrichableProps.push('user.userId');
+        enrichableProps.push('user.isSubscribed');
+        break;
+      case COMPLETED_TRANSACTION:
+        enrichableProps = this.getEnrichableUserProps();
+        enrichableProps.push('user.userId');
+        enrichableProps.push('transaction');
+        break;
+      case VIEWED_PRODUCT_DETAIL:
+        enrichableProps = ['product'];
+        break;
+      case VIEWED_PRODUCT_LISTING:
+        enrichableProps = ['listing.categoryId'];
+        break;
+      default:
       // do nothing
     }
 
@@ -508,14 +507,12 @@ class Mindbox extends Integration {
     const lineItems = getProp(event, 'transaction.lineItems');
     let mindboxItems = [];
     if (lineItems && lineItems.length) {
-      mindboxItems = lineItems.map((lineItem) => {
-        return cleanObject({
-          productId: getProp(lineItem, 'product.id'),
-          skuId: getProp(lineItem, 'product.skuCode'),
-          quantity: lineItem.quantity || 1,
-          price: getProp(lineItem, 'product.unitSalePrice'),
-        });
-      });
+      mindboxItems = lineItems.map(lineItem => cleanObject({
+        productId: getProp(lineItem, 'product.id'),
+        skuId: getProp(lineItem, 'product.skuCode'),
+        quantity: lineItem.quantity || 1,
+        price: getProp(lineItem, 'product.unitSalePrice'),
+      }));
     }
 
     const data = this.getUserData(event);

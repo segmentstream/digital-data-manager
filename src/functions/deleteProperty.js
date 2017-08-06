@@ -1,4 +1,4 @@
-export default function(obj, prop) {
+export default function (obj, prop) {
   try {
     delete obj[prop];
   } catch (e) {

@@ -24,7 +24,7 @@ const IntegrationsLoader = {
   },
 
   addIntegration: (name, integration, ddManager) => {
-    if (!integration instanceof Integration || !name) {
+    if (!(integration instanceof Integration) || !name) {
       throw new TypeError('attempted to add an invalid integration');
     }
 
@@ -34,13 +34,9 @@ const IntegrationsLoader = {
     _integrations[name] = integration;
   },
 
-  getIntegration: (name) => {
-    return _integrations[name];
-  },
+  getIntegration: name => _integrations[name],
 
-  getIntegrations: () => {
-    return _integrations;
-  },
+  getIntegrations: () => _integrations,
 
   addIntegrations: (integrationSettings, ddManager) => {
     if (integrationSettings) {

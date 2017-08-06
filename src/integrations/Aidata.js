@@ -1,7 +1,6 @@
 import Integration from './../Integration.js';
 
 class Aidata extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       eventPixels: {},

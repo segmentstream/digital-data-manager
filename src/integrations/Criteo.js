@@ -44,7 +44,6 @@ function lineItemsToCriteoItems(lineItems) {
 }
 
 class Criteo extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       account: '',
@@ -70,36 +69,36 @@ class Criteo extends Integration {
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case VIEWED_PAGE:
-      enrichableProps = [
-        'website.type',
-        'user.email',
-        'page.type',
-      ];
-      break;
-    case VIEWED_PRODUCT_DETAIL:
-      enrichableProps = [
-        'product.id',
-      ];
-      break;
-    case VIEWED_PRODUCT_LISTING:
-    case SEARCHED_PRODUCTS:
-      enrichableProps = [
-        'listing.items',
-      ];
-      break;
-    case VIEWED_CART:
-      enrichableProps = [
-        'cart',
-      ];
-      break;
-    case COMPLETED_TRANSACTION:
-      enrichableProps = [
-        'context.campaign',
-        'transaction',
-      ];
-      break;
-    default:
+      case VIEWED_PAGE:
+        enrichableProps = [
+          'website.type',
+          'user.email',
+          'page.type',
+        ];
+        break;
+      case VIEWED_PRODUCT_DETAIL:
+        enrichableProps = [
+          'product.id',
+        ];
+        break;
+      case VIEWED_PRODUCT_LISTING:
+      case SEARCHED_PRODUCTS:
+        enrichableProps = [
+          'listing.items',
+        ];
+        break;
+      case VIEWED_CART:
+        enrichableProps = [
+          'cart',
+        ];
+        break;
+      case COMPLETED_TRANSACTION:
+        enrichableProps = [
+          'context.campaign',
+          'transaction',
+        ];
+        break;
+      default:
       // do nothing;
     }
 
@@ -384,7 +383,7 @@ class Criteo extends Integration {
           event: 'viewList',
           item: productIds,
         },
-        this.getUserSegment(event)
+        this.getUserSegment(event),
       );
     }
   }
@@ -401,7 +400,7 @@ class Criteo extends Integration {
           event: 'viewItem',
           item: productId,
         },
-        this.getUserSegment(event)
+        this.getUserSegment(event),
       );
     }
   }
@@ -416,7 +415,7 @@ class Criteo extends Integration {
             event: 'viewBasket',
             item: products,
           },
-          this.getUserSegment(event)
+          this.getUserSegment(event),
         );
       }
     }
@@ -452,7 +451,7 @@ class Criteo extends Integration {
 
         this.pushCriteoQueue(
           criteoEvent,
-          this.getUserSegment(event)
+          this.getUserSegment(event),
         );
       }
     }
@@ -467,7 +466,7 @@ class Criteo extends Integration {
         {
           event: 'setEmail',
           email: emailMd5,
-        }
+        },
       );
     }
   }
