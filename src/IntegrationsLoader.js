@@ -41,18 +41,20 @@ const IntegrationsLoader = {
   addIntegrations: (integrationSettings, ddManager) => {
     if (integrationSettings) {
       if (Array.isArray(integrationSettings)) {
-        for (const integrationSetting of integrationSettings) {
+        integrationSettings.forEach((integrationSetting) => {
           const name = integrationSetting.name;
           const options = clone(integrationSetting.options, true);
           if (typeof _availableIntegrations[name] === 'function') {
-            const integration = new _availableIntegrations[name](ddManager.getDigitalData(), options || {});
+            const integration =
+              new _availableIntegrations[name](ddManager.getDigitalData(), options || {});
             IntegrationsLoader.addIntegration(name, integration, ddManager);
           }
-        }
+        });
       } else {
         each(integrationSettings, (name, options) => {
           if (typeof _availableIntegrations[name] === 'function') {
-            const integration = new _availableIntegrations[name](ddManager.getDigitalData(), clone(options, true));
+            const integration =
+              new _availableIntegrations[name](ddManager.getDigitalData(), clone(options, true));
             IntegrationsLoader.addIntegration(name, integration, ddManager);
           }
         });
@@ -122,9 +124,9 @@ const IntegrationsLoader = {
   },
 
   loadIntegrationsFromList(list, loaded) {
-    for (const integrationName of list) {
+    list.forEach((integrationName) => {
       IntegrationsLoader.loadIntegration(integrationName, loaded);
-    }
+    });
   },
 
   loadIntegration(integrationName, callback) {

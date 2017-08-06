@@ -1,4 +1,4 @@
-import Integration from './../Integration.js';
+import Integration from './../Integration';
 import { getProp } from 'driveback-utils/dotProp';
 import {
   VIEWED_PAGE,

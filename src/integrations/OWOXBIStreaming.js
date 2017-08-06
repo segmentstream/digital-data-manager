@@ -1,4 +1,4 @@
-import Integration from './../Integration.js';
+import Integration from './../Integration';
 
 class OWOXBIStreaming extends Integration {
   constructor(digitalData, options) {

@@ -1,6 +1,6 @@
-import Integration from './../Integration.js';
-import deleteProperty from 'driveback-utils/deleteProperty.js';
-import each from 'driveback-utils/each.js';
+import Integration from './../Integration';
+import deleteProperty from 'driveback-utils/deleteProperty';
+import each from 'driveback-utils/each';
 
 import {
   VIEWED_PAGE,
@@ -69,14 +69,13 @@ class SegmentStream extends Integration {
       'pushOnReady',
     ];
 
-    ssApi.factory = method => function stub() {
-      const args = Array.prototype.slice.call(arguments);
+    ssApi.factory = method => function stub(...args) {
       args.unshift(method);
       ssApi.push(args);
       return ssApi;
     };
 
-    for (let i = 0; i < ssApi.methods.length; i++) {
+    for (let i = 0; i < ssApi.methods.length; i += 1) {
       const key = ssApi.methods[i];
       ssApi[key] = ssApi.factory(key);
     }

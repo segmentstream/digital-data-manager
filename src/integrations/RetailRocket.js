@@ -1,4 +1,4 @@
-import Integration from './../Integration.js';
+import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import { getProp } from 'driveback-utils/dotProp';
 import getVarValue from 'driveback-utils/getVarValue';
@@ -323,7 +323,7 @@ class RetailRocket extends Integration {
     let areLineItemsValid = true;
     const items = [];
     const lineItems = transaction.lineItems;
-    for (let i = 0, length = lineItems.length; i < length; i++) {
+    for (let i = 0, length = lineItems.length; i < length; i += 1) {
       if (!this.validateTransactionLineItem(lineItems[i])) {
         areLineItemsValid = false;
         break;

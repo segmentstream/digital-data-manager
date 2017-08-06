@@ -1,5 +1,5 @@
-import Integration from './../Integration.js';
-import deleteProperty from 'driveback-utils/deleteProperty.js';
+import Integration from './../Integration';
+import deleteProperty from 'driveback-utils/deleteProperty';
 import { getProp } from 'driveback-utils/dotProp';
 
 class SendPulse extends Integration {
@@ -128,7 +128,7 @@ class SendPulse extends Integration {
 
   sendUserAttributes(digitalData) {
     const userVariables = this.getOption('userVariables');
-    for (const userVar of userVariables) {
+    userVariables.forEach((userVar) => {
       let value;
       if (userVar.indexOf('.') < 0) { // legacy version
         value = getProp(digitalData.user, userVar);
@@ -141,7 +141,7 @@ class SendPulse extends Integration {
       ) {
         window.oSpP.push(userVar, String(value));
       }
-    }
+    });
   }
 
   isLoaded() {

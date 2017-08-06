@@ -1,8 +1,8 @@
 import {
-  Integration,
   getEnrichableVariableMappingProps,
   extractVariableMappingValues,
-} from './../Integration';
+} from './../IntegrationUtils';
+import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import cleanObject from 'driveback-utils/cleanObject';
 import arrayMerge from 'driveback-utils/arrayMerge';
@@ -82,11 +82,11 @@ class YandexMetrica extends Integration {
     ];
 
     this.goalEvents = Object.keys(this.getOption('goals'));
-    for (const goalEvent of this.goalEvents) {
+    this.goalEvents.forEach((goalEvent) => {
       if (this.SEMANTIC_EVENTS.indexOf(goalEvent) < 0) {
         this.SEMANTIC_EVENTS.push(goalEvent);
       }
-    }
+    });
 
     this.pageCalled = false;
     this.dataLayer = [];
@@ -127,12 +127,13 @@ class YandexMetrica extends Integration {
           'transaction',
         ];
         break;
-      default:
+      default: {
         const goalEvents = this.getGoalEvents();
         if (goalEvents.indexOf(event.name) >= 0) {
           arrayMerge(enrichableProps, this.getEnrichableUserParamsProps());
           arrayMerge(enrichableProps, this.getEnrichableVisitParamsProps());
         }
+      }
     }
     return enrichableProps;
   }

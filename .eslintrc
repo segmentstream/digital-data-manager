@@ -3,7 +3,12 @@
   "rules": {
     "react/jsx-quotes": 0,
     "jsx-quotes": [2, "prefer-double"],
-    "no-param-reassign": 0
+    "no-param-reassign": 0,
+    "class-methods-use-this": 0,
+    "no-underscore-dangle": 0,
+    "import/first": 0,
+    "no-multi-assign": 0,
+    "prefer-rest-params": 0
   },
   "env": {
     "browser": true

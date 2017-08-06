@@ -1,6 +1,6 @@
 import sha256 from 'crypto-js/sha256';
-import Integration from './../Integration.js';
-import deleteProperty from 'driveback-utils/deleteProperty.js';
+import Integration from './../Integration';
+import deleteProperty from 'driveback-utils/deleteProperty';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -14,7 +14,7 @@ let timeoutHandler;
 
 function lineItemsToSociomanticsItems(lineItems) {
   const products = [];
-  for (let i = 0, length = lineItems.length; i < length; i++) {
+  for (let i = 0, length = lineItems.length; i < length; i += 1) {
     const lineItem = lineItems[i];
     if (lineItem && lineItem.product) {
       const productId = lineItem.product.id || lineItem.product.skuCode;
@@ -34,7 +34,7 @@ function lineItemsToSociomanticsItems(lineItems) {
 
 function deleteEmptyProperties(objName) {
   const keys = Object.keys(window[objName]);
-  keys.map((key) => {
+  keys.forEach((key) => {
     if (window[objName][key] === '') {
       deleteProperty(window[objName], key);
     }

@@ -6,37 +6,14 @@ import format from 'driveback-utils/format';
 import clone from 'driveback-utils/clone';
 import noop from 'driveback-utils/noop';
 import log from 'driveback-utils/log';
-import each from 'driveback-utils/each';
 import { getProp } from 'driveback-utils/dotProp';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import { error as errorLog } from 'driveback-utils/safeConsole';
+import each from 'driveback-utils/each';
 import nextTick from 'async/nextTick';
 import EventEmitter from 'component-emitter';
-import { DIGITALDATA_VAR } from './variableTypes';
 
-export function getEnrichableVariableMappingProps(variableMapping) {
-  const enrichableProps = [];
-  each(variableMapping, (key, variable) => {
-    if (variable.type === DIGITALDATA_VAR) {
-      enrichableProps.push(variable.value);
-    }
-  });
-  return enrichableProps;
-}
-
-export function extractVariableMappingValues(source, variableMapping) {
-  const values = {};
-  each(variableMapping, (key, variable) => {
-    let value = getProp(source, variable.value);
-    if (value !== undefined) {
-      if (typeof value === 'boolean') value = value.toString();
-      values[key] = value;
-    }
-  });
-  return values;
-}
-
-export class Integration extends EventEmitter {
+export default class Integration extends EventEmitter {
   constructor(digitalData, options, tags) {
     super();
     this.options = options || {};
@@ -348,5 +325,3 @@ export class Integration extends EventEmitter {
     super.addEventListener(event, handler);
   }
 }
-
-export default Integration;

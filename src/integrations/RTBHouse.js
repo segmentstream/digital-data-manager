@@ -1,4 +1,4 @@
-import Integration from './../Integration.js';
+import Integration from './../Integration';
 import { getProp } from 'driveback-utils/dotProp';
 import {
   VIEWED_PAGE,
@@ -147,7 +147,7 @@ class RTBHouse extends Integration {
     const listingValidations = {};
     const listingFields = [];
     const listingItemsCount = getProp(event, 'listing.items.length') || 0;
-    for (let i = 0; i < Math.min(listingItemsCount, 5); i++) {
+    for (let i = 0; i < Math.min(listingItemsCount, 5); i += 1) {
       const fieldName = ['listing.items', i, 'id'].join('.');
       listingFields.push(fieldName);
       listingValidations[fieldName] = {
@@ -391,7 +391,10 @@ class RTBHouse extends Integration {
 
   onCompletedTransaction(event) {
     const transaction = event.transaction;
-    if (transaction && transaction.orderId && transaction.lineItems && transaction.lineItems.length > 0) {
+    if (
+      transaction && transaction.orderId && transaction.lineItems
+      && transaction.lineItems.length > 0
+    ) {
       const orderId = transaction.orderId;
       const total = transaction.total;
       const productIds = transaction.lineItems.reduce((str, lineItem, index) => {

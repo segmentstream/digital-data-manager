@@ -1,8 +1,8 @@
 import {
-  Integration,
   getEnrichableVariableMappingProps,
   extractVariableMappingValues,
-} from './../Integration';
+} from './../IntegrationUtils';
+import Integration from './../Integration';
 import { stringify } from 'driveback-utils/queryString';
 import cleanObject from 'driveback-utils/cleanObject';
 import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
