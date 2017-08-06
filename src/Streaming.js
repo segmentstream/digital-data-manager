@@ -1,9 +1,9 @@
-import utmParams from './functions/utmParams'
-import htmlGlobals from './functions/htmlGlobals';
-import cleanObject from './functions/cleanObject';
-import clone from './functions/clone';
-import deleteProperty from './functions/deleteProperty';
-import size from './functions/size';
+import utmParams from 'driveback-utils/utmParams'
+import htmlGlobals from 'driveback-utils/htmlGlobals';
+import cleanObject from 'driveback-utils/cleanObject';
+import clone from 'driveback-utils/clone';
+import deleteProperty from 'driveback-utils/deleteProperty';
+import size from 'driveback-utils/size';
 import uuid from 'uuid/v4';
 
 class Streaming {
@@ -44,7 +44,6 @@ class Streaming {
       // TODO: save to memory
     }
     this.send(requestBody);
-    console.log(JSON.stringify(requestBody));
   }
 
   getCacheKey() {
@@ -52,8 +51,11 @@ class Streaming {
   }
 
   send(requestBody) {
-    window.fetch(`//bi.ddmanager.ru/${this.projectId}`, {
-      method: 'POST'
+    console.log(requestBody);
+    window.fetch(`//localhost:3000/collect?stream_id=${this.projectId}`, {
+      method: 'post',
+      mode: 'cors',
+      body: JSON.stringify(requestBody),
     }).then((response) => {
       if (response.ok) {
         window.localStorage.removeItem(this.getCacheKey(requestBody.hitId));

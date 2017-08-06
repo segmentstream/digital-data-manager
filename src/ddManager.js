@@ -311,7 +311,7 @@ const ddManager = {
     User.setStorage(storage);
     User.setData(_digitalData.user);
 
-    const streaming = new Streaming('123123123', { // TODO: remove fake proejct id
+    const streaming = new Streaming('123123', { // TODO: remove fake proejct id
       name: 'ddmanager.js',
       version: ddManager.VERSION
     });
