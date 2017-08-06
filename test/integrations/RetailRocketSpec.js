@@ -1,7 +1,7 @@
 import assert from 'assert';
 import sinon from 'sinon';
 import reset from './../reset.js';
-import deleteProperty from './../../src/functions/deleteProperty.js';
+import deleteProperty from 'driveback-utils/deleteProperty.js';
 import RetailRocket from './../../src/integrations/RetailRocket.js';
 import ddManager from './../../src/ddManager.js';
 

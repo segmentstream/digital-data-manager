@@ -1,7 +1,7 @@
 import Handler from './../Handler';
-import { error as errorLog } from './../functions/safeConsole';
-import { setProp } from './../functions/dotProp';
-import isPromise from './../functions/isPromise';
+import { error as errorLog } from 'driveback-utils/safeConsole';
+import { setProp } from 'driveback-utils/dotProp';
+import isPromise from 'driveback-utils/isPromise';
 
 class CustomEnrichment {
   constructor(prop, handler, options, collection) {

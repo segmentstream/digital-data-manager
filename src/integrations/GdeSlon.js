@@ -1,6 +1,6 @@
 import Integration from './../Integration';
-import getQueryParam from './../functions/getQueryParam';
-import { getProp } from './../functions/dotProp';
+import getQueryParam from 'driveback-utils/getQueryParam';
+import { getProp } from 'driveback-utils/dotProp';
 import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
 import { isDeduplication, addAffiliateCookie, getAffiliateCookie } from './utils/affiliate';
 

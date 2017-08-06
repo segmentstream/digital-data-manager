@@ -1,5 +1,5 @@
-import { getProp, setProp } from './functions/dotProp';
-import clone from './functions/clone';
+import { getProp, setProp } from 'driveback-utils/dotProp';
+import clone from 'driveback-utils/clone';
 
 function matchProductById(id, product) {
   return product.id && String(product.id) === String(id);

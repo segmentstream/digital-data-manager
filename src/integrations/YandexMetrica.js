@@ -3,12 +3,12 @@ import {
   getEnrichableVariableMappingProps,
   extractVariableMappingValues,
 } from './../Integration';
-import deleteProperty from './../functions/deleteProperty';
-import cleanObject from './../functions/cleanObject';
-import arrayMerge from './../functions/arrayMerge';
-import size from './../functions/size';
+import deleteProperty from 'driveback-utils/deleteProperty';
+import cleanObject from 'driveback-utils/cleanObject';
+import arrayMerge from 'driveback-utils/arrayMerge';
+import size from 'driveback-utils/size';
 import cookie from 'js-cookie';
-import { getProp } from './../functions/dotProp';
+import { getProp } from 'driveback-utils/dotProp';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -16,7 +16,7 @@ import {
   REMOVED_PRODUCT,
   COMPLETED_TRANSACTION,
 } from './../events/semanticEvents';
-import { bind } from './../functions/eventListener';
+import { bind } from 'driveback-utils/eventListener';
 
 
 function getProductCategory(product) {

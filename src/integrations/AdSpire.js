@@ -1,8 +1,8 @@
 import Integration from './../Integration';
-import cleanObject from './../functions/cleanObject';
-import { getProp } from './../functions/dotProp';
-import ipToLong from './../functions/ipToLong';
-import normalizeString from './../functions/normalizeString';
+import cleanObject from 'driveback-utils/cleanObject';
+import { getProp } from 'driveback-utils/dotProp';
+import ipToLong from 'driveback-utils/ipToLong';
+import normalizeString from 'driveback-utils/normalizeString';
 import md5 from 'crypto-js/md5';
 import {
   VIEWED_PAGE,

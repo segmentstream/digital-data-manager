@@ -1,10 +1,10 @@
-import size from './functions/size';
-import each from './functions/each';
-import after from './functions/after';
-import { warn } from './functions/safeConsole';
+import size from 'driveback-utils/size';
+import each from 'driveback-utils/each';
+import after from 'driveback-utils/after';
+import { warn } from 'driveback-utils/safeConsole';
 import Integration from './Integration';
-import clone from './functions/clone';
-import { bind } from './functions/eventListener';
+import clone from 'driveback-utils/clone';
+import { bind } from 'driveback-utils/eventListener';
 
 /**
  * @type {Object}
@@ -130,6 +130,7 @@ const IntegrationsLoader = {
   loadIntegration(integrationName, callback) {
     if (_integrations[integrationName]) {
       const integration = _integrations[integrationName];
+      integration.flushEventQueue();
       if (!integration.isLoaded()) {
         integration.load(integration.onLoad);
         integration.once('load', callback);
@@ -144,6 +145,7 @@ const IntegrationsLoader = {
     each(_integrations, (name, integration) => {
       integration.removeAllListeners();
       integration.reset();
+      integration.eventQueueFlushed = false;
     });
     _integrations = {};
   },

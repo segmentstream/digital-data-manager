@@ -1,5 +1,5 @@
-import getStyle from './../functions/getStyle';
-import domQuery from './../functions/domQuery';
+import getStyle from 'driveback-utils/getStyle';
+import domQuery from 'driveback-utils/domQuery';
 
 class Batch {
   constructor(handler) {

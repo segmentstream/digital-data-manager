@@ -1,5 +1,5 @@
 import Integration from './../Integration.js';
-import { getProp } from './../functions/dotProp';
+import { getProp } from 'driveback-utils/dotProp';
 import {
   VIEWED_PAGE,
   VIEWED_CART,

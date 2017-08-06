@@ -1,7 +1,7 @@
 import Integration from './../Integration';
 import AsyncQueue from './utils/AsyncQueue';
-import arrayMerge from './../functions/arrayMerge';
-import deleteProperty from './../functions/deleteProperty';
+import arrayMerge from 'driveback-utils/arrayMerge';
+import deleteProperty from 'driveback-utils/deleteProperty';
 import { VIEWED_PAGE } from './../events/semanticEvents';
 
 class Vkontakte extends Integration {

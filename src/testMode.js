@@ -1,4 +1,4 @@
-import { log, group, groupEnd } from './functions/safeConsole';
+import { log, group, groupEnd } from 'driveback-utils/safeConsole';
 import { TYPE_ERROR, TYPE_SUCCESS, TYPE_WARNING } from './EventValidator';
 
 const validationMessagesColors = {

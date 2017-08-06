@@ -1,6 +1,6 @@
 import Integration from './../Integration.js';
-import deleteProperty from './../functions/deleteProperty.js';
-import noop from './../functions/noop.js';
+import deleteProperty from 'driveback-utils/deleteProperty.js';
+import noop from 'driveback-utils/noop.js';
 import {
   VIEWED_PAGE,
   VIEWED_EXPERIMENT,

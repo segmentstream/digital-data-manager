@@ -1,7 +1,7 @@
 import Integration from './../Integration';
-import deleteProperty from './../functions/deleteProperty';
-import { getProp } from './../functions/dotProp';
-import each from './../functions/each';
+import deleteProperty from 'driveback-utils/deleteProperty';
+import { getProp } from 'driveback-utils/dotProp';
+import each from 'driveback-utils/each';
 import {
   VIEWED_PAGE,
   SUBSCRIBED,

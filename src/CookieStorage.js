@@ -1,5 +1,5 @@
 import cookie from 'js-cookie';
-import topDomain from './functions/topDomain.js';
+import topDomain from 'driveback-utils/topDomain.js';
 
 class CookieStorage {
   constructor(options = {}) {

@@ -1,15 +1,15 @@
-import loadScript from './functions/loadScript';
-import loadLink from './functions/loadLink';
-import loadIframe from './functions/loadIframe';
-import loadPixel from './functions/loadPixel';
-import format from './functions/format';
-import clone from './functions/clone';
-import noop from './functions/noop';
-import log from './functions/log';
-import each from './functions/each';
-import { getProp } from './functions/dotProp';
-import deleteProperty from './functions/deleteProperty';
-import { error as errorLog } from './functions/safeConsole';
+import loadScript from 'driveback-utils/loadScript';
+import loadLink from 'driveback-utils/loadLink';
+import loadIframe from 'driveback-utils/loadIframe';
+import loadPixel from 'driveback-utils/loadPixel';
+import format from 'driveback-utils/format';
+import clone from 'driveback-utils/clone';
+import noop from 'driveback-utils/noop';
+import log from 'driveback-utils/log';
+import each from 'driveback-utils/each';
+import { getProp } from 'driveback-utils/dotProp';
+import deleteProperty from 'driveback-utils/deleteProperty';
+import { error as errorLog } from 'driveback-utils/safeConsole';
 import nextTick from 'async/nextTick';
 import EventEmitter from 'component-emitter';
 import { DIGITALDATA_VAR } from './variableTypes';
@@ -305,6 +305,27 @@ export class Integration extends EventEmitter {
 
   trackEvent() {
     // abstract
+  }
+
+  pushEventQueue(event) {
+    if (this.eventQueueFlushed) {
+      this.trackEvent(event);
+    } else {
+      this.eventQueue = this.eventQueue || [];
+      this.eventQueue.push(event);
+    }
+  }
+
+  flushEventQueue() {
+    this.eventQueue = this.eventQueue || [];
+
+    let event = this.eventQueue.shift();
+    while (event) {
+      this.trackEvent(event);
+      event = this.eventQueue.shift();
+    }
+
+    this.eventQueueFlushed = true;
   }
 
   on(event, handler) {

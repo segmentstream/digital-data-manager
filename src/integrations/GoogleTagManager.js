@@ -1,5 +1,5 @@
 import Integration from './../Integration.js';
-import deleteProperty from './../functions/deleteProperty.js';
+import deleteProperty from 'driveback-utils/deleteProperty.js';
 
 class GoogleTagManager extends Integration {
   constructor(digitalData, options) {
@@ -28,7 +28,6 @@ class GoogleTagManager extends Integration {
 
   initialize() {
     window.dataLayer = window.dataLayer || [];
-
     this.ddManager.on('ready', () => {
       window.dataLayer.push({ event: 'DDManager Ready' });
     });

@@ -1,6 +1,6 @@
 import DDHelper from './../DDHelper.js';
-import dotProp from './../functions/dotProp';
-import deleteProperty from './../functions/deleteProperty';
+import dotProp from 'driveback-utils/dotProp';
+import deleteProperty from 'driveback-utils/deleteProperty';
 import {
   VIEWED_PRODUCT_DETAIL,
   COMPLETED_TRANSACTION,

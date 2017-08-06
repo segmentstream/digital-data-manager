@@ -1,6 +1,6 @@
 import Integration from './../Integration.js';
-import deleteProperty from './../functions/deleteProperty.js';
-import each from './../functions/each.js';
+import deleteProperty from 'driveback-utils/deleteProperty.js';
+import each from 'driveback-utils/each.js';
 
 import {
   VIEWED_PAGE,

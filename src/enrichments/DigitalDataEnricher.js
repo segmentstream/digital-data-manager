@@ -1,8 +1,8 @@
-import htmlGlobals from './../functions/htmlGlobals';
-import semver from './../functions/semver';
-import getQueryParam from './../functions/getQueryParam';
-import cleanObject from './../functions/cleanObject';
-import { getProp, setProp } from './../functions/dotProp';
+import htmlGlobals from 'driveback-utils/htmlGlobals';
+import semver from 'driveback-utils/semver';
+import getQueryParam from 'driveback-utils/getQueryParam';
+import cleanObject from 'driveback-utils/cleanObject';
+import { getProp, setProp } from 'driveback-utils/dotProp';
 
 /**
  * fields which will be overriden even

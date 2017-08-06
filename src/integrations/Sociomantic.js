@@ -1,6 +1,6 @@
 import sha256 from 'crypto-js/sha256';
 import Integration from './../Integration.js';
-import deleteProperty from './../functions/deleteProperty.js';
+import deleteProperty from 'driveback-utils/deleteProperty.js';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -101,7 +101,6 @@ class Sociomantic extends Integration {
     if (this.trackingScriptCalled) {
       window.sociomantic.sonar.adv[advertiserToken].clear();
     }
-    this.trackingScriptCalled = false;
   }
 
   reset() {
