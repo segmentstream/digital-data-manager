@@ -21,6 +21,8 @@ import { validateIntegrationEvent, trackValidationErrors } from './EventValidato
 import { enableErrorTracking } from './ErrorTracker';
 import { error as errorLog } from './functions/safeConsole';
 import { trackLink, trackImpression } from './trackers';
+import User from './User';
+import Streaming from './Streaming';
 
 let ddManager;
 
@@ -303,6 +305,21 @@ ddManager = {
     _addIntegrationsEventTracking(settings.trackValidationErrors);
 
     _initializeCustomScripts(settings);
+
+    // setup user
+    User.setStorage(storage);
+    User.setData(_digitalData.user);
+
+    const streaming = new Streaming('123123123', { // TODO: remove fake proejct id
+      name: 'ddmanager.js',
+      version: ddManager.VERSION
+    });
+    _eventManager.addCallback(['on', 'event', (event) => {
+      if (event.user) {
+        User.setData(event.user); // TODO mask only required fields
+      }
+      streaming.trackEvent(event, User);
+    }]);
 
     _isReady = true;
     ddManager.emit('ready');
