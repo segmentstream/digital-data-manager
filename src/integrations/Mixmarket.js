@@ -1,7 +1,7 @@
 import Integration from './../Integration';
-import getQueryParam from './../functions/getQueryParam';
-import { getProp } from './../functions/dotProp';
-import normalizeString from './../functions/normalizeString';
+import getQueryParam from 'driveback-utils/getQueryParam';
+import { getProp } from 'driveback-utils/dotProp';
+import normalizeString from 'driveback-utils/normalizeString';
 import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
 import { isDeduplication, addAffiliateCookie, getAffiliateCookie } from './utils/affiliate';
 
@@ -9,7 +9,6 @@ const DEFAULT_COOKIE_NAME = 'mixmarket';
 const DEFAULT_UTM_SOURCE = 'mixmarket';
 
 class Mixmarket extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       advertiserId: '',
@@ -19,7 +18,7 @@ class Mixmarket extends Integration {
       cookieTtl: 90, // days
       deduplication: false,
       utmSource: DEFAULT_UTM_SOURCE, // utm_source for mixmarket leads
-      deduplicationUtmMedium: [], // by default deduplicate with any source/medium other then mixmarket source
+      deduplicationUtmMedium: [],
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -50,7 +49,7 @@ class Mixmarket extends Integration {
   }
 
   getSemanticEvents() {
-    return [ COMPLETED_TRANSACTION ];
+    return [COMPLETED_TRANSACTION];
   }
 
   getEnrichableEventProps(event) {

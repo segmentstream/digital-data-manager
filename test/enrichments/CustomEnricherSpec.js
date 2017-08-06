@@ -1,6 +1,6 @@
 import assert from 'assert';
 import sinon from 'sinon';
-import deleteProperty from './../../src/functions/deleteProperty.js';
+import deleteProperty from 'driveback-utils/deleteProperty.js';
 import CustomEnricher from './../../src/enrichments/CustomEnricher.js';
 import EventManager from './../../src/EventManager';
 import Storage from './../../src/Storage.js';

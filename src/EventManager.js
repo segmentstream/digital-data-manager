@@ -1,9 +1,9 @@
-import clone from './functions/clone';
-import deleteProperty from './functions/deleteProperty';
-import size from './functions/size';
-import after from './functions/after';
-import jsonIsEqual from './functions/jsonIsEqual';
-import { error as errorLog } from './functions/safeConsole';
+import clone from 'driveback-utils/clone';
+import deleteProperty from 'driveback-utils/deleteProperty';
+import size from 'driveback-utils/size';
+import after from 'driveback-utils/after';
+import jsonIsEqual from 'driveback-utils/jsonIsEqual';
+import { error as errorLog } from 'driveback-utils/safeConsole';
 import DDHelper from './DDHelper';
 import EventDataEnricher from './enrichments/EventDataEnricher';
 import CustomEvent from './events/CustomEvent';
@@ -14,7 +14,6 @@ let _ddListener = [];
 let _previousDigitalData = {};
 let _digitalData = {};
 let _checkForChangesIntervalId;
-let _viewabilityTracker;
 let _isInitialized = false;
 let _sendViewedPageEvent = false;
 const _customEvents = [];
@@ -30,7 +29,6 @@ function _getCopyWithoutEvents(digitalData) {
 }
 
 class EventManager {
-
   constructor(digitalData, ddListener) {
     _digitalData = digitalData || _digitalData;
     if (!Array.isArray(_digitalData.events)) {
@@ -45,17 +43,17 @@ class EventManager {
 
   import(eventsConfig) {
     eventsConfig = eventsConfig || [];
-    for (const eventConfig of eventsConfig) {
+    eventsConfig.forEach((eventConfig) => {
       const customEvent = new CustomEvent(
         eventConfig.name,
         eventConfig.trigger,
         eventConfig.event || eventConfig.selector,
         eventConfig.handler,
         _digitalData,
-        this
+        this,
       );
       _customEvents.push(customEvent);
-    }
+    });
   }
 
   addEvent(name, trigger, setting, handler) {
@@ -67,9 +65,9 @@ class EventManager {
     const events = _digitalData.events;
 
     // initialize custom events tracking
-    for (const customEvent of _customEvents) {
+    _customEvents.forEach((customEvent) => {
       customEvent.track();
-    }
+    });
 
     // process callbacks
     this.addEarlyCallbacks();
@@ -87,12 +85,12 @@ class EventManager {
     // process events
     // TODO: refactoring
     if (this.isViewedPageSent()) {
-      this.fireUnfiredEvents();
       this.enableEventsTracking();
+      this.fireUnfiredEvents();
     } else if (_sendViewedPageEvent && !this.isViewedPageSent()) {
       this.addViewedPageEvent();
-      this.fireUnfiredEvents();
       this.enableEventsTracking();
+      this.fireUnfiredEvents();
     } else {
       events.push = (event) => {
         // waiting for "Viewed Page" event
@@ -104,10 +102,6 @@ class EventManager {
           events[events.length] = event;
         }
       };
-    }
-
-    if (_viewabilityTracker) {
-      _viewabilityTracker.initialize();
     }
 
     _isInitialized = true;
@@ -143,12 +137,11 @@ class EventManager {
     return _sendViewedPageEvent;
   }
 
-  setViewabilityTracker(viewabilityTracker) {
-    _viewabilityTracker = viewabilityTracker;
-  }
-
   checkForChanges() {
-    if (_callbacks.change && _callbacks.change.length > 0 || _callbacks.define && _callbacks.define.length > 0 ) {
+    if (
+      (_callbacks.change && _callbacks.change.length > 0) ||
+      (_callbacks.define && _callbacks.define.length > 0)
+    ) {
       const digitalDataWithoutEvents = _getCopyWithoutEvents(_digitalData);
       if (!jsonIsEqual(_previousDigitalData, digitalDataWithoutEvents)) {
         const previousDigitalDataWithoutEvents = _getCopyWithoutEvents(_previousDigitalData);
@@ -181,12 +174,7 @@ class EventManager {
 
   isViewedPageSent() {
     const events = _digitalData.events;
-    for (const event of events) {
-      if (event.name === VIEWED_PAGE) {
-        return true;
-      }
-    }
-    return false;
+    return events.some(event => event.name === VIEWED_PAGE);
   }
 
   addViewedPageEvent(event) {
@@ -197,9 +185,8 @@ class EventManager {
   }
 
   fireDefine() {
-    let callback;
     if (_callbacks.define && _callbacks.define.length > 0) {
-      for (callback of _callbacks.define) {
+      _callbacks.define.forEach((callback) => {
         let value;
         if (callback.key) {
           const key = callback.key;
@@ -215,12 +202,11 @@ class EventManager {
           }
           _callbacks.define.splice(_callbacks.define.indexOf(callback), 1);
         }
-      }
+      });
     }
   }
 
   fireChange(newValue, previousValue) {
-    let callback;
     const callHandler = (handler, nv, pv) => {
       try {
         handler(nv, pv);
@@ -230,7 +216,7 @@ class EventManager {
     };
 
     if (_callbacks.change && _callbacks.change.length > 0) {
-      for (callback of _callbacks.change) {
+      _callbacks.change.forEach((callback) => {
         if (callback.key) {
           const key = callback.key;
           const newKeyValue = DDHelper.get(key, newValue);
@@ -241,17 +227,15 @@ class EventManager {
         } else {
           callHandler(callback.handler, newValue, previousValue);
         }
-      }
+      });
     }
   }
 
   applyEarlyChanges() {
     const changes = _digitalData.changes;
-    let changeInfo;
-
-    for (changeInfo of changes) {
+    changes.forEach((changeInfo) => {
       this.applyChange(changeInfo);
-    }
+    });
   }
 
   applyChange(changeInfo) {
@@ -264,15 +248,15 @@ class EventManager {
       return true;
     }
 
-    let beforeEventCallback;
-    let result;
-    for (beforeEventCallback of _callbacks.beforeEvent) {
-      result = beforeEventCallback.handler(event);
-      if (result === false) {
-        return false;
+    let result = true;
+
+    _callbacks.beforeEvent.forEach((beforeEventCallback) => {
+      if (beforeEventCallback.handler(event) === false) {
+        result = false;
       }
-    }
-    return true;
+    });
+
+    return result;
   }
 
   fireEvent(event) {
@@ -281,7 +265,7 @@ class EventManager {
     }
 
     if (!this.beforeFireEvent(event)) {
-      return false;
+      return;
     }
     if (_callbacks.event) {
       const results = [];
@@ -303,7 +287,7 @@ class EventManager {
         ready();
       };
 
-      for (const eventCallback of _callbacks.event) {
+      _callbacks.event.forEach((eventCallback) => {
         let eventCopy = clone(event, true);
         deleteProperty(eventCopy, 'callback');
         if (eventCopy.enrichEventData !== false) {
@@ -316,11 +300,9 @@ class EventManager {
           eventCallbackOnComplete(e);
           errorLog(e);
         }
-      }
-    } else {
-      if (typeof event.callback === 'function') {
-        event.callback();
-      }
+      });
+    } else if (typeof event.callback === 'function') {
+      event.callback();
     }
 
     event.hasFired = true;
@@ -328,11 +310,6 @@ class EventManager {
 
   on(eventInfo, handler, processPastEvents) {
     const [type, key] = eventInfo.split(':');
-
-    if (type === 'view') {
-      _viewabilityTracker.addTracker(key, handler);
-      return; // delegate view tracking to ViewabilityTracker
-    }
 
     _callbacks[type] = _callbacks[type] || [];
     _callbacks[type].push({
@@ -346,8 +323,7 @@ class EventManager {
 
   applyCallbackForPastEvents(handler) {
     const events = _digitalData.events;
-    let event;
-    for (event of events) {
+    events.forEach((event) => {
       if (event.hasFired) {
         let eventCopy = clone(event, true);
         deleteProperty(eventCopy, 'callback');
@@ -360,23 +336,22 @@ class EventManager {
           errorLog(e);
         }
       }
-    }
+    });
   }
 
   fireUnfiredEvents() {
     const events = _digitalData.events;
-    for (const event of events) {
+    events.forEach((event, index, originalArray) => {
       if (!event.hasFired) {
         this.fireEvent(event);
       }
-    }
+    });
   }
 
   addEarlyCallbacks() {
-    let callbackInfo;
-    for (callbackInfo of _ddListener) {
+    _ddListener.forEach((callbackInfo) => {
       this.addCallback(callbackInfo);
-    }
+    });
   }
 
   enrichEventWithData(event) {
@@ -394,7 +369,6 @@ class EventManager {
     _ddListener.push = Array.prototype.push;
     _digitalData.changes.push = Array.prototype.push;
     _callbacks = {};
-    _viewabilityTracker = null;
     _sendViewedPageEvent = false;
   }
 }

@@ -1,6 +1,6 @@
-import Integration from './../Integration.js';
-import deleteProperty from './../functions/deleteProperty.js';
-import each from './../functions/each.js';
+import Integration from './../Integration';
+import deleteProperty from 'driveback-utils/deleteProperty';
+import each from 'driveback-utils/each';
 
 import {
   VIEWED_PAGE,
@@ -15,7 +15,6 @@ const SEMANTIC_EVENTS = [
 ];
 
 class SegmentStream extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       sessionLength: 1800, // 30 min
@@ -40,12 +39,12 @@ class SegmentStream extends Integration {
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case 'Viewed Product Detail':
-      enrichableProps = [
-        'product',
-      ];
-      break;
-    default:
+      case 'Viewed Product Detail':
+        enrichableProps = [
+          'product',
+        ];
+        break;
+      default:
       // do nothing
     }
     return enrichableProps;
@@ -70,16 +69,13 @@ class SegmentStream extends Integration {
       'pushOnReady',
     ];
 
-    ssApi.factory = (method) => {
-      return function stub() {
-        const args = Array.prototype.slice.call(arguments);
-        args.unshift(method);
-        ssApi.push(args);
-        return ssApi;
-      };
+    ssApi.factory = method => function stub(...args) {
+      args.unshift(method);
+      ssApi.push(args);
+      return ssApi;
     };
 
-    for (let i = 0; i < ssApi.methods.length; i++) {
+    for (let i = 0; i < ssApi.methods.length; i += 1) {
       const key = ssApi.methods[i];
       ssApi[key] = ssApi.factory(key);
     }

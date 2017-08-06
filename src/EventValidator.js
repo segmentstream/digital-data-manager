@@ -1,4 +1,4 @@
-import { getProp } from './functions/dotProp';
+import { getProp } from 'driveback-utils/dotProp';
 
 const MSG_IS_REQUIRED = 'is required';
 const MSG_NOT_STRING = 'should be a string';
@@ -16,9 +16,7 @@ export const TYPE_ERROR = 'ERR';
 export const TYPE_WARNING = 'WARN';
 export const TYPE_SUCCESS = 'OK';
 
-const empty = (value) => {
-  return (value === undefined || value === null || value === '');
-};
+const empty = value => (value === undefined || value === null || value === '');
 
 const required = (value) => {
   if (empty(value)) {
@@ -72,7 +70,8 @@ const validateField = (field, value, validations = {}) => {
   const warnings = validations.warnings || [];
 
   // validate errors
-  for (const ruleName of errors) {
+  for (let i = 0, length = errors.length; i < length; i += 1) {
+    const ruleName = errors[i];
     const errorMsg = ruleHandlers[ruleName](value);
     if (!empty(errorMsg)) {
       if (errorMsg !== true) {
@@ -82,7 +81,8 @@ const validateField = (field, value, validations = {}) => {
   }
 
   // validate warnings
-  for (const ruleName of warnings) {
+  for (let i = 0, length = warnings.length; i < length; i += 1) {
+    const ruleName = warnings[i];
     const errorMsg = ruleHandlers[ruleName](value);
     if (!empty(errorMsg)) {
       if (errorMsg !== true) {
@@ -100,30 +100,30 @@ const validateField = (field, value, validations = {}) => {
 
 const validateArrayField = (arrayField, arrayFieldValues, subfield, validations) => {
   const messages = [];
-  let result = true;
+  let finalResult = true;
 
   if (!Array.isArray(arrayFieldValues)) {
     const fieldName = [arrayField, subfield].join('[].');
-    let message;
-    [result, message] = validateField(fieldName, undefined, validations);
+    const [result, message] = validateField(fieldName, undefined, validations);
     if (message) {
       messages.push(message);
     }
+    finalResult = result;
   } else {
     let i = 0;
-    for (const arrayFieldValue of arrayFieldValues) {
+    arrayFieldValues.forEach((arrayFieldValue) => {
       const value = getProp(arrayFieldValue, subfield);
       const fieldName = [arrayField, i, subfield].join('.');
       const [fieldResult, message] = validateField(fieldName, value, validations);
-      if (!fieldResult) result = false;
+      if (!fieldResult) finalResult = false;
       if (message) {
         messages.push(message);
       }
       i += 1;
-    }
+    });
   }
 
-  return [result, messages];
+  return [finalResult, messages];
 };
 
 export const validateEvent = (event, validationConfig) => {
@@ -131,24 +131,22 @@ export const validateEvent = (event, validationConfig) => {
   let allMessages = [];
   let finalResult = true;
 
-  for (const field of fields) {
+  fields.forEach((field) => {
     const validations = validationConfig.validations || {};
     const fieldValidations = validations[field];
-    let result;
     if (field.indexOf('[]') > 0) {
-      let messages;
-      const [ arrayField, subfield ] = field.split('[].');
+      const [arrayField, subfield] = field.split('[].');
       const value = getProp(event, arrayField);
-      [result, messages] = validateArrayField(arrayField, value, subfield, fieldValidations);
+      const [result, messages] = validateArrayField(arrayField, value, subfield, fieldValidations);
       allMessages = allMessages.concat(messages);
+      if (!result) finalResult = false;
     } else {
-      let message;
       const value = getProp(event, field);
-      [result, message] = validateField(field, value, fieldValidations);
+      const [result, message] = validateField(field, value, fieldValidations);
       if (message) allMessages.push(message);
+      if (!result) finalResult = false;
     }
-    if (!result) finalResult = false;
-  }
+  });
 
   // console.log(finalResult, allMessages);
 
@@ -164,7 +162,7 @@ export function validateIntegrationEvent(event, integration) {
 }
 
 export function trackValidationErrors(digitalData, event, integrationName, messages = []) {
-  for (const message of messages) {
+  messages.forEach((message) => {
     const [field, errorMsg, , resultType] = message;
     if (resultType === TYPE_ERROR) {
       digitalData.events.push({
@@ -175,5 +173,5 @@ export function trackValidationErrors(digitalData, event, integrationName, messa
         nonInteraction: true,
       });
     }
-  }
+  });
 }

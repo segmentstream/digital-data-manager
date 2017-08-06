@@ -1,8 +1,8 @@
 import trackImpression from './../trackers/trackImpression';
 import trackLink from './../trackers/trackLink';
 import Handler from './../Handler';
-import { error as errorLog } from './../functions/safeConsole';
-import isPromise from './../functions/isPromise';
+import { error as errorLog } from 'driveback-utils/safeConsole';
+import isPromise from 'driveback-utils/isPromise';
 
 const TRIGGER_EVENT = 'event';
 const TRIGGER_IMPRESSION = 'impression';
@@ -35,12 +35,14 @@ class CustomEvent {
   resolveHandlerAndFireEvent(args) {
     const handler = this.newHandler(args);
     const result = handler.run();
-    if (isPromise(result)) {
-      result.then((event) => {
-        this.fireEvent(event);
-      });
-    } else {
-      this.fireEvent(result);
+    if (result) {
+      if (isPromise(result)) {
+        result.then((event) => {
+          this.fireEvent(event);
+        });
+      } else {
+        this.fireEvent(result);
+      }
     }
   }
 
@@ -87,7 +89,6 @@ class CustomEvent {
     if (!event.source) {
       event.source = 'DDManager Custom Event';
     }
-
     this.digitalData.events.push(event);
   }
 }

@@ -1,7 +1,7 @@
 import Integration from './../Integration';
-import getQueryParam from './../functions/getQueryParam';
-import topDomain from './../functions/topDomain';
-import { getProp } from './../functions/dotProp';
+import getQueryParam from 'driveback-utils/getQueryParam';
+import topDomain from 'driveback-utils/topDomain';
+import { getProp } from 'driveback-utils/dotProp';
 import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
 import { isDeduplication, addAffiliateCookie, getAffiliateCookie } from './utils/affiliate';
 
@@ -11,7 +11,6 @@ const DEFAULT_CLICK_HASH_COOKIE_NAME = 'linkprofit_click_hash';
 const DEFAULT_AFFILIATE_ID_COOKIE_NAME = 'linkprofit_affiliate_id';
 
 class Linkprofit extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       defaultCampaignId: '',
@@ -22,7 +21,7 @@ class Linkprofit extends Integration {
       cookieTtl: 90, // days
       deduplication: false,
       utmSource: 'linkprofit', // utm_source which is sent with ClickHash get param
-      deduplicationUtmMedium: [], // by default deduplicate with any source/medium other then linkprofit source
+      deduplicationUtmMedium: [],
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -32,7 +31,7 @@ class Linkprofit extends Integration {
     this.addTag({
       type: 'img',
       attr: {
-        src: `https://cpa.linkprofit.ru/sale?OrderID={{ orderId }}&ClickHash={{ clickHash }}&CampaignID={{ campaignId }}&AffiliateID={{ affiliateId }}`,
+        src: 'https://cpa.linkprofit.ru/sale?OrderID={{ orderId }}&ClickHash={{ clickHash }}&CampaignID={{ campaignId }}&AffiliateID={{ affiliateId }}',
       },
     });
   }
@@ -55,7 +54,7 @@ class Linkprofit extends Integration {
   }
 
   getSemanticEvents() {
-    return [ COMPLETED_TRANSACTION ];
+    return [COMPLETED_TRANSACTION];
   }
 
   getEnrichableEventProps(event) {

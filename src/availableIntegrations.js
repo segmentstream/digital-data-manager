@@ -16,7 +16,7 @@ import OneSignal from './integrations/OneSignal';
 import Sociomantic from './integrations/Sociomantic';
 import Admitad from './integrations/Admitad';
 import Actionpay from './integrations/Actionpay';
-import Mindbox from './integrations/Mindbox.js';
+import Mindbox from './integrations/Mindbox';
 import DoubleClickFloodlight from './integrations/DoubleClickFloodlight';
 import RTBHouse from './integrations/RTBHouse';
 import Ofsys from './integrations/Ofsys';
@@ -39,35 +39,35 @@ const integrations = {
   'Google AdWords': GoogleAdWords,
   'OWOX BI Streaming': OWOXBIStreaming,
   'Facebook Pixel': FacebookPixel,
-  'Driveback': Driveback,
+  Driveback,
   'Retail Rocket': RetailRocket,
-  'SegmentStream': SegmentStream,
-  'SendPulse': SendPulse,
-  'Criteo': Criteo,
-  'myTarget': MyTarget,
+  SegmentStream,
+  SendPulse,
+  Criteo,
+  myTarget: MyTarget,
   'Yandex Metrica': YandexMetrica,
-  'Vkontakte': Vkontakte,
-  'Emarsys': Emarsys,
-  'OneSignal': OneSignal,
-  'Sociomantic': Sociomantic,
-  'Admitad': Admitad,
-  'Actionpay': Actionpay,
-  'Mindbox': Mindbox,
+  Vkontakte,
+  Emarsys,
+  OneSignal,
+  Sociomantic,
+  Admitad,
+  Actionpay,
+  Mindbox,
   'DoubleClick Floodlight': DoubleClickFloodlight,
   'RTB House': RTBHouse,
-  'Ofsys': Ofsys,
-  'Soloway': Soloway,
+  Ofsys,
+  Soloway,
   '1DMC': OneDMC,
-  'AdSpire': AdSpire,
-  'Weborama': Weborama,
-  'CityAds': CityAds,
-  'Aidata': Aidata,
-  'Segmento': Segmento,
-  'Mixmarket': Mixmarket,
-  'GdeSlon': GdeSlon,
-  'RichRelevance': RichRelevance,
-  'Linkprofit': Linkprofit,
-  'Flocktory': Flocktory,
+  AdSpire,
+  Weborama,
+  CityAds,
+  Aidata,
+  Segmento,
+  Mixmarket,
+  GdeSlon,
+  RichRelevance,
+  Linkprofit,
+  Flocktory,
 };
 
 export default integrations;

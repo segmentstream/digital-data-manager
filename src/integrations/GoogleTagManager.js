@@ -1,8 +1,7 @@
-import Integration from './../Integration.js';
-import deleteProperty from './../functions/deleteProperty.js';
+import Integration from './../Integration';
+import deleteProperty from 'driveback-utils/deleteProperty';
 
 class GoogleTagManager extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       containerId: null,

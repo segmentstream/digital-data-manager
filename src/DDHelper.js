@@ -1,5 +1,5 @@
-import { getProp, setProp } from './functions/dotProp';
-import clone from './functions/clone';
+import { getProp, setProp } from 'driveback-utils/dotProp';
+import clone from 'driveback-utils/clone';
 
 function matchProductById(id, product) {
   return product.id && String(product.id) === String(id);
@@ -14,7 +14,6 @@ function matchProduct(id, skuCode, product) {
 }
 
 class DDHelper {
-
   static get(key, digitalData) {
     const value = getProp(digitalData, key);
     return clone(value);
@@ -29,71 +28,94 @@ class DDHelper {
       return clone(digitalData.product);
     }
     // search in listings
-    for (const listingKey of ['listing', 'recommendation', 'wishlist']) {
+    let result;
+
+    ['listing', 'recommendation', 'wishlist'].some((listingKey) => {
       let listings = digitalData[listingKey];
       if (listings) {
         if (!Array.isArray(listings)) {
           listings = [listings];
         }
-        for (const listing of listings) {
+        listings.some((listing) => {
           if (listing.items && listing.items.length) {
-            for (const listingItem of listing.items) {
+            listing.items.some((listingItem) => {
               if (matchProduct(id, skuCode, listingItem)) {
-                const product = clone(listingItem);
-                return product;
+                result = clone(listingItem);
+                return true;
               }
-            }
+              return false;
+            });
+            if (result) return true;
           }
-        }
+          return false;
+        });
       }
-    }
+      if (result) return true;
+      return false;
+    });
+
+    if (result) return result;
+
     // search in cart
     if (digitalData.cart && digitalData.cart.lineItems && digitalData.cart.lineItems.length) {
-      for (const lineItem of digitalData.cart.lineItems) {
+      digitalData.cart.lineItems.some((lineItem) => {
         if (matchProduct(id, skuCode, lineItem.product)) {
-          return clone(lineItem.product);
+          result = clone(lineItem.product);
+          return true;
         }
-      }
+        return false;
+      });
     }
+
+    return result;
   }
 
   static getListItem(id, digitalData, listId) {
-    // search in listings
-    const listingItem = {};
-    for (const listingKey of ['listing', 'recommendation', 'wishlist']) {
+    let result;
+
+    ['listing', 'recommendation', 'wishlist'].some((listingKey) => {
       let listings = digitalData[listingKey];
       if (listings) {
         if (!Array.isArray(listings)) {
           listings = [listings];
         }
-        for (const listing of listings) {
+        listings.some((listing) => {
           if (listing.items && listing.items.length && (!listId || listId === listing.listId)) {
-            for (let i = 0, length = listing.items.length; i < length; i++) {
+            for (let i = 0, length = listing.items.length; i < length; i += 1) {
               if (matchProductById(id, listing.items[i])) {
                 const product = clone(listing.items[i]);
-                listingItem.product = product;
-                listingItem.position = (i + 1);
-                listingItem.listId = listId || listing.listId;
-                listingItem.listName = listing.listName;
-                return listingItem;
+                result = {};
+                result.product = product;
+                result.position = (i + 1);
+                result.listId = listId || listing.listId;
+                result.listName = listing.listName;
+                return true;
               }
             }
           }
-        }
+          return false;
+        });
+        if (result) return true;
       }
-    }
+      return false;
+    });
+
+    return result;
   }
 
   static getCampaign(id, digitalData) {
+    let result;
     if (digitalData.campaigns && digitalData.campaigns.length) {
-      for (const campaign of digitalData.campaigns) {
+      digitalData.campaigns.some((campaign) => {
         if (campaign.id && String(campaign.id) === String(id)) {
-          return clone(campaign);
+          result = clone(campaign);
+          return true;
         }
-      }
+        return false;
+      });
     }
+    return result;
   }
-
 }
 
 export default DDHelper;

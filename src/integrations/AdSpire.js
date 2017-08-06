@@ -1,8 +1,8 @@
 import Integration from './../Integration';
-import cleanObject from './../functions/cleanObject';
-import { getProp } from './../functions/dotProp';
-import ipToLong from './../functions/ipToLong';
-import normalizeString from './../functions/normalizeString';
+import cleanObject from 'driveback-utils/cleanObject';
+import { getProp } from 'driveback-utils/dotProp';
+import ipToLong from 'driveback-utils/ipToLong';
+import normalizeString from 'driveback-utils/normalizeString';
 import md5 from 'crypto-js/md5';
 import {
   VIEWED_PAGE,
@@ -48,18 +48,18 @@ class AdSpire extends Integration {
 
   getEnrichableEventProps(event) {
     switch (event.name) {
-    case VIEWED_PAGE:
-      return ['page.type'];
-    case VIEWED_PRODUCT_DETAIL:
-      return ['product'];
-    case COMPLETED_TRANSACTION:
-      return ['transaction', 'user.email', 'user.firstName', 'user.lastName'];
-    case VIEWED_PRODUCT_LISTING:
-      return ['listing.categoryId', 'listing.category'];
-    case VIEWED_CART:
-      return ['cart'];
-    default:
-      return [];
+      case VIEWED_PAGE:
+        return ['page.type'];
+      case VIEWED_PRODUCT_DETAIL:
+        return ['product'];
+      case COMPLETED_TRANSACTION:
+        return ['transaction', 'user.email', 'user.firstName', 'user.lastName'];
+      case VIEWED_PRODUCT_LISTING:
+        return ['listing.categoryId', 'listing.category'];
+      case VIEWED_CART:
+        return ['cart'];
+      default:
+        return [];
     }
   }
 

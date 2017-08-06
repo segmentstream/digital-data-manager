@@ -1,10 +1,10 @@
-import size from './functions/size';
-import each from './functions/each';
-import after from './functions/after';
-import { warn } from './functions/safeConsole';
+import size from 'driveback-utils/size';
+import each from 'driveback-utils/each';
+import after from 'driveback-utils/after';
+import { warn } from 'driveback-utils/safeConsole';
 import Integration from './Integration';
-import clone from './functions/clone';
-import { bind } from './functions/eventListener';
+import clone from 'driveback-utils/clone';
+import { bind } from 'driveback-utils/eventListener';
 
 /**
  * @type {Object}
@@ -24,7 +24,7 @@ const IntegrationsLoader = {
   },
 
   addIntegration: (name, integration, ddManager) => {
-    if (!integration instanceof Integration || !name) {
+    if (!(integration instanceof Integration) || !name) {
       throw new TypeError('attempted to add an invalid integration');
     }
 
@@ -34,29 +34,27 @@ const IntegrationsLoader = {
     _integrations[name] = integration;
   },
 
-  getIntegration: (name) => {
-    return _integrations[name];
-  },
+  getIntegration: name => _integrations[name],
 
-  getIntegrations: () => {
-    return _integrations;
-  },
+  getIntegrations: () => _integrations,
 
   addIntegrations: (integrationSettings, ddManager) => {
     if (integrationSettings) {
       if (Array.isArray(integrationSettings)) {
-        for (const integrationSetting of integrationSettings) {
+        integrationSettings.forEach((integrationSetting) => {
           const name = integrationSetting.name;
           const options = clone(integrationSetting.options, true);
           if (typeof _availableIntegrations[name] === 'function') {
-            const integration = new _availableIntegrations[name](ddManager.getDigitalData(), options || {});
+            const integration =
+              new _availableIntegrations[name](ddManager.getDigitalData(), options || {});
             IntegrationsLoader.addIntegration(name, integration, ddManager);
           }
-        }
+        });
       } else {
         each(integrationSettings, (name, options) => {
           if (typeof _availableIntegrations[name] === 'function') {
-            const integration = new _availableIntegrations[name](ddManager.getDigitalData(), clone(options, true));
+            const integration =
+              new _availableIntegrations[name](ddManager.getDigitalData(), clone(options, true));
             IntegrationsLoader.addIntegration(name, integration, ddManager);
           }
         });
@@ -126,9 +124,9 @@ const IntegrationsLoader = {
   },
 
   loadIntegrationsFromList(list, loaded) {
-    for (const integrationName of list) {
+    list.forEach((integrationName) => {
       IntegrationsLoader.loadIntegration(integrationName, loaded);
-    }
+    });
   },
 
   loadIntegration(integrationName, callback) {

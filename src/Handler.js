@@ -1,9 +1,9 @@
-import getQueryParam from './functions/getQueryParam';
+import getQueryParam from 'driveback-utils/getQueryParam';
 import cookie from 'js-cookie';
 import DDHelper from './DDHelper';
-import domQuery from './functions/domQuery';
-import { getProp } from './functions/dotProp';
-import getDataLayerProp from './functions/getDataLayerProp';
+import domQuery from 'driveback-utils/domQuery';
+import { getProp } from 'driveback-utils/dotProp';
+import getDataLayerProp from 'driveback-utils/getDataLayerProp';
 
 class Handler {
   constructor(handler, digitalData, args) {
@@ -12,16 +12,10 @@ class Handler {
     this.utils = {
       queryParam: getQueryParam,
       cookie: cookie.get,
-      get: (target, key) => {
-        return getProp(target, key);
-      },
-      digitalData: (key) => {
-        return DDHelper.get(key, digitalData);
-      },
-      domQuery: domQuery,
-      global: (key) => {
-        return getProp(window, key);
-      },
+      get: (target, key) => getProp(target, key),
+      digitalData: key => DDHelper.get(key, digitalData),
+      domQuery,
+      global: key => getProp(window, key),
       dataLayer: getDataLayerProp,
       fetch: (url, options, callback) => {
         if (!callback) {
@@ -29,9 +23,7 @@ class Handler {
           options = undefined;
         }
         return new Promise((resolve) => {
-          window.fetch(url, options).then((response) => {
-            return response.text();
-          }).then((text) => {
+          window.fetch(url, options).then(response => response.text()).then((text) => {
             try {
               text = JSON.parse(text);
             } catch (error) {
@@ -41,13 +33,11 @@ class Handler {
           });
         });
       },
-      timeout: (delay, callback) => {
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            resolve(callback());
-          }, delay);
-        });
-      },
+      timeout: (delay, callback) => new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(callback());
+        }, delay);
+      }),
     };
   }
 

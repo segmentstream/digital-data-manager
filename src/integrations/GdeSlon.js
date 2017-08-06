@@ -1,6 +1,6 @@
 import Integration from './../Integration';
-import getQueryParam from './../functions/getQueryParam';
-import { getProp } from './../functions/dotProp';
+import getQueryParam from 'driveback-utils/getQueryParam';
+import { getProp } from 'driveback-utils/dotProp';
 import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
 import { isDeduplication, addAffiliateCookie, getAffiliateCookie } from './utils/affiliate';
 
@@ -12,7 +12,6 @@ const DEFAULT_CLICK_REF_COOKIE_NAME = 'gdeslon_ref';
 const DEFAULT_AID_COOKIE_NAME = 'gdeslon_aid';
 
 class GdeSlon extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       merchantId: '',
@@ -23,7 +22,7 @@ class GdeSlon extends Integration {
       cookieDomain: '',
       deduplication: false,
       utmSource: DEFAULT_UTM_SOURCE, // utm_source for mixmarket leads
-      deduplicationUtmMedium: [], // by default deduplicate with any source/medium other then mixmarket source
+      deduplicationUtmMedium: [],
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -58,7 +57,7 @@ class GdeSlon extends Integration {
   }
 
   getSemanticEvents() {
-    return [ COMPLETED_TRANSACTION ];
+    return [COMPLETED_TRANSACTION];
   }
 
   getEnrichableEventProps(event) {

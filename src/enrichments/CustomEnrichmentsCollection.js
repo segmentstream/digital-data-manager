@@ -40,16 +40,16 @@ class CustomEnrichmentsCollection {
   }
 
   reset() {
-    for (const enrichment of this.enrichments) {
+    this.enrichments.forEach((enrichment) => {
       enrichment.reset();
-    }
+    });
   }
 
   enrich(target, args, direct = false) {
     this.reset();
-    for (const enrichment of this.enrichments) {
+    this.enrichments.forEach((enrichment) => {
       enrichment.enrich(target, args, direct);
-    }
+    });
   }
 }
 

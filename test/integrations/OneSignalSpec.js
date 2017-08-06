@@ -3,9 +3,9 @@ import ddManager from './../../src/ddManager.js';
 import sinon from 'sinon';
 import assert from 'assert';
 import reset from './../reset.js';
-import after from './../../src/functions/after.js';
-import deleteProperty from './../../src/functions/deleteProperty.js';
-import noop from './../../src/functions/noop';
+import after from 'driveback-utils/after.js';
+import deleteProperty from 'driveback-utils/deleteProperty.js';
+import noop from 'driveback-utils/noop';
 
 describe('OneSignal', function() {
 

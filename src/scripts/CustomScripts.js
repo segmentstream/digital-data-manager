@@ -15,13 +15,13 @@ class CustomScripts {
 
   import(scriptsConfig) {
     scriptsConfig = scriptsConfig || [];
-    for (const scriptConfig of scriptsConfig) {
+    scriptsConfig.forEach((scriptConfig) => {
       const eventName = scriptConfig.event;
       const customScript = new CustomScript(
         scriptConfig.name,
         eventName,
         scriptConfig.handler,
-        this.digitalData
+        this.digitalData,
       );
 
       if (!eventName) {
@@ -29,7 +29,7 @@ class CustomScripts {
       } else {
         this.prepareCollection(SCRIPT_TRIGGER_EVENT, eventName).push(customScript);
       }
-    }
+    });
   }
 
   prepareCollection(trigger, event) {
@@ -49,9 +49,9 @@ class CustomScripts {
     } else {
       customScripts = storage[SCRIPT_TRIGGER_INIT] || [];
     }
-    for (const customScript of customScripts) {
+    customScripts.forEach((customScript) => {
       customScript.run(event);
-    }
+    });
   }
 
   reset() {

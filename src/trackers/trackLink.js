@@ -1,7 +1,7 @@
-import { bind, unbind } from './../functions/eventListener';
-import isMeta from './../functions/isMeta';
-import preventDefault from './../functions/preventDefault';
-import domQuery from './../functions/domQuery';
+import { bind, unbind } from 'driveback-utils/eventListener';
+import isMeta from 'driveback-utils/isMeta';
+import preventDefault from 'driveback-utils/preventDefault';
+import domQuery from 'driveback-utils/domQuery';
 
 function applyHandler(event, el, handler) {
   const href = (
@@ -48,22 +48,20 @@ export default function trackLink(selector, handler) {
 
   let trackedLinks;
 
-  bind(window.document, 'click', function bindClickListeners() {
+  bind(window.document, 'click', () => {
     const links = domQuery(selector);
     trackedLinks = [];
-    for (const el of links) {
+    links.forEach((el) => {
       const onClickHandler = onClick(el, handler);
       bind(el, 'click', onClickHandler);
       trackedLinks.push([el, onClickHandler]);
-    }
+    });
   }, true); // capturing phase
 
-  bind(window.document, 'click', function unbindClickListeners() {
-    for (const trackedLink of trackedLinks) {
+  bind(window.document, 'click', () => {
+    trackedLinks.forEach((trackedLink) => {
       const [el, onClickHandler] = trackedLink;
       unbind(el, 'click', onClickHandler);
-    }
+    });
   }); // bubbling phase
-
-  return;
 }

@@ -6,7 +6,7 @@ class AsyncQueue {
     // emulate async queue for Ofsys sync script
     let invervalCounter = 0;
     const invervalId = setInterval(() => {
-      invervalCounter++;
+      invervalCounter += 1;
       if (isLoadedDelegate()) {
         this.flushQueue();
         clearInterval(invervalId);

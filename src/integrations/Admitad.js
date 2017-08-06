@@ -1,10 +1,10 @@
 import Integration from './../Integration';
-import deleteProperty from './../functions/deleteProperty';
-import cleanObject from './../functions/cleanObject';
-import getQueryParam from './../functions/getQueryParam';
-import topDomain from './../functions/topDomain';
-import { getProp } from './../functions/dotProp';
-import normalizeString from './../functions/normalizeString';
+import deleteProperty from 'driveback-utils/deleteProperty';
+import cleanObject from 'driveback-utils/cleanObject';
+import getQueryParam from 'driveback-utils/getQueryParam';
+import topDomain from 'driveback-utils/topDomain';
+import { getProp } from 'driveback-utils/dotProp';
+import normalizeString from 'driveback-utils/normalizeString';
 import { COMPLETED_TRANSACTION, LEAD } from './../events/semanticEvents';
 import cookie from 'js-cookie';
 
@@ -31,7 +31,6 @@ function normalizeOptions(options) {
 }
 
 class Admitad extends Integration {
-
   constructor(digitalData, options) {
     normalizeOptions(options);
     const optionsWithDefaults = Object.assign({
@@ -45,7 +44,7 @@ class Admitad extends Integration {
       cookieTtl: 90, // days
       deduplication: false,
       utmSource: 'admitad', // utm_source which is sent with admitad_uid get param
-      deduplicationUtmMedium: [], // by default deduplicate with any source/medium other then admitad source
+      deduplicationUtmMedium: [],
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -204,9 +203,9 @@ class Admitad extends Integration {
 
     const lineItems = transaction.lineItems;
     let index = 1;
-    for (const lineItem of lineItems) {
+    lineItems.forEach((lineItem) => {
       window[ADMITAD_POSITIONS_VAR].push(cleanObject({
-        uid: uid,
+        uid,
         order_id: transaction.orderId,
         position_id: index,
         client_id: getProp(event, 'user.userId'),
@@ -222,7 +221,7 @@ class Admitad extends Integration {
         payment_type: PAYMENT_TYPE_SALE,
       }));
       index += 1;
-    }
+    });
 
     this.load('trackingPixel');
   }
@@ -235,7 +234,7 @@ class Admitad extends Integration {
     this.setupPixel(event);
 
     window[ADMITAD_POSITIONS_VAR].push(cleanObject({
-      uid: uid,
+      uid,
       order_id: getProp(event, 'lead.id'),
       client_id: getProp(event, 'user.userId'),
       tariff_code: getProp(event, 'admitad.tariffCode') || '1',

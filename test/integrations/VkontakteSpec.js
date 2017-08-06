@@ -1,7 +1,7 @@
 import assert from 'assert';
 import sinon from 'sinon';
 import reset from './../reset.js';
-import noop from './../../src/functions/noop';
+import noop from 'driveback-utils/noop';
 import Vkontakte from './../../src/integrations/Vkontakte.js';
 import ddManager from './../../src/ddManager.js';
 

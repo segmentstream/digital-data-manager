@@ -1,7 +1,7 @@
 import Integration from './../Integration';
-import deleteProperty from './../functions/deleteProperty';
-import cleanObject from './../functions/cleanObject';
-import { getProp } from './../functions/dotProp';
+import deleteProperty from 'driveback-utils/deleteProperty';
+import cleanObject from 'driveback-utils/cleanObject';
+import { getProp } from 'driveback-utils/dotProp';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -28,13 +28,12 @@ function getProductCategory(product) {
   if (Array.isArray(category)) {
     category = category.join('/');
   } else if (category && product.subcategory) {
-    category = category + '/' + product.subcategory;
+    category = `${category}/${product.subcategory}`;
   }
   return category;
 }
 
 class FacebookPixel extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       pixelId: '',
@@ -53,11 +52,11 @@ class FacebookPixel extends Integration {
     ];
 
     this.customEvents = Object.keys(this.getOption('customEvents') || {});
-    for (const customEvent of this.customEvents) {
+    this.customEvents.forEach((customEvent) => {
       if (this.SEMANTIC_EVENTS.indexOf(customEvent) < 0) {
         this.SEMANTIC_EVENTS.push(customEvent);
       }
-    }
+    });
 
     this.addTag({
       type: 'script',
@@ -83,9 +82,9 @@ class FacebookPixel extends Integration {
       window.fbq.version = '2.0';
       window.fbq.queue = [];
 
-      for (const pixelId of pixelIds.split(',')) {
+      pixelIds.split(',').forEach((pixelId) => {
         window.fbq('init', pixelId);
-      }
+      });
     }
   }
 
@@ -96,23 +95,23 @@ class FacebookPixel extends Integration {
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case VIEWED_PRODUCT_DETAIL:
-      enrichableProps = [
-        'product',
-      ];
-      break;
-    case SEARCHED_PRODUCTS:
-      enrichableProps = [
-        'listing.query',
-      ];
-      break;
-    case COMPLETED_TRANSACTION:
-      enrichableProps = [
-        'website.currency',
-        'transaction',
-      ];
-      break;
-    default:
+      case VIEWED_PRODUCT_DETAIL:
+        enrichableProps = [
+          'product',
+        ];
+        break;
+      case SEARCHED_PRODUCTS:
+        enrichableProps = [
+          'listing.query',
+        ];
+        break;
+      case COMPLETED_TRANSACTION:
+        enrichableProps = [
+          'website.currency',
+          'transaction',
+        ];
+        break;
+      default:
       // do nothing
     }
 
@@ -250,9 +249,7 @@ class FacebookPixel extends Integration {
 
   onCompletedTransaction(transaction) {
     if (transaction.lineItems && transaction.lineItems.length) {
-      const contentIds = transaction.lineItems.map((lineItem) => {
-        return getProp(lineItem, 'product.id');
-      });
+      const contentIds = transaction.lineItems.map(lineItem => getProp(lineItem, 'product.id'));
 
       window.fbq('track', 'Purchase', cleanObject({
         content_ids: contentIds,

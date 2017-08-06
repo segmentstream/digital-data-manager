@@ -1,8 +1,8 @@
 import Integration from './../Integration';
-import { getProp, setProp } from './../functions/dotProp';
+import { getProp, setProp } from 'driveback-utils/dotProp';
 import { VIEWED_PAGE } from './../events/semanticEvents';
 import cookie from 'js-cookie';
-import topDomain from './../functions/topDomain';
+import topDomain from 'driveback-utils/topDomain';
 
 const TAG_COOKIE_SYNC = 'cookieSync';
 const TAG_SUPER_SYNC = 'superSync';
@@ -115,7 +115,7 @@ class OneDMC extends Integration {
       const ttlInSeconds = PROFILE_ENRICHMENT_FOUND_TTL * 24 * 60 * 60;
       const attributes = profile.attributes;
       const attributesMapping = this.getOption('attributesMapping');
-      for (const attribute of attributes) {
+      attributes.forEach((attribute) => {
         let key = attribute.primary;
         if (key) {
           let enrichableVar = attributesMapping[key];
@@ -135,7 +135,7 @@ class OneDMC extends Integration {
             }
           }
         }
-      }
+      });
     });
   }
 

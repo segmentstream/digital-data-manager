@@ -1,10 +1,9 @@
-import { getProp } from './functions/dotProp';
+import { getProp } from 'driveback-utils/dotProp';
 
 const keyPersistedKeys = '_persistedKeys';
 const keyLastEventTimestamp = '_lastEventTimestamp';
 
-class DDStorage
-{
+class DDStorage {
   constructor(digitalData, storage) {
     this.digitalData = digitalData;
     this.storage = storage;
@@ -18,7 +17,7 @@ class DDStorage
         persistedKeys.push(key);
         this.updatePersistedKeys(persistedKeys);
       }
-      return this.storage.set(key, value, exp);
+      this.storage.set(key, value, exp);
     }
   }
 
@@ -63,9 +62,9 @@ class DDStorage
 
   clear() {
     const persistedKeys = this.getPersistedKeys();
-    for (const key of persistedKeys) {
+    persistedKeys.forEach((key) => {
       this.storage.remove(key);
-    }
+    });
     this.storage.remove(keyPersistedKeys);
     this.storage.remove(keyLastEventTimestamp);
   }

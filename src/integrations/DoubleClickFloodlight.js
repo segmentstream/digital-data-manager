@@ -1,14 +1,13 @@
 import {
-  Integration,
   getEnrichableVariableMappingProps,
   extractVariableMappingValues,
-} from './../Integration';
-import { stringify } from './../functions/queryString';
-import cleanObject from './../functions/cleanObject';
+} from './../IntegrationUtils';
+import Integration from './../Integration';
+import { stringify } from 'driveback-utils/queryString';
+import cleanObject from 'driveback-utils/cleanObject';
 import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
 
 class DoubleClickFloodlight extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       advertiserId: '',
@@ -37,18 +36,19 @@ class DoubleClickFloodlight extends Integration {
     this.enrichableEventProps = [];
     this.SEMANTIC_EVENTS = [];
 
-    for (const tagEvent of this.tagEvents) {
+    this.tagEvents.forEach((tagEvent) => {
       const tagOptions = this.getOption('eventTags')[tagEvent];
       if (tagOptions) {
-        this.enrichableEventProps[tagEvent] = getEnrichableVariableMappingProps(tagOptions.customVars);
+        this.enrichableEventProps[tagEvent] =
+          getEnrichableVariableMappingProps(tagOptions.customVars);
         this.SEMANTIC_EVENTS.push(tagEvent);
       }
-    }
+    });
 
     this.addTag({
       type: 'img',
       attr: {
-        src: `//ad.doubleclick.net/activity;src={{ src }};type={{ type }};cat={{ cat }};ord={{ ord }};{{ customVariables }}?`,
+        src: '//ad.doubleclick.net/activity;src={{ src }};type={{ type }};cat={{ cat }};ord={{ ord }};{{ customVariables }}?',
       },
     });
   }
@@ -106,9 +106,8 @@ class DoubleClickFloodlight extends Integration {
       return cleanObject({
         ord: transaction.orderId,
         cost: transaction.total || transaction.subtotal,
-        qty: (hasLineItems) ? lineItems.reduce(function countLineItemsQuantity(acc, lineItem) {
-          return acc + lineItem.quantity || 1;
-        }, 0) : undefined,
+        qty: (hasLineItems) ?
+          lineItems.reduce((acc, lineItem) => acc + lineItem.quantity || 1, 0) : undefined,
       });
     }
     return this.getCustomEventTagParams();

@@ -1,7 +1,6 @@
-import Integration from './../Integration.js';
+import Integration from './../Integration';
 
 class OWOXBIStreaming extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       namespace: undefined,
@@ -46,12 +45,12 @@ class OWOXBIStreaming extends Integration {
 
   ga() {
     if (!this.getOption('namespace')) {
-      window.ga.apply(window, arguments);
+      window.ga(...arguments);
     } else {
       if (arguments[0]) {
-        arguments[0] = this.getOption('namespace') + '.' + arguments[0];
+        arguments[0] = `${this.getOption('namespace')}.${arguments[0]}`;
       }
-      window.ga.apply(window, arguments);
+      window.ga(...arguments);
     }
   }
 }

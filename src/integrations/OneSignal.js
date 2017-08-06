@@ -1,7 +1,7 @@
 import Integration from './../Integration';
-import deleteProperty from './../functions/deleteProperty';
-import { getProp } from './../functions/dotProp';
-import each from './../functions/each';
+import deleteProperty from 'driveback-utils/deleteProperty';
+import { getProp } from 'driveback-utils/dotProp';
+import each from 'driveback-utils/each';
 import {
   VIEWED_PAGE,
   SUBSCRIBED,
@@ -59,7 +59,6 @@ function clickListenerWorkaround() {
 }
 
 class OneSignal extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       appId: '',
@@ -89,7 +88,7 @@ class OneSignal extends Integration {
       type: 'link',
       attr: {
         rel: 'manifest',
-        href: optionsWithDefaults.path.replace(/\/$/, '') + '/manifest.json',
+        href: `${optionsWithDefaults.path.replace(/\/$/, '')}/manifest.json`,
       },
     });
     this.addTag({
@@ -116,9 +115,9 @@ class OneSignal extends Integration {
 
     if (this.SEMANTIC_EVENTS.indexOf(event.name) >= 0) {
       const enrichableTagProps = this.getEnrichableTagProps();
-      for (const enrichableTagProp of enrichableTagProps) {
+      enrichableTagProps.forEach((enrichableTagProp) => {
         enrichableProps.push(enrichableTagProp);
-      }
+      });
     }
     return enrichableProps;
   }
@@ -158,7 +157,8 @@ class OneSignal extends Integration {
 
     if (this.getOption('path') && this.getOption('path') !== '/') {
       window.OneSignal.push(() => {
-        // This registers the workers at the root scope, which is allowed by the HTTP header "Service-Worker-Allowed: /"
+        // This registers the workers at the root scope, which is allowed
+        // by the HTTP header "Service-Worker-Allowed: /"
         window.OneSignal.SERVICE_WORKER_PARAM = { scope: '/' };
       });
     }
@@ -232,12 +232,12 @@ class OneSignal extends Integration {
     const newTagsKeys = Object.keys(newTags);
     const tagsToSend = {};
     let tagsToSendCount = 0;
-    for (const key of newTagsKeys) {
+    newTagsKeys.forEach((key) => {
       if (String(newTags[key]) !== String(currentTags[key])) {
         tagsToSend[key] = newTags[key];
         tagsToSendCount += 1;
       }
-    }
+    });
     if (tagsToSendCount > 0) {
       return tagsToSend;
     }
@@ -264,22 +264,22 @@ class OneSignal extends Integration {
       if (isSupported) {
         window.OneSignal.push(['getNotificationPermission', (permission) => {
           switch (permission) {
-          case 'granted':
-            pushNotification.isSubscribed = true;
-            window.OneSignal.push(['getUserId', (userId) => {
-              pushNotification.userId = userId;
+            case 'granted':
+              pushNotification.isSubscribed = true;
+              window.OneSignal.push(['getUserId', (userId) => {
+                pushNotification.userId = userId;
+                this.onEnrich();
+              }]);
+              break;
+            case 'denied':
+              pushNotification.isSubscribed = false;
+              pushNotification.isDenied = true;
               this.onEnrich();
-            }]);
-            break;
-          case 'denied':
-            pushNotification.isSubscribed = false;
-            pushNotification.isDenied = true;
-            this.onEnrich();
-            break;
-          default:
-            pushNotification.isSubscribed = false;
-            this.onEnrich();
-            break;
+              break;
+            default:
+              pushNotification.isSubscribed = false;
+              this.onEnrich();
+              break;
           }
         }]);
       } else {
@@ -300,9 +300,9 @@ class OneSignal extends Integration {
         }
         if (tagsToDelete) {
           window.OneSignal.deleteTags(tagsToDelete);
-          for (const tagKeyToDelete of tagsToDelete) {
+          tagsToDelete.forEach((tagKeyToDelete) => {
             deleteProperty(this.currentTags, tagKeyToDelete);
-          }
+          });
         }
       });
     });

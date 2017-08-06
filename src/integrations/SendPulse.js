@@ -1,9 +1,8 @@
-import Integration from './../Integration.js';
-import deleteProperty from './../functions/deleteProperty.js';
-import { getProp } from './../functions/dotProp';
+import Integration from './../Integration';
+import deleteProperty from 'driveback-utils/deleteProperty';
+import { getProp } from 'driveback-utils/dotProp';
 
 class SendPulse extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       https: false,
@@ -65,14 +64,12 @@ class SendPulse extends Integration {
               pushNotification.isDenied = true;
             }
           }
+        } else if (subscriptionInfo.value === 'DENY') {
+          pushNotification.isSubscribed = false;
+          pushNotification.isDenied = true;
         } else {
-          if (subscriptionInfo.value === 'DENY') {
-            pushNotification.isSubscribed = false;
-            pushNotification.isDenied = true;
-          } else {
-            pushNotification.isSubscribed = true;
-            pushNotification.subscriptionId = subscriptionInfo.value;
-          }
+          pushNotification.isSubscribed = true;
+          pushNotification.subscriptionId = subscriptionInfo.value;
         }
         this.onSubscriptionStatusReceived();
         this.onEnrich();
@@ -131,7 +128,7 @@ class SendPulse extends Integration {
 
   sendUserAttributes(digitalData) {
     const userVariables = this.getOption('userVariables');
-    for (const userVar of userVariables) {
+    userVariables.forEach((userVar) => {
       let value;
       if (userVar.indexOf('.') < 0) { // legacy version
         value = getProp(digitalData.user, userVar);
@@ -144,7 +141,7 @@ class SendPulse extends Integration {
       ) {
         window.oSpP.push(userVar, String(value));
       }
-    }
+    });
   }
 
   isLoaded() {

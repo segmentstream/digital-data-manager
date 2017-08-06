@@ -1,8 +1,8 @@
 import Integration from './../Integration';
-import { getProp } from './../functions/dotProp';
-import cleanObject from './../functions/cleanObject';
-import deletePropery from './../functions/deleteProperty';
-import normalizeString from './../functions/normalizeString';
+import { getProp } from 'driveback-utils/dotProp';
+import cleanObject from 'driveback-utils/cleanObject';
+import deletePropery from 'driveback-utils/deleteProperty';
+import normalizeString from 'driveback-utils/normalizeString';
 import md5 from 'crypto-js/md5';
 import {
   VIEWED_PAGE,
@@ -29,7 +29,6 @@ const SEMANTIC_EVENTS = [
 ];
 
 class Soloway extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       siteId: '',
@@ -124,26 +123,26 @@ class Soloway extends Integration {
   getEnrichableEventProps(event) {
     let enrichableProps;
     switch (event.name) {
-    case VIEWED_PRODUCT_DETAIL:
-      enrichableProps = ['product.id', 'product.categoryId'];
-      break;
-    case ADDED_PRODUCT:
-      enrichableProps = ['product.id', 'product.categoryId'];
-      break;
-    case REMOVED_PRODUCT:
-      enrichableProps = ['product.id', 'product.categoryId'];
-      break;
-    case COMPLETED_TRANSACTION:
-      enrichableProps = ['transaction.orderId', 'transaction.total'];
-      break;
-    case REGISTERED:
-      enrichableProps = ['user.userId'];
-      break;
-    case LOGGED_IN:
-      enrichableProps = ['user.userId'];
-      break;
-    default:
-      enrichableProps = [];
+      case VIEWED_PRODUCT_DETAIL:
+        enrichableProps = ['product.id', 'product.categoryId'];
+        break;
+      case ADDED_PRODUCT:
+        enrichableProps = ['product.id', 'product.categoryId'];
+        break;
+      case REMOVED_PRODUCT:
+        enrichableProps = ['product.id', 'product.categoryId'];
+        break;
+      case COMPLETED_TRANSACTION:
+        enrichableProps = ['transaction.orderId', 'transaction.total'];
+        break;
+      case REGISTERED:
+        enrichableProps = ['user.userId'];
+        break;
+      case LOGGED_IN:
+        enrichableProps = ['user.userId'];
+        break;
+      default:
+        enrichableProps = [];
     }
 
     enrichableProps.push('user.email', 'user.hasTransacted');

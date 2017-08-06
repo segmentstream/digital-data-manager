@@ -1,5 +1,5 @@
-import Integration from './../Integration.js';
-import { getProp } from './../functions/dotProp';
+import Integration from './../Integration';
+import { getProp } from 'driveback-utils/dotProp';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -24,7 +24,6 @@ const DEFAULT_DEDUPLICATION = 'default';
 const RTBHOUSE_UTM_SOURCE = 'rtbhouse';
 
 class RTBHouse extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       accountKey: '',
@@ -69,7 +68,7 @@ class RTBHouse extends Integration {
     this.addTag('basketadd', {
       type: 'script',
       attr: {
-        src: `//creativecdn.com/tags?type=script&id=pr_VB82iQFyqcxTg1HWJlJM_basketadd_{{ productId }}{{ userSegmentParams }}`,
+        src: '//creativecdn.com/tags?type=script&id=pr_VB82iQFyqcxTg1HWJlJM_basketadd_{{ productId }}{{ userSegmentParams }}',
       },
     });
     this.addTag('basketstatus', {
@@ -100,40 +99,40 @@ class RTBHouse extends Integration {
     let enrichableProps;
 
     switch (event.name) {
-    case VIEWED_PAGE:
-      enrichableProps = [
-        'page.type',
-      ];
-      break;
-    case VIEWED_PRODUCT_DETAIL:
-      enrichableProps = [
-        'product.id',
-      ];
-      break;
-    case VIEWED_PRODUCT_LISTING:
-      enrichableProps = [
-        'listing.categoryId',
-      ];
-      break;
-    case SEARCHED_PRODUCTS:
-      enrichableProps = [
-        'listing.items',
-      ];
-      break;
-    case VIEWED_CART:
-      enrichableProps = [
-        'cart',
-      ];
-      break;
-    case COMPLETED_TRANSACTION:
-      enrichableProps = [
-        'context.campaign',
-        'transaction',
-      ];
-      break;
-    default:
-      enrichableProps = [];
-      break;
+      case VIEWED_PAGE:
+        enrichableProps = [
+          'page.type',
+        ];
+        break;
+      case VIEWED_PRODUCT_DETAIL:
+        enrichableProps = [
+          'product.id',
+        ];
+        break;
+      case VIEWED_PRODUCT_LISTING:
+        enrichableProps = [
+          'listing.categoryId',
+        ];
+        break;
+      case SEARCHED_PRODUCTS:
+        enrichableProps = [
+          'listing.items',
+        ];
+        break;
+      case VIEWED_CART:
+        enrichableProps = [
+          'cart',
+        ];
+        break;
+      case COMPLETED_TRANSACTION:
+        enrichableProps = [
+          'context.campaign',
+          'transaction',
+        ];
+        break;
+      default:
+        enrichableProps = [];
+        break;
     }
 
     const userSegmentVar = this.getOption('userSegmentVar');
@@ -148,7 +147,7 @@ class RTBHouse extends Integration {
     const listingValidations = {};
     const listingFields = [];
     const listingItemsCount = getProp(event, 'listing.items.length') || 0;
-    for (let i = 0; i < Math.min(listingItemsCount, 5); i++) {
+    for (let i = 0; i < Math.min(listingItemsCount, 5); i += 1) {
       const fieldName = ['listing.items', i, 'id'].join('.');
       listingFields.push(fieldName);
       listingValidations[fieldName] = {
@@ -200,7 +199,7 @@ class RTBHouse extends Integration {
       [VIEWED_CHECKOUT_STEP]: {
         fields: ['step'],
         validations: {
-          'step': {
+          step: {
             warnings: ['required'],
           },
         },
@@ -379,7 +378,7 @@ class RTBHouse extends Integration {
       this.load('basketadd', { productId: product.id });
       this.pageTracked = true;
     }
-  }*/
+  } */
 
   onViewedCheckoutStep(event) {
     const step = (event.step !== undefined) ? event.step : 1;
@@ -392,7 +391,10 @@ class RTBHouse extends Integration {
 
   onCompletedTransaction(event) {
     const transaction = event.transaction;
-    if (transaction && transaction.orderId && transaction.lineItems && transaction.lineItems.length > 0) {
+    if (
+      transaction && transaction.orderId && transaction.lineItems
+      && transaction.lineItems.length > 0
+    ) {
       const orderId = transaction.orderId;
       const total = transaction.total;
       const productIds = transaction.lineItems.reduce((str, lineItem, index) => {

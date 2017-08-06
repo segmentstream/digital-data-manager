@@ -1,8 +1,8 @@
-import Integration from './../Integration.js';
-import deleteProperty from './../functions/deleteProperty';
-import { getProp } from './../functions/dotProp';
-import getVarValue from './../functions/getVarValue';
-import each from './../functions/each';
+import Integration from './../Integration';
+import deleteProperty from 'driveback-utils/deleteProperty';
+import { getProp } from 'driveback-utils/dotProp';
+import getVarValue from 'driveback-utils/getVarValue';
+import each from 'driveback-utils/each';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -26,7 +26,6 @@ const SEMANTIC_EVENTS = [
 ];
 
 class RetailRocket extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       partnerId: '',
@@ -61,33 +60,33 @@ class RetailRocket extends Integration {
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case VIEWED_PAGE:
-      enrichableProps = [
-        'user.email',
-        'user.isSubscribed',
-      ];
-      break;
-    case VIEWED_PRODUCT_DETAIL:
-      enrichableProps = [
-        'product.id',
-      ];
-      break;
-    case VIEWED_PRODUCT_LISTING:
-      enrichableProps = [
-        'listing.categoryId',
-      ];
-      break;
-    case SEARCHED_PRODUCTS:
-      enrichableProps = [
-        'listing.query',
-      ];
-      break;
-    case COMPLETED_TRANSACTION:
-      enrichableProps = [
-        'transaction',
-      ];
-      break;
-    default:
+      case VIEWED_PAGE:
+        enrichableProps = [
+          'user.email',
+          'user.isSubscribed',
+        ];
+        break;
+      case VIEWED_PRODUCT_DETAIL:
+        enrichableProps = [
+          'product.id',
+        ];
+        break;
+      case VIEWED_PRODUCT_LISTING:
+        enrichableProps = [
+          'listing.categoryId',
+        ];
+        break;
+      case SEARCHED_PRODUCTS:
+        enrichableProps = [
+          'listing.query',
+        ];
+        break;
+      case COMPLETED_TRANSACTION:
+        enrichableProps = [
+          'transaction',
+        ];
+        break;
+      default:
       // do nothing
     }
 
@@ -233,10 +232,8 @@ class RetailRocket extends Integration {
       } else if (event.name === SEARCHED_PRODUCTS) {
         this.onSearched(event.listing);
       }
-    } else {
-      if (event.name === SUBSCRIBED) {
-        this.onSubscribed(event);
-      }
+    } else if (event.name === SUBSCRIBED) {
+      this.onSubscribed(event);
     }
   }
 
@@ -326,7 +323,7 @@ class RetailRocket extends Integration {
     let areLineItemsValid = true;
     const items = [];
     const lineItems = transaction.lineItems;
-    for (let i = 0, length = lineItems.length; i < length; i++) {
+    for (let i = 0, length = lineItems.length; i < length; i += 1) {
       if (!this.validateTransactionLineItem(lineItems[i])) {
         areLineItemsValid = false;
         break;
@@ -347,7 +344,7 @@ class RetailRocket extends Integration {
       try {
         window.rrApi.order({
           transaction: transaction.orderId,
-          items: items,
+          items,
         });
       } catch (e) {
         // do nothing

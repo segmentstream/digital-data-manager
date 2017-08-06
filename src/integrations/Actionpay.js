@@ -1,8 +1,8 @@
 import Integration from './../Integration';
-import getQueryParam from './../functions/getQueryParam';
-import topDomain from './../functions/topDomain';
-import { getProp } from './../functions/dotProp';
-import normalizeString from './../functions/normalizeString';
+import getQueryParam from 'driveback-utils/getQueryParam';
+import topDomain from 'driveback-utils/topDomain';
+import { getProp } from 'driveback-utils/dotProp';
+import normalizeString from 'driveback-utils/normalizeString';
 import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
 import cookie from 'js-cookie';
 
@@ -21,7 +21,6 @@ function normalizeOptions(options) {
 }
 
 class Actionpay extends Integration {
-
   constructor(digitalData, options) {
     normalizeOptions(options);
     const optionsWithDefaults = Object.assign({
@@ -32,7 +31,7 @@ class Actionpay extends Integration {
       cookieTtl: 90, // days
       deduplication: false,
       utmSource: 'actionpay', // utm_source which is sent with actionpay get param
-      deduplicationUtmMedium: [], // by default deduplicate with any source/medium other then actionpay source
+      deduplicationUtmMedium: [],
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -46,7 +45,7 @@ class Actionpay extends Integration {
     this.addTag('trackingPixel', {
       type: 'img',
       attr: {
-        src: `//apypx.com/ok/{{ goalId }}.png?actionpay={{ partnerId }}&apid={{ actionId }}&price={{ total }}`,
+        src: '//apypx.com/ok/{{ goalId }}.png?actionpay={{ partnerId }}&apid={{ actionId }}&price={{ total }}',
       },
     });
   }

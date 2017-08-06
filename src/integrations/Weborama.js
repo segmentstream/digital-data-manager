@@ -1,7 +1,6 @@
-import { Integration } from './../Integration';
+import Integration from './../Integration';
 
 class Weborama extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       siteId: '',

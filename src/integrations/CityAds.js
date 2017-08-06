@@ -1,8 +1,8 @@
 import Integration from './../Integration';
-import getQueryParam from './../functions/getQueryParam';
-import topDomain from './../functions/topDomain';
-import { getProp } from './../functions/dotProp';
-import normalizeString from './../functions/normalizeString';
+import getQueryParam from 'driveback-utils/getQueryParam';
+import topDomain from 'driveback-utils/topDomain';
+import { getProp } from 'driveback-utils/dotProp';
+import normalizeString from 'driveback-utils/normalizeString';
 import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
 import cookie from 'js-cookie';
 
@@ -42,7 +42,6 @@ function mapLineItems(lineItems) {
 }
 
 class CityAds extends Integration {
-
   constructor(digitalData, options) {
     normalizeOptions(options);
     const optionsWithDefaults = Object.assign({
@@ -55,7 +54,7 @@ class CityAds extends Integration {
       cookieTtl: 90, // days
       deduplication: false,
       utmSource: 'cityads', // utm_source which is sent with admitad_uid get param
-      deduplicationUtmMedium: [], // by default deduplicate with any source/medium other then admitad source
+      deduplicationUtmMedium: [],
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -96,7 +95,7 @@ class CityAds extends Integration {
   }
 
   getSemanticEvents() {
-    return [ COMPLETED_TRANSACTION ];
+    return [COMPLETED_TRANSACTION];
   }
 
   getEnrichableEventProps(event) {

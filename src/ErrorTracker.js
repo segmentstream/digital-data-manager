@@ -14,7 +14,7 @@ export function enableErrorTracking(digitalData) {
     }
 
     // Format the message to log to Analytics (might also use "errorObject.stack" if defined):
-    exceptionDescription += ' @ ' + url + ':' + lineNumber + ':' + columnNumber;
+    exceptionDescription += ` @ ${url}:${lineNumber}:${columnNumber}`;
 
     digitalData.events.push({
       name: 'Exception',

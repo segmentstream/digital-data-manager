@@ -1,7 +1,7 @@
-import Integration from './../Integration.js';
-import deleteProperty from './../functions/deleteProperty';
-import cleanObject from './../functions/cleanObject';
-import { getProp } from './../functions/dotProp';
+import Integration from './../Integration';
+import deleteProperty from 'driveback-utils/deleteProperty';
+import cleanObject from 'driveback-utils/cleanObject';
+import { getProp } from 'driveback-utils/dotProp';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -21,7 +21,6 @@ const SEMANTIC_EVENTS = [
 /* eslint-disable new-cap */
 
 class Ofsys extends Integration {
-
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       accountKey: '',
@@ -44,23 +43,23 @@ class Ofsys extends Integration {
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
-    case VIEWED_PAGE:
-      enrichableProps = [
-        'user.email',
-        'cart',
-      ];
-      break;
-    case VIEWED_PRODUCT_DETAIL:
-      enrichableProps = [
-        'product.id',
-      ];
-      break;
-    case COMPLETED_TRANSACTION:
-      enrichableProps = [
-        'transaction',
-      ];
-      break;
-    default:
+      case VIEWED_PAGE:
+        enrichableProps = [
+          'user.email',
+          'cart',
+        ];
+        break;
+      case VIEWED_PRODUCT_DETAIL:
+        enrichableProps = [
+          'product.id',
+        ];
+        break;
+      case COMPLETED_TRANSACTION:
+        enrichableProps = [
+          'transaction',
+        ];
+        break;
+      default:
       // do nothing
     }
 
@@ -117,7 +116,7 @@ class Ofsys extends Integration {
     // emulate async queue for Ofsys sync script
     let invervalCounter = 0;
     const invervalId = setInterval(() => {
-      invervalCounter++;
+      invervalCounter += 1;
       if (this.isLoaded()) {
         this.flushQueue();
         clearInterval(invervalId);
@@ -167,7 +166,7 @@ class Ofsys extends Integration {
     if (cart.lineItems && cart.lineItems.length) {
       // add products to cart and submit cart
       this.asyncQueue.push(() => {
-        for (const lineItem of cart.lineItems) {
+        cart.lineItems.forEach((lineItem) => {
           window.DI.Journey.ECommerce.AddCartItem({
             idCart: cart.id,
             idProduct: getProp(lineItem, 'product.id'),
@@ -175,7 +174,7 @@ class Ofsys extends Integration {
             priceunit: getProp(lineItem, 'product.unitSalePrice') || getProp(lineItem, 'product.unitPrice'),
             quantity: lineItem.quantity || 1,
           });
-        }
+        });
         window.DI.Journey.ECommerce.SubmitCart();
       });
     }
@@ -296,7 +295,7 @@ class Ofsys extends Integration {
 
     if (transaction.lineItems && Array.isArray(transaction.lineItems)) {
       this.asyncQueue.push(() => {
-        for (const lineItem of transaction.lineItems) {
+        transaction.lineItems.forEach((lineItem) => {
           const unitSalePrice = getProp(lineItem, 'product.unitSalePrice') || getProp(lineItem, 'product.unitPrice');
           const quantity = lineItem.quantity || 1;
           window.DI.Journey.ECommerce.AddItem({
@@ -306,9 +305,9 @@ class Ofsys extends Integration {
             productName: getProp(lineItem, 'product.name'),
             Price_unit: unitSalePrice,
             Price_total: lineItem.subtotal || unitSalePrice * quantity,
-            quantity: quantity,
+            quantity,
           });
-        }
+        });
       });
     }
 

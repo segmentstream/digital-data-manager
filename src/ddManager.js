@@ -1,13 +1,12 @@
-import clone from './functions/clone';
-import each from './functions/each';
+import clone from 'driveback-utils/clone';
+import each from 'driveback-utils/each';
 import nextTick from 'async/nextTick';
-import cleanObject from './functions/cleanObject';
+import cleanObject from 'driveback-utils/cleanObject';
 import emitter from 'component-emitter';
 import Integration from './Integration';
 import EventManager from './EventManager';
 import IntegrationsLoader from './IntegrationsLoader';
 import EventDataEnricher from './enrichments/EventDataEnricher';
-import ViewabilityTracker from './ViewabilityTracker';
 import DDHelper from './DDHelper';
 import DigitalDataEnricher from './enrichments/DigitalDataEnricher';
 import CustomEnricher from './enrichments/CustomEnricher';
@@ -19,12 +18,10 @@ import { isTestMode, logEnrichedIntegrationEvent, showTestModeOverlay } from './
 import { VIEWED_PAGE, mapEvent } from './events/semanticEvents';
 import { validateIntegrationEvent, trackValidationErrors } from './EventValidator';
 import { enableErrorTracking } from './ErrorTracker';
-import { error as errorLog } from './functions/safeConsole';
+import { error as errorLog } from 'driveback-utils/safeConsole';
 import { trackLink, trackImpression } from './trackers';
 import User from './User';
 import Streaming from './Streaming';
-
-let ddManager;
 
 /**
  * @type {Object}
@@ -168,13 +165,18 @@ function _addIntegrationsEventTracking(trackValidationErrorsOption) {
           if (integration.getIgnoredEvents().indexOf(mappedEventName) >= 0) {
             return;
           }
-          if (integration.getSemanticEvents().indexOf(mappedEventName) < 0 && !integration.allowCustomEvents()) {
+          if (
+            integration.getSemanticEvents().indexOf(mappedEventName) < 0 &&
+            !integration.allowCustomEvents()
+          ) {
             return;
           }
           // important! cloned object is returned (not link)
           let integrationEvent = clone(event, true);
           integrationEvent.name = mappedEventName;
-          integrationEvent = EventDataEnricher.enrichIntegrationData(integrationEvent, _digitalData, integration);
+          integrationEvent = EventDataEnricher.enrichIntegrationData(
+            integrationEvent, _digitalData, integration,
+          );
           if (integrationEvent.name === VIEWED_PAGE) {
             _trackIntegrationPageEvent(integrationEvent, integration);
           } else {
@@ -210,9 +212,9 @@ function _initializeCustomEnrichments(settings) {
   }]);
 }
 
-ddManager = {
+const ddManager = {
 
-  VERSION: '1.2.45',
+  VERSION: '1.2.46',
 
   setAvailableIntegrations: (availableIntegrations) => {
     IntegrationsLoader.setAvailableIntegrations(availableIntegrations);
@@ -220,10 +222,8 @@ ddManager = {
 
   processEarlyStubCalls: (earlyStubsQueue) => {
     const earlyStubCalls = earlyStubsQueue || [];
-    const methodCallPromise = (method, args) => {
-      return () => {
-        ddManager[method].apply(ddManager, args);
-      };
+    const methodCallPromise = (method, args) => () => {
+      ddManager[method](...args);
     };
 
     while (earlyStubCalls.length > 0) {
@@ -234,7 +234,7 @@ ddManager = {
           // run initialize stub after all other stubs
           nextTick(methodCallPromise(method, args));
         } else {
-          ddManager[method].apply(ddManager, args);
+          ddManager[method](...args);
         }
       }
     }
@@ -291,16 +291,17 @@ ddManager = {
     _eventManager.import(settings.events);
 
     _eventManager.setSendViewedPageEvent(settings.sendViewedPageEvent);
-    _eventManager.setViewabilityTracker(new ViewabilityTracker({
-      websiteMaxWidth: settings.websiteMaxWidth,
-    }));
 
     IntegrationsLoader.addIntegrations(settings.integrations, ddManager);
     IntegrationsLoader.initializeIntegrations(settings.version);
-    IntegrationsLoader.loadIntegrations(settings.integrationsPriority, settings.pageLoadTimeout, () => {
-      _isLoaded = true;
-      ddManager.emit('load');
-    });
+    IntegrationsLoader.loadIntegrations(
+      settings.integrationsPriority,
+      settings.pageLoadTimeout,
+      () => {
+        _isLoaded = true;
+        ddManager.emit('load');
+      },
+    );
 
     _addIntegrationsEventTracking(settings.trackValidationErrors);
 
@@ -333,13 +334,9 @@ ddManager = {
     }
   },
 
-  isLoaded: () => {
-    return _isLoaded;
-  },
+  isLoaded: () => _isLoaded,
 
-  isReady: () => {
-    return _isReady;
-  },
+  isReady: () => _isReady,
 
   addIntegration: (name, integration) => {
     if (_isReady) {
@@ -348,33 +345,19 @@ ddManager = {
     IntegrationsLoader.addIntegration(name, integration, ddManager);
   },
 
-  getIntegration: (name) => {
-    return IntegrationsLoader.getIntegration(name);
-  },
+  getIntegration: name => IntegrationsLoader.getIntegration(name),
 
-  get: (key) => {
-    return DDHelper.get(key, _digitalData);
-  },
+  get: key => DDHelper.get(key, _digitalData),
 
-  persist: (key, exp) => {
-    return _ddStorage.persist(key, exp);
-  },
+  persist: (key, exp) => _ddStorage.persist(key, exp),
 
-  unpersist: (key) => {
-    return _ddStorage.unpersist(key);
-  },
+  unpersist: key => _ddStorage.unpersist(key),
 
-  getProduct: (id, skuCode) => {
-    return DDHelper.getProduct(id, skuCode, _digitalData);
-  },
+  getProduct: (id, skuCode) => DDHelper.getProduct(id, skuCode, _digitalData),
 
-  getCampaign: (id) => {
-    return DDHelper.getCampaign(id, _digitalData);
-  },
+  getCampaign: id => DDHelper.getCampaign(id, _digitalData),
 
-  getEventManager: () => {
-    return _eventManager;
-  },
+  getEventManager: () => _eventManager,
 
   getDigitalData() {
     return _digitalData;
@@ -411,7 +394,7 @@ ddManager = {
     _isReady = false;
   },
 
-  Integration: Integration,
+  Integration,
 };
 
 emitter(ddManager);
