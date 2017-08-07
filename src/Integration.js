@@ -165,7 +165,7 @@ export default class Integration extends EventEmitter {
             safeCallback();
           } else {
             errorLog(`error loading "${tagName}" error="${err}"`);
-          }  
+          }
         });
         // TODO: hack until refactoring load-script
         deleteProperty(attr, 'src');

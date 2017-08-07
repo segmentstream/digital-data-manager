@@ -28,6 +28,7 @@
         b.load = function(a) {
             var b = document.createElement("script");
             b.type = "text/javascript";
+            b.charset = "utf-8";
             b.async = !0;
             b.src = a;
             a = document.getElementsByTagName("script")[0];
@@ -37,11 +38,15 @@
             var queryString = window.location.search;
             var initUrl;
             if (queryString.indexOf('ddm_test_mode=1') >= 0) {
-              window.localStorage.setItem('_ddm_test_mode', '1');
+              try {
+                 window.localStorage.setItem('_ddm_test_mode', '1');
+              } catch (e) {}
             } else if (queryString.indexOf('ddm_test_mode=0') >= 0) {
-              window.localStorage.removeItem("_ddm_test_mode")
+              try {
+                window.localStorage.removeItem("_ddm_test_mode");
+              } catch (e) {}
             }
-            if ('1' === window.localStorage.getItem('_ddm_test_mode')) {
+            if (queryString.indexOf('ddm_test_mode=1') >= 0 || '1' === window.localStorage.getItem('_ddm_test_mode')) {
               b.load('//api.ddmanager.ru/v1/ddm-initialization/' + a + '.js');
             } else if (window.DDMANAGER_INIT_URL) {
               b.load(window.DDMANAGER_INIT_URL);
@@ -50,7 +55,7 @@
             }
         };
         b.CDN_DOMAIN = domain;
-        b.SNIPPET_VERSION = "1.0.6";
+        b.SNIPPET_VERSION = "1.0.7";
         b.loadProject(a);
     }
 }("<PROJECT_ID>", "<CDN_DOMAIN>");

@@ -133,7 +133,7 @@ const IntegrationsLoader = {
     if (_integrations[integrationName]) {
       const integration = _integrations[integrationName];
       integration.flushEventQueue();
-      if (!integration.isLoaded()) {
+      if (!integration.isLoaded() && !integration.getOption('noConflict')) {
         integration.load(integration.onLoad);
         integration.once('load', callback);
       } else {
