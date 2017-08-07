@@ -341,7 +341,7 @@ class EventManager {
 
   fireUnfiredEvents() {
     const events = _digitalData.events;
-    events.forEach((event, index, originalArray) => {
+    events.forEach((event) => {
       if (!event.hasFired) {
         this.fireEvent(event);
       }
