@@ -448,7 +448,7 @@ describe('EventDataEnricher', () => {
 
   });
 
-  describe('#enrichIntegrationData', () => {
+  describe('#enrichIntegrationData overrideFunctions', () => {
     const emarsys = new Emarsys(_digitalData, {
       merchantId: 'XXX',
       overrideFunctions: {
@@ -461,6 +461,47 @@ describe('EventDataEnricher', () => {
           }
         }
       }
+    });
+
+    it('should override event data', () => {
+      const event = {
+        name: 'Test',
+        prop1: 'test1'
+      };
+      const enrichedEvent = EventDataEnricher.enrichIntegrationData(event, _digitalData, emarsys);
+      assert.equal(enrichedEvent.prop1, 'test2');
+    });
+
+    it('should override product data', () => {
+      const event = {
+        name: 'Viewed Product Detail',
+        product: {
+          id: '123'
+        }
+      };
+      const enrichedEvent = EventDataEnricher.enrichIntegrationData(event, _digitalData, emarsys);
+      assert.equal(enrichedEvent.product.id, 's/123');
+    });
+  });
+
+  describe('#enrichIntegrationData eventEnrichments', () => {
+    const emarsys = new Emarsys(_digitalData, {
+      merchantId: 'XXX',
+      eventEnrichments: [
+        {
+          prop: 'product.id',
+          handler: function(event) {
+            return 's/' + event.product.id;
+          }
+        },
+        {
+          prop: 'prop1',
+          event: 'Test',
+          handler: function(event) {
+            return 'test2';
+          }
+        }
+      ]
     });
 
     it('should override event data', () => {

@@ -5,6 +5,7 @@ import {
   VIEWED_PRODUCT_DETAIL,
   COMPLETED_TRANSACTION,
 } from './../events/semanticEvents';
+import IntegrationEventEnrichment from './IntegrationEventEnrichment';
 
 class EventDataEnricher {
   static enrichCommonData(event, digitalData) {
@@ -48,7 +49,7 @@ class EventDataEnricher {
         let propToEnrich = prop;
 
         // if prop is special case: *.length, *.first, *.last, etc
-        // drawback - instead of enriching just length - whole obejct is enirched
+        // drawback - instead of enriching just length - whole object is enirched
         if (prop.endsWith('.length')) {
           propToEnrich = prop.replace(/\.length$/, '');
         }
@@ -68,6 +69,17 @@ class EventDataEnricher {
     if (integration.getProductOverrideFunction()) {
       event = EventDataEnricher.overrideEventProducts(event, integration);
     }
+    // handle custom event enrichments
+    integration.getEventEnrichments()
+      .filter(eventEnrichment => !eventEnrichment.event || eventEnrichment.event === event.name)
+      .forEach((eventEnrichment) => {
+        const enrichment = new IntegrationEventEnrichment(
+          eventEnrichment.prop,
+          eventEnrichment.handler,
+          digitalData,
+        );
+        enrichment.enrich(event);
+      });
 
     return event;
   }

@@ -3,7 +3,7 @@ import { error as errorLog } from 'driveback-utils/safeConsole';
 import { setProp } from 'driveback-utils/dotProp';
 import isPromise from 'driveback-utils/isPromise';
 
-class CustomEnrichment {
+class DigitalDataEnrichment {
   constructor(prop, handler, options, collection) {
     this.prop = prop;
     this.handler = handler;
@@ -80,4 +80,4 @@ class CustomEnrichment {
   }
 }
 
-export default CustomEnrichment;
+export default DigitalDataEnrichment;

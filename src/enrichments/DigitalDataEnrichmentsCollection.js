@@ -1,6 +1,6 @@
-import CustomEnrichment from './CustomEnrichment';
+import DigitalDataEnrichment from './DigitalDataEnrichment';
 
-class CustomEnrichmentsCollection {
+class DigitalDataEnrichmentsCollection {
   constructor(type, trigger, event) {
     this.type = type;
     this.trigger = trigger;
@@ -30,7 +30,7 @@ class CustomEnrichmentsCollection {
     const handler = enrichmentConfig.handler;
     const options = enrichmentConfig.options;
 
-    const enrichment = new CustomEnrichment(prop, handler, options, this);
+    const enrichment = new DigitalDataEnrichment(prop, handler, options, this);
     this.enrichments.push(enrichment);
     this.enrichmentsIndex[enrichment.prop] = enrichment;
   }
@@ -53,4 +53,4 @@ class CustomEnrichmentsCollection {
   }
 }
 
-export default CustomEnrichmentsCollection;
+export default DigitalDataEnrichmentsCollection;
