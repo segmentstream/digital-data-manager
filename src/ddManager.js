@@ -20,8 +20,7 @@ import { validateIntegrationEvent, trackValidationErrors } from './EventValidato
 import { enableErrorTracking } from './ErrorTracker';
 import { error as errorLog } from 'driveback-utils/safeConsole';
 import { trackLink, trackImpression } from './trackers';
-import User from './User';
-import Streaming from './Streaming';
+import Streaming from './integrations/Streaming';
 
 /**
  * @type {Object}
@@ -294,6 +293,16 @@ const ddManager = {
     _eventManager.setSendViewedPageEvent(settings.sendViewedPageEvent);
 
     IntegrationsLoader.addIntegrations(settings.integrations, ddManager);
+    if (settings.enableStreaming) {
+      const streaming = new Streaming({
+        projectId: settings.projectId,
+        library: {
+          name: 'ddmanager.js',
+          version: ddManager.VERSION,
+        },
+      });
+      IntegrationsLoader.addIntegration('Streaming', streaming, ddManager);
+    }
     IntegrationsLoader.initializeIntegrations(settings.version);
     IntegrationsLoader.loadIntegrations(
       settings.integrationsPriority,
@@ -307,23 +316,6 @@ const ddManager = {
     _addIntegrationsEventTracking(settings.trackValidationErrors);
 
     _initializeCustomScripts(settings);
-
-    // setup user
-    User.setStorage(storage);
-    User.setData(_digitalData.user);
-
-    if (settings.enableStreaming) {
-      const streaming = new Streaming(settings.projectId, {
-        name: 'ddmanager.js',
-        version: ddManager.VERSION
-      });
-      _eventManager.addCallback(['on', 'event', (event) => {
-        if (event.user) {
-          User.mergeData(event.user);
-        }
-        streaming.trackEvent(event, User);
-      }]);
-    }
 
     _isReady = true;
     ddManager.emit('ready');
