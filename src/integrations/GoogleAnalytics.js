@@ -678,11 +678,10 @@ class GoogleAnalytics extends Integration {
   }
 
   pushEnhancedEcommerce(event, noConflict) {
+    this.setEventCustomDimensions(event, noConflict);
     if (this.getPageview()) {
       this.flushPageview();
     } else {
-      this.setEventCustomDimensions(event, noConflict);
-
       // Send a custom non-interaction event to ensure all EE data is pushed.
       // Without doing this we'd need to require page display after setting EE data.
       const cleanedArgs = [];
