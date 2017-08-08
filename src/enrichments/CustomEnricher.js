@@ -1,4 +1,4 @@
-import CustomEnrichmentsCollection from './CustomEnrichmentsCollection';
+import DigitalDataEnrichmentsCollection from './DigitalDataEnrichmentsCollection';
 
 const ENRICHMENT_TYPE_DIGITAL_DATA = 'digitalData';
 
@@ -75,7 +75,7 @@ class CustomEnrichments {
   }
 
   newCollection(type, trigger, event) {
-    const collection = new CustomEnrichmentsCollection(type, trigger, event);
+    const collection = new DigitalDataEnrichmentsCollection(type, trigger, event);
     collection.setDigitalData(this.digitalData);
     collection.setDDStorage(this.ddStorage);
 
