@@ -83,6 +83,10 @@ export default class Integration extends EventEmitter {
     }
   }
 
+  getEventEnrichments() {
+    return this.getOption('eventEnrichments') || [];
+  }
+
   setName(name) {
     this.name = name;
   }
