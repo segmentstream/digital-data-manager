@@ -35,6 +35,10 @@ class User {
     if (data.userId) this.userId(data.userId);
   }
 
+  mergeData(data = {}) {
+    Object.assign(this.data, data);
+  }
+
   getData() {
     return this.data;
   }

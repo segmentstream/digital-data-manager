@@ -69,6 +69,7 @@
     "driveback-utils": "git://github.com/driveback/utils.git",
     "js-cookie": "^2.1.0",
     "lockr": "^0.8.4",
+    "uuid": "^3.1.0",
     "whatwg-fetch": "^2.0.3"
   }
 }

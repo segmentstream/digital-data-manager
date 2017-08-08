@@ -253,6 +253,7 @@ const ddManager = {
       useCookieStorage: false,
       trackValidationErrors: false,
       trackJsErrors: false,
+      enableStreaming: false,
     }, settings);
 
     if (_isReady) {
@@ -311,16 +312,18 @@ const ddManager = {
     User.setStorage(storage);
     User.setData(_digitalData.user);
 
-    const streaming = new Streaming('123123', { // TODO: remove fake proejct id
-      name: 'ddmanager.js',
-      version: ddManager.VERSION
-    });
-    _eventManager.addCallback(['on', 'event', (event) => {
-      if (event.user) {
-        User.setData(event.user); // TODO mask only required fields
-      }
-      streaming.trackEvent(event, User);
-    }]);
+    if (settings.enableStreaming) {
+      const streaming = new Streaming(settings.projectId, {
+        name: 'ddmanager.js',
+        version: ddManager.VERSION
+      });
+      _eventManager.addCallback(['on', 'event', (event) => {
+        if (event.user) {
+          User.mergeData(event.user);
+        }
+        streaming.trackEvent(event, User);
+      }]);
+    }
 
     _isReady = true;
     ddManager.emit('ready');
