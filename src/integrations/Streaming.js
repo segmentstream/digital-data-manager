@@ -11,7 +11,6 @@ class Streaming extends Integration {
     const optionsWithDefaults = Object.assign({
       projectId: '',
     }, options);
-
     super(digitalData, optionsWithDefaults);
   }
 
@@ -36,6 +35,7 @@ class Streaming extends Integration {
     const hitId = uuid();
     const commonFields = cleanObject({
       hitId,
+      projectId: this.getOption('projectId'),
       anonymousId: this.anonymousId,
       userId: this.userId,
       context: {
@@ -73,11 +73,7 @@ class Streaming extends Integration {
       deleteProperty(event, 'user');
     }
 
-    if (event.name === 'Viewed Page') {
-      this.sendPageHit(event.page);
-    } else {
-      this.sendEventHit(event);
-    }
+    this.sendEventHit(event);
   }
 
   sendUserHit(user) {
@@ -92,14 +88,6 @@ class Streaming extends Integration {
       });
       this.send(hitData);
     }
-  }
-
-  sendPageHit(page) {
-    const hitData = this.normalize({
-      page,
-      type: 'page',
-    });
-    this.send(hitData);
   }
 
   sendEventHit(event) {
@@ -123,11 +111,11 @@ class Streaming extends Integration {
       // localstorage not supported
       // TODO: save to memory
     } */
-
     console.log(hitData); // eslint-disable-line
-    window.fetch(`//localhost:3000/collect?stream_id=${this.projectId}`, {
+    window.fetch('//track-stage.ddmanager.ru/collect', {
       method: 'post',
-      mode: 'cors',
+      credentials: 'include',
+      mode: 'no-cors',
       body: JSON.stringify(hitData),
     }).then((response) => {
       if (response.ok) {

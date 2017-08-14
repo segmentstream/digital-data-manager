@@ -294,7 +294,7 @@ const ddManager = {
 
     IntegrationsLoader.addIntegrations(settings.integrations, ddManager);
     if (settings.enableStreaming) {
-      const streaming = new Streaming({
+      const streaming = new Streaming(_digitalData, {
         projectId: settings.projectId,
         library: {
           name: 'ddmanager.js',
