@@ -265,7 +265,8 @@ describe('Integrations: GoogleAnalytics', () => {
               window.digitalData.events.push({
                 name: 'Viewed Product Detail',
                 product: {
-                  id: '123'
+                  id: '123',
+                  unitSalePrice: 1000
                 },
                 callback: () => {
                   assert.ok(window.ga.calledWith('send', 'pageview', {
