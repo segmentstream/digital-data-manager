@@ -212,7 +212,7 @@ function _initializeCustomEnrichments(settings) {
 
 const ddManager = {
 
-  VERSION: '1.2.48',
+  VERSION: '1.2.49',
 
   setAvailableIntegrations: (availableIntegrations) => {
     IntegrationsLoader.setAvailableIntegrations(availableIntegrations);
@@ -309,7 +309,7 @@ const ddManager = {
     ddManager.emit('ready');
 
     // initialize EventManager after emit('ready')
-    // because EventManager startы firing events immediately
+    // because EventManager starts firing events immediately
     _eventManager.initialize();
 
     if (isTestMode()) {

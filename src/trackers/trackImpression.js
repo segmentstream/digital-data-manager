@@ -40,7 +40,7 @@ class BatchTable {
   update() {
     this.selectors.forEach((selector) => {
       const batches = this.batches[selector];
-      const blocks = domQuery(selector);
+      const blocks = (window.jQuery) ? window.jQuery(selector).get() : domQuery(selector);
       batches.forEach((batch) => {
         batch.setBlocks(blocks);
       });
