@@ -296,6 +296,7 @@ const ddManager = {
     if (settings.enableStreaming) {
       const streaming = new Streaming(_digitalData, {
         projectId: settings.projectId,
+        projectName: settings.projectName,
         library: {
           name: 'ddmanager.js',
           version: ddManager.VERSION,

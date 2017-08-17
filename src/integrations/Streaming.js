@@ -10,6 +10,7 @@ class Streaming extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       projectId: '',
+      projectName: '',
     }, options);
     super(digitalData, optionsWithDefaults);
   }
@@ -36,6 +37,7 @@ class Streaming extends Integration {
     const commonFields = cleanObject({
       hitId,
       projectId: this.getOption('projectId'),
+      projectName: this.getOption('projectName'),
       anonymousId: this.anonymousId,
       userId: this.userId,
       context: {
