@@ -33,6 +33,7 @@ import RichRelevance from './integrations/RichRelevance';
 import Linkprofit from './integrations/Linkprofit';
 import Flocktory from './integrations/Flocktory';
 import Streaming from './integrations/Streaming';
+import Recreativ from './integrations/Recreativ';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -70,6 +71,7 @@ const integrations = {
   Linkprofit,
   Flocktory,
   Streaming,
+  Recreativ,
 };
 
 export default integrations;
