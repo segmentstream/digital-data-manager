@@ -20,6 +20,7 @@ import { validateIntegrationEvent, trackValidationErrors } from './EventValidato
 import { enableErrorTracking } from './ErrorTracker';
 import { error as errorLog } from 'driveback-utils/safeConsole';
 import { trackLink, trackImpression } from './trackers';
+import Streaming from './integrations/Streaming';
 
 /**
  * @type {Object}
@@ -212,7 +213,7 @@ function _initializeCustomEnrichments(settings) {
 
 const ddManager = {
 
-  VERSION: '1.2.48',
+  VERSION: '1.2.49',
 
   setAvailableIntegrations: (availableIntegrations) => {
     IntegrationsLoader.setAvailableIntegrations(availableIntegrations);
@@ -251,6 +252,7 @@ const ddManager = {
       useCookieStorage: false,
       trackValidationErrors: false,
       trackJsErrors: false,
+      enableStreaming: false,
     }, settings);
 
     if (_isReady) {
@@ -291,6 +293,17 @@ const ddManager = {
     _eventManager.setSendViewedPageEvent(settings.sendViewedPageEvent);
 
     IntegrationsLoader.addIntegrations(settings.integrations, ddManager);
+    if (settings.enableStreaming) {
+      const streaming = new Streaming(_digitalData, {
+        projectId: settings.projectId,
+        projectName: settings.projectName,
+        library: {
+          name: 'ddmanager.js',
+          version: ddManager.VERSION,
+        },
+      });
+      IntegrationsLoader.addIntegration('Streaming', streaming, ddManager);
+    }
     IntegrationsLoader.initializeIntegrations(settings.version);
     IntegrationsLoader.loadIntegrations(
       settings.integrationsPriority,
@@ -309,7 +322,7 @@ const ddManager = {
     ddManager.emit('ready');
 
     // initialize EventManager after emit('ready')
-    // because EventManager startы firing events immediately
+    // because EventManager starts firing events immediately
     _eventManager.initialize();
 
     if (isTestMode()) {

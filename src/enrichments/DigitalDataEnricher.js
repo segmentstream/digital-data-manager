@@ -3,6 +3,7 @@ import semver from 'driveback-utils/semver';
 import getQueryParam from 'driveback-utils/getQueryParam';
 import cleanObject from 'driveback-utils/cleanObject';
 import { getProp, setProp } from 'driveback-utils/dotProp';
+import uuid from 'uuid/v4';
 
 /**
  * fields which will be overriden even
@@ -131,6 +132,12 @@ class DigitalDataEnricher {
     if (user.isLoggedIn !== undefined && user.everLoggedIn === undefined) {
       user.everLoggedIn = false;
     }
+
+    // set user.anonymousId
+    if (!user.anonymousId) {
+      user.anonymousId = uuid();
+      this.ddStorage.persist('user.anonymousId');
+    }
   }
 
   persistUserData() {
@@ -157,10 +164,6 @@ class DigitalDataEnricher {
     if (user.lastTransactionDate) {
       this.ddStorage.persist('user.lastTransactionDate');
     }
-  }
-
-  persistContextData() {
-
   }
 
   enrichIsReturningStatus() {

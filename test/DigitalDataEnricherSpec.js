@@ -219,11 +219,13 @@ describe('DigitalDataEnricher', () => {
       _digitalDataEnricher.setDDStorage(_ddStorage);
       _digitalDataEnricher.enrichDigitalData();
 
+      assert.ok(_digitalData.user.anonymousId);
       assert.deepEqual(_digitalData.user, {
         userId: '123',
         isSubscribed: true,
         hasCoffeeMachine: true,
         hasFerrari: false,
+        anonymousId: _digitalData.user.anonymousId,
         visitedContactPageTimes: 20,
         segments: ['segment1', 'segment2'],
         isReturning: false

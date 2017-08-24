@@ -10,11 +10,17 @@ class Handler {
     this.handler = handler;
     this.args = args;
     this.utils = {
-      queryParam: getQueryParam,
+      queryParam: (name, queryString) => {
+        let value = getQueryParam(name, queryString);
+        if (value) {
+          value = value.toLowerCase();
+        }
+        return value;
+      },
       cookie: cookie.get,
       get: (target, key) => getProp(target, key),
       digitalData: key => DDHelper.get(key, digitalData),
-      domQuery,
+      domQuery: selector => ((window.jQuery) ? window.jQuery(selector).get() : domQuery(selector)),
       global: key => getProp(window, key),
       dataLayer: getDataLayerProp,
       fetch: (url, options, callback) => {

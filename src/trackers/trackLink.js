@@ -49,7 +49,7 @@ export default function trackLink(selector, handler) {
   let trackedLinks;
 
   bind(window.document, 'click', () => {
-    const links = domQuery(selector);
+    const links = (window.jQuery) ? window.jQuery(selector).get() : domQuery(selector);
     trackedLinks = [];
     links.forEach((el) => {
       const onClickHandler = onClick(el, handler);
