@@ -229,7 +229,7 @@ class Filters {
 
   filterCompletedTransaction(event) {
     const filtered = this.filterCommonEvent(event);
-    const transaction = filterObject(event.cart, [transactionProps]);
+    const transaction = filterObject(event.transaction, [transactionProps]);
     transaction.lineItems = this.filterLineItems(getProp(event, 'transaction.lineItems'));
     return {
       ...filtered,
