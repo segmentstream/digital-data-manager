@@ -6,6 +6,7 @@ import deleteProperty from 'driveback-utils/deleteProperty';
 import size from 'driveback-utils/size';
 import uuid from 'uuid/v4';
 import Integration from './../Integration';
+import StreamingFilters from './Streaming/Filters';
 import {
   VIEWED_PAGE,
   VIEWED_CART,
@@ -17,12 +18,6 @@ import {
   SEARCHED_PRODUCTS,
 } from './../events/semanticEvents';
 
-const clearEvent = (event) => {
-  if (event.listing && event.listing.items) {
-    deleteProperty(event.listing, 'items');
-  }
-};
-
 class Streaming extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
@@ -30,6 +25,8 @@ class Streaming extends Integration {
       projectName: '',
     }, options);
     super(digitalData, optionsWithDefaults);
+    this.user = {};
+    this.filters = new StreamingFilters(); // TODO: add custom props    
   }
 
   getIgnoredEvents() {
@@ -95,42 +92,25 @@ class Streaming extends Integration {
   trackEvent(event) {
     // identify
     if (event.user) {
-      this.sendUserHit(event.user);
-      deleteProperty(event, 'user');
+      const user = event.user || {};
+      if (user.email) {
+        user.emailHash = sha256(user.email).toString();
+      }
+      const filtered = this.filters.filterUser(user);
+      this.anonymousId = user.anonymousId;
+      this.userId = user.userId;
+      this.user = { ...this.user, ...filtered };
     }
+
+    deleteProperty(event, 'user');
 
     this.sendEventHit(event);
   }
 
-  sendUserHit(user) {
-    this.anonymousId = user.anonymousId || this.anonymousId;
-    this.userId = user.userId || this.userId;
-    deleteProperty(user, 'anonymousId');
-    deleteProperty(user, 'userId');
-
-    // remove PII data
-    deleteProperty(user, 'firstName');
-    deleteProperty(user, 'lastName');
-    deleteProperty(user, 'fullName');
-    deleteProperty(user, 'phone');
-    if (user.email) {
-      user.emailHash = sha256(user.email).toString();
-      deleteProperty(user, 'email');
-    }
-
-    if (size(user)) {
-      const hitData = this.normalize({
-        user,
-        type: 'user',
-      });
-      this.send(hitData);
-    }
-  }
-
   sendEventHit(event) {
-    clearEvent(event);
     const hitData = this.normalize({
-      event,
+      event: this.filters.filterEventHit(event),
+      user: this.user,
       type: 'event',
     });
     this.send(hitData);
