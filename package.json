@@ -33,6 +33,7 @@
     "babel-cli": "^6.2.0",
     "babel-plugin-transform-es3-member-expression-literals": "^6.1.18",
     "babel-plugin-transform-es3-property-literals": "^6.1.18",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-plugin-transform-object-set-prototype-of-to-assign": "^6.1.18",
     "babel-plugin-transform-proto-to-assign": "^6.1.18",
     "babel-preset-es2015": "^6.9.0",
