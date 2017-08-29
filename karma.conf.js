@@ -190,7 +190,7 @@ module.exports = function init(config) {
 
     // Concurrency level
     // how many browser should be started simultanous
-    // concurrency: 5,
+    concurrency: 5,
     //
     // browserDisconnectTimeout: 10000,
     // browserDisconnectTolerance: 10,
