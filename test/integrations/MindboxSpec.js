@@ -124,13 +124,11 @@ describe('Integrations: Mindbox', () => {
                   personalOffers: [
                     {
                       productId: '123',
-                      skuId: 'sku123',
                       count: 2,
                       price: 2000
                     },
                     {
                       productId: '234',
-                      skuId: 'sku234',
                       count: 1,
                       price: 1000
                     }
@@ -220,6 +218,32 @@ describe('Integrations: Mindbox', () => {
               data: {
                 action: {
                   productId: '123',
+                  price: 2500
+                },
+              },
+            }));
+          }
+        });
+      });
+
+      it('should track added product with custom product variables', () => {
+        mindbox.setOption('productVars', {
+          skuId: 'skuCode',
+        });
+        window.digitalData.events.push({
+          name: 'Added Product',
+          product: {
+            id: '123',
+            skuCode: 'sku123',
+            unitSalePrice: 2500,
+          },
+          quantity: 5,
+          callback: () => {
+            assert.ok(window.mindbox.calledWith('performOperation', {
+              operation: 'AddProduct',
+              data: {
+                action: {
+                  productId: '123',
                   skuId: 'sku123',
                   price: 2500
                 },
@@ -249,7 +273,6 @@ describe('Integrations: Mindbox', () => {
               data: {
                 action: {
                   productId: '123',
-                  skuId: 'sku123',
                   price: 2500,
                 },
               },
@@ -338,7 +361,6 @@ describe('Integrations: Mindbox', () => {
               data: {
                 action: {
                   productId: '123',
-                  skuId: 'sku123',
                   price: 2500,
                 },
               },
@@ -367,7 +389,6 @@ describe('Integrations: Mindbox', () => {
               data: {
                 action: {
                   productId: '123',
-                  skuId: 'sku123',
                   price: 2500,
                 },
               },
@@ -434,13 +455,11 @@ describe('Integrations: Mindbox', () => {
                   items: [
                     {
                       productId: '123',
-                      skuId: 'sku123',
                       quantity: 1,
                       price: 100,
                     },
                     {
                       productId: '234',
-                      skuId: 'sku234',
                       quantity: 2,
                       price: 150,
                     }
@@ -480,13 +499,11 @@ describe('Integrations: Mindbox', () => {
                   items: [
                     {
                       productId: '123',
-                      skuId: 'sku123',
                       quantity: 1,
                       price: 100,
                     },
                     {
                       productId: '234',
-                      skuId: 'sku234',
                       quantity: 2,
                       price: 150,
                     }
