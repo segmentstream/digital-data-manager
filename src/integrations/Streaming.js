@@ -16,6 +16,7 @@ import {
   VIEWED_PRODUCT_DETAIL,
   VIEWED_PRODUCT_LISTING,
   SEARCHED_PRODUCTS,
+  EXCEPTION,
 } from './../events/semanticEvents';
 
 class Streaming extends Integration {
@@ -30,7 +31,7 @@ class Streaming extends Integration {
   }
 
   getIgnoredEvents() {
-    return [VIEWED_PRODUCT, CLICKED_PRODUCT];
+    return [VIEWED_PRODUCT, CLICKED_PRODUCT, EXCEPTION];
   }
 
   getEnrichableEventProps(event) {
