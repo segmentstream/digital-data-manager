@@ -42,14 +42,6 @@ describe('Integrations: GoogleAnalytics', () => {
       });
 
       describe('#initialize', function () {
-        it('should require \'displayfeatures\' if .doubleClick option is `true`', function () {
-          ga.setOption('doubleClick', true);
-          ddManager.initialize({
-            sendViewedPageEvent: false,
-          });
-          assert.deepEqual(argumentsToArray(window.ga.q[1]), ['require', 'displayfeatures']);
-        });
-
         it('should require "linkid.js" if enhanced link attribution is `true`', function () {
           ga.setOption('enhancedLinkAttribution', true);
           ddManager.initialize({
