@@ -29,6 +29,7 @@ class Mindbox extends Integration {
       operationMapping: {},
       setCartOperation: '',
       userVars: {},
+      productVars: {},
       userIdProvider: undefined,
     }, options);
 
@@ -100,8 +101,6 @@ class Mindbox extends Integration {
         enrichableProps.push('cart');
         break;
       case LOGGED_IN:
-        enrichableProps.push('user.userId');
-        break;
       case REGISTERED:
       case SUBSCRIBED:
       case UPDATED_PROFILE_INFO:
@@ -136,7 +135,6 @@ class Mindbox extends Integration {
       viewedPageFields = [
         'cart.lineItems[].product.id',
         'cart.lineItems[].product.unitSalePrice',
-        'cart.lineItems[].product.skuCode',
         'cart.lineItems[].quantity',
       ];
       viewedPageValidations = {
@@ -152,24 +150,19 @@ class Mindbox extends Integration {
           errors: ['required'],
           warnings: ['numeric'],
         },
-        'cart.lineItems[].product.skuCode': {
-          warnings: ['required', 'string'],
-        },
       };
     }
 
+    const userFields = [...this.getEnrichableUserProps(), 'user.userId', 'user.isSubscribed'];
+
     const addRemoveProductFields = [
       'product.id',
-      'product.skuCode',
       'product.unitSalePrice',
     ];
     const addRemoveProductValidations = {
       'product.id': {
         errors: ['required'],
         warnings: ['string'],
-      },
-      'product.skuCode': {
-        warnings: ['required', 'string'],
       },
       'product.unitSalePrice': {
         errors: ['required'],
@@ -181,6 +174,18 @@ class Mindbox extends Integration {
       [VIEWED_PAGE]: {
         fields: viewedPageFields,
         validations: viewedPageValidations,
+      },
+      [REGISTERED]: {
+        fields: userFields,
+      },
+      [SUBSCRIBED]: {
+        fields: userFields,
+      },
+      [UPDATED_PROFILE_INFO]: {
+        fields: userFields,
+      },
+      [LOGGED_IN]: {
+        fields: userFields,
       },
       [VIEWED_PRODUCT_DETAIL]: {
         fields: ['product.id'],
@@ -210,12 +215,12 @@ class Mindbox extends Integration {
       },
       [COMPLETED_TRANSACTION]: {
         fields: [
+          ...userFields,
           'transaction.orderId',
           'transaction.total',
           'transaction.shippingMethod',
           'transaction.paymentMethod',
           'transaction.lineItems[].product.id',
-          'transaction.lineItems[].product.skuCode',
           'transaction.lineItems[].product.unitSalePrice',
           'transaction.lineItems[].quantity',
         ],
@@ -237,9 +242,6 @@ class Mindbox extends Integration {
           'transaction.lineItems[].product.id': {
             errors: ['required'],
             warnings: ['string'],
-          },
-          'transaction.lineItems[].product.skuCode': {
-            warnings: ['required', 'string'],
           },
           'transaction.lineItems[].product.unitSalePrice': {
             errors: ['required'],
@@ -321,6 +323,16 @@ class Mindbox extends Integration {
     return userData;
   }
 
+  getProductCustoms(product) {
+    const productVars = this.getOption('productVars');
+    const customs = {};
+    Object.keys(productVars).forEach((key) => {
+      const customVal = getProp(product, productVars[key]);
+      if (customVal) customs[key] = customVal;
+    });
+    return customs;
+  }
+
   trackEvent(event) {
     const eventMap = {
       [VIEWED_PAGE]: this.onViewedPage.bind(this),
@@ -335,7 +347,9 @@ class Mindbox extends Integration {
       [COMPLETED_TRANSACTION]: this.onCompletedTransaction.bind(this),
     };
     // get operation name either from email or from integration settings
-    const operation = getProp(event, 'integrations.mindbox.operation') || this.getOperationName(event.name);
+    const operation = event.operation ||
+      getProp(event, 'integrations.mindbox.operation') ||
+      this.getOperationName(event.name);
 
     if (!operation && event.name !== VIEWED_PAGE) return;
 
@@ -354,12 +368,12 @@ class Mindbox extends Integration {
 
     const mindboxItems = lineItems.map((lineItem) => {
       const quantity = lineItem.quantity || 1;
-      return cleanObject({
+      return {
         productId: getProp(lineItem, 'product.id'),
-        skuId: getProp(lineItem, 'product.skuCode'),
         count: quantity,
         price: getProp(lineItem, 'product.unitSalePrice') * quantity,
-      });
+        ...this.getProductCustoms(lineItem.product),
+      };
     });
     window.mindbox('performOperation', {
       operation,
@@ -442,13 +456,16 @@ class Mindbox extends Integration {
   }
 
   onViewedProductDetail(event, operation) {
-    const productId = getProp(event, 'product.id');
-    if (!productId) return;
+    const product = getProp(event, 'product') || {};
+    if (!product.id) return;
 
     window.mindbox('performOperation', {
       operation,
       data: {
-        action: { productId },
+        action: {
+          productId: product.id,
+          ...this.getProductCustoms(product),
+        },
       },
     });
   }
@@ -466,33 +483,33 @@ class Mindbox extends Integration {
   }
 
   onAddedProduct(event, operation) {
-    const productId = getProp(event, 'product.id');
-    if (!productId) return;
+    const product = getProp(event, 'product') || {};
+    if (!product.id) return;
 
     window.mindbox('performOperation', {
       operation,
       data: {
-        action: cleanObject({
-          productId,
-          skuId: getProp(event, 'product.skuCode'),
-          price: getProp(event, 'product.unitSalePrice'),
-        }),
+        action: {
+          productId: product.id,
+          price: product.unitSalePrice,
+          ...this.getProductCustoms(product),
+        },
       },
     });
   }
 
   onRemovedProduct(event, operation) {
-    const productId = getProp(event, 'product.id');
-    if (!productId) return;
+    const product = getProp(event, 'product') || {};
+    if (!product.id) return;
 
     window.mindbox('performOperation', {
       operation,
       data: {
-        action: cleanObject({
-          productId,
-          skuId: getProp(event, 'product.skuCode'),
-          price: getProp(event, 'product.unitSalePrice'),
-        }),
+        action: {
+          productId: product.id,
+          price: product.unitSalePrice,
+          ...this.getProductCustoms(product),
+        },
       },
     });
   }
@@ -509,9 +526,9 @@ class Mindbox extends Integration {
     if (lineItems && lineItems.length) {
       mindboxItems = lineItems.map(lineItem => cleanObject({
         productId: getProp(lineItem, 'product.id'),
-        skuId: getProp(lineItem, 'product.skuCode'),
         quantity: lineItem.quantity || 1,
         price: getProp(lineItem, 'product.unitSalePrice'),
+        ...this.getProductCustoms(lineItem.product),
       }));
     }
 
