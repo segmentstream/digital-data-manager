@@ -18,12 +18,12 @@ module.exports = function init(config) {
 
   if (process.env.SAUCE_ENABLED == "true") {
     customLaunchers = {
-      // slIe8Win7: {
-      //   base: 'SauceLabs',
-      //   browserName: 'internet explorer',
-      //   platform: 'Windows 7',
-      //   version: '8'
-      // },
+      slIe8Win7: {
+        base: 'SauceLabs',
+        browserName: 'internet explorer',
+        platform: 'Windows 7',
+        version: '8'
+      },
       slChromeWinXp: {
         base: 'SauceLabs',
         browserName: 'chrome',
@@ -35,56 +35,56 @@ module.exports = function init(config) {
         platform: 'Windows 7',
         version: '10'
       },
-      // slIe9Win7: {
-      //   base: 'SauceLabs',
-      //   browserName: 'internet explorer',
-      //   platform: 'Windows 7',
-      //   version: '9'
-      // },
-      // slIe11Win10: {
-      //   base: 'SauceLabs',
-      //   browserName: 'internet explorer',
-      //   platform: 'Windows 10',
-      //   version: '11'
-      // },
-      // slME25Win10: {
-      //   base: 'SauceLabs',
-      //   browserName: 'microsoftedge',
-      //   platform: 'Windows 10',
-      //   version: '13'
-      // },
-      // slSafariOsx: {
-      //   base: 'SauceLabs',
-      //   browserName: 'safari',
-      //   platform: 'OS X 10.8'
-      // },
-      // slOpera12Win7: {
-      //   base: 'SauceLabs',
-      //   browserName: 'opera',
-      //   platform: 'Windows 7',
-      //   version: '12.12'
-      // },
-      // slIphone: {
-      //   base: 'SauceLabs',
-      //   browserName: 'iphone',
-      //   platform: 'OS X 10.10',
-      //   version: '8.2',
-      //   deviceName: 'iPhone Simulator'
-      // },
-      // slIpad: {
-      //   base: 'SauceLabs',
-      //   browserName: 'iphone',
-      //   platform: 'OS X 10.10',
-      //   version: '8.2',
-      //   deviceName: 'iPad Simulator'
-      // },
-      // slAndroid: {
-      //   base: 'SauceLabs',
-      //   browserName: 'android',
-      //   platform: 'Linux',
-      //   version: '5.1',
-      //   deviceName: 'Android Emulator'
-      // }
+      slIe9Win7: {
+        base: 'SauceLabs',
+        browserName: 'internet explorer',
+        platform: 'Windows 7',
+        version: '9'
+      },
+      slIe11Win10: {
+        base: 'SauceLabs',
+        browserName: 'internet explorer',
+        platform: 'Windows 10',
+        version: '11'
+      },
+      slME25Win10: {
+        base: 'SauceLabs',
+        browserName: 'microsoftedge',
+        platform: 'Windows 10',
+        version: '13'
+      },
+      slSafariOsx: {
+        base: 'SauceLabs',
+        browserName: 'safari',
+        platform: 'OS X 10.8'
+      },
+      slOpera12Win7: {
+        base: 'SauceLabs',
+        browserName: 'opera',
+        platform: 'Windows 7',
+        version: '12.12'
+      },
+      slIphone: {
+        base: 'SauceLabs',
+        browserName: 'iphone',
+        platform: 'OS X 10.10',
+        version: '8.2',
+        deviceName: 'iPhone Simulator'
+      },
+      slIpad: {
+        base: 'SauceLabs',
+        browserName: 'iphone',
+        platform: 'OS X 10.10',
+        version: '8.2',
+        deviceName: 'iPad Simulator'
+      },
+      slAndroid: {
+        base: 'SauceLabs',
+        browserName: 'android',
+        platform: 'Linux',
+        version: '5.1',
+        deviceName: 'Android Emulator'
+      }
     };
     browsers = Object.keys(customLaunchers);
   } else {
@@ -165,7 +165,7 @@ module.exports = function init(config) {
     // level of logging
     // possible values: config.LOG_DISABLE || config.LOG_ERROR || 
     // config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
-    logLevel: config.LOG_DEBUG,
+    logLevel: config.LOG_ERROR,
 
 
     // enable / disable watching file and executing tests whenever any file changes
@@ -186,9 +186,9 @@ module.exports = function init(config) {
 
     // Concurrency level
     // how many browser should be started simultanous
-    concurrency: 1,
-    browserDisconnectTimeout: 10000,
-    browserDisconnectTolerance: 10,
-    browserNoActivityTimeout: 20000,
+    // concurrency: 1,
+    // browserDisconnectTimeout: 10000,
+    // browserDisconnectTolerance: 10,
+    // browserNoActivityTimeout: 20000,
   });
 };
