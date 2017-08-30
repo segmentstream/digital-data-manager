@@ -91,13 +91,11 @@ class GoogleAnalytics extends Integration {
     const optionsWithDefaults = Object.assign({
       trackingId: '',
       alternativeTrackingId: '',
-      doubleClick: false,
       enhancedLinkAttribution: false,
       enhancedEcommerce: false,
       sendUserId: false,
       anonymizeIp: false,
       domain: 'auto',
-      includeSearch: false,
       siteSpeedSampleRate: 1,
       defaultCurrency: 'USD',
       fields: {},
@@ -517,10 +515,6 @@ class GoogleAnalytics extends Integration {
         this.initializeTracker(this.getOption('alternativeTrackingId'), this.getOption('alternativeNamespace'));
       }
 
-      // display advertising
-      if (this.getOption('doubleClick')) {
-        this.ga(['require', 'displayfeatures'], this.getOption('noConflict'));
-      }
       // https://support.google.com/analytics/answer/2558867?hl=en
       if (this.getOption('enhancedLinkAttribution')) {
         this.ga(['require', 'linkid', 'linkid.js'], this.getOption('noConflict'));
@@ -818,7 +812,7 @@ class GoogleAnalytics extends Integration {
     const pageUrl = page.url;
     let pagePath = page.path;
 
-    if (this.getOption('includeSearch') && page.queryString) {
+    if (page.queryString) {
       pagePath += page.queryString;
     }
     const pageTitle = page.name || page.title;
