@@ -113,11 +113,11 @@ module.exports = function init(config) {
       tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
       recordScreenshots: false,
       startConnect: false,
-      connectOptions: {
-        port: 5757,
-        logfile: 'sauce_connect.log'
-      },
-      public: 'public'
+      // connectOptions: {
+      //   port: 5757,
+      //   logfile: 'sauce_connect.log'
+      // },
+      // public: 'public'
     },
 
     // list of files / patterns to load in the browser
@@ -133,12 +133,12 @@ module.exports = function init(config) {
 
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
-    //preprocessors: {
+    // preprocessors: {
     //  'src/**/*.js': ['browserify'],
     //  'test/**/*.js': ['browserify']
-    //},
+    // },
     //
-    //browserify: {
+    // browserify: {
     //  debug: true,
     //  transform: ['babelify', ['polyify', { 'browsers': 'IE >= 7' }]],
     //  configure: function(bundle) {
@@ -146,12 +146,12 @@ module.exports = function init(config) {
     //      console.log(content);
     //    });
     //  }
-    //},
+    // },
 
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['dots', 'saucelabs'],
+    reporters: ['dots'/* , 'saucelabs' */],
 
 
     // web server port
@@ -163,7 +163,8 @@ module.exports = function init(config) {
 
 
     // level of logging
-    // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
+    // possible values: config.LOG_DISABLE || config.LOG_ERROR || 
+    // config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
     logLevel: config.LOG_DEBUG,
 
 
