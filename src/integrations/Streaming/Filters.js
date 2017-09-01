@@ -256,17 +256,20 @@ class Filters {
 
   filterViewedCampaign(event) {
     const filtered = this.filterCommonEvent(event);
+    let campaigns;
     if (event.campaign) {
-      return {
-        ...filtered,
-        campaing: filterObject(event.campaign, [campaignProps]),
-      };
+      campaigns = [event.campaign];
     } else if (event.campaigns) {
+      campaigns = event.campaigns;
+    }
+
+    if (campaigns) {
       return {
         ...filtered,
-        campaigns: fitlerObjectsArray(event.campaigns, [campaignProps]),
+        campaigns: fitlerObjectsArray(campaigns, [campaignProps]),
       };
     }
+
     return filtered;
   }
 
