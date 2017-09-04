@@ -99,7 +99,7 @@ class Streaming extends Integration {
       }
       const filtered = this.filters.filterUser(user);
       this.anonymousId = user.anonymousId;
-      this.userId = user.userId;
+      this.userId = user.userId ? String(user.userId) : undefined;
       this.user = { ...this.user, ...filtered };
     }
 

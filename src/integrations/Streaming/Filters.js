@@ -162,7 +162,27 @@ class Filters {
   }
 
   filterProduct(product = {}) {
-    return filterObject(product, [productProps, this.customProductProps]);
+    return filterObject(
+      {
+        ...product,
+        id: (product.id) ? String(product.id) : undefined,
+        categoryId: (product.categoryId) ? String(product.categoryId) : undefined,
+        category: (product.category && Array.isArray(product.category)) ?
+          product.category.join('/') : product.category,
+        unitPrice: (product.unitPrice) ? Number(product.unitPrice) : undefined,
+        unitSalePrice: (product.unitSalePrice) ? Number(product.unitSalePrice) : undefined,
+      },
+      [productProps, this.customProductProps],
+    );
+  }
+
+  filterListing(listing = {}) {
+    return filterObject({
+      ...listing,
+      categoryId: (listing.categoryId) ? String(listing.categoryId) : undefined,
+      category: (listing.category && Array.isArray(listing.category)) ?
+        listing.category.join('/') : listing.category,
+    }, [listingProps]);
   }
 
   filterLineItems(lineItems = []) {
@@ -171,6 +191,13 @@ class Filters {
       quantity: lineItem.quantity,
       subtotal: lineItem.subtotal,
     }));
+  }
+
+  filterTransaction(transaction = {}) {
+    return filterObject({
+      ...transaction,
+      orderId: transaction.orderId ? String(transaction.orderId) : undefined,
+    }, [transactionProps]);
   }
 
   filterViewedPage(event) {
@@ -229,7 +256,7 @@ class Filters {
 
   filterCompletedTransaction(event) {
     const filtered = this.filterCommonEvent(event);
-    const transaction = filterObject(event.transaction, [transactionProps]);
+    const transaction = this.filterTransaction(event.transaction);
     transaction.lineItems = this.filterLineItems(getProp(event, 'transaction.lineItems'));
     return {
       ...filtered,
@@ -243,7 +270,7 @@ class Filters {
 
   filterViewedProductListing(event) {
     const filtered = this.filterCommonEvent(event);
-    const listing = filterObject(event.listing, [listingProps]);
+    const listing = this.filterListing(event.listing);
     return {
       ...filtered,
       listing,
@@ -282,8 +309,6 @@ class Filters {
       name: event.name,
       category: event.category,
       label: event.label,
-      user: event.user,
-      timestamp: event.timestamp,
     });
   }
 }
