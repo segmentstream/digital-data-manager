@@ -33,6 +33,7 @@ class Streaming extends Integration {
   }
 
   initialize() {
+    this._isLoaded = true;
     if (isCrawler(htmlGlobals.getNavigator().userAgent)) {
       return false;
     }
