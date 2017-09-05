@@ -218,7 +218,10 @@ class Filters {
   }
 
   filterWebsite(website = {}) {
-    return filterObject(website, [websiteProps]);
+    return filterObject({
+      ...website,
+      regionId: website.regionId ? String(website.regionId) : undefined,
+    }, [websiteProps]);
   }
 
   filterViewedPage(event) {
