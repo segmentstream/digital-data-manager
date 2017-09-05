@@ -4,6 +4,7 @@ import htmlGlobals from 'driveback-utils/htmlGlobals';
 import cleanObject from 'driveback-utils/cleanObject';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import size from 'driveback-utils/size';
+import isCrawler from 'driveback-utils/isCrawler';
 import uuid from 'uuid/v4';
 import Integration from './../Integration';
 import StreamingFilters from './Streaming/Filters';
@@ -27,7 +28,15 @@ class Streaming extends Integration {
     }, options);
     super(digitalData, optionsWithDefaults);
     this.user = {};
+    this.website = {};
     this.filters = new StreamingFilters(); // TODO: add custom props    
+  }
+
+  initialize() {
+    if (isCrawler(htmlGlobals.getNavigator().userAgent)) {
+      return false;
+    }
+    return true;
   }
 
   getIgnoredEvents() {
@@ -36,7 +45,7 @@ class Streaming extends Integration {
 
   getEnrichableEventProps(event) {
     const mapping = {
-      [VIEWED_PAGE]: ['page', 'user'],
+      [VIEWED_PAGE]: ['page', 'user', 'website'],
       [VIEWED_CART]: ['cart'],
       [COMPLETED_TRANSACTION]: ['transaction'],
       [VIEWED_PRODUCT_DETAIL]: ['product'],
@@ -97,13 +106,18 @@ class Streaming extends Integration {
       if (user.email) {
         user.emailHash = sha256(user.email).toString();
       }
-      const filtered = this.filters.filterUser(user);
       this.anonymousId = user.anonymousId;
       this.userId = user.userId ? String(user.userId) : undefined;
-      this.user = { ...this.user, ...filtered };
+      this.user = { ...this.user, ...this.filters.filterUser(user) };
+    }
+
+    if (event.website) {
+      const website = event.website;
+      this.website = this.filters.filterWebsite(website);
     }
 
     deleteProperty(event, 'user');
+    deleteProperty(event, 'website');
 
     this.sendEventHit(event);
   }
@@ -112,6 +126,7 @@ class Streaming extends Integration {
     const hitData = this.normalize({
       event: this.filters.filterEventHit(event),
       user: this.user,
+      website: this.website,
       type: 'event',
     });
     this.send(hitData);

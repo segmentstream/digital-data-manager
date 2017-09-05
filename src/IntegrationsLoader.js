@@ -71,8 +71,9 @@ const IntegrationsLoader = {
           || integration.getOption('noConflict')
           || integration.allowNoConflictInitialization()
         ) {
-          integration.initialize(version);
-          integration.setInitialized(true);
+          if (integration.initialize(version) !== false) {
+            integration.setInitialized(true);
+          }
         } else {
           warn(`Integration "${name}" can't be initialized properly because of the conflict`);
         }

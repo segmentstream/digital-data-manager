@@ -36,6 +36,15 @@ const pageProps = [
   'hash',
 ];
 
+const websiteProps = [
+  'type',
+  'region',
+  'regionId',
+  'language',
+  'currency',
+  'environment',
+];
+
 const productProps = [
   'id',
   'name',
@@ -200,9 +209,24 @@ class Filters {
     }, [transactionProps]);
   }
 
+  filterPage(page = {}) {
+    return filterObject({
+      ...page,
+      breadcrumb: (page.breadcrumb && Array.isArray(page.breadcrumb)) ?
+        page.breadcrumb.join('/') : page.breadcrumb,
+    }, [pageProps]);
+  }
+
+  filterWebsite(website = {}) {
+    return filterObject(website, [websiteProps]);
+  }
+
   filterViewedPage(event) {
     const filtered = this.filterCommonEvent(event);
-    return { ...filtered, page: filterObject(event.page, [pageProps]) };
+    return {
+      ...filtered,
+      page: this.filterPage(event.page),
+    };
   }
 
   filterViewedProductDetail(event) {
