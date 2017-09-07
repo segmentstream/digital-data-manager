@@ -294,15 +294,17 @@ const ddManager = {
 
     IntegrationsLoader.addIntegrations(settings.integrations, ddManager);
     if (settings.enableStreaming) {
-      const streaming = new Streaming(_digitalData, {
-        projectId: settings.projectId,
-        projectName: settings.projectName,
-        library: {
-          name: 'ddmanager.js',
-          version: ddManager.VERSION,
-        },
+      let streaming = IntegrationsLoader.getIntegration('Streaming');
+      if (!streaming) {
+        streaming = new Streaming(_digitalData);
+        IntegrationsLoader.addIntegration('Streaming', streaming, ddManager);
+      }
+      streaming.setOption('projectId', settings.projectId);
+      streaming.setOption('projectName', settings.projectName);
+      streaming.setOption('library', {
+        name: 'ddmanager.js',
+        version: ddManager.VERSION,
       });
-      IntegrationsLoader.addIntegration('Streaming', streaming, ddManager);
     }
     IntegrationsLoader.initializeIntegrations(settings.version);
     IntegrationsLoader.loadIntegrations(

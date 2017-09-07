@@ -3,11 +3,26 @@ import utmParams from 'driveback-utils/utmParams';
 import htmlGlobals from 'driveback-utils/htmlGlobals';
 import cleanObject from 'driveback-utils/cleanObject';
 import deleteProperty from 'driveback-utils/deleteProperty';
+import { getProp } from 'driveback-utils/dotProp';
+import arrayMerge from 'driveback-utils/arrayMerge';
 import size from 'driveback-utils/size';
+import each from 'driveback-utils/each';
 import isCrawler from 'driveback-utils/isCrawler';
 import uuid from 'uuid/v4';
 import Integration from './../Integration';
-import StreamingFilters from './Streaming/Filters';
+import StreamingFilters, {
+  pageProps,
+  listingProps,
+  cartProps,
+  productProps,
+  transactionProps,
+  campaignProps,
+  userProps,
+  websiteProps,
+} from './Streaming/Filters';
+import {
+  getEnrichableVariableMappingProps,
+} from './../IntegrationUtils';
 import {
   VIEWED_PAGE,
   VIEWED_CART,
@@ -15,16 +30,44 @@ import {
   VIEWED_PRODUCT,
   CLICKED_PRODUCT,
   VIEWED_PRODUCT_DETAIL,
+  ADDED_PRODUCT,
+  REMOVED_PRODUCT,
   VIEWED_PRODUCT_LISTING,
   SEARCHED_PRODUCTS,
+  VIEWED_CAMPAIGN,
+  CLICKED_CAMPAIGN,
   EXCEPTION,
 } from './../events/semanticEvents';
+
+const CUSTOM_TYPE_NUMERIC = 'number';
+const CUSTOM_TYPE_STRING = 'string';
+
+export function extractCustoms(source, variableMapping, type) {
+  const values = [];
+  each(variableMapping, (key, variable) => {
+    let value = getProp(source, variable.value);
+    if (value !== undefined) {
+      if (type === CUSTOM_TYPE_NUMERIC && typeof value !== 'number') {
+        value = Number(value);
+      } else if (type === CUSTOM_TYPE_STRING && typeof value !== 'string') {
+        value = value.toString();
+      }
+      values.push({
+        name: variable.value,
+        value,
+      });
+    }
+  });
+  return values;
+}
 
 class Streaming extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       projectId: '',
       projectName: '',
+      customDimensions: {},
+      customMetrics: {},
     }, options);
     super(digitalData, optionsWithDefaults);
     this.user = {};
@@ -44,6 +87,19 @@ class Streaming extends Integration {
     return [VIEWED_PRODUCT, CLICKED_PRODUCT, EXCEPTION];
   }
 
+  getCustomProps() {
+    const customProps = [];
+    arrayMerge(
+      customProps,
+      getEnrichableVariableMappingProps(this.getOption('customDimensions')),
+    );
+    arrayMerge(
+      customProps,
+      getEnrichableVariableMappingProps(this.getOption('customMetrics')),
+    );
+    return customProps;
+  }
+
   getEnrichableEventProps(event) {
     const mapping = {
       [VIEWED_PAGE]: ['page', 'user', 'website'],
@@ -55,8 +111,85 @@ class Streaming extends Integration {
     };
 
     const enrichableProps = mapping[event.name] || [];
+    arrayMerge(
+      enrichableProps,
+      this.getCustomProps(),
+    );
 
     return enrichableProps;
+  }
+
+  getValidationFields(...keys) {
+    const fieldsMapping = {
+      user: userProps,
+      website: websiteProps,
+      page: pageProps,
+      cart: cartProps,
+      listing: listingProps,
+      transaction: transactionProps,
+      product: productProps,
+      campaign: campaignProps,
+    };
+
+    const validationFields = (Array.isArray(keys)) ? keys.reduce((result, key) => {
+      fieldsMapping[key].forEach((prop) => {
+        result.push([key, prop].join('.'));
+        if (key === 'campaign') {
+          result.push(['campaigns[]', prop].join('.'));
+        }
+      });
+      return result;
+    }, []) : [];
+
+    arrayMerge(validationFields, this.getCustomProps());
+    arrayMerge(validationFields, ['category', 'label']);
+
+    return validationFields;
+  }
+
+  getEventValidationConfig(event) {
+    const productFields = () => this.getValidationFields('product');
+    const mapping = {
+      [VIEWED_PAGE]: {
+        fields: this.getValidationFields('user', 'page', 'website'),
+      },
+      [VIEWED_CART]: {
+        fields: this.getValidationFields('cart'),
+      },
+      [COMPLETED_TRANSACTION]: {
+        fields: this.getValidationFields('transaction'),
+      },
+      [VIEWED_PRODUCT_DETAIL]: {
+        fields: productFields,
+      },
+      [ADDED_PRODUCT]: {
+        fields: productFields,
+      },
+      [REMOVED_PRODUCT]: {
+        fields: productFields,
+      },
+      [VIEWED_PRODUCT_LISTING]: {
+        fields: this.getValidationFields('listing'),
+      },
+      [SEARCHED_PRODUCTS]: {
+        fields: this.getValidationFields('listing'),
+      },
+      [VIEWED_CAMPAIGN]: {
+        fields: this.getValidationFields('campaign'),
+      },
+      [CLICKED_CAMPAIGN]: {
+        fields: this.getValidationFields('campaign'),
+      },
+    };
+
+    const validationConfig = mapping[event.name] || {};
+    if (typeof validationConfig.fields === 'function') {
+      validationConfig.fields = validationConfig.fields();
+    } else {
+      validationConfig.fields = validationConfig.fields || this.getValidationFields();
+    }
+
+    return validationConfig;
   }
 
   allowCustomEvents() {
@@ -116,6 +249,12 @@ class Streaming extends Integration {
       const website = event.website;
       this.website = this.filters.filterWebsite(website);
     }
+
+    const customDimensions = extractCustoms(event, this.getOption('customDimensions'), CUSTOM_TYPE_STRING);
+    const customMetrics = extractCustoms(event, this.getOption('customMetrics'), CUSTOM_TYPE_NUMERIC);
+
+    if (customDimensions.length) event.customDimensions = customDimensions;
+    if (customMetrics.length) event.customMetrics = customMetrics;
 
     deleteProperty(event, 'user');
     deleteProperty(event, 'website');

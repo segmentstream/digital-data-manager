@@ -16,7 +16,7 @@ import {
   CLICKED_CAMPAIGN,
 } from './../../events/semanticEvents';
 
-const userProps = [
+export const userProps = [
   'isLoggedIn',
   'isReturning',
   'isSubscribed',
@@ -24,7 +24,7 @@ const userProps = [
   'lastTransactionDate',
 ];
 
-const pageProps = [
+export const pageProps = [
   'name',
   'category',
   'type',
@@ -36,7 +36,7 @@ const pageProps = [
   'hash',
 ];
 
-const websiteProps = [
+export const websiteProps = [
   'type',
   'region',
   'regionId',
@@ -45,7 +45,7 @@ const websiteProps = [
   'environment',
 ];
 
-const productProps = [
+export const productProps = [
   'id',
   'name',
   'currency',
@@ -64,7 +64,7 @@ const productProps = [
   'size',
 ];
 
-const listingProps = [
+export const listingProps = [
   'listId',
   'listName',
   'categoryId',
@@ -77,7 +77,7 @@ const listingProps = [
   'layout',
 ];
 
-const cartProps = [
+export const cartProps = [
   'id',
   'vouchers',
   'lineItems',
@@ -89,7 +89,7 @@ const cartProps = [
   'paymentMethod',
 ];
 
-const transactionProps = [
+export const transactionProps = [
   'vouchers',
   'lineItems',
   'total',
@@ -102,7 +102,7 @@ const transactionProps = [
   'isFirst',
 ];
 
-const campaignProps = [
+export const campaignProps = [
   'id',
   'name',
   'category',
@@ -336,6 +336,8 @@ class Filters {
       name: event.name,
       category: event.category,
       label: event.label,
+      customDimensions: event.customDimensions,
+      customMetrics: event.customMetrics,
     });
   }
 }
