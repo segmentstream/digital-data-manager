@@ -53,7 +53,7 @@ export function extractCustoms(source, variableMapping, type) {
         value = value.toString();
       }
       values.push({
-        name: variable.value,
+        name: key,
         value,
       });
     }
