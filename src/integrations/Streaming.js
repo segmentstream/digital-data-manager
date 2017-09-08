@@ -203,8 +203,9 @@ class Streaming extends Integration {
       hitId,
       projectId: this.getOption('projectId'),
       projectName: this.getOption('projectName'),
-      anonymousId: this.anonymousId,
-      userId: this.userId,
+      anonymousId: this.getAnonymousId(),
+      userId: this.getUserId(),
+      emailHash: this.getEmailHash(),
       context: {
         campaign: size(campaign) ? campaign : undefined,
         library: this.library,
@@ -225,6 +226,10 @@ class Streaming extends Integration {
     return Object.assign(hitData, commonFields);
   }
 
+  setAnonymousId(anonymousId) {
+    this.anonymousId = anonymousId;
+  }
+
   getAnonymousId() {
     return this.anonymousId;
   }
@@ -233,15 +238,31 @@ class Streaming extends Integration {
     return this.userId;
   }
 
+  setUserId(userId) {
+    this.userId = userId;
+  }
+
+  getEmailHash() {
+    return this.emailHash;
+  }
+
+  setEmailHash(emailHash) {
+    this.emailHash = emailHash;
+  }
+
   trackEvent(event) {
     // identify
-    if (event.user) {
+    if (size(event.user)) {
       const user = event.user || {};
       if (user.email) {
-        user.emailHash = sha256(user.email).toString();
+        this.setEmailHash(sha256(user.email.trim()).toString());
       }
-      this.anonymousId = user.anonymousId;
-      this.userId = user.userId ? String(user.userId) : undefined;
+      if (user.anonymousId) {
+        this.setAnonymousId(user.anonymousId);
+      }
+      if (user.userId) {
+        this.setUserId(String(user.userId));
+      }
       this.user = { ...this.user, ...this.filters.filterUser(user) };
     }
 
@@ -285,10 +306,10 @@ class Streaming extends Integration {
       // localstorage not supported
       // TODO: save to memory
     } */
-    window.fetch('//track.ddmanager.ru/collect', {
+    window.fetch('https://track.ddmanager.ru/collect', {
       method: 'post',
       credentials: 'include',
-      mode: 'no-cors',
+      mode: 'cors',
       body: JSON.stringify(hitData),
     }).then((response) => {
       if (response.ok) {
