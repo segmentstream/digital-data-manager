@@ -381,7 +381,7 @@ describe('DDManager', () => {
 
     it('should override option1 and not override option2', () => {
       assert.ok(integration.getOption('option1'), 'overriden_value');
-      assert.ok(integration.getOption('option1'), 'initial_value');
+      assert.ok(integration.getOption('option2'), 'initial_value');
     });
 
   });
