@@ -16,14 +16,6 @@ import {
   CLICKED_CAMPAIGN,
 } from './../../events/semanticEvents';
 
-export const userProps = [
-  'isLoggedIn',
-  'isReturning',
-  'isSubscribed',
-  'hasTransacted',
-  'lastTransactionDate',
-];
-
 export const pageProps = [
   'name',
   'category',
@@ -128,11 +120,6 @@ const fitlerObjectsArray = (objArray, propSets, restrictedProps) =>
 
 
 class Filters {
-  constructor(customUserProps = [], customProductProps = []) {
-    this.customUserProps = customUserProps;
-    this.customProductProps = customProductProps;
-  }
-
   filterEventHit(event) {
     const mapping = {
       [VIEWED_PAGE]: this.filterViewedPage.bind(this),
@@ -154,20 +141,6 @@ class Filters {
       return mapping[event.name](event);
     }
     return this.filterCommonEvent(event);
-  }
-
-  filterUser(user) {
-    const fitlered = filterObject(user, [userProps, this.customUserProps], [
-      'anonymousId',
-      'userId',
-      'firstName',
-      'lastName',
-      'fullName',
-      'phone',
-      'email',
-    ]);
-
-    return fitlered;
   }
 
   filterProduct(product = {}) {

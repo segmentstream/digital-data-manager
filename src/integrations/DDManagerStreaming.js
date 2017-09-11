@@ -19,7 +19,7 @@ import StreamingFilters, {
   campaignProps,
   userProps,
   websiteProps,
-} from './Streaming/Filters';
+} from './DDManagerStreaming/Filters';
 import {
   getEnrichableVariableMappingProps,
 } from './../IntegrationUtils';
@@ -61,16 +61,15 @@ export function extractCustoms(source, variableMapping, type) {
   return values;
 }
 
-class Streaming extends Integration {
+class DDManagerStreaming extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       projectId: '',
       projectName: '',
-      customDimensions: {},
-      customMetrics: {},
+      dimensions: {},
+      metrics: {},
     }, options);
     super(digitalData, optionsWithDefaults);
-    this.user = {};
     this.website = {};
     this.filters = new StreamingFilters(); // TODO: add custom props    
   }
@@ -91,18 +90,18 @@ class Streaming extends Integration {
     const customProps = [];
     arrayMerge(
       customProps,
-      getEnrichableVariableMappingProps(this.getOption('customDimensions')),
+      getEnrichableVariableMappingProps(this.getOption('dimensions')),
     );
     arrayMerge(
       customProps,
-      getEnrichableVariableMappingProps(this.getOption('customMetrics')),
+      getEnrichableVariableMappingProps(this.getOption('metrics')),
     );
     return customProps;
   }
 
   getEnrichableEventProps(event) {
     const mapping = {
-      [VIEWED_PAGE]: ['page', 'user', 'website'],
+      [VIEWED_PAGE]: ['page', 'user.userId', 'user.anonymousId', 'user.email', 'website'],
       [VIEWED_CART]: ['cart'],
       [COMPLETED_TRANSACTION]: ['transaction'],
       [VIEWED_PRODUCT_DETAIL]: ['product'],
@@ -121,7 +120,6 @@ class Streaming extends Integration {
 
   getValidationFields(...keys) {
     const fieldsMapping = {
-      user: userProps,
       website: websiteProps,
       page: pageProps,
       cart: cartProps,
@@ -151,7 +149,7 @@ class Streaming extends Integration {
     const productFields = () => this.getValidationFields('product');
     const mapping = {
       [VIEWED_PAGE]: {
-        fields: this.getValidationFields('user', 'page', 'website'),
+        fields: this.getValidationFields('page', 'website'),
       },
       [VIEWED_CART]: {
         fields: this.getValidationFields('cart'),
@@ -263,7 +261,6 @@ class Streaming extends Integration {
       if (user.userId) {
         this.setUserId(String(user.userId));
       }
-      this.user = { ...this.user, ...this.filters.filterUser(user) };
     }
 
     if (event.website) {
@@ -271,8 +268,8 @@ class Streaming extends Integration {
       this.website = this.filters.filterWebsite(website);
     }
 
-    const customDimensions = extractCustoms(event, this.getOption('customDimensions'), CUSTOM_TYPE_STRING);
-    const customMetrics = extractCustoms(event, this.getOption('customMetrics'), CUSTOM_TYPE_NUMERIC);
+    const customDimensions = extractCustoms(event, this.getOption('dimensions'), CUSTOM_TYPE_STRING);
+    const customMetrics = extractCustoms(event, this.getOption('metrics'), CUSTOM_TYPE_NUMERIC);
 
     if (customDimensions.length) event.customDimensions = customDimensions;
     if (customMetrics.length) event.customMetrics = customMetrics;
@@ -286,7 +283,6 @@ class Streaming extends Integration {
   sendEventHit(event) {
     const hitData = this.normalize({
       event: this.filters.filterEventHit(event),
-      user: this.user,
       website: this.website,
       type: 'event',
     });
@@ -319,4 +315,4 @@ class Streaming extends Integration {
   }
 }
 
-export default Streaming;
+export default DDManagerStreaming;

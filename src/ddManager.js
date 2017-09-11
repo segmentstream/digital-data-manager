@@ -20,7 +20,7 @@ import { validateIntegrationEvent, trackValidationErrors } from './EventValidato
 import { enableErrorTracking } from './ErrorTracker';
 import { error as errorLog } from 'driveback-utils/safeConsole';
 import { trackLink, trackImpression } from './trackers';
-import Streaming from './integrations/Streaming';
+import DDManagerStreaming from './integrations/DDManagerStreaming';
 
 /**
  * @type {Object}
@@ -293,19 +293,18 @@ const ddManager = {
     _eventManager.setSendViewedPageEvent(settings.sendViewedPageEvent);
 
     IntegrationsLoader.addIntegrations(settings.integrations, ddManager);
-    if (settings.enableStreaming) {
-      let streaming = IntegrationsLoader.getIntegration('Streaming');
-      if (!streaming) {
-        streaming = new Streaming(_digitalData);
-        IntegrationsLoader.addIntegration('Streaming', streaming, ddManager);
-      }
-      streaming.setOption('projectId', settings.projectId);
-      streaming.setOption('projectName', settings.projectName);
-      streaming.setOption('library', {
-        name: 'ddmanager.js',
-        version: ddManager.VERSION,
-      });
+    let streaming = IntegrationsLoader.getIntegration('DDManager Streaming');
+    if (!streaming) {
+      streaming = new DDManagerStreaming(_digitalData);
+      IntegrationsLoader.addIntegration('DDManager Streaming', streaming, ddManager);
     }
+    streaming.setOption('projectId', settings.projectId);
+    streaming.setOption('projectName', settings.projectName);
+    streaming.setOption('library', {
+      name: 'ddmanager.js',
+      version: ddManager.VERSION,
+    });
+
     IntegrationsLoader.initializeIntegrations(settings.version);
     IntegrationsLoader.loadIntegrations(
       settings.integrationsPriority,

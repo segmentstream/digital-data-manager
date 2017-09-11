@@ -32,7 +32,7 @@ import GdeSlon from './integrations/GdeSlon';
 import RichRelevance from './integrations/RichRelevance';
 import Linkprofit from './integrations/Linkprofit';
 import Flocktory from './integrations/Flocktory';
-import Streaming from './integrations/Streaming';
+import DDManagerStreaming from './integrations/DDManagerStreaming';
 import Recreativ from './integrations/Recreativ';
 
 const integrations = {
@@ -70,7 +70,7 @@ const integrations = {
   RichRelevance,
   Linkprofit,
   Flocktory,
-  Streaming,
+  'DDManager Streaming': DDManagerStreaming,
   Recreativ,
 };
 
