@@ -103,14 +103,12 @@ export const campaignProps = [
   'position',
 ];
 
-const filterObject = (obj, propSets, restrictedProps = []) => {
+const filterObject = (obj, propsSet, restrictedProps = []) => {
   const filteredObject = {};
-  propSets.forEach((propsSet) => {
-    propsSet.forEach((prop) => {
-      if (obj[prop] !== undefined && restrictedProps.indexOf(prop) < 0) {
-        filteredObject[prop] = obj[prop];
-      }
-    });
+  propsSet.forEach((prop) => {
+    if (obj[prop] !== undefined && restrictedProps.indexOf(prop) < 0) {
+      filteredObject[prop] = obj[prop];
+    }
   });
   return filteredObject;
 };
@@ -154,7 +152,7 @@ class Filters {
         unitPrice: (product.unitPrice) ? Number(product.unitPrice) : undefined,
         unitSalePrice: (product.unitSalePrice) ? Number(product.unitSalePrice) : undefined,
       },
-      [productProps, this.customProductProps],
+      productProps,
     );
   }
 
@@ -164,7 +162,7 @@ class Filters {
       categoryId: (listing.categoryId) ? String(listing.categoryId) : undefined,
       category: (listing.category && Array.isArray(listing.category)) ?
         listing.category.join('/') : listing.category,
-    }, [listingProps]);
+    }, listingProps);
   }
 
   filterLineItems(lineItems = []) {
@@ -179,7 +177,7 @@ class Filters {
     return filterObject({
       ...transaction,
       orderId: transaction.orderId ? String(transaction.orderId) : undefined,
-    }, [transactionProps]);
+    }, transactionProps);
   }
 
   filterPage(page = {}) {
@@ -187,14 +185,14 @@ class Filters {
       ...page,
       breadcrumb: (page.breadcrumb && Array.isArray(page.breadcrumb)) ?
         page.breadcrumb.join('/') : page.breadcrumb,
-    }, [pageProps]);
+    }, pageProps);
   }
 
   filterWebsite(website = {}) {
     return filterObject({
       ...website,
       regionId: website.regionId ? String(website.regionId) : undefined,
-    }, [websiteProps]);
+    }, websiteProps);
   }
 
   filterViewedPage(event) {
@@ -246,7 +244,7 @@ class Filters {
 
   filterViewedCart(event) {
     const filtered = this.filterCommonEvent(event);
-    const cart = filterObject(event.cart, [cartProps]);
+    const cart = filterObject(event.cart, cartProps);
     cart.lineItems = this.filterLineItems(getProp(event, 'cart.lineItems'));
     return {
       ...filtered,
@@ -293,7 +291,7 @@ class Filters {
     if (campaigns) {
       return {
         ...filtered,
-        campaigns: fitlerObjectsArray(campaigns, [campaignProps]),
+        campaigns: fitlerObjectsArray(campaigns, campaignProps),
       };
     }
 

@@ -17,7 +17,6 @@ import StreamingFilters, {
   productProps,
   transactionProps,
   campaignProps,
-  userProps,
   websiteProps,
 } from './DDManagerStreaming/Filters';
 import {
@@ -71,7 +70,7 @@ class DDManagerStreaming extends Integration {
     }, options);
     super(digitalData, optionsWithDefaults);
     this.website = {};
-    this.filters = new StreamingFilters(); // TODO: add custom props    
+    this.filters = new StreamingFilters();
   }
 
   initialize() {
