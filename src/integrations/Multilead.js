@@ -14,6 +14,9 @@ class Multilead extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       shopId: '',
+      afsecure: '',
+      rbProductPixelId: '',
+      rbConversionPixelId: '',
       utmSource: 'multilead',
     }, options);
 
@@ -24,21 +27,21 @@ class Multilead extends Integration {
     this.addTag('productMailRuPixel', {
       type: 'script',
       attr: {
-        src: `https://ad.mail.ru/w422.gif?shop=${options.shopId}&offer={{ productId }}&rnd=${Date.now()}`,
+        src: `https://ad.mail.ru/${options.rbProductPixelId}.gif?shop=${options.shopId}&offer={{ productId }}&rnd=${Date.now()}`,
       },
     });
 
     this.addTag('conversionMailRuPixel', {
       type: 'script',
       attr: {
-        src: `https://rs.mail.ru/g542.gif?rnd=${Date.now()}`,
+        src: `https://rs.mail.ru/${options.rbConversionPixelId}.gif?rnd=${Date.now()}`,
       },
     });
 
     this.addTag('conversionPixel', {
       type: 'script',
       attr: {
-        src: 'https://track.multilead.ru/success.php?afid={{ orderId }}&afprice={{ total }}&afcurrency={{ currency }}&afsecure=536a3ef6e60c5db8ddcc56afb496d585',
+        src: `https://track.multilead.ru/success.php?afid={{ orderId }}&afprice={{ total }}&afcurrency={{ currency }}&afsecure=${options.afsecure}`,
       },
     });
   }
