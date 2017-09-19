@@ -34,6 +34,7 @@ import Linkprofit from './integrations/Linkprofit';
 import Flocktory from './integrations/Flocktory';
 import DDManagerStreaming from './integrations/DDManagerStreaming';
 import Recreativ from './integrations/Recreativ';
+import Multilead from './integrations/Multilead';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -72,6 +73,7 @@ const integrations = {
   Flocktory,
   'DDManager Streaming': DDManagerStreaming,
   Recreativ,
+  Multilead,
 };
 
 export default integrations;
