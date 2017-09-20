@@ -47,7 +47,9 @@ export function showTestModeOverlay() {
   overlayDiv.innerHTML = '<a style="color: #fff;" href="#" onclick="window.localStorage.removeItem(\'_ddm_test_mode\');location.reload();return false;">Выйти из превью</a>';
 
   overlayDiv.style.cssText = css.join(';');
-  document.body.appendChild(overlayDiv);
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.appendChild(overlayDiv);
+  }, false);
 }
 
 export function logValidationResult(event, messages) {

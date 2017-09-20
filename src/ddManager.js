@@ -327,7 +327,11 @@ const ddManager = {
     _eventManager.initialize();
 
     if (isTestMode()) {
-      showTestModeOverlay();
+      try {
+        showTestModeOverlay();
+      } catch (e) {
+        errorLog(e);
+      }
     }
   },
 

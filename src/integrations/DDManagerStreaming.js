@@ -17,6 +17,7 @@ import StreamingFilters, {
   productProps,
   transactionProps,
   campaignProps,
+  listItemProps,
   websiteProps,
 } from './DDManagerStreaming/Filters';
 import {
@@ -65,6 +66,7 @@ class DDManagerStreaming extends Integration {
     const optionsWithDefaults = Object.assign({
       projectId: '',
       projectName: '',
+      trackingUrl: 'https://track.ddmanager.ru/collect',
       dimensions: {},
       metrics: {},
     }, options);
@@ -82,7 +84,7 @@ class DDManagerStreaming extends Integration {
   }
 
   getIgnoredEvents() {
-    return [VIEWED_PRODUCT, CLICKED_PRODUCT, EXCEPTION];
+    return [/* VIEWED_PRODUCT, CLICKED_PRODUCT, */EXCEPTION];
   }
 
   getCustomProps() {
@@ -121,11 +123,12 @@ class DDManagerStreaming extends Integration {
     const fieldsMapping = {
       website: websiteProps,
       page: pageProps,
-      cart: cartProps,
+      cart: [...cartProps, 'vouchers'],
       listing: listingProps,
-      transaction: transactionProps,
+      transaction: [...transactionProps, 'vouchers'],
       product: productProps,
       campaign: campaignProps,
+      listItem: listItemProps,
     };
 
     const validationFields = (Array.isArray(keys)) ? keys.reduce((result, key) => {
@@ -133,6 +136,8 @@ class DDManagerStreaming extends Integration {
         result.push([key, prop].join('.'));
         if (key === 'campaign') {
           result.push(['campaigns[]', prop].join('.'));
+        } else if (key === 'listItem') {
+          result.push(['listItems[]', prop].join('.'));
         }
       });
       return result;
@@ -176,6 +181,12 @@ class DDManagerStreaming extends Integration {
       },
       [CLICKED_CAMPAIGN]: {
         fields: this.getValidationFields('campaign'),
+      },
+      [VIEWED_PRODUCT]: {
+        fields: this.getValidationFields('listItem'),
+      },
+      [CLICKED_PRODUCT]: {
+        fields: this.getValidationFields('listItem'),
       },
     };
 
@@ -301,7 +312,7 @@ class DDManagerStreaming extends Integration {
       // localstorage not supported
       // TODO: save to memory
     } */
-    window.fetch('https://track.ddmanager.ru/collect', {
+    window.fetch(this.getOption('trackingUrl'), {
       method: 'post',
       credentials: 'include',
       mode: 'cors',

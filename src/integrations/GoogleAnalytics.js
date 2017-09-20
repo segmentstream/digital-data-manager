@@ -702,27 +702,36 @@ class GoogleAnalytics extends Integration {
 
   enrichDigitalData() {
     const gaCookie = cookie.get('_ga');
+    let googleClientId;
     if (gaCookie) {
       const match = gaCookie.match(/(\d+\.\d+)$/);
-      const googleClientId = (match) ? match[1] : null;
+      googleClientId = (match) ? match[1] : null;
       if (googleClientId) {
-        this.digitalData.user = this.digitalData.user || {};
-        this.digitalData.user.googleClientId = googleClientId;
+        this.digitalData.changes.push([
+          'user.googleClientId',
+          googleClientId,
+          `${this.getName()} Integration`,
+        ]);
       }
     }
 
     // TODO: remove asynс enrichment
-    window.ga((tracker) => {
-      const trackerName = this.getOption('namespace');
-      tracker = tracker || window.ga.getByName(trackerName);
-      if (tracker) {
-        this.digitalData.user = this.digitalData.user || {};
-        this.digitalData.user.googleClientId = tracker.get('clientId');
-        setProp(this.digitalData, 'integrations.googleAnalytics.clientId', tracker.get('clientId'));
-      }
+    if (!googleClientId) {
+      window.ga((tracker) => {
+        const trackerName = this.getOption('namespace');
+        tracker = tracker || window.ga.getByName(trackerName);
+        if (tracker) {
+          this.digitalData.changes.push([
+            'user.googleClientId',
+            tracker.get('clientId'),
+            `${this.getName()} Integration`,
+          ]);
+          setProp(this.digitalData, 'integrations.googleAnalytics.clientId', tracker.get('clientId'));
+        }
+      });
+    }
 
-      this.onEnrich();
-    });
+    this.onEnrich();
   }
 
   isPageviewDelayed(pageType) {

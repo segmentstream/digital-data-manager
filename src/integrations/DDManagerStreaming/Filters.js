@@ -14,6 +14,8 @@ import {
   VIEWED_PRODUCT_LISTING,
   VIEWED_CAMPAIGN,
   CLICKED_CAMPAIGN,
+  VIEWED_PRODUCT,
+  CLICKED_PRODUCT,
 } from './../../events/semanticEvents';
 
 export const pageProps = [
@@ -69,24 +71,30 @@ export const listingProps = [
   'layout',
 ];
 
+const lineItemProps = [
+  ...productProps.map(productProp => ['product', productProp].join('.')),
+  'quantity',
+  'subtotal',
+];
+
 export const cartProps = [
+  ...lineItemProps.map(lineItemProp => ['lineItems[]', lineItemProp].join('.')),
   'id',
-  'vouchers',
-  'lineItems',
   'total',
   'subtotal',
   'currency',
+  'voucher',
   'voucherDiscount',
   'shippingCost',
   'paymentMethod',
 ];
 
 export const transactionProps = [
-  'vouchers',
-  'lineItems',
+  ...lineItemProps.map(lineItemProp => ['lineItems[]', lineItemProp].join('.')),
   'total',
   'subtotal',
   'currency',
+  'voucher',
   'voucherDiscount',
   'shippingCost',
   'paymentMethod',
@@ -103,6 +111,12 @@ export const campaignProps = [
   'position',
 ];
 
+export const listItemProps = [
+  ...productProps.map(productProp => ['product', productProp].join('.')),
+  'position',
+  'listId',
+];
+
 const filterObject = (obj, propsSet, restrictedProps = []) => {
   const filteredObject = {};
   propsSet.forEach((prop) => {
@@ -112,10 +126,6 @@ const filterObject = (obj, propsSet, restrictedProps = []) => {
   });
   return filteredObject;
 };
-
-const fitlerObjectsArray = (objArray, propSets, restrictedProps) =>
-  objArray.map(obj => filterObject(obj, propSets, restrictedProps));
-
 
 class Filters {
   filterEventHit(event) {
@@ -133,6 +143,8 @@ class Filters {
       [SEARCHED_PRODUCTS]: this.filterSearchedProducts.bind(this),
       [VIEWED_CAMPAIGN]: this.filterViewedCampaign.bind(this),
       [CLICKED_CAMPAIGN]: this.filterClickedCampaign.bind(this),
+      [VIEWED_PRODUCT]: this.filterViewedProduct.bind(this),
+      [CLICKED_PRODUCT]: this.filterClickedProduct.bind(this),
     };
 
     if (event.name && mapping[event.name]) {
@@ -173,10 +185,33 @@ class Filters {
     }));
   }
 
+  filterListItems(listItems = []) {
+    return listItems.map(listItem => cleanObject({
+      product: this.filterProduct(listItem.product),
+      position: listItem.position !== undefined ? Number(listItem.position) : undefined,
+      listId: listItem.listId ? String(listItem.listId) : undefined,
+    }));
+  }
+
+  filterCampaigns(campaigns = []) {
+    return campaigns.map(campaign => filterObject({
+      ...campaign,
+      position: campaign.position !== undefined ? String(campaign.position) : undefined,
+    }, campaignProps));
+  }
+
+  filterCart(cart = {}) {
+    return filterObject({
+      ...cart,
+      voucher: Array.isArray(cart.vouchers) ? cart.vouchers.toString() : undefined,
+    }, cartProps);
+  }
+
   filterTransaction(transaction = {}) {
     return filterObject({
       ...transaction,
       orderId: transaction.orderId ? String(transaction.orderId) : undefined,
+      voucher: Array.isArray(transaction.vouchers) ? transaction.vouchers.toString() : undefined,
     }, transactionProps);
   }
 
@@ -244,7 +279,7 @@ class Filters {
 
   filterViewedCart(event) {
     const filtered = this.filterCommonEvent(event);
-    const cart = filterObject(event.cart, cartProps);
+    const cart = this.filterCart(event.cart);
     cart.lineItems = this.filterLineItems(getProp(event, 'cart.lineItems'));
     return {
       ...filtered,
@@ -291,11 +326,33 @@ class Filters {
     if (campaigns) {
       return {
         ...filtered,
-        campaigns: fitlerObjectsArray(campaigns, campaignProps),
+        campaigns: this.filterCampaigns(campaigns),
       };
     }
 
     return filtered;
+  }
+
+  filterViewedProduct(event) {
+    const filtered = this.filterCommonEvent(event);
+    let listItems;
+    if (event.listItem) {
+      listItems = [event.listItem];
+    } else if (event.listItems) {
+      listItems = event.listItems;
+    }
+
+    if (listItems) {
+      return {
+        ...filtered,
+        listItems: this.filterListItems(listItems),
+      };
+    }
+    return filtered;
+  }
+
+  filterClickedProduct(event) {
+    return this.filterViewedProduct(event);
   }
 
   filterClickedCampaign(event) {
