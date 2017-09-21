@@ -1,5 +1,6 @@
 import clone from 'driveback-utils/clone';
 import each from 'driveback-utils/each';
+import semver from 'driveback-utils/semver';
 import nextTick from 'async/nextTick';
 import cleanObject from 'driveback-utils/cleanObject';
 import emitter from 'component-emitter';
@@ -9,7 +10,8 @@ import IntegrationsLoader from './IntegrationsLoader';
 import EventDataEnricher from './enrichments/EventDataEnricher';
 import DDHelper from './DDHelper';
 import DigitalDataEnricher from './enrichments/DigitalDataEnricher';
-import CustomEnricher from './enrichments/CustomEnricher';
+import CustomEnricher from './enrichments/CustomEnricher'; // @TODO: remove as legacy 
+import CustomEnrichments from './enrichments/CustomEnrichments';
 import CustomScripts from './scripts/CustomScripts';
 import Storage from './Storage';
 import DDStorage from './DDStorage';
@@ -200,15 +202,30 @@ function _initializeCustomScripts(settings) {
 }
 
 function _initializeCustomEnrichments(settings) {
-  _customEnricher = new CustomEnricher(_digitalData, _ddStorage);
-  _customEnricher.import(settings.enrichments);
-  _eventManager.addCallback(['on', 'beforeEvent', (event) => {
-    if (event.name === VIEWED_PAGE) {
+  if (semver.cmp(event.version, '1.2.9') < 0) {
+    _customEnricher = new CustomEnricher(_digitalData, _ddStorage);
+    _customEnricher.import(settings.enrichments);
+    _eventManager.addCallback(['on', 'beforeEvent', (event) => {
+      if (event.name === VIEWED_PAGE) {
+        _digitalDataEnricher.enrichDigitalData();
+        _customEnricher.enrichDigitalData(_digitalData);
+      }
+      _customEnricher.enrichDigitalData(_digitalData, event);
+    }]);
+  } else {
+    _customEnricher = new CustomEnrichments(_digitalData, _ddStorage);
+    _customEnricher.import(settings.enrichments);
+    _eventManager.addCallback(['on', 'beforeEvent', (event) => {
+      if (event.name === VIEWED_PAGE) {
+        _digitalDataEnricher.enrichDigitalData();
+      }
+      _customEnricher.enrichDigitalData(_digitalData, event, true);
+    }]);
+    _eventManager.addCallback(['on', 'event', (event) => {
       _digitalDataEnricher.enrichDigitalData();
-      _customEnricher.enrichDigitalData(_digitalData);
-    }
-    _customEnricher.enrichDigitalData(_digitalData, event);
-  }]);
+      _customEnricher.enrichDigitalData(_digitalData, event, false);
+    }]);
+  }
 }
 
 const ddManager = {

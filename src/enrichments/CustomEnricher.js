@@ -1,3 +1,5 @@
+// !!! LEGACY LIBRARY @TODO: remove after full propogation of initialization 1.2.9
+
 import DigitalDataEnrichmentsCollection from './DigitalDataEnrichmentsCollection';
 
 const ENRICHMENT_TYPE_DIGITAL_DATA = 'digitalData';

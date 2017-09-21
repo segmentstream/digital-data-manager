@@ -1,12 +1,11 @@
 // !!! LEGACY LIBRARY @TODO: remove after full propogation of initialization 1.2.9
 
-import DigitalDataEnrichment from './DigitalDataEnrichment';
+import CustomEnrichment from './CustomEnrichment';
 
-class DigitalDataEnrichmentsCollection {
-  constructor(type, trigger, event) {
-    this.type = type;
-    this.trigger = trigger;
+class CustomEnrichmentsCollection {
+  constructor(event, beforeEvent) {
     this.event = event;
+    this.beforeEvent = beforeEvent;
     this.enrichments = [];
     this.enrichmentsIndex = {};
   }
@@ -27,14 +26,11 @@ class DigitalDataEnrichmentsCollection {
     return this.ddStorage;
   }
 
-  addEnrichment(enrichmentConfig) {
-    const prop = enrichmentConfig.prop;
-    const handler = enrichmentConfig.handler;
-    const options = enrichmentConfig.options;
-
-    const enrichment = new DigitalDataEnrichment(prop, handler, options, this);
+  addEnrichment(config) {
+    const prop = config.prop;
+    const enrichment = new CustomEnrichment(config, this);
     this.enrichments.push(enrichment);
-    this.enrichmentsIndex[enrichment.prop] = enrichment;
+    this.enrichmentsIndex[prop] = enrichment;
   }
 
   getEnrichment(prop) {
@@ -47,12 +43,12 @@ class DigitalDataEnrichmentsCollection {
     });
   }
 
-  enrich(target, args, direct = false) {
+  enrich(target, args) {
     this.reset();
     this.enrichments.forEach((enrichment) => {
-      enrichment.enrich(target, args, direct);
+      enrichment.enrich(target, args);
     });
   }
 }
 
-export default DigitalDataEnrichmentsCollection;
+export default CustomEnrichmentsCollection;

@@ -1,15 +1,10 @@
-// !!! LEGACY LIBRARY @TODO: remove after full propogation of initialization 1.2.9
-
 import Handler from './../Handler';
 import { error as errorLog } from 'driveback-utils/safeConsole';
-import { setProp } from 'driveback-utils/dotProp';
 import isPromise from 'driveback-utils/isPromise';
 
-class DigitalDataEnrichment {
-  constructor(prop, handler, options, collection) {
-    this.prop = prop;
-    this.handler = handler;
-    this.options = options || {};
+class CustomEnrichment {
+  constructor(config, collection) {
+    this.config = config;
     this.collection = collection;
     this.digitalData = collection.getDigitalData();
     this.ddStorage = collection.getDDStorage();
@@ -19,23 +14,19 @@ class DigitalDataEnrichment {
   }
 
   hasDependencies() {
-    return this.options.dependencies && this.options.dependencies.length;
+    return this.config.dependencies && this.config.dependencies.length;
   }
 
   getDependencies() {
-    return this.options.dependencies || [];
+    return this.config.dependencies || [];
   }
 
-  enrich(target, args, direct = false) {
+  enrich(target, args) {
     const onValueReceived = (value) => {
       if (value !== undefined) {
-        if (direct) {
-          setProp(target, this.prop, value);
-        } else {
-          target.changes.push([this.prop, value, 'DDManager Custom Enrichment']);
-        }
-        if (this.options.persist) {
-          this.ddStorage.persist(this.prop, this.options.persistTtl);
+        target.changes.push([this.config.prop, value, 'DDManager Custom Enrichment']);
+        if (this.config.persist) {
+          this.ddStorage.persist(this.config.prop, this.config.persistTtl);
         }
       }
       this.done = true;
@@ -51,12 +42,12 @@ class DigitalDataEnrichment {
       dependencies.forEach((dependencyProp) => {
         const enrichment = this.collection.getEnrichment(dependencyProp);
         if (enrichment) {
-          enrichment.enrich(target, args, direct);
+          enrichment.enrich(target, args);
         }
       });
     }
 
-    const handler = new Handler(this.handler, this.digitalData, args);
+    const handler = new Handler(this.config.handler, this.digitalData, args);
     let result;
     try {
       result = handler.run();
@@ -82,4 +73,4 @@ class DigitalDataEnrichment {
   }
 }
 
-export default DigitalDataEnrichment;
+export default CustomEnrichment;

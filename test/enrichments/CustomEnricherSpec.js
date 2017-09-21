@@ -72,7 +72,7 @@ describe('CustomEnricher', () => {
     assert.equal(digitalData.changes.length, 0);
   });
 
-  it('should enrich digitalData on event', () => {
+  it.only('should enrich digitalData on event', () => {
     customEnricher.addEnrichment('digitalData', 'user.hasTransacted', function() {
       this.queryParam('test');
       this.get(window.digitalData, 'user.test');
