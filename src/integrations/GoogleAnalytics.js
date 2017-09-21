@@ -712,6 +712,7 @@ class GoogleAnalytics extends Integration {
           googleClientId,
           `${this.getName()} Integration`,
         ]);
+        setProp(this.digitalData, 'integrations.googleAnalytics.clientId', googleClientId);        
       }
     }
 

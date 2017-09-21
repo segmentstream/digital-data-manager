@@ -42,36 +42,35 @@ describe('Integrations: OWOXBIStreaming', () => {
       reset();
     });
 
-    describe('before loading', function () {
-      beforeEach(function () {
+    describe('before loading', () => {
+      beforeEach(() => {
         sinon.stub(ga, 'load');
         sinon.stub(owox, 'load');
       });
 
-      afterEach(function () {
+      afterEach(() => {
         ga.load.restore();
         owox.load.restore();
       });
 
-      describe('#initialize', function () {
-
-        it('should require Google Analytics OWOXBIStreaming plugin', function () {
+      describe('#initialize', () => {
+        it('should require Google Analytics OWOXBIStreaming plugin', () => {
           ddManager.initialize();
           ddManager.on('ready', () => {
-            assert.deepEqual(argumentsToArray(window.ga.q[2]), ['ddl.require', 'OWOXBIStreaming']);
-            assert.deepEqual([window.ga.q[3][0], window.ga.q[3][1]], ['provide', 'OWOXBIStreaming']);
+            assert.deepEqual(argumentsToArray(window.ga.q[1]), ['ddl.require', 'OWOXBIStreaming']);
+            assert.deepEqual([window.ga.q[2][0], window.ga.q[2][1]], ['provide', 'OWOXBIStreaming']);
           });
         });
 
-        it('should require Google Analytics OWOXBIStreaming plugin', function () {
+        it('should require Google Analytics OWOXBIStreaming plugin', () => {
           owox.setOption('sessionStreaming', true);
           owox.setOption('sessionIdDimension', 'sessionId');
           ddManager.initialize();
           ddManager.on('ready', () => {
-            assert.deepEqual(argumentsToArray(window.ga.q[2]), ['ddl.require', 'OWOXBIStreaming', {
+            assert.deepEqual(argumentsToArray(window.ga.q[1]), ['ddl.require', 'OWOXBIStreaming', {
               'sessionIdDimension': 'sessionId'
             }]);
-            assert.deepEqual([window.ga.q[3][0], window.ga.q[3][1]], ['provide', 'OWOXBIStreaming']);
+            assert.deepEqual([window.ga.q[2][0], window.ga.q[2][1]], ['provide', 'OWOXBIStreaming']);
           });
         });
 
