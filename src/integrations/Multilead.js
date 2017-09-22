@@ -25,21 +25,21 @@ class Multilead extends Integration {
     this._isLoaded = false;
 
     this.addTag('productMailRuPixel', {
-      type: 'script',
+      type: 'img',
       attr: {
         src: `https://ad.mail.ru/${options.rbProductPixelId}.gif?shop=${options.shopId}&offer={{ productId }}&rnd=${Date.now()}`,
       },
     });
 
     this.addTag('conversionMailRuPixel', {
-      type: 'script',
+      type: 'img',
       attr: {
         src: `https://rs.mail.ru/${options.rbConversionPixelId}.gif?rnd=${Date.now()}`,
       },
     });
 
     this.addTag('conversionPixel', {
-      type: 'script',
+      type: 'img',
       attr: {
         src: `https://track.multilead.ru/success.php?afid={{ orderId }}&afprice={{ total }}&afcurrency={{ currency }}&afsecure=${options.afsecure}`,
       },
