@@ -4,6 +4,10 @@ import preventDefault from 'driveback-utils/preventDefault';
 import domQuery from 'driveback-utils/domQuery';
 
 function applyHandler(event, el, handler) {
+  if (event.detail === 0) {
+    return; // prevent incorrect markup clicks propogation
+  }
+
   const href = (
     el.tagName === 'A' &&
     (
