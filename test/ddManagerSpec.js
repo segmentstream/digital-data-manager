@@ -489,7 +489,7 @@ describe('DDManager', () => {
   //     assert.ok(window.digitalData.user.prop1);
   //     assert.ok(window.digitalData.user.prop2);
   //   });
-  // });
+  });
 
   describe('Named/Categorized Pages', () => {
 
