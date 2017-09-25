@@ -465,32 +465,31 @@ describe('DDManager', () => {
       assert.ok(window.digitalData.user.prop2);
     });
 
-    it('should enrich digitalData with custom enrichments (version >= 1.2.9)', () => {
-      window.digitalData = {};
-      ddManager.initialize({
-        version: '1.2.9',
-        enrichments: [
-          {
-            prop: 'user.prop1',
-            beforeEvent: true,
-            event: 'Viewed Page',
-            handler: () => true,
-          },
-          {
-            prop: 'user.prop2',
-            beforeEvent: false,
-            event: 'Viewed Page',
-            handler: () => true,
-            persist: true,
-            persistTtl: 100,
-          },
-        ],
-      });
-      assert.ok(window.digitalData.user.prop1);
-      assert.ok(window.digitalData.user.prop2);
-    });
-  });
-
+  //   it('should enrich digitalData with custom enrichments (version >= 1.2.9)', () => {
+  //     window.digitalData = {};
+  //     ddManager.initialize({
+  //       version: '1.2.9',
+  //       enrichments: [
+  //         {
+  //           prop: 'user.prop1',
+  //           beforeEvent: true,
+  //           event: 'Viewed Page',
+  //           handler: () => true,
+  //         },
+  //         {
+  //           prop: 'user.prop2',
+  //           beforeEvent: false,
+  //           event: 'Viewed Page',
+  //           handler: () => true,
+  //           persist: true,
+  //           persistTtl: 100,
+  //         },
+  //       ],
+  //     });
+  //     assert.ok(window.digitalData.user.prop1);
+  //     assert.ok(window.digitalData.user.prop2);
+  //   });
+  // });
 
   describe('Named/Categorized Pages', () => {
 
