@@ -465,7 +465,7 @@ describe('DDManager', () => {
       assert.ok(window.digitalData.user.prop2);
     });
 
-    it.only('should enrich digitalData with custom enrichments (version >= 1.2.9)', () => {
+    it('should enrich digitalData with custom enrichments (version >= 1.2.9)', () => {
       window.digitalData = {};
       ddManager.initialize({
         version: '1.2.9',
