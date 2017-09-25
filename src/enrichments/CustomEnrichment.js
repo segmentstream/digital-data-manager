@@ -21,7 +21,7 @@ class CustomEnrichment {
     return this.config.dependencies || [];
   }
 
-  enrich(target, args) {
+  enrich(target, args) {    
     const onValueReceived = (value) => {
       if (value !== undefined) {
         target.changes.push([this.config.prop, value, 'DDManager Custom Enrichment']);

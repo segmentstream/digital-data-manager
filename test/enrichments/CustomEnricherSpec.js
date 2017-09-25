@@ -8,19 +8,24 @@ import DDStorage from './../../src/DDStorage.js';
 
 describe('CustomEnricher', () => {
 
-  const digitalData = {
-    test: 1,
-    changes: [],
-  };
-  window.test = {
-    test2: 'test3'
-  };
+  let digitalData;
   let ddListener = [];
-  let ddStorage = new DDStorage(digitalData, new Storage());
-  let customEnricher = new CustomEnricher(digitalData, ddStorage);
+  let ddStorage;
+  let customEnricher;
   let eventManager;
 
   beforeEach(() => {
+    digitalData = {
+      test: 1,
+      changes: [],
+      events: [],
+    };
+    window.test = {
+      test2: 'test3',
+    };
+    ddListener = [];
+    ddStorage = new DDStorage(digitalData, new Storage());
+    customEnricher = new CustomEnricher(digitalData, ddStorage);
     ddStorage = new DDStorage(digitalData, new Storage());
     eventManager = new EventManager(digitalData, ddListener);
     eventManager.initialize();
@@ -31,6 +36,8 @@ describe('CustomEnricher', () => {
     eventManager.reset();
     customEnricher.reset();
     digitalData.user = {};
+    digitalData.changes = [];
+    digitalData.events = [];
   });
 
   it('should enrich digitalData', () => {
@@ -51,7 +58,7 @@ describe('CustomEnricher', () => {
     customEnricher.enrichDigitalData(digitalData);
     assert.equal(digitalData.user.visitedWebsite1, true);
     assert.equal(digitalData.user.visitedWebsite2, true);
-    assert.equal(digitalData.user.visitedWebsite1, true);
+    assert.equal(digitalData.user.visitedWebsite, true);
   });
 
   it('should enrich digitalData with recursion protection', () => {
@@ -72,10 +79,10 @@ describe('CustomEnricher', () => {
     assert.equal(digitalData.changes.length, 0);
   });
 
-  it.only('should enrich digitalData on event', () => {
-    customEnricher.addEnrichment('digitalData', 'user.hasTransacted', function() {
+  it('should enrich digitalData on event', () => {
+    customEnricher.addEnrichment('digitalData', 'user.hasTransacted', function () {
       this.queryParam('test');
-      this.get(window.digitalData, 'user.test');
+      this.get(digitalData, 'user.test');
       this.digitalData('user.test');
       this.cookie('test');
       this.global('test.test2');

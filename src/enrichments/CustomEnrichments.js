@@ -29,6 +29,15 @@ class CustomEnrichments {
   }
 
   addEnrichment(enrichment) {
+    // TODO: remove later (backward compatibility)
+    if (enrichment.beforeEvent === undefined) {
+      if (!enrichment.event) enrichment.event = 'Viewed Page';
+      if (enrichment.event === 'Viewed Page') {
+        enrichment.beforeEvent = true;
+      } else {
+        enrichment.beforeEvent = false;
+      }
+    }
     const collection = this.prepareCollection(enrichment.event, enrichment.beforeEvent);
     collection.addEnrichment(enrichment);
   }

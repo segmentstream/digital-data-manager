@@ -55,7 +55,6 @@ class DigitalDataEnrichment {
         }
       });
     }
-
     const handler = new Handler(this.handler, this.digitalData, args);
     let result;
     try {

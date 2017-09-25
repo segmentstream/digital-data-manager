@@ -202,7 +202,7 @@ function _initializeCustomScripts(settings) {
 }
 
 function _initializeCustomEnrichments(settings) {
-  if (semver.cmp(event.version, '1.2.9') < 0) {
+  if (!settings.version || semver.cmp(settings.version, '1.2.9') < 0) {
     _customEnricher = new CustomEnricher(_digitalData, _ddStorage);
     _customEnricher.import(settings.enrichments);
     _eventManager.addCallback(['on', 'beforeEvent', (event) => {
@@ -401,10 +401,10 @@ const ddManager = {
     if (_ddStorage) {
       _ddStorage.clear();
     }
-
     if (_eventManager instanceof EventManager) {
       _eventManager.reset();
     }
+    _customEnricher.reset();
     IntegrationsLoader.reset();
     ddManager.removeAllListeners();
     _eventManager = null;
