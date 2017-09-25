@@ -216,15 +216,12 @@ function _initializeCustomEnrichments(settings) {
     _customEnricher = new CustomEnrichments(_digitalData, _ddStorage);
     _customEnricher.import(settings.enrichments);
     _eventManager.addCallback(['on', 'beforeEvent', (event) => {
-      console.log('beforeEvent', event.name);
       if (event.name === VIEWED_PAGE) {
         _digitalDataEnricher.enrichDigitalData();
       }
       _customEnricher.enrichDigitalData(_digitalData, event, true);
     }]);
     _eventManager.addCallback(['on', 'event', (event) => {
-      console.log('afterEvent', event.name);
-      _digitalDataEnricher.enrichDigitalData();
       _customEnricher.enrichDigitalData(_digitalData, event, false);
     }]);
   }
