@@ -32,17 +32,17 @@ describe('Integrations: GoogleAnalytics', () => {
       reset();
     });
 
-    describe('before loading', function () {
-      beforeEach(function () {
+    describe('before loading', () => {
+      beforeEach(() => {
         sinon.stub(ga, 'load');
       });
 
-      afterEach(function () {
+      afterEach(() => {
         ga.load.restore();
       });
 
-      describe('#initialize', function () {
-        it('should require "linkid.js" if enhanced link attribution is `true`', function () {
+      describe('#initialize', () => {
+        it('should require "linkid.js" if enhanced link attribution is `true`', () => {
           ga.setOption('enhancedLinkAttribution', true);
           ddManager.initialize({
             sendViewedPageEvent: false,
@@ -50,26 +50,26 @@ describe('Integrations: GoogleAnalytics', () => {
           assert.deepEqual(argumentsToArray(window.ga.q[1]), ['require', 'linkid', 'linkid.js']);
         });
 
-        it('should create window.GoogleAnalyticsObject', function () {
+        it('should create window.GoogleAnalyticsObject', () => {
           assert.ok(!window.GoogleAnalyticsObject);
           ddManager.initialize({
-            sendViewedPageEvent: false
+            sendViewedPageEvent: false,
           });
           assert.equal(window.GoogleAnalyticsObject, 'ga');
         });
 
-        it('should create window.ga', function () {
+        it('should create window.ga', () => {
           assert.ok(!window.ga);
           ddManager.initialize({
-            sendViewedPageEvent: false
+            sendViewedPageEvent: false,
           });
           assert.equal(typeof window.ga, 'function');
         });
 
-        it('should create window.ga.l', function () {
+        it('should create window.ga.l', () => {
           assert.ok(!window.ga);
           ddManager.initialize({
-            sendViewedPageEvent: false
+            sendViewedPageEvent: false,
           });
           assert.equal(typeof window.ga.l, 'number');
         });
@@ -116,26 +116,26 @@ describe('Integrations: GoogleAnalytics', () => {
           })
         });
 
-        it('should send universal user id if sendUserId option is true and user.id is truthy', function (done) {
+        it('should send universal user id if sendUserId option is true and user.id is truthy', (done) => {
           window.digitalData.user = {
-            userId: 'baz'
+            userId: 'baz',
           };
           window.digitalData.page = {};
           ga.setOption('sendUserId', true);
           ddManager.initialize({
-            sendViewedPageEvent: false
+            sendViewedPageEvent: false,
           });
-          digitalData.events.push({
+          sinon.stub(window, 'ga');
+          window.digitalData.events.push({
             name: 'Viewed Page',
             callback: () => {
-              assert.deepEqual(argumentsToArray(window.ga.q[2]), ['set', 'userId', 'baz']);
+              assert.ok(window.ga.calledWith('set', 'userId', 'baz'));
+              window.ga.restore();
               done();
-            }
+            },
           });
         });
-
       });
-
     });
 
     describe('loading', function () {

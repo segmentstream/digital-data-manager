@@ -1,5 +1,6 @@
 import assert from 'assert';
 import sinon from 'sinon';
+import noop from 'driveback-utils/noop';
 import reset from './../reset.js';
 import argumentsToArray from './../functions/argumentsToArray.js';
 import GoogleAnalytics from './../../src/integrations/GoogleAnalytics.js';
@@ -11,14 +12,14 @@ describe('Integrations: OWOXBIStreaming', () => {
   describe('OWOXBIStreaming', () => {
     let ga;
     let owox;
-    let options = {
+    const options = {
       trackingId: 'UA-51485228-7',
-      domain: 'auto'
+      domain: 'auto',
     };
 
     beforeEach(() => {
       window.digitalData = {
-        events: []
+        events: [],
       };
       ga = new GoogleAnalytics(window.digitalData, options);
       owox = new OWOXBIStreaming(window.digitalData);
@@ -55,27 +56,30 @@ describe('Integrations: OWOXBIStreaming', () => {
 
       describe('#initialize', () => {
         it('should require Google Analytics OWOXBIStreaming plugin', () => {
+          window.ga = noop;
+          sinon.stub(window, 'ga');
           ddManager.initialize();
           ddManager.on('ready', () => {
-            assert.deepEqual(argumentsToArray(window.ga.q[1]), ['ddl.require', 'OWOXBIStreaming']);
-            assert.deepEqual([window.ga.q[2][0], window.ga.q[2][1]], ['provide', 'OWOXBIStreaming']);
+            window.ga.calledWith('ddl.require', 'OWOXBIStreaming');
+            window.ga.calledWith('provide', 'OWOXBIStreaming');
+            window.ga.restore();
           });
         });
 
         it('should require Google Analytics OWOXBIStreaming plugin', () => {
           owox.setOption('sessionStreaming', true);
           owox.setOption('sessionIdDimension', 'sessionId');
+          window.ga = noop;
+          sinon.stub(window, 'ga');
           ddManager.initialize();
           ddManager.on('ready', () => {
-            assert.deepEqual(argumentsToArray(window.ga.q[1]), ['ddl.require', 'OWOXBIStreaming', {
-              'sessionIdDimension': 'sessionId'
-            }]);
-            assert.deepEqual([window.ga.q[2][0], window.ga.q[2][1]], ['provide', 'OWOXBIStreaming']);
+            window.ga.calledWith('ddl.require', 'OWOXBIStreaming', {
+              sessionIdDimension: 'sessionId',
+            });
+            window.ga.restore();
           });
         });
-
       });
-
     });
   });
 });
