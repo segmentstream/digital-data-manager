@@ -35,6 +35,7 @@ import Flocktory from './integrations/Flocktory';
 import DDManagerStreaming from './integrations/DDManagerStreaming';
 import Recreativ from './integrations/Recreativ';
 import Multilead from './integrations/Multilead';
+import AdvCake from './integrations/AdvCake';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -74,6 +75,7 @@ const integrations = {
   'DDManager Streaming': DDManagerStreaming,
   Recreativ,
   Multilead,
+  AdvCake,
 };
 
 export default integrations;
