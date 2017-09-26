@@ -16,6 +16,7 @@ import {
   CLICKED_CAMPAIGN,
   VIEWED_PRODUCT,
   CLICKED_PRODUCT,
+  VIEWED_EXPERIMENT,
 } from './../../events/semanticEvents';
 
 export const pageProps = [
@@ -117,6 +118,13 @@ export const listItemProps = [
   'listId',
 ];
 
+export const experimentProps = [
+  'id',
+  'name',
+  'variationId',
+  'variationName',
+];
+
 const filterObject = (obj, propsSet, restrictedProps = []) => {
   const filteredObject = {};
   propsSet.forEach((prop) => {
@@ -145,6 +153,7 @@ class Filters {
       [CLICKED_CAMPAIGN]: this.filterClickedCampaign.bind(this),
       [VIEWED_PRODUCT]: this.filterViewedProduct.bind(this),
       [CLICKED_PRODUCT]: this.filterClickedProduct.bind(this),
+      [VIEWED_EXPERIMENT]: this.filterViewedExperiment.bind(this),
     };
 
     if (event.name && mapping[event.name]) {
@@ -228,6 +237,15 @@ class Filters {
       ...website,
       regionId: website.regionId ? String(website.regionId) : undefined,
     }, websiteProps);
+  }
+
+  filterExperiment(experiment = {}) {
+    return filterObject({
+      ...experiment,
+      id: experiment.id ? String(experiment.id) : undefined,
+      variationId: (experiment.variationId !== undefined) ?
+        String(experiment.variationId) : undefined,
+    }, experimentProps);
   }
 
   filterViewedPage(event) {
@@ -357,6 +375,15 @@ class Filters {
 
   filterClickedCampaign(event) {
     return this.filterViewedCampaign(event);
+  }
+
+  filterViewedExperiment(event) {
+    const filtered = this.filterCommonEvent(event);
+    const experiment = this.filterExperiment(event.experiment);
+    return {
+      ...filtered,
+      experiment,
+    };
   }
 
   filterCommonEvent(event) {

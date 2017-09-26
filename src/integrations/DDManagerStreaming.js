@@ -19,6 +19,7 @@ import StreamingFilters, {
   campaignProps,
   listItemProps,
   websiteProps,
+  experimentProps,
 } from './DDManagerStreaming/Filters';
 import {
   getEnrichableVariableMappingProps,
@@ -36,6 +37,7 @@ import {
   SEARCHED_PRODUCTS,
   VIEWED_CAMPAIGN,
   CLICKED_CAMPAIGN,
+  VIEWED_EXPERIMENT,
   EXCEPTION,
 } from './../events/semanticEvents';
 
@@ -129,6 +131,7 @@ class DDManagerStreaming extends Integration {
       product: productProps,
       campaign: campaignProps,
       listItem: listItemProps,
+      experiment: experimentProps,
     };
 
     const validationFields = (Array.isArray(keys)) ? keys.reduce((result, key) => {
@@ -187,6 +190,9 @@ class DDManagerStreaming extends Integration {
       },
       [CLICKED_PRODUCT]: {
         fields: this.getValidationFields('listItem'),
+      },
+      [VIEWED_EXPERIMENT]: {
+        fields: this.getValidationFields('experiment'),
       },
     };
 
