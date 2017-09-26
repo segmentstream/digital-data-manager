@@ -19,7 +19,6 @@ import StreamingFilters, {
   campaignProps,
   listItemProps,
   websiteProps,
-  experimentProps,
 } from './DDManagerStreaming/Filters';
 import {
   getEnrichableVariableMappingProps,
@@ -131,7 +130,7 @@ class DDManagerStreaming extends Integration {
       product: productProps,
       campaign: campaignProps,
       listItem: listItemProps,
-      experiment: experimentProps,
+      experiment: ['id', 'name', 'variationId', 'variationName'],
     };
 
     const validationFields = (Array.isArray(keys)) ? keys.reduce((result, key) => {

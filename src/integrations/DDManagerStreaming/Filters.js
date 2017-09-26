@@ -118,13 +118,6 @@ export const listItemProps = [
   'listId',
 ];
 
-export const experimentProps = [
-  'id',
-  'name',
-  'variationId',
-  'variationName',
-];
-
 const filterObject = (obj, propsSet, restrictedProps = []) => {
   const filteredObject = {};
   propsSet.forEach((prop) => {
@@ -240,12 +233,13 @@ class Filters {
   }
 
   filterExperiment(experiment = {}) {
-    return filterObject({
-      ...experiment,
-      id: experiment.id ? String(experiment.id) : undefined,
-      variationId: (experiment.variationId !== undefined) ?
+    return cleanObject({
+      id: experiment.id,
+      name: experiment.name,
+      variantId: (experiment.variationId !== undefined) ?
         String(experiment.variationId) : undefined,
-    }, experimentProps);
+      variantName: experiment.variationName,
+    });
   }
 
   filterViewedPage(event) {
