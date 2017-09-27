@@ -67,7 +67,7 @@ class AdvCake extends Integration {
       type: 'script',
       attr: {
         id: 'advcakeAsync',
-        src: `//server.adv‐cake.ru/int/?r=${Math.random()}`,
+        src: `//server.adv-cake.ru/int/?r=${Math.random()}`,
       },
     });
 
