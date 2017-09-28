@@ -50,9 +50,14 @@ export default function trackLink(selector, handler) {
     throw new TypeError('Must pass function handler to `ddManager.trackLink`.');
   }
 
-  let trackedLinks;
+  let trackedLinks = [];
 
   bind(window.document, 'click', () => {
+    trackedLinks.forEach((trackedLink) => {
+      const [el, onClickHandler] = trackedLink;
+      unbind(el, 'click', onClickHandler);
+    });
+
     const links = (window.jQuery) ? window.jQuery(selector).get() : domQuery(selector);
     trackedLinks = [];
     links.forEach((el) => {
@@ -61,11 +66,4 @@ export default function trackLink(selector, handler) {
       trackedLinks.push([el, onClickHandler]);
     });
   }, true); // capturing phase
-
-  bind(window.document, 'click', () => {
-    trackedLinks.forEach((trackedLink) => {
-      const [el, onClickHandler] = trackedLink;
-      unbind(el, 'click', onClickHandler);
-    });
-  }); // bubbling phase
 }
