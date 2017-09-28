@@ -88,11 +88,11 @@ class AdvCake extends Integration {
   getEnrichableEventProps(event) {
     switch (event.name) {
       case VIEWED_PAGE:
-        return ['page.type'];
+        return ['page.type', 'cart', 'user.email'];
       case VIEWED_PRODUCT_DETAIL:
         return ['product'];
       case COMPLETED_TRANSACTION:
-        return ['transaction', 'user.email', 'user.firstName', 'user.lastName'];
+        return ['transaction', 'user.email'];
       case VIEWED_PRODUCT_LISTING:
         return ['listing.categoryId', 'listing.category'];
       case VIEWED_CART:
@@ -254,53 +254,58 @@ class AdvCake extends Integration {
   }
 
   onViewedHome() {
-    window.advcake_push_data({
+    window.advcake_data = {
       pageType: 1,
       user: getUser(this.user),
       basketProducts: getBasketProducts(this.cart.lineItems),
-    });
+    };
+    window.advcake_push_data(window.advcake_data);
   }
 
   onViewedProductDetail(event) {
-    window.advcake_push_data({
+    window.advcake_data = {
       pageType: 2,
       user: getUser(this.user),
       currentCategory: getCurrentCategory(event.product),
       currentProduct: getCurrentProduct(event.product),
       basketProducts: getBasketProducts(this.cart.lineItems),
-    });
+    };
+    window.advcake_push_data(window.advcake_data);
   }
 
   onViewedProductListing(event) {
     const listing = event.listing || {};
-    window.advcake_push_data({
+    window.advcake_data = {
       pageType: 3,
       user: getUser(this.user),
       currentCategory: getCurrentCategory(listing),
       products: getProducts(listing.items),
       basketProducts: getBasketProducts(this.cart.lineItems),
-    });
+    };
+    window.advcake_push_data(window.advcake_data);
   }
 
   onViewedCart() {
-    window.advcake_push_data({
+    window.advcake_data = {
       pageType: 4,
       user: getUser(this.user),
       basketProducts: getBasketProducts(this.cart.lineItems),
-    });
+    };
+    window.advcake_push_data(window.advcake_data);
   }
 
   onViewedCheckoutPage() {
-    window.advcake_push_data({
+    window.advcake_data = {
       pageType: 5,
       user: getUser(this.user),
       basketProducts: getBasketProducts(this.cart.lineItems),
-    });
+    };
+    window.advcake_push_data(window.advcake_data);
   }
 
   onCompletedTransaction(event) {
     const transaction = event.transaction || {};
-    window.advcake_push_data({
+    window.advcake_data = {
       pageType: 6,
       user: getUser(event.user || this.user),
       basketProducts: getBasketProducts(transaction.lineItems),
@@ -308,7 +313,8 @@ class AdvCake extends Integration {
         id: transaction.orderId,
         totalPrice: transaction.total,
       },
-    });
+    };
+    window.advcake_push_data(window.advcake_data);
     window.advcake_order(transaction.orderId, transaction.total);
   }
 }
