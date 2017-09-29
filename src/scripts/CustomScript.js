@@ -2,12 +2,13 @@ import { error as errorLog } from 'driveback-utils/safeConsole';
 import Handler from './../Handler';
 
 class CustomScript {
-  constructor(name, event, handler, digitalData, eventManager) {
+  constructor(name, event, handler, fireOnce, digitalData) {
     this.name = name;
     this.event = event;
     this.handler = handler;
+    this.fireOnce = fireOnce || false;
     this.digitalData = digitalData;
-    this.eventManager = eventManager;
+    this.hasFired = false;
   }
 
   newHandler(args) {
@@ -15,6 +16,8 @@ class CustomScript {
   }
 
   run(event) {
+    if (this.fireOnce && this.hasFired) return;
+
     let handler;
     if (!event && !this.event) {
       handler = this.newHandler();
@@ -23,6 +26,7 @@ class CustomScript {
     }
     try {
       handler.run();
+      this.hasFired = true;
     } catch (e) {
       errorLog(`Uncaught error in Custom Script "${this.name}":`, e);
     }
