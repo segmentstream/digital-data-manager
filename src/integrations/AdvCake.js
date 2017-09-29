@@ -94,7 +94,7 @@ class AdvCake extends Integration {
       case COMPLETED_TRANSACTION:
         return ['transaction', 'user.email'];
       case VIEWED_PRODUCT_LISTING:
-        return ['listing.categoryId', 'listing.category'];
+        return ['listing'];
       case VIEWED_CART:
         return ['cart'];
       default:
