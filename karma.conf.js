@@ -18,16 +18,10 @@ module.exports = function init(config) {
 
   if (process.env.SAUCE_ENABLED == "true") {
     customLaunchers = {
-      // slIe8Win7: {
-      //   base: 'SauceLabs',
-      //   browserName: 'internet explorer',
-      //   platform: 'Windows 7',
-      //   version: '8'
-      // },
       slChromeWinXp: {
         base: 'SauceLabs',
         browserName: 'chrome',
-        platform: 'Windows XP'
+        platform: 'Windows 7'
       },
       slIe10Win7: {
         base: 'SauceLabs',
@@ -56,13 +50,7 @@ module.exports = function init(config) {
       slSafariOsx: {
         base: 'SauceLabs',
         browserName: 'safari',
-        platform: 'OS X 10.8'
-      },
-      slOpera12Win7: {
-        base: 'SauceLabs',
-        browserName: 'opera',
-        platform: 'Windows 7',
-        version: '12.12'
+        platform: 'OS X 10.9'
       },
       slIphone: {
         base: 'SauceLabs',

@@ -1,12 +1,6 @@
 import CustomScript from './CustomScript';
 
-const SCRIPT_TRIGGER_EVENT = 'event';
-const SCRIPT_TRIGGER_INIT = 'init';
-
-const storage = {
-  [SCRIPT_TRIGGER_INIT]: [],
-  [SCRIPT_TRIGGER_EVENT]: {},
-};
+let storage = {};
 
 class CustomScripts {
   constructor(digitalData) {
@@ -15,48 +9,49 @@ class CustomScripts {
 
   import(scriptsConfig) {
     scriptsConfig = scriptsConfig || [];
+    scriptsConfig.sort((config1, config2) => {
+      let priority1 = config1.priority || 0;
+      let priority2 = config2.priority || 0;
+      if (!config1.event) priority1 += 1; // support legacy
+      if (!config2.event) priority2 += 1; // support legacy
+      if (priority1 === priority2) return 0;
+      return (priority1 < priority2) ? 1 : -1;
+    });
     scriptsConfig.forEach((scriptConfig) => {
-      const eventName = scriptConfig.event;
+      let eventName = scriptConfig.event;
+      let fireOnce = scriptConfig.fireOnce;
+      if (!eventName) {
+        eventName = 'Viewed Page'; // support legacy
+        fireOnce = true;
+      }
       const customScript = new CustomScript(
         scriptConfig.name,
         eventName,
         scriptConfig.handler,
+        fireOnce,
         this.digitalData,
       );
 
-      if (!eventName) {
-        this.prepareCollection(SCRIPT_TRIGGER_INIT).push(customScript);
-      } else {
-        this.prepareCollection(SCRIPT_TRIGGER_EVENT, eventName).push(customScript);
-      }
+      this.prepareCollection(eventName).push(customScript);
     });
   }
 
-  prepareCollection(trigger, event) {
-    if (trigger === SCRIPT_TRIGGER_EVENT) {
-      if (!storage[trigger][event]) {
-        storage[trigger][event] = [];
-      }
-      return storage[trigger][event];
+  prepareCollection(event) {
+    if (!storage[event]) {
+      storage[event] = [];
     }
-    return storage[trigger];
+    return storage[event];
   }
 
   run(event) {
-    let customScripts;
-    if (event) {
-      customScripts = storage[SCRIPT_TRIGGER_EVENT][event.name] || [];
-    } else {
-      customScripts = storage[SCRIPT_TRIGGER_INIT] || [];
-    }
+    const customScripts = storage[event.name] || [];
     customScripts.forEach((customScript) => {
       customScript.run(event);
     });
   }
 
   reset() {
-    storage[SCRIPT_TRIGGER_INIT] = [];
-    storage[SCRIPT_TRIGGER_EVENT] = {};
+    storage = {};
   }
 }
 

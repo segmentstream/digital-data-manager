@@ -195,7 +195,6 @@ function _initializeCustomScripts(settings) {
   // initialize custom scripts
   _customScripts = new CustomScripts(_digitalData);
   _customScripts.import(settings.scripts);
-  _customScripts.run();
   _eventManager.addCallback(['on', 'event', (event) => {
     _customScripts.run(event);
   }]);
