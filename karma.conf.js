@@ -58,12 +58,12 @@ module.exports = function init(config) {
         browserName: 'safari',
         platform: 'OS X 10.8'
       },
-      slOpera12Win7: {
-        base: 'SauceLabs',
-        browserName: 'opera',
-        platform: 'Windows 7',
-        version: '12.12'
-      },
+      // slOpera12Win7: {
+      //   base: 'SauceLabs',
+      //   browserName: 'opera',
+      //   platform: 'Windows 7',
+      //   version: '12.12'
+      // },
       slIphone: {
         base: 'SauceLabs',
         browserName: 'iphone',
