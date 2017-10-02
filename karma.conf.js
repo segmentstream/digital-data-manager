@@ -27,7 +27,7 @@ module.exports = function init(config) {
       slChromeWinXp: {
         base: 'SauceLabs',
         browserName: 'chrome',
-        platform: 'Windows XP'
+        platform: 'Windows 7'
       },
       slIe10Win7: {
         base: 'SauceLabs',
@@ -56,7 +56,7 @@ module.exports = function init(config) {
       slSafariOsx: {
         base: 'SauceLabs',
         browserName: 'safari',
-        platform: 'OS X 10.8'
+        platform: 'OS X 10.9'
       },
       // slOpera12Win7: {
       //   base: 'SauceLabs',
