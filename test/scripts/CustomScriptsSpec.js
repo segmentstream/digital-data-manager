@@ -70,6 +70,7 @@ describe('CustomScripts', () => {
     ddManager.initialize({
       scripts: [
         {
+          name: 'Two',
           event: 'Viewed Page',
           handler: function() {
             scriptTwoFired = true;
@@ -82,6 +83,30 @@ describe('CustomScripts', () => {
           handler: function() {
             scriptOneFired = true;
             assert.ok(!scriptTwoFired);
+          },
+        },
+      ]
+    });
+  });
+
+  it('should run custom scripts on init in proper order (legacy)', (done) => {
+    let scriptOneFired = false;
+    let scriptTwoFired = false;
+    ddManager.initialize({
+      scripts: [
+        {
+          name: 'One',
+          handler: function() {
+            scriptOneFired = true;
+            assert.ok(!scriptTwoFired);
+          },
+        },
+        {
+          name: 'Two',
+          handler: function() {
+            scriptTwoFired = true;
+            assert.ok(scriptOneFired);
+            done();            
           },
         },
       ]
