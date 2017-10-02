@@ -34,15 +34,20 @@ class CustomEvent {
 
   resolveHandlerAndFireEvent(args) {
     const handler = this.newHandler(args);
-    const result = handler.run();
-    if (result) {
-      if (isPromise(result)) {
-        result.then((event) => {
-          this.fireEvent(event);
-        });
-      } else {
-        this.fireEvent(result);
+    try {
+      const result = handler.run();
+      if (result) {
+        if (isPromise(result)) {
+          result.then((event) => {
+            this.fireEvent(event);
+          });
+        } else {
+          this.fireEvent(result);
+        }
       }
+    } catch (e) {
+      errorLog(`Custom Event "${this.name}" handler error:`);
+      errorLog(e);
     }
   }
 
