@@ -1,7 +1,7 @@
 import size from 'driveback-utils/size';
 import each from 'driveback-utils/each';
 import after from 'driveback-utils/after';
-import { warn } from 'driveback-utils/safeConsole';
+import { warn, error as errorLog } from 'driveback-utils/safeConsole';
 import Integration from './Integration';
 import clone from 'driveback-utils/clone';
 import { bind } from 'driveback-utils/eventListener';
@@ -53,9 +53,13 @@ const IntegrationsLoader = {
       } else {
         each(integrationSettings, (name, options) => {
           if (typeof _availableIntegrations[name] === 'function') {
-            const integration =
-              new _availableIntegrations[name](ddManager.getDigitalData(), clone(options, true));
-            IntegrationsLoader.addIntegration(name, integration, ddManager);
+            try {
+              const integration =
+                new _availableIntegrations[name](ddManager.getDigitalData(), clone(options, true));
+              IntegrationsLoader.addIntegration(name, integration, ddManager);
+            } catch (e) {
+              errorLog(e);
+            }
           }
         });
       }

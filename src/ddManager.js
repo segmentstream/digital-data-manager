@@ -228,7 +228,7 @@ function _initializeCustomEnrichments(settings) {
 
 const ddManager = {
 
-  VERSION: '1.2.58',
+  VERSION: '1.2.59',
 
   setAvailableIntegrations: (availableIntegrations) => {
     IntegrationsLoader.setAvailableIntegrations(availableIntegrations);
@@ -310,15 +310,21 @@ const ddManager = {
     IntegrationsLoader.addIntegrations(settings.integrations, ddManager);
     let streaming = IntegrationsLoader.getIntegration('DDManager Streaming');
     if (!streaming) {
-      streaming = new DDManagerStreaming(_digitalData);
-      IntegrationsLoader.addIntegration('DDManager Streaming', streaming, ddManager);
+      try {
+        streaming = new DDManagerStreaming(_digitalData);
+        IntegrationsLoader.addIntegration('DDManager Streaming', streaming, ddManager);
+      } catch (e) {
+        errorLog(e);
+      }
     }
-    streaming.setOption('projectId', settings.projectId);
-    streaming.setOption('projectName', settings.projectName);
-    streaming.setOption('library', {
-      name: 'ddmanager.js',
-      version: ddManager.VERSION,
-    });
+    if (streaming) {
+      streaming.setOption('projectId', settings.projectId);
+      streaming.setOption('projectName', settings.projectName);
+      streaming.setOption('library', {
+        name: 'ddmanager.js',
+        version: ddManager.VERSION,
+      });
+    }
 
     IntegrationsLoader.initializeIntegrations(settings.version);
     IntegrationsLoader.loadIntegrations(

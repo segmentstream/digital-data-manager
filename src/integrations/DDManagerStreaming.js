@@ -3,11 +3,10 @@ import utmParams from 'driveback-utils/utmParams';
 import htmlGlobals from 'driveback-utils/htmlGlobals';
 import cleanObject from 'driveback-utils/cleanObject';
 import deleteProperty from 'driveback-utils/deleteProperty';
-import { getProp } from 'driveback-utils/dotProp';
 import arrayMerge from 'driveback-utils/arrayMerge';
 import size from 'driveback-utils/size';
-import each from 'driveback-utils/each';
 import isCrawler from 'driveback-utils/isCrawler';
+import each from 'driveback-utils/each';
 import uuid from 'uuid/v4';
 import Integration from './../Integration';
 import StreamingFilters, {
@@ -21,8 +20,9 @@ import StreamingFilters, {
   websiteProps,
 } from './DDManagerStreaming/Filters';
 import {
-  getEnrichableVariableMappingProps,
-} from './../IntegrationUtils';
+  DIGITALDATA_VAR,
+  PRODUCT_VAR,
+} from './../variableTypes';
 import {
   VIEWED_PAGE,
   VIEWED_CART,
@@ -40,28 +40,6 @@ import {
   EXCEPTION,
 } from './../events/semanticEvents';
 
-const CUSTOM_TYPE_NUMERIC = 'number';
-const CUSTOM_TYPE_STRING = 'string';
-
-export function extractCustoms(source, variableMapping, type) {
-  const values = [];
-  each(variableMapping, (key, variable) => {
-    let value = getProp(source, variable.value);
-    if (value !== undefined) {
-      if (type === CUSTOM_TYPE_NUMERIC && typeof value !== 'number') {
-        value = Number(value);
-      } else if (type === CUSTOM_TYPE_STRING && typeof value !== 'string') {
-        value = value.toString();
-      }
-      values.push({
-        name: key,
-        value,
-      });
-    }
-  });
-  return values;
-}
-
 class DDManagerStreaming extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
@@ -73,7 +51,40 @@ class DDManagerStreaming extends Integration {
     }, options);
     super(digitalData, optionsWithDefaults);
     this.website = {};
-    this.filters = new StreamingFilters();
+
+    this.dimensions = {};
+    this.metrics = {};
+    this.productDimensions = {};
+    this.productMetrics = {};
+    this.customEnrichableProps = [];
+
+    // TODO: refactoring
+    each(optionsWithDefaults.dimensions, (key, variable) => {
+      if (variable.type === PRODUCT_VAR) {
+        this.productDimensions[key] = variable.value;
+      } else {
+        if (variable.type === DIGITALDATA_VAR) {
+          this.customEnrichableProps.push(variable.value);
+        }
+        this.dimensions[key] = variable.value;
+      }
+    });
+    each(optionsWithDefaults.metrics, (key, variable) => {
+      if (variable.type === PRODUCT_VAR) {
+        this.productMetrics[key] = variable.value;
+      } else {
+        if (variable.type === DIGITALDATA_VAR) {
+          this.customEnrichableProps.push(variable.value);
+        }
+        this.metrics[key] = variable.value;
+      }
+    });
+    this.filters = new StreamingFilters(
+      this.dimensions,
+      this.metrics,
+      this.productDimensions,
+      this.productMetrics,
+    );
   }
 
   initialize() {
@@ -86,19 +97,6 @@ class DDManagerStreaming extends Integration {
 
   getIgnoredEvents() {
     return [/* VIEWED_PRODUCT, CLICKED_PRODUCT, */EXCEPTION];
-  }
-
-  getCustomProps() {
-    const customProps = [];
-    arrayMerge(
-      customProps,
-      getEnrichableVariableMappingProps(this.getOption('dimensions')),
-    );
-    arrayMerge(
-      customProps,
-      getEnrichableVariableMappingProps(this.getOption('metrics')),
-    );
-    return customProps;
   }
 
   getEnrichableEventProps(event) {
@@ -114,7 +112,7 @@ class DDManagerStreaming extends Integration {
     const enrichableProps = mapping[event.name] || [];
     arrayMerge(
       enrichableProps,
-      this.getCustomProps(),
+      this.customEnrichableProps,
     );
 
     return enrichableProps;
@@ -145,7 +143,7 @@ class DDManagerStreaming extends Integration {
       return result;
     }, []) : [];
 
-    arrayMerge(validationFields, this.getCustomProps());
+    arrayMerge(validationFields, this.customEnrichableProps);
     arrayMerge(validationFields, ['category', 'label']);
 
     return validationFields;
@@ -282,12 +280,6 @@ class DDManagerStreaming extends Integration {
       const website = event.website;
       this.website = this.filters.filterWebsite(website);
     }
-
-    const customDimensions = extractCustoms(event, this.getOption('dimensions'), CUSTOM_TYPE_STRING);
-    const customMetrics = extractCustoms(event, this.getOption('metrics'), CUSTOM_TYPE_NUMERIC);
-
-    if (customDimensions.length) event.customDimensions = customDimensions;
-    if (customMetrics.length) event.customMetrics = customMetrics;
 
     deleteProperty(event, 'user');
     deleteProperty(event, 'website');

@@ -1,5 +1,6 @@
 import cleanObject from 'driveback-utils/cleanObject';
 import { getProp } from 'driveback-utils/dotProp';
+import each from 'driveback-utils/each';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -18,6 +19,9 @@ import {
   CLICKED_PRODUCT,
   VIEWED_EXPERIMENT,
 } from './../../events/semanticEvents';
+
+const CUSTOM_TYPE_NUMERIC = 'number';
+const CUSTOM_TYPE_STRING = 'string';
 
 export const pageProps = [
   'name',
@@ -57,6 +61,8 @@ export const productProps = [
   'voucher',
   'color',
   'size',
+  'customDimensions',
+  'customMetrics',
 ];
 
 export const listingProps = [
@@ -118,6 +124,25 @@ export const listItemProps = [
   'listId',
 ];
 
+function extractCustoms(source, variableMapping, type) {
+  const values = [];
+  each(variableMapping, (key, sourceProp) => {
+    let value = getProp(source, sourceProp);
+    if (value !== undefined) {
+      if (type === CUSTOM_TYPE_NUMERIC && typeof value !== 'number') {
+        value = Number(value);
+      } else if (type === CUSTOM_TYPE_STRING && typeof value !== 'string') {
+        value = value.toString();
+      }
+      values.push({
+        name: key,
+        value,
+      });
+    }
+  });
+  return values;
+}
+
 const filterObject = (obj, propsSet, restrictedProps = []) => {
   const filteredObject = {};
   propsSet.forEach((prop) => {
@@ -129,6 +154,13 @@ const filterObject = (obj, propsSet, restrictedProps = []) => {
 };
 
 class Filters {
+  constructor(dimensions, metrics, productDimensions, productMetrics) {
+    this.dimensions = dimensions;
+    this.metrics = metrics;
+    this.productDimensions = productDimensions;
+    this.productMetrics = productMetrics;
+  }
+
   filterEventHit(event) {
     const mapping = {
       [VIEWED_PAGE]: this.filterViewedPage.bind(this),
@@ -156,6 +188,9 @@ class Filters {
   }
 
   filterProduct(product = {}) {
+    const customDimensions = extractCustoms(product, this.productDimensions, CUSTOM_TYPE_STRING);
+    const customMetrics = extractCustoms(product, this.productMetrics, CUSTOM_TYPE_NUMERIC);
+
     return filterObject(
       {
         ...product,
@@ -165,6 +200,8 @@ class Filters {
           product.category.join('/') : product.category,
         unitPrice: (product.unitPrice) ? Number(product.unitPrice) : undefined,
         unitSalePrice: (product.unitSalePrice) ? Number(product.unitSalePrice) : undefined,
+        customDimensions,
+        customMetrics,
       },
       productProps,
     );
@@ -381,6 +418,11 @@ class Filters {
   }
 
   filterCommonEvent(event) {
+    const customDimensions = extractCustoms(event, this.dimensions, CUSTOM_TYPE_STRING);
+    const customMetrics = extractCustoms(event, this.metrics, CUSTOM_TYPE_NUMERIC);
+    if (customDimensions.length) event.customDimensions = customDimensions;
+    if (customMetrics.length) event.customMetrics = customMetrics;
+
     return cleanObject({
       name: event.name,
       category: event.category,
