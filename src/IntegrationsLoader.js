@@ -70,6 +70,7 @@ const IntegrationsLoader = {
     // initialize integrations
     if (size(_integrations) > 0) {
       each(_integrations, (name, integration) => {
+        if (integration.getOption('disabled')) return; // TODO: implement using conditions
         if (
           !integration.isLoaded()
           || integration.getOption('noConflict')
@@ -137,6 +138,7 @@ const IntegrationsLoader = {
   loadIntegration(integrationName, callback) {
     if (_integrations[integrationName]) {
       const integration = _integrations[integrationName];
+      if (!integration.isInitialized()) return;
       integration.flushEventQueue();
       if (!integration.isLoaded() && !integration.getOption('noConflict')) {
         integration.load(integration.onLoad);
