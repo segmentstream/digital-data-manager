@@ -29,8 +29,6 @@ class DigitalDataEnricher {
       sessionLength: 3600,
     }, options);
 
-    // when all enrichments are done
-    this.listenToUserDataChanges();
     this.listenToEvents();
   }
 
@@ -76,17 +74,6 @@ class DigitalDataEnricher {
   }
 
   listenToEvents() {
-    // enrich Completed Transction event with "transaction.isFirst"
-    this.ddListener.push(['on', 'beforeEvent', (event) => {
-      if (event.name === 'Completed Transction') {
-        const transaction = event.transaction;
-        const user = this.digitalData.user;
-        if (transaction.isFirst === undefined) {
-          transaction.isFirst = !user.hasTransacted;
-        }
-      }
-    }]);
-
     // enrich DDL based on semantic events
     this.ddListener.push(['on', 'event', (event) => {
       this.enrichIsReturningStatus();
@@ -99,12 +86,6 @@ class DigitalDataEnricher {
         this.enrichHasTransacted();
         this.ddStorage.unpersist('context.campaign');
       }
-    }]);
-  }
-
-  listenToUserDataChanges() {
-    this.ddListener.push(['on', 'change:user', () => {
-      this.persistUserData();
     }]);
   }
 
@@ -287,9 +268,6 @@ class DigitalDataEnricher {
       if (page.type === 'category' && page.categoryId) {
         const listing = this.digitalData.listing = this.digitalData.listing || {};
         listing.categoryId = page.categoryId;
-        this.ddListener.push(['on', 'change:page.categoryId', () => {
-          this.digitalData.listing.categoryId = this.digitalData.page.categoryId;
-        }]);
       }
     }
   }
