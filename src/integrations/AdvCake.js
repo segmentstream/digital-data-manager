@@ -224,7 +224,7 @@ class AdvCake extends Integration {
   }
 
   isLoaded() {
-    return !!window.adspire_code_loaded;
+    return !!window.advcake_int;
   }
 
   trackEvent(event) {
