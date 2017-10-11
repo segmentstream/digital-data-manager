@@ -36,6 +36,7 @@ import DDManagerStreaming from './integrations/DDManagerStreaming';
 import Recreativ from './integrations/Recreativ';
 import Multilead from './integrations/Multilead';
 import AdvCake from './integrations/AdvCake';
+import DuMedia from './integrations/DuMedia';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -76,6 +77,7 @@ const integrations = {
   Recreativ,
   Multilead,
   AdvCake,
+  DuMedia,
 };
 
 export default integrations;
