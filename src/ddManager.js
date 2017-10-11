@@ -228,7 +228,7 @@ function _initializeCustomEnrichments(settings) {
 
 const ddManager = {
 
-  VERSION: '1.2.60',
+  VERSION: '1.2.61',
 
   setAvailableIntegrations: (availableIntegrations) => {
     IntegrationsLoader.setAvailableIntegrations(availableIntegrations);
