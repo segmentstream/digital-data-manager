@@ -200,6 +200,7 @@ class Filters {
           product.category.join('/') : product.category,
         unitPrice: (product.unitPrice) ? Number(product.unitPrice) : undefined,
         unitSalePrice: (product.unitSalePrice) ? Number(product.unitSalePrice) : undefined,
+        manufacturer: (product.manufacturer) ? product.manufacturer : product.brand,
         customDimensions,
         customMetrics,
       },
@@ -259,6 +260,8 @@ class Filters {
       ...page,
       breadcrumb: (page.breadcrumb && Array.isArray(page.breadcrumb)) ?
         page.breadcrumb.join('/') : page.breadcrumb,
+      url: decodeURI(page.url),
+      queryString: page.queryString ? decodeURI(page.queryString) : undefined,
     }, pageProps);
   }
 
