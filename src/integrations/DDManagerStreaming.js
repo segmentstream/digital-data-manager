@@ -114,7 +114,6 @@ class DDManagerStreaming extends Integration {
       enrichableProps,
       this.customEnrichableProps,
     );
-
     return enrichableProps;
   }
 
@@ -280,9 +279,6 @@ class DDManagerStreaming extends Integration {
       const website = event.website;
       this.website = this.filters.filterWebsite(website);
     }
-
-    deleteProperty(event, 'user');
-    deleteProperty(event, 'website');
 
     this.sendEventHit(event);
   }
