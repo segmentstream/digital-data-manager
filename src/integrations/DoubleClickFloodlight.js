@@ -103,7 +103,7 @@ class DoubleClickFloodlight extends Integration {
         tagName = 'sales';
       } else {
         tagParams = this.getCounterTagParams();
-        tagName = 'coutner';
+        tagName = 'counter';
       }
       tagParams = Object.assign(commonTagParams, tagParams);
       this.load(tagName, tagParams);
