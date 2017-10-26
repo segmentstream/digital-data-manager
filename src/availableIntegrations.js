@@ -37,6 +37,7 @@ import Recreativ from './integrations/Recreativ';
 import Multilead from './integrations/Multilead';
 import AdvCake from './integrations/AdvCake';
 import DuMedia from './integrations/DuMedia';
+import JivoChat from './integrations/JivoChat';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -78,6 +79,7 @@ const integrations = {
   Multilead,
   AdvCake,
   DuMedia,
+  JivoChat,
 };
 
 export default integrations;
