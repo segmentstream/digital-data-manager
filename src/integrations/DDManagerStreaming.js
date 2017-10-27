@@ -2,7 +2,6 @@ import sha256 from 'crypto-js/sha256';
 import utmParams from 'driveback-utils/utmParams';
 import htmlGlobals from 'driveback-utils/htmlGlobals';
 import cleanObject from 'driveback-utils/cleanObject';
-import deleteProperty from 'driveback-utils/deleteProperty';
 import arrayMerge from 'driveback-utils/arrayMerge';
 import size from 'driveback-utils/size';
 import isCrawler from 'driveback-utils/isCrawler';
@@ -228,6 +227,8 @@ class DDManagerStreaming extends Integration {
           hash: htmlGlobals.getLocation().hash,
         },
         userAgent: htmlGlobals.getNavigator().userAgent,
+        screenWidth: window.screen ? window.screen.width : undefined,
+        screenHeight: window.screen ? window.screen.height : undefined,
       },
       sentAt: (new Date()).toISOString(),
       version: 1,
