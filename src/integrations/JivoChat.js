@@ -14,6 +14,10 @@ class JivoChat extends Integration {
       },
     });
   }
+
+  isLoaded() {
+    return !!window.jivo_version;
+  }
 }
 
 export default JivoChat;
