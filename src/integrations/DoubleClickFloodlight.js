@@ -7,48 +7,56 @@ import { stringify } from 'driveback-utils/queryString';
 import cleanObject from 'driveback-utils/cleanObject';
 import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
 
+/** 
+* Example: 
+  events: [
+    {
+      event: 'Viewed Product Detail',
+      groupTag: 'test',
+      activityTag: 'test',
+      customVars: {
+        u1: {
+          type: 'digitalData',
+          value: 'user.isSubscribed',
+        },
+      },
+    },
+  ],
+*/
 class DoubleClickFloodlight extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       advertiserId: '',
-      eventTags: {},
-      /* example:
-      eventTags: {
-        'Viewed Product Detail': {
-          groupTag: 'test',
-          activityTag: 'test',
-          customVars: {
-            'u1': {
-              type: 'digitalData',
-              value: 'user.isSubscribed'
-            }
-          }
-        }
-      },
-      */
+      events: [],
     }, options);
 
     super(digitalData, optionsWithDefaults);
 
     this._isLoaded = false;
 
-    this.tagEvents = Object.keys(this.getOption('eventTags'));
     this.enrichableEventProps = [];
     this.SEMANTIC_EVENTS = [];
 
-    this.tagEvents.forEach((tagEvent) => {
-      const tagOptions = this.getOption('eventTags')[tagEvent];
-      if (tagOptions) {
-        this.enrichableEventProps[tagEvent] =
-          getEnrichableVariableMappingProps(tagOptions.customVars);
-        this.SEMANTIC_EVENTS.push(tagEvent);
-      }
+    this.getOption('events').forEach((eventOptions) => {
+      const eventName = eventOptions.event;
+      if (!eventName) return;
+
+      this.enrichableEventProps[eventName] =
+        getEnrichableVariableMappingProps(eventOptions.customVars);
+      this.SEMANTIC_EVENTS.push(eventName);
     });
 
-    this.addTag({
-      type: 'img',
+    this.addTag('counter', {
+      type: 'iframe',
       attr: {
-        src: '//ad.doubleclick.net/activity;src={{ src }};type={{ type }};cat={{ cat }};ord={{ ord }};{{ customVariables }}?',
+        src: 'https://{{ src }}.fls.doubleclick.net/activityi;src={{ src }};type={{ type }};cat={{ cat }};dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;ord={{ ord }}{{ customVariables }}?',
+      },
+    });
+
+    this.addTag('sales', {
+      type: 'iframe',
+      attr: {
+        src: 'https://{{ src }}.fls.doubleclick.net/activityi;src={{ src }};type={{ type }};cat={{ cat }};qty={{ qty }};cost={{ cost }};dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;ord={{ ord }}{{ customVariables }}?',
       },
     });
   }
@@ -73,30 +81,31 @@ class DoubleClickFloodlight extends Integration {
   }
 
   trackEvent(event) {
-    const eventTags = this.getOption('eventTags');
-    const tagOptions = eventTags[event.name];
+    const events = this.getOption('events').filter(eventOptions => (eventOptions.event === event.name));
 
-    if (tagOptions) {
-      const customVariables = extractVariableMappingValues(event, eventTags[event.name].customVars);
+    events.forEach((eventOptions) => {
+      const customVariables = extractVariableMappingValues(event, eventOptions.customVars);
       const customVariablesStr = stringify(customVariables).replace(/&/g, ';');
 
       const commonTagParams = {
         src: this.getOption('advertiserId'),
-        type: tagOptions.groupTag,
-        cat: tagOptions.activityTag,
+        type: eventOptions.groupTag,
+        cat: eventOptions.activityTag,
         customVariables: customVariablesStr,
       };
-      let tagParams;
 
+      let tagParams;
+      let tagName;
       if (event.name === COMPLETED_TRANSACTION) {
         tagParams = this.getSaleTagParams(event.transaction);
+        tagName = 'sales';
       } else {
-        tagParams = this.getCustomEventTagParams();
+        tagParams = this.getCounterTagParams();
+        tagName = 'counter';
       }
       tagParams = Object.assign(commonTagParams, tagParams);
-
-      this.load(tagParams);
-    }
+      this.load(tagName, tagParams);
+    });
   }
 
   getSaleTagParams(transaction) {
@@ -113,7 +122,7 @@ class DoubleClickFloodlight extends Integration {
     return this.getCustomEventTagParams();
   }
 
-  getCustomEventTagParams() {
+  getCounterTagParams() {
     return {
       ord: Math.random() * 10000000000000000000,
     };

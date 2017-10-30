@@ -423,6 +423,7 @@ class Filters {
   filterCommonEvent(event) {
     const customDimensions = extractCustoms(event, this.dimensions, CUSTOM_TYPE_STRING);
     const customMetrics = extractCustoms(event, this.metrics, CUSTOM_TYPE_NUMERIC);
+
     if (customDimensions.length) event.customDimensions = customDimensions;
     if (customMetrics.length) event.customMetrics = customMetrics;
 
