@@ -33,9 +33,11 @@ describe('Integrations: Vkontakte', () => {
       Init: noop,
       Event: noop,
       Hit: noop,
+      ProductEvent: noop,
     };
     sinon.stub(window.VK.Retargeting, 'Init');
     sinon.stub(window.VK.Retargeting, 'Event');
+    sinon.stub(window.VK.Retargeting, 'ProductEvent');
     sinon.stub(window.VK.Retargeting, 'Hit');
   });
 
