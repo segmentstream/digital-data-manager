@@ -24,6 +24,8 @@ export const ADDED_PRODUCT_TO_WISHLIST = 'Added Product to Wishlist';
 export const REMOVED_PRODUCT_FROM_WISHLIST = 'Removed Product from Wishlist';
 export const EXCEPTION = 'Exception';
 export const SESSION_STARTED = 'Session Started';
+export const STARTED_ORDER = 'Started Order';
+export const ADDED_PAYMENT_INFO = 'Added Payment Info';
 
 // legacy events
 export const VIEWED_PRODUCT_CATEGORY = 'Viewed Product Category';
