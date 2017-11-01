@@ -23,10 +23,16 @@ const mapProduct = product => ({
   price_old: product.unitPrice,
 });
 
+const getCurrencyCode = (currency) => {
+  if (currency === 'RUB') return 'RUR';
+  return currency;
+};
+
 class Vkontakte extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       pixelId: '',
+      priceListId: '',
       customEvents: {},
       eventPixels: {}, // legacy version of Vkontakte
     }, options);
@@ -58,7 +64,7 @@ class Vkontakte extends Integration {
     this.addTag({
       type: 'script',
       attr: {
-        src: 'https://vk.com/js/api/openapi.js?146',
+        src: 'https://vk.com/js/api/openapi.js?150',
       },
     });
   }
@@ -121,16 +127,18 @@ class Vkontakte extends Integration {
       window.VK.Retargeting.ProductEvent(this.getPriceListId(event), method, {
         products: [mapProduct(product)],
         total_price: product.unitSalePrice,
+        currency_code: getCurrencyCode(product.currency),
       });
     });
     this.pageTracked = true;
   }
 
-  trackLineItems(lineItems, subtotal, pricelistId, method) {
+  trackLineItems(lineItems, subtotal, currency, pricelistId, method) {
     this.asyncQueue.push(() => {
       window.VK.Retargeting.ProductEvent(pricelistId, method, {
         products: lineItems.map(lineItem => mapProduct(lineItem.product)),
         total_price: subtotal,
+        currency_code: getCurrencyCode(currency),
       });
     });
     this.pageTracked = true;
@@ -139,13 +147,15 @@ class Vkontakte extends Integration {
   trackCart(event, method) {
     const lineItems = getProp(event, 'cart.lineItems') || [];
     const subtotal = getProp(event, 'cart.subtotal');
-    this.trackLineItems(lineItems, subtotal, this.getPriceListId(event), method);
+    const currency = getProp(event, 'cart.currency');
+    this.trackLineItems(lineItems, subtotal, currency, this.getPriceListId(event), method);
   }
 
   trackTransaction(event, method) {
     const lineItems = getProp(event, 'transaction.lineItems') || [];
     const subtotal = getProp(event, 'transaction.subtotal');
-    this.trackLineItems(lineItems, subtotal, this.getPriceListId(event), method);
+    const currency = getProp(event, 'transaction.currency');
+    this.trackLineItems(lineItems, subtotal, currency, this.getPriceListId(event), method);
   }
 
   trackEvent(event) {
