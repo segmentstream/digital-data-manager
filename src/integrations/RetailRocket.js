@@ -33,6 +33,7 @@ class RetailRocket extends Integration {
       trackProducts: true, // legacy setting, use noConflict instead
       noConflict: false,
       trackAllEmails: false,
+      useGroupView: false,
       listMethods: {},
       customVariables: {},
     }, options);
@@ -191,8 +192,9 @@ class RetailRocket extends Integration {
     window.rrApi = {};
     window.rrApiOnReady = window.rrApiOnReady || [];
     window.rrApi.pageView = window.rrApi.addToBasket =
-        window.rrApi.order = window.rrApi.categoryView = window.rrApi.setEmail = window.rrApi.view =
-        window.rrApi.recomMouseDown = window.rrApi.recomAddToCart = window.rrApi.search = () => {};
+      window.rrApi.order = window.rrApi.categoryView = window.rrApi.setEmail = window.rrApi.view =
+      window.rrApi.groupView = window.rrApi.recomMouseDown = window.rrApi.recomAddToCart =
+      window.rrApi.search = () => {};
   }
 
   isLoaded() {
@@ -268,7 +270,18 @@ class RetailRocket extends Integration {
     }
     window.rrApiOnReady.push(() => {
       try {
-        window.rrApi.view(productId);
+        if (!this.getOption('useGroupView')) {
+          window.rrApi.view(productId);
+        } else {
+          const variations = product.variations || [];
+          let skuCodes;
+          if (variations.length) {
+            skuCodes = variations.map(variation => variation.skuCode);
+          } else {
+            skuCodes = [product.skuCode];
+          }
+          window.rrApi.groupView(skuCodes);
+        }
       } catch (e) {
         // do nothing
       }
@@ -282,7 +295,11 @@ class RetailRocket extends Integration {
     }
     window.rrApiOnReady.push(() => {
       try {
-        window.rrApi.addToBasket(productId);
+        if (!this.getOption('useGroupView')) {
+          window.rrApi.addToBasket(productId);
+        } else {
+          window.rrApi.addToBasket(product.skuCode);
+        }
       } catch (e) {
         // do nothing
       }
@@ -307,7 +324,11 @@ class RetailRocket extends Integration {
     }
     window.rrApiOnReady.push(() => {
       try {
-        window.rrApi.recomMouseDown(productId, methodName);
+        if (!this.getOption('useGroupView')) {
+          window.rrApi.recomMouseDown(productId, methodName);
+        } else {
+          window.rrApi.recomMouseDown(listItem.product.skuCode, methodName);
+        }
       } catch (e) {
         // do nothing
       }
@@ -330,7 +351,7 @@ class RetailRocket extends Integration {
       }
       const product = lineItems[i].product;
       items.push({
-        id: product.id,
+        id: (!this.getOption('useGroupView')) ? product.id : product.skuCode,
         qnt: lineItems[i].quantity,
         price: product.unitSalePrice || product.unitPrice,
       });

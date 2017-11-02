@@ -93,6 +93,7 @@ describe('Integrations: RetailRocket', () => {
       };
       sinon.stub(window.rrApi, 'addToBasket');
       sinon.stub(window.rrApi, 'view');
+      sinon.stub(window.rrApi, 'groupView');
       sinon.stub(window.rrApi, 'categoryView');
       sinon.stub(window.rrApi, 'order');
       sinon.stub(window.rrApi, 'pageView');
@@ -272,6 +273,31 @@ describe('Integrations: RetailRocket', () => {
           },
         });
       });
+
+      it('should track "Viewed Product Detail" with groupView', (done) => {
+        retailRocket.setOption('useGroupView', true);
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {
+            id: '327',
+            skuCode: 'sku327',
+            variations: [
+              {
+                id: '123',
+                skuCode: 'sku123',
+              },
+              {
+                id: '327',
+                skuCode: 'sku327',
+              },
+            ],
+          },
+          callback: () => {
+            assert.ok(window.rrApi.groupView.calledWith(['sku123', 'sku327']));
+            done();
+          },
+        });
+      });
     });
 
 
@@ -285,6 +311,22 @@ describe('Integrations: RetailRocket', () => {
           quantity: 1,
           callback: () => {
             assert.ok(window.rrApi.addToBasket.calledOnce);
+            done();
+          },
+        });
+      });
+
+      it('should track "Added Product" with product.id and product.sku param (groupView)', (done) => {
+        retailRocket.setOption('useGroupView', true);
+        window.digitalData.events.push({
+          name: 'Added Product',
+          product: {
+            id: '327',
+            skuCode: 'sku327',
+          },
+          quantity: 1,
+          callback: () => {
+            assert.ok(window.rrApi.addToBasket.calledWith('sku327'));
             done();
           },
         });
@@ -370,11 +412,33 @@ describe('Integrations: RetailRocket', () => {
           listItem: {
             product: {
               id: '327',
+              skuCode: 'sku327',
             },
             listId: 'recom1',
           },
           callback: () => {
             assert.ok(window.rrApi.recomMouseDown.calledWith('327', 'Related'));
+            done();
+          },
+        });
+      });
+
+      it('should track "Clicked Product" with product.id param', (done) => {
+        retailRocket.setOption('useGroupView', true);
+        retailRocket.setOption('listMethods', {
+          recom1: 'Related',
+        });
+        window.digitalData.events.push({
+          name: 'Clicked Product',
+          listItem: {
+            product: {
+              id: '327',
+              skuCode: 'sku327',
+            },
+            listId: 'recom1',
+          },
+          callback: () => {
+            assert.ok(window.rrApi.recomMouseDown.calledWith('sku327', 'Related'));
             done();
           },
         });
@@ -555,6 +619,52 @@ describe('Integrations: RetailRocket', () => {
           },
           callback: () => {
             assert.ok(window.rrApi.order.calledOnce);
+            done();
+          },
+        });
+      });
+
+      it('should track "Completed Transaction" with transaction param and groupView', (done) => {
+        retailRocket.setOption('useGroupView', true);
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          transaction: {
+            orderId: '123',
+            lineItems: [
+              {
+                product: {
+                  id: '327',
+                  skuCode: 'sku327',
+                  unitSalePrice: 245,
+                },
+                quantity: 1,
+              },
+              {
+                product: {
+                  id: '328',
+                  skuCode: 'sku328',
+                  unitSalePrice: 245,
+                },
+                quantity: 2,
+              },
+            ],
+          },
+          callback: () => {
+            assert.ok(window.rrApi.order.calledWith({
+              transaction: '123',
+              items: [
+                {
+                  id: 'sku327',
+                  qnt: 1,
+                  price: 245,
+                },
+                {
+                  id: 'sku328',
+                  qnt: 2,
+                  price: 245,
+                },
+              ],
+            }));
             done();
           },
         });
