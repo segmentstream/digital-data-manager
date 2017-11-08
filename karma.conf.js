@@ -77,7 +77,14 @@ module.exports = function init(config) {
         browserName: 'android',
         platform: 'Linux',
         version: '5.1',
-        deviceName: 'Android Emulator'
+        deviceName: 'Android Emulator',
+      },
+      slSamsungAndroid: {
+        base: 'SauceLabs',
+        browserName: 'Browser',
+        platform: 'Android',
+        version: '4.4',
+        deviceName: 'Samsung Galaxy S3 Emulator',
       }
     };
     browsers = Object.keys(customLaunchers);
