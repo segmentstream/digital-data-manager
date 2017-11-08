@@ -18,10 +18,16 @@ module.exports = function init(config) {
 
   if (process.env.SAUCE_ENABLED == "true") {
     customLaunchers = {
-      slChromeWinXp: {
+      slChromeWin7: {
         base: 'SauceLabs',
         browserName: 'chrome',
         platform: 'Windows 7'
+      },
+      slFirefoxWin7: {
+        base: 'SauceLabs',
+        browserName: 'firefox',
+        platform: 'Windows 7',
+        version: '56',
       },
       slIe10Win7: {
         base: 'SauceLabs',
