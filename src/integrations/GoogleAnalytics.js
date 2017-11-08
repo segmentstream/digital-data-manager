@@ -91,6 +91,7 @@ class GoogleAnalytics extends Integration {
     const optionsWithDefaults = Object.assign({
       trackingId: '',
       alternativeTrackingId: '',
+      optimizeContainerId: '',
       enhancedLinkAttribution: false,
       enhancedEcommerce: false,
       sendUserId: false,
@@ -518,6 +519,10 @@ class GoogleAnalytics extends Integration {
       // https://support.google.com/analytics/answer/2558867?hl=en
       if (this.getOption('enhancedLinkAttribution')) {
         this.ga(['require', 'linkid', 'linkid.js'], this.getOption('noConflict'));
+      }
+
+      if (this.getOption('optimizeContainerId')) {
+        this.ga(['require', this.getOption('optimizeContainerId')], this.getOption('noConflict'));
       }
 
       if (this.getOption('enhancedEcommerce')) {
