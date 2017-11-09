@@ -69,7 +69,7 @@ class RetailRocket extends Integration {
         break;
       case VIEWED_PRODUCT_DETAIL:
         enrichableProps = [
-          'product.id',
+          'product',
         ];
         break;
       case VIEWED_PRODUCT_LISTING:
@@ -117,7 +117,11 @@ class RetailRocket extends Integration {
         },
       },
       [VIEWED_PRODUCT_DETAIL]: {
-        fields: ['product.id'],
+        fields: [
+          'product.id',
+          'product.skuCode',
+          'product.variations[].skuCode',
+        ],
         validations: {
           'product.id': {
             errors: ['required'],
