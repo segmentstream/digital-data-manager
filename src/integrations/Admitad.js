@@ -5,7 +5,14 @@ import getQueryParam from 'driveback-utils/getQueryParam';
 import topDomain from 'driveback-utils/topDomain';
 import { getProp } from 'driveback-utils/dotProp';
 import normalizeString from 'driveback-utils/normalizeString';
-import { COMPLETED_TRANSACTION, LEAD } from './../events/semanticEvents';
+import {
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_LISTING,
+  VIEWED_PRODUCT_DETAIL,
+  VIEWED_CART,
+  COMPLETED_TRANSACTION,
+  LEAD,
+} from './../events/semanticEvents';
 import cookie from 'js-cookie';
 
 function getScreenResolution() {
@@ -45,6 +52,8 @@ class Admitad extends Integration {
       deduplication: false,
       utmSource: 'admitad', // utm_source which is sent with admitad_uid get param
       deduplicationUtmMedium: [],
+      reTag: false,
+      reTagCode: '',
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -55,6 +64,14 @@ class Admitad extends Integration {
       COMPLETED_TRANSACTION,
       LEAD,
     ];
+    if (this.getOption('reTag')) {
+      this.SEMANTIC_EVENTS.push(
+        VIEWED_PAGE,
+        VIEWED_PRODUCT_LISTING,
+        VIEWED_PRODUCT_DETAIL,
+        VIEWED_CART,
+      );
+    }
 
     this.addTag('trackingPixel', {
       type: 'script',
@@ -63,10 +80,21 @@ class Admitad extends Integration {
         src: `//cdn.asbmit.com/static/js/ddpixel.js?r=${Date.now()}`,
       },
     });
+
+    this.addTag('reTag', {
+      type: 'script',
+      attr: {
+        src: '//cdn.admitad.com/static/js/retag.js',
+      },
+    });
   }
 
   initialize() {
     this._isLoaded = true;
+
+    if (this.getOption('reTag')) {
+      window._retag = window._retag || [];
+    }
 
     if (this.getOption('cookieTracking')) {
       this.addAffiliateCookie();
@@ -92,23 +120,28 @@ class Admitad extends Integration {
   }
 
   getEnrichableEventProps(event) {
-    let enrichableProps = [];
-
-    if (event.name === COMPLETED_TRANSACTION) {
-      enrichableProps = [
+    if (event.name === VIEWED_PAGE) {
+      return ['page'];
+    } else if (event.name === VIEWED_PRODUCT_LISTING) {
+      return ['listing.categoryId'];
+    } else if (event.name === VIEWED_PRODUCT_DETAIL) {
+      return ['product'];
+    } else if (event.name === VIEWED_CART) {
+      return ['cart'];
+    } else if (event.name === COMPLETED_TRANSACTION) {
+      return [
         'transaction',
         'user.userId',
         'website.currency',
         'context.campaign',
       ];
     } else if (event.name === LEAD) {
-      enrichableProps = [
+      return [
         'user.userId',
         'context.campaign',
       ];
     }
-
-    return enrichableProps;
+    return [];
   }
 
   getEventValidationConfig(event) {
@@ -149,13 +182,36 @@ class Admitad extends Integration {
   reset() {
     deleteProperty(window, '_admitadPixel');
     deleteProperty(window, '_admitadPositions');
+    deleteProperty(window, '_retag');
+    deleteProperty(window, 'ad_category');
+    deleteProperty(window, 'ad_product');
+    deleteProperty(window, 'ad_products');
+    deleteProperty(window, 'ad_order');
+    deleteProperty(window, 'ad_amount');
   }
 
   trackEvent(event) {
-    const uid = cookie.get(this.getOption('cookieName'));
-    if (!uid) return;
+    // retag tracking
+    if (this.getOption('reTag')) {
+      const methods = {
+        [VIEWED_PAGE]: 'onViewedPage',
+        [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
+        [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
+        [VIEWED_PRODUCT_LISTING]: 'onViewedProductListing',
+        [VIEWED_CART]: 'onViewedCart',
+      };
 
+      const method = methods[event.name];
+      if (method) {
+        this[method](event);
+      }
+    }
+
+    // affiliate actions tracking
+    const uid = cookie.get(this.getOption('cookieName'));
+    if (!uid || !this.getOption('campaignCode')) return;
     if (this.isDeduplication(event)) return;
+
     if (event.name === COMPLETED_TRANSACTION && this.getOption('paymentType') === PAYMENT_TYPE_SALE) {
       this.trackSale(event, uid);
     } else if (event.name === LEAD && this.getOption('paymentType') === PAYMENT_TYPE_LEAD) {
@@ -243,6 +299,77 @@ class Admitad extends Integration {
     }));
 
     this.load('trackingPixel');
+  }
+
+  reTagPush(level) {
+    // for now ajax implementation not supported
+    if (this.pageTracked) return;
+
+    window._retag.push({
+      code: this.getOption('reTagCode'),
+      level,
+    });
+    this.load('reTag');
+    this.pageTracked = true;
+  }
+
+  onViewedPage(event) {
+    const page = event.page || {};
+    if (page.type !== 'home') return;
+
+    this.reTagPush(0);
+  }
+
+  onViewedProductListing(event) {
+    const listing = event.listing || {};
+    const categoryId = listing.categoryId;
+    if (!categoryId) return;
+
+    window.ad_category = categoryId;
+
+    this.reTagPush(1);
+  }
+
+  onViewedProductDetail(event) {
+    const product = event.product || {};
+    window.ad_product = cleanObject({
+      id: product.id,
+      vendor: product.manufacturer || product.brand,
+      price: product.unitSalePrice,
+      url: product.url,
+      picture: product.imageUrl,
+      name: product.name,
+      category: product.categoryId,
+    });
+
+    this.reTagPush(2);
+  }
+
+  onViewedCart(event) {
+    const cart = event.cart || {};
+    const lineItems = cart.lineItems || [];
+    window.ad_products = lineItems.map(lineItem => ({
+      id: getProp(lineItem, 'product.id'),
+      number: lineItem.quantity || 1,
+    }));
+
+    this.reTagPush(3);
+  }
+
+  onCompletedTransaction(event) {
+    const transaction = event.transaction || {};
+    const lineItems = transaction.lineItems || [];    
+    const orderId = transaction.orderId;
+    const total = transaction.total;
+
+    window.ad_order = orderId;
+    window.ad_amount = total;
+    window.ad_products = lineItems.map(lineItem => ({
+      id: getProp(lineItem, 'product.id'),
+      number: lineItem.quantity || 1,
+    }));
+
+    this.reTagPush(4);
   }
 }
 
