@@ -212,11 +212,13 @@ class DigitalDataEnricher {
   enrichContextData() {
     const context = this.digitalData.context;
     context.userAgent = this.getHtmlGlobals().getNavigator().userAgent;
-
     if (!context.campaign) {
-      const utmSource = getQueryParam('utm_source');
-      const utmMedium = getQueryParam('utm_medium');
+      const gclid = getQueryParam('gclid');
       const utmCampaign = getQueryParam('utm_campaign');
+      let utmSource = getQueryParam('utm_source');
+      let utmMedium = getQueryParam('utm_medium');
+      utmSource = gclid ? utmSource || 'google' : utmSource;
+      utmMedium = gclid ? utmMedium || 'cpc' : utmMedium;
       if (utmSource || utmMedium || utmCampaign) {
         context.campaign = cleanObject({
           name: utmCampaign,

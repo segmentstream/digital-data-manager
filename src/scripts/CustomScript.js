@@ -24,6 +24,7 @@ class CustomScript {
     } else if (event.name === this.event) {
       handler = this.newHandler([event]);
     }
+
     try {
       handler.run();
       this.hasFired = true;

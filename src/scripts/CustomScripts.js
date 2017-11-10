@@ -44,6 +44,8 @@ class CustomScripts {
   }
 
   run(event) {
+    if (event.stopPropagation) return;
+
     const customScripts = storage[event.name] || [];
     customScripts.forEach((customScript) => {
       customScript.run(event);

@@ -44,7 +44,7 @@ class CustomEnrichments {
 
   enrichDigitalData(digitalData, event, beforeEvent) {
     const eventName = event.name;
-    if (!eventName) return;
+    if (!eventName || event.stopPropagation) return;
 
     const collection = this.prepareCollection(event.name, beforeEvent);
     collection.enrich(digitalData, [event]);

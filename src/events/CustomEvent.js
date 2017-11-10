@@ -54,7 +54,7 @@ class CustomEvent {
   trackEvent() {
     if (!this.setting) return;
     this.eventManager.addCallback(['on', 'event', (event) => {
-      if (event.name === this.setting) {
+      if (event.name === this.setting && !event.stopPropagation) {
         this.resolveHandlerAndFireEvent([event]);
       }
     }]);
@@ -84,8 +84,8 @@ class CustomEvent {
       errorLog(`Custom Event "${this.name}" was disabled: returned event name is undefined`);
       return;
     }
-    if (this.trigger === TRIGGER_CLICK) {
-      if (event.name === this.setting) {
+    if (this.trigger === TRIGGER_EVENT) {
+      if (event.name === this.setting && !event.stopPropagation) {
         errorLog(`Custom Event "${this.name}" was disabled: recursion error`);
         return;
       }

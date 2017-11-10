@@ -1,5 +1,6 @@
 import sha256 from 'crypto-js/sha256';
 import utmParams from 'driveback-utils/utmParams';
+import getQueryParam from 'driveback-utils/getQueryParam';
 import htmlGlobals from 'driveback-utils/htmlGlobals';
 import cleanObject from 'driveback-utils/cleanObject';
 import arrayMerge from 'driveback-utils/arrayMerge';
@@ -206,8 +207,13 @@ class DDManagerStreaming extends Integration {
   }
 
   normalize(hitData) {
-    const campaign = utmParams(htmlGlobals.getLocation().search);
     const hitId = uuid();
+    const gclid = getQueryParam('gclid');
+    const campaign = utmParams(htmlGlobals.getLocation().search);
+    if (gclid) {
+      if (!campaign.source) campaign.source = 'google';
+      if (!campaign.medium) campaign.medium = 'cpc';
+    }
     const commonFields = cleanObject({
       hitId,
       projectId: this.getOption('projectId'),

@@ -14,6 +14,7 @@ import {
   LEAD,
 } from './../events/semanticEvents';
 import cookie from 'js-cookie';
+import { isDeduplication } from './utils/affiliate';
 
 function getScreenResolution() {
   return `${window.screen.width}x${window.screen.height}`;
@@ -210,33 +211,17 @@ class Admitad extends Integration {
     // affiliate actions tracking
     const uid = cookie.get(this.getOption('cookieName'));
     if (!uid || !this.getOption('campaignCode')) return;
-    if (this.isDeduplication(event)) return;
+
+    const campaign = getProp(event, 'context.campaign');
+    const utmSource = this.getOption('utmSource');
+    const deduplicationUtmMedium = this.getOption('deduplicationUtmMedium');
+    if (isDeduplication(campaign, utmSource, deduplicationUtmMedium)) return;
 
     if (event.name === COMPLETED_TRANSACTION && this.getOption('paymentType') === PAYMENT_TYPE_SALE) {
       this.trackSale(event, uid);
     } else if (event.name === LEAD && this.getOption('paymentType') === PAYMENT_TYPE_LEAD) {
       this.trackLead(event, uid);
     }
-  }
-
-  isDeduplication(event) {
-    if (this.getOption('deduplication')) {
-      const campaignSource = getProp(event, 'context.campaign.source');
-      if (!campaignSource || campaignSource.toLowerCase() !== this.getOption('utmSource')) {
-        // last click source is not admitad
-        const deduplicationUtmMedium = this.getOption('deduplicationUtmMedium') || [];
-        if (!deduplicationUtmMedium || deduplicationUtmMedium.length === 0) {
-          // deduplicate with everything
-          return true;
-        }
-        const campaignMedium = getProp(event, 'context.campaign.medium');
-        if (deduplicationUtmMedium.indexOf(campaignMedium.toLowerCase()) >= 0) {
-          // last click medium is deduplicated
-          return true;
-        }
-      }
-    }
-    return false;
   }
 
   setupPixel(event) {
