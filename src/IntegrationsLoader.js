@@ -12,6 +12,12 @@ import { bind } from 'driveback-utils/eventListener';
  */
 let _availableIntegrations;
 
+let _initializeVersion;
+
+let _integrationsPriority;
+
+let _pageLoadTimeout;
+
 /**
  * @type {Object}
  * @private
@@ -38,7 +44,12 @@ const IntegrationsLoader = {
 
   getIntegrations: () => _integrations,
 
-  addIntegrations: (integrationSettings, ddManager) => {
+  initialize: (settings, ddManager) => {
+    _initializeVersion = settings.version;
+    _integrationsPriority = settings.integrationsPriority;
+    _pageLoadTimeout = settings.pageLoadTimeout;
+
+    const integrationSettings = settings.integrations;
     if (integrationSettings) {
       if (Array.isArray(integrationSettings)) {
         integrationSettings.forEach((integrationSetting) => {
@@ -66,87 +77,54 @@ const IntegrationsLoader = {
     }
   },
 
-  initializeIntegrations(version) {
-    // initialize integrations
-    if (size(_integrations) > 0) {
-      each(_integrations, (name, integration) => {
-        if (integration.getOption('disabled')) return; // TODO: implement using conditions
-        if (
-          !integration.isLoaded()
-          || integration.getOption('noConflict')
-          || integration.allowNoConflictInitialization()
-        ) {
-          if (integration.initialize(version) !== false) {
-            integration.setInitialized(true);
-          }
-        } else {
-          warn(`Integration "${name}" can't be initialized properly because of the conflict`);
-        }
-      });
+  initializeIntegration(integration) {
+    if (integration.getOption('disabled')) return; // TODO: implement using conditions
+    if (
+      !integration.isLoaded()
+      || integration.getOption('noConflict')
+      || integration.allowNoConflictInitialization()
+    ) {
+      if (integration.initialize(_initializeVersion) !== false) {
+        integration.setInitialized(true);
+      }
+    } else {
+      warn(`Integration "${integration.getName()}" can't be initialized properly because of the conflict`);
     }
   },
 
-  loadIntegrations: (integrationsPriority, pageLoadTimeout, callback) => {
-    integrationsPriority = integrationsPriority || {};
+  loadIntegration(integration) {
+    if (!integration.isInitialized()) return;
+    integration.flushEventQueue();
+    if (!integration.isLoaded() && !integration.getOption('noConflict')) {
+      integration.load(integration.onLoad);
+    } else {
+      integration.onLoad();
+    }
+  },
 
-    let beforeList = integrationsPriority.before || [];
+  queueIntegrationLoad: (integration) => {
+    const integrationsPriority = _integrationsPriority || {};
     const afterList = integrationsPriority.after || [];
-    const beforeAndAfter = beforeList.concat(afterList);
-    const allIntegrations = Object.keys(_integrations);
-    const diff = allIntegrations.filter(x => beforeAndAfter.indexOf(x) === -1);
-
-    // add integrations to beforeList if were not defined in before or after
-    beforeList = beforeList.concat(diff);
-    const onLoad = () => {
-      callback();
-    };
-    const loaded = after(size(_integrations), onLoad);
-
-    // before
-    IntegrationsLoader.loadIntegrationsFromList(beforeList, loaded);
-
-    // after
     const pageLoaded = window.document.readyState === 'complete';
-    let integrationsLoaded = false;
+    let integrationLoaded = false;
 
-    if (!pageLoaded) {
+    if (afterList.indexOf(integration.getName()) >= 0 && !pageLoaded) {
       // set page load timeout
       const timeoutId = setTimeout(() => {
-        if (integrationsLoaded) return;
-        integrationsLoaded = true;
-        IntegrationsLoader.loadIntegrationsFromList(afterList, loaded);
-      }, pageLoadTimeout || 3000);
+        if (integrationLoaded) return;
+        integrationLoaded = true;
+        IntegrationsLoader.loadIntegration(integration);
+      }, _pageLoadTimeout || 3000);
 
       // wait for page load
       bind(window, 'load', () => {
-        if (integrationsLoaded) return;
-        integrationsLoaded = true;
+        if (integrationLoaded) return;
+        integrationLoaded = true;
         clearTimeout(timeoutId);
-        IntegrationsLoader.loadIntegrationsFromList(afterList, loaded);
+        IntegrationsLoader.loadIntegration(integration);
       });
     } else {
-      IntegrationsLoader.loadIntegrationsFromList(afterList, loaded);
-    }
-  },
-
-  loadIntegrationsFromList(list, loaded) {
-    list.forEach((integrationName) => {
-      IntegrationsLoader.loadIntegration(integrationName, loaded);
-    });
-  },
-
-  loadIntegration(integrationName, callback) {
-    if (_integrations[integrationName]) {
-      const integration = _integrations[integrationName];
-      if (!integration.isInitialized()) return;
-      integration.flushEventQueue();
-      if (!integration.isLoaded() && !integration.getOption('noConflict')) {
-        integration.load(integration.onLoad);
-        integration.once('load', callback);
-      } else {
-        integration.onLoad();
-        callback();
-      }
+      IntegrationsLoader.loadIntegration(integration);
     }
   },
 

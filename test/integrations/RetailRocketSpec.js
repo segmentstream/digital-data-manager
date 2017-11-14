@@ -119,7 +119,7 @@ describe('Integrations: RetailRocket', () => {
         retailRocket.onLoad();
       });
 
-      ddManager.once('ready', done);
+      retailRocket.once('ready', done);
       ddManager.initialize();
       prepareStubs();
     });

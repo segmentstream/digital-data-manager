@@ -44,40 +44,30 @@ describe('Integrations: GoogleAnalytics', () => {
       describe('#initialize', () => {
         it('should require "linkid.js" if enhanced link attribution is `true`', () => {
           ga.setOption('enhancedLinkAttribution', true);
-          ddManager.initialize({
-            sendViewedPageEvent: false,
-          });
+          ddManager.initialize();
           assert.deepEqual(argumentsToArray(window.ga.q[1]), ['require', 'linkid', 'linkid.js']);
         });
 
         it('should create window.GoogleAnalyticsObject', () => {
           assert.ok(!window.GoogleAnalyticsObject);
-          ddManager.initialize({
-            sendViewedPageEvent: false,
-          });
+          ddManager.initialize();
           assert.equal(window.GoogleAnalyticsObject, 'ga');
         });
 
         it('should create window.ga', () => {
           assert.ok(!window.ga);
-          ddManager.initialize({
-            sendViewedPageEvent: false,
-          });
+          ddManager.initialize();
           assert.equal(typeof window.ga, 'function');
         });
 
         it('should create window.ga.l', () => {
           assert.ok(!window.ga);
-          ddManager.initialize({
-            sendViewedPageEvent: false,
-          });
+          ddManager.initialize();
           assert.equal(typeof window.ga.l, 'number');
         });
 
         it('should call window.ga.create with options', function () {
-          ddManager.initialize({
-            sendViewedPageEvent: false
-          });
+          ddManager.initialize();
           assert.deepEqual(argumentsToArray(window.ga.q[0]), ['create', options.trackingId, {
             cookieDomain: 'none',
             siteSpeedSampleRate: options.siteSpeedSampleRate,
@@ -85,35 +75,31 @@ describe('Integrations: GoogleAnalytics', () => {
           }]);
         });
 
-        it('should anonymize the ip', function () {
-          ddManager.initialize({
-            sendViewedPageEvent: false
-          });
+        it('should anonymize the ip', () => {
+          ddManager.initialize();
           assert.deepEqual(argumentsToArray(window.ga.q[1]), ['set', 'anonymizeIp', true]);
         });
 
-        it('should call #load', function () {
-          ddManager.initialize({
-            sendViewedPageEvent: false
-          });
+        it('should call #load', () => {
+          ddManager.initialize();
           assert.ok(ga.load.calledOnce);
         });
 
-        it('should not send universal user id by default', function (done) {
+        it('should not send universal user id by default', (done) => {
           window.digitalData.user = {
-            userId: 'baz'
+            userId: 'baz',
           };
           window.digitalData.page = {};
           ddManager.initialize({
-            sendViewedPageEvent: false
+            sendViewedPageEvent: false,
           });
-          digitalData.events.push({
+          window.digitalData.events.push({
             name: 'Viewed Page',
             callback: () => {
               assert.notDeepEqual(argumentsToArray(window.ga.q[2]), ['set', 'userId', 'baz']);
               done();
-            }
-          })
+            },
+          });
         });
 
         it('should send universal user id if sendUserId option is true and user.id is truthy', (done) => {
@@ -125,12 +111,10 @@ describe('Integrations: GoogleAnalytics', () => {
           ddManager.initialize({
             sendViewedPageEvent: false,
           });
-          sinon.stub(window, 'ga');
           window.digitalData.events.push({
             name: 'Viewed Page',
             callback: () => {
-              assert.ok(window.ga.calledWith('set', 'userId', 'baz'));
-              window.ga.restore();
+              assert.deepEqual(argumentsToArray(window.ga.q[2]), ['set', 'userId', 'baz']);
               done();
             },
           });
@@ -138,20 +122,18 @@ describe('Integrations: GoogleAnalytics', () => {
       });
     });
 
-    describe('loading', function () {
-      it('should load', function (done) {
+    describe('loading', () => {
+      it('should load', (done) => {
         sinon.stub(ga, 'load', () => {
           window.gaplugins = {};
           ga.onLoad();
         });
         assert.ok(!ga.isLoaded());
-        ddManager.once('load', () => {
+        setTimeout(() => {
           assert.ok(ga.isLoaded());
           done();
-        });
-        ddManager.initialize({
-          sendViewedPageEvent: false
-        });
+        }, 500);
+        ddManager.initialize();
       });
     });
 
@@ -174,9 +156,7 @@ describe('Integrations: GoogleAnalytics', () => {
           }
         }
         ddManager.once('ready', done);
-        ddManager.initialize({
-          sendViewedPageEvent: false
-        });
+        ddManager.initialize();
       });
 
       describe('#enrichDigitalData', () => {
@@ -202,6 +182,7 @@ describe('Integrations: GoogleAnalytics', () => {
 
       describe('#page', () => {
         beforeEach(() => {
+          window.ga = () => {};
           sinon.stub(window, 'ga');
         });
 
@@ -466,8 +447,9 @@ describe('Integrations: GoogleAnalytics', () => {
 
       });
 
-      describe('#track', function () {
-        beforeEach(function () {
+      describe('#track', () => {
+        beforeEach(() => {
+          window.ga = () => {};
           sinon.stub(window, 'ga');
         });
 
@@ -475,7 +457,8 @@ describe('Integrations: GoogleAnalytics', () => {
           window.ga.restore();
         });
 
-        it('should send an event', function () {
+        it('should send an event', () => {
+          window.digitalData.events.push({ name: 'Viewed Page' });
           window.digitalData.events.push({
             callback: () => {
               assert.ok(window.ga.calledWith('send', 'event', {
@@ -489,7 +472,8 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should send a action property', function () {
+        it('should send a action property', () => {
+          window.digitalData.events.push({ name: 'Viewed Page' });
           window.digitalData.events.push({
             name: 'Test',
             action: 'test 123',
@@ -505,7 +489,8 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should send a category property', function () {
+        it('should send a category property', () => {
+          window.digitalData.events.push({ name: 'Viewed Page' });
           window.digitalData.events.push({
             category: 'category',
             callback: () => {
@@ -520,7 +505,8 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should send a label property', function () {
+        it('should send a label property', () => {
+          window.digitalData.events.push({ name: 'Viewed Page' });
           window.digitalData.events.push({
             name: 'event',
             label: 'label',
@@ -536,7 +522,8 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should send a rounded value property', function () {
+        it('should send a rounded value property', () => {
+          window.digitalData.events.push({ name: 'Viewed Page' });
           window.digitalData.events.push({
             value: 1.1,
             callback: () => {
@@ -551,7 +538,8 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should send a non-interaction property', function () {
+        it('should send a non-interaction property', () => {
+          window.digitalData.events.push({ name: 'Viewed Page' });
           window.digitalData.events.push({
             nonInteraction: 1,
             callback: () => {
@@ -566,7 +554,7 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should map custom dimensions & metrics', function() {
+        it('should map custom dimensions & metrics', () => {
           ga.initVersion = '1.2.8';
           ga.setOption('metrics', {
             metric1: {
@@ -586,6 +574,7 @@ describe('Integrations: GoogleAnalytics', () => {
           });
           ga.prepareCustomDimensions();
 
+          window.digitalData.events.push({ name: 'Viewed Page' });
           window.digitalData.events.push({
             name: 'Level Unlocked',
             loadTime: '100',
@@ -601,7 +590,7 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should map custom dimensions & metrics (legacy version)', function() {
+        it('should map custom dimensions & metrics (legacy version)', () => {
           ga.setOption('metrics', {
             metric1: 'loadTime',
             metric2: 'levelAchieved'
@@ -627,9 +616,10 @@ describe('Integrations: GoogleAnalytics', () => {
         });
       });
 
-      describe('ecommerce', function () {
+      describe('ecommerce', () => {
 
-        beforeEach(function () {
+        beforeEach(() => {
+          window.ga = () => {};
           sinon.stub(window, 'ga');
         });
 
@@ -637,7 +627,8 @@ describe('Integrations: GoogleAnalytics', () => {
           window.ga.restore();
         });
 
-        it('should require ecommerce.js', function () {
+        it('should require ecommerce.js', () => {
+          window.digitalData.events.push({ name: 'Viewed Page' });
           window.digitalData.events.push({
             name: 'Completed Transaction',
             category: 'Ecommerce',
@@ -655,11 +646,12 @@ describe('Integrations: GoogleAnalytics', () => {
             },
             callback: () => {
               assert.ok(window.ga.calledWith('require', 'ecommerce'));
-            }
+            },
           });
         });
 
-        it('should send simple ecommerce data', function () {
+        it('should send simple ecommerce data', () => {
+          window.digitalData.events.push({ name: 'Viewed Page' });
           window.digitalData.events.push({
             name: 'Completed Transaction',
             category: 'Ecommerce',
@@ -670,17 +662,31 @@ describe('Integrations: GoogleAnalytics', () => {
                   product: {
                     id: '123',
                   },
-                  quantity: 1
-                }
+                  quantity: 1,
+                },
               ],
-              total: 1000
+              total: 1000,
             },
             callback: () => {
-              assert.ok(window.ga.args.length === 4);
-              assert.ok(window.ga.args[1][0] === 'ecommerce:addTransaction');
-              assert.ok(window.ga.args[2][0] === 'ecommerce:addItem');
-              assert.ok(window.ga.args[3][0] === 'ecommerce:send');
-            }
+              assert.ok(window.ga.calledWith('ecommerce:addTransaction', {
+                id: '7306cc06',
+                affiliation: undefined,
+                shipping: undefined,
+                tax: undefined,
+                revenue: 1000,
+                currency: undefined,
+              }));
+              assert.ok(window.ga.calledWith('ecommerce:addItem', {
+                id: '123',
+                category: undefined,
+                quantity: 1,
+                price: undefined,
+                name: undefined,
+                sku: undefined,
+                currency: undefined,
+              }));
+              assert.ok(window.ga.calledWith('ecommerce:send'));
+            },
           });
         });
 
@@ -714,21 +720,21 @@ describe('Integrations: GoogleAnalytics', () => {
           ]
         };
 
-        it('should send ecommerce data', function () {
+        it('should send ecommerce data', () => {
+          window.digitalData.events.push({ name: 'Viewed Page' });
           window.digitalData.events.push({
             name: 'Completed Transaction',
             transaction: transaction,
             callback: () => {
-              assert.deepEqual(window.ga.args[1], ['ecommerce:addTransaction', {
+              assert.ok(window.ga.calledWith('ecommerce:addTransaction', {
                 id: '780bc55',
                 affiliation: undefined,
                 shipping: 13.99,
                 tax: 20.99,
                 revenue: 99.99,
-                currency: 'USD'
-              }]);
-
-              assert.deepEqual(window.ga.args[2], ['ecommerce:addItem', {
+                currency: 'USD',
+              }));
+              assert.ok(window.ga.calledWith('ecommerce:addItem', {
                 id: '123',
                 category: undefined,
                 name: 'my product',
@@ -736,38 +742,36 @@ describe('Integrations: GoogleAnalytics', () => {
                 quantity: 1,
                 sku: 'p-298',
                 currency: 'USD'
-              }]);
-
-              assert.deepEqual(window.ga.args[3], ['ecommerce:addItem', {
+              }));
+              assert.ok(window.ga.calledWith('ecommerce:addItem', {
                 id: '234',
                 category: undefined,
                 name: 'other product',
                 price: 24.75,
                 sku: 'p-299',
                 quantity: 3,
-                currency: 'USD'
-              }]);
-
-              assert.deepEqual(window.ga.args[4], ['ecommerce:send']);
-            }
+                currency: 'USD',
+              }));
+              assert.ok(window.ga.calledWith('ecommerce:send'));
+            },
           });
         });
 
-        it('should send ecommerce data (digitalData)', function () {
+        it('should send ecommerce data (digitalData)', () => {
           window.digitalData.transaction = transaction;
+          window.digitalData.events.push({ name: 'Viewed Page' });
           window.digitalData.events.push({
             name: 'Completed Transaction',
             callback: () => {
-              assert.deepEqual(window.ga.args[1], ['ecommerce:addTransaction', {
+              assert.ok(window.ga.calledWith('ecommerce:addTransaction', {
                 id: '780bc55',
                 affiliation: undefined,
                 shipping: 13.99,
                 tax: 20.99,
                 revenue: 99.99,
-                currency: 'USD'
-              }]);
-
-              assert.deepEqual(window.ga.args[2], ['ecommerce:addItem', {
+                currency: 'USD',
+              }));
+              assert.ok(window.ga.calledWith('ecommerce:addItem', {
                 id: '123',
                 category: undefined,
                 name: 'my product',
@@ -775,24 +779,23 @@ describe('Integrations: GoogleAnalytics', () => {
                 quantity: 1,
                 sku: 'p-298',
                 currency: 'USD'
-              }]);
-
-              assert.deepEqual(window.ga.args[3], ['ecommerce:addItem', {
+              }));
+              assert.ok(window.ga.calledWith('ecommerce:addItem', {
                 id: '234',
                 category: undefined,
                 name: 'other product',
                 price: 24.75,
                 sku: 'p-299',
                 quantity: 3,
-                currency: 'USD'
-              }]);
-
-              assert.deepEqual(window.ga.args[4], ['ecommerce:send']);
-            }
+                currency: 'USD',
+              }));
+              assert.ok(window.ga.calledWith('ecommerce:send'));
+            },
           });
         });
 
-        it('should fallback to revenue', function () {
+        it('should fallback to revenue', () => {
+          window.digitalData.events.push({ name: 'Viewed Page' });
           window.digitalData.events.push({
             name: 'Completed Transaction',
             transaction: {
@@ -801,22 +804,23 @@ describe('Integrations: GoogleAnalytics', () => {
               tax: 20.99,
               total: 99.9,
               currency: 'USD',
-              lineItems: []
+              lineItems: [],
             },
             callback: () => {
-              assert.deepEqual(window.ga.args[1], ['ecommerce:addTransaction', {
+              assert.ok(window.ga.calledWith('ecommerce:addTransaction', {
                 id: '5d4c7cb5',
                 affiliation: undefined,
                 shipping: 13.99,
                 tax: 20.99,
                 revenue: 99.9,
-                currency: 'USD'
-              }]);
-            }
+                currency: 'USD',
+              }));
+            },
           });
         });
 
-        it('should pass custom currency', function () {
+        it('should pass custom currency', () => {
+          window.digitalData.events.push({ name: 'Viewed Page' });
           window.digitalData.events.push({
             name: 'Completed Transaction',
             category: 'Ecommerce',
@@ -828,24 +832,23 @@ describe('Integrations: GoogleAnalytics', () => {
               currency: 'EUR',
               lineItems: [],
               callback: () => {
-                assert.deepEqual(window.ga.args[1], ['ecommerce:addTransaction', {
+                assert.ok(window.ga.calledWith('ecommerce:addTransaction', {
                   id: '5d4c7cb5',
                   revenue: 99.9,
                   shipping: 13.99,
                   affiliation: undefined,
                   tax: 20.99,
-                  currency: 'EUR'
-                }]);
-              }
-            }
+                  currency: 'EUR',
+                }));
+              },
+            },
           });
         });
       });
-
     });
   });
 
-  describe('Universal Enhanced Ecommerce', function() {
+  describe('Universal Enhanced Ecommerce', () => {
     let ga;
     let options = {
       enhancedEcommerce: true,
@@ -871,18 +874,19 @@ describe('Integrations: GoogleAnalytics', () => {
       reset();
     });
 
-    describe('after loading', function() {
+    describe('after loading', () => {
       beforeEach((done) => {
         sinon.stub(ga, 'load');
         ddManager.once('ready', done);
         ddManager.initialize({
-          sendViewedPageEvent: false
+          sendViewedPageEvent: false,
         });
       });
 
-      describe('enhanced ecommerce', function() {
+      describe('enhanced ecommerce', () => {
 
         beforeEach(() => {
+          window.ga = () => {};
           sinon.stub(window, 'ga');
         });
 
@@ -890,39 +894,38 @@ describe('Integrations: GoogleAnalytics', () => {
           window.ga.restore();
         });
 
-        it('should require ec.js', function() {
+        it('should require ec.js', () => {
           window.digitalData.events.push({
             name: 'Viewed Page',
             callback: () => {
               assert.ok(window.ga.args.length > 0);
-              assert.equal(window.ga.q[1][0], 'require');
-              assert.equal(window.ga.q[1][1], 'ec');
+              assert.ok(window.ga.calledWith('require', 'ec'));
             }
           });
         });
 
-        it('should set currency for ec.js to default', function() {
+        it('should set currency for ec.js to default', () => {
           window.digitalData.events.push({
             name: 'Viewed Page',
             callback: () => {
               assert.ok(window.ga.calledWith('set', '&cu', 'USD'));
-            }
+            },
           });
         });
 
-        it('should set currency for ec.js to custom currency', function() {
+        it('should set currency for ec.js to custom currency', () => {
           window.digitalData.website = {
-            currency: 'EUR'
+            currency: 'EUR',
           };
           window.digitalData.events.push({
             name: 'Viewed Page',
             callback: () => {
               assert.ok(window.ga.calledWith('set', '&cu', 'EUR'));
-            }
+            },
           });
         });
 
-        it('should send added product data', function() {
+        it('should send added product data', () => {
           window.digitalData.events.push({
             name: 'Added Product',
             product: {
@@ -951,12 +954,12 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should send added product data with custom dimensions and metrics', function() {
+        it('should send added product data with custom dimensions and metrics', () => {
           ga.setOption('productDimensions', {
-            'dimension10': 'stock'
+            dimension10: 'stock',
           });
           ga.setOption('productMetrics', {
-            'metric10': 'weight'
+            metric10: 'weight',
           });
           ga.prepareCustomDimensions();
           window.digitalData.events.push({
@@ -2252,6 +2255,7 @@ describe('Integrations: GoogleAnalytics', () => {
       describe('enhanced ecommerce', function () {
 
         beforeEach(() => {
+          window.ga = () => {};
           sinon.stub(window, 'ga');
         });
 
@@ -2281,7 +2285,7 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.events.push({
             name: 'Viewed Page',
             callback: () => {
-              assert.ok(!window.ga.called);
+              assert.ok(window.ga.calledOnce);
               done();
             }
           });
@@ -2295,7 +2299,7 @@ describe('Integrations: GoogleAnalytics', () => {
               orderId: '7306cc06'
             },
             callback: () => {
-              assert.ok(!window.ga.called);
+              assert.ok(window.ga.calledOnce);
             }
           });
         });

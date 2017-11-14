@@ -134,13 +134,11 @@ describe('Integrations: Emarsys', () => {
 
     it('should load', (done) => {
       assert.ok(!emarsys.isLoaded());
-      ddManager.once('load', () => {
+      emarsys.once('load', () => {
         assert.ok(emarsys.isLoaded());
         done();
       });
-      ddManager.initialize({
-        sendViewedPageEvent: false,
-      });
+      ddManager.initialize();
     });
   });
 

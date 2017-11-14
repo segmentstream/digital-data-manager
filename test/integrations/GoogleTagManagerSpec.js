@@ -9,7 +9,7 @@ describe('Integrations: GoogleTagManager', () => {
 
     let gtm;
     const options = {
-      containerId: 'GTM-M9CMLZ'
+      containerId: 'GTM-M9CMLZ',
     };
 
     beforeEach(() => {
@@ -30,25 +30,22 @@ describe('Integrations: GoogleTagManager', () => {
         assert.equal('script', gtm.getTag().type);
         assert.ok(gtm.getTag().attr.src.indexOf(options.containerId) > 0);
       });
-
     });
 
     describe('#load', () => {
-
       it('should load', (done) => {
         assert.ok(!gtm.isLoaded());
-        ddManager.once('load', () => {
+        gtm.once('load', () => {
           assert.ok(gtm.isLoaded());
           done();
         });
         ddManager.initialize();
       });
-
     });
 
     describe('after loading', () => {
       beforeEach((done) => {
-        ddManager.once('load', done);
+        gtm.once('load', done);
         ddManager.initialize();
       });
 
@@ -62,9 +59,9 @@ describe('Integrations: GoogleTagManager', () => {
           assert.ok(dl.find((dlItem) => {
             return dlItem.event === 'DDManager Ready';
           }));
-          assert.ok(dl.find((dlItem) => {
-            return dlItem.event === 'DDManager Loaded';
-          }));
+          // assert.ok(dl.find((dlItem) => {
+          //   return dlItem.event === 'DDManager Loaded';
+          // }));
           assert.ok(dl.find((dlItem) => {
             return dlItem.event === 'gtm.dom';
           }));
@@ -130,7 +127,7 @@ describe('Integrations: GoogleTagManager', () => {
       //   window.dataLayer.prototype.apply(this,arguments);
       // };
       gtm = new GoogleTagManager(window.digitalData, {
-        noConflict: true
+        noConflict: true,
       });
       ddManager.addIntegration('Google Tag Manager', gtm);
     });

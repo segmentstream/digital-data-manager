@@ -38,10 +38,8 @@ describe('Integrations: Soloway', () => {
     });
 
     describe('#initialize', () => {
-      it('should initialize criteo queue object', () => {
-        ddManager.initialize({
-          sendViewedPageEvent: false,
-        });
+      it('should initialize Adriver counter', () => {
+        ddManager.initialize();
         assert.ok(window.AdriverCounter);
       });
     });
@@ -51,13 +49,13 @@ describe('Integrations: Soloway', () => {
   describe('after loading', () => {
 
     beforeEach((done) => {
-      ddManager.once('ready', () => {
+      soloway.once('ready', () => {
         sinon.stub(window.AdriverCounter, 'request', (d) => {});
-        done();
       });
       ddManager.initialize({
         sendViewedPageEvent: false,
       });
+      done();
     });
 
     afterEach(() => {
@@ -80,7 +78,7 @@ describe('Integrations: Soloway', () => {
               ));
               done();
             }, 101);
-          }
+          },
         });
       });
 

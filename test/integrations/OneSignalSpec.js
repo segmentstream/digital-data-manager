@@ -87,7 +87,7 @@ describe('OneSignal', function() {
 
     it('should load', function (done) {
       assert.ok(!_oneSignal.isLoaded());
-      ddManager.once('ready', () => {
+      _oneSignal.once('load', () => {
         assert.ok(_oneSignal.isLoaded());
         done();
       });
