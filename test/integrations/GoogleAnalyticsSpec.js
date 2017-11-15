@@ -102,7 +102,7 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should send universal user id if sendUserId option is true and user.id is truthy', (done) => {
+        it.only('should send universal user id if sendUserId option is true and user.id is truthy', (done) => {
           window.digitalData.user = {
             userId: 'baz',
           };
@@ -114,6 +114,7 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.events.push({
             name: 'Viewed Page',
             callback: () => {
+              console.log((window.ga.q);
               assert.deepEqual(argumentsToArray(window.ga.q[2]), ['set', 'userId', 'baz']);
               done();
             },
