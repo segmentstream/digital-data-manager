@@ -106,7 +106,7 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it.only('should send universal user id if sendUserId option is true and user.id is truthy', (done) => {
+        it('should send universal user id if sendUserId option is true and user.id is truthy', (done) => {
           window.digitalData.user = {
             userId: 'baz',
           };
