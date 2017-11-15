@@ -35,10 +35,14 @@ describe('Integrations: GoogleAnalytics', () => {
     describe('before loading', () => {
       beforeEach(() => {
         sinon.stub(ga, 'load');
+        ga.once('ready', () => {
+          sinon.spy(window, 'ga');
+        });
       });
 
       afterEach(() => {
         ga.load.restore();
+        window.ga.restore();
       });
 
       describe('#initialize', () => {
@@ -66,7 +70,7 @@ describe('Integrations: GoogleAnalytics', () => {
           assert.equal(typeof window.ga.l, 'number');
         });
 
-        it('should call window.ga.create with options', function () {
+        it('should call window.ga.create with options', () => {
           ddManager.initialize();
           assert.deepEqual(argumentsToArray(window.ga.q[0]), ['create', options.trackingId, {
             cookieDomain: 'none',
@@ -77,7 +81,7 @@ describe('Integrations: GoogleAnalytics', () => {
 
         it('should anonymize the ip', () => {
           ddManager.initialize();
-          assert.deepEqual(argumentsToArray(window.ga.q[1]), ['set', 'anonymizeIp', true]);
+          assert.ok(window.ga.calledWith('set', 'anonymizeIp', true));
         });
 
         it('should call #load', () => {
@@ -96,7 +100,7 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.events.push({
             name: 'Viewed Page',
             callback: () => {
-              assert.notDeepEqual(argumentsToArray(window.ga.q[2]), ['set', 'userId', 'baz']);
+              assert.ok(!window.ga.calledWith('set', 'userId', 'baz'));
               done();
             },
           });
@@ -114,8 +118,7 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.events.push({
             name: 'Viewed Page',
             callback: () => {
-              console.log(window.ga.q);
-              assert.deepEqual(argumentsToArray(window.ga.q[2]), ['set', 'userId', 'baz']);
+              assert.ok(window.ga.calledWith('set', 'userId', 'baz'));
               done();
             },
           });
