@@ -81,7 +81,7 @@ describe('Integrations: GoogleAnalytics', () => {
 
         it('should anonymize the ip', () => {
           ddManager.initialize();
-          assert.ok(window.ga.calledWith('set', 'anonymizeIp', true));
+          assert.deepEqual(argumentsToArray(window.ga.q[1]), ['set', 'anonymizeIp', true]);
         });
 
         it('should call #load', () => {
