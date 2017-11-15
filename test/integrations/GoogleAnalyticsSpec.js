@@ -2285,10 +2285,11 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it('should not track View Page semantic event', (done) => {
+        it.only('should not track View Page semantic event', (done) => {
           window.digitalData.events.push({
             name: 'Viewed Page',
             callback: () => {
+              console.log(window.ga.q);
               assert.ok(window.ga.calledOnce);
               done();
             }
