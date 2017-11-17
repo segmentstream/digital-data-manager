@@ -396,9 +396,11 @@ class Mindbox extends Integration {
     const identificator = this.getIdentificator(event);
     if (!identificator) return;
 
+    const data = cleanObject(this.getUserData(event));
     window.mindbox('identify', {
       operation,
       identificator,
+      data,
     });
   }
 
