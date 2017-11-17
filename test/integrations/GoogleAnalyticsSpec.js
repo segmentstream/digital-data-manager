@@ -2259,8 +2259,9 @@ describe('Integrations: GoogleAnalytics', () => {
       describe('enhanced ecommerce', function () {
 
         beforeEach(() => {
-          window.ga = () => {};
-          sinon.stub(window, 'ga');
+          ga.once('ready', () => {
+            sinon.spy(window, 'ga');
+          });
         });
 
         afterEach(() => {
