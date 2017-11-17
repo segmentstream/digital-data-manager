@@ -5,7 +5,7 @@ import {
   VIEWED_PRODUCT_DETAIL,
   VIEWED_PRODUCT_LISTING,
   SEARCHED_PRODUCTS,
-  VIEWED_CHECKOUT_STEP,
+  STARTED_ORDER,
   COMPLETED_TRANSACTION,
   VIEWED_CART,
 } from './../events/semanticEvents';
@@ -15,7 +15,7 @@ const SEMANTIC_EVENTS = [
   VIEWED_PRODUCT_DETAIL,
   VIEWED_PRODUCT_LISTING,
   SEARCHED_PRODUCTS,
-  VIEWED_CHECKOUT_STEP,
+  STARTED_ORDER,
   COMPLETED_TRANSACTION,
   VIEWED_CART,
 ];
@@ -196,14 +196,6 @@ class RTBHouse extends Integration {
           },
         },
       },
-      [VIEWED_CHECKOUT_STEP]: {
-        fields: ['step'],
-        validations: {
-          step: {
-            warnings: ['required'],
-          },
-        },
-      },
       [COMPLETED_TRANSACTION]: {
         fields: [
           'transaction.orderId',
@@ -271,7 +263,7 @@ class RTBHouse extends Integration {
       [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
       [VIEWED_PRODUCT_LISTING]: 'onViewedProductListing',
       [SEARCHED_PRODUCTS]: 'onSearchedProducts',
-      [VIEWED_CHECKOUT_STEP]: 'onViewedCheckoutStep',
+      [STARTED_ORDER]: 'onStartedOrder',
       [VIEWED_CART]: 'onViewedCart',
     };
 
@@ -380,13 +372,11 @@ class RTBHouse extends Integration {
     }
   } */
 
-  onViewedCheckoutStep(event) {
-    const step = (event.step !== undefined) ? event.step : 1;
-    if (step === 1) {
-      this.load('startorder', {
-        userSegmentParams: this.getUserSegmentParams(event),
-      });
-    }
+  onStartedOrder(event) {
+    this.load('startorder', {
+      userSegmentParams: this.getUserSegmentParams(event),
+    });
+    this.pageTracked = true;
   }
 
   onCompletedTransaction(event) {

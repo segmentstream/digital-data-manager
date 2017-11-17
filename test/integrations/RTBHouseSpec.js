@@ -272,22 +272,21 @@ describe('Integrations: RTBHouse', () => {
     });
     */
 
-    describe('#onViewedCheckoutStep', () => {
+    describe('#onStartedOrder', () => {
       beforeEach(() => {
         window.digitalData.events.push({ name: 'Viewed Page' });
       });
 
       it('should track first checkout step', (done) => {
         window.digitalData.events.push({
-          name: 'Viewed Checkout Step',
-          step: 1,
+          name: 'Started Order',
           callback: () => {
             assert.ok(rtbHouse.load.calledWith('startorder', {
               userSegmentParams: '',
             }));
             done();
-          }
-        })
+          },
+        });
       });
 
       it('should not track second+ checkout step', (done) => {
