@@ -428,9 +428,9 @@ class Filters {
     if (customMetrics.length) event.customMetrics = customMetrics;
 
     return cleanObject({
-      name: event.name,
-      category: event.category,
-      label: event.label,
+      name: String(event.name),
+      category: String(event.category),
+      label: String(event.label),
       customDimensions: event.customDimensions,
       customMetrics: event.customMetrics,
     });
