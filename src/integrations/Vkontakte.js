@@ -253,7 +253,7 @@ class Vkontakte extends Integration {
     this.pageTracked = true;
   }
 
-  onAddedToWishlist(event) {
+  onAddedProductToWishlist(event) {
     this.trackSingleProduct(event, 'add_to_wishlist');
   }
 
@@ -261,7 +261,7 @@ class Vkontakte extends Integration {
     this.trackSingleProduct(event, 'add_to_cart');
   }
 
-  onRemovedFromWishlist(event) {
+  onRemovedProductFromWishlist(event) {
     this.trackSingleProduct(event, 'remove_from_wishlist');
   }
 

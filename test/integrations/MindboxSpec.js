@@ -725,13 +725,13 @@ describe('Integrations: Mindbox', () => {
               operation: 'EnterWebsite',
               identificator: {
                 provider: 'TestWebsiteId',
-                identity: '123'
-              }
+                identity: '123',
+              },
+              data: {},
             }));
-          }
+          },
         });
       });
-
     });
 
   });
