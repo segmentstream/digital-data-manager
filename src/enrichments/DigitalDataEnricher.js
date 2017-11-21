@@ -189,11 +189,10 @@ class DigitalDataEnricher {
     this.digitalData.user = this.digitalData.user || {};
     this.digitalData.context = this.digitalData.context || {};
     this.digitalData.integrations = this.digitalData.integrations || {};
-    if (!this.digitalData.page.type || this.digitalData.page.type !== 'confirmation') {
-      this.digitalData.cart = this.digitalData.cart || {};
-    } else {
+    if (this.digitalData.page.type && this.digitalData.page.type === 'confirmation') {
       this.digitalData.transaction = this.digitalData.transaction || {};
     }
+    this.digitalData.cart = this.digitalData.cart || { lineItems: [], subtotal: 0, total: 0 };
     this.digitalData.events = this.digitalData.events || [];
     this.digitalData.changes = this.digitalData.changes || [];
   }
