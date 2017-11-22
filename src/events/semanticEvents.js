@@ -26,6 +26,7 @@ export const EXCEPTION = 'Exception';
 export const SESSION_STARTED = 'Session Started';
 export const STARTED_ORDER = 'Started Order';
 export const ADDED_PAYMENT_INFO = 'Added Payment Info';
+export const INTEGRATION_VALIDATION_FAILED = 'Integration Validation Failed';
 
 // legacy events
 export const VIEWED_PRODUCT_CATEGORY = 'Viewed Product Category';

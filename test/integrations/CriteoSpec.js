@@ -395,20 +395,52 @@ describe('Integrations: Criteo', () => {
         });
       });
 
+      it('should send viewList event if user visits listing page with more than 3 items (feedWithGroupedProducts)', (done) => {
+        criteo.setOption('feedWithGroupedProducts', true);
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          listing: {
+            items: [
+              {
+                id: '123',
+                skuCode: 'sku123',
+              },
+              {
+                id: '234',
+                skuCode: 'sku234',
+              },
+              {
+                id: '345',
+                skuCode: 'sku345',
+              },
+              {
+                id: '456',
+                skuCode: 'sku456',
+              },
+            ]
+          },
+          callback: () => {
+            assert.deepEqual(window.criteo_q[0], {event: 'viewList', item: ['sku123', 'sku234', 'sku345']});
+            done();
+          }
+        });
+      });
+
+
       it('should send viewList event if user visits listing page with more than 3 items (enrichment)', (done) => {
         window.digitalData.listing = {
           items: [
             {
-              id: '123'
+              id: '123',
             },
             {
-              id: '234'
+              id: '234',
             },
             {
-              id: '345'
+              id: '345',
             },
             {
-              id: '456'
+              id: '456',
             }
           ]
         };
@@ -565,7 +597,38 @@ describe('Integrations: Criteo', () => {
           callback: () => {
             assert.deepEqual(window.criteo_q[0], {event: 'viewList', item: ['123', '234', '345']});
             done();
-          }
+          },
+        });
+      });
+
+      it('should send viewList event if user visits listing page with more than 3 items (feedWithGroupedProducts)', (done) => {
+        criteo.setOption('feedWithGroupedProducts', true);
+        window.digitalData.events.push({
+          name: 'Searched Products',
+          listing: {
+            items: [
+              {
+                id: '123',
+                skuCode: 'sku123',
+              },
+              {
+                id: '234',
+                skuCode: 'sku234',
+              },
+              {
+                id: '345',
+                skuCode: 'sku345',
+              },
+              {
+                id: '456',
+                skuCode: 'sku456',
+              },
+            ],
+          },
+          callback: () => {
+            assert.deepEqual(window.criteo_q[0], { event: 'viewList', item: ['sku123', 'sku234', 'sku345'] });
+            done();
+          },
         });
       });
 
@@ -641,9 +704,25 @@ describe('Integrations: Criteo', () => {
           callback: () => {
             assert.deepEqual(window.criteo_q[0], {event: 'viewItem', item: '123'});
             done();
-          }
+          },
         });
       });
+
+      it('should send viewItem event if user visits product detail page (feedWithGroupedProducts)', (done) => {
+        criteo.setOption('feedWithGroupedProducts', true);
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {
+            id: '123',
+            skuCode: 'sku123',
+          },
+          callback: () => {
+            assert.deepEqual(window.criteo_q[0], { event: 'viewItem', item: 'sku123' });
+            done();
+          },
+        });
+      });
+
 
       it('should not send viewItem event if product ID is not defined', (done) => {
         window.digitalData.events.push({
@@ -678,26 +757,26 @@ describe('Integrations: Criteo', () => {
             {
               product: {
                 id: '123',
-                unitSalePrice: 100
+                unitSalePrice: 100,
               },
-              quantity: 1
+              quantity: 1,
             },
             {
               product: {
                 id: '234',
                 unitPrice: 100,
-                unitSalePrice: 50
+                unitSalePrice: 50,
               },
-              quantity: 2
+              quantity: 2,
             },
             {
               product: {
                 id: '345',
-                unitSalePrice: 30
+                unitSalePrice: 30,
               },
-              quantity: 1
+              quantity: 1,
             },
-          ]
+          ],
         };
         window.digitalData.events.push({
           name: 'Viewed Cart',
@@ -747,6 +826,50 @@ describe('Integrations: Criteo', () => {
               { id: '234', price: 50, quantity: 2 },
               { id: '345', price: 30, quantity: 1 },
             ]});
+            done();
+          }
+        });
+      });
+
+      it('should send viewBasket event if user visits cart page (feedWithGroupedProudcts)', (done) => {
+        criteo.setOption('feedWithGroupedProducts', true);
+        window.digitalData.events.push({
+          name: 'Viewed Cart',
+          cart: {
+            lineItems: [
+              {
+                product: {
+                  id: '123',
+                  skuCode: 'sku123',
+                  unitSalePrice: 100,
+                },
+                quantity: 1,
+              },
+              {
+                product: {
+                  id: '234',
+                  skuCode: 'sku234',
+                  unitPrice: 100,
+                  unitSalePrice: 50,
+                },
+                quantity: 2,
+              },
+              {
+                product: {
+                  id: '345',
+                  skuCode: 'sku345',
+                  unitSalePrice: 30,
+                },
+                quantity: 1,
+              },
+            ],
+          },
+          callback: () => {
+            assert.deepEqual(window.criteo_q[0], { event: 'viewBasket', item: [
+              { id: 'sku123', price: 100, quantity: 1 },
+              { id: 'sku234', price: 50, quantity: 2 },
+              { id: 'sku345', price: 30, quantity: 1 },
+            ] });
             done();
           }
         });
@@ -803,6 +926,7 @@ describe('Integrations: Criteo', () => {
         {
           product: {
             id: '123',
+            skuCode: 'sku123',
             unitSalePrice: 100
           },
           quantity: 1
@@ -810,6 +934,7 @@ describe('Integrations: Criteo', () => {
         {
           product: {
             id: '234',
+            skuCode: 'sku234',
             unitPrice: 100,
             unitSalePrice: 50
           },
@@ -818,6 +943,7 @@ describe('Integrations: Criteo', () => {
         {
           product: {
             id: '345',
+            skuCode: 'sku345',
             unitSalePrice: 30
           },
           quantity: 1
@@ -865,6 +991,31 @@ describe('Integrations: Criteo', () => {
                 { id: '123', price: 100, quantity: 1 },
                 { id: '234', price: 50, quantity: 2 },
                 { id: '345', price: 30, quantity: 1 },
+              ]
+            });
+            done();
+          }
+        });
+      });
+
+      it('should send trackTransaction event if transaction is completed (new_customer = 1, feedWithGroupedProducts)', (done) => {
+        criteo.setOption('feedWithGroupedProducts', true);
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          transaction: {
+            orderId: '123',
+            isFirst: true,
+            lineItems: lineItems
+          },
+          callback: () => {
+            assert.deepEqual(window.criteo_q[0], {
+              event: 'trackTransaction',
+              id: '123',
+              new_customer: 1,
+              item: [
+                { id: 'sku123', price: 100, quantity: 1 },
+                { id: 'sku234', price: 50, quantity: 2 },
+                { id: 'sku345', price: 30, quantity: 1 },
               ]
             });
             done();
