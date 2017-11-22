@@ -24,12 +24,12 @@ const SEMANTIC_EVENTS = [
   SUBSCRIBED,
 ];
 
-function lineItemsToCriteoItems(lineItems) {
+function lineItemsToCriteoItems(lineItems, feedWithGroupedProducts) {
   const products = [];
   for (let i = 0, length = lineItems.length; i < length; i += 1) {
     const lineItem = lineItems[i];
     if (lineItem.product) {
-      const productId = lineItem.product.id;
+      const productId = (!feedWithGroupedProducts) ? lineItem.product.id : lineItem.product.skuCode;
       if (productId) {
         const product = {
           id: productId,
@@ -50,6 +50,7 @@ class Criteo extends Integration {
       noConflict: false,
       customDeduplication: false,
       userSegmentVar: undefined,
+      feedWithGroupedProducts: false,
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -79,6 +80,7 @@ class Criteo extends Integration {
       case VIEWED_PRODUCT_DETAIL:
         enrichableProps = [
           'product.id',
+          'product.skuCode',
         ];
         break;
       case VIEWED_PRODUCT_LISTING:
@@ -145,6 +147,7 @@ class Criteo extends Integration {
       [VIEWED_PRODUCT_DETAIL]: {
         fields: [
           'product.id',
+          'product.skuCode',
         ],
         validations: {
           'product.id': {
@@ -164,6 +167,7 @@ class Criteo extends Integration {
       [VIEWED_CART]: {
         fields: [
           'cart.lineItems[].product.id',
+          'cart.lineItems[].product.skuCode',
           'cart.lineItems[].product.unitSalePrice',
           'cart.lineItems[].quantity',
         ],
@@ -185,6 +189,7 @@ class Criteo extends Integration {
         fields: [
           'transaction.orderId',
           'transaction.lineItems[].product.id',
+          'transaction.lineItems[].product.skuCode',
           'transaction.lineItems[].product.unitSalePrice',
           'transaction.lineItems[].quantity',
           'transaction.isFirst',
@@ -371,8 +376,10 @@ class Criteo extends Integration {
     if (items.length < 3) {
       length = items.length;
     }
+
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
     for (let i = 0; i < length; i += 1) {
-      const productId = items[i].id;
+      const productId = (!feedWithGroupedProducts) ? items[i].id : items[i].skuCode;
       if (productId) {
         productIds.push(productId);
       }
@@ -389,11 +396,8 @@ class Criteo extends Integration {
   }
 
   onViewedProductDetail(event) {
-    const product = event.product;
-    let productId;
-    if (product) {
-      productId = product.id;
-    }
+    const product = event.product || {};
+    const productId = (!this.getOption('feedWithGroupedProducts')) ? product.id : product.skuCode;
     if (productId) {
       this.pushCriteoQueue(
         {
@@ -408,7 +412,7 @@ class Criteo extends Integration {
   onViewedCart(event) {
     const cart = event.cart;
     if (cart && cart.lineItems && cart.lineItems.length > 0) {
-      const products = lineItemsToCriteoItems(cart.lineItems);
+      const products = lineItemsToCriteoItems(cart.lineItems, this.getOption('feedWithGroupedProducts'));
       if (products.length > 0) {
         this.pushCriteoQueue(
           {
@@ -424,7 +428,7 @@ class Criteo extends Integration {
   onCompletedTransaction(event) {
     const transaction = event.transaction;
     if (transaction && transaction.lineItems && transaction.lineItems.length > 0) {
-      const products = lineItemsToCriteoItems(transaction.lineItems);
+      const products = lineItemsToCriteoItems(transaction.lineItems, this.getOption('feedWithGroupedProducts'));
       if (products.length > 0) {
         const customDeduplication = this.getOption('customDeduplication');
 
