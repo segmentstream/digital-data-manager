@@ -343,7 +343,7 @@ class Admitad extends Integration {
 
   onCompletedTransaction(event) {
     const transaction = event.transaction || {};
-    const lineItems = transaction.lineItems || [];    
+    const lineItems = transaction.lineItems || [];
     const orderId = transaction.orderId;
     const total = transaction.total;
 

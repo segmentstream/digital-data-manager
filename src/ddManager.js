@@ -267,7 +267,6 @@ const ddManager = {
       useCookieStorage: false,
       trackValidationErrors: false,
       trackJsErrors: false,
-      enableStreaming: false,
     }, settings);
 
     if (_isReady) {
@@ -311,7 +310,7 @@ const ddManager = {
     let streaming = IntegrationsLoader.getIntegration('DDManager Streaming');
     if (!streaming) {
       try {
-        streaming = new DDManagerStreaming(_digitalData);
+        streaming = new DDManagerStreaming(_digitalData, { internal: true });
         IntegrationsLoader.addIntegration('DDManager Streaming', streaming, ddManager);
       } catch (e) {
         errorLog(e);

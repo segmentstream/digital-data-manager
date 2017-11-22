@@ -37,6 +37,7 @@ import {
   VIEWED_CAMPAIGN,
   CLICKED_CAMPAIGN,
   VIEWED_EXPERIMENT,
+  INTEGRATION_VALIDATION_FAILED,
   EXCEPTION,
 } from './../events/semanticEvents';
 
@@ -48,6 +49,7 @@ class DDManagerStreaming extends Integration {
       trackingUrl: 'https://track.ddmanager.ru/collect',
       dimensions: {},
       metrics: {},
+      internal: false,
     }, options);
     super(digitalData, optionsWithDefaults);
     this.website = {};
@@ -96,7 +98,10 @@ class DDManagerStreaming extends Integration {
   }
 
   getIgnoredEvents() {
-    return [/* VIEWED_PRODUCT, CLICKED_PRODUCT, */EXCEPTION];
+    if (this.getOption('internal')) {
+      return [VIEWED_PRODUCT, CLICKED_PRODUCT, INTEGRATION_VALIDATION_FAILED, EXCEPTION];
+    }
+    return [];
   }
 
   getEnrichableEventProps(event) {
