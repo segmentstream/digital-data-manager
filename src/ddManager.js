@@ -173,6 +173,7 @@ function _initializeIntegrations(settings) {
           integrationEvent = EventDataEnricher.enrichIntegrationData(
             integrationEvent, _digitalData, integration,
           );
+          if (!integrationEvent.name || integrationEvent.ignore) return;
           if (integrationEvent.name === VIEWED_PAGE) {
             _trackIntegrationPageEvent(integrationEvent, integration);
           } else {
