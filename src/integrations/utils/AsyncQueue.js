@@ -10,10 +10,10 @@ class AsyncQueue {
       if (isLoadedDelegate()) {
         this.flushQueue();
         clearInterval(invervalId);
-      } else if (invervalCounter > 10) {
+      } else if (invervalCounter > 20) {
         clearInterval(invervalId);
       }
-    }, 100);
+    }, 200);
   }
 
   flushQueue() {
