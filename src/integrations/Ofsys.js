@@ -163,7 +163,7 @@ class Ofsys extends Integration {
             quantity: lineItem.quantity || 1,
           });
         });
-        window.DI.Journey.ECommerce.SubmitCart();
+        // window.DI.Journey.ECommerce.SubmitCart();
       });
     }
   }
