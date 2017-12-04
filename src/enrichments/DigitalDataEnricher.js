@@ -3,7 +3,7 @@ import semver from 'driveback-utils/semver';
 import getQueryParam from 'driveback-utils/getQueryParam';
 import cleanObject from 'driveback-utils/cleanObject';
 import { getProp, setProp } from 'driveback-utils/dotProp';
-import uuid from 'uuid/v4';
+import uuid from 'uuid/v1';
 
 /**
  * fields which will be overriden even

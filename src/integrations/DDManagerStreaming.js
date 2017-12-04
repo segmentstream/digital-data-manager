@@ -7,7 +7,7 @@ import arrayMerge from 'driveback-utils/arrayMerge';
 import size from 'driveback-utils/size';
 import isCrawler from 'driveback-utils/isCrawler';
 import each from 'driveback-utils/each';
-import uuid from 'uuid/v4';
+import uuid from 'uuid/v1';
 import Integration from './../Integration';
 import StreamingFilters, {
   pageProps,
