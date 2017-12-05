@@ -3,7 +3,7 @@ import semver from 'driveback-utils/semver';
 import getQueryParam from 'driveback-utils/getQueryParam';
 import cleanObject from 'driveback-utils/cleanObject';
 import { getProp, setProp } from 'driveback-utils/dotProp';
-import uuid from 'uuid/v4';
+import uuid from 'uuid/v1';
 
 /**
  * fields which will be overriden even
@@ -200,11 +200,12 @@ class DigitalDataEnricher {
   enrichPageData() {
     const page = this.digitalData.page;
 
-    page.path = page.path || this.getHtmlGlobals().getLocation().pathname;
-    page.referrer = page.referrer || this.getHtmlGlobals().getDocument().referrer;
-    page.queryString = page.queryString || this.getHtmlGlobals().getLocation().search;
+    page.path = page.path || decodeURIComponent(this.getHtmlGlobals().getLocation().pathname);
+    page.referrer = page.referrer || decodeURI(this.getHtmlGlobals().getDocument().referrer);
+    page.queryString = page.queryString ||
+      decodeURIComponent(this.getHtmlGlobals().getLocation().search);
     page.title = page.title || this.getHtmlGlobals().getDocument().title;
-    page.url = page.url || this.getHtmlGlobals().getLocation().href;
+    page.url = page.url || decodeURI(this.getHtmlGlobals().getLocation().href);
     page.hash = page.hash || this.getHtmlGlobals().getLocation().hash;
   }
 

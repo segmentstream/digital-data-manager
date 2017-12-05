@@ -2,6 +2,7 @@ import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import cleanObject from 'driveback-utils/cleanObject';
 import { getProp } from 'driveback-utils/dotProp';
+import AsyncQueue from './utils/AsyncQueue';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -111,19 +112,7 @@ class Ofsys extends Integration {
   }
 
   initialize() {
-    this.asyncQueue = [];
-
-    // emulate async queue for Ofsys sync script
-    let invervalCounter = 0;
-    const invervalId = setInterval(() => {
-      invervalCounter += 1;
-      if (this.isLoaded()) {
-        this.flushQueue();
-        clearInterval(invervalId);
-      } else if (invervalCounter > 10) {
-        clearInterval(invervalId);
-      }
-    }, 100);
+    this.asyncQueue = new AsyncQueue(this.isLoaded);
   }
 
   flushQueue() {
@@ -154,7 +143,6 @@ class Ofsys extends Integration {
 
     this.cartId = cart.id;
     this.cart = cart;
-
     this.asyncQueue.push(() => {
       window.DI.Journey.ECommerce.AddCart(cleanObject({ // eslint-disable-line new-cap
         idCart: cart.id,
@@ -175,7 +163,7 @@ class Ofsys extends Integration {
             quantity: lineItem.quantity || 1,
           });
         });
-        window.DI.Journey.ECommerce.SubmitCart();
+        // window.DI.Journey.ECommerce.SubmitCart();
       });
     }
   }
