@@ -40,6 +40,7 @@ import DuMedia from './integrations/DuMedia';
 import JivoChat from './integrations/JivoChat';
 import Adnetic from './integrations/Adnetic';
 import AnyQuery from './integrations/AnyQuery';
+import VeInteractive from './integrations/VeInteractive';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -84,6 +85,7 @@ const integrations = {
   JivoChat,
   Adnetic,
   AnyQuery,
+  'Ve Interactive': VeInteractive,
 };
 
 export default integrations;
