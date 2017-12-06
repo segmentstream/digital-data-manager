@@ -180,7 +180,7 @@ describe('Integrations: GoogleAnalytics', () => {
         sinon.stub(ga, 'load');
         ddManager.once('ready', done);
         ddManager.initialize({
-          sendViewedPageEvent: false
+          sendViewedPageEvent: false,
         });
       });
 
@@ -454,7 +454,7 @@ describe('Integrations: GoogleAnalytics', () => {
       describe('#track', () => {
         beforeEach(() => {
           window.ga = () => {};
-          sinon.stub(window, 'ga');
+          sinon.spy(window, 'ga');
         });
 
         afterEach(() => {
@@ -464,10 +464,11 @@ describe('Integrations: GoogleAnalytics', () => {
         it('should send an event', () => {
           window.digitalData.events.push({ name: 'Viewed Page' });
           window.digitalData.events.push({
+            name: 'Test Event',
             callback: () => {
               assert.ok(window.ga.calledWith('send', 'event', {
                 eventCategory: 'All',
-                eventAction: 'event',
+                eventAction: 'Test Event',
                 eventLabel: undefined,
                 eventValue: 0,
                 nonInteraction: false
@@ -496,11 +497,12 @@ describe('Integrations: GoogleAnalytics', () => {
         it('should send a category property', () => {
           window.digitalData.events.push({ name: 'Viewed Page' });
           window.digitalData.events.push({
+            name: 'Test Event',
             category: 'category',
             callback: () => {
               assert.ok(window.ga.calledWith('send', 'event', {
                 eventCategory: 'category',
-                eventAction: 'event',
+                eventAction: 'Test Event',
                 eventLabel: undefined,
                 eventValue: 0,
                 nonInteraction: false
@@ -530,10 +532,11 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.events.push({ name: 'Viewed Page' });
           window.digitalData.events.push({
             value: 1.1,
+            name: 'Test Event',
             callback: () => {
               assert.ok(window.ga.calledWith('send', 'event', {
                 eventCategory: 'All',
-                eventAction: 'event',
+                eventAction: 'Test Event',
                 eventLabel: undefined,
                 eventValue: 1,
                 nonInteraction: false
@@ -545,11 +548,12 @@ describe('Integrations: GoogleAnalytics', () => {
         it('should send a non-interaction property', () => {
           window.digitalData.events.push({ name: 'Viewed Page' });
           window.digitalData.events.push({
+            name: 'Test Event',
             nonInteraction: 1,
             callback: () => {
               assert.ok(window.ga.calledWith('send', 'event', {
                 eventCategory: 'All',
-                eventAction: 'event',
+                eventAction: 'Test Event',
                 eventLabel: undefined,
                 eventValue: 0,
                 nonInteraction: true
