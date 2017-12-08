@@ -19,9 +19,24 @@ import {
 const PROVIDER_USER_ID = 'userId';
 const PROVIDER_EMAIL = 'email';
 
+const V2 = 'V2';
+const V3 = 'V3';
+
+const mapValues = (source, mapping) => {
+  const mappingKeys = Object.keys(mapping);
+  if (mappingKeys.length) {
+    return mappingKeys.reduce((acc, key) => {
+      acc[key] = getProp(source, mapping[key]);
+      return acc;
+    }, {});
+  }
+  return undefined;
+};
+
 class Mindbox extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
+      apiVersion: V2,
       projectSystemName: '',
       brandSystemName: '',
       pointOfContactSystemName: '',
@@ -31,6 +46,10 @@ class Mindbox extends Integration {
       userVars: {},
       productVars: {},
       userIdProvider: undefined,
+      userIdsMapping: {},
+      productIdsMapping: {},
+      productSkuIdsMapping: {},
+      customerIdsMapping: {},
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -333,6 +352,43 @@ class Mindbox extends Integration {
     return customs;
   }
 
+  getProductIds(product) {
+    const mapping = this.getOption('productIdsMapping');
+    return mapValues(product, mapping);
+  }
+
+  getProductSkuIds(product) {
+    const mapping = this.getOption('productSkuIdsMapping');
+    return mapValues(product, mapping);
+  }
+
+  getCategoryIds(listing) {
+    const mapping = this.getOption('categoryIdsMapping');
+    return mapValues(listing, mapping);
+  }
+
+  getCustomerIds(user) {
+    const mapping = this.getOption('customerIdsMapping');
+    return mapValues(user, mapping);
+  }
+
+  getV3Product(product) {
+    const skuIds = this.getProductSkuIds(product);
+    return {
+      ids: this.getProductIds(product),
+      sku: (skuIds) ? { ids: skuIds } : undefined,
+    };
+  }
+
+  getV3ProductList(lineItems) {
+    return lineItems.map((lineItem) => {
+      const product = this.getV3Product(lineItem.product);
+      return {
+        product,
+      };
+    });
+  }
+
   trackEvent(event) {
     const eventMap = {
       [VIEWED_PAGE]: this.onViewedPage.bind(this),
@@ -366,23 +422,41 @@ class Mindbox extends Integration {
       return;
     }
 
-    const mindboxItems = lineItems.map((lineItem) => {
-      const quantity = lineItem.quantity || 1;
-      return {
-        productId: getProp(lineItem, 'product.id'),
-        count: quantity,
-        price: getProp(lineItem, 'product.unitSalePrice') * quantity,
-        ...this.getProductCustoms(lineItem.product),
-      };
-    });
-    window.mindbox('performOperation', {
-      operation,
-      data: {
-        action: {
-          personalOffers: mindboxItems,
+    if (this.getOption('apiVersion') === V3) {
+      window.mindbox('async', {
+        operation,
+        data: {
+          productList: lineItems.map((lineItem) => {
+            const quantity = lineItem.quantity || 1;
+            return {
+              productId: getProp(lineItem, 'product.id'),
+              count: quantity,
+              price: getProp(lineItem, 'product.unitSalePrice') * quantity,
+              ...this.getProductCustoms(lineItem.product),
+            };
+          }),
         },
-      },
-    });
+      });
+    } else {
+      window.mindbox('performOperation', {
+        operation,
+        data: {
+          action: {
+            personalOffers: lineItems.map((lineItem) => {
+              const quantity = lineItem.quantity || 1;
+              return {
+                product: {
+                  ids: this.getProductIds(lineItem.product),
+                },
+                count: quantity,
+                price: getProp(lineItem, 'product.unitSalePrice') * quantity,
+                ...this.getProductCustoms(lineItem.product),
+              };
+            }),
+          },
+        },
+      });
+    }
   }
 
   onViewedPage(event) {
