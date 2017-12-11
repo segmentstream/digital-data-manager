@@ -2,6 +2,7 @@ import Integration from './../Integration';
 import { getProp, setProp } from 'driveback-utils/dotProp';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import cleanObject from 'driveback-utils/cleanObject';
+import isEmpty from 'driveback-utils/isEmpty';
 import {
   VIEWED_PAGE,
   LOGGED_IN,
@@ -49,15 +50,13 @@ class Mindbox extends Integration {
       userVars: {},
       productVars: {},
       userIdProvider: undefined,
-      userIdsMapping: {},
       productIdsMapping: {},
       productSkuIdsMapping: {},
+      productCategoryIdsMapping: {},
       customerIdsMapping: {},
     }, options);
 
     super(digitalData, optionsWithDefaults);
-
-    this.prepareEnrichableUserProps();
 
     this.SEMANTIC_EVENTS = [
       VIEWED_PAGE,
@@ -89,6 +88,9 @@ class Mindbox extends Integration {
   }
 
   initialize() {
+    this.prepareEnrichableUserProps();
+    this.prepareEnrichableUserIds();
+
     window.mindbox = window.mindbox || function mindboxStub() {
       window.mindbox.queue.push(arguments);
     };
@@ -108,28 +110,31 @@ class Mindbox extends Integration {
 
   prepareEnrichableUserProps() {
     this.enrichableUserProps = getEnrichableVariableMappingProps(this.getOption('userVars'));
-    const customerIdsSettings = this.getOption('customerIdsMapping');
-    if (customerIdsSettings) {
-      Object.keys(customerIdsSettings).forEach((key) => {
-        this.enrichableUserProps.push(customerIdsSettings[key]);
-      });
-    }
+  }
+
+  prepareEnrichableUserIds() {
+    this.enrichableUserIds = getEnrichableVariableMappingProps(this.getOption('customerIdsMapping'));
   }
 
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
       case VIEWED_PAGE:
-        enrichableProps = this.getEnrichableUserProps();
-        enrichableProps.push('cart');
+        enrichableProps = [
+          ...this.getEnrichableUserIds(),
+          'cart',
+        ];
         break;
       case LOGGED_IN:
       case REGISTERED:
       case SUBSCRIBED:
       case UPDATED_PROFILE_INFO:
-        enrichableProps = this.getEnrichableUserProps();
-        enrichableProps.push('user.userId');
-        enrichableProps.push('user.isSubscribed');
+        enrichableProps = [
+          ...this.getEnrichableUserIds(),
+          ...this.getEnrichableUserProps(),
+          'user.userId', // might be duplicated
+          'user.isSubscribed',
+        ];
         break;
       case COMPLETED_TRANSACTION:
         enrichableProps = this.getEnrichableUserProps();
@@ -285,6 +290,10 @@ class Mindbox extends Integration {
     return this.enrichableUserProps;
   }
 
+  getEnrichableUserIds() {
+    return this.enrichableUserIds;
+  }
+
   isLoaded() {
     return window.mindboxInitialized;
   }
@@ -362,22 +371,26 @@ class Mindbox extends Integration {
 
   getProductIds(product) {
     const mapping = this.getOption('productIdsMapping');
-    return extractVariableMappingValues(product, mapping);
+    const productIds = extractVariableMappingValues(product, mapping);
+    return (!isEmpty(productIds)) ? productIds : undefined;  
   }
 
   getProductSkuIds(product) {
     const mapping = this.getOption('productSkuIdsMapping');
-    return extractVariableMappingValues(product, mapping);
+    const productSkuIds = extractVariableMappingValues(product, mapping);
+    return (!isEmpty(productSkuIds)) ? productSkuIds : undefined;  
   }
 
-  getCategoryIds(listing) {
-    const mapping = this.getOption('categoryIdsMapping');
-    return extractVariableMappingValues(listing, mapping);
+  getProductCategoryIds(event) {
+    const mapping = this.getOption('productCategoryIdsMapping');
+    const categoryIds = extractVariableMappingValues(event, mapping);
+    return (!isEmpty(categoryIds)) ? categoryIds : undefined;
   }
 
   getCustomerIds(event) {
     const mapping = this.getOption('customerIdsMapping');
-    return extractVariableMappingValues(event, mapping);
+    const customerIds = extractVariableMappingValues(event, mapping);
+    return (!isEmpty(customerIds)) ? customerIds : undefined;
   }
 
   getV3Product(product) {
@@ -567,59 +580,90 @@ class Mindbox extends Integration {
     const product = getProp(event, 'product') || {};
     if (!product.id) return;
 
-    window.mindbox('performOperation', {
-      operation,
-      data: {
-        action: {
-          productId: product.id,
-          ...this.getProductCustoms(product),
+    if (this.getOption('apiVersion') === V3) {
+      const customerIds = this.getCustomerIds(event);
+      let customer;
+      if (customerIds) {
+        customer = { ids: customerIds };
+      }
+      window.mindbox('async', cleanObject({
+        operation,
+        data: {
+          customer,
+          product: this.getV3Product(product),
         },
-      },
-    });
+      }));
+    } else {
+      window.mindbox('performOperation', {
+        operation,
+        data: {
+          action: {
+            productId: product.id,
+            ...this.getProductCustoms(product),
+          },
+        },
+      });
+    }
   }
 
   onViewedProductListing(event, operation) {
-    const productCategoryId = getProp(event, 'listing.categoryId');
-    if (!productCategoryId) return;
-
-    window.mindbox('performOperation', {
-      operation,
-      data: {
-        action: { productCategoryId },
-      },
-    });
+    if (this.getOption('apiVersion') === V3) {
+      window.mindbox('async', {
+        operation,
+        data: {
+          productCategory: {
+            ids: this.getProductCategoryIds(event),
+          },
+        },
+      });
+    } else {
+      const productCategoryId = getProp(event, 'listing.categoryId');
+      if (!productCategoryId) return;
+      window.mindbox('performOperation', {
+        operation,
+        data: {
+          action: { productCategoryId },
+        },
+      });
+    }
   }
 
   onAddedProduct(event, operation) {
-    const product = getProp(event, 'product') || {};
-    if (!product.id) return;
-
-    window.mindbox('performOperation', {
-      operation,
-      data: {
-        action: {
-          productId: product.id,
-          price: product.unitSalePrice,
-          ...this.getProductCustoms(product),
+    if (this.getOption('apiVersion') === V3) {
+      this.onCustomEvent(event);
+    } else {
+      const product = getProp(event, 'product') || {};
+      if (!product.id) return;
+      window.mindbox('performOperation', {
+        operation,
+        data: {
+          action: {
+            productId: product.id,
+            price: product.unitSalePrice,
+            ...this.getProductCustoms(product),
+          },
         },
-      },
-    });
+      });
+    }
   }
 
   onRemovedProduct(event, operation) {
-    const product = getProp(event, 'product') || {};
-    if (!product.id) return;
-
-    window.mindbox('performOperation', {
-      operation,
-      data: {
-        action: {
-          productId: product.id,
-          price: product.unitSalePrice,
-          ...this.getProductCustoms(product),
+    if (this.getOption('apiVersion') === V3) {
+      this.onCustomEvent(event);
+    } else {
+      const product = getProp(event, 'product') || {};
+      if (!product.id) return;
+      window.mindbox('performOperation', {
+        operation,
+        data: {
+          action: {
+            productId: product.id,
+            price: product.unitSalePrice,
+            ...this.getProductCustoms(product),
+          },
         },
-      },
-    });
+      });
+    }
   }
 
   onCompletedTransaction(event, operation) {

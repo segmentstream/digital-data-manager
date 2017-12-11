@@ -750,6 +750,9 @@ describe('Integrations: Mindbox', () => {
       mindbox.setOption('productSkuIdsMapping', {
         bitrixId: 'skuCode',
       });
+      mindbox.setOption('productCategoryIdsMapping', {
+        bitrixId: 'listing.categoryId',
+      });
       sinon.stub(mindbox, 'load', () => {
         mindbox.onLoad();
       });
@@ -822,9 +825,9 @@ describe('Integrations: Mindbox', () => {
       });
 
       it('should track cart if set cart operation defined (no customer)', () => {
+        window.digitalData.cart = cart;
         window.digitalData.events.push({
           name: 'Viewed Page',
-          cart,
           callback: () => {
             assert.ok(window.mindbox.calledWith('async', {
               operation: 'SetCart',
@@ -837,12 +840,12 @@ describe('Integrations: Mindbox', () => {
       });
 
       it('should track cart if set cart operation defined (authenticated customer)', () => {
+        window.digitalData.user = {
+          userId: 'user123',
+        };
+        window.digitalData.cart = cart;
         window.digitalData.events.push({
           name: 'Viewed Page',
-          user: {
-            userId: 'user123',
-          },
-          cart,
           callback: () => {
             assert.ok(window.mindbox.calledWith('async', {
               operation: 'SetCart',
@@ -868,22 +871,51 @@ describe('Integrations: Mindbox', () => {
         });
       });
 
-      it.only('should track viewed product with default operation', () => {
+      it('should track viewed product with default operation', () => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           product: {
             id: '123',
           },
           callback: () => {
-            assert.ok(window.mindbox.calledWith('performOperation', {
+            assert.ok(window.mindbox.calledWith('async', {
               operation: 'ViewProduct',
               data: {
-                action: {
-                  productId: '123'
+                product: {
+                  ids: {
+                    bitrixId: '123',
+                  },
                 },
               },
             }));
-          }
+          },
+        });
+      });
+
+      it('should track viewed product with default operation and sku', () => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {
+            id: '123',
+            skuCode: 'sku123',
+          },
+          callback: () => {
+            assert.ok(window.mindbox.calledWith('async', {
+              operation: 'ViewProduct',
+              data: {
+                product: {
+                  ids: {
+                    bitrixId: '123',
+                  },
+                  sku: {
+                    ids: {
+                      bitrixId: 'sku123',
+                    },
+                  },
+                },
+              },
+            }));
+          },
         });
       });
 
@@ -891,31 +923,31 @@ describe('Integrations: Mindbox', () => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           product: {
-            id: '123'
+            id: '123',
           },
           integrations: {
             mindbox: {
-              operation: 'ViewedProductCustom'
-            }
+              operation: 'ViewedProductCustom',
+            },
           },
           callback: () => {
-            assert.ok(window.mindbox.calledWith('performOperation', {
+            assert.ok(window.mindbox.calledWith('async', {
               operation: 'ViewedProductCustom',
               data: {
-                action: {
-                  productId: '123'
+                product: {
+                  ids: {
+                    bitrixId: '123',
+                  },
                 },
               },
             }));
-          }
+          },
         });
       });
-
     });
 
 
     describe('#onAddedProduct', () => {
-
       beforeEach(() => {
         mindbox.setOption('operationMapping', {
           'Added Product': 'AddProduct',
@@ -923,88 +955,13 @@ describe('Integrations: Mindbox', () => {
       });
 
       it('should track added product with default operation', () => {
-        window.digitalData.events.push({
-          name: 'Added Product',
-          product: {
-            id: '123',
-            skuCode: 'sku123',
-            unitSalePrice: 2500,
-          },
-          quantity: 5,
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('performOperation', {
-              operation: 'AddProduct',
-              data: {
-                action: {
-                  productId: '123',
-                  price: 2500
-                },
-              },
-            }));
-          }
-        });
+        // TODO should track as custom event
+        assert.ok(false);
       });
-
-      it('should track added product with custom product variables', () => {
-        mindbox.setOption('productVars', {
-          skuId: 'skuCode',
-        });
-        window.digitalData.events.push({
-          name: 'Added Product',
-          product: {
-            id: '123',
-            skuCode: 'sku123',
-            unitSalePrice: 2500,
-          },
-          quantity: 5,
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('performOperation', {
-              operation: 'AddProduct',
-              data: {
-                action: {
-                  productId: '123',
-                  skuId: 'sku123',
-                  price: 2500
-                },
-              },
-            }));
-          }
-        });
-      });
-
-      it('should track added product with custom operation', () => {
-        window.digitalData.events.push({
-          name: 'Added Product',
-          product: {
-            id: '123',
-            skuCode: 'sku123',
-            unitSalePrice: 2500,
-          },
-          quantity: 5,
-          integrations: {
-            mindbox: {
-              operation: 'AddProductCustom'
-            }
-          },
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('performOperation', {
-              operation: 'AddProductCustom',
-              data: {
-                action: {
-                  productId: '123',
-                  price: 2500,
-                },
-              },
-            }));
-          }
-        });
-      });
-
     });
 
 
     describe('#onViewedProductListing', () => {
-
       beforeEach(() => {
         mindbox.setOption('operationMapping', {
           'Viewed Product Listing': 'CategoryView',
@@ -1018,11 +975,13 @@ describe('Integrations: Mindbox', () => {
             categoryId: '123',
           },
           callback: () => {
-            assert.ok(window.mindbox.calledWith('performOperation', {
+            assert.ok(window.mindbox.calledWith('async', {
               operation: 'CategoryView',
               data: {
-                action: {
-                  productCategoryId: '123',
+                productCategory: {
+                  ids: {
+                    bitrixId: '123',
+                  },
                 },
               },
             }));
@@ -1045,15 +1004,16 @@ describe('Integrations: Mindbox', () => {
             assert.ok(window.mindbox.calledWith('performOperation', {
               operation: 'CategoryViewCustom',
               data: {
-                action: {
-                  productCategoryId: '123',
+                productCategory: {
+                  ids: {
+                    bitrixId: '123',
+                  },
                 },
               },
             }));
-          }
+          },
         });
       });
-
     });
 
 
@@ -1066,56 +1026,9 @@ describe('Integrations: Mindbox', () => {
       });
 
       it('should track removed product with default operation', () => {
-        window.digitalData.events.push({
-          name: 'Removed Product',
-          product: {
-            id: '123',
-            skuCode: 'sku123',
-            unitSalePrice: 2500,
-          },
-          quantity: 5,
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('performOperation', {
-              operation: 'RemoveProduct',
-              data: {
-                action: {
-                  productId: '123',
-                  price: 2500,
-                },
-              },
-            }));
-          }
-        });
+        // TODO should track as custom event
+        assert.ok(false);
       });
-
-      it('should track added product with custom operation', () => {
-        window.digitalData.events.push({
-          name: 'Added Product',
-          product: {
-            id: '123',
-            skuCode: 'sku123',
-            unitSalePrice: 2500,
-          },
-          quantity: 5,
-          integrations: {
-            mindbox: {
-              operation: 'AddProductCustom'
-            }
-          },
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('performOperation', {
-              operation: 'AddProductCustom',
-              data: {
-                action: {
-                  productId: '123',
-                  price: 2500,
-                },
-              },
-            }));
-          }
-        });
-      });
-
     });
 
     describe('#onCompletedTransaction', () => {
@@ -1302,7 +1215,7 @@ describe('Integrations: Mindbox', () => {
           integrations: {
             mindbox: {
               operation: 'EmailSubscribeCustom'
-            }
+            },
           },
           callback: () => {
             assert.ok(window.mindbox.calledWith('identify', {
