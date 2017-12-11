@@ -1,8 +1,7 @@
 import Integration from './../Integration';
-import { getProp } from 'driveback-utils/dotProp';
-import each from 'driveback-utils/each';
+import { getProp, setProp } from 'driveback-utils/dotProp';
+import deleteProperty from 'driveback-utils/deleteProperty';
 import cleanObject from 'driveback-utils/cleanObject';
-import { DIGITALDATA_VAR } from './../variableTypes';
 import {
   VIEWED_PAGE,
   LOGGED_IN,
@@ -15,6 +14,10 @@ import {
   REMOVED_PRODUCT,
   COMPLETED_TRANSACTION,
 } from './../events/semanticEvents';
+import {
+  getEnrichableVariableMappingProps,
+  extractVariableMappingValues,
+} from './../IntegrationUtils';
 
 const PROVIDER_USER_ID = 'userId';
 const PROVIDER_EMAIL = 'email';
@@ -22,16 +25,16 @@ const PROVIDER_EMAIL = 'email';
 const V2 = 'V2';
 const V3 = 'V3';
 
-const mapValues = (source, mapping) => {
-  const mappingKeys = Object.keys(mapping);
-  if (mappingKeys.length) {
-    return mappingKeys.reduce((acc, key) => {
-      acc[key] = getProp(source, mapping[key]);
-      return acc;
-    }, {});
-  }
-  return undefined;
-};
+const DEFAULT_CUSTOMER_FIELDS = [
+  'firstName',
+  'lastName',
+  'middleName',
+  'fullName',
+  'mobilePhone',
+  'email',
+  'birthDate',
+  'sex',
+];
 
 class Mindbox extends Integration {
   constructor(digitalData, options) {
@@ -104,19 +107,20 @@ class Mindbox extends Integration {
   }
 
   prepareEnrichableUserProps() {
-    this.enrichableUserProps = [];
-    const userVarsSettings = this.getOption('userVars');
-    each(userVarsSettings, (key, variable) => {
-      if (variable.type === DIGITALDATA_VAR) {
-        this.enrichableUserProps.push(variable.value);
-      }
-    });
+    this.enrichableUserProps = getEnrichableVariableMappingProps(this.getOption('userVars'));
+    const customerIdsSettings = this.getOption('customerIdsMapping');
+    if (customerIdsSettings) {
+      Object.keys(customerIdsSettings).forEach((key) => {
+        this.enrichableUserProps.push(customerIdsSettings[key]);
+      });
+    }
   }
 
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
       case VIEWED_PAGE:
+        enrichableProps = this.getEnrichableUserProps();
         enrichableProps.push('cart');
         break;
       case LOGGED_IN:
@@ -329,16 +333,20 @@ class Mindbox extends Integration {
     return null;
   }
 
-  getUserData(event) {
+  getCustomerData(event) {
     const userVars = this.getOption('userVars');
-    const userData = {};
-    each(userVars, (key, variable) => {
-      let userVarValue = getProp(event, variable.value);
-      if (userVarValue !== undefined) {
-        if (typeof userVarValue === 'boolean') userVarValue = userVarValue.toString();
-        userData[key] = userVarValue;
-      }
-    });
+    const userData = extractVariableMappingValues(event, userVars);
+    if (this.getOption('apiVersion') === V3) {
+      userData.ids = this.getCustomerIds(event);
+      const keys = Object.keys(userData);
+      keys.reduce((acc, key) => {
+        if (DEFAULT_CUSTOMER_FIELDS.indexOf(key) < 0) {
+          setProp(userData, `customFields.${key}`);
+          deleteProperty(userData, key);
+        }
+        return userData;
+      }, userData);
+    }
     return userData;
   }
 
@@ -354,22 +362,22 @@ class Mindbox extends Integration {
 
   getProductIds(product) {
     const mapping = this.getOption('productIdsMapping');
-    return mapValues(product, mapping);
+    return extractVariableMappingValues(product, mapping);
   }
 
   getProductSkuIds(product) {
     const mapping = this.getOption('productSkuIdsMapping');
-    return mapValues(product, mapping);
+    return extractVariableMappingValues(product, mapping);
   }
 
   getCategoryIds(listing) {
     const mapping = this.getOption('categoryIdsMapping');
-    return mapValues(listing, mapping);
+    return extractVariableMappingValues(listing, mapping);
   }
 
-  getCustomerIds(user) {
+  getCustomerIds(event) {
     const mapping = this.getOption('customerIdsMapping');
-    return mapValues(user, mapping);
+    return extractVariableMappingValues(event, mapping);
   }
 
   getV3Product(product) {
@@ -383,8 +391,11 @@ class Mindbox extends Integration {
   getV3ProductList(lineItems) {
     return lineItems.map((lineItem) => {
       const product = this.getV3Product(lineItem.product);
+      const count = lineItem.quantity || 1;
       return {
         product,
+        count,
+        price: lineItem.subtotal || count * getProp(lineItem, 'product.unitSalePrice'),
       };
     });
   }
@@ -416,27 +427,26 @@ class Mindbox extends Integration {
     }
   }
 
-  setCart(cart, operation) {
+  setCart(event, operation) {
+    const cart = event.cart || {};
     const lineItems = cart.lineItems;
     if (!lineItems || !lineItems.length) {
       return;
     }
 
     if (this.getOption('apiVersion') === V3) {
-      window.mindbox('async', {
+      const customerIds = this.getCustomerIds(event);
+      let customer;
+      if (customerIds) {
+        customer = { ids: customerIds };
+      }
+      window.mindbox('async', cleanObject({
         operation,
         data: {
-          productList: lineItems.map((lineItem) => {
-            const quantity = lineItem.quantity || 1;
-            return {
-              productId: getProp(lineItem, 'product.id'),
-              count: quantity,
-              price: getProp(lineItem, 'product.unitSalePrice') * quantity,
-              ...this.getProductCustoms(lineItem.product),
-            };
-          }),
+          customer,
+          productList: this.getV3ProductList(lineItems),
         },
-      });
+      }));
     } else {
       window.mindbox('performOperation', {
         operation,
@@ -445,9 +455,7 @@ class Mindbox extends Integration {
             personalOffers: lineItems.map((lineItem) => {
               const quantity = lineItem.quantity || 1;
               return {
-                product: {
-                  ids: this.getProductIds(lineItem.product),
-                },
+                productId: getProp(lineItem, 'product.id'),
                 count: quantity,
                 price: getProp(lineItem, 'product.unitSalePrice') * quantity,
                 ...this.getProductCustoms(lineItem.product),
@@ -462,20 +470,35 @@ class Mindbox extends Integration {
   onViewedPage(event) {
     const setCartOperation = this.getOption('setCartOperation');
     if (setCartOperation && event.cart) {
-      this.setCart(event.cart, setCartOperation);
+      this.setCart(event, setCartOperation);
     }
   }
 
   onLoggedIn(event, operation) {
-    const identificator = this.getIdentificator(event);
-    if (!identificator) return;
-
-    const data = cleanObject(this.getUserData(event));
-    window.mindbox('identify', {
-      operation,
-      identificator,
-      data,
-    });
+    if (this.getOption('apiVersion') === V3) {
+      const user = event.user || {};
+      const customerIds = this.getCustomerIds(event);
+      if (!customerIds) return;
+      window.mindbox('async', {
+        operation,
+        data: {
+          customer: cleanObject({
+            ids: customerIds,
+            email: getProp(user, 'email'),
+            mobilePhone: getProp(user, 'phone'),
+          }),
+        },
+      });
+    } else {
+      const identificator = this.getIdentificator(event);
+      if (!identificator) return;
+      const data = cleanObject(this.getCustomerData(event));
+      window.mindbox('identify', {
+        operation,
+        identificator,
+        data,
+      });
+    }
   }
 
   onRegistered(event, operation) {
@@ -486,7 +509,7 @@ class Mindbox extends Integration {
     const identificator = this.getIdentificator(event);
     if (!identificator) return;
 
-    const data = cleanObject(this.getUserData(event));
+    const data = cleanObject(this.getCustomerData(event));
     if (getProp(event, 'user.isSubscribed')) {
       data.subscriptions = data.subscriptions || [];
       data.subscriptions.push({
@@ -511,11 +534,11 @@ class Mindbox extends Integration {
   }
 
   onSubscribed(event, operation) {
-    const identificator = this.getIdentificator(event, PROVIDER_EMAIL);
-    if (!identificator) return;
+    const user = event.user || {};
+    const email = user.email;
+    if (!email) return;
 
-    const data = cleanObject(this.getUserData(event));
-    data.subscriptions = [
+    const subscriptions = [
       cleanObject({
         pointOfContact: 'Email',
         topic: event.subscriptionList,
@@ -524,11 +547,20 @@ class Mindbox extends Integration {
       }),
     ];
 
-    window.mindbox('identify', {
-      operation,
-      identificator,
-      data,
-    });
+    if (this.getOption('apiVersion') === V3) {
+      window.mindbox('async', {
+        operation,
+        data: {
+          customer: { email, subscriptions },
+        },
+      });
+    } else {
+      const identificator = this.getIdentificator(event, PROVIDER_EMAIL);
+      if (!identificator) return;
+      const data = cleanObject(this.getCustomerData(event));
+      data.subscriptions = subscriptions;
+      window.mindbox('identify', { operation, identificator, data });
+    }
   }
 
   onViewedProductDetail(event, operation) {
@@ -608,7 +640,7 @@ class Mindbox extends Integration {
       }));
     }
 
-    const data = this.getUserData(event);
+    const data = this.getCustomerData(event);
     data.order = {
       webSiteId: orderId,
       price: getProp(event, 'transaction.total'),
@@ -629,7 +661,7 @@ class Mindbox extends Integration {
     let data;
     if (event.user) {
       identificator = this.getIdentificator(event);
-      data = this.getUserData(event);
+      data = this.getCustomerData(event);
     }
     window.mindbox('performOperation', cleanObject({
       operation,

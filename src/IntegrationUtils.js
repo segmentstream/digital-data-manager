@@ -15,11 +15,24 @@ export function getEnrichableVariableMappingProps(variableMapping) {
 export function extractVariableMappingValues(source, variableMapping) {
   const values = {};
   each(variableMapping, (key, variable) => {
-    let value = getProp(source, variable.value);
+    let value;
+    if (typeof variable === 'object' && variable.type) {
+      value = getProp(source, variable.value);
+    } else {
+      value = getProp(source, variable);
+    }
     if (value !== undefined) {
       if (typeof value === 'boolean') value = value.toString();
       values[key] = value;
     }
   });
   return values;
+}
+
+export function getVariableMappingValue(source, key, variableMapping) {
+  const variable = variableMapping[key];
+  if (typeof variable === 'object' && variable.type) {
+    return getProp(source, variable.value);
+  }
+  return getProp(source, variable);
 }
