@@ -12,7 +12,11 @@ export function getEnrichableVariableMappingProps(variableMapping) {
   return enrichableProps;
 }
 
-export function extractVariableMappingValues(source, variableMapping) {
+/**
+ * Possible options:
+ * - booleanToString: true/false (default - false)
+ */
+export function extractVariableMappingValues(source, variableMapping, options = {}) {
   const values = {};
   each(variableMapping, (key, variable) => {
     let value;
@@ -22,7 +26,7 @@ export function extractVariableMappingValues(source, variableMapping) {
       value = getProp(source, variable);
     }
     if (value !== undefined) {
-      if (typeof value === 'boolean') value = value.toString();
+      if (typeof value === 'boolean' && options.booleanToString) value = value.toString();
       values[key] = value;
     }
   });

@@ -27,6 +27,7 @@ const V2 = 'V2';
 const V3 = 'V3';
 
 const DEFAULT_CUSTOMER_FIELDS = [
+  'ids',
   'firstName',
   'lastName',
   'middleName',
@@ -71,6 +72,9 @@ class Mindbox extends Integration {
       COMPLETED_TRANSACTION,
     ];
 
+    this.prepareEnrichableUserProps();
+    this.prepareEnrichableUserIds();
+
     this.operationEvents = Object.keys(this.getOption('operationMapping'));
     this.operationEvents.forEach((operationEvent) => {
       if (this.SEMANTIC_EVENTS.indexOf(operationEvent) < 0) {
@@ -88,9 +92,6 @@ class Mindbox extends Integration {
   }
 
   initialize() {
-    this.prepareEnrichableUserProps();
-    this.prepareEnrichableUserIds();
-
     window.mindbox = window.mindbox || function mindboxStub() {
       window.mindbox.queue.push(arguments);
     };
@@ -134,6 +135,7 @@ class Mindbox extends Integration {
           ...this.getEnrichableUserProps(),
           'user.userId', // might be duplicated
           'user.isSubscribed',
+          'user.isSubscribedBySms',
         ];
         break;
       case COMPLETED_TRANSACTION:
@@ -345,12 +347,13 @@ class Mindbox extends Integration {
   getCustomerData(event) {
     const userVars = this.getOption('userVars');
     const userData = extractVariableMappingValues(event, userVars);
-    if (this.getOption('apiVersion') === V3) {
-      userData.ids = this.getCustomerIds(event);
+    if (this.getOption('apiVersion') === V3 && event.name !== COMPLETED_TRANSACTION) {
+      const customerIds = this.getCustomerIds(event);
+      if (customerIds) userData.ids = customerIds;
       const keys = Object.keys(userData);
       keys.reduce((acc, key) => {
         if (DEFAULT_CUSTOMER_FIELDS.indexOf(key) < 0) {
-          setProp(userData, `customFields.${key}`);
+          setProp(userData, `customFields.${key}`, userData[key]);
           deleteProperty(userData, key);
         }
         return userData;
@@ -522,28 +525,39 @@ class Mindbox extends Integration {
     const identificator = this.getIdentificator(event);
     if (!identificator) return;
 
-    const data = cleanObject(this.getCustomerData(event));
+    let subscriptions;
     if (getProp(event, 'user.isSubscribed')) {
-      data.subscriptions = data.subscriptions || [];
-      data.subscriptions.push({
+      subscriptions = subscriptions || [];
+      subscriptions.push({
         pointOfContact: 'Email',
         isSubscribed: true,
         valueByDefault: true,
       });
     }
     if (getProp(event, 'user.isSubscribedBySms')) {
-      data.subscriptions = data.subscriptions || [];
-      data.subscriptions.push({
+      subscriptions = subscriptions || [];
+      subscriptions.push({
         pointOfContact: 'Sms',
         isSubscribed: true,
         valueByDefault: true,
       });
     }
-    window.mindbox('identify', {
-      operation,
-      identificator,
-      data,
-    });
+    if (this.getOption('apiVersion') === V3) {
+      const customer = this.getCustomerData(event);
+      if (subscriptions) customer.subscriptions = subscriptions;
+      window.mindbox('async', {
+        operation,
+        data: { customer },
+      });
+    } else {
+      const data = cleanObject(this.getCustomerData(event));
+      if (subscriptions) data.subscriptions = subscriptions;
+      window.mindbox('identify', {
+        operation,
+        identificator,
+        data,
+      });
+    }
   }
 
   onSubscribed(event, operation) {
@@ -561,10 +575,14 @@ class Mindbox extends Integration {
     ];
 
     if (this.getOption('apiVersion') === V3) {
+      const customer = this.getCustomerData(event);
       window.mindbox('async', {
         operation,
         data: {
-          customer: { email, subscriptions },
+          customer: {
+            ...customer,
+            subscriptions,
+          },
         },
       });
     } else {

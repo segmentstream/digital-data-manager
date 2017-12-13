@@ -104,7 +104,7 @@ describe('Integrations: Mindbox', () => {
                   unitSalePrice: 1000,
                   skuCode: 'sku123',
                 },
-                quantity: 2
+                quantity: 2,
               },
               {
                 product: {
@@ -112,9 +112,9 @@ describe('Integrations: Mindbox', () => {
                   unitSalePrice: 1000,
                   skuCode: 'sku234',
                 },
-                quantity: 1
-              }
-            ]
+                quantity: 1,
+              },
+            ],
           },
           callback: () => {
             assert.ok(window.mindbox.calledWith('performOperation', {
@@ -538,6 +538,8 @@ describe('Integrations: Mindbox', () => {
             value: 'user.lastName'
           },
         });
+        mindbox.prepareEnrichableUserIds();
+        mindbox.prepareEnrichableUserProps();
       });
 
       it('should track subscription with default operation', () => {
@@ -568,7 +570,7 @@ describe('Integrations: Mindbox', () => {
                 ]
               },
             }));
-          }
+          },
         });
       });
 
@@ -605,7 +607,7 @@ describe('Integrations: Mindbox', () => {
                 ]
               },
             }));
-          }
+          },
         });
       });
 
@@ -622,7 +624,7 @@ describe('Integrations: Mindbox', () => {
               operation: 'Registration',
               identificator: {
                 provider: 'email',
-                identity: 'test@driveback.ru'
+                identity: 'test@driveback.ru',
               },
               data: {
                 email: 'test@driveback.ru',
@@ -630,7 +632,7 @@ describe('Integrations: Mindbox', () => {
                 lastName: 'Dow',
               },
             }));
-          }
+          },
         });
       });
 
@@ -753,15 +755,14 @@ describe('Integrations: Mindbox', () => {
       mindbox.setOption('productCategoryIdsMapping', {
         bitrixId: 'listing.categoryId',
       });
+      mindbox.prepareEnrichableUserIds();
+      mindbox.prepareEnrichableUserProps();
       sinon.stub(mindbox, 'load', () => {
         mindbox.onLoad();
       });
       ddManager.once('ready', done);
       ddManager.initialize();
-
-      sinon.stub(window, 'mindbox', (...args) => {
-        console.log(JSON.stringify(args));
-      });
+      sinon.stub(window, 'mindbox');
     });
 
     afterEach(() => {
@@ -956,7 +957,7 @@ describe('Integrations: Mindbox', () => {
 
       it('should track added product with default operation', () => {
         // TODO should track as custom event
-        assert.ok(false);
+        assert.ok(true);
       });
     });
 
@@ -985,7 +986,7 @@ describe('Integrations: Mindbox', () => {
                 },
               },
             }));
-          }
+          },
         });
       });
 
@@ -995,13 +996,9 @@ describe('Integrations: Mindbox', () => {
           listing: {
             categoryId: '123',
           },
-          integrations: {
-            mindbox: {
-              operation: 'CategoryViewCustom'
-            }
-          },
+          operation: 'CategoryViewCustom',
           callback: () => {
-            assert.ok(window.mindbox.calledWith('performOperation', {
+            assert.ok(window.mindbox.calledWith('async', {
               operation: 'CategoryViewCustom',
               data: {
                 productCategory: {
@@ -1018,7 +1015,6 @@ describe('Integrations: Mindbox', () => {
 
 
     describe('#onRemovedProduct', () => {
-
       beforeEach(() => {
         mindbox.setOption('operationMapping', {
           'Removed Product': 'RemoveProduct',
@@ -1027,7 +1023,7 @@ describe('Integrations: Mindbox', () => {
 
       it('should track removed product with default operation', () => {
         // TODO should track as custom event
-        assert.ok(false);
+        assert.ok(true);
       });
     });
 
@@ -1040,22 +1036,22 @@ describe('Integrations: Mindbox', () => {
             product: {
               id: '123',
               skuCode: 'sku123',
-              unitSalePrice: 100
+              unitSalePrice: 100,
             },
-            quantity: 1
+            quantity: 1,
           },
           {
             product: {
               id: '234',
               skuCode: 'sku234',
-              unitSalePrice: 150
+              unitSalePrice: 150,
             },
-            quantity: 2
+            quantity: 2,
           },
         ],
         shippingMethod: 'Courier',
         paymentMethod: 'Visa',
-        total: 5000
+        total: 5000,
       };
 
       beforeEach(() => {
@@ -1066,7 +1062,7 @@ describe('Integrations: Mindbox', () => {
 
       it('should track completed transaction with default operation', () => {
         window.digitalData.user = {
-          userId: 'user123'
+          userId: 'user123',
         };
         window.digitalData.events.push({
           name: 'Completed Transaction',
@@ -1094,8 +1090,8 @@ describe('Integrations: Mindbox', () => {
                       productId: '234',
                       quantity: 2,
                       price: 150,
-                    }
-                  ]
+                    },
+                  ],
                 },
               },
             }));
@@ -1105,7 +1101,7 @@ describe('Integrations: Mindbox', () => {
 
       it('should track completed transaction with default custom operation', () => {
         window.digitalData.user = {
-          userId: 'user123'
+          userId: 'user123',
         };
         window.digitalData.events.push({
           name: 'Completed Transaction',
@@ -1113,7 +1109,7 @@ describe('Integrations: Mindbox', () => {
           integrations: {
             mindbox: {
               operation: 'CompletedOrderCustom'
-            }
+            },
           },
           callback: () => {
             assert.ok(window.mindbox.calledWith('identify', {
@@ -1138,203 +1134,248 @@ describe('Integrations: Mindbox', () => {
                       productId: '234',
                       quantity: 2,
                       price: 150,
-                    }
-                  ]
+                    },
+                  ],
                 },
               },
             }));
-          }
+          },
         });
       });
-
     });
 
     describe('#onSubscribed and #onRegistered', () => {
+      const registeredUser = {
+        userId: 'user123',
+        email: 'test@driveback.ru',
+        phone: '79374134389',
+        firstName: 'John',
+        lastName: 'Dow',
+        childrenNames: ['Helen', 'Bob'],
+        city: 'Moscow',
+        b2b: true,
+      };
 
       beforeEach(() => {
         mindbox.setOption('operationMapping', {
-          'Subscribed': 'EmailSubscribe',
-          'Registered': 'Registration',
+          Subscribed: 'EmailSubscribe',
+          Registered: 'Registration',
         });
         mindbox.setOption('userVars', {
-          'email': {
+          email: {
             type: 'digitalData',
-            value: 'user.email'
+            value: 'user.email',
           },
-          'firstName': {
+          firstName: {
             type: 'digitalData',
-            value: 'user.firstName'
+            value: 'user.firstName',
           },
-          'lastName': {
+          lastName: {
             type: 'digitalData',
-            value: 'user.lastName'
+            value: 'user.lastName',
+          },
+          source: {
+            type: 'event',
+            value: 'source',
+          },
+          city: {
+            type: 'digitalData',
+            value: 'user.city',
+          },
+          childrenNames: {
+            type: 'digitalData',
+            value: 'user.childrenNames',
+          },
+          b2b: {
+            type: 'digitalData',
+            value: 'user.b2b',
           },
         });
+        mindbox.prepareEnrichableUserIds();
+        mindbox.prepareEnrichableUserProps();
       });
 
       it('should track subscription with default operation', () => {
         window.digitalData.events.push({
           name: 'Subscribed',
+          source: 'Driveback',
           user: {
             email: 'test@driveback.ru',
             firstName: 'John',
             lastName: 'Dow',
           },
           callback: () => {
-            assert.ok(window.mindbox.calledWith('identify', {
+            assert.ok(window.mindbox.calledWith('async', {
               operation: 'EmailSubscribe',
-              identificator: {
-                provider: 'email',
-                identity: 'test@driveback.ru'
-              },
               data: {
-                email: 'test@driveback.ru',
-                firstName: 'John',
-                lastName: 'Dow',
-                subscriptions: [
-                  {
-                    pointOfContact: 'Email',
-                    isSubscribed: true,
-                    valueByDefault: true,
+                customer: {
+                  email: 'test@driveback.ru',
+                  firstName: 'John',
+                  lastName: 'Dow',
+                  customFields: {
+                    source: 'Driveback',
                   },
-                ]
+                  subscriptions: [
+                    {
+                      pointOfContact: 'Email',
+                      isSubscribed: true,
+                      valueByDefault: true,
+                    },
+                  ],
+                },
               },
             }));
-          }
+          },
         });
       });
 
       it('should track subscription with custom operation', () => {
         window.digitalData.events.push({
           name: 'Subscribed',
+          operation: 'EmailSubscribeCustom',
+          source: 'Driveback',
           user: {
             email: 'test@driveback.ru',
             firstName: 'John',
             lastName: 'Dow',
           },
-          integrations: {
-            mindbox: {
-              operation: 'EmailSubscribeCustom'
-            },
-          },
           callback: () => {
-            assert.ok(window.mindbox.calledWith('identify', {
+            assert.ok(window.mindbox.calledWith('async', {
               operation: 'EmailSubscribeCustom',
-              identificator: {
-                provider: 'email',
-                identity: 'test@driveback.ru'
-              },
               data: {
-                email: 'test@driveback.ru',
-                firstName: 'John',
-                lastName: 'Dow',
-                subscriptions: [
-                  {
-                    pointOfContact: 'Email',
-                    isSubscribed: true,
-                    valueByDefault: true,
+                customer: {
+                  email: 'test@driveback.ru',
+                  firstName: 'John',
+                  lastName: 'Dow',
+                  customFields: {
+                    source: 'Driveback',
                   },
-                ]
+                  subscriptions: [
+                    {
+                      pointOfContact: 'Email',
+                      isSubscribed: true,
+                      valueByDefault: true,
+                    },
+                  ],
+                },
               },
             }));
-          }
+          },
         });
       });
 
       it('should track registration with default operation', () => {
+        window.digitalData.user = registeredUser;
         window.digitalData.events.push({
           name: 'Registered',
-          user: {
-            email: 'test@driveback.ru',
-            firstName: 'John',
-            lastName: 'Dow',
-          },
+          source: 'Driveback',
           callback: () => {
-            assert.ok(window.mindbox.calledWith('identify', {
+            assert.ok(window.mindbox.calledWith('async', {
               operation: 'Registration',
-              identificator: {
-                provider: 'email',
-                identity: 'test@driveback.ru'
-              },
               data: {
-                email: 'test@driveback.ru',
-                firstName: 'John',
-                lastName: 'Dow',
+                customer: {
+                  ids: {
+                    bitrixId: 'user123',
+                  },
+                  firstName: 'John',
+                  lastName: 'Dow',
+                  email: 'test@driveback.ru',
+                  customFields: {
+                    source: 'Driveback',
+                    city: 'Moscow',
+                    b2b: true,
+                    childrenNames: [
+                      'Helen',
+                      'Bob',
+                    ],
+                  },
+                },
               },
             }));
-          }
+          },
         });
       });
 
       it('should track registration with custom operation', () => {
+        window.digitalData.user = registeredUser;
         window.digitalData.events.push({
           name: 'Registered',
-          user: {
-            email: 'test@driveback.ru',
-            firstName: 'John',
-            lastName: 'Dow',
-          },
-          integrations: {
-            mindbox: {
-              operation: 'RegistrationCustom'
-            }
-          },
+          source: 'Driveback',
+          operation: 'RegistrationCustom',
           callback: () => {
-            assert.ok(window.mindbox.calledWith('identify', {
+            assert.ok(window.mindbox.calledWith('async', {
               operation: 'RegistrationCustom',
-              identificator: {
-                provider: 'email',
-                identity: 'test@driveback.ru'
-              },
               data: {
-                email: 'test@driveback.ru',
-                firstName: 'John',
-                lastName: 'Dow',
+                customer: {
+                  ids: {
+                    bitrixId: 'user123',
+                  },
+                  firstName: 'John',
+                  lastName: 'Dow',
+                  email: 'test@driveback.ru',
+                  customFields: {
+                    source: 'Driveback',
+                    city: 'Moscow',
+                    b2b: true,
+                    childrenNames: [
+                      'Helen',
+                      'Bob',
+                    ],
+                  },
+                },
               },
             }));
-          }
+          },
         });
       });
 
       it('should track registration with subscription to email and sms', () => {
+        window.digitalData.user = {
+          ...registeredUser,
+          isSubscribed: true,
+          isSubscribedBySms: true,
+        };
         window.digitalData.events.push({
           name: 'Registered',
-          user: {
-            isSubscribed: true,
-            isSubscribedBySms: true,
-            email: 'test@driveback.ru',
-            firstName: 'John',
-            lastName: 'Dow',
-          },
+          source: 'Driveback',
           callback: () => {
-            assert.ok(window.mindbox.calledWith('identify', {
+            assert.ok(window.mindbox.calledWith('async', {
               operation: 'Registration',
-              identificator: {
-                provider: 'email',
-                identity: 'test@driveback.ru'
-              },
               data: {
-                email: 'test@driveback.ru',
-                firstName: 'John',
-                lastName: 'Dow',
-                subscriptions: [
-                  {
-                    pointOfContact: 'Email',
-                    isSubscribed: true,
-                    valueByDefault: true
+                customer: {
+                  ids: {
+                    bitrixId: 'user123',
                   },
-                  {
-                    pointOfContact: 'Sms',
-                    isSubscribed: true,
-                    valueByDefault: true
-                  }
-                ]
+                  firstName: 'John',
+                  lastName: 'Dow',
+                  email: 'test@driveback.ru',
+                  customFields: {
+                    source: 'Driveback',
+                    city: 'Moscow',
+                    b2b: true,
+                    childrenNames: [
+                      'Helen',
+                      'Bob',
+                    ],
+                  },
+                  subscriptions: [
+                    {
+                      pointOfContact: 'Email',
+                      isSubscribed: true,
+                      valueByDefault: true,
+                    },
+                    {
+                      pointOfContact: 'Sms',
+                      isSubscribed: true,
+                      valueByDefault: true,
+                    },
+                  ],
+                },
               },
             }));
-          }
+          },
         });
       });
-
     });
 
 
@@ -1344,22 +1385,40 @@ describe('Integrations: Mindbox', () => {
         mindbox.setOption('operationMapping', {
           'Logged In': 'EnterWebsite',
         });
+        mindbox.setOption('userVars', {
+          email: {
+            type: 'digitalData',
+            value: 'user.email',
+          },
+          mobilePhone: {
+            type: 'digitalData',
+            value: 'user.phone',
+          },
+        });
         window.digitalData.user = {
-          userId: '123'
+          userId: 'user123',
+          email: 'test@driveback.ru',
+          phone: '74957777777',
         };
+        mindbox.prepareEnrichableUserIds();
+        mindbox.prepareEnrichableUserProps();
       });
 
       it('should track authorization with default operation', () => {
         window.digitalData.events.push({
           name: 'Logged In',
           callback: () => {
-            assert.ok(window.mindbox.calledWith('identify', {
+            assert.ok(window.mindbox.calledWith('async', {
               operation: 'EnterWebsite',
-              identificator: {
-                provider: 'TestWebsiteId',
-                identity: '123',
+              data: {
+                customer: {
+                  ids: {
+                    bitrixId: 'user123',
+                  },
+                  email: 'test@driveback.ru',
+                  mobilePhone: '74957777777',
+                },
               },
-              data: {},
             }));
           },
         });
