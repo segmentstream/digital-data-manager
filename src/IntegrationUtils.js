@@ -12,14 +12,31 @@ export function getEnrichableVariableMappingProps(variableMapping) {
   return enrichableProps;
 }
 
-export function extractVariableMappingValues(source, variableMapping) {
+/**
+ * Possible options:
+ * - booleanToString: true/false (default - false)
+ */
+export function extractVariableMappingValues(source, variableMapping, options = {}) {
   const values = {};
   each(variableMapping, (key, variable) => {
-    let value = getProp(source, variable.value);
+    let value;
+    if (typeof variable === 'object' && variable.type) {
+      value = getProp(source, variable.value);
+    } else {
+      value = getProp(source, variable);
+    }
     if (value !== undefined) {
-      if (typeof value === 'boolean') value = value.toString();
+      if (typeof value === 'boolean' && options.booleanToString) value = value.toString();
       values[key] = value;
     }
   });
   return values;
+}
+
+export function getVariableMappingValue(source, key, variableMapping) {
+  const variable = variableMapping[key];
+  if (typeof variable === 'object' && variable.type) {
+    return getProp(source, variable.value);
+  }
+  return getProp(source, variable);
 }
