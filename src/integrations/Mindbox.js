@@ -51,10 +51,10 @@ class Mindbox extends Integration {
       userVars: {},
       productVars: {},
       userIdProvider: undefined,
+      customerIdsMapping: {},
       productIdsMapping: {},
       productSkuIdsMapping: {},
       productCategoryIdsMapping: {},
-      customerIdsMapping: {},
     }, options);
 
     super(digitalData, optionsWithDefaults);
