@@ -84,7 +84,9 @@ class DoubleClickFloodlight extends Integration {
     const events = this.getOption('events').filter(eventOptions => (eventOptions.event === event.name));
 
     events.forEach((eventOptions) => {
-      const customVariables = extractVariableMappingValues(event, eventOptions.customVars);
+      const customVariables = extractVariableMappingValues(event, eventOptions.customVars, {
+        booleanToString: true,
+      });
       const customVariablesStr = stringify(customVariables).replace(/&/g, ';');
 
       const commonTagParams = {

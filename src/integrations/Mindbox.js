@@ -1,8 +1,8 @@
 import Integration from './../Integration';
-import { getProp } from 'driveback-utils/dotProp';
-import each from 'driveback-utils/each';
+import { getProp, setProp } from 'driveback-utils/dotProp';
+import deleteProperty from 'driveback-utils/deleteProperty';
 import cleanObject from 'driveback-utils/cleanObject';
-import { DIGITALDATA_VAR } from './../variableTypes';
+import isEmpty from 'driveback-utils/isEmpty';
 import {
   VIEWED_PAGE,
   LOGGED_IN,
@@ -15,13 +15,33 @@ import {
   REMOVED_PRODUCT,
   COMPLETED_TRANSACTION,
 } from './../events/semanticEvents';
+import {
+  getEnrichableVariableMappingProps,
+  extractVariableMappingValues,
+} from './../IntegrationUtils';
 
 const PROVIDER_USER_ID = 'userId';
 const PROVIDER_EMAIL = 'email';
 
+const V2 = 'V2';
+const V3 = 'V3';
+
+const DEFAULT_CUSTOMER_FIELDS = [
+  'ids',
+  'firstName',
+  'lastName',
+  'middleName',
+  'fullName',
+  'mobilePhone',
+  'email',
+  'birthDate',
+  'sex',
+];
+
 class Mindbox extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
+      apiVersion: V2,
       projectSystemName: '',
       brandSystemName: '',
       pointOfContactSystemName: '',
@@ -31,11 +51,13 @@ class Mindbox extends Integration {
       userVars: {},
       productVars: {},
       userIdProvider: undefined,
+      customerIdsMapping: {},
+      productIdsMapping: {},
+      productSkuIdsMapping: {},
+      productCategoryIdsMapping: {},
     }, options);
 
     super(digitalData, optionsWithDefaults);
-
-    this.prepareEnrichableUserProps();
 
     this.SEMANTIC_EVENTS = [
       VIEWED_PAGE,
@@ -49,6 +71,9 @@ class Mindbox extends Integration {
       REMOVED_PRODUCT,
       COMPLETED_TRANSACTION,
     ];
+
+    this.prepareEnrichableUserProps();
+    this.prepareEnrichableUserIds();
 
     this.operationEvents = Object.keys(this.getOption('operationMapping'));
     this.operationEvents.forEach((operationEvent) => {
@@ -85,28 +110,33 @@ class Mindbox extends Integration {
   }
 
   prepareEnrichableUserProps() {
-    this.enrichableUserProps = [];
-    const userVarsSettings = this.getOption('userVars');
-    each(userVarsSettings, (key, variable) => {
-      if (variable.type === DIGITALDATA_VAR) {
-        this.enrichableUserProps.push(variable.value);
-      }
-    });
+    this.enrichableUserProps = getEnrichableVariableMappingProps(this.getOption('userVars'));
+  }
+
+  prepareEnrichableUserIds() {
+    this.enrichableUserIds = getEnrichableVariableMappingProps(this.getOption('customerIdsMapping'));
   }
 
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
       case VIEWED_PAGE:
-        enrichableProps.push('cart');
+        enrichableProps = [
+          ...this.getEnrichableUserIds(),
+          'cart',
+        ];
         break;
       case LOGGED_IN:
       case REGISTERED:
       case SUBSCRIBED:
       case UPDATED_PROFILE_INFO:
-        enrichableProps = this.getEnrichableUserProps();
-        enrichableProps.push('user.userId');
-        enrichableProps.push('user.isSubscribed');
+        enrichableProps = [
+          ...this.getEnrichableUserIds(),
+          ...this.getEnrichableUserProps(),
+          'user.userId', // might be duplicated
+          'user.isSubscribed',
+          'user.isSubscribedBySms',
+        ];
         break;
       case COMPLETED_TRANSACTION:
         enrichableProps = this.getEnrichableUserProps();
@@ -262,6 +292,10 @@ class Mindbox extends Integration {
     return this.enrichableUserProps;
   }
 
+  getEnrichableUserIds() {
+    return this.enrichableUserIds;
+  }
+
   isLoaded() {
     return window.mindboxInitialized;
   }
@@ -310,16 +344,21 @@ class Mindbox extends Integration {
     return null;
   }
 
-  getUserData(event) {
+  getCustomerData(event) {
     const userVars = this.getOption('userVars');
-    const userData = {};
-    each(userVars, (key, variable) => {
-      let userVarValue = getProp(event, variable.value);
-      if (userVarValue !== undefined) {
-        if (typeof userVarValue === 'boolean') userVarValue = userVarValue.toString();
-        userData[key] = userVarValue;
-      }
-    });
+    const userData = extractVariableMappingValues(event, userVars);
+    if (this.getOption('apiVersion') === V3 && event.name !== COMPLETED_TRANSACTION) {
+      const customerIds = this.getCustomerIds(event);
+      if (customerIds) userData.ids = customerIds;
+      const keys = Object.keys(userData);
+      keys.reduce((acc, key) => {
+        if (DEFAULT_CUSTOMER_FIELDS.indexOf(key) < 0) {
+          setProp(userData, `customFields.${key}`, userData[key]);
+          deleteProperty(userData, key);
+        }
+        return userData;
+      }, userData);
+    }
     return userData;
   }
 
@@ -331,6 +370,50 @@ class Mindbox extends Integration {
       if (customVal) customs[key] = customVal;
     });
     return customs;
+  }
+
+  getProductIds(product) {
+    const mapping = this.getOption('productIdsMapping');
+    const productIds = extractVariableMappingValues(product, mapping);
+    return (!isEmpty(productIds)) ? productIds : undefined;  
+  }
+
+  getProductSkuIds(product) {
+    const mapping = this.getOption('productSkuIdsMapping');
+    const productSkuIds = extractVariableMappingValues(product, mapping);
+    return (!isEmpty(productSkuIds)) ? productSkuIds : undefined;  
+  }
+
+  getProductCategoryIds(event) {
+    const mapping = this.getOption('productCategoryIdsMapping');
+    const categoryIds = extractVariableMappingValues(event, mapping);
+    return (!isEmpty(categoryIds)) ? categoryIds : undefined;
+  }
+
+  getCustomerIds(event) {
+    const mapping = this.getOption('customerIdsMapping');
+    const customerIds = extractVariableMappingValues(event, mapping);
+    return (!isEmpty(customerIds)) ? customerIds : undefined;
+  }
+
+  getV3Product(product) {
+    const skuIds = this.getProductSkuIds(product);
+    return {
+      ids: this.getProductIds(product),
+      sku: (skuIds) ? { ids: skuIds } : undefined,
+    };
+  }
+
+  getV3ProductList(lineItems) {
+    return lineItems.map((lineItem) => {
+      const product = this.getV3Product(lineItem.product);
+      const count = lineItem.quantity || 1;
+      return {
+        product,
+        count,
+        price: lineItem.subtotal || count * getProp(lineItem, 'product.unitSalePrice'),
+      };
+    });
   }
 
   trackEvent(event) {
@@ -360,48 +443,78 @@ class Mindbox extends Integration {
     }
   }
 
-  setCart(cart, operation) {
+  setCart(event, operation) {
+    const cart = event.cart || {};
     const lineItems = cart.lineItems;
     if (!lineItems || !lineItems.length) {
       return;
     }
 
-    const mindboxItems = lineItems.map((lineItem) => {
-      const quantity = lineItem.quantity || 1;
-      return {
-        productId: getProp(lineItem, 'product.id'),
-        count: quantity,
-        price: getProp(lineItem, 'product.unitSalePrice') * quantity,
-        ...this.getProductCustoms(lineItem.product),
-      };
-    });
-    window.mindbox('performOperation', {
-      operation,
-      data: {
-        action: {
-          personalOffers: mindboxItems,
+    if (this.getOption('apiVersion') === V3) {
+      const customerIds = this.getCustomerIds(event);
+      let customer;
+      if (customerIds) {
+        customer = { ids: customerIds };
+      }
+      window.mindbox('async', cleanObject({
+        operation,
+        data: {
+          customer,
+          productList: this.getV3ProductList(lineItems),
         },
-      },
-    });
+      }));
+    } else {
+      window.mindbox('performOperation', {
+        operation,
+        data: {
+          action: {
+            personalOffers: lineItems.map((lineItem) => {
+              const quantity = lineItem.quantity || 1;
+              return {
+                productId: getProp(lineItem, 'product.id'),
+                count: quantity,
+                price: getProp(lineItem, 'product.unitSalePrice') * quantity,
+                ...this.getProductCustoms(lineItem.product),
+              };
+            }),
+          },
+        },
+      });
+    }
   }
 
   onViewedPage(event) {
     const setCartOperation = this.getOption('setCartOperation');
     if (setCartOperation && event.cart) {
-      this.setCart(event.cart, setCartOperation);
+      this.setCart(event, setCartOperation);
     }
   }
 
   onLoggedIn(event, operation) {
-    const identificator = this.getIdentificator(event);
-    if (!identificator) return;
-
-    const data = cleanObject(this.getUserData(event));
-    window.mindbox('identify', {
-      operation,
-      identificator,
-      data,
-    });
+    if (this.getOption('apiVersion') === V3) {
+      const user = event.user || {};
+      const customerIds = this.getCustomerIds(event);
+      if (!customerIds) return;
+      window.mindbox('async', {
+        operation,
+        data: {
+          customer: cleanObject({
+            ids: customerIds,
+            email: getProp(user, 'email'),
+            mobilePhone: getProp(user, 'phone'),
+          }),
+        },
+      });
+    } else {
+      const identificator = this.getIdentificator(event);
+      if (!identificator) return;
+      const data = cleanObject(this.getCustomerData(event));
+      window.mindbox('identify', {
+        operation,
+        identificator,
+        data,
+      });
+    }
   }
 
   onRegistered(event, operation) {
@@ -412,36 +525,47 @@ class Mindbox extends Integration {
     const identificator = this.getIdentificator(event);
     if (!identificator) return;
 
-    const data = cleanObject(this.getUserData(event));
+    let subscriptions;
     if (getProp(event, 'user.isSubscribed')) {
-      data.subscriptions = data.subscriptions || [];
-      data.subscriptions.push({
+      subscriptions = subscriptions || [];
+      subscriptions.push({
         pointOfContact: 'Email',
         isSubscribed: true,
         valueByDefault: true,
       });
     }
     if (getProp(event, 'user.isSubscribedBySms')) {
-      data.subscriptions = data.subscriptions || [];
-      data.subscriptions.push({
+      subscriptions = subscriptions || [];
+      subscriptions.push({
         pointOfContact: 'Sms',
         isSubscribed: true,
         valueByDefault: true,
       });
     }
-    window.mindbox('identify', {
-      operation,
-      identificator,
-      data,
-    });
+    if (this.getOption('apiVersion') === V3) {
+      const customer = this.getCustomerData(event);
+      if (subscriptions) customer.subscriptions = subscriptions;
+      window.mindbox('async', {
+        operation,
+        data: { customer },
+      });
+    } else {
+      const data = cleanObject(this.getCustomerData(event));
+      if (subscriptions) data.subscriptions = subscriptions;
+      window.mindbox('identify', {
+        operation,
+        identificator,
+        data,
+      });
+    }
   }
 
   onSubscribed(event, operation) {
-    const identificator = this.getIdentificator(event, PROVIDER_EMAIL);
-    if (!identificator) return;
+    const user = event.user || {};
+    const email = user.email;
+    if (!email) return;
 
-    const data = cleanObject(this.getUserData(event));
-    data.subscriptions = [
+    const subscriptions = [
       cleanObject({
         pointOfContact: 'Email',
         topic: event.subscriptionList,
@@ -450,70 +574,114 @@ class Mindbox extends Integration {
       }),
     ];
 
-    window.mindbox('identify', {
-      operation,
-      identificator,
-      data,
-    });
+    if (this.getOption('apiVersion') === V3) {
+      const customer = this.getCustomerData(event);
+      window.mindbox('async', {
+        operation,
+        data: {
+          customer: {
+            ...customer,
+            subscriptions,
+          },
+        },
+      });
+    } else {
+      const identificator = this.getIdentificator(event, PROVIDER_EMAIL);
+      if (!identificator) return;
+      const data = cleanObject(this.getCustomerData(event));
+      data.subscriptions = subscriptions;
+      window.mindbox('identify', { operation, identificator, data });
+    }
   }
 
   onViewedProductDetail(event, operation) {
     const product = getProp(event, 'product') || {};
     if (!product.id) return;
 
-    window.mindbox('performOperation', {
-      operation,
-      data: {
-        action: {
-          productId: product.id,
-          ...this.getProductCustoms(product),
+    if (this.getOption('apiVersion') === V3) {
+      const customerIds = this.getCustomerIds(event);
+      let customer;
+      if (customerIds) {
+        customer = { ids: customerIds };
+      }
+      window.mindbox('async', cleanObject({
+        operation,
+        data: {
+          customer,
+          product: this.getV3Product(product),
         },
-      },
-    });
+      }));
+    } else {
+      window.mindbox('performOperation', {
+        operation,
+        data: {
+          action: {
+            productId: product.id,
+            ...this.getProductCustoms(product),
+          },
+        },
+      });
+    }
   }
 
   onViewedProductListing(event, operation) {
-    const productCategoryId = getProp(event, 'listing.categoryId');
-    if (!productCategoryId) return;
-
-    window.mindbox('performOperation', {
-      operation,
-      data: {
-        action: { productCategoryId },
-      },
-    });
+    if (this.getOption('apiVersion') === V3) {
+      window.mindbox('async', {
+        operation,
+        data: {
+          productCategory: {
+            ids: this.getProductCategoryIds(event),
+          },
+        },
+      });
+    } else {
+      const productCategoryId = getProp(event, 'listing.categoryId');
+      if (!productCategoryId) return;
+      window.mindbox('performOperation', {
+        operation,
+        data: {
+          action: { productCategoryId },
+        },
+      });
+    }
   }
 
   onAddedProduct(event, operation) {
-    const product = getProp(event, 'product') || {};
-    if (!product.id) return;
-
-    window.mindbox('performOperation', {
-      operation,
-      data: {
-        action: {
-          productId: product.id,
-          price: product.unitSalePrice,
-          ...this.getProductCustoms(product),
+    if (this.getOption('apiVersion') === V3) {
+      this.onCustomEvent(event);
+    } else {
+      const product = getProp(event, 'product') || {};
+      if (!product.id) return;
+      window.mindbox('performOperation', {
+        operation,
+        data: {
+          action: {
+            productId: product.id,
+            price: product.unitSalePrice,
+            ...this.getProductCustoms(product),
+          },
         },
-      },
-    });
+      });
+    }
   }
 
   onRemovedProduct(event, operation) {
-    const product = getProp(event, 'product') || {};
-    if (!product.id) return;
-
-    window.mindbox('performOperation', {
-      operation,
-      data: {
-        action: {
-          productId: product.id,
-          price: product.unitSalePrice,
-          ...this.getProductCustoms(product),
+    if (this.getOption('apiVersion') === V3) {
+      this.onCustomEvent(event);
+    } else {
+      const product = getProp(event, 'product') || {};
+      if (!product.id) return;
+      window.mindbox('performOperation', {
+        operation,
+        data: {
+          action: {
+            productId: product.id,
+            price: product.unitSalePrice,
+            ...this.getProductCustoms(product),
+          },
         },
-      },
-    });
+      });
+    }
   }
 
   onCompletedTransaction(event, operation) {
@@ -534,7 +702,7 @@ class Mindbox extends Integration {
       }));
     }
 
-    const data = this.getUserData(event);
+    const data = this.getCustomerData(event);
     data.order = {
       webSiteId: orderId,
       price: getProp(event, 'transaction.total'),
@@ -555,7 +723,7 @@ class Mindbox extends Integration {
     let data;
     if (event.user) {
       identificator = this.getIdentificator(event);
-      data = this.getUserData(event);
+      data = this.getCustomerData(event);
     }
     window.mindbox('performOperation', cleanObject({
       operation,
