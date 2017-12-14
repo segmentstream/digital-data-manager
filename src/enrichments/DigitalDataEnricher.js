@@ -4,6 +4,7 @@ import getQueryParam from 'driveback-utils/getQueryParam';
 import cleanObject from 'driveback-utils/cleanObject';
 import { getProp, setProp } from 'driveback-utils/dotProp';
 import uuid from 'uuid/v1';
+import UAParser from 'ua-parser-js';
 
 /**
  * fields which will be overriden even
@@ -211,7 +212,12 @@ class DigitalDataEnricher {
 
   enrichContextData() {
     const context = this.digitalData.context;
-    context.userAgent = this.getHtmlGlobals().getNavigator().userAgent;
+    const userAgent = this.getHtmlGlobals().getNavigator().userAgent;
+    context.userAgent = userAgent;
+    const uaParser = new UAParser();
+    context.browser = uaParser.getBrowser();
+    context.device = { type: 'desktop', ...cleanObject(uaParser.getDevice()) };
+    context.os = uaParser.getOS();
     if (!context.campaign) {
       const gclid = getQueryParam('gclid');
       const utmCampaign = getQueryParam('utm_campaign');
