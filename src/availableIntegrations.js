@@ -41,6 +41,7 @@ import JivoChat from './integrations/JivoChat';
 import Adnetic from './integrations/Adnetic';
 import AnyQuery from './integrations/AnyQuery';
 import VeInteractive from './integrations/VeInteractive';
+import REES46 from './integrations/REES46';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -86,6 +87,7 @@ const integrations = {
   Adnetic,
   AnyQuery,
   'Ve Interactive': VeInteractive,
+  REES46,
 };
 
 export default integrations;
