@@ -293,11 +293,11 @@ describe('Integrations: Mindbox', () => {
       });
 
       it('should track viewed product listing with default operation', () => {
+        window.digitalData.listing = {
+          categoryId: '123',
+        };
         window.digitalData.events.push({
           name: 'Viewed Product Listing',
-          listing: {
-            categoryId: '123',
-          },
           callback: () => {
             assert.ok(window.mindbox.calledWith('performOperation', {
               operation: 'CategoryView',
@@ -749,6 +749,12 @@ describe('Integrations: Mindbox', () => {
           value: 'user.userId',
         },
       });
+      mindbox.setOption('areaIdsMapping', {
+        externalId: {
+          type: 'digitalData',
+          value: 'website.regionId',
+        },
+      });
       mindbox.setOption('productSkuIdsMapping', {
         bitrixId: 'skuCode',
       });
@@ -970,11 +976,11 @@ describe('Integrations: Mindbox', () => {
       });
 
       it('should track viewed product listing with default operation', () => {
+        window.digitalData.listing = {
+          categoryId: '123',
+        };
         window.digitalData.events.push({
           name: 'Viewed Product Listing',
-          listing: {
-            categoryId: '123',
-          },
           callback: () => {
             assert.ok(window.mindbox.calledWith('async', {
               operation: 'CategoryView',
@@ -1196,6 +1202,9 @@ describe('Integrations: Mindbox', () => {
       });
 
       it('should track subscription with default operation', () => {
+        window.digitalData.website = {
+          regionId: 'region123',
+        };
         window.digitalData.events.push({
           name: 'Subscribed',
           source: 'Driveback',
@@ -1214,6 +1223,11 @@ describe('Integrations: Mindbox', () => {
                   lastName: 'Dow',
                   customFields: {
                     source: 'Driveback',
+                  },
+                  area: {
+                    ids: {
+                      externalId: 'region123',
+                    },
                   },
                   subscriptions: [
                     {

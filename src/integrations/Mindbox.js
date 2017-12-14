@@ -3,6 +3,7 @@ import { getProp, setProp } from 'driveback-utils/dotProp';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import cleanObject from 'driveback-utils/cleanObject';
 import isEmpty from 'driveback-utils/isEmpty';
+import arrayMerge from 'driveback-utils/arrayMerge';
 import {
   VIEWED_PAGE,
   LOGGED_IN,
@@ -28,6 +29,7 @@ const V3 = 'V3';
 
 const DEFAULT_CUSTOMER_FIELDS = [
   'ids',
+  'area',
   'firstName',
   'lastName',
   'middleName',
@@ -55,6 +57,7 @@ class Mindbox extends Integration {
       productIdsMapping: {},
       productSkuIdsMapping: {},
       productCategoryIdsMapping: {},
+      areaIdsMapping: {},
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -74,6 +77,7 @@ class Mindbox extends Integration {
 
     this.prepareEnrichableUserProps();
     this.prepareEnrichableUserIds();
+    this.prepareEnrichableCategoryIds();
 
     this.operationEvents = Object.keys(this.getOption('operationMapping'));
     this.operationEvents.forEach((operationEvent) => {
@@ -111,10 +115,18 @@ class Mindbox extends Integration {
 
   prepareEnrichableUserProps() {
     this.enrichableUserProps = getEnrichableVariableMappingProps(this.getOption('userVars'));
+    if (this.getOption('apiVersion') === V3) {
+      const enrichableAreaProps = getEnrichableVariableMappingProps(this.getOption('areaIdsMapping'));
+      arrayMerge(this.enrichableUserProps, enrichableAreaProps);
+    }
   }
 
   prepareEnrichableUserIds() {
     this.enrichableUserIds = getEnrichableVariableMappingProps(this.getOption('customerIdsMapping'));
+  }
+
+  prepareEnrichableCategoryIds() {
+    this.enrichableCategoryIds = getEnrichableVariableMappingProps(this.getOption('productCategoryIdsMapping'));
   }
 
   getEnrichableEventProps(event) {
@@ -147,7 +159,10 @@ class Mindbox extends Integration {
         enrichableProps = ['product'];
         break;
       case VIEWED_PRODUCT_LISTING:
-        enrichableProps = ['listing.categoryId'];
+        enrichableProps = [
+          ...this.getEnrichableCategoryIds(),
+          'listing.categoryId', // might be duplicated
+        ];
         break;
       default:
       // do nothing
@@ -296,6 +311,10 @@ class Mindbox extends Integration {
     return this.enrichableUserIds;
   }
 
+  getEnrichableCategoryIds() {
+    return this.enrichableCategoryIds;
+  }
+
   isLoaded() {
     return window.mindboxInitialized;
   }
@@ -349,7 +368,9 @@ class Mindbox extends Integration {
     const userData = extractVariableMappingValues(event, userVars);
     if (this.getOption('apiVersion') === V3 && event.name !== COMPLETED_TRANSACTION) {
       const customerIds = this.getCustomerIds(event);
+      const area = this.getV3Area(event);
       if (customerIds) userData.ids = customerIds;
+      if (area) userData.area = area;
       const keys = Object.keys(userData);
       keys.reduce((acc, key) => {
         if (DEFAULT_CUSTOMER_FIELDS.indexOf(key) < 0) {
@@ -390,10 +411,22 @@ class Mindbox extends Integration {
     return (!isEmpty(categoryIds)) ? categoryIds : undefined;
   }
 
+  getAreaIds(event) {
+    const mapping = this.getOption('areaIdsMapping');
+    const areaIds = extractVariableMappingValues(event, mapping);
+    return (!isEmpty(areaIds)) ? areaIds : undefined;
+  }
+
   getCustomerIds(event) {
     const mapping = this.getOption('customerIdsMapping');
     const customerIds = extractVariableMappingValues(event, mapping);
     return (!isEmpty(customerIds)) ? customerIds : undefined;
+  }
+
+  getV3Area(event) {
+    const areaIds = this.getAreaIds(event);
+    if (!areaIds) return undefined;
+    return { ids: areaIds };
   }
 
   getV3Product(product) {
