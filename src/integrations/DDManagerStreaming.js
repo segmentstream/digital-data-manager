@@ -287,7 +287,7 @@ class DDManagerStreaming extends Integration {
       }
     }
 
-    if (event.website) {
+    if (event.name === VIEWED_PAGE && event.website) {
       const website = event.website;
       this.website = this.filters.filterWebsite(website);
     }
