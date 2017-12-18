@@ -3,6 +3,7 @@ import semver from 'driveback-utils/semver';
 import getQueryParam from 'driveback-utils/getQueryParam';
 import cleanObject from 'driveback-utils/cleanObject';
 import { getProp, setProp } from 'driveback-utils/dotProp';
+import { warn } from 'driveback-utils/safeConsole';
 import uuid from 'uuid/v1';
 import UAParser from 'ua-parser-js';
 
@@ -201,13 +202,26 @@ class DigitalDataEnricher {
   enrichPageData() {
     const page = this.digitalData.page;
 
-    page.path = page.path || decodeURIComponent(escape(this.getHtmlGlobals().getLocation().pathname));
-    page.referrer = page.referrer || decodeURI(escape(this.getHtmlGlobals().getDocument().referrer));
-    page.queryString = page.queryString ||
-      decodeURIComponent(escape(this.getHtmlGlobals().getLocation().search));
-    page.title = page.title || this.getHtmlGlobals().getDocument().title;
-    page.url = page.url || decodeURI(escape(this.getHtmlGlobals().getLocation().href));
-    page.hash = page.hash || this.getHtmlGlobals().getLocation().hash;
+    let path = this.getHtmlGlobals().getLocation().pathname;
+    let referrer = this.getHtmlGlobals().getDocument().referrer;
+    let queryString = this.getHtmlGlobals().getLocation().search;
+    let url = this.getHtmlGlobals().getLocation().href;
+    let hash = this.getHtmlGlobals().getLocation().hash;
+
+    try { path = decodeURIComponent(path); } catch (e) { warn(e); }
+    try { referrer = decodeURI(referrer); } catch (e) { warn(e); }
+    try { queryString = decodeURIComponent(queryString); } catch (e) { warn(e); }
+    try { url = decodeURI(url); } catch (e) { warn(e); }
+    try { hash = decodeURIComponent(hash); } catch (e) { warn(e); }
+
+    const title = this.getHtmlGlobals().getDocument().title;
+
+    page.path = page.path || path;
+    page.referrer = page.referrer || referrer;
+    page.queryString = page.queryString || queryString;
+    page.title = page.title || title;
+    page.url = page.url || url;
+    page.hash = page.hash || hash;
   }
 
   enrichContextData() {
