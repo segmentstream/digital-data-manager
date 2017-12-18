@@ -7,6 +7,7 @@ import arrayMerge from 'driveback-utils/arrayMerge';
 import size from 'driveback-utils/size';
 import isCrawler from 'driveback-utils/isCrawler';
 import each from 'driveback-utils/each';
+import { warn } from 'driveback-utils/safeConsole';
 import uuid from 'uuid/v1';
 import Integration from './../Integration';
 import StreamingFilters, {
@@ -219,6 +220,20 @@ class DDManagerStreaming extends Integration {
       if (!campaign.source) campaign.source = 'google';
       if (!campaign.medium) campaign.medium = 'cpc';
     }
+    let path = htmlGlobals.getLocation().pathname;
+    let referrer = htmlGlobals.getDocument().referrer;
+    let search = htmlGlobals.getLocation().search;
+    let url = htmlGlobals.getLocation().href;
+    let hash = htmlGlobals.getLocation().hash;
+
+    try { path = decodeURIComponent(path); } catch (e) { warn(e); }
+    try { referrer = decodeURI(referrer); } catch (e) { warn(e); }
+    try { search = decodeURIComponent(search); } catch (e) { warn(e); }
+    try { url = decodeURI(url); } catch (e) { warn(e); }
+    try { hash = decodeURIComponent(hash); } catch (e) { warn(e); }
+
+    const title = htmlGlobals.getDocument().title;
+
     const commonFields = cleanObject({
       hitId,
       projectId: this.getOption('projectId'),
@@ -229,14 +244,7 @@ class DDManagerStreaming extends Integration {
       context: {
         campaign: size(campaign) ? campaign : undefined,
         library: this.library,
-        page: {
-          path: decodeURI(escape(htmlGlobals.getLocation().pathname)),
-          referrer: decodeURI(escape(htmlGlobals.getDocument().referrer)),
-          search: decodeURI(escape(htmlGlobals.getLocation().search)),
-          title: htmlGlobals.getDocument().title,
-          url: decodeURI(escape(htmlGlobals.getLocation().href)),
-          hash: htmlGlobals.getLocation().hash,
-        },
+        page: { path, referrer, search, title, url, hash },
         userAgent: htmlGlobals.getNavigator().userAgent,
         screenWidth: window.screen ? window.screen.width : undefined,
         screenHeight: window.screen ? window.screen.height : undefined,

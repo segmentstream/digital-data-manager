@@ -1,6 +1,7 @@
 import cleanObject from 'driveback-utils/cleanObject';
 import { getProp } from 'driveback-utils/dotProp';
 import each from 'driveback-utils/each';
+import { warn } from 'driveback-utils/safeConsole';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -256,12 +257,16 @@ class Filters {
   }
 
   filterPage(page = {}) {
+    let url = page.url;
+    let queryString = page.queryString;
+    try { url = decodeURI(url); } catch (e) { warn(e); }
+    try { queryString = (queryString) ? decodeURI(queryString) : undefined; } catch (e) { warn(e); }
     return filterObject({
       ...page,
       breadcrumb: (page.breadcrumb && Array.isArray(page.breadcrumb)) ?
         page.breadcrumb.join('/') : page.breadcrumb,
-      url: decodeURI(escape(page.url)),
-      queryString: page.queryString ? decodeURI(escape(page.queryString)) : undefined,
+      url,
+      queryString,
     }, pageProps);
   }
 
