@@ -300,7 +300,7 @@ class DDManagerStreaming extends Integration {
       this.website = this.filters.filterWebsite(website);
     }
 
-    this.sendEventHit(event);
+    // this.sendEventHit(event);
   }
 
   sendEventHit(event) {
