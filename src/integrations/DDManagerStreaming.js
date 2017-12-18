@@ -300,7 +300,7 @@ class DDManagerStreaming extends Integration {
       this.website = this.filters.filterWebsite(website);
     }
 
-    // this.sendEventHit(event);
+    this.sendEventHit(event);
   }
 
   sendEventHit(event) {
@@ -335,7 +335,7 @@ class DDManagerStreaming extends Integration {
         // window.localStorage.removeItem(this.getCacheKey(hitData.hitId));
       }
     }).catch((e) => {
-      console.warn(e);
+      // console.warn(e);
     });
   }
 }
