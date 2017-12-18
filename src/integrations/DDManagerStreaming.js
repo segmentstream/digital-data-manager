@@ -226,11 +226,11 @@ class DDManagerStreaming extends Integration {
     let url = htmlGlobals.getLocation().href;
     let hash = htmlGlobals.getLocation().hash;
 
-    // try { path = decodeURIComponent(path); } catch (e) { warn(e); }
-    // try { referrer = decodeURI(referrer); } catch (e) { warn(e); }
-    // try { search = decodeURIComponent(search); } catch (e) { warn(e); }
-    // try { url = decodeURI(url); } catch (e) { warn(e); }
-    // try { hash = decodeURIComponent(hash); } catch (e) { warn(e); }
+    try { path = decodeURIComponent(path); } catch (e) { warn(e); }
+    try { referrer = decodeURI(referrer); } catch (e) { warn(e); }
+    try { search = decodeURIComponent(search); } catch (e) { warn(e); }
+    try { url = decodeURI(url); } catch (e) { warn(e); }
+    try { hash = decodeURIComponent(hash); } catch (e) { warn(e); }
 
     const title = htmlGlobals.getDocument().title;
 
