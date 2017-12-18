@@ -280,13 +280,11 @@ const ddManager = {
       enableErrorTracking(_digitalData);
     }
 
-    let storage;
-    if (settings.useCookieStorage) {
+    let storage = new Storage();
+    if (settings.useCookieStorage || !storage.isEnabled()) {
       storage = new CookieStorage(cleanObject({
         cookieDomain: settings.cookieDomain,
       }));
-    } else {
-      storage = new Storage();
     }
 
     _ddStorage = new DDStorage(_digitalData, storage);

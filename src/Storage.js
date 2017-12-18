@@ -41,6 +41,12 @@ class Storage {
   }
 
   isEnabled() {
+    try {
+      localStorage.setItem('ddm_localstorage_test', 1);
+      localStorage.removeItem('ddm_localstorage_test');
+    } catch (e) {
+      return false;
+    }
     return store.enabled;
   }
 
