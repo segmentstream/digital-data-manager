@@ -259,7 +259,7 @@ class Filters {
   filterPage(page = {}) {
     let url = page.url;
     let queryString = page.queryString;
-    try { url = decodeURI(url); } catch (e) { warn(e); }
+    try { url = (url) ? decodeURI(url) : undefined; } catch (e) { warn(e); }
     try { queryString = (queryString) ? decodeURI(queryString) : undefined; } catch (e) { warn(e); }
     return filterObject({
       ...page,

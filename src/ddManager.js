@@ -306,23 +306,23 @@ const ddManager = {
     _eventManager.setSendViewedPageEvent(settings.sendViewedPageEvent);
 
     IntegrationsLoader.addIntegrations(settings.integrations, ddManager);
-    // let streaming = IntegrationsLoader.getIntegration('DDManager Streaming');
-    // if (!streaming) {
-    //   try {
-    //     streaming = new DDManagerStreaming(_digitalData, { internal: true });
-    //     IntegrationsLoader.addIntegration('DDManager Streaming', streaming, ddManager);
-    //   } catch (e) {
-    //     errorLog(e);
-    //   }
-    // }
-    // if (streaming) {
-    //   streaming.setOption('projectId', settings.projectId);
-    //   streaming.setOption('projectName', settings.projectName);
-    //   streaming.setOption('library', {
-    //     name: 'ddmanager.js',
-    //     version: ddManager.VERSION,
-    //   });
-    // }
+    let streaming = IntegrationsLoader.getIntegration('DDManager Streaming');
+    if (!streaming) {
+      try {
+        streaming = new DDManagerStreaming(_digitalData, { internal: true });
+        IntegrationsLoader.addIntegration('DDManager Streaming', streaming, ddManager);
+      } catch (e) {
+        errorLog(e);
+      }
+    }
+    if (streaming) {
+      streaming.setOption('projectId', settings.projectId);
+      streaming.setOption('projectName', settings.projectName);
+      streaming.setOption('library', {
+        name: 'ddmanager.js',
+        version: ddManager.VERSION,
+      });
+    }
 
     IntegrationsLoader.initializeIntegrations(settings.version);
     IntegrationsLoader.loadIntegrations(
