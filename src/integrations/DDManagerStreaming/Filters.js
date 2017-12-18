@@ -260,8 +260,8 @@ class Filters {
       ...page,
       breadcrumb: (page.breadcrumb && Array.isArray(page.breadcrumb)) ?
         page.breadcrumb.join('/') : page.breadcrumb,
-      url: decodeURI(page.url),
-      queryString: page.queryString ? decodeURI(page.queryString) : undefined,
+      url: decodeURI(escape(page.url)),
+      queryString: page.queryString ? decodeURI(escape(page.queryString)) : undefined,
     }, pageProps);
   }
 

@@ -201,12 +201,12 @@ class DigitalDataEnricher {
   enrichPageData() {
     const page = this.digitalData.page;
 
-    page.path = page.path || decodeURIComponent(this.getHtmlGlobals().getLocation().pathname);
-    page.referrer = page.referrer || decodeURI(this.getHtmlGlobals().getDocument().referrer);
+    page.path = page.path || decodeURIComponent(escape(this.getHtmlGlobals().getLocation().pathname));
+    page.referrer = page.referrer || decodeURI(escape(this.getHtmlGlobals().getDocument().referrer));
     page.queryString = page.queryString ||
-      decodeURIComponent(this.getHtmlGlobals().getLocation().search);
+      decodeURIComponent(escape(this.getHtmlGlobals().getLocation().search));
     page.title = page.title || this.getHtmlGlobals().getDocument().title;
-    page.url = page.url || decodeURI(this.getHtmlGlobals().getLocation().href);
+    page.url = page.url || decodeURI(escape(this.getHtmlGlobals().getLocation().href));
     page.hash = page.hash || this.getHtmlGlobals().getLocation().hash;
   }
 
