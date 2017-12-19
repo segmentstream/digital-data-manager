@@ -317,7 +317,7 @@ class DDManagerStreaming extends Integration {
   }
 
   send(hitData) {
-    /* 
+    /*
     try {
       const streamCache = window.localStorage.getItem(this.getCacheKey());
       window.localStorage.setItem(this.getCacheKey(hitId), JSON.stringify(hitData));
