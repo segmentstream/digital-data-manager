@@ -44,6 +44,7 @@ class Mindbox extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       apiVersion: V2,
+      endpointId: '',
       projectSystemName: '',
       brandSystemName: '',
       pointOfContactSystemName: '',
@@ -101,12 +102,19 @@ class Mindbox extends Integration {
     };
     window.mindbox.queue = window.mindbox.queue || [];
 
-    window.mindbox('create', {
-      projectSystemName: this.getOption('projectSystemName'),
-      brandSystemName: this.getOption('brandSystemName'),
-      pointOfContactSystemName: this.getOption('pointOfContactSystemName'),
-      projectDomain: this.getOption('projectDomain'),
-    });
+    if (this.getOption('apiVersion') === V3) {
+      window.mindbox('create', {
+        endpointId: this.getOption('endpointId'),
+      });
+    } else {
+      window.mindbox('create', {
+        projectSystemName: this.getOption('projectSystemName'),
+        brandSystemName: this.getOption('brandSystemName'),
+        pointOfContactSystemName: this.getOption('pointOfContactSystemName'),
+        projectDomain: this.getOption('projectDomain'),
+      });
+    }
+    
   }
 
   getSemanticEvents() {

@@ -13,6 +13,7 @@ describe('Integrations: Mindbox', () => {
     pointOfContactSystemName: 'test-services.mindbox.ru',
     projectDomain: 'test.com',
     userIdProvider: 'TestWebsiteId',
+    endpointId: 'endpointId',
   };
 
   beforeEach(() => {
@@ -56,7 +57,7 @@ describe('Integrations: Mindbox', () => {
         assert.ok(window.mindbox.queue);
       });
 
-      it('should create tracker', () => {
+      it('should create V2 tracker', () => {
         window.mindbox = noop;
         sinon.stub(window, 'mindbox');
         sinon.stub(mindbox, 'load', () => {
@@ -68,6 +69,19 @@ describe('Integrations: Mindbox', () => {
           brandSystemName: mindbox.getOption('brandSystemName'),
           pointOfContactSystemName: mindbox.getOption('pointOfContactSystemName'),
           projectDomain: mindbox.getOption('projectDomain'),
+        }));
+      });
+
+      it('should create V3 tracker', () => {
+        mindbox.setOption('apiVersion', 'V3');
+        window.mindbox = noop;
+        sinon.stub(window, 'mindbox');
+        sinon.stub(mindbox, 'load', () => {
+          mindbox.onLoad();
+        });
+        ddManager.initialize();
+        assert.ok(window.mindbox.calledWith('create', {
+          endpointId: mindbox.getOption('endpointId'),
         }));
       });
     });
