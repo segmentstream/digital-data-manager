@@ -335,7 +335,7 @@ class DDManagerStreaming extends Integration {
         // window.localStorage.removeItem(this.getCacheKey(hitData.hitId));
       }
     }).catch((e) => {
-      // console.warn(e);
+      warn(e);
     });
   }
 }
