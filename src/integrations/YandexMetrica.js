@@ -328,6 +328,10 @@ class YandexMetrica extends Integration {
     }
   }
 
+  allowNoConflictInitialization() {
+    return true;
+  }
+
   initialize() {
     window.yandex_metrika_callbacks = window.yandex_metrika_callbacks || [];
     this.dataLayer = window[this.dataLayerName] = window[this.dataLayerName] || [];
