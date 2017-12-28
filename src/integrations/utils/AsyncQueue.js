@@ -25,13 +25,13 @@ class AsyncQueue {
     this.asyncQueue.push = (callback) => {
       callback();
     };
+    this._flushed = true;
   }
 
   push(handler) {
-    if (this.isLoadedDelegate()) {
-      handler();
-    } else {
-      this.asyncQueue.push(handler);
+    this.asyncQueue.push(handler);
+    if (!this._flushed && this.isLoadedDelegate()) {
+      this.flushQueue();
     }
   }
 }
