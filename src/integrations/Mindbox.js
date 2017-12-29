@@ -29,6 +29,7 @@ const V3 = 'V3';
 
 const DEFAULT_CUSTOMER_FIELDS = [
   'ids',
+  'authenticationTicket',
   'area',
   'firstName',
   'lastName',
