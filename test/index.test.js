@@ -1,5 +1,6 @@
 window.localStorage.clear();
 console.error = () => {};
+console.warn = () => {};
 
 // window.__DEV_MODE__ = true; // disable catching exceptions
 

@@ -103,7 +103,7 @@ class Vkontakte extends Integration {
   }
 
   isLoaded() {
-    return !!window.VK;
+    return !!(window.VK && window.VK.Retargeting);
   }
 
   reset() {
@@ -230,7 +230,7 @@ class Vkontakte extends Integration {
     const items = getProp(event, 'listing.items') || [];
     this.asyncQueue.push(() => {
       window.VK.Retargeting.ProductEvent(this.getPriceListId(event), 'view_category', {
-        categoryIds: [getProp(event, 'listing.categoryId')],
+        category_ids: [getProp(event, 'listing.categoryId')],
         products_recommended_ids: items.slice(0, 4).map(item => item.id),
       });
     });

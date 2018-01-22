@@ -267,7 +267,7 @@ class Criteo extends Integration {
   getDeviceType(siteType) {
     let deviceType;
 
-    if (!siteType || siteType === 'adaptive') {
+    if (!siteType || siteType === 'adaptive' || siteType === 'responsive') {
       const tablet = /iPad/.test(navigator.userAgent);
       const mobile = /Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Silk/.test(navigator.userAgent);
       if (tablet) {
