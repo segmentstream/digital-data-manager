@@ -47,7 +47,7 @@ class DDManagerStreaming extends Integration {
     const optionsWithDefaults = Object.assign({
       projectId: '',
       projectName: '',
-      trackingUrl: 'https://track.ddmanager.ru/collect',
+      trackingUrl: 'https://track2.ddmanager.ru/collect',
       dimensions: {},
       metrics: {},
       internal: false,
