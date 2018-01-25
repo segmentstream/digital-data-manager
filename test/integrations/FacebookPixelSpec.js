@@ -11,7 +11,7 @@ describe('Integrations: FacebookPixel', () => {
     customEvents: {
       'Downloaded Tutorial': 'TutorialDownload',
       'Applied For Trial': 'Lead',
-    }
+    },
   };
 
   beforeEach(() => {
@@ -42,7 +42,7 @@ describe('Integrations: FacebookPixel', () => {
         window.fbq.callMethod = () => {};
         fbPixel.onLoad();
       });
-      ddManager.once('load', () => {
+      fbPixel.once('load', () => {
         assert.ok(fbPixel.isLoaded());
         done();
       });
@@ -57,7 +57,7 @@ describe('Integrations: FacebookPixel', () => {
       sinon.stub(fbPixel, 'load', () => {
         fbPixel.onLoad();
       });
-      ddManager.once('ready', done);
+      fbPixel.once('ready', done);
       ddManager.initialize();
       sinon.spy(window, 'fbq');
     });

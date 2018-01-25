@@ -175,7 +175,6 @@ class GoogleAnalytics extends Integration {
     enrichableDimensionsProps.forEach((enrichableDimensionsProp) => {
       enrichableProps.push(enrichableDimensionsProp);
     });
-
     return enrichableProps;
   }
 
@@ -487,7 +486,7 @@ class GoogleAnalytics extends Integration {
   }
 
   initialize(version) {
-    this.initVersion = version;
+    this.initVersion = version || this.initVersion; // for unit tests
 
     // support of legacy version
     if (!this.initVersion && !this.getOption('namespace') && this.getOption('namespace') !== false) {

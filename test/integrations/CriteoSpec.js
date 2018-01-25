@@ -87,13 +87,11 @@ describe('Integrations: Criteo', () => {
 
     it('should load', function (done) {
       assert.ok(!criteo.isLoaded());
-      ddManager.once('load', () => {
+      criteo.once('load', () => {
         assert.ok(criteo.isLoaded());
         done();
       });
-      ddManager.initialize({
-        sendViewedPageEvent: false,
-      });
+      ddManager.initialize();
     });
   });
 
