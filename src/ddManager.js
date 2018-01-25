@@ -295,7 +295,7 @@ const ddManager = {
 
     // initialize event manager
     _eventManager = new EventManager(_digitalData, _ddListener);
-    _eventManager.setSendViewedPageEvent(settings.sendViewedPageEvent);    
+    _eventManager.setSendViewedPageEvent(settings.sendViewedPageEvent);
 
     // initialize custom enrichments
     _initializeCustomEnrichments(settings);
