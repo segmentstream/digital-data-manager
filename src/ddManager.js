@@ -305,14 +305,14 @@ const ddManager = {
 
     IntegrationsLoader.initialize(settings, ddManager);
     let streaming = IntegrationsLoader.getIntegration('DDManager Streaming');
-    // if (!streaming) {
-    //   try {
-    //     streaming = new DDManagerStreaming(_digitalData, { internal: true });
-    //     IntegrationsLoader.addIntegration('DDManager Streaming', streaming, ddManager);
-    //   } catch (e) {
-    //     errorLog(e);
-    //   }
-    // }
+    if (!streaming) {
+      try {
+        streaming = new DDManagerStreaming(_digitalData, { internal: true });
+        IntegrationsLoader.addIntegration('DDManager Streaming', streaming, ddManager);
+      } catch (e) {
+        errorLog(e);
+      }
+    }
     if (streaming) {
       streaming.setOption('projectId', settings.projectId);
       streaming.setOption('projectName', settings.projectName);
