@@ -29,6 +29,7 @@ const V3 = 'V3';
 
 const DEFAULT_CUSTOMER_FIELDS = [
   'ids',
+  'authenticationTicket',
   'area',
   'firstName',
   'lastName',
@@ -44,6 +45,7 @@ class Mindbox extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       apiVersion: V2,
+      endpointId: '',
       projectSystemName: '',
       brandSystemName: '',
       pointOfContactSystemName: '',
@@ -52,6 +54,7 @@ class Mindbox extends Integration {
       setCartOperation: '',
       userVars: {},
       productVars: {},
+      orderVars: {},
       userIdProvider: undefined,
       customerIdsMapping: {},
       productIdsMapping: {},
@@ -101,12 +104,18 @@ class Mindbox extends Integration {
     };
     window.mindbox.queue = window.mindbox.queue || [];
 
-    window.mindbox('create', {
-      projectSystemName: this.getOption('projectSystemName'),
-      brandSystemName: this.getOption('brandSystemName'),
-      pointOfContactSystemName: this.getOption('pointOfContactSystemName'),
-      projectDomain: this.getOption('projectDomain'),
-    });
+    if (this.getOption('apiVersion') === V3) {
+      window.mindbox('create', {
+        endpointId: this.getOption('endpointId'),
+      });
+    } else {
+      window.mindbox('create', {
+        projectSystemName: this.getOption('projectSystemName'),
+        brandSystemName: this.getOption('brandSystemName'),
+        pointOfContactSystemName: this.getOption('pointOfContactSystemName'),
+        projectDomain: this.getOption('projectDomain'),
+      });
+    }
   }
 
   getSemanticEvents() {
@@ -383,6 +392,27 @@ class Mindbox extends Integration {
     return userData;
   }
 
+  getSubscriptions(event, useDefaultValue) {
+    let subscriptions;
+    if (getProp(event, 'user.isSubscribed')) {
+      subscriptions = subscriptions || [];
+      subscriptions.push(cleanObject({
+        pointOfContact: 'Email',
+        isSubscribed: true,
+        valueByDefault: (useDefaultValue) ? true : undefined,
+      }));
+    }
+    if (getProp(event, 'user.isSubscribedBySms')) {
+      subscriptions = subscriptions || [];
+      subscriptions.push(cleanObject({
+        pointOfContact: 'Sms',
+        isSubscribed: true,
+        valueByDefault: (useDefaultValue) ? true : undefined,
+      }));
+    }
+    return subscriptions;
+  }
+
   getProductCustoms(product) {
     const productVars = this.getOption('productVars');
     const customs = {};
@@ -396,13 +426,13 @@ class Mindbox extends Integration {
   getProductIds(product) {
     const mapping = this.getOption('productIdsMapping');
     const productIds = extractVariableMappingValues(product, mapping);
-    return (!isEmpty(productIds)) ? productIds : undefined;  
+    return (!isEmpty(productIds)) ? productIds : undefined;
   }
 
   getProductSkuIds(product) {
     const mapping = this.getOption('productSkuIdsMapping');
     const productSkuIds = extractVariableMappingValues(product, mapping);
-    return (!isEmpty(productSkuIds)) ? productSkuIds : undefined;  
+    return (!isEmpty(productSkuIds)) ? productSkuIds : undefined;
   }
 
   getProductCategoryIds(event) {
@@ -551,38 +581,22 @@ class Mindbox extends Integration {
   }
 
   onRegistered(event, operation) {
-    this.onUpdatedProfileInfo(event, operation);
+    this.onUpdatedProfileInfo(event, operation, true);
   }
 
-  onUpdatedProfileInfo(event, operation) {
-    const identificator = this.getIdentificator(event);
-    if (!identificator) return;
-
-    let subscriptions;
-    if (getProp(event, 'user.isSubscribed')) {
-      subscriptions = subscriptions || [];
-      subscriptions.push({
-        pointOfContact: 'Email',
-        isSubscribed: true,
-        valueByDefault: true,
-      });
-    }
-    if (getProp(event, 'user.isSubscribedBySms')) {
-      subscriptions = subscriptions || [];
-      subscriptions.push({
-        pointOfContact: 'Sms',
-        isSubscribed: true,
-        valueByDefault: true,
-      });
-    }
+  onUpdatedProfileInfo(event, operation, useSubscriptionDefaultValue = false) {
+    const subscriptions = this.getSubscriptions(event, useSubscriptionDefaultValue);
     if (this.getOption('apiVersion') === V3) {
       const customer = this.getCustomerData(event);
+      if (!customer) return;
       if (subscriptions) customer.subscriptions = subscriptions;
       window.mindbox('async', {
         operation,
         data: { customer },
       });
     } else {
+      const identificator = this.getIdentificator(event);
+      if (!identificator) return;
       const data = cleanObject(this.getCustomerData(event));
       if (subscriptions) data.subscriptions = subscriptions;
       window.mindbox('identify', {
@@ -729,6 +743,7 @@ class Mindbox extends Integration {
     if (lineItems && lineItems.length) {
       mindboxItems = lineItems.map(lineItem => cleanObject({
         productId: getProp(lineItem, 'product.id'),
+        skuId: getProp(lineItem, 'product.skuCode'),
         quantity: lineItem.quantity || 1,
         price: getProp(lineItem, 'product.unitSalePrice'),
         ...this.getProductCustoms(lineItem.product),
@@ -736,12 +751,17 @@ class Mindbox extends Integration {
     }
 
     const data = this.getCustomerData(event);
+
+    const orderVars = this.getOption('orderVars');
+    const orderCustomFields = extractVariableMappingValues(event, orderVars);
+
     data.order = {
       webSiteId: orderId,
       price: getProp(event, 'transaction.total'),
       deliveryType: getProp(event, 'transaction.shippingMethod'),
       paymentType: getProp(event, 'transaction.paymentMethod'),
       items: mindboxItems,
+      ...orderCustomFields,
     };
 
     window.mindbox('identify', cleanObject({

@@ -7,6 +7,7 @@ import arrayMerge from 'driveback-utils/arrayMerge';
 import size from 'driveback-utils/size';
 import isCrawler from 'driveback-utils/isCrawler';
 import each from 'driveback-utils/each';
+import { warn } from 'driveback-utils/safeConsole';
 import uuid from 'uuid/v1';
 import Integration from './../Integration';
 import StreamingFilters, {
@@ -46,7 +47,7 @@ class DDManagerStreaming extends Integration {
     const optionsWithDefaults = Object.assign({
       projectId: '',
       projectName: '',
-      trackingUrl: 'https://track.ddmanager.ru/collect',
+      trackingUrl: 'https://track2.ddmanager.ru/collect',
       dimensions: {},
       metrics: {},
       internal: false,
@@ -219,6 +220,20 @@ class DDManagerStreaming extends Integration {
       if (!campaign.source) campaign.source = 'google';
       if (!campaign.medium) campaign.medium = 'cpc';
     }
+    let path = htmlGlobals.getLocation().pathname;
+    let referrer = htmlGlobals.getDocument().referrer;
+    let search = htmlGlobals.getLocation().search;
+    let url = htmlGlobals.getLocation().href;
+    let hash = htmlGlobals.getLocation().hash;
+
+    try { path = (path) ? decodeURIComponent(path) : undefined; } catch (e) { warn(e); }
+    try { referrer = (referrer) ? decodeURI(referrer) : undefined; } catch (e) { warn(e); }
+    try { search = (search) ? decodeURIComponent(search) : undefined; } catch (e) { warn(e); }
+    try { url = (url) ? decodeURI(url) : undefined; } catch (e) { warn(e); }
+    try { hash = (hash) ? decodeURIComponent(hash) : undefined; } catch (e) { warn(e); }
+
+    const title = htmlGlobals.getDocument().title;
+
     const commonFields = cleanObject({
       hitId,
       projectId: this.getOption('projectId'),
@@ -229,14 +244,7 @@ class DDManagerStreaming extends Integration {
       context: {
         campaign: size(campaign) ? campaign : undefined,
         library: this.library,
-        page: {
-          path: decodeURI(htmlGlobals.getLocation().pathname),
-          referrer: decodeURI(htmlGlobals.getDocument().referrer),
-          search: decodeURI(htmlGlobals.getLocation().search),
-          title: htmlGlobals.getDocument().title,
-          url: decodeURI(htmlGlobals.getLocation().href),
-          hash: htmlGlobals.getLocation().hash,
-        },
+        page: { path, referrer, search, title, url, hash },
         userAgent: htmlGlobals.getNavigator().userAgent,
         screenWidth: window.screen ? window.screen.width : undefined,
         screenHeight: window.screen ? window.screen.height : undefined,
@@ -287,7 +295,7 @@ class DDManagerStreaming extends Integration {
       }
     }
 
-    if (event.website) {
+    if (event.name === VIEWED_PAGE && event.website) {
       const website = event.website;
       this.website = this.filters.filterWebsite(website);
     }
@@ -309,7 +317,7 @@ class DDManagerStreaming extends Integration {
   }
 
   send(hitData) {
-    /* 
+    /*
     try {
       const streamCache = window.localStorage.getItem(this.getCacheKey());
       window.localStorage.setItem(this.getCacheKey(hitId), JSON.stringify(hitData));
@@ -327,7 +335,7 @@ class DDManagerStreaming extends Integration {
         // window.localStorage.removeItem(this.getCacheKey(hitData.hitId));
       }
     }).catch((e) => {
-      console.warn(e);
+      warn(e);
     });
   }
 }

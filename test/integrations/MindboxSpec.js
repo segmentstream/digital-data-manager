@@ -13,6 +13,7 @@ describe('Integrations: Mindbox', () => {
     pointOfContactSystemName: 'test-services.mindbox.ru',
     projectDomain: 'test.com',
     userIdProvider: 'TestWebsiteId',
+    endpointId: 'endpointId',
   };
 
   beforeEach(() => {
@@ -56,7 +57,7 @@ describe('Integrations: Mindbox', () => {
         assert.ok(window.mindbox.queue);
       });
 
-      it('should create tracker', () => {
+      it('should create V2 tracker', () => {
         window.mindbox = noop;
         sinon.stub(window, 'mindbox');
         sinon.stub(mindbox, 'load', () => {
@@ -68,6 +69,19 @@ describe('Integrations: Mindbox', () => {
           brandSystemName: mindbox.getOption('brandSystemName'),
           pointOfContactSystemName: mindbox.getOption('pointOfContactSystemName'),
           projectDomain: mindbox.getOption('projectDomain'),
+        }));
+      });
+
+      it('should create V3 tracker', () => {
+        mindbox.setOption('apiVersion', 'V3');
+        window.mindbox = noop;
+        sinon.stub(window, 'mindbox');
+        sinon.stub(mindbox, 'load', () => {
+          mindbox.onLoad();
+        });
+        ddManager.initialize();
+        assert.ok(window.mindbox.calledWith('create', {
+          endpointId: mindbox.getOption('endpointId'),
         }));
       });
     });
@@ -455,11 +469,13 @@ describe('Integrations: Mindbox', () => {
                   items: [
                     {
                       productId: '123',
+                      skuId: 'sku123',
                       quantity: 1,
                       price: 100,
                     },
                     {
                       productId: '234',
+                      skuId: 'sku234',
                       quantity: 2,
                       price: 150,
                     }
@@ -499,11 +515,13 @@ describe('Integrations: Mindbox', () => {
                   items: [
                     {
                       productId: '123',
+                      skuId: 'sku123',
                       quantity: 1,
                       price: 100,
                     },
                     {
                       productId: '234',
+                      skuId: 'sku234',
                       quantity: 2,
                       price: 150,
                     }
@@ -523,6 +541,7 @@ describe('Integrations: Mindbox', () => {
         mindbox.setOption('operationMapping', {
           'Subscribed': 'EmailSubscribe',
           'Registered': 'Registration',
+          'Updated Profile Info': 'UpdateProfile',
         });
         mindbox.setOption('userVars', {
           'email': {
@@ -705,8 +724,43 @@ describe('Integrations: Mindbox', () => {
         });
       });
 
+      it('should track update profile info with subscription to email and sms', () => {
+        window.digitalData.events.push({
+          name: 'Updated Profile Info',
+          user: {
+            isSubscribed: true,
+            isSubscribedBySms: true,
+            email: 'test@driveback.ru',
+            firstName: 'John',
+            lastName: 'Dow',
+          },
+          callback: () => {
+            assert.ok(window.mindbox.calledWith('identify', {
+              operation: 'UpdateProfile',
+              identificator: {
+                provider: 'email',
+                identity: 'test@driveback.ru'
+              },
+              data: {
+                email: 'test@driveback.ru',
+                firstName: 'John',
+                lastName: 'Dow',
+                subscriptions: [
+                  {
+                    pointOfContact: 'Email',
+                    isSubscribed: true,
+                  },
+                  {
+                    pointOfContact: 'Sms',
+                    isSubscribed: true,
+                  }
+                ]
+              },
+            }));
+          }
+        });
+      });
     });
-
 
     describe('#onLoggedIn', () => {
 
@@ -1057,12 +1111,16 @@ describe('Integrations: Mindbox', () => {
         ],
         shippingMethod: 'Courier',
         paymentMethod: 'Visa',
+        customField: 'test',
         total: 5000,
       };
 
       beforeEach(() => {
         mindbox.setOption('operationMapping', {
           'Completed Transaction': 'CompletedOrder',
+        });
+        mindbox.setOption('orderVars', {
+          oneMoreField: 'transaction.customField',
         });
       });
 
@@ -1086,14 +1144,17 @@ describe('Integrations: Mindbox', () => {
                   price: 5000,
                   deliveryType: 'Courier',
                   paymentType: 'Visa',
+                  oneMoreField: 'test',
                   items: [
                     {
                       productId: '123',
+                      skuId: 'sku123',
                       quantity: 1,
                       price: 100,
                     },
                     {
                       productId: '234',
+                      skuId: 'sku234',
                       quantity: 2,
                       price: 150,
                     },
@@ -1130,14 +1191,17 @@ describe('Integrations: Mindbox', () => {
                   price: 5000,
                   deliveryType: 'Courier',
                   paymentType: 'Visa',
+                  oneMoreField: 'test',
                   items: [
                     {
                       productId: '123',
+                      skuId: 'sku123',
                       quantity: 1,
                       price: 100,
                     },
                     {
                       productId: '234',
+                      skuId: 'sku234',
                       quantity: 2,
                       price: 150,
                     },

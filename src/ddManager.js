@@ -116,6 +116,11 @@ function _preparePageEvent(event, name) {
 }
 
 function _trackIntegrationPageEvent(event, integration, trackValidationErrorsOption) {
+  if (!integration.isInitialized()) {
+    IntegrationsLoader.initializeIntegration(integration);
+    IntegrationsLoader.queueIntegrationLoad(integration);
+  }
+
   if (integration.trackNamedPages() || integration.trackCategorizedPages()) {
     _trackIntegrationEvent(clone(event), integration);
     if (integration.trackNamedPages() && event.page && event.page.name) {
@@ -131,42 +136,32 @@ function _trackIntegrationPageEvent(event, integration, trackValidationErrorsOpt
   }
 }
 
-function _addIntegrationsEventTracking(trackValidationErrorsOption) {
+function _shouldTrackEvent(event, integrationName) {
+  const ex = event.excludeIntegrations;
+  const inc = event.includeIntegrations;
+
+  if (ex && inc) return false; // TODO: error
+  if ((ex && !Array.isArray(ex)) || (inc && !Array.isArray(inc))) return false; // TODO: error
+
+  if (inc) {
+    if (inc.indexOf(integrationName) >= 0) return true;
+    return false;
+  } else if (ex) {
+    if (ex.indexOf(integrationName) < 0) return true;
+    return false;
+  }
+  return true;
+}
+
+function _initializeIntegrations(settings) {
   _eventManager.addCallback(['on', 'event', (event) => {
+    const mappedEventName = mapEvent(event.name);
     each(IntegrationsLoader.getIntegrations(), (integrationName, integration) => {
-      let trackEvent = false;
-      const ex = event.excludeIntegrations;
-      const inc = event.includeIntegrations;
-      if (ex && inc) {
-        return; // TODO: error
-      }
-      if ((ex && !Array.isArray(ex)) || (inc && !Array.isArray(inc))) {
-        return; // TODO: error
-      }
-
-      if (inc) {
-        if (inc.indexOf(integrationName) >= 0) {
-          trackEvent = true;
-        } else {
-          trackEvent = false;
-        }
-      } else if (ex) {
-        if (ex.indexOf(integrationName) < 0) {
-          trackEvent = true;
-        } else {
-          trackEvent = false;
-        }
-      } else {
-        trackEvent = true;
-      }
-
-      if (trackEvent) {
+      if (_shouldTrackEvent(event, integrationName)) {
         try {
-          const mappedEventName = mapEvent(event.name);
-          if (integration.getIgnoredEvents().indexOf(mappedEventName) >= 0) {
-            return;
-          }
+          if (integration.getIgnoredEvents().indexOf(mappedEventName) >= 0) return;
           if (
+            mappedEventName !== VIEWED_PAGE && // always track Viewed Page
             integration.getSemanticEvents().indexOf(mappedEventName) < 0 &&
             !integration.allowCustomEvents()
           ) {
@@ -182,14 +177,14 @@ function _addIntegrationsEventTracking(trackValidationErrorsOption) {
           if (integrationEvent.name === VIEWED_PAGE) {
             _trackIntegrationPageEvent(integrationEvent, integration);
           } else {
-            _trackIntegrationEvent(integrationEvent, integration, trackValidationErrorsOption);
+            _trackIntegrationEvent(integrationEvent, integration, settings.trackValidationErrors);
           }
         } catch (e) {
           errorLog(e);
         }
       }
     });
-  }], true);
+  }, true]);
 }
 
 function _initializeCustomScripts(settings) {
@@ -198,7 +193,11 @@ function _initializeCustomScripts(settings) {
   _customScripts.import(settings.scripts);
   _eventManager.addCallback(['on', 'event', (event) => {
     _customScripts.run(event);
-  }]);
+  }], true);
+}
+
+function _initializeCustomEvents(settings) {
+  _eventManager.import(settings.events);
 }
 
 function _initializeCustomEnrichments(settings) {
@@ -229,7 +228,7 @@ function _initializeCustomEnrichments(settings) {
 
 const ddManager = {
 
-  VERSION: '1.2.72',
+  VERSION: '1.2.73',
 
   setAvailableIntegrations: (availableIntegrations) => {
     IntegrationsLoader.setAvailableIntegrations(availableIntegrations);
@@ -280,13 +279,11 @@ const ddManager = {
       enableErrorTracking(_digitalData);
     }
 
-    let storage;
-    if (settings.useCookieStorage) {
+    let storage = new Storage();
+    if (settings.useCookieStorage || !storage.isEnabled()) {
       storage = new CookieStorage(cleanObject({
         cookieDomain: settings.cookieDomain,
       }));
-    } else {
-      storage = new Storage();
     }
 
     _ddStorage = new DDStorage(_digitalData, storage);
@@ -298,16 +295,15 @@ const ddManager = {
 
     // initialize event manager
     _eventManager = new EventManager(_digitalData, _ddListener);
+    _eventManager.setSendViewedPageEvent(settings.sendViewedPageEvent);
 
     // initialize custom enrichments
     _initializeCustomEnrichments(settings);
 
     // import custom events
-    _eventManager.import(settings.events);
+    _initializeCustomEvents(settings);
 
-    _eventManager.setSendViewedPageEvent(settings.sendViewedPageEvent);
-
-    IntegrationsLoader.addIntegrations(settings.integrations, ddManager);
+    IntegrationsLoader.initialize(settings, ddManager);
     let streaming = IntegrationsLoader.getIntegration('DDManager Streaming');
     if (!streaming) {
       try {
@@ -326,18 +322,9 @@ const ddManager = {
       });
     }
 
-    IntegrationsLoader.initializeIntegrations(settings.version);
-    IntegrationsLoader.loadIntegrations(
-      settings.integrationsPriority,
-      settings.pageLoadTimeout,
-      () => {
-        _isLoaded = true;
-        ddManager.emit('load');
-      },
-    );
+    _initializeIntegrations(settings);
 
-    _addIntegrationsEventTracking(settings.trackValidationErrors);
-
+    // initialize custom scripts
     _initializeCustomScripts(settings);
 
     _isReady = true;
@@ -436,7 +423,6 @@ ddManager.on = ddManager.addEventListener = (event, handler) => {
       return;
     }
   }
-
   originalOn.call(ddManager, event, handler);
 };
 

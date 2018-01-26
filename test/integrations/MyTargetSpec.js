@@ -55,9 +55,7 @@ describe('Integrations: MyTarget', () => {
       });
 
       it('should call tags load after initialization', () => {
-        ddManager.initialize({
-          sendViewedPageEvent: false
-        });
+        ddManager.initialize();
         assert.ok(myTarget.load.calledOnce);
       });
     });
@@ -80,13 +78,11 @@ describe('Integrations: MyTarget', () => {
 
     it('should load', function (done) {
       assert.ok(!myTarget.isLoaded());
-      ddManager.once('load', () => {
+      myTarget.once('load', () => {
         assert.ok(myTarget.isLoaded());
         done();
       });
-      ddManager.initialize({
-        sendViewedPageEvent: false
-      });
+      ddManager.initialize();
     });
   });
 

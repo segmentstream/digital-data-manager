@@ -91,17 +91,13 @@ describe('Integrations: Yandex Metrica', () => {
 
     describe('#initialize', () => {
       it('should initialize yandex metrica queue object', () => {
-        ddManager.initialize({
-          sendViewedPageEvent: false
-        });
+        ddManager.initialize();
         assert.ok(window.yandex_metrika_callbacks);
         assert.ok(window.yandex_metrika_callbacks.push);
       });
 
       it('should call tags load after initialization', () => {
-        ddManager.initialize({
-          sendViewedPageEvent: false
-        });
+        ddManager.initialize();
         assert.ok(ym.load.calledOnce);
       });
     });
@@ -129,13 +125,11 @@ describe('Integrations: Yandex Metrica', () => {
 
     it('should load', function (done) {
       assert.ok(!ym.isLoaded());
-      ddManager.once('load', () => {
+      ym.once('load', () => {
         assert.ok(ym.isLoaded());
         done();
       });
-      ddManager.initialize({
-        sendViewedPageEvent: false
-      });
+      ddManager.initialize();
     });
   });
 
@@ -182,7 +176,9 @@ describe('Integrations: Yandex Metrica', () => {
 
     describe('#onViewedPage', () => {
       it('should track params on first pageview', (done) => {
-        sinon.spy(window.Ya, 'Metrika');
+        ym.once('load', () => {
+          sinon.spy(window.Ya, 'Metrika');
+        });
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {
@@ -202,7 +198,9 @@ describe('Integrations: Yandex Metrica', () => {
       });
 
       it('should track userParams on first pageview', (done) => {
-        sinon.spy(window.Ya, 'Metrika');
+        ym.once('load', () => {
+          sinon.spy(window.Ya, 'Metrika');
+        });
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {

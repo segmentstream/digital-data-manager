@@ -9,12 +9,12 @@ import ddManager from './../../src/ddManager';
 // until scripts are loaded using setInterval
 function asyncCallback(callback) {
   return () => {
-    ddManager.on('load', () => {
+    ddManager.on('ready', () => {
       setTimeout(() => {
-        callback()
+        callback();
       }, 101);
     });
-  }
+  };
 }
 
 function viewedPage(callback, page = {}) {
@@ -120,42 +120,35 @@ describe('Integrations: GoogleAdWords', () => {
 
     describe('#initialize', () => {
       it('should initialize AdWords queue object', () => {
-        ddManager.initialize({
-          sendViewedPageEvent: false,
-        });
+        ddManager.initialize();
         assert.ok(adwords.asyncQueue);
         assert.ok(adwords.asyncQueue.push);
       });
 
       it('should call tags load after initialization', () => {
-        ddManager.initialize({
-          sendViewedPageEvent: false,
-        });
+        ddManager.initialize();
         assert.ok(adwords.load.calledOnce);
       });
     });
   });
 
-  describe('loading', function () {
-
-    it('should load', function (done) {
+  describe('loading', () => {
+    it('should load', (done) => {
       assert.ok(!adwords.isLoaded());
-      ddManager.once('load', () => {
+      adwords.once('load', () => {
         assert.ok(adwords.isLoaded());
         done();
       });
-      ddManager.initialize({
-        sendViewedPageEvent: false,
-      });
+      ddManager.initialize();
     });
   });
 
   describe('after loading', () => {
     beforeEach((done) => {
       ddManager.once('ready', done);
-      ddManager.once('load', () => {
+      adwords.once('load', () => {
         sinon.spy(window, 'google_trackConversion');
-      })
+      });
       ddManager.initialize({
         sendViewedPageEvent: false,
       });
@@ -166,7 +159,6 @@ describe('Integrations: GoogleAdWords', () => {
     });
 
     describe('#onViewedPage', () => {
-
       it('should track conversion for home page', (done) => {
         viewedPageOfType('home', () => {
           assert.ok(window.google_trackConversion.calledWith({
@@ -174,7 +166,7 @@ describe('Integrations: GoogleAdWords', () => {
             google_custom_params: {
               ecomm_prodid: '',
               ecomm_pagetype: 'home',
-              ecomm_totalvalue: ''
+              ecomm_totalvalue: '',
             },
             google_remarketing_only: adwords.getOption('remarketingOnly'),
           }));
@@ -190,7 +182,7 @@ describe('Integrations: GoogleAdWords', () => {
             google_custom_params: {
               ecomm_prodid: '',
               ecomm_pagetype: 'home',
-              ecomm_totalvalue: ''
+              ecomm_totalvalue: '',
             },
             google_remarketing_only: adwords.getOption('remarketingOnly'),
           }));
@@ -205,7 +197,7 @@ describe('Integrations: GoogleAdWords', () => {
             google_custom_params: {
               ecomm_prodid: '',
               ecomm_pagetype: 'other',
-              ecomm_totalvalue: ''
+              ecomm_totalvalue: '',
             },
             google_remarketing_only: adwords.getOption('remarketingOnly'),
           }));
@@ -220,7 +212,7 @@ describe('Integrations: GoogleAdWords', () => {
             google_custom_params: {
               ecomm_prodid: '',
               ecomm_pagetype: 'other',
-              ecomm_totalvalue: ''
+              ecomm_totalvalue: '',
             },
             google_remarketing_only: adwords.getOption('remarketingOnly'),
           }));

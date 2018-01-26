@@ -47,9 +47,7 @@ describe('Integrations: Sociomantic', () => {
     describe('#initialize', () => {
       it('should call ready after initialization', () => {
         sinon.spy(sociomantic, 'onLoad');
-        ddManager.initialize({
-          sendViewedPageEvent: false
-        });
+        ddManager.initialize();
         assert.ok(sociomantic.onLoad.calledOnce);
         sociomantic.onLoad.restore();
       });

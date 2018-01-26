@@ -290,7 +290,7 @@ describe('DDManager', () => {
     integration2.allowCustomEvents =
     integration3.allowCustomEvents = () => {
       return true;
-    }
+    };
 
     beforeEach(() => {
       sinon.stub(integration1, 'trackEvent');
@@ -316,11 +316,11 @@ describe('DDManager', () => {
         name: 'Test',
         excludeIntegrations: ['integration1'],
         callback: () => {
-          assert.ok(!integration1.trackEvent.calledWithMatch({ name: 'Test'}));
-          assert.ok(integration2.trackEvent.calledWithMatch({ name: 'Test'}));
-          assert.ok(integration3.trackEvent.calledWithMatch({ name: 'Test'}));
+          assert.ok(!integration1.trackEvent.calledWithMatch({ name: 'Test' }));
+          assert.ok(integration2.trackEvent.calledWithMatch({ name: 'Test' }));
+          assert.ok(integration3.trackEvent.calledWithMatch({ name: 'Test' }));
           done();
-        }
+        },
       });
     });
 
@@ -329,11 +329,11 @@ describe('DDManager', () => {
         name: 'Test',
         includeIntegrations: ['integration2', 'integration3'],
         callback: () => {
-          assert.ok(!integration1.trackEvent.calledWithMatch({ name: 'Test'}));
-          assert.ok(integration2.trackEvent.calledWithMatch({ name: 'Test'}));
-          assert.ok(integration3.trackEvent.calledWithMatch({ name: 'Test'}));
+          assert.ok(!integration1.trackEvent.calledWithMatch({ name: 'Test' }));
+          assert.ok(integration2.trackEvent.calledWithMatch({ name: 'Test' }));
+          assert.ok(integration3.trackEvent.calledWithMatch({ name: 'Test' }));
           done();
-        }
+        },
       });
     });
 
@@ -343,11 +343,11 @@ describe('DDManager', () => {
         includeIntegrations: ['integration2', 'integration3'],
         excludeIntegrations: ['integration1'],
         callback: () => {
-          assert.ok(!integration1.trackEvent.calledWithMatch({ name: 'Test'}));
-          assert.ok(!integration2.trackEvent.calledWithMatch({ name: 'Test'}));
-          assert.ok(!integration3.trackEvent.calledWithMatch({ name: 'Test'}));
+          assert.ok(!integration1.trackEvent.calledWithMatch({ name: 'Test' }));
+          assert.ok(!integration2.trackEvent.calledWithMatch({ name: 'Test' }));
+          assert.ok(!integration3.trackEvent.calledWithMatch({ name: 'Test' }));
           done();
-        }
+        },
       });
     });
 
@@ -387,23 +387,22 @@ describe('DDManager', () => {
   });
 
   describe('override product', () => {
-
     let integration;
 
     beforeEach(() => {
       window.digitalData = {
         product: {
-          id: '123'
-        }
+          id: '123',
+        },
       };
       integration = new Integration(window.digitalData, {
         option1: 'initial_value',
         option2: 'initial_value',
         overrideFunctions: {
-          product: function(product) {
+          product: (product) => {
             product.id += '-test';
-          }
-        }
+          },
+        },
       });
       integration.getEnrichableEventProps = () => {
         return ['product'];

@@ -64,9 +64,9 @@ describe('DigitalDataEnricher', () => {
     before(() => {
       _digitalData = {
         page: {
-          type: 'home'
+          type: 'home',
         },
-        events: []
+        events: [],
       };
     });
 
@@ -88,10 +88,10 @@ describe('DigitalDataEnricher', () => {
       _digitalData = {
         page: {
           type: 'home',
-          url: 'http://example.com/home'
+          url: 'http://example.com/home',
         },
         context: {},
-        events: []
+        events: [],
       };
     });
 

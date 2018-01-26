@@ -54,6 +54,10 @@ class MyTarget extends Integration {
     window._tmr = window._tmr || [];
   }
 
+  allowNoConflictInitialization() {
+    return true;
+  }
+
   addGoalsToSemanticEvents() {
     const goalEvents = Object.keys(this.getOption('goals'));
     goalEvents.forEach((goalEvent) => {

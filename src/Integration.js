@@ -230,6 +230,7 @@ export default class Integration extends EventEmitter {
 
   reset() {
     this._isLoaded = false;
+    this._isInitialized = false;
   }
 
   onEnrich() {
@@ -283,6 +284,9 @@ export default class Integration extends EventEmitter {
 
   setInitialized(initialized) {
     this._isInitialized = initialized;
+    if (this._isInitialized) {
+      this.emit('ready');
+    }
   }
 
   setDDManager(ddManager) {
