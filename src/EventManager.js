@@ -239,8 +239,12 @@ class EventManager {
   }
 
   applyChange(changeInfo) {
-    const [key, value] = changeInfo;
-    DDHelper.set(key, value, _digitalData);
+    if (Array.isArray(changeInfo)) {
+      const [key, value] = changeInfo;
+      DDHelper.set(key, value, _digitalData);
+    } else if (typeof changeInfo === 'object') {
+      DDHelper.replace(changeInfo, _digitalData);
+    }
   }
 
   beforeFireEvent(event) {
