@@ -2,7 +2,7 @@
   "name": "digital-data-manager",
   "description": "The hassle-free way to integrate Digital Data Layer on your website.",
   "author": "Driveback LLC <opensource@driveback.ru>",
-  "version": "1.2.74",
+  "version": "1.2.75",
   "license": "MIT",
   "main": "dist/dd-manager.js",
   "scripts": {
