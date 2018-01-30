@@ -89,7 +89,7 @@ const integrations = {
   AnyQuery,
   'Ve Interactive': VeInteractive,
   REES46,
-  PushWorld,
+  'Push.world': PushWorld,
 };
 
 export default integrations;
