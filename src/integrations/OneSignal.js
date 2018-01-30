@@ -136,10 +136,6 @@ class OneSignal extends Integration {
   }
 
   initialize() {
-    if (!this.getOption('subdomainName') && !isHttps()) {
-      return;
-    }
-
     window.OneSignal = window.OneSignal || [];
 
     if (this.getOption('notifyButton') && this.getOption('notifyButton').displayPredicate) {
@@ -189,9 +185,8 @@ class OneSignal extends Integration {
     this.enrichDigitalData();
     this.prepareEnrichableTagProps();
 
-    if (isHttps()) {
-      this.load('manifest');
-    }
+    this.load('manifest');
+
     this.initialized = true;
   }
 
