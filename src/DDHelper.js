@@ -1,5 +1,6 @@
 import { getProp, setProp } from 'driveback-utils/dotProp';
 import clone from 'driveback-utils/clone';
+import deleteProperty from 'driveback-utils/deleteProperty';
 
 function matchProductById(id, product) {
   return product.id && String(product.id) === String(id);
@@ -21,6 +22,32 @@ class DDHelper {
 
   static set(key, value, digitalData) {
     setProp(digitalData, key, clone(value));
+  }
+
+  static replace(newDigitalData, digitalData) {
+    Object.keys(digitalData).forEach((key) => {
+      if ([
+        'changes',
+        'events',
+        'version',
+        'context',
+        'user',
+        'cart',
+        'website',
+      ].indexOf(key) < 0) {
+        deleteProperty(digitalData, key);
+      }
+    });
+    Object.keys(newDigitalData).forEach((key) => {
+      if ([
+        'changes',
+        'events',
+      ].indexOf(key) < 0) {
+        DDHelper.set(key, newDigitalData[key], digitalData);
+      }
+    });
+    digitalData.changes.length = 0;
+    digitalData.events.length = 0;
   }
 
   static getProduct(id, skuCode, digitalData) {
