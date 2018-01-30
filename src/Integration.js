@@ -266,14 +266,6 @@ export default class Integration extends EventEmitter {
     return false;
   }
 
-  trackCategorizedPages() {
-    return false;
-  }
-
-  trackNamedPages() {
-    return false;
-  }
-
   isEnriched() {
     return this._isEnriched;
   }

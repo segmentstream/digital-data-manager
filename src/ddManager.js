@@ -108,34 +108,6 @@ function _trackIntegrationEvent(event, integration, trackValidationErrorsOption)
   }
 }
 
-function _preparePageEvent(event, name) {
-  const namedPageEvent = clone(event);
-  namedPageEvent.name = `Viewed ${name} Page`;
-  namedPageEvent.nonInteraction = true;
-  return namedPageEvent;
-}
-
-function _trackIntegrationPageEvent(event, integration, trackValidationErrorsOption) {
-  if (!integration.isInitialized()) {
-    IntegrationsLoader.initializeIntegration(integration);
-    IntegrationsLoader.queueIntegrationLoad(integration);
-  }
-
-  if (integration.trackNamedPages() || integration.trackCategorizedPages()) {
-    _trackIntegrationEvent(clone(event), integration);
-    if (integration.trackNamedPages() && event.page && event.page.name) {
-      const namedPageEvent = _preparePageEvent(event, event.page.name);
-      _trackIntegrationEvent(namedPageEvent, integration);
-    }
-    if (integration.trackCategorizedPages() && event.page && event.page.category) {
-      const categorizedPageEvent = _preparePageEvent(event, event.page.category);
-      _trackIntegrationEvent(categorizedPageEvent, integration, trackValidationErrorsOption);
-    }
-  } else {
-    _trackIntegrationEvent(event, integration, trackValidationErrorsOption);
-  }
-}
-
 function _shouldTrackEvent(event, integrationName) {
   const ex = event.excludeIntegrations;
   const inc = event.includeIntegrations;
@@ -156,14 +128,43 @@ function _shouldTrackEvent(event, integrationName) {
 function _initializeIntegrations(settings) {
   _eventManager.addCallback(['on', 'event', (event) => {
     const mappedEventName = mapEvent(event.name);
-    each(IntegrationsLoader.getIntegrations(), (integrationName, integration) => {
+
+    const integrations = IntegrationsLoader.getIntegrationsByPriority();
+
+    // initialization circle (only for "Viewed Page" event)
+    if (mappedEventName === VIEWED_PAGE) {
+      integrations.forEach((integration) => {
+        if (integration.isInitialized()) return;
+        const integrationName = integration.getName();
+        if (_shouldTrackEvent(event, integrationName)) {
+          try {
+            if (integration.getIgnoredEvents().indexOf(mappedEventName) >= 0) return;
+            let integrationEvent = clone(event, true);
+            integrationEvent.name = mappedEventName;
+            integrationEvent = EventDataEnricher.enrichIntegrationData(
+              integrationEvent, _digitalData, integration,
+            );
+            if (!integrationEvent.name || integrationEvent.ignore) return;
+
+            // initialize intrgration if all checks passed
+            IntegrationsLoader.initializeIntegration(integration);
+            IntegrationsLoader.queueIntegrationLoad(integration);
+          } catch (e) {
+            errorLog(e);
+          }
+        }
+      });
+    }
+
+    // events tracking circle
+    integrations.forEach((integration) => {
+      const integrationName = integration.getName();
       if (_shouldTrackEvent(event, integrationName)) {
         try {
           if (integration.getIgnoredEvents().indexOf(mappedEventName) >= 0) return;
           if (
-            mappedEventName !== VIEWED_PAGE && // always track Viewed Page
-            integration.getSemanticEvents().indexOf(mappedEventName) < 0 &&
-            !integration.allowCustomEvents()
+            integration.getSemanticEvents().indexOf(mappedEventName) < 0
+            && !integration.allowCustomEvents()
           ) {
             return;
           }
@@ -174,11 +175,7 @@ function _initializeIntegrations(settings) {
             integrationEvent, _digitalData, integration,
           );
           if (!integrationEvent.name || integrationEvent.ignore) return;
-          if (integrationEvent.name === VIEWED_PAGE) {
-            _trackIntegrationPageEvent(integrationEvent, integration);
-          } else {
-            _trackIntegrationEvent(integrationEvent, integration, settings.trackValidationErrors);
-          }
+          _trackIntegrationEvent(integrationEvent, integration, settings.trackValidationErrors);
         } catch (e) {
           errorLog(e);
         }
@@ -228,7 +225,7 @@ function _initializeCustomEnrichments(settings) {
 
 const ddManager = {
 
-  VERSION: '1.2.73',
+  VERSION: '1.2.74',
 
   setAvailableIntegrations: (availableIntegrations) => {
     IntegrationsLoader.setAvailableIntegrations(availableIntegrations);
