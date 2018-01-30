@@ -1,4 +1,5 @@
 import Integration from './../Integration';
+import { warn } from 'driveback-utils/safeConsole';
 
 class OWOXBIStreaming extends Integration {
   constructor(digitalData, options) {
@@ -13,6 +14,11 @@ class OWOXBIStreaming extends Integration {
 
   initialize(version) {
     this.initVersion = version;
+
+    if (!window.ga) {
+      warn('Google Analytics integration should be initialized before OWOX BI Streaming integration');
+      return false;
+    }
 
     // support of legacy version
     if (!this.initVersion && !this.getOption('namespace') && this.getOption('namespace') !== false) {
@@ -33,6 +39,7 @@ class OWOXBIStreaming extends Integration {
         f=window[window.GoogleAnalyticsObject||'ga'];'function'==typeof f&&f('provide','OWOXBIStreaming',g)})();
     /* eslint-enable */
     this._loaded = true;
+    return true;
   }
 
   isLoaded() {

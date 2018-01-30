@@ -511,52 +511,6 @@ describe('DDManager', () => {
       integration.trackEvent.restore();
     });
 
-    it('should track named and categorized pages', (done) => {
-      integration.trackNamedPages = () => {
-        return true;
-      };
-      integration.trackCategorizedPages = () => {
-        return true;
-      };
-
-      window.digitalData.page = {
-        type: 'home',
-        name: 'Test Name',
-        category: 'Test Category'
-      };
-      window.digitalData.events.push({
-        name: 'Viewed Page',
-        callback: () => {
-          assert.ok(integration.trackEvent.calledWithMatch({
-            name: 'Viewed Page',
-            page: {
-              type: 'home',
-              name: 'Test Name',
-              category: 'Test Category'
-            },
-          }));
-          assert.ok(integration.trackEvent.calledWithMatch({
-            name: 'Viewed Test Name Page',
-            page: {
-              type: 'home',
-              name: 'Test Name',
-              category: 'Test Category'
-            },
-          }));
-          assert.ok(integration.trackEvent.calledWithMatch({
-            name: 'Viewed Test Category Page',
-            page: {
-              type: 'home',
-              name: 'Test Name',
-              category: 'Test Category'
-            },
-          }));
-          done();
-        }
-      });
-
-    });
-
     it('should not track named and categorized pages', (done) => {
       integration.trackNamedPages = () => {
         return false;

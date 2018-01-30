@@ -44,6 +44,19 @@ const IntegrationsLoader = {
 
   getIntegrations: () => _integrations,
 
+  getIntegrationsByPriority: () => {
+    const integrationsPriority = _integrationsPriority || {};
+    let beforeList = integrationsPriority.before || [];
+    const afterList = integrationsPriority.after || [];
+    const beforeAndAfter = beforeList.concat(afterList);
+    const allIntegrations = Object.keys(_integrations);
+    const diff = allIntegrations.filter(x => beforeAndAfter.indexOf(x) === -1);
+    // add integrations to beforeList if were not defined in before or after
+    beforeList = beforeList.concat(diff);
+
+    return (beforeList.concat(afterList)).map(integrationName => _integrations[integrationName]);
+  },
+
   initialize: (settings, ddManager) => {
     _initializeVersion = settings.version;
     _integrationsPriority = settings.integrationsPriority;
