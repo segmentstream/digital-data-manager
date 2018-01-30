@@ -66,7 +66,7 @@ describe('OneSignal', function() {
 
       it('should call tags load after initialization', () => {
         ddManager.initialize();
-        assert.ok(_oneSignal.load.calledOnce);
+        assert.ok(_oneSignal.load.calledTwice); // sdk + manifest.json
       });
     });
   });
