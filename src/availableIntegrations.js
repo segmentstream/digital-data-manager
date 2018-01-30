@@ -42,6 +42,7 @@ import Adnetic from './integrations/Adnetic';
 import AnyQuery from './integrations/AnyQuery';
 import VeInteractive from './integrations/VeInteractive';
 import REES46 from './integrations/REES46';
+import PushWorld from './integrations/PushWorld';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -88,6 +89,7 @@ const integrations = {
   AnyQuery,
   'Ve Interactive': VeInteractive,
   REES46,
+  'Push.world': PushWorld,
 };
 
 export default integrations;
