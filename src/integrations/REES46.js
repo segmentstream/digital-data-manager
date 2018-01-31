@@ -28,7 +28,7 @@ class REES46 extends Integration {
     this.addTag({
       type: 'script',
       attr: {
-        src: '//cdn.rees46.com/v3.js',
+        src: 'https://cdn.rees46.com/v3.js',
       },
     });
   }
