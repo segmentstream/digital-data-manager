@@ -6,6 +6,7 @@ import {
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
   COMPLETED_TRANSACTION,
+  SEARCHED_PRODUCTS,
 } from './../events/semanticEvents';
 
 const SEMANTIC_EVENTS = [
@@ -14,6 +15,7 @@ const SEMANTIC_EVENTS = [
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
   COMPLETED_TRANSACTION,
+  SEARCHED_PRODUCTS,
 ];
 
 class REES46 extends Integration {
@@ -49,6 +51,8 @@ class REES46 extends Integration {
       return ['product'];
     } else if (event.name === VIEWED_PRODUCT_LISTING) {
       return ['listing.categoryId'];
+    } else if (event.name === SEARCHED_PRODUCTS) {
+      return ['listing.query'];
     } else if (event.name === COMPLETED_TRANSACTION) {
       return ['transaction'];
     }
@@ -59,6 +63,7 @@ class REES46 extends Integration {
     const eventMap = {
       [VIEWED_PRODUCT_DETAIL]: this.onViewedProductDetail.bind(this),
       [VIEWED_PRODUCT_LISTING]: this.onViewedProductListing.bind(this),
+      [SEARCHED_PRODUCTS]: this.onSearchedProducts.bind(this),
       [ADDED_PRODUCT]: this.onAddedProduct.bind(this),
       [REMOVED_PRODUCT]: this.onRemovedProduct.bind(this),
       [COMPLETED_TRANSACTION]: this.onCompletedTransaction.bind(this),
@@ -114,6 +119,14 @@ class REES46 extends Integration {
     const categoryId = listing.categoryId;
     if (categoryId) {
       window.r46('track', 'category', categoryId);
+    }
+  }
+
+  onSearchedProducts(event) {
+    const listing = event.listing || {};
+    const query = listing.query;
+    if (query) {
+      window.r46('track', 'search', query);
     }
   }
 
