@@ -168,7 +168,7 @@ describe('Integrations: GoogleAdWords', () => {
               ecomm_pagetype: 'home',
               ecomm_totalvalue: '',
             },
-            google_remarketing_only: adwords.getOption('remarketingOnly'),
+            google_remarketing_only: true,
           }));
           done();
         });
@@ -184,7 +184,7 @@ describe('Integrations: GoogleAdWords', () => {
               ecomm_pagetype: 'home',
               ecomm_totalvalue: '',
             },
-            google_remarketing_only: adwords.getOption('remarketingOnly'),
+            google_remarketing_only: true,
           }));
           done();
         });
@@ -199,7 +199,7 @@ describe('Integrations: GoogleAdWords', () => {
               ecomm_pagetype: 'other',
               ecomm_totalvalue: '',
             },
-            google_remarketing_only: adwords.getOption('remarketingOnly'),
+            google_remarketing_only: true,
           }));
           done();
         });
@@ -214,7 +214,7 @@ describe('Integrations: GoogleAdWords', () => {
               ecomm_pagetype: 'other',
               ecomm_totalvalue: '',
             },
-            google_remarketing_only: adwords.getOption('remarketingOnly'),
+            google_remarketing_only: true,
           }));
           done();
         });
@@ -234,7 +234,7 @@ describe('Integrations: GoogleAdWords', () => {
               ecomm_totalvalue: '',
               ecomm_category: 'Category/Subcategory 1/Subcategory 2',
             },
-            google_remarketing_only: adwords.getOption('remarketingOnly'),
+            google_remarketing_only: true,
           }));
           done();
         });
@@ -255,7 +255,7 @@ describe('Integrations: GoogleAdWords', () => {
               ecomm_totalvalue: '',
               ecomm_category: 'Category/Subcategory 1/Subcategory 2',
             },
-            google_remarketing_only: adwords.getOption('remarketingOnly'),
+            google_remarketing_only: true,
           }));
           done();
         });
@@ -273,7 +273,7 @@ describe('Integrations: GoogleAdWords', () => {
               ecomm_totalvalue: '',
               ecomm_category: 'Category 1'
             },
-            google_remarketing_only: adwords.getOption('remarketingOnly'),
+            google_remarketing_only: true,
           }));
           done();
         });
@@ -290,7 +290,7 @@ describe('Integrations: GoogleAdWords', () => {
               ecomm_pagetype: 'searchresults',
               ecomm_totalvalue: ''
             },
-            google_remarketing_only: adwords.getOption('remarketingOnly'),
+            google_remarketing_only: true,
           }));
           done();
         });
@@ -316,7 +316,7 @@ describe('Integrations: GoogleAdWords', () => {
               ecomm_pagetype: 'product',
               ecomm_category: 'Category/Subcategory'
             },
-            google_remarketing_only: adwords.getOption('remarketingOnly'),
+            google_remarketing_only: true,
           }));
           done();
         });
@@ -339,7 +339,32 @@ describe('Integrations: GoogleAdWords', () => {
               ecomm_pagetype: 'product',
               ecomm_category: 'Category/Subcategory'
             },
-            google_remarketing_only: adwords.getOption('remarketingOnly'),
+            google_remarketing_only: true,
+          }));
+          done();
+        });
+      });
+
+      it('should send product skuCode, value and category (digitalData)', (done) => {
+        adwords.setOption('feedWithGroupedProducts', true);
+        window.digitalData.product = {
+          id: '123',
+          skuCode: 'sku123',
+          unitSalePrice: 100,
+          category: ['Category', 'Subcategory']
+        };
+        viewedPageOfType('product', () => {});
+        viewedProductDetail(undefined, () => {
+          assert.ok(window.google_trackConversion.calledOnce);
+          assert.ok(window.google_trackConversion.calledWith({
+            google_conversion_id: adwords.getOption('conversionId'),
+            google_custom_params: {
+              ecomm_prodid: 'sku123',
+              ecomm_totalvalue: 100,
+              ecomm_pagetype: 'product',
+              ecomm_category: 'Category/Subcategory'
+            },
+            google_remarketing_only: true,
           }));
           done();
         });
@@ -362,7 +387,7 @@ describe('Integrations: GoogleAdWords', () => {
               ecomm_pagetype: 'product',
               ecomm_category: 'Category/Subcategory'
             },
-            google_remarketing_only: adwords.getOption('remarketingOnly'),
+            google_remarketing_only: true,
           }));
           done();
         });
@@ -375,6 +400,7 @@ describe('Integrations: GoogleAdWords', () => {
           {
             product: {
               id: '123',
+              skuCode: 'sku123',
               unitSalePrice: 100
             },
             quantity: 2,
@@ -383,6 +409,7 @@ describe('Integrations: GoogleAdWords', () => {
           {
             product: {
               id: '234',
+              skuCode: 'sku234',
               unitSalePrice: 100
             },
             quantity: 2
@@ -402,7 +429,7 @@ describe('Integrations: GoogleAdWords', () => {
               ecomm_totalvalue: 300,
               ecomm_pagetype: 'cart',
             },
-            google_remarketing_only: adwords.getOption('remarketingOnly'),
+            google_remarketing_only: true,
           }));
           done();
         })
@@ -420,7 +447,26 @@ describe('Integrations: GoogleAdWords', () => {
               ecomm_totalvalue: 300,
               ecomm_pagetype: 'cart',
             },
-            google_remarketing_only: adwords.getOption('remarketingOnly'),
+            google_remarketing_only: true,
+          }));
+          done();
+        })
+      });
+
+      it('should send product sdkIds, value and pagetype (digitalData)', (done) => {
+        adwords.setOption('feedWithGroupedProducts', true);
+        window.digitalData.cart = cart;
+        viewedPageOfType('cart', () => {});
+        viewedCart(undefined , () => {
+          assert.ok(window.google_trackConversion.calledOnce);
+          assert.ok(window.google_trackConversion.calledWith({
+            google_conversion_id: adwords.getOption('conversionId'),
+            google_custom_params: {
+              ecomm_prodid: ['sku123', 'sku234'],
+              ecomm_totalvalue: 300,
+              ecomm_pagetype: 'cart',
+            },
+            google_remarketing_only: true,
           }));
           done();
         })
@@ -428,30 +474,33 @@ describe('Integrations: GoogleAdWords', () => {
     });
 
     describe('#onCompletedTransaction', () => {
+      const transaction = {
+        orderId: '123',
+        lineItems: [
+          {
+            product: {
+              id: '123',
+              skuCode: 'sku123',
+              unitSalePrice: 100
+            },
+            quantity: 2,
+            subtotal: 180
+          },
+          {
+            product: {
+              id: '234',
+              skuCode: 'sku234',
+              unitSalePrice: 100
+            },
+            quantity: 2
+          }
+        ],
+        subtotal: 300
+      };
 
       it('should send product ids, value and pagetype', (done) => {
         viewedPageOfType('confirmation', () => {});
-        completedTransaction({
-          orderId: '123',
-          lineItems: [
-            {
-              product: {
-                id: '123',
-                unitSalePrice: 100
-              },
-              quantity: 2,
-              subtotal: 180
-            },
-            {
-              product: {
-                id: '234',
-                unitSalePrice: 100
-              },
-              quantity: 2
-            }
-          ],
-          subtotal: 300
-        }, () => {
+        completedTransaction(transaction, () => {
           assert.ok(window.google_trackConversion.calledOnce);
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
@@ -460,34 +509,14 @@ describe('Integrations: GoogleAdWords', () => {
               ecomm_totalvalue: 300,
               ecomm_pagetype: 'purchase',
             },
-            google_remarketing_only: adwords.getOption('remarketingOnly'),
+            google_remarketing_only: true,
           }));
           done();
         });
       });
 
       it('should send product ids, value and pagetype (digitalData)', (done) => {
-        window.digitalData.transaction = {
-          orderId: '123',
-          lineItems: [
-            {
-              product: {
-                id: '123',
-                unitSalePrice: 100
-              },
-              quantity: 2,
-              subtotal: 180
-            },
-            {
-              product: {
-                id: '234',
-                unitSalePrice: 100
-              },
-              quantity: 2
-            }
-          ],
-          subtotal: 300
-        };
+        window.digitalData.transaction = transaction;
         viewedPageOfType('confirmation', () => {});
         completedTransaction(undefined, () => {
           assert.ok(window.google_trackConversion.calledOnce);
@@ -498,7 +527,26 @@ describe('Integrations: GoogleAdWords', () => {
               ecomm_totalvalue: 300,
               ecomm_pagetype: 'purchase',
             },
-            google_remarketing_only: adwords.getOption('remarketingOnly'),
+            google_remarketing_only: true,
+          }));
+          done();
+        })
+      });
+
+      it('should send product ids, value and pagetype (digitalData)', (done) => {
+        adwords.setOption('feedWithGroupedProducts', true)
+        window.digitalData.transaction = transaction;
+        viewedPageOfType('confirmation', () => {});
+        completedTransaction(undefined, () => {
+          assert.ok(window.google_trackConversion.calledOnce);
+          assert.ok(window.google_trackConversion.calledWith({
+            google_conversion_id: adwords.getOption('conversionId'),
+            google_custom_params: {
+              ecomm_prodid: ['sku123', 'sku234'],
+              ecomm_totalvalue: 300,
+              ecomm_pagetype: 'purchase',
+            },
+            google_remarketing_only: true,
           }));
           done();
         })

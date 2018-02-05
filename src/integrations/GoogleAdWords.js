@@ -18,11 +18,11 @@ const SEMANTIC_EVENTS = [
   COMPLETED_TRANSACTION,
 ];
 
-function lineItemsToProductIds(lineItems) {
+function lineItemsToProductIds(lineItems, feedWithGroupedProducts) {
   lineItems = lineItems || [];
   const productIds = lineItems
     .filter(lineItem => !!(lineItem.product.id || lineItem.product.skuCode))
-    .map(lineItem => lineItem.product.id || lineItem.product.skuCode);
+    .map(lineItem => ((!feedWithGroupedProducts) ? lineItem.product.id : lineItem.product.skuCode));
   return productIds;
 }
 
@@ -30,7 +30,7 @@ class GoogleAdWords extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       conversionId: '',
-      remarketingOnly: false,
+      feedWithGroupedProducts: false,
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -95,6 +95,7 @@ class GoogleAdWords extends Integration {
       [VIEWED_PRODUCT_DETAIL]: {
         fields: [
           'product.id',
+          'product.skuCode',
           'product.unitSalePrice',
           'product.category',
         ],
@@ -121,7 +122,11 @@ class GoogleAdWords extends Integration {
         },
       },
       [VIEWED_CART]: {
-        fields: ['cart.subtotal', 'cart.lineItems[].product.id'],
+        fields: [
+          'cart.subtotal',
+          'cart.lineItems[].product.id',
+          'cart.lineItems[].product.skuCode',
+        ],
         validations: {
           'cart.subtotal': {
             errors: ['required'],
@@ -134,7 +139,11 @@ class GoogleAdWords extends Integration {
         },
       },
       [COMPLETED_TRANSACTION]: {
-        fields: ['transaction.subtotal', 'transaction.lineItems[].product.id'],
+        fields: [
+          'transaction.subtotal',
+          'transaction.lineItems[].product.id',
+          'transaction.lineItems[].product.skuCode',
+        ],
         validations: {
           'transaction.subtotal': {
             errors: ['required'],
@@ -195,7 +204,7 @@ class GoogleAdWords extends Integration {
     const trackConversionEvent = {
       google_conversion_id: this.getOption('conversionId'),
       google_custom_params: params,
-      google_remarketing_only: this.getOption('remarketingOnly'),
+      google_remarketing_only: true,
     };
     if (this.isLoaded()) {
       window.google_trackConversion(trackConversionEvent);
@@ -238,8 +247,9 @@ class GoogleAdWords extends Integration {
       category = `${category}/${product.subcategory}`;
     }
 
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
     this.trackConversion({
-      ecomm_prodid: product.id,
+      ecomm_prodid: (!feedWithGroupedProducts) ? product.id : product.skuCode,
       ecomm_pagetype: 'product',
       ecomm_totalvalue: product.unitSalePrice || '',
       ecomm_category: category,
@@ -287,8 +297,9 @@ class GoogleAdWords extends Integration {
       return;
     }
 
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
     this.trackConversion({
-      ecomm_prodid: lineItemsToProductIds(cart.lineItems),
+      ecomm_prodid: lineItemsToProductIds(cart.lineItems, feedWithGroupedProducts),
       ecomm_pagetype: 'cart',
       ecomm_totalvalue: cart.subtotal || cart.total || '',
     });
@@ -300,8 +311,10 @@ class GoogleAdWords extends Integration {
     if (!transaction) {
       return;
     }
+
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
     this.trackConversion({
-      ecomm_prodid: lineItemsToProductIds(transaction.lineItems),
+      ecomm_prodid: lineItemsToProductIds(transaction.lineItems, feedWithGroupedProducts),
       ecomm_pagetype: 'purchase',
       ecomm_totalvalue: transaction.subtotal || transaction.total || '',
     });
