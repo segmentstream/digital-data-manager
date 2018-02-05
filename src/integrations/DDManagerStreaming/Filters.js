@@ -196,6 +196,7 @@ class Filters {
       {
         ...product,
         id: (product.id) ? String(product.id) : undefined,
+        skuCode: (product.skuCode) ? String(product.skuCode) : undefined,
         categoryId: (product.categoryId) ? String(product.categoryId) : undefined,
         category: (product.category && Array.isArray(product.category)) ?
           product.category.join('/') : product.category,
