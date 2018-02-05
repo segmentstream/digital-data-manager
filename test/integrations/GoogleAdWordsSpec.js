@@ -530,7 +530,7 @@ describe('Integrations: GoogleAdWords', () => {
             google_remarketing_only: true,
           }));
           done();
-        })
+        });
       });
 
       it('should send product ids, value and pagetype (digitalData)', (done) => {
@@ -549,10 +549,8 @@ describe('Integrations: GoogleAdWords', () => {
             google_remarketing_only: true,
           }));
           done();
-        })
+        });
       });
-
     });
-
   });
 });
