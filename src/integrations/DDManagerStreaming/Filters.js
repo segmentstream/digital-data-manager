@@ -223,8 +223,8 @@ class Filters {
   filterLineItems(lineItems = []) {
     return lineItems.map(lineItem => cleanObject({
       product: this.filterProduct(lineItem.product),
-      quantity: lineItem.quantity,
-      subtotal: lineItem.subtotal,
+      quantity: !isNaN(Number(lineItem.quantity)) ? Number(lineItem.quantity) : 1,
+      subtotal: !isNaN(Number(lineItem.subtotal)) ? Number(lineItem.subtotal) : undefined,
     }));
   }
 
@@ -305,10 +305,11 @@ class Filters {
 
   filterAddedProduct(event) {
     const filtered = this.filterCommonEvent(event);
+    const quantity = Number(event.quantity);
     return {
       ...filtered,
       product: this.filterProduct(event.product),
-      quantity: event.quantity || 1,
+      quantity: !isNaN(quantity) ? quantity : 1,
     };
   }
 
