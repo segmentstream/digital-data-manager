@@ -200,6 +200,7 @@ class Filters {
         categoryId: (product.categoryId) ? String(product.categoryId) : undefined,
         category: (product.category && Array.isArray(product.category)) ?
           product.category.join('/') : product.category,
+        size: (product.size) ? String(product.size) : undefined,
         unitPrice: (product.unitPrice) ? Number(product.unitPrice) : undefined,
         unitSalePrice: (product.unitSalePrice) ? Number(product.unitSalePrice) : undefined,
         manufacturer: (product.manufacturer) ? product.manufacturer : product.brand,
@@ -325,9 +326,10 @@ class Filters {
 
   filterViewedCheckoutStep(event) {
     const filtered = this.filterCommonEvent(event);
+    const step = Number(event.step);
     return {
       ...filtered,
-      step: event.step,
+      step: !isNaN(step) ? step : undefined,
     };
   }
 
