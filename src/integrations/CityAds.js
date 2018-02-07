@@ -7,9 +7,7 @@ import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
 import cookie from 'js-cookie';
 
 const CLICK_ID_GET_PARAM = 'click_id';
-const AIP_GET_PARAM = 'aip';
 const DEFAULT_CLICK_ID_COOKIE_NAME = 'cityads_click_id';
-const DEFAULT_AIP_COOKIE_NAME = 'cityads_aip';
 
 const CUSTOMER_TYPE_NEW = 'new';
 const CUSTOMER_TYPE_RETURNED = 'returned';
@@ -48,7 +46,6 @@ class CityAds extends Integration {
       defaultTargetName: '',
       partnerId: '',
       clickIdCookieName: DEFAULT_CLICK_ID_COOKIE_NAME,
-      aipCookieName: DEFAULT_AIP_COOKIE_NAME,
       cookieTracking: true, // false - if advertiser wants to track cookies by itself
       cookieDomain: topDomain(window.location.href),
       cookieTtl: 90, // days
@@ -64,7 +61,7 @@ class CityAds extends Integration {
     this.addTag({
       type: 'script',
       attr: {
-        src: `https://cityadspix.com/track/{{ orderId }}/ct/{{ targetName }}/c/${options.partnerId}?click_id={{ clickId }}&customer_type={{ customerType }}&customer_id={{ customerId }}&payment_method={{ paymentMethod }}&order_total={{ orderTotal }}&currency={{ currency }}&coupon={{ coupon }}&discount={{ discount }}&basket={{ basket }}&md=2`,
+        src: `https://cityadspix.com/tr/js/{{ orderId }}/ct/{{ targetName }}/c/${options.partnerId}?click_id={{ clickId }}&customer_type={{ customerType }}&customer_id={{ customerId }}&payment_method={{ paymentMethod }}&order_total={{ orderTotal }}&currency={{ currency }}&coupon={{ coupon }}&discount={{ discount }}&basket={{ basket }}&md=2`,
       },
     });
   }
@@ -82,15 +79,11 @@ class CityAds extends Integration {
       return; // protect from iframe cookie-stuffing
     }
 
-    const clickId = getQueryParam(CLICK_ID_GET_PARAM);
-    const aip = getQueryParam(AIP_GET_PARAM);
+    const clickId = getQueryParam(CLICK_ID_GET_PARAM, null, false); // without normalization
     const expires = this.getOption('cookieTtl');
     const domain = this.getOption('cookieDomain');
     if (clickId) {
       cookie.set(this.getOption('clickIdCookieName'), clickId, { expires, domain });
-    }
-    if (aip) {
-      cookie.set(this.getOption('aipCookieName'), aip, { expires, domain });
     }
   }
 
@@ -189,14 +182,15 @@ class CityAds extends Integration {
     }
 
     const orderId = transaction.orderId;
-    const targetName = getProp(event, 'integrations.cityads.targetName') || this.getOption('defaultTargetName');
+    const targetName = getProp(event, 'targetName') || this.getOption('defaultTargetName');
     const customerType = (transaction.isFirst) ? CUSTOMER_TYPE_NEW : CUSTOMER_TYPE_RETURNED;
     const paymentMethod = transaction.paymentMethod;
     const vouchers = transaction.vouchers || [];
     const coupon = vouchers.join(',');
     const discount = transaction.vouchersDiscount;
     const customerId = getProp(event, 'user.userId');
-    const orderTotal = transaction.total;
+    const shippingCost = getProp(event, 'shippingCost') || 0;
+    const orderTotal = transaction.total - shippingCost;
     let currency = transaction.currency;
     if (currency === 'RUB') currency = 'RUR'; // for some reason cityads uses RUR instead of RUB
 
