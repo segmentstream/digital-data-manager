@@ -1,5 +1,4 @@
 import clone from 'driveback-utils/clone';
-import each from 'driveback-utils/each';
 import semver from 'driveback-utils/semver';
 import nextTick from 'async/nextTick';
 import cleanObject from 'driveback-utils/cleanObject';
@@ -10,7 +9,7 @@ import IntegrationsLoader from './IntegrationsLoader';
 import EventDataEnricher from './enrichments/EventDataEnricher';
 import DDHelper from './DDHelper';
 import DigitalDataEnricher from './enrichments/DigitalDataEnricher';
-import CustomEnricher from './enrichments/CustomEnricher'; // @TODO: remove as legacy 
+import CustomEnricher from './enrichments/CustomEnricher'; // @TODO: remove as legacy
 import CustomEnrichments from './enrichments/CustomEnrichments';
 import CustomScripts from './scripts/CustomScripts';
 import Storage from './Storage';

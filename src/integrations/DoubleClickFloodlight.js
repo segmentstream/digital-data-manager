@@ -7,8 +7,8 @@ import { stringify } from 'driveback-utils/queryString';
 import cleanObject from 'driveback-utils/cleanObject';
 import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
 
-/** 
-* Example: 
+/**
+* Example:
   events: [
     {
       event: 'Viewed Product Detail',

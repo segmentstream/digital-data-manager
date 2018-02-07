@@ -158,7 +158,8 @@ class Actionpay extends Integration {
 
     const goalId = getProp(event, 'integrations.actionpay.goalId') || this.getOption('defaultGoalId');
     const actionId = transaction.orderId;
-    const total = transaction.total;
+    const shippingCost = transaction.shippingCost || 0;
+    const total = transaction.total - shippingCost;
 
     this.load('trackingPixel', { goalId, actionId, partnerId, total });
   }

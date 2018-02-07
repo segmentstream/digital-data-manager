@@ -1,6 +1,4 @@
-import size from 'driveback-utils/size';
 import each from 'driveback-utils/each';
-import after from 'driveback-utils/after';
 import { warn, error as errorLog } from 'driveback-utils/safeConsole';
 import Integration from './Integration';
 import clone from 'driveback-utils/clone';
