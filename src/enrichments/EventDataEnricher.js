@@ -5,7 +5,7 @@ import {
   VIEWED_PRODUCT_DETAIL,
   COMPLETED_TRANSACTION,
 } from './../events/semanticEvents';
-import IntegrationEventEnrichment from './IntegrationEventEnrichment';
+import IntegrationEnrichment from './IntegrationEnrichment';
 
 class EventDataEnricher {
   static enrichCommonData(event, digitalData) {
@@ -78,7 +78,7 @@ class EventDataEnricher {
         (!eventEnrichment.event || eventEnrichment.event === event.name)
       ))
       .forEach((eventEnrichment) => {
-        const enrichment = new IntegrationEventEnrichment(
+        const enrichment = new IntegrationEnrichment(
           eventEnrichment.prop,
           eventEnrichment.handler,
           digitalData,
@@ -90,7 +90,7 @@ class EventDataEnricher {
     integration.getEventEnrichments()
       .filter(eventEnrichment => (eventEnrichment.scope === 'product') && EventDataEnricher.hasProductFields(event))
       .forEach((eventEnrichment) => {
-        const enrichment = new IntegrationEventEnrichment(
+        const enrichment = new IntegrationEnrichment(
           eventEnrichment.prop,
           eventEnrichment.handler,
           digitalData,
