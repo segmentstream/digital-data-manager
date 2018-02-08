@@ -192,14 +192,24 @@ class Filters {
     const customDimensions = extractCustoms(product, this.productDimensions, CUSTOM_TYPE_STRING);
     const customMetrics = extractCustoms(product, this.productMetrics, CUSTOM_TYPE_NUMERIC);
 
+    let category = product.category;
+    if (category) {
+      if (Array.isArray(category)) {
+        category = category.join('/');
+      } else if (typeof category === 'object') {
+        category = Object.values(category).join('/');
+      } else {
+        category = String(category);
+      }
+    }
+
     return filterObject(
       {
         ...product,
         id: (product.id) ? String(product.id) : undefined,
         skuCode: (product.skuCode) ? String(product.skuCode) : undefined,
         categoryId: (product.categoryId) ? String(product.categoryId) : undefined,
-        category: (product.category && Array.isArray(product.category)) ?
-          product.category.join('/') : product.category,
+        category,
         size: (product.size) ? String(product.size) : undefined,
         unitPrice: (product.unitPrice) ? Number(product.unitPrice) : undefined,
         unitSalePrice: (product.unitSalePrice) ? Number(product.unitSalePrice) : undefined,

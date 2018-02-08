@@ -7,6 +7,8 @@ console.warn = () => {};
 import './../src/polyfill';
 
 // tests
+import './polyfillSpec';
+
 import './ddManagerSpec';
 import './DDHelperSpec';
 import './DDStorageSpec';
