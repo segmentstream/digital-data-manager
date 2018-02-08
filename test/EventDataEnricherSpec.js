@@ -488,17 +488,25 @@ describe('EventDataEnricher', () => {
     const emarsys = new Emarsys(_digitalData, {
       merchantId: 'XXX',
       eventEnrichments: [
-        {
+        { // old style
           prop: 'product.id',
           handler: function(event) {
             return 's/' + event.product.id;
           }
         },
-        {
+        { // new style
+          scope: 'event',
           prop: 'prop1',
           event: 'Test',
           handler: function(event) {
             return 'test2';
+          }
+        },
+        { // new style
+          scope: 'product',
+          prop: 'id',
+          handler: function(product) {
+            return product.id + '!!!';
           }
         }
       ]
@@ -517,11 +525,11 @@ describe('EventDataEnricher', () => {
       const event = {
         name: 'Viewed Product Detail',
         product: {
-          id: '123'
-        }
+          id: '123',
+        },
       };
       const enrichedEvent = EventDataEnricher.enrichIntegrationData(event, _digitalData, emarsys);
-      assert.equal(enrichedEvent.product.id, 's/123');
+      assert.equal(enrichedEvent.product.id, 's/123!!!');
     });
   });
 

@@ -3,7 +3,7 @@ import { error as errorLog } from 'driveback-utils/safeConsole';
 import { setProp } from 'driveback-utils/dotProp';
 import isPromise from 'driveback-utils/isPromise';
 
-class IntegrationEventEnrichment {
+class IntegrationEnrichment {
   constructor(prop, handler, digitalData) {
     this.prop = prop;
     this.handler = handler;
@@ -12,14 +12,14 @@ class IntegrationEventEnrichment {
     this.done = false;
   }
 
-  enrich(event) {
-    const handler = new Handler(this.handler, this.digitalData, [event]);
+  enrich(target) {
+    const handler = new Handler(this.handler, this.digitalData, [target]);
     try {
       const value = handler.run();
       if (isPromise(value)) {
-        errorLog('Async integration event enrichments are not supported');
+        errorLog('Async integration enrichments are not supported');
       } else if (value !== undefined) {
-        setProp(event, this.prop, value);
+        setProp(target, this.prop, value);
       }
     } catch (e) {
       errorLog(e);
@@ -27,4 +27,4 @@ class IntegrationEventEnrichment {
   }
 }
 
-export default IntegrationEventEnrichment;
+export default IntegrationEnrichment;

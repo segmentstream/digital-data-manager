@@ -5,7 +5,7 @@ import {
   VIEWED_PRODUCT_DETAIL,
   COMPLETED_TRANSACTION,
 } from './../events/semanticEvents';
-import IntegrationEventEnrichment from './IntegrationEventEnrichment';
+import IntegrationEnrichment from './IntegrationEnrichment';
 
 class EventDataEnricher {
   static enrichCommonData(event, digitalData) {
@@ -67,13 +67,18 @@ class EventDataEnricher {
     }
     // handle product override
     if (integration.getProductOverrideFunction()) {
-      event = EventDataEnricher.overrideEventProducts(event, integration);
+      const delegateFunc = integration.getProductOverrideFunction();
+      event = EventDataEnricher.enrichEventProducts(event, delegateFunc);
     }
+
     // handle custom event enrichments
     integration.getEventEnrichments()
-      .filter(eventEnrichment => !eventEnrichment.event || eventEnrichment.event === event.name)
+      .filter(eventEnrichment => (
+        (!eventEnrichment.scope || eventEnrichment.scope === 'event') &&
+        (!eventEnrichment.event || eventEnrichment.event === event.name)
+      ))
       .forEach((eventEnrichment) => {
-        const enrichment = new IntegrationEventEnrichment(
+        const enrichment = new IntegrationEnrichment(
           eventEnrichment.prop,
           eventEnrichment.handler,
           digitalData,
@@ -81,30 +86,52 @@ class EventDataEnricher {
         enrichment.enrich(event);
       });
 
+    // handle custom event products enrichments
+    integration.getEventEnrichments()
+      .filter(eventEnrichment => (eventEnrichment.scope === 'product') && EventDataEnricher.hasProductFields(event))
+      .forEach((eventEnrichment) => {
+        const enrichment = new IntegrationEnrichment(
+          eventEnrichment.prop,
+          eventEnrichment.handler,
+          digitalData,
+        );
+        EventDataEnricher.enrichEventProducts(event, enrichment.enrich.bind(enrichment));
+      });
+
     return event;
   }
 
-  static overrideEventProducts(event, integration) {
+  static hasProductFields(event) {
+    return (
+      event.product ||
+      (event.listing && event.listing.items) ||
+      (event.cart && event.cart.lineItems) ||
+      (event.transaction && event.transaction.lineItems) ||
+      (event.listItem || event.listItems)
+    );
+  }
+
+  static enrichEventProducts(event, delegateFunc) {
     if (event.product) {
-      integration.getProductOverrideFunction()(event.product);
+      delegateFunc(event.product);
     } else if (event.listing && event.listing.items) {
       event.listing.items.forEach((product) => {
-        integration.getProductOverrideFunction()(product);
+        delegateFunc(product);
       });
     } else if (event.cart && event.cart.lineItems) {
       event.cart.lineItems.forEach((lineItem) => {
-        integration.getProductOverrideFunction()(lineItem.product);
+        delegateFunc(lineItem.product);
       });
     } else if (event.transaction && event.transaction.lineItems) {
       event.transaction.lineItems.forEach((lineItem) => {
-        integration.getProductOverrideFunction()(lineItem.product);
+        delegateFunc(lineItem.product);
       });
     } else if (event.listItem || event.listItems) {
       if (event.listItem) {
-        integration.getProductOverrideFunction()(event.listItem.product);
+        delegateFunc(event.listItem.product);
       } else if (event.listItems) {
         event.listItems.forEach((listItem) => {
-          integration.getProductOverrideFunction()(listItem.product);
+          delegateFunc(listItem.product);
         });
       }
     }
