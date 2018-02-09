@@ -61,7 +61,7 @@ class CityAds extends Integration {
     this.addTag({
       type: 'script',
       attr: {
-        src: `https://cityadspix.com/tr/js/{{ orderId }}/ct/{{ targetName }}/c/${options.partnerId}?click_id={{ clickId }}&customer_type={{ customerType }}&customer_id={{ customerId }}&payment_method={{ paymentMethod }}&order_total={{ orderTotal }}&currency={{ currency }}&coupon={{ coupon }}&discount={{ discount }}&basket={{ basket }}&md=2`,
+        src: `https://cityadstrack.com/tr/js/{{ orderId }}/ct/{{ targetName }}/c/${options.partnerId}?click_id={{ clickId }}&customer_type={{ customerType }}&customer_id={{ customerId }}&payment_method={{ paymentMethod }}&order_total={{ orderTotal }}&currency={{ currency }}&coupon={{ coupon }}&discount={{ discount }}&basket={{ basket }}&md=2`,
       },
     });
   }
@@ -189,7 +189,7 @@ class CityAds extends Integration {
     const coupon = vouchers.join(',');
     const discount = transaction.vouchersDiscount;
     const customerId = getProp(event, 'user.userId');
-    const shippingCost = getProp(event, 'shippingCost') || 0;
+    const shippingCost = transaction.shippingCost || 0;
     const orderTotal = transaction.total - shippingCost;
     let currency = transaction.currency;
     if (currency === 'RUB') currency = 'RUR'; // for some reason cityads uses RUR instead of RUB
