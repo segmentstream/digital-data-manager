@@ -325,7 +325,7 @@ class Flocktory extends Integration {
           count: getProp(lineItem, 'quantity'),
         })),
       },
-      spot: getProp(event, 'integrations.flocktory.spot'),
+      spot: getProp(event, 'spot') || getProp(event, 'integrations.flocktory.spot'),
     })]);
   }
 }
