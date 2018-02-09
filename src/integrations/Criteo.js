@@ -78,10 +78,7 @@ class Criteo extends Integration {
         ];
         break;
       case VIEWED_PRODUCT_DETAIL:
-        enrichableProps = [
-          'product.id',
-          'product.skuCode',
-        ];
+        enrichableProps = ['product'];
         break;
       case VIEWED_PRODUCT_LISTING:
       case SEARCHED_PRODUCTS:
