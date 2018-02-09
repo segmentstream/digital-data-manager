@@ -25,22 +25,18 @@ const SEMANTIC_EVENTS = [
 ];
 
 function lineItemsToCriteoItems(lineItems, feedWithGroupedProducts) {
-  const products = [];
-  for (let i = 0, length = lineItems.length; i < length; i += 1) {
-    const lineItem = lineItems[i];
-    if (lineItem.product) {
+  return lineItems
+    .filter(lineItem => (
+      !!lineItem.product && !!lineItem.product.id && lineItem.product.unitSalePrice > 0
+    ))
+    .map((lineItem) => {
       const productId = (!feedWithGroupedProducts) ? lineItem.product.id : lineItem.product.skuCode;
-      if (productId) {
-        const product = {
-          id: productId,
-          price: lineItem.product.unitSalePrice || lineItem.product.unitPrice || 0,
-          quantity: lineItem.quantity || 1,
-        };
-        products.push(product);
-      }
-    }
-  }
-  return products;
+      return {
+        id: productId,
+        price: lineItem.product.unitSalePrice,
+        quantity: lineItem.quantity || 1,
+      };
+    });
 }
 
 class Criteo extends Integration {
@@ -414,6 +410,7 @@ class Criteo extends Integration {
         this.pushCriteoQueue(
           {
             event: 'viewBasket',
+            currency: cart.currency,
             item: products,
           },
           this.getUserSegment(event),
@@ -432,6 +429,7 @@ class Criteo extends Integration {
         const criteoEvent = {
           event: 'trackTransaction',
           id: transaction.orderId,
+          currency: transaction.currency,
           new_customer: (transaction.isFirst) ? 1 : 0,
           item: products,
         };

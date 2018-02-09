@@ -11,7 +11,7 @@ function viewedPage(eventData, callback) {
       setTimeout(() => {
         callback();
       }, 101);
-    }
+    },
   }, eventData));
 }
 
@@ -581,18 +581,18 @@ describe('Integrations: Criteo', () => {
           listing: {
             items: [
               {
-                id: '123'
+                id: '123',
               },
               {
-                id: '234'
+                id: '234',
               },
               {
-                id: '345'
+                id: '345',
               },
               {
-                id: '456'
-              }
-            ]
+                id: '456',
+              },
+            ],
           },
           callback: () => {
             assert.deepEqual(window.criteo_q[0], {event: 'viewList', item: ['123', '234', '345']});
@@ -744,7 +744,7 @@ describe('Integrations: Criteo', () => {
           callback: () => {
             assert.ok(!window.criteo_q[0]);
             done();
-          }
+          },
         });
       });
     });
@@ -753,6 +753,7 @@ describe('Integrations: Criteo', () => {
 
       it('should send viewBasket event if user visits cart page (digitalData)', (done) => {
         window.digitalData.cart = {
+          currency: 'USD',
           lineItems: [
             {
               product: {
@@ -781,13 +782,17 @@ describe('Integrations: Criteo', () => {
         window.digitalData.events.push({
           name: 'Viewed Cart',
           callback: () => {
-            assert.deepEqual(window.criteo_q[0], {event: 'viewBasket', item: [
-              { id: '123', price: 100, quantity: 1 },
-              { id: '234', price: 50, quantity: 2 },
-              { id: '345', price: 30, quantity: 1 },
-            ]});
+            assert.deepEqual(window.criteo_q[0], {
+              event: 'viewBasket',
+              currency: 'USD',
+              item: [
+                { id: '123', price: 100, quantity: 1 },
+                { id: '234', price: 50, quantity: 2 },
+                { id: '345', price: 30, quantity: 1 },
+              ],
+            });
             done();
-          }
+          },
         });
       });
 
@@ -795,39 +800,43 @@ describe('Integrations: Criteo', () => {
         window.digitalData.events.push({
           name: 'Viewed Cart',
           cart: {
+            currency: 'USD',
             lineItems: [
               {
                 product: {
                   id: '123',
-                  unitSalePrice: 100
+                  unitSalePrice: 100,
                 },
-                quantity: 1
+                quantity: 1,
               },
               {
                 product: {
                   id: '234',
                   unitPrice: 100,
-                  unitSalePrice: 50
+                  unitSalePrice: 50,
                 },
-                quantity: 2
+                quantity: 2,
               },
               {
                 product: {
                   id: '345',
-                  unitSalePrice: 30
+                  unitSalePrice: 0,
                 },
-                quantity: 1
+                quantity: 1,
               },
-            ]
+            ],
           },
           callback: () => {
-            assert.deepEqual(window.criteo_q[0], {event: 'viewBasket', item: [
-              { id: '123', price: 100, quantity: 1 },
-              { id: '234', price: 50, quantity: 2 },
-              { id: '345', price: 30, quantity: 1 },
-            ]});
+            assert.deepEqual(window.criteo_q[0], {
+              event: 'viewBasket',
+              currency: 'USD',
+              item: [
+                { id: '123', price: 100, quantity: 1 },
+                { id: '234', price: 50, quantity: 2 },
+              ],
+            });
             done();
-          }
+          },
         });
       });
 
@@ -836,6 +845,7 @@ describe('Integrations: Criteo', () => {
         window.digitalData.events.push({
           name: 'Viewed Cart',
           cart: {
+            currency: 'USD',
             lineItems: [
               {
                 product: {
@@ -865,13 +875,17 @@ describe('Integrations: Criteo', () => {
             ],
           },
           callback: () => {
-            assert.deepEqual(window.criteo_q[0], { event: 'viewBasket', item: [
-              { id: 'sku123', price: 100, quantity: 1 },
-              { id: 'sku234', price: 50, quantity: 2 },
-              { id: 'sku345', price: 30, quantity: 1 },
-            ] });
+            assert.deepEqual(window.criteo_q[0], {
+              event: 'viewBasket',
+              currency: 'USD',
+              item: [
+                { id: 'sku123', price: 100, quantity: 1 },
+                { id: 'sku234', price: 50, quantity: 2 },
+                { id: 'sku345', price: 30, quantity: 1 },
+              ],
+            });
             done();
-          }
+          },
         });
       });
 
@@ -881,7 +895,7 @@ describe('Integrations: Criteo', () => {
           callback: () => {
             assert.ok(!window.criteo_q[0]);
             done();
-          }
+          },
         });
       });
 
@@ -889,12 +903,12 @@ describe('Integrations: Criteo', () => {
         window.digitalData.events.push({
           name: 'Viewed Cart',
           cart: {
-            lineItems: []
+            lineItems: [],
           },
           callback: () => {
             assert.ok(!window.criteo_q[0]);
             done();
-          }
+          },
         });
       });
 
@@ -903,15 +917,16 @@ describe('Integrations: Criteo', () => {
         window.digitalData.events.push({
           name: 'Viewed Cart',
           cart: {
+            currency: 'USD',
             lineItems: [
               {
                 product: {
                   id: '123',
-                  unitSalePrice: 100
+                  unitSalePrice: 100,
                 },
-                quantity: 1
-              }
-            ]
+                quantity: 1,
+              },
+            ],
           },
           callback: () => {
             assert.ok(!window.criteo_q[0]);
@@ -927,34 +942,35 @@ describe('Integrations: Criteo', () => {
           product: {
             id: '123',
             skuCode: 'sku123',
-            unitSalePrice: 100
+            unitSalePrice: 100,
           },
-          quantity: 1
+          quantity: 1,
         },
         {
           product: {
             id: '234',
             skuCode: 'sku234',
             unitPrice: 100,
-            unitSalePrice: 50
+            unitSalePrice: 50,
           },
-          quantity: 2
+          quantity: 2,
         },
         {
           product: {
             id: '345',
             skuCode: 'sku345',
-            unitSalePrice: 30
+            unitSalePrice: 30,
           },
-          quantity: 1
+          quantity: 1,
         },
       ];
 
       it('should send trackTransaction event if transaction is completed (digitalData)', (done) => {
         window.digitalData.transaction = {
           orderId: '123',
+          currency: 'USD',
           isFirst: true,
-          lineItems: lineItems
+          lineItems,
         };
         window.digitalData.events.push({
           name: 'Completed Transaction',
@@ -962,15 +978,16 @@ describe('Integrations: Criteo', () => {
             assert.deepEqual(window.criteo_q[0], {
               event: 'trackTransaction',
               id: '123',
+              currency: 'USD',
               new_customer: 1,
               item: [
                 { id: '123', price: 100, quantity: 1 },
                 { id: '234', price: 50, quantity: 2 },
                 { id: '345', price: 30, quantity: 1 },
-              ]
+              ],
             });
             done();
-          }
+          },
         });
       });
 
@@ -979,22 +996,24 @@ describe('Integrations: Criteo', () => {
           name: 'Completed Transaction',
           transaction: {
             orderId: '123',
+            currency: 'USD',
             isFirst: true,
-            lineItems: lineItems
+            lineItems,
           },
           callback: () => {
             assert.deepEqual(window.criteo_q[0], {
               event: 'trackTransaction',
               id: '123',
+              currency: 'USD',
               new_customer: 1,
               item: [
                 { id: '123', price: 100, quantity: 1 },
                 { id: '234', price: 50, quantity: 2 },
                 { id: '345', price: 30, quantity: 1 },
-              ]
+              ],
             });
             done();
-          }
+          },
         });
       });
 
@@ -1004,22 +1023,24 @@ describe('Integrations: Criteo', () => {
           name: 'Completed Transaction',
           transaction: {
             orderId: '123',
+            currency: 'USD',
             isFirst: true,
-            lineItems: lineItems
+            lineItems,
           },
           callback: () => {
             assert.deepEqual(window.criteo_q[0], {
               event: 'trackTransaction',
               id: '123',
+              currency: 'USD',
               new_customer: 1,
               item: [
                 { id: 'sku123', price: 100, quantity: 1 },
                 { id: 'sku234', price: 50, quantity: 2 },
                 { id: 'sku345', price: 30, quantity: 1 },
-              ]
+              ],
             });
             done();
-          }
+          },
         });
       });
 
@@ -1028,13 +1049,15 @@ describe('Integrations: Criteo', () => {
           name: 'Completed Transaction',
           transaction: {
             orderId: '123',
+            currency: 'USD',
             isFirst: false,
-            lineItems: lineItems
+            lineItems,
           },
           callback: () => {
             assert.deepEqual(window.criteo_q[0], {
               event: 'trackTransaction',
               id: '123',
+              currency: 'USD',
               new_customer: 0,
               item: [
                 { id: '123', price: 100, quantity: 1 },
@@ -1053,27 +1076,29 @@ describe('Integrations: Criteo', () => {
           name: 'Completed Transaction',
           context: {
             campaign: {
-              source: 'CriTeO'
-            }
+              source: 'CriTeO',
+            },
           },
           transaction: {
             orderId: '123',
-            lineItems: lineItems
+            currency: 'USD',
+            lineItems,
           },
           callback: () => {
             assert.deepEqual(window.criteo_q[0], {
               event: 'trackTransaction',
               id: '123',
+              currency: 'USD',
               new_customer: 0,
               deduplication: 1,
               item: [
                 { id: '123', price: 100, quantity: 1 },
                 { id: '234', price: 50, quantity: 2 },
                 { id: '345', price: 30, quantity: 1 },
-              ]
+              ],
             });
             done();
-          }
+          },
         });
       });
 
@@ -1081,19 +1106,21 @@ describe('Integrations: Criteo', () => {
         criteo.setOption('customDeduplication', false);
         window.digitalData.context = {
           campaign: {
-            name: 'CriTeO'
-          }
+            name: 'CriTeO',
+          },
         };
         window.digitalData.events.push({
           name: 'Completed Transaction',
           transaction: {
             orderId: '123',
-            lineItems: lineItems
+            currency: 'USD',
+            lineItems,
           },
           callback: () => {
             assert.deepEqual(window.criteo_q[0], {
               event: 'trackTransaction',
               id: '123',
+              currency: 'USD',
               new_customer: 0,
               item: [
                 { id: '123', price: 100, quantity: 1 },
@@ -1113,7 +1140,7 @@ describe('Integrations: Criteo', () => {
           callback: () => {
             assert.ok(!window.criteo_q[0]);
             done();
-          }
+          },
         });
       });
 
@@ -1121,7 +1148,7 @@ describe('Integrations: Criteo', () => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
           transaction: {
-            lineItems: []
+            lineItems: [],
           },
           callback: () => {
             assert.ok(!window.criteo_q[0]);
@@ -1136,7 +1163,8 @@ describe('Integrations: Criteo', () => {
           name: 'Completed Transaction',
           transaction: {
             orderId: '123',
-            lineItems: lineItems
+            currency: 'USD',
+            lineItems,
           },
           callback: () => {
             assert.ok(!window.criteo_q[0]);
@@ -1151,12 +1179,12 @@ describe('Integrations: Criteo', () => {
         window.digitalData.events.push({
           name: 'Subscribed',
           user: {
-            email: 'test@driveback.ru'
+            email: 'test@driveback.ru',
           },
           callback: () => {
             assert.deepEqual(window.criteo_q[0], { event: 'setEmail', email: '8cc94f335003012e00e1441e5666756f' });
             done();
-          }
+          },
         });
       });
 
