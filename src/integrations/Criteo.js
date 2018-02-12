@@ -1,6 +1,7 @@
 import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import { getProp } from 'driveback-utils/dotProp';
+import cleanObject from 'driveback-utils/cleanObject';
 import semver from 'driveback-utils/semver';
 import normalizeString from 'driveback-utils/normalizeString';
 import md5 from 'crypto-js/md5';
@@ -25,22 +26,18 @@ const SEMANTIC_EVENTS = [
 ];
 
 function lineItemsToCriteoItems(lineItems, feedWithGroupedProducts) {
-  const products = [];
-  for (let i = 0, length = lineItems.length; i < length; i += 1) {
-    const lineItem = lineItems[i];
-    if (lineItem.product) {
+  return lineItems
+    .filter(lineItem => (
+      !!lineItem.product && !!lineItem.product.id && lineItem.product.unitSalePrice > 0
+    ))
+    .map((lineItem) => {
       const productId = (!feedWithGroupedProducts) ? lineItem.product.id : lineItem.product.skuCode;
-      if (productId) {
-        const product = {
-          id: productId,
-          price: lineItem.product.unitSalePrice || lineItem.product.unitPrice || 0,
-          quantity: lineItem.quantity || 1,
-        };
-        products.push(product);
-      }
-    }
-  }
-  return products;
+      return {
+        id: productId,
+        price: lineItem.product.unitSalePrice,
+        quantity: lineItem.quantity || 1,
+      };
+    });
 }
 
 class Criteo extends Integration {
@@ -51,6 +48,7 @@ class Criteo extends Integration {
       customDeduplication: false,
       userSegmentVar: undefined,
       feedWithGroupedProducts: false,
+      multiCurrency: false,
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -235,7 +233,7 @@ class Criteo extends Integration {
       if (userSegment !== undefined) {
         criteoEvent.user_segment = userSegment;
       }
-      this.criteo_q.push(criteoEvent);
+      this.criteo_q.push(cleanObject(criteoEvent));
     }
 
     // final push to criteo in signle hit
@@ -414,6 +412,7 @@ class Criteo extends Integration {
         this.pushCriteoQueue(
           {
             event: 'viewBasket',
+            currency: (this.getOption('multiCurrency')) ? cart.currency : undefined,
             item: products,
           },
           this.getUserSegment(event),
@@ -432,6 +431,7 @@ class Criteo extends Integration {
         const criteoEvent = {
           event: 'trackTransaction',
           id: transaction.orderId,
+          currency: (this.getOption('multiCurrency')) ? transaction.currency : undefined,
           new_customer: (transaction.isFirst) ? 1 : 0,
           item: products,
         };
