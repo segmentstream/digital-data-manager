@@ -60,6 +60,7 @@ class Flocktory extends Integration {
           'user.firstName',
           'user.lastName',
           'user.fullName',
+          'cart',
         ];
       case VIEWED_PRODUCT_DETAIL:
         return [
@@ -262,14 +263,27 @@ class Flocktory extends Integration {
 
   onViewedPage(event) {
     const isLoggedIn = getProp(event, 'user.isLoggedIn') || false;
-    if (!isLoggedIn) return;
+    if (isLoggedIn) {
+      window.flocktory.push(['addData', {
+        user: cleanObject({
+          email: this.getUserEmail(event),
+          name: this.getUserName(event),
+        }),
+      }]);
+    }
 
-    window.flocktory.push(['addData', {
-      user: cleanObject({
-        email: this.getUserEmail(event),
-        name: this.getUserName(event),
-      }),
-    }]);
+    const cart = event.cart;
+    if (cart && cart.lineItems && Array.isArray(cart.lineItems)) {
+      window.flocktory.push(['updateCart', {
+        cart: {
+          items: cart.lineItems.map(lineItem => ({
+            id: getProp(lineItem, 'product.id'),
+            price: getProp(lineItem, 'product.unitSalePrice'),
+            count: lineItem.quantity,
+          })),
+        },
+      }]);
+    }
   }
 
   onViewedProductListing(event) {
