@@ -19,6 +19,7 @@ describe('Integrations: Criteo', () => {
   let criteo;
   const options = {
     account: '123',
+    multiCurrency: true,
   };
 
   beforeEach(() => {

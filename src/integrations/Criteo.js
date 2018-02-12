@@ -1,6 +1,7 @@
 import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import { getProp } from 'driveback-utils/dotProp';
+import cleanObject from 'driveback-utils/cleanObject';
 import semver from 'driveback-utils/semver';
 import normalizeString from 'driveback-utils/normalizeString';
 import md5 from 'crypto-js/md5';
@@ -47,6 +48,7 @@ class Criteo extends Integration {
       customDeduplication: false,
       userSegmentVar: undefined,
       feedWithGroupedProducts: false,
+      multiCurrency: false,
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -231,7 +233,7 @@ class Criteo extends Integration {
       if (userSegment !== undefined) {
         criteoEvent.user_segment = userSegment;
       }
-      this.criteo_q.push(criteoEvent);
+      this.criteo_q.push(cleanObject(criteoEvent));
     }
 
     // final push to criteo in signle hit
@@ -410,7 +412,7 @@ class Criteo extends Integration {
         this.pushCriteoQueue(
           {
             event: 'viewBasket',
-            currency: cart.currency,
+            currency: (this.getOption('multiCurrency')) ? cart.currency : undefined,
             item: products,
           },
           this.getUserSegment(event),
@@ -429,7 +431,7 @@ class Criteo extends Integration {
         const criteoEvent = {
           event: 'trackTransaction',
           id: transaction.orderId,
-          currency: transaction.currency,
+          currency: (this.getOption('multiCurrency')) ? transaction.currency : undefined,
           new_customer: (transaction.isFirst) ? 1 : 0,
           item: products,
         };
