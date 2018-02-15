@@ -256,6 +256,7 @@ class Filters {
   filterCart(cart = {}) {
     return filterObject({
       ...cart,
+      id: (cart.id) ? String(cart.id) : undefined,
       voucher: Array.isArray(cart.vouchers) ? cart.vouchers.toString() : undefined,
     }, cartProps);
   }
