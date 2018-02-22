@@ -180,7 +180,6 @@ describe('DigitalDataEnricher', () => {
       assert.ok(_digitalData.recommendation[0].listId === 'recom1');
       assert.ok(_digitalData.recommendation[1].listId === 'recom2');
     });
-
   });
 
   describe('#enrichDDStorageData', () => {
@@ -192,11 +191,11 @@ describe('DigitalDataEnricher', () => {
           hasFerrari: true,
           isSubscribed: true,
           visitedContactPageTimes: 20,
-          segments: ['segment1', 'segment2']
+          segments: ['segment1', 'segment2'],
         },
         listing: {
-          listId: 'test'
-        }
+          listId: 'test',
+        },
       };
       _ddStorage = new DDStorage(_digitalData, new Storage());
       _ddStorage.clear(); // just to be sure
@@ -222,13 +221,13 @@ describe('DigitalDataEnricher', () => {
       assert.ok(_digitalData.user.anonymousId);
       assert.deepEqual(_digitalData.user, {
         userId: '123',
-        isSubscribed: true,
+        isSubscribed: false, // will not be eniched, because explicit value is set from server
         hasCoffeeMachine: true,
         hasFerrari: false,
         anonymousId: _digitalData.user.anonymousId,
         visitedContactPageTimes: 20,
         segments: ['segment1', 'segment2'],
-        isReturning: false
+        isReturning: false,
       });
 
       assert.ok(_ddStorage.get('user.hasCoffeeMachine'));
