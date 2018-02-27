@@ -394,19 +394,22 @@ class Mindbox extends Integration {
 
   getSubscriptions(event, useDefaultValue) {
     let subscriptions;
-    if (getProp(event, 'user.isSubscribed')) {
+    const isSubscribed = getProp(event, 'user.isSubscribed');
+    if (isSubscribed !== undefined) {
       subscriptions = subscriptions || [];
       subscriptions.push(cleanObject({
         pointOfContact: 'Email',
-        isSubscribed: true,
+        isSubscribed,
         valueByDefault: (useDefaultValue) ? true : undefined,
       }));
     }
-    if (getProp(event, 'user.isSubscribedBySms')) {
+
+    const isSubscribedBySms = getProp(event, 'user.isSubscribedBySms');
+    if (isSubscribedBySms !== undefined) {
       subscriptions = subscriptions || [];
       subscriptions.push(cleanObject({
         pointOfContact: 'Sms',
-        isSubscribed: true,
+        isSubscribed: isSubscribedBySms,
         valueByDefault: (useDefaultValue) ? true : undefined,
       }));
     }
