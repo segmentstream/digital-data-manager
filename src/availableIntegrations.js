@@ -43,6 +43,7 @@ import AnyQuery from './integrations/AnyQuery';
 import VeInteractive from './integrations/VeInteractive';
 import REES46 from './integrations/REES46';
 import PushWorld from './integrations/PushWorld';
+import Get4Click from './integrations/Get4Click';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -90,6 +91,7 @@ const integrations = {
   'Ve Interactive': VeInteractive,
   REES46,
   'Push.world': PushWorld,
+  Get4Click,
 };
 
 export default integrations;
