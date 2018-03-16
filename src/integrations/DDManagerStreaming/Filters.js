@@ -214,6 +214,8 @@ class Filters {
         unitPrice: (product.unitPrice) ? Number(product.unitPrice) : undefined,
         unitSalePrice: (product.unitSalePrice) ? Number(product.unitSalePrice) : undefined,
         manufacturer: (product.manufacturer) ? product.manufacturer : product.brand,
+        imageUrl: (typeof product.imageUrl === 'string') ? product.imageUrl : undefined,
+        url: (typeof product.url === 'string') ? product.url : undefined,
         customDimensions,
         customMetrics,
       },
