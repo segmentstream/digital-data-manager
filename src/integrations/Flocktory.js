@@ -17,6 +17,7 @@ class Flocktory extends Integration {
       siteId: '',
       preCheckout: false,
       postCheckout: true,
+      exchange: false,
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -45,7 +46,7 @@ class Flocktory extends Integration {
         REMOVED_PRODUCT,
         COMPLETED_TRANSACTION,
       ]);
-    } else if (this.getOption('preCheckout')) {
+    } else if (this.getOption('postCheckout') || this.getOption('exchange')) {
       this.SEMANTIC_EVENTS.push(COMPLETED_TRANSACTION);
     }
     return this.SEMANTIC_EVENTS;
@@ -60,6 +61,7 @@ class Flocktory extends Integration {
           'user.firstName',
           'user.lastName',
           'user.fullName',
+          'cart',
         ];
       case VIEWED_PRODUCT_DETAIL:
         return [
@@ -262,14 +264,27 @@ class Flocktory extends Integration {
 
   onViewedPage(event) {
     const isLoggedIn = getProp(event, 'user.isLoggedIn') || false;
-    if (!isLoggedIn) return;
+    if (isLoggedIn) {
+      window.flocktory.push(['addData', {
+        user: cleanObject({
+          email: this.getUserEmail(event),
+          name: this.getUserName(event),
+        }),
+      }]);
+    }
 
-    window.flocktory.push(['addData', {
-      user: cleanObject({
-        email: this.getUserEmail(event),
-        name: this.getUserName(event),
-      }),
-    }]);
+    const cart = event.cart;
+    if (cart && cart.lineItems && Array.isArray(cart.lineItems)) {
+      window.flocktory.push(['updateCart', {
+        cart: {
+          items: cart.lineItems.map(lineItem => ({
+            id: getProp(lineItem, 'product.id'),
+            price: getProp(lineItem, 'product.unitSalePrice'),
+            count: lineItem.quantity,
+          })),
+        },
+      }]);
+    }
   }
 
   onViewedProductListing(event) {
@@ -308,25 +323,36 @@ class Flocktory extends Integration {
   }
 
   onCompletedTransaction(event) {
-    const lineItems = getProp(event, 'transaction.lineItems') || [];
-    window.flocktory.push(['postcheckout', cleanObject({
-      user: {
-        name: this.getUserName(event),
-        email: this.getUserEmail(event),
-      },
-      order: {
-        id: String(getProp(event, 'transaction.orderId')),
-        price: getProp(event, 'transaction.total'),
-        items: lineItems.map(lineItem => cleanObject({
-          id: String(getProp(lineItem, 'product.id')),
-          title: getProp(lineItem, 'product.name'),
-          price: getProp(lineItem, 'product.unitSalePrice'),
-          image: getProp(lineItem, 'product.imageUrl'),
-          count: getProp(lineItem, 'quantity'),
-        })),
-      },
-      spot: getProp(event, 'integrations.flocktory.spot'),
-    })]);
+    if (this.getOption('postCheckout')) {
+      const lineItems = getProp(event, 'transaction.lineItems') || [];
+      window.flocktory.push(['postcheckout', cleanObject({
+        user: {
+          name: this.getUserName(event),
+          email: this.getUserEmail(event),
+        },
+        order: {
+          id: String(getProp(event, 'transaction.orderId')),
+          price: getProp(event, 'transaction.total'),
+          items: lineItems.map(lineItem => cleanObject({
+            id: String(getProp(lineItem, 'product.id')),
+            title: getProp(lineItem, 'product.name'),
+            price: getProp(lineItem, 'product.unitSalePrice'),
+            image: getProp(lineItem, 'product.imageUrl'),
+            count: getProp(lineItem, 'quantity'),
+          })),
+        },
+        spot: getProp(event, 'spot') || getProp(event, 'integrations.flocktory.spot'),
+      })]);
+    }
+
+    if (this.getOption('exchange')) {
+      window.flocktory.push(['exchange', cleanObject({
+        user: {
+          name: this.getUserName(event),
+          email: this.getUserEmail(event),
+        },
+      })]);
+    }
   }
 }
 

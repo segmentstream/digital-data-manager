@@ -50,7 +50,8 @@ module.exports = function(grunt) {
                     differential: true, // Only uploads the files that have changed
                     gzipRename: 'ext', // when uploading a gz file, keep the original extension
                     params: {
-                        ContentEncoding: 'none'
+                        ContentEncoding: 'none',
+                        CacheControl: 'max-age=0',
                     }
                 },
                 files: [

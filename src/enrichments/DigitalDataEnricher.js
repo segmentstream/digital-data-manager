@@ -7,21 +7,6 @@ import { warn } from 'driveback-utils/safeConsole';
 import uuid from 'uuid/v1';
 import UAParser from 'ua-parser-js';
 
-/**
- * fields which will be overriden even
- * if server returned other values in DDL
- */
-const ddStorageForcedFields = [
-  'user.isSubscribed',
-  'user.hasTransacted',
-  'user.everLoggedIn',
-  'user.isReturning',
-];
-
-function isForcedField(field) {
-  return (ddStorageForcedFields.indexOf(field) >= 0);
-}
-
 class DigitalDataEnricher {
   constructor(digitalData, ddListener, ddStorage, options) {
     this.digitalData = digitalData;
@@ -257,7 +242,7 @@ class DigitalDataEnricher {
       if (value === undefined) {
         return;
       }
-      if (getProp(this.digitalData, key) === undefined || isForcedField(key)) {
+      if (getProp(this.digitalData, key) === undefined) {
         setProp(this.digitalData, key, value);
       }
     });

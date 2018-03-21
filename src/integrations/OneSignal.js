@@ -304,17 +304,6 @@ class OneSignal extends Integration {
   }
 
   trackEvent(event) {
-    if (event.name === VIEWED_PAGE || event.name === SUBSCRIBED) {
-      const user = event.user;
-      if (user && user.email) {
-        window.OneSignal.push(['getUserId', (userId) => {
-          if (userId) { // This operation can only be performed after the user is subscribed
-            window.OneSignal.syncHashedEmail(user.email);
-          }
-        }]);
-      }
-    }
-
     if (event.name === this.getOption('pushSubscriptionTriggerEvent')) {
       window.OneSignal.push(['registerForPushNotifications']);
       this.sendTagsUpdate(event);

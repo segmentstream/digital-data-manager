@@ -760,6 +760,43 @@ describe('Integrations: Mindbox', () => {
           }
         });
       });
+
+      it('should track update profile info with unsubscription to email and sms', () => {
+        window.digitalData.events.push({
+          name: 'Updated Profile Info',
+          user: {
+            isSubscribed: false,
+            isSubscribedBySms: false,
+            email: 'test@driveback.ru',
+            firstName: 'John',
+            lastName: 'Dow',
+          },
+          callback: () => {
+            assert.ok(window.mindbox.calledWith('identify', {
+              operation: 'UpdateProfile',
+              identificator: {
+                provider: 'email',
+                identity: 'test@driveback.ru'
+              },
+              data: {
+                email: 'test@driveback.ru',
+                firstName: 'John',
+                lastName: 'Dow',
+                subscriptions: [
+                  {
+                    pointOfContact: 'Email',
+                    isSubscribed: false,
+                  },
+                  {
+                    pointOfContact: 'Sms',
+                    isSubscribed: false,
+                  }
+                ]
+              },
+            }));
+          }
+        });
+      });
     });
 
     describe('#onLoggedIn', () => {
