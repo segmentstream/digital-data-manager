@@ -17,13 +17,11 @@ class CookieStorage {
     // that the domain is on the public suffix list
     // like myapp.herokuapp.com or localhost / ip.
     if (this.getOption('cookieDomain')) {
-      cookie.set('__tld__', true, {
-        domain: this.getOption('cookieDomain'),
-      });
-      if (!cookie.get('__tld__')) {
+      this.set('__tld__', true);
+      if (!this.get('__tld__')) {
         this.setOption('cookieDomain', null);
       }
-      cookie.remove('__tld__');
+      this.remove('__tld__');
     }
   }
 
@@ -44,7 +42,9 @@ class CookieStorage {
 
   remove(key) {
     key = this.getOption('prefix') + key;
-    return cookie.remove(key);
+    cookie.remove(key, {
+      domain: this.getOption('cookieDomain'),
+    });
   }
 
   getOption(name) {
