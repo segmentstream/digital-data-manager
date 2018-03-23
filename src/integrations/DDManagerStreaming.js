@@ -9,6 +9,7 @@ import isCrawler from 'driveback-utils/isCrawler';
 import each from 'driveback-utils/each';
 import { warn } from 'driveback-utils/safeConsole';
 import uuid from 'uuid/v1';
+import UAParser from 'ua-parser-js';
 import Integration from './../Integration';
 import StreamingFilters, {
   pageProps,
@@ -234,6 +235,10 @@ class DDManagerStreaming extends Integration {
 
     const title = htmlGlobals.getDocument().title;
 
+    const uaParser = new UAParser();
+    const browser = uaParser.getBrowser();
+    const device = { type: 'desktop', ...cleanObject(uaParser.getDevice()) };
+
     const commonFields = cleanObject({
       hitId,
       projectId: this.getOption('projectId'),
@@ -246,6 +251,8 @@ class DDManagerStreaming extends Integration {
         library: this.library,
         page: { path, referrer, search, title, url, hash },
         userAgent: htmlGlobals.getNavigator().userAgent,
+        browser,
+        device,
         screenWidth: window.screen ? window.screen.width : undefined,
         screenHeight: window.screen ? window.screen.height : undefined,
       },
