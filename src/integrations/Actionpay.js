@@ -3,8 +3,15 @@ import getQueryParam from 'driveback-utils/getQueryParam';
 import topDomain from 'driveback-utils/topDomain';
 import { getProp } from 'driveback-utils/dotProp';
 import normalizeString from 'driveback-utils/normalizeString';
-import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
+import {
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_LISTING,
+  VIEWED_PRODUCT_DETAIL,
+  VIEWED_CART,
+  COMPLETED_TRANSACTION,
+} from './../events/semanticEvents';
 import cookie from 'js-cookie';
+import cleanObject from 'driveback-utils/cleanObject';
 
 const PARTNER_ID_GET_PARAM = 'actionpay';
 const DEFAULT_COOKIE_NAME = 'actionpay';
@@ -32,6 +39,8 @@ class Actionpay extends Integration {
       deduplication: false,
       utmSource: 'actionpay', // utm_source which is sent with actionpay get param
       deduplicationUtmMedium: [],
+      aprt: false,
+      aprtPartnerId: '',
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -48,6 +57,15 @@ class Actionpay extends Integration {
         src: '//apypx.com/ok/{{ goalId }}.png?actionpay={{ partnerId }}&apid={{ actionId }}&price={{ total }}',
       },
     });
+
+    if (options.aprtPartnerId) {
+      this.addTag('aprt', {
+        type: 'script',
+        attr: {
+          src: `//aprtx.com/code/${options.aprtPartnerId}/`,
+        },
+      });
+    }
   }
 
   initialize() {
@@ -55,6 +73,15 @@ class Actionpay extends Integration {
 
     if (this.getOption('cookieTracking')) {
       this.addAffiliateCookie();
+    }
+  }
+
+  trackAPRT(aprtData) {
+    if (window.APRT_SEND) { // async implementation
+      window.APRT_SEND(cleanObject(aprtData));
+    } else {
+      window.APRT_DATA = cleanObject(aprtData);
+      this.load('aprt');
     }
   }
 
@@ -120,6 +147,22 @@ class Actionpay extends Integration {
   }
 
   trackEvent(event) {
+    // retag tracking
+    if (this.getOption('aprt')) {
+      const methods = {
+        [VIEWED_PAGE]: 'onViewedPage',
+        [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
+        [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
+        [VIEWED_PRODUCT_LISTING]: 'onViewedProductListing',
+        [VIEWED_CART]: 'onViewedCart',
+      };
+
+      const method = methods[event.name];
+      if (method) {
+        this[method](event);
+      }
+    }
+
     const partnerId = cookie.get(this.getOption('cookieName'));
     if (!partnerId) return;
 
@@ -127,6 +170,75 @@ class Actionpay extends Integration {
     if (event.name === COMPLETED_TRANSACTION) {
       this.trackSale(event, partnerId);
     }
+  }
+
+  onViewedPage(event) {
+    const page = event.page || {};
+    if (page.type === 'home') {
+      this.onViewedHome(event);
+    } else {
+      setTimeout(() => {
+        if (!this.pageTracked) {
+          this.trackAPRT({ pageType: 0 });
+        }
+      }, 100);
+    }
+  }
+
+  onViewedHome() {
+    this.trackAPRT({ pageType: 1 });
+  }
+
+  onViewedProductListing(event) {
+    const listing = event.listing || {};
+    const categoryId = listing.categoryId;
+    let category;
+    if (Array.isArray(listing.category) && listing.category.length) {
+      category = listing.category[listing.category.length - 1];
+    }
+    this.trackAPRT({
+      pageType: 3,
+      currentCategory: {
+        id: categoryId,
+        name: category,
+      },
+    });
+  }
+
+  onViewedProductDetail(event) {
+    const product = event.product || {};
+    let category;
+    if (Array.isArray(product.category) && product.category.length) {
+      category = product.category[product.category.length - 1];
+    }
+
+    this.trackAPRT({
+      pageType: 2,
+      currentProduct: {
+        id: product.id,
+        name: product.name,
+        price: product.unitSalePrice,
+      },
+      currentCategory: {
+        id: product.categoryId,
+        name: category,
+      },
+    });
+  }
+
+  onViewedCart(event) {
+    const cart = event.cart || {};
+    const lineItems = cart.lineItems || [];
+
+    this.trackAPRT({
+      pageType: 4,
+      basketProducts: lineItems.map(lineItem => ({
+        id: getProp(lineItem, 'product.id'),
+        name: getProp(lineItem, 'product.name'),
+        price: getProp(lineItem, 'product.unitSalePrice'),
+        quantity: lineItem.quantity || 1,
+      })),
+    });
   }
 
   isDeduplication(event) {
