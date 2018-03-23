@@ -62,15 +62,15 @@ module.exports = function init(config) {
         base: 'SauceLabs',
         browserName: 'iphone',
         platform: 'OS X 10.10',
-        version: '8.2',
-        deviceName: 'iPhone Simulator'
+        version: '8.3',
+        deviceName: 'iPhone Simulator',
       },
       slIpad: {
         base: 'SauceLabs',
         browserName: 'iphone',
         platform: 'OS X 10.10',
-        version: '8.2',
-        deviceName: 'iPad Simulator'
+        version: '8.3',
+        deviceName: 'iPad Simulator',
       },
       slAndroid: {
         base: 'SauceLabs',
