@@ -47,7 +47,7 @@ class Storage {
     } catch (e) {
       return false;
     }
-    return store.enabled;
+    return true;
   }
 
   getOption(name) {

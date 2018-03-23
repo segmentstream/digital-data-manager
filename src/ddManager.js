@@ -224,7 +224,7 @@ function _initializeCustomEnrichments(settings) {
 
 const ddManager = {
 
-  VERSION: '1.2.84',
+  VERSION: '1.2.85',
 
   setAvailableIntegrations: (availableIntegrations) => {
     IntegrationsLoader.setAvailableIntegrations(availableIntegrations);
@@ -276,13 +276,18 @@ const ddManager = {
     }
 
     let storage = new Storage();
+    let cookieStorage;
     if (settings.useCookieStorage || !storage.isEnabled()) {
       storage = new CookieStorage(cleanObject({
         cookieDomain: settings.cookieDomain,
       }));
+    } else {
+      cookieStorage = new CookieStorage(cleanObject({
+        cookieDomain: settings.cookieDomain,
+      }));
     }
 
-    _ddStorage = new DDStorage(_digitalData, storage);
+    _ddStorage = new DDStorage(_digitalData, storage, cookieStorage);
 
     // initialize digital data enricher
     _digitalDataEnricher = new DigitalDataEnricher(_digitalData, _ddListener, _ddStorage, {
