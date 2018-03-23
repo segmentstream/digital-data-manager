@@ -9,6 +9,12 @@ import {
   VIEWED_PRODUCT_DETAIL,
   VIEWED_CART,
   COMPLETED_TRANSACTION,
+  VIEWED_CHECKOUT_STEP,
+  ADDED_PRODUCT,
+  REMOVED_PRODUCT,
+  ADDED_PRODUCT_TO_WISHLIST,
+  REMOVED_PRODUCT_FROM_WISHLIST,
+  REGISTERED,
 } from './../events/semanticEvents';
 import cookie from 'js-cookie';
 import cleanObject from 'driveback-utils/cleanObject';
@@ -85,6 +91,17 @@ class Actionpay extends Integration {
     }
   }
 
+  trackAPRTCurrentProduct(pageType, product) {
+    this.trackAPRT({
+      pageType,
+      currentProduct: {
+        id: product.id,
+        name: product.name,
+        price: product.unitSalePrice,
+      },
+    });
+  }
+
   addAffiliateCookie() {
     if (window.self !== window.top) {
       return; // protect from iframe cookie-stuffing
@@ -146,6 +163,16 @@ class Actionpay extends Integration {
     return this._isLoaded;
   }
 
+  getBasketProducts(cart) {
+    const lineItems = cart.lineItems || [];
+    return lineItems.map(lineItem => ({
+      id: getProp(lineItem, 'product.id'),
+      name: getProp(lineItem, 'product.name'),
+      price: getProp(lineItem, 'product.unitSalePrice'),
+      quantity: lineItem.quantity || 1,
+    }));
+  }
+
   trackEvent(event) {
     // retag tracking
     if (this.getOption('aprt')) {
@@ -154,7 +181,14 @@ class Actionpay extends Integration {
         [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
         [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
         [VIEWED_PRODUCT_LISTING]: 'onViewedProductListing',
+        [VIEWED_CHECKOUT_STEP]: 'onViewedCheckoutStep',
         [VIEWED_CART]: 'onViewedCart',
+        [ADDED_PRODUCT]: 'onAddedProduct',
+        [REMOVED_PRODUCT]: 'onRemovedProduct',
+        [ADDED_PRODUCT_TO_WISHLIST]: 'onAddedProductToWishlist',
+        [REMOVED_PRODUCT_FROM_WISHLIST]: 'onRemovedProductFromWishlist',
+        [REGISTERED]: 'onRegistered',
+        [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
       };
 
       const method = methods[event.name];
@@ -228,16 +262,59 @@ class Actionpay extends Integration {
 
   onViewedCart(event) {
     const cart = event.cart || {};
-    const lineItems = cart.lineItems || [];
-
     this.trackAPRT({
       pageType: 4,
-      basketProducts: lineItems.map(lineItem => ({
-        id: getProp(lineItem, 'product.id'),
-        name: getProp(lineItem, 'product.name'),
-        price: getProp(lineItem, 'product.unitSalePrice'),
-        quantity: lineItem.quantity || 1,
-      })),
+      basketProducts: this.getBasketProducts(cart),
+    });
+  }
+
+  onViewedCheckoutStep(event) {
+    const cart = event.cart || {};
+    this.trackAPRT({
+      pageType: 5,
+      basketProducts: this.getBasketProducts(cart),
+    });
+  }
+
+  onCompletedTransaction(event) {
+    const transaction = event.transaction || {};
+    this.trackAPRT({
+      pageType: 6,
+      purchasedProducts: this.getBasketProducts(transaction),
+      orderInfo: {
+        id: transaction.orderId,
+        totalPrice: transaction.total,
+      },
+    });
+  }
+
+  onAddedProduct(event) {
+    const product = event.product || {};
+    this.trackAPRTCurrentProduct(8, product);
+  }
+
+  onRemovedProduct(event) {
+    const product = event.product || {};
+    this.trackAPRTCurrentProduct(9, product);
+  }
+
+  onAddedProductToWishlist(event) {
+    const product = event.product || {};
+    this.trackAPRTCurrentProduct(10, product);
+  }
+
+  onRemovedProductFromWishlist(event) {
+    const product = event.product || {};
+    this.trackAPRTCurrentProduct(11, product);
+  }
+
+  onRegistered(event) {
+    const user = event.user || {};
+    this.trackAPRT({
+      pageType: 13,
+      userInfo: {
+        id: user.userId,
+      },
     });
   }
 
