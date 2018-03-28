@@ -135,6 +135,9 @@ describe('OneSignal', function() {
       window.OneSignal.isPushNotificationsSupported = () => {
         return true;
       };
+      window.OneSignal.on = () => {
+        return true;
+      };
       window.OneSignal.sendTags = noop;
       window.OneSignal.deleteTags = noop;
       sinon.stub(window.OneSignal, 'sendTags');
@@ -147,7 +150,6 @@ describe('OneSignal', function() {
     });
 
     describe('#enrichDigitalData', () => {
-
       it('should enrich digitalData.user', (done) => {
         _oneSignal.on('enrich', () => {
           assert.ok(window.digitalData.user.pushNotifications);

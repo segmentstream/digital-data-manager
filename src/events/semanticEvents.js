@@ -27,6 +27,9 @@ export const SESSION_STARTED = 'Session Started';
 export const STARTED_ORDER = 'Started Order';
 export const ADDED_PAYMENT_INFO = 'Added Payment Info';
 export const INTEGRATION_VALIDATION_FAILED = 'Integration Validation Failed';
+export const ALLOWED_PUSH_NOTIFICATIONS = 'Allowed Push Notifications';
+export const BLOCKED_PUSH_NOTIFICATIONS = 'Blocked Push Notifications';
+export const CLOSED_PUSH_NOTIFICATIONS_PROMPT = 'Closed Push Notifications Prompt';
 
 // legacy events
 export const VIEWED_PRODUCT_CATEGORY = 'Viewed Product Category';

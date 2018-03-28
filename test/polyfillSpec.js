@@ -8,4 +8,12 @@ describe('Polyfill', () => {
     };
     assert.deepEqual(Object.values(object), ['String 1', 'String 2']);
   });
+
+  it('should not crash on Promises in IE', (done) => {
+    new Promise((resolve) => {
+      setTimeout(resolve(true));
+    }).then(() => {
+      done();
+    });
+  });
 });
