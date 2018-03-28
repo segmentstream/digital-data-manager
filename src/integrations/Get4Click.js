@@ -32,6 +32,7 @@ class Get4Click extends Integration {
       };
     };
     window.iPromoCpnObj = new window._iPromoBannerObj();
+    this._isLoaded = true;
   }
 
   getSemanticEvents() {

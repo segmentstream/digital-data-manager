@@ -53,10 +53,6 @@ class Actionpay extends Integration {
 
     this._isLoaded = false;
 
-    this.SEMANTIC_EVENTS = [
-      COMPLETED_TRANSACTION,
-    ];
-
     this.addTag('trackingPixel', {
       type: 'img',
       attr: {
@@ -89,6 +85,7 @@ class Actionpay extends Integration {
       window.APRT_DATA = cleanObject(aprtData);
       this.load('aprt');
     }
+    this.pageTracked = true;
   }
 
   trackAPRTCurrentProduct(pageType, product) {
@@ -117,46 +114,89 @@ class Actionpay extends Integration {
   }
 
   getSemanticEvents() {
-    return this.SEMANTIC_EVENTS;
+    if (this.getOption('aprt')) {
+      return [
+        VIEWED_PAGE,
+        VIEWED_PRODUCT_LISTING,
+        VIEWED_PRODUCT_DETAIL,
+        VIEWED_CART,
+        COMPLETED_TRANSACTION,
+        VIEWED_CHECKOUT_STEP,
+        ADDED_PRODUCT,
+        REMOVED_PRODUCT,
+        ADDED_PRODUCT_TO_WISHLIST,
+        REMOVED_PRODUCT_FROM_WISHLIST,
+        REGISTERED,
+      ];
+    }
+    return [COMPLETED_TRANSACTION];
   }
 
   getEnrichableEventProps(event) {
-    let enrichableProps = [];
-
-    if (event.name === COMPLETED_TRANSACTION) {
-      enrichableProps = [
-        'transaction',
-        'context.campaign',
-      ];
+    switch (event.name) {
+      case VIEWED_PAGE:
+        return ['page.type'];
+      case VIEWED_PRODUCT_LISTING:
+        return ['listing.category', 'listing.categoryId'];
+      case VIEWED_PRODUCT_DETAIL:
+        return ['product'];
+      case VIEWED_CART:
+      case VIEWED_CHECKOUT_STEP:
+        return ['cart'];
+      case COMPLETED_TRANSACTION:
+        return ['transaction', 'context.campaign'];
+      case REGISTERED:
+        return ['user.userId'];
+      default:
+        return [];
     }
-
-    return enrichableProps;
   }
 
   getEventValidationConfig(event) {
-    const config = {
-      [COMPLETED_TRANSACTION]: {
-        fields: [
-          'transaction.orderId',
-          'transaction.total',
-          'context.campaign.source',
-          'context.campaign.medium',
-          'integrations.actionpay.goalId',
-        ],
-        validations: {
-          'transaction.orderId': {
-            errors: ['required'],
-            warnings: ['string'],
+    switch (event.name) {
+      case VIEWED_PAGE:
+        return { fields: ['page.type'] };
+      case VIEWED_PRODUCT_LISTING:
+        return { fields: ['listing.categoryId', 'listing.category'] };
+      case VIEWED_PRODUCT_DETAIL:
+      case ADDED_PRODUCT:
+      case REMOVED_PRODUCT:
+      case ADDED_PRODUCT_TO_WISHLIST:
+      case REMOVED_PRODUCT_FROM_WISHLIST:
+        return { fields: ['product.id', 'product.category', 'product.categoryId', 'product.name', 'product.unitSalePrice'] };
+      case VIEWED_CART:
+      case VIEWED_CHECKOUT_STEP:
+        return { fields: [
+          'cart.lineItems[].product.id',
+          'cart.lineItems[].product.name',
+          'cart.lineItems[].product.unitSalePrice',
+          'cart.lineItems[].quantity',
+        ] };
+      case REGISTERED:
+        return { fields: ['user.userId'] };
+      case COMPLETED_TRANSACTION:
+        return {
+          fields: [
+            'transaction.orderId',
+            'transaction.total',
+            'context.campaign.source',
+            'context.campaign.medium',
+            'integrations.actionpay.goalId',
+          ],
+          validations: {
+            'transaction.orderId': {
+              errors: ['required'],
+              warnings: ['string'],
+            },
+            'transaction.total': {
+              errors: ['required'],
+              warnings: ['numeric'],
+            },
           },
-          'transaction.total': {
-            errors: ['required'],
-            warnings: ['numeric'],
-          },
-        },
-      },
-    };
-
-    return config[event.name];
+        };
+      default:
+        return undefined;
+    }
   }
 
   isLoaded() {
