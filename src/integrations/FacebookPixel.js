@@ -9,6 +9,7 @@ import {
   ADDED_PRODUCT,
   ADDED_PRODUCT_TO_WISHLIST,
   COMPLETED_TRANSACTION,
+  STARTED_ORDER,
 } from './../events/semanticEvents';
 
 const FB_STANDARD_EVENTS = [
@@ -37,6 +38,7 @@ class FacebookPixel extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       pixelId: '',
+      usePriceAsEventValue: false,
       customEvents: {},
     }, options);
 
@@ -48,6 +50,7 @@ class FacebookPixel extends Integration {
       ADDED_PRODUCT,
       ADDED_PRODUCT_TO_WISHLIST,
       SEARCHED_PRODUCTS,
+      STARTED_ORDER,
       COMPLETED_TRANSACTION,
     ];
 
@@ -105,6 +108,11 @@ class FacebookPixel extends Integration {
           'listing.query',
         ];
         break;
+      case STARTED_ORDER:
+        enrichableProps = [
+          'cart',
+        ];
+        break;
       case COMPLETED_TRANSACTION:
         enrichableProps = [
           'website.currency',
@@ -153,6 +161,24 @@ class FacebookPixel extends Integration {
           },
         },
       },
+      [STARTED_ORDER]: {
+        fields: [
+          'transaction.total',
+          'transaction.currency',
+          'transaction.lineItems[].product.id',
+        ],
+        validations: {
+          'cart.total': {
+            errors: ['numeric'],
+          },
+          'cart.currency': {
+            errors: ['string'],
+          },
+          'cart.lineItems[].product.id': {
+            warnings: ['string'],
+          },
+        },
+      },
       [COMPLETED_TRANSACTION]: {
         fields: [
           'transaction.total',
@@ -189,15 +215,17 @@ class FacebookPixel extends Integration {
     if (event.name === VIEWED_PAGE) {
       this.onViewedPage();
     } else if (event.name === VIEWED_PRODUCT_DETAIL) {
-      this.onViewedProductDetail(event.product);
+      this.onViewedProductDetail(event);
     } else if (event.name === ADDED_PRODUCT) {
-      this.onAddedProduct(event.product);
+      this.onAddedProduct(event);
     } else if (event.name === ADDED_PRODUCT_TO_WISHLIST) {
-      this.onAddedProductToWishlist(event.product);
+      this.onAddedProductToWishlist(event);
     } else if (event.name === SEARCHED_PRODUCTS) {
-      this.onSearchedProducts(event.listing);
+      this.onSearchedProducts(event);
+    } else if (event.name === STARTED_ORDER) {
+      this.onStartedOrder(event);
     } else if (event.name === COMPLETED_TRANSACTION) {
-      this.onCompletedTransaction(event.transaction);
+      this.onCompletedTransaction(event);
     } else {
       this.onCustomEvent(event);
     }
@@ -207,47 +235,62 @@ class FacebookPixel extends Integration {
     window.fbq('track', 'PageView');
   }
 
-  onViewedProductDetail(product) {
+  onViewedProductDetail(event) {
+    const product = event.product || {};
     const category = getProductCategory(product);
-    window.fbq('track', 'ViewContent', {
+    window.fbq('track', 'ViewContent', cleanObject({
       content_ids: [product.id || ''],
       content_type: 'product',
       content_name: product.name || '',
       content_category: category || '',
-    });
+      value: this.getOption('usePriceAsEventValue') ? product.unitSalePrice : event.value,
+    }));
   }
 
-  onAddedProduct(product) {
-    if (product && typeof product === 'object') {
-      const category = getProductCategory(product);
-      window.fbq('track', 'AddToCart', cleanObject({
-        content_ids: [product.id || ''],
-        content_type: 'product',
-        content_name: product.name,
-        content_category: category,
-      }));
-    }
+  onAddedProduct(event) {
+    const product = event.product || {};
+    const category = getProductCategory(product);
+    window.fbq('track', 'AddToCart', cleanObject({
+      content_ids: [product.id || ''],
+      content_type: 'product',
+      content_name: product.name,
+      content_category: category,
+      value: this.getOption('usePriceAsEventValue') ? product.unitSalePrice : event.value,
+    }));
   }
 
-  onAddedProductToWishlist(product) {
-    product = product || {};
+  onAddedProductToWishlist(event) {
+    const product = event.product || {};
     const category = getProductCategory(product);
     window.fbq('track', 'AddToWishlist', cleanObject({
       content_ids: [product.id || ''],
       content_type: 'product',
       content_name: product.name,
       content_category: category,
+      value: this.getOption('usePriceAsEventValue') ? product.unitSalePrice : event.value,
     }));
   }
 
-  onSearchedProducts(listing) {
-    listing = listing || {};
+  onSearchedProducts(event) {
+    const listing = event.listing || {};
     window.fbq('track', 'Search', cleanObject({
       search_string: listing.query,
     }));
   }
 
-  onCompletedTransaction(transaction) {
+  onStartedOrder(event) {
+    const cart = event.cart || {};
+    const lineItems = cart.lineItems || [];
+    window.fbq('track', 'InitiateCheckout', cleanObject({
+      content_ids: lineItems.length ? lineItems.map(lineItem => getProp(lineItem, 'product.id')) : undefined,
+      content_type: 'product',
+      currency: cart.currency,
+      value: (this.getOption('usePriceAsEventValue')) ? cart.total : event.value,
+    }));
+  }
+
+  onCompletedTransaction(event) {
+    const transaction = event.transaction || {};
     if (transaction.lineItems && transaction.lineItems.length) {
       const contentIds = transaction.lineItems.map(lineItem => getProp(lineItem, 'product.id'));
 

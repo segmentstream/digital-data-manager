@@ -160,6 +160,30 @@ describe('Integrations: FacebookPixel', () => {
         });
       });
 
+      it('should call fbq track ViewContent with price as event value', (done) => {
+        fbPixel.setOption('usePriceAsEventValue', true)
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {
+            id: '123',
+            name: 'Test Product',
+            category: ['Category 1', 'Subcategory 1'],
+            currency: 'USD',
+            unitSalePrice: 10000,
+          },
+          callback: () => {
+            assert.ok(window.fbq.calledWith('track', 'ViewContent', {
+              content_ids: ['123'],
+              content_type: 'product',
+              content_name: 'Test Product',
+              content_category: 'Category 1/Subcategory 1',
+              value: 10000,
+            }), 'fbq("track", "ViewContent") was not called');
+            done();
+          }
+        });
+      });
+
       it('should call fbq track ViewContent (digitalData)', (done) => {
         window.digitalData.product = {
           id: '123',
@@ -315,6 +339,56 @@ describe('Integrations: FacebookPixel', () => {
               content_name: 'Test Product',
               content_category: 'Category 1',
             }), 'fbq("track", "AddToCart") was not called');
+            done();
+          }
+        });
+      });
+    });
+
+    describe('#onStartedOrder', () => {
+
+      const cart = {
+        total: 20000,
+        currency: 'USD',
+        lineItems: [
+          {
+            product: {
+              id: '123',
+              name: 'Test Product',
+              category: 'Category 1',
+              currency: 'USD',
+              unitSalePrice: 10000
+            },
+            quantity: 1,
+            subtotal: 10000
+          },
+          {
+            product: {
+              id: '234',
+              name: 'Test Product 2',
+              category: 'Category 1',
+              currency: 'USD',
+              unitSalePrice: 5000
+            },
+            quantity: 2,
+            subtotal: 10000
+          }
+        ],
+        total: 20000
+      };
+
+      it('should call fbq track InitiateCheckout', (done) => {
+        fbPixel.setOption('usePriceAsEventValue', true);
+        window.digitalData.cart = cart;
+        window.digitalData.events.push({
+          name: 'Started Order',
+          callback: () => {
+            assert.ok(window.fbq.calledWith('track', 'InitiateCheckout', {
+              content_ids: ['123', '234'],
+              content_type: 'product',
+              currency: 'USD',
+              value: 20000
+            }), 'fbq("track", "InitiateCheckout") was not called');
             done();
           }
         });
