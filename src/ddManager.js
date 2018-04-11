@@ -1,5 +1,4 @@
 import clone from 'driveback-utils/clone';
-import semver from 'driveback-utils/semver';
 import nextTick from 'async/nextTick';
 import cleanObject from 'driveback-utils/cleanObject';
 import emitter from 'component-emitter';
@@ -9,7 +8,6 @@ import IntegrationsLoader from './IntegrationsLoader';
 import EventDataEnricher from './enrichments/EventDataEnricher';
 import DDHelper from './DDHelper';
 import DigitalDataEnricher from './enrichments/DigitalDataEnricher';
-import CustomEnricher from './enrichments/CustomEnricher'; // @TODO: remove as legacy
 import CustomEnrichments from './enrichments/CustomEnrichments';
 import CustomScripts from './scripts/CustomScripts';
 import Storage from './Storage';
@@ -197,34 +195,22 @@ function _initializeCustomEvents(settings) {
 }
 
 function _initializeCustomEnrichments(settings) {
-  if (!settings.version || semver.cmp(settings.version, '1.2.9') < 0) {
-    _customEnricher = new CustomEnricher(_digitalData, _ddStorage);
-    _customEnricher.import(settings.enrichments);
-    _eventManager.addCallback(['on', 'beforeEvent', (event) => {
-      if (event.name === VIEWED_PAGE) {
-        _digitalDataEnricher.enrichDigitalData();
-        _customEnricher.enrichDigitalData(_digitalData);
-      }
-      _customEnricher.enrichDigitalData(_digitalData, event);
-    }]);
-  } else {
-    _customEnricher = new CustomEnrichments(_digitalData, _ddStorage);
-    _customEnricher.import(settings.enrichments);
-    _eventManager.addCallback(['on', 'beforeEvent', (event) => {
-      if (event.name === VIEWED_PAGE) {
-        _digitalDataEnricher.enrichDigitalData();
-      }
-      _customEnricher.enrichDigitalData(_digitalData, event, true);
-    }]);
-    _eventManager.addCallback(['on', 'event', (event) => {
-      _customEnricher.enrichDigitalData(_digitalData, event, false);
-    }]);
-  }
+  _customEnricher = new CustomEnrichments(_digitalData, _ddStorage);
+  _customEnricher.import(settings.enrichments);
+  _eventManager.addCallback(['on', 'beforeEvent', (event) => {
+    if (event.name === VIEWED_PAGE) {
+      _digitalDataEnricher.enrichDigitalData();
+    }
+    _customEnricher.enrichDigitalData(_digitalData, event, true);
+  }]);
+  _eventManager.addCallback(['on', 'event', (event) => {
+    _customEnricher.enrichDigitalData(_digitalData, event, false);
+  }]);
 }
 
 const ddManager = {
 
-  VERSION: '1.2.93',
+  VERSION: '1.2.94',
 
   setAvailableIntegrations: (availableIntegrations) => {
     IntegrationsLoader.setAvailableIntegrations(availableIntegrations);
@@ -299,7 +285,15 @@ const ddManager = {
     _eventManager.setSendViewedPageEvent(settings.sendViewedPageEvent);
 
     // initialize custom enrichments
-    _initializeCustomEnrichments(settings);
+    try {
+      _initializeCustomEnrichments(settings);
+    } catch (e) {
+      _digitalData.events.push({
+        category: 'Error',
+        name: 'Enrichments Exception',
+        label: settings.projectName,
+      });
+    }
 
     // import custom events
     _initializeCustomEvents(settings);
