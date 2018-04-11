@@ -291,7 +291,7 @@ const ddManager = {
       _digitalData.events.push({
         category: 'Error',
         name: 'Enrichments Exception',
-        label: settings.projectName,
+        label: e.message,
       });
     }
 
