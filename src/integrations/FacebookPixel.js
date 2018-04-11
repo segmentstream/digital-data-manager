@@ -39,6 +39,7 @@ class FacebookPixel extends Integration {
     const optionsWithDefaults = Object.assign({
       pixelId: '',
       usePriceAsEventValue: false,
+      feedWithGroupedProducts: false,
       customEvents: {},
     }, options);
 
@@ -163,9 +164,10 @@ class FacebookPixel extends Integration {
       },
       [STARTED_ORDER]: {
         fields: [
-          'transaction.total',
-          'transaction.currency',
-          'transaction.lineItems[].product.id',
+          'cart.total',
+          'cart.currency',
+          'cart.lineItems[].product.id',
+          'cart.lineItems[].product.skuCode',
         ],
         validations: {
           'cart.total': {
@@ -177,6 +179,9 @@ class FacebookPixel extends Integration {
           'cart.lineItems[].product.id': {
             warnings: ['string'],
           },
+          'cart.lineItems[].product.skuCode': {
+            warnings: ['string'],
+          },
         },
       },
       [COMPLETED_TRANSACTION]: {
@@ -184,6 +189,7 @@ class FacebookPixel extends Integration {
           'transaction.total',
           'transaction.currency',
           'transaction.lineItems[].product.id',
+          'transaction.lineItems[].product.skuCode',
         ],
         validations: {
           'transaction.total': {
@@ -194,6 +200,9 @@ class FacebookPixel extends Integration {
           },
           'transaction.lineItems[].product.id': {
             errors: ['required'],
+            warnings: ['string'],
+          },
+          'transaction.lineItems[].product.skuCode': {
             warnings: ['string'],
           },
         },
@@ -238,9 +247,11 @@ class FacebookPixel extends Integration {
   onViewedProductDetail(event) {
     const product = event.product || {};
     const category = getProductCategory(product);
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
+
     window.fbq('track', 'ViewContent', cleanObject({
       content_ids: [product.id || ''],
-      content_type: 'product',
+      content_type: (feedWithGroupedProducts) ? 'product_group' : 'product',
       content_name: product.name || '',
       content_category: category || '',
       value: this.getOption('usePriceAsEventValue') ? product.unitSalePrice : event.value,
@@ -250,8 +261,10 @@ class FacebookPixel extends Integration {
   onAddedProduct(event) {
     const product = event.product || {};
     const category = getProductCategory(product);
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
+
     window.fbq('track', 'AddToCart', cleanObject({
-      content_ids: [product.id || ''],
+      content_ids: (feedWithGroupedProducts) ? [product.skuCode || ''] : [product.id || ''],
       content_type: 'product',
       content_name: product.name,
       content_category: category,
@@ -262,8 +275,10 @@ class FacebookPixel extends Integration {
   onAddedProductToWishlist(event) {
     const product = event.product || {};
     const category = getProductCategory(product);
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
+
     window.fbq('track', 'AddToWishlist', cleanObject({
-      content_ids: [product.id || ''],
+      content_ids: (feedWithGroupedProducts) ? [product.skuCode || ''] : [product.id || ''],
       content_type: 'product',
       content_name: product.name,
       content_category: category,
@@ -281,8 +296,13 @@ class FacebookPixel extends Integration {
   onStartedOrder(event) {
     const cart = event.cart || {};
     const lineItems = cart.lineItems || [];
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
+    const idProp = (feedWithGroupedProducts) ? 'product.skuCode' : 'product.id';
+    const contentIds = lineItems.length ?
+      lineItems.map(lineItem => getProp(lineItem, idProp)) : undefined;
+
     window.fbq('track', 'InitiateCheckout', cleanObject({
-      content_ids: lineItems.length ? lineItems.map(lineItem => getProp(lineItem, 'product.id')) : undefined,
+      content_ids: contentIds,
       content_type: 'product',
       currency: cart.currency,
       value: (this.getOption('usePriceAsEventValue')) ? cart.total : event.value,
@@ -291,16 +311,18 @@ class FacebookPixel extends Integration {
 
   onCompletedTransaction(event) {
     const transaction = event.transaction || {};
-    if (transaction.lineItems && transaction.lineItems.length) {
-      const contentIds = transaction.lineItems.map(lineItem => getProp(lineItem, 'product.id'));
+    const lineItems = transaction.lineItems || [];
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
+    const idProp = (feedWithGroupedProducts) ? 'product.skuCode' : 'product.id';
+    const contentIds = lineItems.length ?
+      transaction.lineItems.map(lineItem => getProp(lineItem, idProp)) : undefined;
 
-      window.fbq('track', 'Purchase', cleanObject({
-        content_ids: contentIds,
-        content_type: 'product',
-        currency: transaction.currency,
-        value: transaction.total,
-      }));
-    }
+    window.fbq('track', 'Purchase', cleanObject({
+      content_ids: contentIds,
+      content_type: 'product',
+      currency: transaction.currency,
+      value: transaction.total,
+    }));
   }
 
   onCustomEvent(event) {
