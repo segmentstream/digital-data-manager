@@ -25,6 +25,10 @@ class CookieStorage {
     }
   }
 
+  supportsSubDomains() {
+    return true;
+  }
+
   set(key, val, exp) {
     key = this.getOption('prefix') + key;
     exp = exp || this.getOption('cookieMaxAge');

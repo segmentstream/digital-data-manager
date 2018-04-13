@@ -7,6 +7,10 @@ class Storage {
     }, options);
   }
 
+  supportsSubDomains() {
+    return false;
+  }
+
   set(key, val, exp) {
     key = this.getOption('prefix') + key;
     if (exp !== undefined) {
@@ -33,6 +37,17 @@ class Storage {
       }
     }
     return info;
+  }
+
+  getTtl(key) {
+    key = this.getOption('prefix') + key;
+    const info = store.get(key);
+    if (info !== undefined) {
+      if (info.val !== undefined && info.exp && info.time) {
+        return info.exp - (Date.now() - info.time);
+      }
+    }
+    return undefined;
   }
 
   remove(key) {
