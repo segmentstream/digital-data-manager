@@ -210,7 +210,7 @@ function _initializeCustomEnrichments(settings) {
 
 const ddManager = {
 
-  VERSION: '1.2.94',
+  VERSION: '1.2.95',
 
   setAvailableIntegrations: (availableIntegrations) => {
     IntegrationsLoader.setAvailableIntegrations(availableIntegrations);
@@ -285,15 +285,7 @@ const ddManager = {
     _eventManager.setSendViewedPageEvent(settings.sendViewedPageEvent);
 
     // initialize custom enrichments
-    try {
-      _initializeCustomEnrichments(settings);
-    } catch (e) {
-      _digitalData.events.push({
-        category: 'Error',
-        name: 'Enrichments Exception',
-        label: e.message,
-      });
-    }
+    _initializeCustomEnrichments(settings);
 
     // import custom events
     _initializeCustomEvents(settings);
