@@ -57,6 +57,7 @@ class YandexMetrica extends Integration {
       sendUserId: true,
       clickmap: false,
       webvisor: false,
+      webvisorVersion: 1,
       trackLinks: true,
       trackHash: false,
       purchaseGoalId: undefined,
@@ -69,6 +70,13 @@ class YandexMetrica extends Integration {
 
     // use custom dataLayer name to avoid conflicts
     this.dataLayerName = 'yandexDL';
+
+    this.yaCounterClass = 'Metrika';
+    this.yaCallbacksArrayName = 'yandex_metrika_callbacks';
+    if (options.webvisorVersion === 2) {
+      this.yaCounterClass += '2';
+      this.yaCallbacksArrayName += '2';
+    }
 
     this.enrichableUserParamsProps = getEnrichableVariableMappingProps(this.getOption('userParamsVars'));
     this.enrichableVisitParamsProps = getEnrichableVariableMappingProps(this.getOption('visitParamsVars'));
@@ -94,7 +102,7 @@ class YandexMetrica extends Integration {
     this.addTag({
       type: 'script',
       attr: {
-        src: '//mc.yandex.ru/metrika/watch.js',
+        src: `//mc.yandex.ru/metrika/${(options.webvisorVersion === 2) ? 'tag' : 'watch'}.js`,
       },
     });
   }
@@ -284,8 +292,8 @@ class YandexMetrica extends Integration {
   }
 
   yaCounterCall(method, args) {
-    if (window.yandex_metrika_callbacks) {
-      window.yandex_metrika_callbacks.push(() => {
+    if (window[this.yaCallbacksArrayName]) {
+      window[this.yaCallbacksArrayName].push(() => {
         this.yaCounter[method].apply(this, args);
       });
     } else {
@@ -306,7 +314,7 @@ class YandexMetrica extends Integration {
     const id = this.getOption('counterId');
 
     const newCounter = () => {
-      this.yaCounter = window[`yaCounter${id}`] = new window.Ya.Metrika({
+      this.yaCounter = window[`yaCounter${id}`] = new window.Ya[this.yaCounterClass]({
         id,
         clickmap: this.getOption('clickmap'),
         webvisor: this.getOption('webvisor'),
@@ -319,8 +327,8 @@ class YandexMetrica extends Integration {
       });
     };
 
-    if (window.yandex_metrika_callbacks) {
-      window.yandex_metrika_callbacks.push(() => {
+    if (window[this.yaCallbacksArrayName]) {
+      window[this.yaCallbacksArrayName].push(() => {
         newCounter();
       });
     } else {
@@ -333,7 +341,7 @@ class YandexMetrica extends Integration {
   }
 
   initialize() {
-    window.yandex_metrika_callbacks = window.yandex_metrika_callbacks || [];
+    window[this.yaCallbacksArrayName] = window[this.yaCallbacksArrayName] || [];
     this.dataLayer = window[this.dataLayerName] = window[this.dataLayerName] || [];
 
     this.enrichDigitalData();
@@ -358,12 +366,12 @@ class YandexMetrica extends Integration {
   }
 
   isLoaded() {
-    return !!(window.Ya && window.Ya.Metrika);
+    return !!(window.Ya && (window.Ya.Metrika || window.Ya.Metrika2));
   }
 
   reset() {
     deleteProperty(window, 'Ya');
-    deleteProperty(window, 'yandex_metrika_callbacks');
+    deleteProperty(window, this.yaCallbacksArrayName);
     deleteProperty(window, this.dataLayerName);
     this.pageCalled = false;
   }
