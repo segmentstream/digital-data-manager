@@ -339,26 +339,16 @@ class Criteo extends Integration {
       });
     }
 
-    if (page) {
-      if (page.type === 'home') {
-        this.onViewedHome(event);
-      }
-    }
-
     if (!this.pageTracked) {
       setTimeout(() => {
         if (!this.pageTracked) {
-          this.pushCriteoQueue();
+          const criteoEvent = {
+            event: 'viewHome',
+          };
+          this.pushCriteoQueue(criteoEvent, this.getUserSegment(event));
         }
       }, 100);
     }
-  }
-
-  onViewedHome(event) {
-    const criteoEvent = {
-      event: 'viewHome',
-    };
-    this.pushCriteoQueue(criteoEvent, this.getUserSegment(event));
   }
 
   onViewedProductListing(event) {
