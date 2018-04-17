@@ -102,7 +102,7 @@ class YandexMetrica extends Integration {
     this.addTag({
       type: 'script',
       attr: {
-        src: `//mc.yandex.ru/metrika/${(options.webvisor && options.webvisorVersion === 2) ? 'tag' : 'watch'}.js`,
+        src: `https://mc.yandex.ru/metrika/${(options.webvisor && options.webvisorVersion === 2) ? 'tag' : 'watch'}.js`,
       },
     });
   }
