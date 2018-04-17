@@ -319,17 +319,6 @@ describe('Integrations: Criteo', () => {
         });
       });
 
-      it('should not send viewHome event if user visits other pages', (done) => {
-        viewedPage({
-          page: {
-            type: 'content'
-          },
-        }, () => {
-          assert.ok(!window.criteo_q[0][3]);
-          done();
-        });
-      });
-
       it('should not send viewHome event if noConflict setting is true', (done) => {
         criteo.setOption('noConflict', true);
         viewedPage({
