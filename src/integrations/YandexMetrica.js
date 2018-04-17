@@ -73,7 +73,7 @@ class YandexMetrica extends Integration {
 
     this.yaCounterClass = 'Metrika';
     this.yaCallbacksArrayName = 'yandex_metrika_callbacks';
-    if (options.webvisorVersion === 2) {
+    if (options.webvisor && options.webvisorVersion === 2) {
       this.yaCounterClass += '2';
       this.yaCallbacksArrayName += '2';
     }
@@ -102,7 +102,7 @@ class YandexMetrica extends Integration {
     this.addTag({
       type: 'script',
       attr: {
-        src: `//mc.yandex.ru/metrika/${(options.webvisorVersion === 2) ? 'tag' : 'watch'}.js`,
+        src: `//mc.yandex.ru/metrika/${(options.webvisor && options.webvisorVersion === 2) ? 'tag' : 'watch'}.js`,
       },
     });
   }
