@@ -249,6 +249,7 @@ const ddManager = {
       useCookieStorage: false,
       trackValidationErrors: false,
       trackJsErrors: false,
+      enableMonitoring: true,
     }, settings);
 
     if (_isReady) {
@@ -288,7 +289,7 @@ const ddManager = {
 
     IntegrationsLoader.initialize(settings, ddManager);
     let streaming = IntegrationsLoader.getIntegration('DDManager Streaming');
-    if (!streaming) {
+    if (!streaming && settings.enableMonitoring) {
       try {
         streaming = new DDManagerStreaming(_digitalData, { internal: true });
         IntegrationsLoader.addIntegration('DDManager Streaming', streaming, ddManager);
