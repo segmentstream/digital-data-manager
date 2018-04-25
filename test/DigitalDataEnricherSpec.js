@@ -4,6 +4,7 @@ import deleteProperty from 'driveback-utils/deleteProperty.js';
 import DigitalDataEnricher from './../src/enrichments/DigitalDataEnricher.js';
 import Storage from './../src/Storage.js';
 import DDStorage from './../src/DDStorage.js';
+import ddManager from './../src/ddManager';
 
 describe('DigitalDataEnricher', () => {
 
@@ -346,4 +347,34 @@ describe('DigitalDataEnricher', () => {
     // });
   });
 
+  describe('Updated Cart enrichments', () => {
+
+    afterEach(() => {
+      ddManager.reset();
+    });
+
+    it.only('should process Updated Cart event for digitalData > 1.1.3', () => {
+      window.digitalData = {
+        version: '1.1.3',
+        cart: {
+          lineItems: [{ product: { id: '1' }, quantity: 1 }],
+        },
+        events: [],
+      };
+
+      ddManager.initialize();
+
+      window.digitalData.events.push({
+        name: 'Updated Cart',
+        cart: {
+          lineItems: [
+            { product: { id: '1' }, quantity: 2 },
+            { product: { id: '2' }, quantity: 1 },
+          ],
+        },
+      });
+
+      console.log(window.digitalData.events);
+    });
+  });
 });

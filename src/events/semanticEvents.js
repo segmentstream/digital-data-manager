@@ -30,6 +30,7 @@ export const INTEGRATION_VALIDATION_FAILED = 'Integration Validation Failed';
 export const ALLOWED_PUSH_NOTIFICATIONS = 'Allowed Push Notifications';
 export const BLOCKED_PUSH_NOTIFICATIONS = 'Blocked Push Notifications';
 export const CLOSED_PUSH_NOTIFICATIONS_PROMPT = 'Closed Push Notifications Prompt';
+export const UPDATED_CART = 'Updated Cart';
 
 // legacy events
 export const VIEWED_PRODUCT_CATEGORY = 'Viewed Product Category';
