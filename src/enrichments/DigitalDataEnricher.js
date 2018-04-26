@@ -12,7 +12,11 @@ import {
   UPDATED_CART,
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
+  SESSION_STARTED,
 } from '../events/semanticEvents';
+import {
+  SDK_EVENT_SOURCE, SDK_CHANGE_SOURCE,
+} from '../constants';
 
 class DigitalDataEnricher {
   constructor(digitalData, ddListener, ddStorage, options) {
@@ -81,7 +85,7 @@ class DigitalDataEnricher {
         this.ddStorage.unpersist('context.campaign');
       } else if (event.name === UPDATED_CART && semver.cmp(this.digitalData.version, '1.1.3') >= 0) {
         this.fireAddRemoveProduct(event);
-        this.digitalData.changes.push(['cart', event.cart, 'DDManager']);
+        this.digitalData.changes.push(['cart', event.cart, SDK_CHANGE_SOURCE]);
       }
     }]);
   }
@@ -115,15 +119,15 @@ class DigitalDataEnricher {
       }))
     );
 
-    const fireEvent = eventName => (
+    const fireEvent = (eventName, diff) => (
       (lineItem) => {
         const id = getProp(lineItem, 'product.id');
         const skuCode = getProp(lineItem, 'product.skuCode');
         this.digitalData.events.push({
           name: eventName,
           product: lineItem.product,
-          quantity: addedQuantityDiff[productKey(id, skuCode)] || lineItem.quantity,
-          source: 'DDManager',
+          quantity: diff[productKey(id, skuCode)] || lineItem.quantity,
+          source: SDK_EVENT_SOURCE,
         });
       }
     );
@@ -134,8 +138,8 @@ class DigitalDataEnricher {
     const addedQuantity = lineItems.filter(comparerQuantity(oldLineItems, addedQuantityDiff));
     const removedQuantity = oldLineItems.filter(comparerQuantity(lineItems, removedQuantityDiff));
 
-    addedNew.concat(addedQuantity).forEach(fireEvent(ADDED_PRODUCT));
-    removedNew.concat(removedQuantity).forEach(fireEvent(REMOVED_PRODUCT));
+    addedNew.concat(addedQuantity).forEach(fireEvent(ADDED_PRODUCT, addedQuantityDiff));
+    removedNew.concat(removedQuantity).forEach(fireEvent(REMOVED_PRODUCT, removedQuantityDiff));
   }
 
   fireSessionStarted() {
@@ -145,8 +149,8 @@ class DigitalDataEnricher {
       (Date.now() - lastEventTimestamp) > this.options.sessionLength * 1000
     ) {
       this.digitalData.events.push({
-        name: 'Session Started',
-        source: 'DDManager',
+        name: SESSION_STARTED,
+        source: SDK_EVENT_SOURCE,
         includeIntegrations: [], // do not send this event to any integration
       });
     }

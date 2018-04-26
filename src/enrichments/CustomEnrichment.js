@@ -1,6 +1,7 @@
 import Handler from './../Handler';
 import { error as errorLog } from 'driveback-utils/safeConsole';
 import isPromise from 'driveback-utils/isPromise';
+import { CUSTOM_CHANGE_SOURCE } from '../constants';
 
 class CustomEnrichment {
   constructor(config, collection) {
@@ -24,7 +25,7 @@ class CustomEnrichment {
   enrich(target, args) {
     const onValueReceived = (value) => {
       if (value !== undefined) {
-        target.changes.push([this.config.prop, value, 'DDManager Custom Enrichment']);
+        target.changes.push([this.config.prop, value, CUSTOM_CHANGE_SOURCE]);
         if (this.config.persist) {
           this.ddStorage.persist(this.config.prop, this.config.persistTtl);
         }
