@@ -353,7 +353,7 @@ describe('DigitalDataEnricher', () => {
       ddManager.reset();
     });
 
-    it.only('should process Updated Cart event for digitalData > 1.1.3', () => {
+    it('should process Updated Cart event for digitalData > 1.1.3', () => {
       window.digitalData = {
         version: '1.1.3',
         cart: {
