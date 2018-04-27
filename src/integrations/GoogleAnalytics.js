@@ -118,7 +118,14 @@ class GoogleAnalytics extends Integration {
     this.addTag({
       type: 'script',
       attr: {
-        src: `https://${(options.useProxy) ? 'google-analytics.ddmanager.ru/proxy' : 'www.google-analytics.com'}/analytics.js`,
+        src: 'https://www.google-analytics.com/analytics.js',
+      },
+    });
+
+    this.addTag('proxy', {
+      type: 'script',
+      attr: {
+        src: 'https://google-analytics.ddmanager.ru/proxy/analytics.js',
       },
     });
   }
@@ -821,6 +828,10 @@ class GoogleAnalytics extends Integration {
   }
 
   onViewedPage(event) {
+    if (!this.pageCalled && this.getOption('useProxy') === true) {
+      this.load('proxy');
+    }
+
     // send global id
     const page = event.page;
     const pageview = {};
