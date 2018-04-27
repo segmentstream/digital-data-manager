@@ -109,6 +109,7 @@ class GoogleAnalytics extends Integration {
       namespace: undefined,
       alternativeNamespace: undefined,
       noConflict: false,
+      useProxy: false,
       checkoutOptions: ['option', 'paymentMethod', 'shippingMethod'],
     }, options);
 
@@ -117,7 +118,7 @@ class GoogleAnalytics extends Integration {
     this.addTag({
       type: 'script',
       attr: {
-        src: 'https://www.google-analytics.com/analytics.js',
+        src: `https://${(options.useProxy) ? 'google-analytics.ddmanager.ru/proxy' : 'www.google-analytics.com'}/analytics.js`,
       },
     });
   }
