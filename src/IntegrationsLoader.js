@@ -111,6 +111,7 @@ const IntegrationsLoader = {
     } else {
       integration.onLoad();
     }
+    integration.onLoadInitiated();
   },
 
   queueIntegrationLoad: (integration) => {

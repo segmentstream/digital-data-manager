@@ -2,12 +2,14 @@ class AsyncQueue {
   constructor(isLoadedDelegate) {
     this.isLoadedDelegate = isLoadedDelegate;
     this.asyncQueue = [];
+  }
 
+  init() {
     // emulate async queue for Ofsys sync script
     let invervalCounter = 0;
     const invervalId = setInterval(() => {
       invervalCounter += 1;
-      if (isLoadedDelegate()) {
+      if (this.isLoadedDelegate()) {
         this.flushQueue();
         clearInterval(invervalId);
       } else if (invervalCounter > 20) {
