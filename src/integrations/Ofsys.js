@@ -115,6 +115,10 @@ class Ofsys extends Integration {
     this.asyncQueue = new AsyncQueue(this.isLoaded);
   }
 
+  onLoadInitiated() {
+    this.asyncQueue.init();
+  }
+
   flushQueue() {
     let handler = this.asyncQueue.shift();
     while (handler && typeof handler === 'function') {

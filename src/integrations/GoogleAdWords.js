@@ -1,4 +1,5 @@
 import Integration from './../Integration';
+import AsyncQueue from './utils/AsyncQueue';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import {
   VIEWED_PAGE,
@@ -161,19 +162,11 @@ class GoogleAdWords extends Integration {
   }
 
   initialize() {
-    this.asyncQueue = [];
+    this.asyncQueue = new AsyncQueue(this.isLoaded);
+  }
 
-    // emulate async queue for Google AdWords sync script
-    let invervalCounter = 0;
-    const invervalId = setInterval(() => {
-      invervalCounter += 1;
-      if (this.isLoaded()) {
-        this.flushQueue();
-        clearInterval(invervalId);
-      } else if (invervalCounter > 10) {
-        clearInterval(invervalId);
-      }
-    }, 100);
+  onLoadInitiated() {
+    this.asyncQueue.init();
   }
 
   isLoaded() {
@@ -209,15 +202,9 @@ class GoogleAdWords extends Integration {
     if (this.isLoaded()) {
       window.google_trackConversion(trackConversionEvent);
     } else {
-      this.asyncQueue.push(trackConversionEvent);
-    }
-  }
-
-  flushQueue() {
-    let trackConversionEvent = this.asyncQueue.shift();
-    while (trackConversionEvent) {
-      window.google_trackConversion(trackConversionEvent);
-      trackConversionEvent = this.asyncQueue.shift();
+      this.asyncQueue.push(() => {
+        window.google_trackConversion(trackConversionEvent);
+      });
     }
   }
 

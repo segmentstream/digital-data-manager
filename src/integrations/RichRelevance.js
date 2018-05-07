@@ -216,6 +216,10 @@ class RichRelevance extends Integration {
     this.enrichDigitalData();
   }
 
+  onLoadInitiated() {
+    this.asyncQueue.init();
+  }
+
   enrichDigitalData() {
     this.asyncQueue.push(() => {
       window.RR.jsonCallback = () => {
