@@ -133,7 +133,7 @@ class Soloway extends Integration {
         enrichableProps = ['product.id', 'product.categoryId'];
         break;
       case COMPLETED_TRANSACTION:
-        enrichableProps = ['transaction.orderId', 'transaction.total'];
+        enrichableProps = ['transaction'];
         break;
       case REGISTERED:
         enrichableProps = ['user.userId'];
@@ -174,7 +174,7 @@ class Soloway extends Integration {
       [ADDED_PRODUCT]: productValidationConfig,
       [REMOVED_PRODUCT]: productValidationConfig,
       [COMPLETED_TRANSACTION]: {
-        fields: ['transaction.orderId', 'transaction.total'],
+        fields: ['transaction.orderId', 'transaction.total', 'transaction.lineItems[].product.id'],
         validations: {
           'transaction.orderId': {
             errors: ['required'],
@@ -183,6 +183,9 @@ class Soloway extends Integration {
           'transaction.total': {
             errors: ['required'],
             warnings: ['numeric'],
+          },
+          'transaction.lineItems[].product.id': {
+            warnings: ['required', 'string'],
           },
         },
       },
@@ -338,6 +341,7 @@ class Soloway extends Integration {
 
   onCompletedTransaction(event) {
     const transaction = event.transaction || {};
+    const lineItems = transaction.lineItems || [];
     if (!transaction.orderId) return;
 
     if (transaction.isFirst) {
@@ -349,6 +353,7 @@ class Soloway extends Integration {
       custom: {
         150: transaction.orderId,
         151: transaction.total,
+        10: lineItems.map(lineItem => getProp(lineItem, 'product.id')).join(','),
       },
     });
 

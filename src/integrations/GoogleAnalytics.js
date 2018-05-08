@@ -109,6 +109,7 @@ class GoogleAnalytics extends Integration {
       namespace: undefined,
       alternativeNamespace: undefined,
       noConflict: false,
+      useProxy: false,
       checkoutOptions: ['option', 'paymentMethod', 'shippingMethod'],
     }, options);
 
@@ -118,6 +119,13 @@ class GoogleAnalytics extends Integration {
       type: 'script',
       attr: {
         src: 'https://www.google-analytics.com/analytics.js',
+      },
+    });
+
+    this.addTag('proxy', {
+      type: 'script',
+      attr: {
+        src: 'https://google-analytics.ddmanager.ru/proxy/analytics.js',
       },
     });
   }
@@ -820,6 +828,10 @@ class GoogleAnalytics extends Integration {
   }
 
   onViewedPage(event) {
+    if (!this.pageCalled && this.getOption('useProxy') === true) {
+      this.load('proxy');
+    }
+
     // send global id
     const page = event.page;
     const pageview = {};

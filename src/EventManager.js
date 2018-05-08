@@ -8,6 +8,7 @@ import DDHelper from './DDHelper';
 import EventDataEnricher from './enrichments/EventDataEnricher';
 import CustomEvent from './events/CustomEvent';
 import { VIEWED_PAGE } from './events/semanticEvents';
+import { SDK_EVENT_SOURCE } from './constants';
 
 let _callbacks = {};
 let _ddListener = [];
@@ -85,6 +86,7 @@ class EventManager {
     // process events
     // TODO: refactoring
     if (this.isViewedPageSent()) {
+      this.fireViewedPageEvent(); // "Viewed Page" event should be always fired first
       this.enableEventsTracking();
       this.fireUnfiredEvents();
     } else if (_sendViewedPageEvent && !this.isViewedPageSent()) {
@@ -179,7 +181,7 @@ class EventManager {
 
   addViewedPageEvent(event) {
     if (!event) {
-      event = { name: VIEWED_PAGE, source: 'DDManager' };
+      event = { name: VIEWED_PAGE, source: SDK_EVENT_SOURCE };
     }
     _digitalData.events.unshift(event);
   }
@@ -341,6 +343,11 @@ class EventManager {
         }
       }
     });
+  }
+
+  fireViewedPageEvent() {
+    const viewedPageEvent = _digitalData.events.find(event => event.name === VIEWED_PAGE);
+    this.fireEvent(viewedPageEvent);
   }
 
   fireUnfiredEvents() {

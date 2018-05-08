@@ -277,11 +277,16 @@ class Filters {
     try { url = (url) ? decodeURI(url) : undefined; } catch (e) { warn(e); }
     try { queryString = (queryString) ? decodeURI(queryString) : undefined; } catch (e) { warn(e); }
     return filterObject({
-      ...page,
+      type: (page.type) ? String(page.type) : undefined,
+      name: (page.name) ? String(page.name) : undefined,
+      category: (page.category) ? String(page.category) : undefined,
       breadcrumb: (page.breadcrumb && Array.isArray(page.breadcrumb)) ?
         page.breadcrumb.join('/') : page.breadcrumb,
       url,
+      path: (page.path) ? String(page.path) : undefined,
       queryString,
+      hash: (page.hash) ? page.hash : undefined,
+      title: (page.title) ? page.title : undefined,
     }, pageProps);
   }
 

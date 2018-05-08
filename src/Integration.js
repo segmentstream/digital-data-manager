@@ -198,6 +198,10 @@ export default class Integration extends EventEmitter {
     return !!this._isLoaded;
   }
 
+  onLoadInitiated() {
+    // abstract
+  }
+
   onLoad() {
     this.emit('load');
   }

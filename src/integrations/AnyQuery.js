@@ -57,6 +57,10 @@ class AnyQuery extends Integration {
     this.asyncQueue = new AsyncQueue(this.isLoaded);
   }
 
+  onLoadInitiated() {
+    this.asyncQueue.init();
+  }
+
   isLoaded() {
     return !!(window.Digi && window.divolte);
   }

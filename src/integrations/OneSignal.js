@@ -5,8 +5,13 @@ import each from 'driveback-utils/each';
 import {
   VIEWED_PAGE,
   SUBSCRIBED,
+  ALLOWED_PUSH_NOTIFICATIONS,
+  BLOCKED_PUSH_NOTIFICATIONS,
+  CLOSED_PUSH_NOTIFICATIONS_PROMPT,
 } from './../events/semanticEvents';
 import { DIGITALDATA_VAR } from './../variableTypes';
+
+const PUSH_NOTIFICATIONS_EVENTS_CATEGORY = 'Push Notifications';
 
 function isHttps() {
   return (window.location.href.indexOf('https:') >= 0);
@@ -182,6 +187,22 @@ class OneSignal extends Integration {
       }
     }]);
 
+    // allowed/block events
+    window.OneSignal.push(() => {
+      window.OneSignal.on('notificationPermissionChange', (permissionChange) => {
+        const currentPermission = permissionChange.to;
+        const category = PUSH_NOTIFICATIONS_EVENTS_CATEGORY;
+        let name;
+        if (currentPermission === 'granted') {
+          name = ALLOWED_PUSH_NOTIFICATIONS;
+        } else if (currentPermission === 'denied') {
+          name = BLOCKED_PUSH_NOTIFICATIONS;
+        } else {
+          name = CLOSED_PUSH_NOTIFICATIONS_PROMPT;
+        }
+        this.digitalData.events.push({ category, name });
+      });
+    });
     this.enrichDigitalData();
     this.prepareEnrichableTagProps();
 

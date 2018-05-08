@@ -45,6 +45,7 @@ import REES46 from './integrations/REES46';
 import PushWorld from './integrations/PushWorld';
 import Get4Click from './integrations/Get4Click';
 import TradeTracker from './integrations/TradeTracker';
+import TryFit from './integrations/TryFit';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -94,6 +95,7 @@ const integrations = {
   'Push.world': PushWorld,
   Get4Click,
   TradeTracker,
+  'Try.Fit': TryFit,
 };
 
 export default integrations;

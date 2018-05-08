@@ -107,10 +107,7 @@ class REES46 extends Integration {
     const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
     const productId = (feedWithGroupedProducts) ? product.skuCode : product.id;
     if (productId) {
-      window.r46('track', 'remove_from_cart', {
-        id: productId,
-        amount: event.quantity || 1,
-      });
+      window.r46('track', 'remove_from_cart', productId);
     }
   }
 

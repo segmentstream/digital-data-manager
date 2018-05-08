@@ -3,6 +3,7 @@ import trackLink from './../trackers/trackLink';
 import Handler from './../Handler';
 import { error as errorLog } from 'driveback-utils/safeConsole';
 import isPromise from 'driveback-utils/isPromise';
+import { CUSTOM_EVENT_SOURCE } from '../constants';
 
 const TRIGGER_EVENT = 'event';
 const TRIGGER_IMPRESSION = 'impression';
@@ -92,7 +93,7 @@ class CustomEvent {
     }
 
     if (!event.source) {
-      event.source = 'DDManager Custom Event';
+      event.source = CUSTOM_EVENT_SOURCE;
     }
     this.digitalData.events.push(event);
   }

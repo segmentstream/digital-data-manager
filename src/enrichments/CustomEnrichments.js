@@ -1,4 +1,5 @@
 import CustomEnrichmentsCollection from './CustomEnrichmentsCollection';
+import { VIEWED_PAGE } from './../events/semanticEvents';
 
 const BEFORE_EVENT = 'beforeEvent';
 const AFTER_EVENT = 'afterEvent';
@@ -31,12 +32,8 @@ class CustomEnrichments {
   addEnrichment(enrichment) {
     // TODO: remove later (backward compatibility)
     if (enrichment.beforeEvent === undefined) {
-      if (!enrichment.event) enrichment.event = 'Viewed Page';
-      if (enrichment.event === 'Viewed Page') {
-        enrichment.beforeEvent = true;
-      } else {
-        enrichment.beforeEvent = false;
-      }
+      if (!enrichment.event) enrichment.event = VIEWED_PAGE;
+      enrichment.beforeEvent = (enrichment.event === VIEWED_PAGE);
     }
     const collection = this.prepareCollection(enrichment.event, enrichment.beforeEvent);
     collection.addEnrichment(enrichment);

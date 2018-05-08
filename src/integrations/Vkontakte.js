@@ -75,6 +75,10 @@ class Vkontakte extends Integration {
     });
   }
 
+  onLoadInitiated() {
+    this.asyncQueue.init();
+  }
+
   getSemanticEvents() {
     return this.SEMANTIC_EVENTS;
   }

@@ -12,7 +12,7 @@ function asyncCallback(callback) {
     ddManager.on('ready', () => {
       setTimeout(() => {
         callback();
-      }, 101);
+      }, 201);
     });
   };
 }

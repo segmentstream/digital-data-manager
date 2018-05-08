@@ -85,7 +85,7 @@ describe('Integrations: Yandex Metrica', () => {
         assert.equal(options.purchaseGoalId, ym.getOption('purchaseGoalId'));
         assert.deepEqual(options.goals, ym.getOption('goals'));
         assert.equal('script', ym.getTag().type);
-        assert.equal(ym.getTag().attr.src, '//mc.yandex.ru/metrika/watch.js');
+        assert.equal(ym.getTag().attr.src, 'https://mc.yandex.ru/metrika/watch.js');
       });
     });
 
@@ -157,11 +157,11 @@ describe('Integrations: Yandex Metrica', () => {
       });
       ddManager.once('ready', done);
       ddManager.initialize({
-        sendViewedPageEvent: false
+        sendViewedPageEvent: false,
       });
     });
 
-    afterEach(function () {
+    afterEach(() => {
       ym.load.restore();
       if (ym.yaCounter.params.restore) {
         ym.yaCounter.params.restore();

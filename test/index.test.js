@@ -18,7 +18,6 @@ import './DigitalDataEnricherSpec';
 import './EventValidatorSpec';
 
 // enrichments & events
-import './enrichments/CustomEnricherSpec'; // @TODO: remove as legacy
 import './enrichments/CustomEnrichmentsSpec';
 import './events/CustomEventsSpec';
 import './scripts/CustomScriptsSpec';
