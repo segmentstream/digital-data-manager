@@ -6,6 +6,17 @@ import { getProp, setProp } from 'driveback-utils/dotProp';
 import { warn } from 'driveback-utils/safeConsole';
 import uuid from 'uuid/v1';
 import UAParser from 'ua-parser-js';
+import {
+  SUBSCRIBED,
+  COMPLETED_TRANSACTION,
+  UPDATED_CART,
+  ADDED_PRODUCT,
+  REMOVED_PRODUCT,
+  SESSION_STARTED,
+} from '../events/semanticEvents';
+import {
+  SDK_EVENT_SOURCE, SDK_CHANGE_SOURCE,
+} from '../constants';
 
 class DigitalDataEnricher {
   constructor(digitalData, ddListener, ddStorage, options) {
@@ -66,14 +77,69 @@ class DigitalDataEnricher {
       this.enrichIsReturningStatus();
       this.ddStorage.setLastEventTimestamp(Date.now());
 
-      if (event.name === 'Subscribed') {
+      if (event.name === SUBSCRIBED) {
         const email = getProp(event, 'user.email');
         this.enrichHasSubscribed(email);
-      } else if (event.name === 'Completed Transaction') {
+      } else if (event.name === COMPLETED_TRANSACTION) {
         this.enrichHasTransacted();
         this.ddStorage.unpersist('context.campaign');
+      } else if (event.name === UPDATED_CART && semver.cmp(this.digitalData.version, '1.1.3') >= 0) {
+        this.fireAddRemoveProduct(event);
+        this.digitalData.changes.push(['cart', event.cart, SDK_CHANGE_SOURCE]);
       }
     }]);
+  }
+
+  fireAddRemoveProduct(event) {
+    const lineItems = getProp(event, 'cart.lineItems') || [];
+    const oldLineItems = getProp(this.digitalData, 'cart.lineItems') || [];
+    const addedQuantityDiff = {};
+    const removedQuantityDiff = {};
+
+    const productKey = (id, skuCode) => ((id && skuCode) ? [id, skuCode].join('_') : id);
+
+    const comparerUnique = otherLineItems => (
+      current => (!otherLineItems.some(other => (
+        productKey(getProp(current, 'product.id'), getProp(current, 'product.skuCode')) ===
+        productKey(getProp(other, 'product.id'), getProp(other, 'product.skuCode'))
+      )))
+    );
+
+    const comparerQuantity = (otherLineItems, diff) => (
+      current => (otherLineItems.some((other) => {
+        const currentKey = productKey(getProp(current, 'product.id'), getProp(current, 'product.skuCode'));
+        const otherKey = productKey(getProp(other, 'product.id'), getProp(other, 'product.skuCode'));
+        const currentQuantity = getProp(current, 'quantity');
+        const otherQuantity = getProp(other, 'quantity');
+        if (currentKey === otherKey && currentQuantity > otherQuantity) {
+          diff[currentKey] = currentQuantity - otherQuantity;
+          return true;
+        }
+        return false;
+      }))
+    );
+
+    const fireEvent = (eventName, diff) => (
+      (lineItem) => {
+        const id = getProp(lineItem, 'product.id');
+        const skuCode = getProp(lineItem, 'product.skuCode');
+        this.digitalData.events.push({
+          name: eventName,
+          product: lineItem.product,
+          quantity: diff[productKey(id, skuCode)] || lineItem.quantity,
+          source: SDK_EVENT_SOURCE,
+        });
+      }
+    );
+
+    const addedNew = lineItems.filter(comparerUnique(oldLineItems));
+    const removedNew = oldLineItems.filter(comparerUnique(lineItems));
+
+    const addedQuantity = lineItems.filter(comparerQuantity(oldLineItems, addedQuantityDiff));
+    const removedQuantity = oldLineItems.filter(comparerQuantity(lineItems, removedQuantityDiff));
+
+    addedNew.concat(addedQuantity).forEach(fireEvent(ADDED_PRODUCT, addedQuantityDiff));
+    removedNew.concat(removedQuantity).forEach(fireEvent(REMOVED_PRODUCT, removedQuantityDiff));
   }
 
   fireSessionStarted() {
@@ -83,8 +149,8 @@ class DigitalDataEnricher {
       (Date.now() - lastEventTimestamp) > this.options.sessionLength * 1000
     ) {
       this.digitalData.events.push({
-        name: 'Session Started',
-        source: 'DDManager',
+        name: SESSION_STARTED,
+        source: SDK_EVENT_SOURCE,
         includeIntegrations: [], // do not send this event to any integration
       });
     }

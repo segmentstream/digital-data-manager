@@ -4,6 +4,7 @@ import deleteProperty from 'driveback-utils/deleteProperty.js';
 import DigitalDataEnricher from './../src/enrichments/DigitalDataEnricher.js';
 import Storage from './../src/Storage.js';
 import DDStorage from './../src/DDStorage.js';
+import ddManager from './../src/ddManager';
 
 describe('DigitalDataEnricher', () => {
 
@@ -346,4 +347,85 @@ describe('DigitalDataEnricher', () => {
     // });
   });
 
+  describe('Updated Cart enrichments', () => {
+
+    afterEach(() => {
+      ddManager.reset();
+    });
+
+    it('should process Updated Cart event for digitalData > 1.1.3', () => {
+      window.digitalData = {
+        version: '1.1.3',
+        cart: {
+          lineItems: [
+            { product: { id: '1' }, quantity: 1 },
+            { product: { id: '3' }, quantity: 3 }, // item will be removed
+            { product: { id: '4' }, quantity: 3 },
+          ],
+        },
+        events: [],
+      };
+
+      ddManager.initialize();
+
+      const eventsSpy = sinon.spy(window.digitalData.events, 'push');
+      const changesSpy = sinon.spy(window.digitalData.changes, 'push');
+
+      window.digitalData.events.push({
+        name: 'Updated Cart',
+        cart: {
+          lineItems: [
+            { product: { id: '1' }, quantity: 3 }, // +2 quantity
+            { product: { id: '2' }, quantity: 1 }, // +1 new item
+            { product: { id: '4' }, quantity: 1 }, // -2 quantity
+          ],
+        },
+      });
+
+      // +2 quantity
+      assert.ok(eventsSpy.calledWith(sinon.match({
+        name: 'Added Product',
+        product: {
+          id: '1',
+        },
+        quantity: 2,
+      })));
+
+      // +1 new item
+      assert.ok(eventsSpy.calledWith(sinon.match({
+        name: 'Added Product',
+        product: {
+          id: '2',
+        },
+        quantity: 1,
+      })));
+
+      // -3 items
+      assert.ok(eventsSpy.calledWith(sinon.match({
+        name: 'Removed Product',
+        product: {
+          id: '3',
+        },
+        quantity: 3,
+      })));
+
+      // -2 quantity
+      assert.ok(eventsSpy.calledWith(sinon.match({
+        name: 'Removed Product',
+        product: {
+          id: '4',
+        },
+        quantity: 2,
+      })));
+
+      // cart changed
+      assert.ok(changesSpy.calledWith(sinon.match(['cart', {
+        lineItems: [
+          { product: { id: '1' }, quantity: 3 }, // +2 quantity
+          { product: { id: '2' }, quantity: 1 }, // +1 new item
+          { product: { id: '4' }, quantity: 1 }, // -2 quantity
+        ],
+      }, 'DDManager SDK'])));
+    });
+  });
 });
