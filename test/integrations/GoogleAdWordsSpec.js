@@ -164,9 +164,7 @@ describe('Integrations: GoogleAdWords', () => {
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
-              ecomm_prodid: '',
               ecomm_pagetype: 'home',
-              ecomm_totalvalue: '',
             },
             google_remarketing_only: true,
           }));
@@ -180,9 +178,7 @@ describe('Integrations: GoogleAdWords', () => {
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
-              ecomm_prodid: '',
               ecomm_pagetype: 'home',
-              ecomm_totalvalue: '',
             },
             google_remarketing_only: true,
           }));
@@ -195,9 +191,7 @@ describe('Integrations: GoogleAdWords', () => {
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
-              ecomm_prodid: '',
               ecomm_pagetype: 'other',
-              ecomm_totalvalue: '',
             },
             google_remarketing_only: true,
           }));
@@ -210,9 +204,7 @@ describe('Integrations: GoogleAdWords', () => {
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
-              ecomm_prodid: '',
               ecomm_pagetype: 'other',
-              ecomm_totalvalue: '',
             },
             google_remarketing_only: true,
           }));
@@ -229,9 +221,7 @@ describe('Integrations: GoogleAdWords', () => {
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
-              ecomm_prodid: '',
               ecomm_pagetype: 'category',
-              ecomm_totalvalue: '',
               ecomm_category: 'Category/Subcategory 1/Subcategory 2',
             },
             google_remarketing_only: true,
@@ -250,9 +240,7 @@ describe('Integrations: GoogleAdWords', () => {
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
-              ecomm_prodid: '',
               ecomm_pagetype: 'category',
-              ecomm_totalvalue: '',
               ecomm_category: 'Category/Subcategory 1/Subcategory 2',
             },
             google_remarketing_only: true,
@@ -268,10 +256,8 @@ describe('Integrations: GoogleAdWords', () => {
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
-              ecomm_prodid: '',
               ecomm_pagetype: 'category',
-              ecomm_totalvalue: '',
-              ecomm_category: 'Category 1'
+              ecomm_category: 'Category 1',
             },
             google_remarketing_only: true,
           }));
@@ -286,9 +272,7 @@ describe('Integrations: GoogleAdWords', () => {
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
             google_custom_params: {
-              ecomm_prodid: '',
               ecomm_pagetype: 'searchresults',
-              ecomm_totalvalue: ''
             },
             google_remarketing_only: true,
           }));
@@ -305,7 +289,7 @@ describe('Integrations: GoogleAdWords', () => {
         viewedProductDetail({
           id: '123',
           unitSalePrice: 100,
-          category: ['Category', 'Subcategory']
+          category: ['Category', 'Subcategory'],
         }, () => {
           assert.ok(window.google_trackConversion.calledOnce);
           assert.ok(window.google_trackConversion.calledWith({
@@ -314,7 +298,7 @@ describe('Integrations: GoogleAdWords', () => {
               ecomm_prodid: '123',
               ecomm_totalvalue: 100,
               ecomm_pagetype: 'product',
-              ecomm_category: 'Category/Subcategory'
+              ecomm_category: 'Category/Subcategory',
             },
             google_remarketing_only: true,
           }));

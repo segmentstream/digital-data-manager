@@ -214,9 +214,7 @@ class GoogleAdWords extends Integration {
     setTimeout(() => {
       if (!this.pageTracked) {
         this.trackConversion({
-          ecomm_prodid: '',
           ecomm_pagetype: (page.type === 'home') ? 'home' : 'other',
-          ecomm_totalvalue: '',
         });
       }
     }, 100);
@@ -238,7 +236,7 @@ class GoogleAdWords extends Integration {
     this.trackConversion({
       ecomm_prodid: (!feedWithGroupedProducts) ? product.id : product.skuCode,
       ecomm_pagetype: 'product',
-      ecomm_totalvalue: product.unitSalePrice || '',
+      ecomm_totalvalue: product.unitSalePrice || 0,
       ecomm_category: category,
     });
     this.pageTracked = true;
@@ -246,9 +244,7 @@ class GoogleAdWords extends Integration {
 
   onSearchedProducts() {
     this.trackConversion({
-      ecomm_prodid: '',
       ecomm_pagetype: 'searchresults',
-      ecomm_totalvalue: '',
     });
     this.pageTracked = true;
   }
@@ -271,9 +267,7 @@ class GoogleAdWords extends Integration {
     }
 
     this.trackConversion(Object.assign({
-      ecomm_prodid: '',
       ecomm_pagetype: 'other',
-      ecomm_totalvalue: '',
     }, params));
     this.pageTracked = true;
   }
@@ -288,7 +282,7 @@ class GoogleAdWords extends Integration {
     this.trackConversion({
       ecomm_prodid: lineItemsToProductIds(cart.lineItems, feedWithGroupedProducts),
       ecomm_pagetype: 'cart',
-      ecomm_totalvalue: cart.subtotal || cart.total || '',
+      ecomm_totalvalue: cart.subtotal || cart.total || 0,
     });
     this.pageTracked = true;
   }
@@ -303,7 +297,7 @@ class GoogleAdWords extends Integration {
     this.trackConversion({
       ecomm_prodid: lineItemsToProductIds(transaction.lineItems, feedWithGroupedProducts),
       ecomm_pagetype: 'purchase',
-      ecomm_totalvalue: transaction.subtotal || transaction.total || '',
+      ecomm_totalvalue: transaction.subtotal || transaction.total || 0,
     });
     this.pageTracked = true;
   }
