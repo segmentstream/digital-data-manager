@@ -26,8 +26,6 @@ class Driveback extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       websiteToken: '',
-      experiments: false,
-      experimentsToken: '',
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -96,63 +94,37 @@ class Driveback extends Integration {
       window.Driveback.Loader.init(this.getOption('websiteToken'));
     };
     window.DrivebackAsyncInit = noop;
-
-    // init Driveback Experiments
-    if (this.getOption('experiments') && this.getOption('experimentsToken')) {
-      window.DrivebackOnLoad.push(() => {
-        window.dbex('init', this.getOption('experimentsToken'));
-      });
-    }
-
-    if (this.getOption('experiments')) {
-      this.enrichDigitalData();
-    }
   }
 
   getSemanticEvents() {
     return this.SEMANTIC_EVENTS;
   }
 
-  enrichDigitalData() {
-    window.ddListener.push(['on', 'beforeEvent', (event) => {
-      if (event.name === VIEWED_PAGE) {
-        window.DrivebackOnLoad.push(() => {
-          window.dbex(() => {
-            window.digitalData.changes.push(['user.experiments', window.dbex.chooseVariations(), 'DDM Driveback Integration']);
-            this.onEnrich();
-          });
-        });
-      }
-    }]);
-  }
-
   trackEvent(event) {
     if (event.name === VIEWED_PAGE) {
       this.onViewedPage();
-    } else if (this.getOption('experiments')) {
-      if (event.name === VIEWED_EXPERIMENT) {
-        const experiment = getExperment(event.experiment);
-        if (!experiment) {
-          return;
-        }
-        if (experiment.variationId !== undefined) {
-          window.DrivebackOnLoad.push(() => {
-            window.dbex('setVariation', experiment.id, experiment.variationId);
-          });
-        }
+    } else if (event.name === VIEWED_EXPERIMENT) {
+      const experiment = getExperment(event.experiment);
+      if (!experiment) {
+        return;
+      }
+      if (experiment.variationId !== undefined) {
         window.DrivebackOnLoad.push(() => {
-          window.dbex('trackSession', experiment.id);
-        });
-      } else if (event.name === ACHIEVED_EXPERIMENT_GOAL) {
-        const experiment = getExperment(event.experiment);
-        if (!experiment) {
-          return;
-        }
-
-        window.DrivebackOnLoad.push(() => {
-          window.dbex('trackConversion', experiment.id, event.value);
+          window.dbex('setVariation', experiment.id, experiment.variationId);
         });
       }
+      window.DrivebackOnLoad.push(() => {
+        window.dbex('trackSession', experiment.id);
+      });
+    } else if (event.name === ACHIEVED_EXPERIMENT_GOAL) {
+      const experiment = getExperment(event.experiment);
+      if (!experiment) {
+        return;
+      }
+
+      window.DrivebackOnLoad.push(() => {
+        window.dbex('trackConversion', experiment.id, event.value);
+      });
     }
   }
 
@@ -163,12 +135,6 @@ class Driveback extends Integration {
       } else {
         window.DriveBack.reactivateCampaigns(); // remove later
       }
-    } else if (this.getOption('experiments')) {
-      window.DrivebackOnLoad.push(() => {
-        window.dbex(() => {
-          window.Driveback.init();
-        });
-      });
     } else {
       window.Driveback.init();
     }
