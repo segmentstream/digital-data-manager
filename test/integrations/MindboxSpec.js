@@ -208,6 +208,62 @@ describe('Integrations: Mindbox', () => {
 
     });
 
+    describe('#onUpdatedCart', () => {
+
+      beforeEach(() => {
+        mindbox.setOption('operationMapping', {
+          'Updated Cart': 'SetCart',
+        });
+      });
+
+      it('should update cart', () => {
+        window.digitalData.events.push({
+          name: 'Updated Cart',
+          cart: {
+            lineItems: [
+              {
+                product: {
+                  id: '123',
+                  unitSalePrice: 1000,
+                  skuCode: 'sku123',
+                },
+                quantity: 2,
+              },
+              {
+                product: {
+                  id: '234',
+                  unitSalePrice: 1000,
+                  skuCode: 'sku234',
+                },
+                quantity: 1,
+              },
+            ],
+          },
+          callback: () => {
+            assert.ok(window.mindbox.calledWith('performOperation', {
+              operation: 'SetCart',
+              data: {
+                action: {
+                  personalOffers: [
+                    {
+                      productId: '123',
+                      count: 2,
+                      price: 2000
+                    },
+                    {
+                      productId: '234',
+                      count: 1,
+                      price: 1000
+                    }
+                  ],
+                }
+              },
+            }));
+          }
+        })
+      });
+    });
+
 
     describe('#onAddedProduct', () => {
 

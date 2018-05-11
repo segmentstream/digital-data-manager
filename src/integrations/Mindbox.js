@@ -14,6 +14,7 @@ import {
   VIEWED_PRODUCT_LISTING,
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
+  UPDATED_CART,
   COMPLETED_TRANSACTION,
 } from './../events/semanticEvents';
 import {
@@ -76,6 +77,7 @@ class Mindbox extends Integration {
       ADDED_PRODUCT,
       REMOVED_PRODUCT,
       COMPLETED_TRANSACTION,
+      UPDATED_CART,
     ];
 
     this.prepareEnrichableUserProps();
@@ -147,6 +149,9 @@ class Mindbox extends Integration {
           'cart',
         ];
         break;
+      case UPDATED_CART:
+        enrichableProps = ['cart'];
+        break;
       case LOGGED_IN:
       case REGISTERED:
       case SUBSCRIBED:
@@ -184,27 +189,30 @@ class Mindbox extends Integration {
     let viewedPageFields = [];
     let viewedPageValidations = {};
 
+    const updatedCartFields = [
+      'cart.lineItems[].product.id',
+      'cart.lineItems[].product.unitSalePrice',
+      'cart.lineItems[].quantity',
+    ];
+    const updatedCartValidations = {
+      'cart.lineItems[].product.id': {
+        errors: ['required'],
+        warnings: ['string'],
+      },
+      'cart.lineItems[].product.unitSalePrice': {
+        errors: ['required'],
+        warnings: ['numeric'],
+      },
+      'cart.lineItems[].quantity': {
+        errors: ['required'],
+        warnings: ['numeric'],
+      },
+    };
+
     const setCartOperation = this.getOption('setCartOperation');
     if (setCartOperation) {
-      viewedPageFields = [
-        'cart.lineItems[].product.id',
-        'cart.lineItems[].product.unitSalePrice',
-        'cart.lineItems[].quantity',
-      ];
-      viewedPageValidations = {
-        'cart.lineItems[].product.id': {
-          errors: ['required'],
-          warnings: ['string'],
-        },
-        'cart.lineItems[].product.unitSalePrice': {
-          errors: ['required'],
-          warnings: ['numeric'],
-        },
-        'cart.lineItems[].quantity': {
-          errors: ['required'],
-          warnings: ['numeric'],
-        },
-      };
+      viewedPageFields = updatedCartFields;
+      viewedPageValidations = updatedCartValidations;
     }
 
     const userFields = [...this.getEnrichableUserProps(), 'user.userId', 'user.isSubscribed'];
@@ -258,6 +266,10 @@ class Mindbox extends Integration {
             warnings: ['string'],
           },
         },
+      },
+      [UPDATED_CART]: {
+        fields: updatedCartFields,
+        validations: updatedCartValidations,
       },
       [ADDED_PRODUCT]: {
         fields: addRemoveProductFields,
@@ -493,6 +505,7 @@ class Mindbox extends Integration {
       [REGISTERED]: this.onRegistered.bind(this),
       [SUBSCRIBED]: this.onSubscribed.bind(this),
       [UPDATED_PROFILE_INFO]: this.onUpdatedProfileInfo.bind(this),
+      [UPDATED_CART]: this.onUpdatedCart.bind(this),
       [COMPLETED_TRANSACTION]: this.onCompletedTransaction.bind(this),
     };
     // get operation name either from email or from integration settings
@@ -509,7 +522,14 @@ class Mindbox extends Integration {
     }
   }
 
-  setCart(event, operation) {
+  onViewedPage(event) {
+    const setCartOperation = this.getOption('setCartOperation');
+    if (setCartOperation && event.cart) {
+      this.onUpdatedCart(event, setCartOperation);
+    }
+  }
+
+  onUpdatedCart(event, operation) {
     const cart = event.cart || {};
     const lineItems = cart.lineItems;
     if (!lineItems || !lineItems.length) {
@@ -546,13 +566,6 @@ class Mindbox extends Integration {
           },
         },
       });
-    }
-  }
-
-  onViewedPage(event) {
-    const setCartOperation = this.getOption('setCartOperation');
-    if (setCartOperation && event.cart) {
-      this.setCart(event, setCartOperation);
     }
   }
 
