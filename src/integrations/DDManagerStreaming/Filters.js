@@ -228,7 +228,7 @@ class Filters {
       ...listing,
       categoryId: (listing.categoryId) ? String(listing.categoryId) : undefined,
       category: (listing.category && Array.isArray(listing.category)) ?
-        listing.category.join('/') : listing.category,
+        listing.category.join('/') : String(listing.category),
     }, listingProps);
   }
 
