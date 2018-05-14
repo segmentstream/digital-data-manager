@@ -28,6 +28,7 @@ function getProducts(items) {
   return items.map(product => ({
     id: product.id,
     name: product.name,
+    price: product.unitSalePrice,
   }));
 }
 
