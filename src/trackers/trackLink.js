@@ -3,7 +3,7 @@ import isMeta from 'driveback-utils/isMeta';
 import preventDefault from 'driveback-utils/preventDefault';
 import domQuery from 'driveback-utils/domQuery';
 
-function applyHandler(event, el, handler) {
+function applyHandler(event, el, handler, followLink = true) {
   if (event.detail === 0) {
     return; // prevent incorrect markup clicks propogation
   }
@@ -24,6 +24,7 @@ function applyHandler(event, el, handler) {
   }
 
   if (
+    followLink &&
     href &&
     el.target !== '_blank' &&
     !isMeta(event) &&
@@ -37,13 +38,13 @@ function applyHandler(event, el, handler) {
   }
 }
 
-function onClick(el, handler) {
+function onClick(el, handler, followLink = true) {
   return (event) => {
-    applyHandler(event, el, handler);
+    applyHandler(event, el, handler, followLink);
   };
 }
 
-export default function trackLink(selector, handler) {
+export default function trackLink(selector, handler, followLink = true) {
   if (!selector) return;
 
   if (typeof handler !== 'function') {
@@ -61,7 +62,7 @@ export default function trackLink(selector, handler) {
     const links = (window.jQuery) ? window.jQuery(selector).get() : domQuery(selector);
     trackedLinks = [];
     links.forEach((el) => {
-      const onClickHandler = onClick(el, handler);
+      const onClickHandler = onClick(el, handler, followLink);
       bind(el, 'click', onClickHandler);
       trackedLinks.push([el, onClickHandler]);
     });
