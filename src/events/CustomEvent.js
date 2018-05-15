@@ -10,10 +10,10 @@ const TRIGGER_IMPRESSION = 'impression';
 const TRIGGER_CLICK = 'click';
 
 class CustomEvent {
-  constructor(name, trigger, setting, handler, digitalData, eventManager) {
+  constructor(name, trigger, settings, handler, digitalData, eventManager) {
     this.name = name;
     this.trigger = trigger;
-    this.setting = setting;
+    this.settings = settings || {};
     this.handler = handler;
     this.digitalData = digitalData;
     this.eventManager = eventManager;
@@ -53,26 +53,26 @@ class CustomEvent {
   }
 
   trackEvent() {
-    if (!this.setting) return;
+    if (!this.settings.event) return;
     this.eventManager.addCallback(['on', 'event', (event) => {
-      if (event.name === this.setting && !event.stopPropagation) {
+      if (event.name === this.settings.event && !event.stopPropagation) {
         this.resolveHandlerAndFireEvent([event]);
       }
     }]);
   }
 
   trackImpression() {
-    if (!this.setting) return;
-    trackImpression(this.setting, (elements) => {
+    if (!this.settings.selector) return;
+    trackImpression(this.settings.selector, (elements) => {
       this.resolveHandlerAndFireEvent([elements]);
     });
   }
 
   trackClick() {
-    if (!this.setting) return;
-    trackLink(this.setting, (element) => {
+    if (!this.settings.selector) return;
+    trackLink(this.settings.selector, (element) => {
       this.resolveHandlerAndFireEvent([element]);
-    });
+    }, this.settings.followLink);
   }
 
   fireEvent(event) {
@@ -86,7 +86,7 @@ class CustomEvent {
       return;
     }
     if (this.trigger === TRIGGER_EVENT) {
-      if (event.name === this.setting && !event.stopPropagation) {
+      if (event.name === this.settings.event && !event.stopPropagation) {
         errorLog(`Custom Event "${this.name}" was disabled: recursion error`);
         return;
       }
