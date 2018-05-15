@@ -356,8 +356,8 @@ const ddManager = {
     return _digitalData;
   },
 
-  trackLink: (elements, handler) => {
-    trackLink(elements, handler);
+  trackLink: (elements, handler, followLink = true) => {
+    trackLink(elements, handler, followLink);
   },
 
   trackImpression: (elements, handler) => {
