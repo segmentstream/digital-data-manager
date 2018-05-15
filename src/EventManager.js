@@ -9,6 +9,7 @@ import EventDataEnricher from './enrichments/EventDataEnricher';
 import CustomEvent from './events/CustomEvent';
 import { VIEWED_PAGE } from './events/semanticEvents';
 import { SDK_EVENT_SOURCE } from './constants';
+import cleanObject from 'driveback-utils/cleanObject';
 
 let _callbacks = {};
 let _ddListener = [];
@@ -48,7 +49,11 @@ class EventManager {
       const customEvent = new CustomEvent(
         eventConfig.name,
         eventConfig.trigger,
-        eventConfig.event || eventConfig.selector,
+        cleanObject({
+          event: eventConfig.event,
+          selector: eventConfig.selector,
+          followLink: eventConfig.followLink,
+        }),
         eventConfig.handler,
         _digitalData,
         this,

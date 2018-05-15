@@ -50,7 +50,7 @@ describe('CustomEvents', () => {
   });
 
   it('should track custom events', (done) => {
-    let currentAssert = 'Viewed Page'
+    let currentAssert = 'Viewed Page';
     const nextAssert = {
       'Viewed Page': 'Viewed Product Detail',
       'Viewed Product Detail': 'Test Event',
