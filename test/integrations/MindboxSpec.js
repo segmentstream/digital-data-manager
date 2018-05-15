@@ -639,8 +639,6 @@ describe('Integrations: Mindbox', () => {
                 subscriptions: [
                   {
                     pointOfContact: 'Email',
-                    isSubscribed: true,
-                    valueByDefault: true,
                   },
                 ]
               },
@@ -676,8 +674,6 @@ describe('Integrations: Mindbox', () => {
                 subscriptions: [
                   {
                     pointOfContact: 'Email',
-                    isSubscribed: true,
-                    valueByDefault: true,
                   },
                 ]
               },
@@ -1389,8 +1385,6 @@ describe('Integrations: Mindbox', () => {
                   subscriptions: [
                     {
                       pointOfContact: 'Email',
-                      isSubscribed: true,
-                      valueByDefault: true,
                     },
                   ],
                 },
@@ -1424,8 +1418,6 @@ describe('Integrations: Mindbox', () => {
                   subscriptions: [
                     {
                       pointOfContact: 'Email',
-                      isSubscribed: true,
-                      valueByDefault: true,
                     },
                   ],
                 },

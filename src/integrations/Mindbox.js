@@ -632,8 +632,6 @@ class Mindbox extends Integration {
       cleanObject({
         pointOfContact: 'Email',
         topic: event.subscriptionList,
-        isSubscribed: true,
-        valueByDefault: true,
       }),
     ];
 
