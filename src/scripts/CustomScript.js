@@ -29,7 +29,8 @@ class CustomScript {
       handler.run();
       this.hasFired = true;
     } catch (e) {
-      errorLog(`Uncaught error in Custom Script "${this.name}":`, e);
+      e.message = `DDManager Custom Script "${this.name}" Error\n\n ${e.message}`;
+      errorLog(e);
     }
   }
 }
