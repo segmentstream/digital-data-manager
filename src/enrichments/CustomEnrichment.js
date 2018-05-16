@@ -60,6 +60,7 @@ class CustomEnrichment {
         onValueReceived(result);
       }
     } catch (e) {
+      e.message = `DDManager Custom Enrichment "${this.config.prop}" Error\n\n ${e.message}`;
       errorLog(e);
     }
   }

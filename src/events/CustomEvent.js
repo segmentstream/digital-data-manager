@@ -47,7 +47,7 @@ class CustomEvent {
         }
       }
     } catch (e) {
-      errorLog(`Custom Event "${this.name}" handler error:`);
+      e.message = `DDManager Custom Event "${this.name}" Error\n\n ${e.message}`;
       errorLog(e);
     }
   }

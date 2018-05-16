@@ -2,8 +2,13 @@ import getQueryParam from 'driveback-utils/getQueryParam';
 import cookie from 'js-cookie';
 import DDHelper from './DDHelper';
 import domQuery from 'driveback-utils/domQuery';
+import loadScript from 'driveback-utils/loadScript';
+import loadLink from 'driveback-utils/loadLink';
+import loadIframe from 'driveback-utils/loadIframe';
+import loadPixel from 'driveback-utils/loadPixel';
 import { getProp } from 'driveback-utils/dotProp';
 import getDataLayerProp from 'driveback-utils/getDataLayerProp';
+
 
 class Handler {
   constructor(handler, digitalData, args) {
@@ -44,6 +49,10 @@ class Handler {
           resolve(callback());
         }, delay);
       }),
+      loadPixel,
+      loadScript,
+      loadIframe,
+      loadLink,
     };
   }
 
