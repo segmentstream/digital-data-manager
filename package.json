@@ -9,7 +9,7 @@
     "lint": "eslint src",
     "test": "npm run build-test && karma start karma.conf.js",
     "build": "browserify src/index.js -t babelify --debug | exorcist --base=./build build/dd-manager.js.map > build/dd-manager.js",
-    "build-test": "mkdir -p build && browserify test/index.test.js -t babelify --debug | derequire | exorcist --base=./build build/dd-manager-test.js.map > build/dd-manager-test.js",
+    "build-test": "mkdir -p build && browserify test/index.test.js -t babelify --debug | exorcist --base=./build build/dd-manager-test.js.map > build/dd-manager-test.js",
     "dist": "browserify src/index.js -t babelify > dist/dd-manager.js && grunt wrap && uglifyjs dist/dd-manager.js -c -m --source-map-inline | exorcist --base=./dist dist/dd-manager.min.js.map > dist/dd-manager.min.js",
     "mocha": "mocha build/dd-manager-test.js",
     "travis": "karma start karma.conf.js"
