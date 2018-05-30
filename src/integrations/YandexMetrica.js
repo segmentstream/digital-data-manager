@@ -18,42 +18,11 @@ import {
 } from './../events/semanticEvents';
 import { bind } from 'driveback-utils/eventListener';
 
-
-function getProductCategory(product) {
-  let category = product.category;
-  if (Array.isArray(category)) {
-    category = category.join('/');
-  } else if (category && product.subcategory) {
-    category = `${category}/${product.subcategory}`;
-  }
-  return category;
-}
-
-function getProductId(product) {
-  return product.id || product.skuCode || undefined;
-}
-
-function getProduct(product, quantity) {
-  const yaProduct = {};
-  const id = getProductId(product);
-  const brand = product.brand || product.manufacturer;
-  const price = product.unitSalePrice || product.unitPrice;
-  const category = getProductCategory(product);
-  if (id) yaProduct.id = id;
-  if (product.name) yaProduct.name = product.name;
-  if (brand) yaProduct.brand = brand;
-  if (price) yaProduct.price = price;
-  if (category) yaProduct.category = category;
-  if (product.variant) yaProduct.variant = product.variant;
-  if (product.voucher) yaProduct.coupon = product.voucher;
-  if (quantity) yaProduct.quantity = quantity;
-  return yaProduct;
-}
-
 class YandexMetrica extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       counterId: '',
+      feedWithGroupedProducts: false,
       sendUserId: true,
       clickmap: false,
       webvisor: false,
@@ -113,6 +82,41 @@ class YandexMetrica extends Integration {
 
   getGoalEvents() {
     return this.goalEvents;
+  }
+
+  getProductCategory(product) {
+    let category = product.category;
+    if (Array.isArray(category)) {
+      category = category.join('/');
+    } else if (category && product.subcategory) {
+      category = `${category}/${product.subcategory}`;
+    }
+    return category;
+  }
+
+  getProductId(product) {
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
+    if (feedWithGroupedProducts) {
+      return product.skuCode;
+    }
+    return product.id;
+  }
+
+  getProduct(product, quantity) {
+    const yaProduct = {};
+    const id = this.getProductId(product);
+    const brand = product.brand || product.manufacturer;
+    const price = product.unitSalePrice || product.unitPrice;
+    const category = this.getProductCategory(product);
+    if (id) yaProduct.id = id;
+    if (product.name) yaProduct.name = product.name;
+    if (brand) yaProduct.brand = brand;
+    if (price) yaProduct.price = price;
+    if (category) yaProduct.category = category;
+    if (product.variant) yaProduct.variant = product.variant;
+    if (product.voucher) yaProduct.coupon = product.voucher;
+    if (quantity) yaProduct.quantity = quantity;
+    return yaProduct;
   }
 
   getEnrichableEventProps(event) {
@@ -432,11 +436,11 @@ class YandexMetrica extends Integration {
 
   onViewedProductDetail(event) {
     const product = event.product;
-    if (!getProductId(product) && !product.name) return;
+    if (!this.getProductId(product) && !product.name) return;
     this.dataLayer.push({
       ecommerce: {
         detail: {
-          products: [getProduct(product)],
+          products: [this.getProduct(product)],
         },
       },
     });
@@ -444,12 +448,12 @@ class YandexMetrica extends Integration {
 
   onAddedProduct(event) {
     const product = event.product;
-    if (!getProductId(product) && !product.name) return;
+    if (!this.getProductId(product) && !product.name) return;
     const quantity = event.quantity || 1;
     this.dataLayer.push({
       ecommerce: {
         add: {
-          products: [getProduct(product, quantity)],
+          products: [this.getProduct(product, quantity)],
         },
       },
     });
@@ -457,16 +461,16 @@ class YandexMetrica extends Integration {
 
   onRemovedProduct(event) {
     const product = event.product;
-    if (!getProductId(product) && !product.name) return;
+    if (!this.getProductId(product) && !product.name) return;
     const quantity = event.quantity;
     this.dataLayer.push({
       ecommerce: {
         remove: {
           products: [
             {
-              id: getProductId(product),
+              id: this.getProductId(product),
               name: product.name,
-              category: getProductCategory(product),
+              category: this.getProductCategory(product),
               quantity,
             },
           ],
@@ -481,11 +485,11 @@ class YandexMetrica extends Integration {
 
     const products = transaction.lineItems.filter((lineItem) => {
       const product = lineItem.product;
-      return (getProductId(product) || product.name);
+      return (this.getProductId(product) || product.name);
     }).map((lineItem) => {
       const product = lineItem.product;
       const quantity = lineItem.quantity || 1;
-      return getProduct(product, quantity);
+      return this.getProduct(product, quantity);
     });
     const purchase = {
       actionField: {
