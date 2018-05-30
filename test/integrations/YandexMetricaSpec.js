@@ -410,6 +410,43 @@ describe('Integrations: Yandex Metrica', () => {
         });
       });
 
+      it('should push product detail into dataLayer with feedWithGrouped products option (digitalData)', (done) => {
+        ym.setOption('feedWithGroupedProducts', true);
+        window.digitalData.product = {
+          id: '123',
+          skuCode: 'sku123',
+          name: 'Test Product',
+          manufacturer: 'Test Brand',
+          category: ['Category 1', 'Subcategory 1'],
+          voucher: 'VOUCHER1',
+          unitSalePrice: 1500,
+          variant: 'Variant 1'
+        };
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          callback: () => {
+            assert.deepEqual(window.yandexDL[0], {
+              ecommerce: {
+                detail: {
+                  products: [
+                    {
+                      id: 'sku123',
+                      name: 'Test Product',
+                      price: 1500,
+                      brand: 'Test Brand',
+                      category: 'Category 1/Subcategory 1',
+                      coupon: 'VOUCHER1',
+                      variant: 'Variant 1'
+                    }
+                  ]
+                }
+              }
+            });
+            done();
+          }
+        });
+      });
+
 
       it('should not push product detail into dataLayer if product ID or product name is not defined', (done) => {
         window.digitalData.events.push({
@@ -451,6 +488,46 @@ describe('Integrations: Yandex Metrica', () => {
                   products: [
                     {
                       id: '123',
+                      name: 'Test Product',
+                      price: 1500,
+                      brand: 'Test Brand',
+                      category: 'Category 1/Subcategory 1',
+                      coupon: 'VOUCHER1',
+                      variant: 'Variant 1',
+                      quantity: 3
+                    }
+                  ]
+                }
+              }
+            });
+            done();
+          }
+        });
+      });
+
+      it('should push added product into dataLayer using product.skuCode', (done) => {
+        ym.setOption('feedWithGroupedProducts', true);
+        window.digitalData.events.push({
+          name: 'Added Product',
+          product: {
+            id: '123',
+            skuCode: 'sku123',
+            name: 'Test Product',
+            manufacturer: 'Test Brand',
+            category: 'Category 1',
+            subcategory: 'Subcategory 1',
+            voucher: 'VOUCHER1',
+            unitSalePrice: 1500,
+            variant: 'Variant 1',
+          },
+          quantity: 3,
+          callback: () => {
+            assert.deepEqual(window.yandexDL[0], {
+              ecommerce: {
+                add: {
+                  products: [
+                    {
+                      id: 'sku123',
                       name: 'Test Product',
                       price: 1500,
                       brand: 'Test Brand',
@@ -521,6 +598,40 @@ describe('Integrations: Yandex Metrica', () => {
         });
       });
 
+      it('should push removed product into dataLayer usgin product.skuCode', (done) => {
+        window.digitalData.events.push({
+          name: 'Removed Product',
+          product: {
+            id: 'sku123',
+            name: 'Test Product',
+            manufacturer: 'Test Brand',
+            category: 'Category 1',
+            subcategory: 'Subcategory 1',
+            voucher: 'VOUCHER1',
+            unitSalePrice: 1500,
+            variant: 'Variant 1',
+          },
+          quantity: 3,
+          callback: () => {
+            assert.deepEqual(window.yandexDL[0], {
+              ecommerce: {
+                remove: {
+                  products: [
+                    {
+                      id: 'sku123',
+                      name: 'Test Product',
+                      category: 'Category 1/Subcategory 1',
+                      quantity: 3
+                    }
+                  ]
+                }
+              }
+            });
+            done();
+          }
+        });
+      });
+
       it('should not push removed product into dataLayer if product ID or product name is not defined', (done) => {
         window.digitalData.events.push({
           name: 'Removed Product',
@@ -545,6 +656,7 @@ describe('Integrations: Yandex Metrica', () => {
         {
           product: {
             id: '123',
+            skuCode: 'sku123',
             unitSalePrice: 100
           },
           quantity: 1
@@ -552,6 +664,7 @@ describe('Integrations: Yandex Metrica', () => {
         {
           product: {
             id: '234',
+            skuCode: 'sku234',
             unitPrice: 100,
             unitSalePrice: 50
           },
@@ -560,6 +673,7 @@ describe('Integrations: Yandex Metrica', () => {
         {
           product: {
             id: '345',
+            skuCode: 'sku345',
             name: 'Test Product',
             unitPrice: 30
           }
@@ -573,7 +687,7 @@ describe('Integrations: Yandex Metrica', () => {
           transaction: {
             orderId: '123',
             vouchers: ['VOUCHER1'],
-            lineItems: lineItems,
+            lineItems,
             total: 1500
           },
           callback: () => {
@@ -610,7 +724,7 @@ describe('Integrations: Yandex Metrica', () => {
             done();
           }
         });
-      });
+      });      
 
       it('should push purchase information into dataLayer (digitalData)', (done) => {
         window.digitalData.transaction = {
@@ -644,6 +758,52 @@ describe('Integrations: Yandex Metrica', () => {
                     },
                     {
                       id: '345',
+                      name: 'Test Product',
+                      price: 30,
+                      quantity: 1
+                    },
+                  ]
+                }
+              }
+            });
+            done();
+          }
+        });
+      });
+
+      it('should push purchase information into dataLayer (digitalData) using product.skuCode', (done) => {
+        ym.setOption('feedWithGroupedProducts', true);
+        window.digitalData.transaction = {
+          orderId: '123',
+          vouchers: ['VOUCHER1'],
+          lineItems: lineItems,
+          total: 1500
+        };
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          callback: () => {
+            assert.deepEqual(window.yandexDL[0], {
+              ecommerce: {
+                purchase: {
+                  actionField: {
+                    id: '123',
+                    goal_id: options.purchaseGoalId,
+                    coupon: 'VOUCHER1',
+                    revenue: 1500
+                  },
+                  products: [
+                    {
+                      id: 'sku123',
+                      price: 100,
+                      quantity: 1
+                    },
+                    {
+                      id: 'sku234',
+                      price: 50,
+                      quantity: 2
+                    },
+                    {
+                      id: 'sku345',
                       name: 'Test Product',
                       price: 30,
                       quantity: 1
