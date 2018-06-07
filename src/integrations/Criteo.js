@@ -72,6 +72,7 @@ class Criteo extends Integration {
         enrichableProps = [
           'website.type',
           'user.email',
+          'user.emailHash',
           'page.type',
         ];
         break;
@@ -126,6 +127,7 @@ class Criteo extends Integration {
           'website.type',
           'page.type',
           'user.email',
+          'user.emailHash',
         ],
         validations: {
           'website.type': {
@@ -135,6 +137,9 @@ class Criteo extends Integration {
             errors: ['required', 'string'],
           },
           'user.email': {
+            errors: ['string'],
+          },
+          'user.emailHash': {
             errors: ['string'],
           },
         },
@@ -325,12 +330,17 @@ class Criteo extends Integration {
       type: this.getDeviceType(siteType),
     });
 
-    if (event.user && event.user.email) {
-      const email = normalizeString(event.user.email);
-      const emailMd5 = md5(email).toString();
+    if (event.user) {
+      let emailHash;
+      if (event.user.emailHash) {
+        emailHash = event.user.emailHash;
+      } else if (event.user.email) {
+        const email = normalizeString(event.user.email);
+        emailHash = md5(email).toString();
+      }
       this.criteo_q.push({
         event: 'setEmail',
-        email: emailMd5,
+        email: emailHash,
       });
     } else {
       this.criteo_q.push({
@@ -452,13 +462,11 @@ class Criteo extends Integration {
     const user = event.user;
     if (user && user.email) {
       const email = normalizeString(user.email);
-      const emailMd5 = md5(email).toString();
-      window.criteo_q.push(
-        {
-          event: 'setEmail',
-          email: emailMd5,
-        },
-      );
+      const emailHash = md5(email).toString();
+      window.criteo_q.push({
+        event: 'setEmail',
+        email: emailHash,
+      });
     }
   }
 }
