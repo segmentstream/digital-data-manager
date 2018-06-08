@@ -1427,6 +1427,63 @@ describe('Integrations: Mindbox', () => {
         });
       });
 
+      it('should track subscription with custom operation and multiple subscriptions', () => {
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          user: {
+            email: 'test@driveback.ru',
+            firstName: 'John',
+            lastName: 'Dow',
+          },
+          subscriptions: [
+            {
+              type: 'email',
+              topic: 'News',
+            },
+            {
+              type: 'email',
+              topic: 'Special Offers',
+            },
+            {
+              type: 'sms',
+              topic: 'Special Offers',
+            },
+          ],
+          campaign: {
+            id: '123123',
+            name: 'Footer Form',
+          },
+          operation: 'EmailSubscribeCustom',
+          callback: () => {
+            assert.ok(window.mindbox.calledWith('async', {
+              operation: 'EmailSubscribeCustom',
+              data: {
+                customer: {
+                  email: 'test@driveback.ru',
+                  firstName: 'John',
+                  lastName: 'Dow',
+                  subscriptions: [
+                    {
+                      pointOfContact: 'Email',
+                      topic: 'News',
+                    },
+                    {
+                      pointOfContact: 'Email',
+                      topic: 'Special Offers',
+                    },
+                    {
+                      pointOfContact: 'Sms',
+                      topic: 'Special Offers',
+                    },
+                  ],
+                },
+                pointOfContact: 'Footer Form',
+              },
+            }));
+          },
+        });
+      });
+
       it('should track registration with default operation', () => {
         window.digitalData.user = registeredUser;
         window.digitalData.events.push({

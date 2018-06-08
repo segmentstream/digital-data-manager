@@ -42,6 +42,14 @@ const DEFAULT_CUSTOMER_FIELDS = [
   'sex',
 ];
 
+const mapSubscriptionType = (subscriptionType) => {
+  const map = {
+    email: 'Email',
+    sms: 'Sms',
+  };
+  return map[subscriptionType];
+};
+
 class Mindbox extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
@@ -628,30 +636,37 @@ class Mindbox extends Integration {
     const email = user.email;
     if (!email) return;
 
-    const subscriptions = [
-      cleanObject({
+    let subscriptions;
+    if (event.subscriptions) {
+      subscriptions = (event.subscriptions || []).map(subscription => ({
+        pointOfContact: mapSubscriptionType(subscription.type),
+        topic: subscription.topic,
+      }));
+    } else {
+      subscriptions = [{
         pointOfContact: 'Email',
         topic: event.subscriptionList,
-      }),
-    ];
+      }];
+    }
 
     if (this.getOption('apiVersion') === V3) {
       const customer = this.getCustomerData(event);
-      window.mindbox('async', {
+      window.mindbox('async', cleanObject({
         operation,
         data: {
           customer: {
             ...customer,
             subscriptions,
           },
+          pointOfContact: getProp(event, 'campaign.name'),
         },
-      });
+      }));
     } else {
       const identificator = this.getIdentificator(event, PROVIDER_EMAIL);
       if (!identificator) return;
-      const data = cleanObject(this.getCustomerData(event));
+      const data = this.getCustomerData(event);
       data.subscriptions = subscriptions;
-      window.mindbox('identify', { operation, identificator, data });
+      window.mindbox('identify', cleanObject({ operation, identificator, data }));
     }
   }
 
