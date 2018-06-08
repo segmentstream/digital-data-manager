@@ -161,7 +161,7 @@ describe('Integrations: FacebookPixel', () => {
       });
 
       it('should call fbq track ViewContent with price as event value', (done) => {
-        fbPixel.setOption('usePriceAsEventValue', true)
+        fbPixel.setOption('usePriceAsEventValue', true);
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           product: {
@@ -178,6 +178,7 @@ describe('Integrations: FacebookPixel', () => {
               content_name: 'Test Product',
               content_category: 'Category 1/Subcategory 1',
               value: 10000,
+              currency: 'USD',
             }), 'fbq("track", "ViewContent") was not called');
             done();
           }
