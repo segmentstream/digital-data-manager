@@ -255,6 +255,7 @@ class FacebookPixel extends Integration {
       content_name: product.name || '',
       content_category: category || '',
       value: this.getOption('usePriceAsEventValue') ? product.unitSalePrice : event.value,
+      currency: this.getOption('usePriceAsEventValue') ? product.currency : undefined,
     }));
   }
 
@@ -269,6 +270,7 @@ class FacebookPixel extends Integration {
       content_name: product.name,
       content_category: category,
       value: this.getOption('usePriceAsEventValue') ? product.unitSalePrice : event.value,
+      currency: this.getOption('usePriceAsEventValue') ? product.currency : undefined,
     }));
   }
 
@@ -283,6 +285,7 @@ class FacebookPixel extends Integration {
       content_name: product.name,
       content_category: category,
       value: this.getOption('usePriceAsEventValue') ? product.unitSalePrice : event.value,
+      currency: this.getOption('usePriceAsEventValue') ? product.currency : undefined,
     }));
   }
 
