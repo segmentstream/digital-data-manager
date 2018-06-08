@@ -1333,6 +1333,10 @@ describe('Integrations: Mindbox', () => {
             type: 'digitalData',
             value: 'user.lastName',
           },
+          mobilePhone: {
+            type: 'digitalData',
+            value: 'user.phone',
+          },
           source: {
             type: 'event',
             value: 'source',
@@ -1434,6 +1438,7 @@ describe('Integrations: Mindbox', () => {
             email: 'test@driveback.ru',
             firstName: 'John',
             lastName: 'Dow',
+            phone: '111111111',
           },
           subscriptions: [
             {
@@ -1462,6 +1467,7 @@ describe('Integrations: Mindbox', () => {
                   email: 'test@driveback.ru',
                   firstName: 'John',
                   lastName: 'Dow',
+                  mobilePhone: '111111111',
                   subscriptions: [
                     {
                       pointOfContact: 'Email',
@@ -1500,6 +1506,7 @@ describe('Integrations: Mindbox', () => {
                   firstName: 'John',
                   lastName: 'Dow',
                   email: 'test@driveback.ru',
+                  mobilePhone: '79374134389',
                   customFields: {
                     source: 'Driveback',
                     city: 'Moscow',
@@ -1533,6 +1540,7 @@ describe('Integrations: Mindbox', () => {
                   firstName: 'John',
                   lastName: 'Dow',
                   email: 'test@driveback.ru',
+                  mobilePhone: '79374134389',
                   customFields: {
                     source: 'Driveback',
                     city: 'Moscow',
@@ -1569,6 +1577,7 @@ describe('Integrations: Mindbox', () => {
                   firstName: 'John',
                   lastName: 'Dow',
                   email: 'test@driveback.ru',
+                  mobilePhone: '79374134389',
                   customFields: {
                     source: 'Driveback',
                     city: 'Moscow',
