@@ -28,9 +28,11 @@ const PROVIDER_EMAIL = 'email';
 const V2 = 'V2';
 const V3 = 'V3';
 
+const CUSTOMER_FIELDS_AUTHENTICATION_TICKET = 'authenticationTicket';
+
 const DEFAULT_CUSTOMER_FIELDS = [
+  CUSTOMER_FIELDS_AUTHENTICATION_TICKET,
   'ids',
-  'authenticationTicket',
   'area',
   'firstName',
   'lastName',
@@ -395,6 +397,10 @@ class Mindbox extends Integration {
   getCustomerData(event) {
     const userVars = this.getOption('userVars');
     const userData = extractVariableMappingValues(event, userVars);
+    // authentication should be sent only for profile update
+    if (userData[CUSTOMER_FIELDS_AUTHENTICATION_TICKET] && event.name !== UPDATED_PROFILE_INFO) {
+      deleteProperty(userData, CUSTOMER_FIELDS_AUTHENTICATION_TICKET);
+    }
     if (this.getOption('apiVersion') === V3 && event.name !== COMPLETED_TRANSACTION) {
       const customerIds = this.getCustomerIds(event);
       const area = this.getV3Area(event);
