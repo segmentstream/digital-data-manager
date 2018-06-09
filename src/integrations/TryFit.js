@@ -8,6 +8,8 @@ class TryFit extends Integration {
     }, options);
     super(digitalData, optionsWithDefaults);
 
+    this.pluginLoaded = false;
+
     this.addTag('plugin', {
       type: 'script',
       attr: {
@@ -22,7 +24,8 @@ class TryFit extends Integration {
   }
 
   trackEvent(event) {
-    if (event.name === VIEWED_PRODUCT_DETAIL) {
+    if (!this.pluginLoaded && event.name === VIEWED_PRODUCT_DETAIL) {
+      this.pluginLoaded = true;
       this.load('plugin');
     }
   }
