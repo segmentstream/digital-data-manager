@@ -612,6 +612,10 @@ describe('Integrations: Mindbox', () => {
             type: 'digitalData',
             value: 'user.lastName'
           },
+          'authenticationTicket': {
+            type: 'digitalData',
+            value: 'user.authenticationTicket',
+          }
         });
         mindbox.prepareEnrichableUserIds();
         mindbox.prepareEnrichableUserProps();
@@ -624,6 +628,7 @@ describe('Integrations: Mindbox', () => {
             email: 'test@driveback.ru',
             firstName: 'John',
             lastName: 'Dow',
+            authenticationTicket: 'xxx',
           },
           callback: () => {
             assert.ok(window.mindbox.calledWith('identify', {
@@ -654,6 +659,7 @@ describe('Integrations: Mindbox', () => {
             email: 'test@driveback.ru',
             firstName: 'John',
             lastName: 'Dow',
+            authenticationTicket: 'xxx',
           },
           integrations: {
             mindbox: {
@@ -689,6 +695,7 @@ describe('Integrations: Mindbox', () => {
             email: 'test@driveback.ru',
             firstName: 'John',
             lastName: 'Dow',
+            authenticationTicket: 'xxx',
           },
           callback: () => {
             assert.ok(window.mindbox.calledWith('identify', {
@@ -714,6 +721,7 @@ describe('Integrations: Mindbox', () => {
             email: 'test@driveback.ru',
             firstName: 'John',
             lastName: 'Dow',
+            authenticationTicket: 'xxx',
           },
           integrations: {
             mindbox: {
@@ -746,6 +754,7 @@ describe('Integrations: Mindbox', () => {
             email: 'test@driveback.ru',
             firstName: 'John',
             lastName: 'Dow',
+            authenticationTicket: 'xxx',
           },
           callback: () => {
             assert.ok(window.mindbox.calledWith('identify', {
@@ -782,6 +791,7 @@ describe('Integrations: Mindbox', () => {
           user: {
             isSubscribed: true,
             isSubscribedBySms: true,
+            authenticationTicket: 'xxxxx',
             email: 'test@driveback.ru',
             firstName: 'John',
             lastName: 'Dow',
@@ -797,6 +807,7 @@ describe('Integrations: Mindbox', () => {
                 email: 'test@driveback.ru',
                 firstName: 'John',
                 lastName: 'Dow',
+                authenticationTicket: 'xxxxx',
                 subscriptions: [
                   {
                     pointOfContact: 'Email',
@@ -1306,6 +1317,7 @@ describe('Integrations: Mindbox', () => {
     describe('#onSubscribed and #onRegistered', () => {
       const registeredUser = {
         userId: 'user123',
+        authenticationTicket: 'xxxxx',
         email: 'test@driveback.ru',
         phone: '79374134389',
         firstName: 'John',
@@ -1353,6 +1365,10 @@ describe('Integrations: Mindbox', () => {
             type: 'digitalData',
             value: 'user.b2b',
           },
+          authenticationTicket: {
+            type: 'digitalData',
+            value: 'user.authenticationTicket',
+          },
         });
         mindbox.prepareEnrichableUserIds();
         mindbox.prepareEnrichableUserProps();
@@ -1369,6 +1385,7 @@ describe('Integrations: Mindbox', () => {
             email: 'test@driveback.ru',
             firstName: 'John',
             lastName: 'Dow',
+            authenticationTicket: 'xxxxx',
           },
           callback: () => {
             assert.ok(window.mindbox.calledWith('async', {
@@ -1407,6 +1424,7 @@ describe('Integrations: Mindbox', () => {
             email: 'test@driveback.ru',
             firstName: 'John',
             lastName: 'Dow',
+            authenticationTicket: 'xxxxx',
           },
           callback: () => {
             assert.ok(window.mindbox.calledWith('async', {
@@ -1439,6 +1457,7 @@ describe('Integrations: Mindbox', () => {
             firstName: 'John',
             lastName: 'Dow',
             phone: '111111111',
+            authenticationTicket: 'xxxxx',
           },
           subscriptions: [
             {
