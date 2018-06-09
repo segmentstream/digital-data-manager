@@ -8,6 +8,14 @@ import {
   COMPLETED_TRANSACTION,
   VIEWED_CART,
 } from './../events/semanticEvents';
+import { normalizeOptions, addAffiliateCookie, removeAffiliateCookie, isDeduplication, getAffiliateCookie } from './utils/affiliate';
+import topDomain from 'driveback-utils/topDomain';
+import normalizeString from 'driveback-utils/normalizeString';
+import uuid from 'uuid/v1';
+import { getProp } from 'driveback-utils/dotProp';
+
+const DEFAUL_TRACK_ID_COOKIE_NAME = 'advcake_trackid';
+const DEFAULT_URL_COOKIE_NAME = 'advcake_url';
 
 function getBasketProducts(lineItems) {
   lineItems = lineItems || [];
@@ -62,7 +70,19 @@ function getUser(user) {
 
 class AdvCake extends Integration {
   constructor(digitalData, options) {
-    super(digitalData, options);
+    normalizeOptions(options);
+    const optionsWithDefaults = Object.assign({
+      trackIdCookieName: DEFAUL_TRACK_ID_COOKIE_NAME,
+      urlCookieName: DEFAULT_URL_COOKIE_NAME,
+      cookieTracking: true, // false - if advertiser wants to track cookies by itself
+      cookieDomain: topDomain(window.location.href),
+      cookieTtl: 90, // days
+      deduplication: false,
+      utmSource: 'advcake', // utm_source for advcake links
+      deduplicationUtmMedium: [],
+    }, options);
+
+    super(digitalData, optionsWithDefaults);
 
     this.addTag({
       type: 'script',
@@ -89,7 +109,7 @@ class AdvCake extends Integration {
   getEnrichableEventProps(event) {
     switch (event.name) {
       case VIEWED_PAGE:
-        return ['page.type', 'cart', 'user.email'];
+        return ['page.type', 'cart', 'user.email', 'context.campaign'];
       case VIEWED_PRODUCT_DETAIL:
         return ['product'];
       case COMPLETED_TRANSACTION:
@@ -113,6 +133,8 @@ class AdvCake extends Integration {
           'cart.lineItems[].product.name',
           'cart.lineItems[].product.unitSalePrice',
           'cart.lineItems[].quantity',
+          'context.campaign.medium',
+          'context.campaign.source',
         ],
         validations: {
           'page.type': {
@@ -243,7 +265,39 @@ class AdvCake extends Integration {
     }
   }
 
+  addAffiliateCookies(event) {
+    if (this.getOption('cookieTracking')) {
+      const campaign = getProp(event, 'context.campaign') || {};
+      if (!campaign.source) return;
+
+      const advcakeSource = normalizeString(this.getOption('utmSource'));
+      const trackIdCookieName = this.getOption('trackIdCookieName');
+      const urlCookieName = this.getOption('urlCookieName');
+      const domain = this.getOption('cookieDomain');
+      if (campaign.source === advcakeSource) {
+        const ttl = this.getOption('cookieTtl');
+        const trackId = uuid().replace(/-/g, '');
+        addAffiliateCookie(trackIdCookieName, trackId, ttl, domain);
+        addAffiliateCookie(urlCookieName, window.location.href, ttl, domain);
+      } else if (getAffiliateCookie(trackIdCookieName)) {
+        const deduplicationUtmMedium = this.getOption('deduplicationUtmMedium');
+        if (isDeduplication(campaign, advcakeSource, deduplicationUtmMedium)) {
+          this.removeAffiliateCookies();
+        }
+      }
+    }
+  }
+
+  removeAffiliateCookies() {
+    const domain = this.getOption('cookieDomain');
+    const trackIdCookieName = this.getOption('trackIdCookieName');
+    const urlCookieName = this.getOption('urlCookieName');
+    removeAffiliateCookie(trackIdCookieName, domain);
+    removeAffiliateCookie(urlCookieName, domain);
+  }
+
   onViewedPage(event) {
+    this.addAffiliateCookies(event);
     const page = event.page || {};
     this.cart = event.cart || {};
     this.user = event.user || {};
@@ -317,6 +371,8 @@ class AdvCake extends Integration {
     };
     window.advcake_push_data(window.advcake_data);
     window.advcake_order(transaction.orderId, transaction.total);
+
+    this.removeAffiliateCookies();
   }
 }
 
