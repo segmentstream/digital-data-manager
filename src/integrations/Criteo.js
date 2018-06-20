@@ -295,7 +295,6 @@ class Criteo extends Integration {
       [VIEWED_PAGE]: 'onViewedPage',
       [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
       [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
-      [VIEWED_PRODUCT_LISTING]: 'onViewedProductListing',
       [SEARCHED_PRODUCTS]: 'onViewedProductListing',
       [VIEWED_CART]: 'onViewedCart',
       [VIEWED_PRODUCT_LISTING]: 'onViewedProductListing',
