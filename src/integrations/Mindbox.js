@@ -172,6 +172,7 @@ class Mindbox extends Integration {
           'user.userId', // might be duplicated
           'user.isSubscribed',
           'user.isSubscribedBySms',
+          'user.subscriptions',
         ];
         break;
       case COMPLETED_TRANSACTION:
@@ -419,26 +420,38 @@ class Mindbox extends Integration {
   }
 
   getSubscriptions(event, useDefaultValue) {
+    const userSubscriptions = getProp(event, 'user.subscriptions');
     let subscriptions;
-    const isSubscribed = getProp(event, 'user.isSubscribed');
-    if (isSubscribed !== undefined) {
-      subscriptions = subscriptions || [];
-      subscriptions.push(cleanObject({
-        pointOfContact: 'Email',
-        isSubscribed,
+
+    if (userSubscriptions && Array.isArray(userSubscriptions)) { // version 1.1.3 is used
+      subscriptions = userSubscriptions.map(subscription => ({
+        pointOfContact: mapSubscriptionType(subscription.type),
+        topic: subscription.topic,
+        isSubscribed: subscription.isSubscribed,
         valueByDefault: (useDefaultValue) ? true : undefined,
       }));
+    } else {
+      const isSubscribed = getProp(event, 'user.isSubscribed');
+      if (isSubscribed !== undefined) {
+        subscriptions = subscriptions || [];
+        subscriptions.push(cleanObject({
+          pointOfContact: 'Email',
+          isSubscribed,
+          valueByDefault: (useDefaultValue) ? true : undefined,
+        }));
+      }
+
+      const isSubscribedBySms = getProp(event, 'user.isSubscribedBySms');
+      if (isSubscribedBySms !== undefined) {
+        subscriptions = subscriptions || [];
+        subscriptions.push(cleanObject({
+          pointOfContact: 'Sms',
+          isSubscribed: isSubscribedBySms,
+          valueByDefault: (useDefaultValue) ? true : undefined,
+        }));
+      }
     }
 
-    const isSubscribedBySms = getProp(event, 'user.isSubscribedBySms');
-    if (isSubscribedBySms !== undefined) {
-      subscriptions = subscriptions || [];
-      subscriptions.push(cleanObject({
-        pointOfContact: 'Sms',
-        isSubscribed: isSubscribedBySms,
-        valueByDefault: (useDefaultValue) ? true : undefined,
-      }));
-    }
     return subscriptions;
   }
 
@@ -620,20 +633,20 @@ class Mindbox extends Integration {
       const customer = this.getCustomerData(event);
       if (!customer) return;
       if (subscriptions) customer.subscriptions = subscriptions;
-      window.mindbox('async', {
+      window.mindbox('async', cleanObject({
         operation,
         data: { customer },
-      });
+      }));
     } else {
       const identificator = this.getIdentificator(event);
       if (!identificator) return;
-      const data = cleanObject(this.getCustomerData(event));
+      const data = this.getCustomerData(event);
       if (subscriptions) data.subscriptions = subscriptions;
-      window.mindbox('identify', {
+      window.mindbox('identify', cleanObject({
         operation,
         identificator,
         data,
-      });
+      }));
     }
   }
 
@@ -644,7 +657,7 @@ class Mindbox extends Integration {
 
     let subscriptions;
     if (event.subscriptions) {
-      subscriptions = (event.subscriptions || []).map(subscription => ({
+      subscriptions = (getProp(event, 'user.subscriptions') || event.subscriptions || []).map(subscription => ({
         pointOfContact: mapSubscriptionType(subscription.type),
         topic: subscription.topic,
       }));

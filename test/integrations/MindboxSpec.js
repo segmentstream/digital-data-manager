@@ -860,6 +860,44 @@ describe('Integrations: Mindbox', () => {
           }
         });
       });
+
+      it('should track update profile info with unsubscription to email and sms', () => {
+        window.digitalData.events.push({
+          name: 'Updated Profile Info',
+          user: {
+            isSubscribed: false,
+            isSubscribedBySms: false,
+            email: 'test@driveback.ru',
+            firstName: 'John',
+            lastName: 'Dow',
+          },
+          callback: () => {
+            assert.ok(window.mindbox.calledWith('identify', {
+              operation: 'UpdateProfile',
+              identificator: {
+                provider: 'email',
+                identity: 'test@driveback.ru'
+              },
+              data: {
+                email: 'test@driveback.ru',
+                firstName: 'John',
+                lastName: 'Dow',
+                subscriptions: [
+                  {
+                    pointOfContact: 'Email',
+                    isSubscribed: false,
+                  },
+                  {
+                    pointOfContact: 'Sms',
+                    isSubscribed: false,
+                  }
+                ]
+              },
+            }));
+          }
+        });
+      });
+      
     });
 
     describe('#onLoggedIn', () => {
@@ -1314,7 +1352,7 @@ describe('Integrations: Mindbox', () => {
       });
     });
 
-    describe('#onSubscribed and #onRegistered', () => {
+    describe('#onSubscribed and #onRegistered and #onUpdatedProfileInfo', () => {
       const registeredUser = {
         userId: 'user123',
         authenticationTicket: 'xxxxx',
@@ -1331,6 +1369,7 @@ describe('Integrations: Mindbox', () => {
         mindbox.setOption('operationMapping', {
           Subscribed: 'EmailSubscribe',
           Registered: 'Registration',
+          'Updated Profile Info': 'UpdateProfile',
         });
         mindbox.setOption('userVars', {
           email: {
@@ -1624,6 +1663,145 @@ describe('Integrations: Mindbox', () => {
           },
         });
       });
+
+      it('should track Registered with mass subscriptions', () => {
+        window.digitalData.user = {
+          ...registeredUser,
+          subscriptions: [
+            {
+              type: 'email',
+              topic: 'News',
+              isSubscribed: true,
+            },
+            {
+              type: 'email',
+              topic: 'Offers',
+              isSubscribed: true,
+            },
+            {
+              type: 'sms',
+              isSubscribed: true,
+            },
+          ],
+        };
+        window.digitalData.events.push({
+          name: 'Registered',
+          source: 'Driveback',
+          callback: () => {
+            assert.ok(window.mindbox.calledWith('async', {
+              operation: 'Registration',
+              data: {
+                customer: {
+                  ids: {
+                    bitrixId: 'user123',
+                  },
+                  firstName: 'John',
+                  lastName: 'Dow',
+                  email: 'test@driveback.ru',
+                  mobilePhone: '79374134389',
+                  customFields: {
+                    source: 'Driveback',
+                    city: 'Moscow',
+                    b2b: true,
+                    childrenNames: [
+                      'Helen',
+                      'Bob',
+                    ],
+                  },
+                  subscriptions: [
+                    {
+                      pointOfContact: 'Email',
+                      topic: 'News',
+                      isSubscribed: true,
+                      valueByDefault: true,
+                    },
+                    {
+                      pointOfContact: 'Email',
+                      topic: 'Offers',
+                      isSubscribed: true,
+                      valueByDefault: true,
+                    },
+                    {
+                      pointOfContact: 'Sms',
+                      isSubscribed: true,
+                      valueByDefault: true,
+                    },
+                  ],
+                },
+              },
+            }));
+          },
+        });
+      });
+
+      it('should track Updated Profile Info with mass subscriptions', () => {
+        window.digitalData.user = {
+          ...registeredUser,
+          subscriptions: [
+            {
+              type: 'email',
+              topic: 'News',
+              isSubscribed: true,
+            },
+            {
+              type: 'email',
+              topic: 'Offers',
+              isSubscribed: false,
+            },
+            {
+              type: 'sms',
+              isSubscribed: true,
+            },
+          ],
+        };
+        window.digitalData.events.push({
+          name: 'Updated Profile Info',
+          source: 'Driveback',
+          callback: () => {
+            assert.ok(window.mindbox.calledWith('async', {
+              operation: 'UpdateProfile',
+              data: {
+                customer: {
+                  authenticationTicket: 'xxxxx',
+                  ids: {
+                    bitrixId: 'user123',
+                  },
+                  firstName: 'John',
+                  lastName: 'Dow',
+                  email: 'test@driveback.ru',
+                  mobilePhone: '79374134389',
+                  customFields: {
+                    source: 'Driveback',
+                    city: 'Moscow',
+                    b2b: true,
+                    childrenNames: [
+                      'Helen',
+                      'Bob',
+                    ],
+                  },
+                  subscriptions: [
+                    {
+                      pointOfContact: 'Email',
+                      topic: 'News',
+                      isSubscribed: true,
+                    },
+                    {
+                      pointOfContact: 'Email',
+                      topic: 'Offers',
+                      isSubscribed: false,
+                    },
+                    {
+                      pointOfContact: 'Sms',
+                      isSubscribed: true,
+                    },
+                  ],
+                },
+              },
+            }));
+          },
+        });
+      });
+      // end onSubscribed and onRegistered tests
     });
 
 
