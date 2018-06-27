@@ -15,13 +15,7 @@ class Handler {
     this.handler = handler;
     this.args = args;
     this.utils = {
-      queryParam: (name, queryString) => {
-        let value = getQueryParam(name, queryString);
-        if (value) {
-          value = value.toLowerCase();
-        }
-        return value;
-      },
+      queryParam: getQueryParam,
       cookie: cookie.get,
       get: (target, key) => getProp(target, key),
       digitalData: key => DDHelper.get(key, digitalData),
