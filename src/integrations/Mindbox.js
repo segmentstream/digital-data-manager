@@ -91,6 +91,7 @@ class Mindbox extends Integration {
     ];
 
     this.prepareEnrichableUserProps();
+    this.prepareEnrichableAreaIds();
     this.prepareEnrichableUserIds();
     this.prepareEnrichableCategoryIds();
 
@@ -136,10 +137,10 @@ class Mindbox extends Integration {
 
   prepareEnrichableUserProps() {
     this.enrichableUserProps = getEnrichableVariableMappingProps(this.getOption('userVars'));
-    if (this.getOption('apiVersion') === V3) {
-      const enrichableAreaProps = getEnrichableVariableMappingProps(this.getOption('areaIdsMapping'));
-      arrayMerge(this.enrichableUserProps, enrichableAreaProps);
-    }
+  }
+
+  prepareEnrichableAreaIds() {
+    this.enrichableAreIds = getEnrichableVariableMappingProps(this.getOption('areaIdsMapping'));
   }
 
   prepareEnrichableUserIds() {
@@ -168,12 +169,17 @@ class Mindbox extends Integration {
       case UPDATED_PROFILE_INFO:
         enrichableProps = [
           ...this.getEnrichableUserIds(),
-          ...this.getEnrichableUserProps(),
-          'user.userId', // might be duplicated
-          'user.isSubscribed',
-          'user.isSubscribedBySms',
-          'user.subscriptions',
+          ...this.getEnrichableAreaIds(),
         ];
+        if (!event.user) {
+          arrayMerge(enrichableProps, [
+            ...this.getEnrichableUserProps(),
+            'user.userId', // might be duplicated
+            'user.isSubscribed',
+            'user.isSubscribedBySms',
+            'user.subscriptions',
+          ]);
+        }
         break;
       case COMPLETED_TRANSACTION:
         enrichableProps = this.getEnrichableUserProps();
@@ -341,6 +347,10 @@ class Mindbox extends Integration {
 
   getEnrichableUserIds() {
     return this.enrichableUserIds;
+  }
+
+  getEnrichableAreaIds() {
+    return this.enrichableAreIds;
   }
 
   getEnrichableCategoryIds() {
