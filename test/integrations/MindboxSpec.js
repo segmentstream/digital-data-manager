@@ -619,6 +619,7 @@ describe('Integrations: Mindbox', () => {
         });
         mindbox.prepareEnrichableUserIds();
         mindbox.prepareEnrichableUserProps();
+        mindbox.prepareEnrichableAreaIds();
       });
 
       it('should track subscription with default operation', () => {
@@ -955,6 +956,7 @@ describe('Integrations: Mindbox', () => {
       });
       mindbox.prepareEnrichableUserIds();
       mindbox.prepareEnrichableUserProps();
+      mindbox.prepareEnrichableAreaIds();
       sinon.stub(mindbox, 'load', () => {
         mindbox.onLoad();
       });
@@ -1411,6 +1413,7 @@ describe('Integrations: Mindbox', () => {
         });
         mindbox.prepareEnrichableUserIds();
         mindbox.prepareEnrichableUserProps();
+        mindbox.prepareEnrichableAreaIds();
       });
 
       it('should track subscription with default operation', () => {
@@ -1828,6 +1831,7 @@ describe('Integrations: Mindbox', () => {
         };
         mindbox.prepareEnrichableUserIds();
         mindbox.prepareEnrichableUserProps();
+        mindbox.prepareEnrichableAreaIds();
       });
 
       it('should track authorization with default operation', () => {
