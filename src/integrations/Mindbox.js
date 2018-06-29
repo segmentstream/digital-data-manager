@@ -166,7 +166,6 @@ class Mindbox extends Integration {
       case LOGGED_IN:
       case REGISTERED:
       case SUBSCRIBED:
-      case UPDATED_PROFILE_INFO:
         enrichableProps = [
           ...this.getEnrichableUserIds(),
           ...this.getEnrichableAreaIds(),
@@ -179,6 +178,19 @@ class Mindbox extends Integration {
             'user.isSubscribedBySms',
             'user.subscriptions',
           ]);
+        }
+        break;
+      case UPDATED_PROFILE_INFO:
+        if (!event.user) {
+          enrichableProps = [
+            ...this.getEnrichableUserIds(),
+            ...this.getEnrichableAreaIds(),
+            ...this.getEnrichableUserProps(),
+            'user.userId', // might be duplicated
+            'user.isSubscribed',
+            'user.isSubscribedBySms',
+            'user.subscriptions',
+          ];
         }
         break;
       case COMPLETED_TRANSACTION:
