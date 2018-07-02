@@ -197,7 +197,7 @@ class Filters {
       if (Array.isArray(category)) {
         category = category.join('/');
       } else if (typeof category === 'object') {
-        category = Object.values(category).join('/');
+        category = Object.keys(category).map(k => category[k]).join('/');
       } else {
         category = String(category);
       }

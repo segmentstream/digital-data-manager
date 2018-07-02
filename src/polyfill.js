@@ -1,5 +1,4 @@
 import 'core-js/fn/object/create';
-import 'core-js/fn/promise';
 import 'core-js/fn/array/is-array';
 import 'core-js/fn/array/index-of';
 import 'core-js/fn/array/filter';
@@ -13,5 +12,5 @@ import 'core-js/fn/string/trim';
 import 'core-js/fn/string/ends-with';
 import 'core-js/fn/date/to-iso-string';
 import 'core-js/fn/date/now';
-import 'core-js/fn/object/values';
+import 'promise-polyfill/dist/polyfill';
 import 'whatwg-fetch';

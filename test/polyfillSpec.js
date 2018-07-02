@@ -6,7 +6,7 @@ describe('Polyfill', () => {
       0: 'String 1',
       1: 'String 2',
     };
-    assert.deepEqual(Object.values(object), ['String 1', 'String 2']);
+    assert.deepEqual(Object.keys(object).map(k => object[k]), ['String 1', 'String 2']);
   });
 
   it('should not crash on Promises in IE', (done) => {
