@@ -22,6 +22,7 @@ class YandexMetrica extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       counterId: '',
+      accurateTrackBounce: false,
       feedWithGroupedProducts: false,
       sendUserId: true,
       clickmap: false,
@@ -320,6 +321,7 @@ class YandexMetrica extends Integration {
     const newCounter = () => {
       this.yaCounter = window[`yaCounter${id}`] = new window.Ya[this.yaCounterClass]({
         id,
+        accurateTrackBounce: this.getOption('accurateTrackBounce'),
         clickmap: this.getOption('clickmap'),
         webvisor: this.getOption('webvisor'),
         trackLinks: this.getOption('trackLinks'),
