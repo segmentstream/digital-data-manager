@@ -678,8 +678,9 @@ class Mindbox extends Integration {
     if (!email) return;
 
     let subscriptions;
-    if (event.subscriptions) {
-      subscriptions = (getProp(event, 'user.subscriptions') || event.subscriptions || []).map(subscription => ({
+    const eventSubscriptions = getProp(event, 'user.subscriptions') || event.subscriptions;
+    if (eventSubscriptions) {
+      subscriptions = (eventSubscriptions || []).map(subscription => ({
         pointOfContact: mapSubscriptionType(subscription.type),
         topic: subscription.topic,
       }));
