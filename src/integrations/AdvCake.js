@@ -92,19 +92,6 @@ class AdvCake extends Integration {
         src: '//code.acstat.com',
       },
     });
-
-    this.addTag('antifraud', {
-      type: 'script',
-      attr: {
-        id: 'advcakeAntifraudAsync',
-        src: `//server.adv-cake.ru/antifraud/a.js?r=${Math.random()}`,
-      },
-    });
-  }
-
-  load() {
-    super.load();
-    super.load('antifraud');
   }
 
   getEnrichableEventProps(event) {
