@@ -219,7 +219,6 @@ class Actionpay extends Integration {
       const methods = {
         [VIEWED_PAGE]: 'onViewedPage',
         [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
-        [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
         [VIEWED_PRODUCT_LISTING]: 'onViewedProductListing',
         [VIEWED_CHECKOUT_STEP]: 'onViewedCheckoutStep',
         [VIEWED_CART]: 'onViewedCart',
