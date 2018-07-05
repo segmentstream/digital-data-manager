@@ -232,7 +232,7 @@ class RetailRocket extends Integration {
       } else if (event.name === CLICKED_PRODUCT) {
         this.onClickedProduct(event.listItem);
       } else if (event.name === COMPLETED_TRANSACTION) {
-        this.onCompletedTransaction(event.transaction);
+        this.onCompletedTransaction(event);
       } else if (event.name === SUBSCRIBED) {
         this.onSubscribed(event);
       } else if (event.name === SEARCHED_PRODUCTS) {
@@ -339,10 +339,15 @@ class RetailRocket extends Integration {
     });
   }
 
-  onCompletedTransaction(transaction) {
-    transaction = transaction || {};
+  onCompletedTransaction(event) {
+    const transaction = event.transaction || {};
+
     if (!this.validateTransaction(transaction)) {
       return;
+    }
+
+    if (this.getOption('trackAllEmails') === true) {
+      this.onSubscribed(event);
     }
 
     let areLineItemsValid = true;
