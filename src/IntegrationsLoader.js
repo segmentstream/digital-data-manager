@@ -52,7 +52,9 @@ const IntegrationsLoader = {
     // add integrations to beforeList if were not defined in before or after
     beforeList = beforeList.concat(diff);
 
-    return (beforeList.concat(afterList)).map(integrationName => _integrations[integrationName]);
+    return (beforeList.concat(afterList))
+      .map(integrationName => _integrations[integrationName])
+      .filter(integration => !!integration); // check if integration is not undefined
   },
 
   initialize: (settings, ddManager) => {
