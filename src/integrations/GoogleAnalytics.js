@@ -1,4 +1,5 @@
 import Integration from './../Integration';
+import transliterate from './utils/transliterate';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import { setProp, getProp } from 'driveback-utils/dotProp';
 import cleanObject from 'driveback-utils/cleanObject';
@@ -76,16 +77,6 @@ function getCheckoutOptions(event, checkoutOptions) {
   return options.join(', ');
 }
 
-function getProductCategory(product) {
-  let category = product.category;
-  if (Array.isArray(category)) {
-    category = category.join('/');
-  } else if (category && product.subcategory) {
-    category = `${category}/${product.subcategory}`;
-  }
-  return category;
-}
-
 class GoogleAnalytics extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
@@ -111,6 +102,7 @@ class GoogleAnalytics extends Integration {
       noConflict: false,
       useProxy: false,
       checkoutOptions: ['option', 'paymentMethod', 'shippingMethod'],
+      transliteration: false,
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -770,6 +762,24 @@ class GoogleAnalytics extends Integration {
     return true;
   }
 
+  getProductCategory(product) {
+    let category = product.category;
+    if (Array.isArray(category)) {
+      category = category.join('/');
+    } else if (category && product.subcategory) {
+      category = `${category}/${product.subcategory}`;
+    }
+    return this.transliterate(category);
+  }
+
+  transliterate(str) {
+    if (!this.getOption('transliterate')) return str;
+    if (!this.transliterateObj) {
+      this.transliterateObj = transliterate();
+    }
+    return this.transliterateObj.transform(str);
+  }
+
   trackEvent(event) {
     if (event.name === VIEWED_PAGE) {
       this.onViewedPage(event);
@@ -841,7 +851,7 @@ class GoogleAnalytics extends Integration {
     if (page.queryString) {
       pagePath += page.queryString;
     }
-    const pageTitle = page.name || page.title;
+    const pageTitle = this.transliterate(page.name || page.title);
     pageview.page = pagePath;
     pageview.title = pageTitle;
     pageview.location = pageUrl;
@@ -900,13 +910,13 @@ class GoogleAnalytics extends Integration {
       const custom = this.getCustomDimensions(product, true);
       const gaProduct = Object.assign({
         id: product.id || product.skuCode,
-        name: product.name,
-        list: listItem.listName,
-        category: getProductCategory(product),
-        brand: product.brand || product.manufacturer,
+        name: this.transliterate(product.name),
+        list: this.transliterate(listItem.listName),
+        category: this.getProductCategory(product),
+        brand: this.transliterate(product.brand || product.manufacturer),
         price: product.unitSalePrice || product.unitPrice,
         currency: product.currency || this.getOption('defaultCurrency'),
-        variant: product.variant,
+        variant: this.transliterate(product.variant),
         position: listItem.position,
       }, custom);
       this.ga(['ec:addImpression', gaProduct], this.getOption('noConflict'));
@@ -968,10 +978,10 @@ class GoogleAnalytics extends Integration {
       if (product) {
         this.ga(['ecommerce:addItem', {
           id: product.id,
-          category: getProductCategory(product),
+          category: this.getProductCategory(product),
           quantity: lineItem.quantity,
           price: product.unitSalePrice || product.unitPrice,
-          name: product.name,
+          name: this.transliterate(product.name),
           sku: product.skuCode,
           currency: product.currency || transaction.currency,
         }], this.getOption('noConflict'));
@@ -1044,10 +1054,10 @@ class GoogleAnalytics extends Integration {
       }
 
       this.ga(['ec:addPromo', {
-        id: campaign.id,
-        name: campaign.name,
-        creative: campaign.design || campaign.creative,
-        position: campaign.position,
+        id: this.transliterate(campaign.id),
+        name: this.transliterate(campaign.name),
+        creative: this.transliterate(campaign.design || campaign.creative),
+        position: this.transliterate(campaign.position),
       }]);
     });
 
@@ -1063,9 +1073,9 @@ class GoogleAnalytics extends Integration {
 
     this.ga(['ec:addPromo', {
       id: campaign.id,
-      name: campaign.name,
-      creative: campaign.design || campaign.creative,
-      position: campaign.position,
+      name: this.transliterate(campaign.name),
+      creative: this.transliterate(campaign.design || campaign.creative),
+      position: this.transliterate(campaign.position),
     }]);
     this.ga(['ec:setAction', 'promo_click', {}]);
     this.pushEnhancedEcommerce(event); // ignore noConflict
@@ -1146,11 +1156,11 @@ class GoogleAnalytics extends Integration {
     const custom = this.getCustomDimensions(product, true);
     const gaProduct = Object.assign({
       id: product.id || product.skuCode,
-      name: product.name,
-      category: getProductCategory(product),
+      name: this.transliterate(product.name),
+      category: this.getProductCategory(product),
       price: product.unitSalePrice || product.unitPrice,
-      brand: product.brand || product.manufacturer,
-      variant: product.variant,
+      brand: this.transliterate(product.brand || product.manufacturer),
+      variant: this.transliterate(product.variant),
       currency: product.currency,
     }, custom);
     if (quantity) gaProduct.quantity = quantity;

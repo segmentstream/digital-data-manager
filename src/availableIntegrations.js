@@ -46,6 +46,7 @@ import PushWorld from './integrations/PushWorld';
 import Get4Click from './integrations/Get4Click';
 import TradeTracker from './integrations/TradeTracker';
 import TryFit from './integrations/TryFit';
+import Getintent from './integrations/Getintent';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -96,6 +97,7 @@ const integrations = {
   Get4Click,
   TradeTracker,
   'Try.Fit': TryFit,
+  Getintent,
 };
 
 export default integrations;
