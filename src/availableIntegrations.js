@@ -47,6 +47,7 @@ import Get4Click from './integrations/Get4Click';
 import TradeTracker from './integrations/TradeTracker';
 import TryFit from './integrations/TryFit';
 import Getintent from './integrations/Getintent';
+import Glami from './integrations/Glami';
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -98,6 +99,7 @@ const integrations = {
   TradeTracker,
   'Try.Fit': TryFit,
   Getintent,
+  Glami,
 };
 
 export default integrations;
