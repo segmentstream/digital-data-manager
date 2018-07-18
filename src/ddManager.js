@@ -300,6 +300,7 @@ const ddManager = {
     if (streaming) {
       streaming.setOption('projectId', settings.projectId);
       streaming.setOption('projectName', settings.projectName);
+      streaming.setOption('buildNumber', settings.buildNumber);
       streaming.setOption('library', {
         name: 'ddmanager.js',
         version: ddManager.VERSION,

@@ -48,6 +48,7 @@ class DDManagerStreaming extends Integration {
     const optionsWithDefaults = Object.assign({
       projectId: '',
       projectName: '',
+      buildNumber: 1,
       trackingUrl: 'https://track.ddmanager.ru/collect',
       dimensions: {},
       metrics: {},
@@ -257,7 +258,7 @@ class DDManagerStreaming extends Integration {
         screenHeight: window.screen ? window.screen.height : undefined,
       },
       sentAt: (new Date()).toISOString(),
-      version: 1,
+      version: this.getOption('buildNumber'),
     });
 
     return Object.assign(hitData, commonFields);
