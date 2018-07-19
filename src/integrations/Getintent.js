@@ -10,6 +10,7 @@ class Getintent extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       siteId: '',
+      feedWithGroupedProducts: false,
     }, options);
     super(digitalData, optionsWithDefaults);
 
@@ -73,25 +74,27 @@ class Getintent extends Integration {
 
   onViewedProductDetail(event) {
     const product = event.product || {};
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
 
     this.trackGetIntentAction({
       type: ACTION_TYPE_VIEW,
       site_id: this.getOption('siteId'),
       category_id: product.categoryId,
-      product_id: product.id,
+      product_id: (!feedWithGroupedProducts) ? product.id : product.skuCode,
       product_price: product.unitSalePrice,
     });
   }
 
   onAddedProduct(event) {
     const product = event.product || {};
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
 
     this.trackGetIntentAction({
       type: ACTION_TYPE_CART_ADD,
       site_id: this.getOption('siteId'),
       order: [
         {
-          id: product.id,
+          id: (!feedWithGroupedProducts) ? product.id : product.skuCode,
           price: product.unitSalePrice,
           quantity: event.quantity || 1,
         },
@@ -102,6 +105,7 @@ class Getintent extends Integration {
   onCompletedTransaction(event) {
     const transaction = event.transaction || {};
     const lineItems = transaction.lineItems || [];
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
 
     this.trackGetIntentAction({
       type: ACTION_TYPE_CONVERSION,
@@ -109,7 +113,7 @@ class Getintent extends Integration {
       order: lineItems.map((lineItem) => {
         lineItem = lineItem || {};
         return {
-          id: getProp(lineItem, 'product.id'),
+          id: (!feedWithGroupedProducts) ? getProp(lineItem, 'product.id') : getProp(lineItem, 'product.skuCode'),
           price: getProp(lineItem, 'product.unitSalePrice'),
           quantity: lineItem.quantity || 1,
         };
