@@ -13,7 +13,7 @@ class Getintent extends Integration {
     }, options);
     super(digitalData, optionsWithDefaults);
 
-    this.addTag('pixel', {
+    this.addTag({
       type: 'script',
       attr: {
         src: 'https://px.adhigh.net/p.js',
@@ -23,7 +23,6 @@ class Getintent extends Integration {
 
   initialize() {
     window.__GetI = window.__GetI || [];
-    this._isLoaded = true;
   }
 
   getSemanticEvents() {
@@ -57,7 +56,6 @@ class Getintent extends Integration {
 
   trackGetIntentAction(params) {
     window.__GetI.push(params);
-    this.load('pixel');
     this.pageTracked = true;
   }
 
