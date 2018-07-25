@@ -354,19 +354,24 @@ class AdvCake extends Integration {
 
   onCompletedTransaction(event) {
     const transaction = event.transaction || {};
-    window.advcake_data = {
+    const voucher = (event.transaction.vouchers || []).join(',');
+    const userTypeMap = { true: 'new', false: 'old' };
+    window.advcake_data = cleanObject({
       pageType: 6,
       user: getUser(event.user || this.user),
       basketProducts: getBasketProducts(transaction.lineItems),
       orderInfo: {
         id: transaction.orderId,
         totalPrice: transaction.total,
+        promocodeName: voucher,
+        promocodeValue: transaction.voucherDiscount,
+        userType: userTypeMap[transaction.isFirst],
       },
-    };
+    });
     window.advcake_push_data(window.advcake_data);
     window.advcake_order(transaction.orderId, transaction.total);
 
-    this.removeAffiliateCookies();
+    // this.removeAffiliateCookies(); request from AdvCake
   }
 }
 
