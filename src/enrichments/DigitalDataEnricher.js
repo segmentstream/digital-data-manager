@@ -241,7 +241,6 @@ class DigitalDataEnricher {
     this.digitalData.page = this.digitalData.page || {};
     this.digitalData.user = this.digitalData.user || {};
     this.digitalData.context = this.digitalData.context || {};
-    this.digitalData.integrations = this.digitalData.integrations || {};
     if (this.digitalData.page.type && this.digitalData.page.type === 'confirmation') {
       this.digitalData.transaction = this.digitalData.transaction || {};
     }

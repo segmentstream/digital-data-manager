@@ -716,7 +716,6 @@ class GoogleAnalytics extends Integration {
           googleClientId,
           `${this.getName()} Integration`,
         ]);
-        setProp(this.digitalData, 'integrations.googleAnalytics.clientId', googleClientId);
       }
     }
 
@@ -731,7 +730,6 @@ class GoogleAnalytics extends Integration {
             tracker.get('clientId'),
             `${this.getName()} Integration`,
           ]);
-          setProp(this.digitalData, 'integrations.googleAnalytics.clientId', tracker.get('clientId'));
         }
       });
     }
