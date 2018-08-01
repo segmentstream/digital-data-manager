@@ -293,6 +293,29 @@ describe('Integrations: MyTarget', () => {
         });
       });
 
+      it('should send itemView event with product SKU for every "Viewed Product Detail" event', (done) => {
+        myTarget.setOption('feedWithGroupedProducts', true);
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            skuCode: 'sku123',
+            unitSalePrice: 150,
+          },
+          callback: () => {
+            assert.deepEqual(window._tmr[0], {
+              type: 'itemView',
+              productid: 'sku123',
+              pagetype: 'product',
+              totalvalue: 150,
+              list: myTarget.getList(),
+            });
+            done();
+          }
+        });
+      });
+
       it('should send itemView event for every "Viewed Product Detail" event (digitalData)', (done) => {
         window.digitalData.product = {
           id: '123',

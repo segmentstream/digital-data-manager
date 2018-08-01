@@ -11,10 +11,11 @@ import {
   COMPLETED_TRANSACTION,
 } from './../events/semanticEvents';
 
-function lineItemsToProductIds(lineItems) {
+function lineItemsToProductIds(lineItems, feedWithGroupedProducts) {
   const productIds = lineItems
     .filter(lineItem => !!(lineItem.product.id))
-    .map(lineItem => lineItem.product.id);
+    .map(lineItem =>
+      ((feedWithGroupedProducts !== true) ? lineItem.product.id : lineItem.product.skuCode));
   return productIds;
 }
 
@@ -26,6 +27,7 @@ class MyTarget extends Integration {
         type: 'constant',
         value: '1',
       },
+      feedWithGroupedProducts: false,
       noConflict: false,
       goals: {},
     }, options);
@@ -272,9 +274,10 @@ class MyTarget extends Integration {
 
   onViewedProductDetail(event) {
     const product = event.product;
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
     window._tmr.push({
       type: 'itemView',
-      productid: product.id || '',
+      productid: ((feedWithGroupedProducts !== true) ? product.id : product.skuCode) || '',
       pagetype: 'product',
       totalvalue: product.unitSalePrice || '',
       list: this.getList(event),
@@ -284,10 +287,12 @@ class MyTarget extends Integration {
 
   onViewedCart(event) {
     const cart = event.cart;
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
+
     let productIds;
 
     if (cart.lineItems && cart.lineItems.length > 0) {
-      productIds = lineItemsToProductIds(cart.lineItems);
+      productIds = lineItemsToProductIds(cart.lineItems, feedWithGroupedProducts);
     }
 
     window._tmr.push({
@@ -313,10 +318,11 @@ class MyTarget extends Integration {
 
   onCompletedTransaction(event) {
     const transaction = event.transaction;
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
     let productIds;
 
     if (transaction.lineItems && transaction.lineItems.length > 0) {
-      productIds = lineItemsToProductIds(transaction.lineItems);
+      productIds = lineItemsToProductIds(transaction.lineItems, feedWithGroupedProducts);
     }
     window._tmr.push({
       type: 'itemView',
