@@ -226,6 +226,7 @@ class Filters {
   filterListing(listing = {}) {
     return filterObject({
       ...listing,
+      query: (listing.query) ? String(listing.query) : undefined,
       categoryId: (listing.categoryId) ? String(listing.categoryId) : undefined,
       category: (listing.category && Array.isArray(listing.category)) ?
         listing.category.join('/') : String(listing.category),
