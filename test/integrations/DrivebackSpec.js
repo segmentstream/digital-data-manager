@@ -5,7 +5,7 @@ import Driveback from './../../src/integrations/Driveback.js';
 import ddManager from './../../src/ddManager.js';
 
 function emulateDrivebackLoad(driveback) {
-  sinon.stub(driveback, 'load', () => {
+  sinon.stub(driveback, 'load').callsFake(() => {
     window.DrivebackOnLoad = {
       push: (fn) => {
         fn();

@@ -120,7 +120,7 @@ describe('Integrations: Emarsys', () => {
 
   describe('loading', () => {
     beforeEach(() => {
-      sinon.stub(emarsys, 'load', () => {
+      sinon.stub(emarsys, 'load').callsFake(() => {
         window.ScarabQueue = {
           push: () => {},
         };
@@ -144,7 +144,7 @@ describe('Integrations: Emarsys', () => {
 
   describe('after loading', () => {
     beforeEach((done) => {
-      sinon.stub(emarsys, 'load', () => {
+      sinon.stub(emarsys, 'load').callsFake(() => {
         sinon.spy(window.ScarabQueue, 'push');
         emarsys.onLoad();
       });

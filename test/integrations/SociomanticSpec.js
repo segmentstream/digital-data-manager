@@ -56,7 +56,7 @@ describe('Integrations: Sociomantic', () => {
 
   describe('after loading', () => {
     beforeEach((done) => {
-      sinon.stub(sociomantic, 'loadTrackingScript', () => {
+      sinon.stub(sociomantic, 'loadTrackingScript').callsFake(() => {
         window.sociomantic = {
           sonar: {
             adv: {

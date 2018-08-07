@@ -74,7 +74,7 @@ describe('Integrations: Criteo', () => {
 
   describe('loading', function () {
     beforeEach(() => {
-      sinon.stub(criteo, 'load', () => {
+      sinon.stub(criteo, 'load').callsFake(() => {
         window.criteo_q = {
           push: function() {}
         };
@@ -98,7 +98,7 @@ describe('Integrations: Criteo', () => {
 
   describe('after loading', () => {
     beforeEach((done) => {
-      sinon.stub(criteo, 'load', () => {
+      sinon.stub(criteo, 'load').callsFake(() => {
         setTimeout(criteo.onLoad, 0);
       });
       ddManager.once('ready', () => {

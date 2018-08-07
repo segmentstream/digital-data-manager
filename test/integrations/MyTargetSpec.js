@@ -63,7 +63,7 @@ describe('Integrations: MyTarget', () => {
 
   describe('loading', function () {
     beforeEach(() => {
-      sinon.stub(myTarget, 'load', () => {
+      sinon.stub(myTarget, 'load').callsFake(() => {
         window._tmr = {
           push: function() {},
           unload: function() {}
@@ -88,7 +88,7 @@ describe('Integrations: MyTarget', () => {
 
   describe('after loading', () => {
     beforeEach((done) => {
-      sinon.stub(myTarget, 'load', () => {
+      sinon.stub(myTarget, 'load').callsFake(() => {
         myTarget.onLoad();
       });
       ddManager.once('ready', done);

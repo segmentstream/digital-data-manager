@@ -50,7 +50,7 @@ describe('Integrations: Soloway', () => {
 
     beforeEach((done) => {
       soloway.once('ready', () => {
-        sinon.stub(window.AdriverCounter, 'request', (d) => {});
+        sinon.stub(window.AdriverCounter, 'request').callsFake((d) => {});
       });
       ddManager.initialize({
         sendViewedPageEvent: false,

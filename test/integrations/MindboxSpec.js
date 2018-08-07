@@ -1,9 +1,12 @@
 import assert from 'assert';
 import sinon from 'sinon';
-import reset from './../reset.js';
-import Mindbox from './../../src/integrations/Mindbox';
-import ddManager from './../../src/ddManager';
 import noop from 'driveback-utils/noop';
+import reset from '../reset';
+import Mindbox from '../../src/integrations/Mindbox';
+import ddManager from '../../src/ddManager';
+
+import V2Stubs from './stubs/mindbox/v2';
+import V3Stubs from './stubs/mindbox/v3';
 
 describe('Integrations: Mindbox', () => {
   let mindbox;
@@ -49,7 +52,7 @@ describe('Integrations: Mindbox', () => {
 
     describe('#initialize', () => {
       it('should preapre stubs', () => {
-        sinon.stub(mindbox, 'load', () => {
+        sinon.stub(mindbox, 'load').callsFake(() => {
           mindbox.onLoad();
         });
         ddManager.initialize();
@@ -60,7 +63,7 @@ describe('Integrations: Mindbox', () => {
       it('should create V2 tracker', () => {
         window.mindbox = noop;
         sinon.stub(window, 'mindbox');
-        sinon.stub(mindbox, 'load', () => {
+        sinon.stub(mindbox, 'load').callsFake(() => {
           mindbox.onLoad();
         });
         ddManager.initialize();
@@ -76,7 +79,7 @@ describe('Integrations: Mindbox', () => {
         mindbox.setOption('apiVersion', 'V3');
         window.mindbox = noop;
         sinon.stub(window, 'mindbox');
-        sinon.stub(mindbox, 'load', () => {
+        sinon.stub(mindbox, 'load').callsFake(() => {
           mindbox.onLoad();
         });
         ddManager.initialize();
@@ -89,7 +92,7 @@ describe('Integrations: Mindbox', () => {
 
   describe('after loading V2', () => {
     beforeEach((done) => {
-      sinon.stub(mindbox, 'load', () => {
+      sinon.stub(mindbox, 'load').callsFake(() => {
         mindbox.onLoad();
       });
       ddManager.once('ready', done);
@@ -131,32 +134,13 @@ describe('Integrations: Mindbox', () => {
             ],
           },
           callback: () => {
-            assert.ok(window.mindbox.calledWith('performOperation', {
-              operation: 'SetCart',
-              data: {
-                action: {
-                  personalOffers: [
-                    {
-                      productId: '123',
-                      count: 2,
-                      price: 2000
-                    },
-                    {
-                      productId: '234',
-                      count: 1,
-                      price: 1000
-                    }
-                  ],
-                }
-              },
-            }));
-          }
-        })
+            assert.ok(window.mindbox.calledWith('performOperation', V2Stubs.onViewedPageSetCardStub));
+          },
+        });
       });
     });
 
     describe('#onViewedProductDetail', () => {
-
       beforeEach(() => {
         mindbox.setOption('operationMapping', {
           'Viewed Product Detail': 'ViewProduct',
@@ -167,18 +151,13 @@ describe('Integrations: Mindbox', () => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           product: {
-            id: '123'
+            id: '123',
           },
           callback: () => {
-            assert.ok(window.mindbox.calledWith('performOperation', {
-              operation: 'ViewProduct',
-              data: {
-                action: {
-                  productId: '123'
-                },
-              },
-            }));
-          }
+            assert.ok(
+              window.mindbox.calledWith('performOperation', V2Stubs.onViewedProductDetailViewProductStub),
+            );
+          },
         });
       });
 
@@ -186,30 +165,24 @@ describe('Integrations: Mindbox', () => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           product: {
-            id: '123'
+            id: '123',
           },
           integrations: {
             mindbox: {
-              operation: 'ViewedProductCustom'
-            }
+              operation: 'ViewedProductCustom',
+            },
           },
           callback: () => {
-            assert.ok(window.mindbox.calledWith('performOperation', {
-              operation: 'ViewedProductCustom',
-              data: {
-                action: {
-                  productId: '123'
-                },
-              },
-            }));
-          }
+            assert.ok(window.mindbox.calledWith(
+              'performOperation',
+              V2Stubs.onViewedProductDetailViewedProductCustomStub,
+            ));
+          },
         });
       });
-
     });
 
     describe('#onUpdatedCart', () => {
-
       beforeEach(() => {
         mindbox.setOption('operationMapping', {
           'Updated Cart': 'SetCart',
@@ -240,33 +213,14 @@ describe('Integrations: Mindbox', () => {
             ],
           },
           callback: () => {
-            assert.ok(window.mindbox.calledWith('performOperation', {
-              operation: 'SetCart',
-              data: {
-                action: {
-                  personalOffers: [
-                    {
-                      productId: '123',
-                      count: 2,
-                      price: 2000
-                    },
-                    {
-                      productId: '234',
-                      count: 1,
-                      price: 1000
-                    }
-                  ],
-                }
-              },
-            }));
-          }
-        })
+            assert.ok(window.mindbox.calledWith('performOperation', V2Stubs.onUpdateCartSetCartStub));
+          },
+        });
       });
     });
 
 
     describe('#onAddedProduct', () => {
-
       beforeEach(() => {
         mindbox.setOption('operationMapping', {
           'Added Product': 'AddProduct',
@@ -283,16 +237,11 @@ describe('Integrations: Mindbox', () => {
           },
           quantity: 5,
           callback: () => {
-            assert.ok(window.mindbox.calledWith('performOperation', {
-              operation: 'AddProduct',
-              data: {
-                action: {
-                  productId: '123',
-                  price: 2500
-                },
-              },
-            }));
-          }
+            assert.ok(window.mindbox.calledWith(
+              'performOperation',
+              V2Stubs.onAddedProductAddProductStub,
+            ));
+          },
         });
       });
 
@@ -309,17 +258,8 @@ describe('Integrations: Mindbox', () => {
           },
           quantity: 5,
           callback: () => {
-            assert.ok(window.mindbox.calledWith('performOperation', {
-              operation: 'AddProduct',
-              data: {
-                action: {
-                  productId: '123',
-                  skuId: 'sku123',
-                  price: 2500
-                },
-              },
-            }));
-          }
+            assert.ok(window.mindbox.calledWith('performOperation', V2Stubs.onAddedProductAddProductSkuStub));
+          },
         });
       });
 
@@ -334,28 +274,21 @@ describe('Integrations: Mindbox', () => {
           quantity: 5,
           integrations: {
             mindbox: {
-              operation: 'AddProductCustom'
-            }
+              operation: 'AddProductCustom',
+            },
           },
           callback: () => {
-            assert.ok(window.mindbox.calledWith('performOperation', {
-              operation: 'AddProductCustom',
-              data: {
-                action: {
-                  productId: '123',
-                  price: 2500,
-                },
-              },
-            }));
-          }
+            assert.ok(window.mindbox.calledWith(
+              'performOperation',
+              V2Stubs.onAddedProductAddProductCustomStub,
+            ));
+          },
         });
       });
-
     });
 
 
     describe('#onViewedProductListing', () => {
-
       beforeEach(() => {
         mindbox.setOption('operationMapping', {
           'Viewed Product Listing': 'CategoryView',
@@ -369,15 +302,11 @@ describe('Integrations: Mindbox', () => {
         window.digitalData.events.push({
           name: 'Viewed Product Listing',
           callback: () => {
-            assert.ok(window.mindbox.calledWith('performOperation', {
-              operation: 'CategoryView',
-              data: {
-                action: {
-                  productCategoryId: '123',
-                },
-              },
-            }));
-          }
+            assert.ok(window.mindbox.calledWith(
+              'performOperation',
+              V2Stubs.onViewedProductListingCategoryViewStub,
+            ));
+          },
         });
       });
 
@@ -389,27 +318,21 @@ describe('Integrations: Mindbox', () => {
           },
           integrations: {
             mindbox: {
-              operation: 'CategoryViewCustom'
-            }
+              operation: 'CategoryViewCustom',
+            },
           },
           callback: () => {
-            assert.ok(window.mindbox.calledWith('performOperation', {
-              operation: 'CategoryViewCustom',
-              data: {
-                action: {
-                  productCategoryId: '123',
-                },
-              },
-            }));
-          }
+            assert.ok(window.mindbox.calledWith(
+              'performOperation',
+              V2Stubs.onViewedProductListingCategoryViewCustomStub,
+            ));
+          },
         });
       });
-
     });
 
 
     describe('#onRemovedProduct', () => {
-
       beforeEach(() => {
         mindbox.setOption('operationMapping', {
           'Removed Product': 'RemoveProduct',
@@ -426,16 +349,8 @@ describe('Integrations: Mindbox', () => {
           },
           quantity: 5,
           callback: () => {
-            assert.ok(window.mindbox.calledWith('performOperation', {
-              operation: 'RemoveProduct',
-              data: {
-                action: {
-                  productId: '123',
-                  price: 2500,
-                },
-              },
-            }));
-          }
+            assert.ok(window.mindbox.calledWith('performOperation', V2Stubs.onRemovedProductRemoveProductStub));
+          },
         });
       });
 
@@ -450,785 +365,17 @@ describe('Integrations: Mindbox', () => {
           quantity: 5,
           integrations: {
             mindbox: {
-              operation: 'AddProductCustom'
-            }
-          },
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('performOperation', {
               operation: 'AddProductCustom',
-              data: {
-                action: {
-                  productId: '123',
-                  price: 2500,
-                },
-              },
-            }));
-          }
-        });
-      });
-
-    });
-
-    describe('#onCompletedTransaction', () => {
-
-      const transaction = {
-        orderId: '123',
-        lineItems: [
-          {
-            product: {
-              id: '123',
-              skuCode: 'sku123',
-              unitSalePrice: 100
-            },
-            quantity: 1
-          },
-          {
-            product: {
-              id: '234',
-              skuCode: 'sku234',
-              unitSalePrice: 150
-            },
-            quantity: 2
-          },
-        ],
-        shippingMethod: 'Courier',
-        paymentMethod: 'Visa',
-        total: 5000
-      };
-
-      beforeEach(() => {
-        mindbox.setOption('operationMapping', {
-          'Completed Transaction': 'CompletedOrder',
-        });
-      });
-
-      it('should track completed transaction with default operation', () => {
-        window.digitalData.user = {
-          userId: 'user123'
-        };
-        window.digitalData.events.push({
-          name: 'Completed Transaction',
-          transaction,
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('identify', {
-              operation: 'CompletedOrder',
-              identificator: {
-                provider: 'TestWebsiteId',
-                identity: 'user123',
-              },
-              data: {
-                order: {
-                  webSiteId: '123',
-                  price: 5000,
-                  deliveryType: 'Courier',
-                  paymentType: 'Visa',
-                  items: [
-                    {
-                      productId: '123',
-                      skuId: 'sku123',
-                      quantity: 1,
-                      price: 100,
-                    },
-                    {
-                      productId: '234',
-                      skuId: 'sku234',
-                      quantity: 2,
-                      price: 150,
-                    }
-                  ]
-                },
-              },
-            }));
-          }
-        });
-      });
-
-      it('should track completed transaction with default custom operation', () => {
-        window.digitalData.user = {
-          userId: 'user123'
-        };
-        window.digitalData.events.push({
-          name: 'Completed Transaction',
-          transaction,
-          integrations: {
-            mindbox: {
-              operation: 'CompletedOrderCustom'
-            }
-          },
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('identify', {
-              operation: 'CompletedOrderCustom',
-              identificator: {
-                provider: 'TestWebsiteId',
-                identity: 'user123',
-              },
-              data: {
-                order: {
-                  webSiteId: '123',
-                  price: 5000,
-                  deliveryType: 'Courier',
-                  paymentType: 'Visa',
-                  items: [
-                    {
-                      productId: '123',
-                      skuId: 'sku123',
-                      quantity: 1,
-                      price: 100,
-                    },
-                    {
-                      productId: '234',
-                      skuId: 'sku234',
-                      quantity: 2,
-                      price: 150,
-                    }
-                  ]
-                },
-              },
-            }));
-          }
-        });
-      });
-
-    });
-
-    describe('#onSubscribed and #onRegistered', () => {
-
-      beforeEach(() => {
-        mindbox.setOption('operationMapping', {
-          'Subscribed': 'EmailSubscribe',
-          'Registered': 'Registration',
-          'Updated Profile Info': 'UpdateProfile',
-        });
-        mindbox.setOption('userVars', {
-          'email': {
-            type: 'digitalData',
-            value: 'user.email'
-          },
-          'firstName': {
-            type: 'digitalData',
-            value: 'user.firstName'
-          },
-          'lastName': {
-            type: 'digitalData',
-            value: 'user.lastName'
-          },
-          'authenticationTicket': {
-            type: 'digitalData',
-            value: 'user.authenticationTicket',
-          }
-        });
-        mindbox.prepareEnrichableUserIds();
-        mindbox.prepareEnrichableUserProps();
-        mindbox.prepareEnrichableAreaIds();
-      });
-
-      it('should track subscription with default operation', () => {
-        window.digitalData.events.push({
-          name: 'Subscribed',
-          user: {
-            email: 'test@driveback.ru',
-            firstName: 'John',
-            lastName: 'Dow',
-            authenticationTicket: 'xxx',
-          },
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('identify', {
-              operation: 'EmailSubscribe',
-              identificator: {
-                provider: 'email',
-                identity: 'test@driveback.ru'
-              },
-              data: {
-                email: 'test@driveback.ru',
-                firstName: 'John',
-                lastName: 'Dow',
-                subscriptions: [
-                  {
-                    pointOfContact: 'Email',
-                  },
-                ]
-              },
-            }));
-          },
-        });
-      });
-
-      it('should track subscription with custom operation', () => {
-        window.digitalData.events.push({
-          name: 'Subscribed',
-          user: {
-            email: 'test@driveback.ru',
-            firstName: 'John',
-            lastName: 'Dow',
-            authenticationTicket: 'xxx',
-          },
-          integrations: {
-            mindbox: {
-              operation: 'EmailSubscribeCustom'
-            }
-          },
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('identify', {
-              operation: 'EmailSubscribeCustom',
-              identificator: {
-                provider: 'email',
-                identity: 'test@driveback.ru'
-              },
-              data: {
-                email: 'test@driveback.ru',
-                firstName: 'John',
-                lastName: 'Dow',
-                subscriptions: [
-                  {
-                    pointOfContact: 'Email',
-                  },
-                ]
-              },
-            }));
-          },
-        });
-      });
-
-      it('should track registration with default operation', () => {
-        window.digitalData.events.push({
-          name: 'Registered',
-          user: {
-            email: 'test@driveback.ru',
-            firstName: 'John',
-            lastName: 'Dow',
-            authenticationTicket: 'xxx',
-          },
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('identify', {
-              operation: 'Registration',
-              identificator: {
-                provider: 'email',
-                identity: 'test@driveback.ru',
-              },
-              data: {
-                email: 'test@driveback.ru',
-                firstName: 'John',
-                lastName: 'Dow',
-              },
-            }));
-          },
-        });
-      });
-
-      it('should track registration with custom operation', () => {
-        window.digitalData.events.push({
-          name: 'Registered',
-          user: {
-            email: 'test@driveback.ru',
-            firstName: 'John',
-            lastName: 'Dow',
-            authenticationTicket: 'xxx',
-          },
-          integrations: {
-            mindbox: {
-              operation: 'RegistrationCustom'
-            }
-          },
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('identify', {
-              operation: 'RegistrationCustom',
-              identificator: {
-                provider: 'email',
-                identity: 'test@driveback.ru'
-              },
-              data: {
-                email: 'test@driveback.ru',
-                firstName: 'John',
-                lastName: 'Dow',
-              },
-            }));
-          }
-        });
-      });
-
-      it('should track registration with subscription to email and sms', () => {
-        window.digitalData.events.push({
-          name: 'Registered',
-          user: {
-            isSubscribed: true,
-            isSubscribedBySms: true,
-            email: 'test@driveback.ru',
-            firstName: 'John',
-            lastName: 'Dow',
-            authenticationTicket: 'xxx',
-          },
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('identify', {
-              operation: 'Registration',
-              identificator: {
-                provider: 'email',
-                identity: 'test@driveback.ru'
-              },
-              data: {
-                email: 'test@driveback.ru',
-                firstName: 'John',
-                lastName: 'Dow',
-                subscriptions: [
-                  {
-                    pointOfContact: 'Email',
-                    isSubscribed: true,
-                    valueByDefault: true
-                  },
-                  {
-                    pointOfContact: 'Sms',
-                    isSubscribed: true,
-                    valueByDefault: true
-                  }
-                ]
-              },
-            }));
-          }
-        });
-      });
-
-      it('should track update profile info with subscription to email and sms', () => {
-        window.digitalData.events.push({
-          name: 'Updated Profile Info',
-          user: {
-            isSubscribed: true,
-            isSubscribedBySms: true,
-            authenticationTicket: 'xxxxx',
-            email: 'test@driveback.ru',
-            firstName: 'John',
-            lastName: 'Dow',
-          },
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('identify', {
-              operation: 'UpdateProfile',
-              identificator: {
-                provider: 'email',
-                identity: 'test@driveback.ru'
-              },
-              data: {
-                email: 'test@driveback.ru',
-                firstName: 'John',
-                lastName: 'Dow',
-                authenticationTicket: 'xxxxx',
-                subscriptions: [
-                  {
-                    pointOfContact: 'Email',
-                    isSubscribed: true,
-                  },
-                  {
-                    pointOfContact: 'Sms',
-                    isSubscribed: true,
-                  }
-                ]
-              },
-            }));
-          }
-        });
-      });
-
-      it('should track update profile info with unsubscription to email and sms', () => {
-        window.digitalData.events.push({
-          name: 'Updated Profile Info',
-          user: {
-            isSubscribed: false,
-            isSubscribedBySms: false,
-            email: 'test@driveback.ru',
-            firstName: 'John',
-            lastName: 'Dow',
-          },
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('identify', {
-              operation: 'UpdateProfile',
-              identificator: {
-                provider: 'email',
-                identity: 'test@driveback.ru'
-              },
-              data: {
-                email: 'test@driveback.ru',
-                firstName: 'John',
-                lastName: 'Dow',
-                subscriptions: [
-                  {
-                    pointOfContact: 'Email',
-                    isSubscribed: false,
-                  },
-                  {
-                    pointOfContact: 'Sms',
-                    isSubscribed: false,
-                  }
-                ]
-              },
-            }));
-          }
-        });
-      });
-
-      it('should track update profile info with unsubscription to email and sms', () => {
-        window.digitalData.events.push({
-          name: 'Updated Profile Info',
-          user: {
-            isSubscribed: false,
-            isSubscribedBySms: false,
-            email: 'test@driveback.ru',
-            firstName: 'John',
-            lastName: 'Dow',
-          },
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('identify', {
-              operation: 'UpdateProfile',
-              identificator: {
-                provider: 'email',
-                identity: 'test@driveback.ru'
-              },
-              data: {
-                email: 'test@driveback.ru',
-                firstName: 'John',
-                lastName: 'Dow',
-                subscriptions: [
-                  {
-                    pointOfContact: 'Email',
-                    isSubscribed: false,
-                  },
-                  {
-                    pointOfContact: 'Sms',
-                    isSubscribed: false,
-                  }
-                ]
-              },
-            }));
-          }
-        });
-      });
-      
-    });
-
-    describe('#onLoggedIn', () => {
-
-      beforeEach(() => {
-        mindbox.setOption('operationMapping', {
-          'Logged In': 'EnterWebsite',
-        });
-        window.digitalData.user = {
-          userId: '123',
-        };
-      });
-
-      it('should track authorization with default operation', () => {
-        window.digitalData.events.push({
-          name: 'Logged In',
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('identify', {
-              operation: 'EnterWebsite',
-              identificator: {
-                provider: 'TestWebsiteId',
-                identity: '123',
-              },
-              data: {},
-            }));
-          },
-        });
-      });
-    });
-  });
-
-  describe('after loading V3', () => {
-    beforeEach((done) => {
-      mindbox.setOption('apiVersion', 'V3');
-      mindbox.setOption('productIdsMapping', {
-        bitrixId: 'id',
-      });
-      mindbox.setOption('customerIdsMapping', {
-        bitrixId: {
-          type: 'digitalData',
-          value: 'user.userId',
-        },
-      });
-      mindbox.setOption('areaIdsMapping', {
-        externalId: {
-          type: 'digitalData',
-          value: 'website.regionId',
-        },
-      });
-      mindbox.setOption('productSkuIdsMapping', {
-        bitrixId: 'skuCode',
-      });
-      mindbox.setOption('productCategoryIdsMapping', {
-        bitrixId: 'listing.categoryId',
-      });
-      mindbox.prepareEnrichableUserIds();
-      mindbox.prepareEnrichableUserProps();
-      mindbox.prepareEnrichableAreaIds();
-      sinon.stub(mindbox, 'load', () => {
-        mindbox.onLoad();
-      });
-      ddManager.once('ready', done);
-      ddManager.initialize();
-      sinon.stub(window, 'mindbox');
-    });
-
-    afterEach(() => {
-      window.mindbox.restore();
-    });
-
-    describe('#onViewedPage', () => {
-      const cart = {
-        lineItems: [
-          {
-            product: {
-              id: '123',
-              unitSalePrice: 1000,
-              skuCode: 'sku123',
-            },
-            quantity: 2,
-          },
-          {
-            product: {
-              id: '234',
-              unitSalePrice: 1000,
-              skuCode: 'sku234',
-            },
-            quantity: 1,
-          },
-        ],
-      };
-      const productList = [
-        {
-          product: {
-            ids: {
-              bitrixId: '123',
-            },
-            sku: {
-              ids: {
-                bitrixId: 'sku123',
-              },
-            },
-          },
-          count: 2,
-          price: 2000,
-        },
-        {
-          product: {
-            ids: {
-              bitrixId: '234',
-            },
-            sku: {
-              ids: {
-                bitrixId: 'sku234',
-              },
-            },
-          },
-          count: 1,
-          price: 1000,
-        },
-      ];
-
-      beforeEach(() => {
-        mindbox.setOption('setCartOperation', 'SetCart');
-      });
-
-      it('should track cart if set cart operation defined (no customer)', () => {
-        window.digitalData.cart = cart;
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('async', {
-              operation: 'SetCart',
-              data: {
-                productList,
-              },
-            }));
-          },
-        });
-      });
-
-      it('should track cart if set cart operation defined (authenticated customer)', () => {
-        window.digitalData.user = {
-          userId: 'user123',
-        };
-        window.digitalData.cart = cart;
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('async', {
-              operation: 'SetCart',
-              data: {
-                customer: {
-                  ids: {
-                    bitrixId: 'user123',
-                  },
-                },
-                productList,
-              },
-            }));
-          },
-        });
-      });
-    });
-
-    describe('#onViewedProductDetail', () => {
-
-      beforeEach(() => {
-        mindbox.setOption('operationMapping', {
-          'Viewed Product Detail': 'ViewProduct',
-        });
-      });
-
-      it('should track viewed product with default operation', () => {
-        window.digitalData.events.push({
-          name: 'Viewed Product Detail',
-          product: {
-            id: '123',
-          },
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('async', {
-              operation: 'ViewProduct',
-              data: {
-                product: {
-                  ids: {
-                    bitrixId: '123',
-                  },
-                },
-              },
-            }));
-          },
-        });
-      });
-
-      it('should track viewed product with default operation and sku', () => {
-        window.digitalData.events.push({
-          name: 'Viewed Product Detail',
-          product: {
-            id: '123',
-            skuCode: 'sku123',
-          },
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('async', {
-              operation: 'ViewProduct',
-              data: {
-                product: {
-                  ids: {
-                    bitrixId: '123',
-                  },
-                  sku: {
-                    ids: {
-                      bitrixId: 'sku123',
-                    },
-                  },
-                },
-              },
-            }));
-          },
-        });
-      });
-
-      it('should track viewed product with custom operation', () => {
-        window.digitalData.events.push({
-          name: 'Viewed Product Detail',
-          product: {
-            id: '123',
-          },
-          integrations: {
-            mindbox: {
-              operation: 'ViewedProductCustom',
             },
           },
           callback: () => {
-            assert.ok(window.mindbox.calledWith('async', {
-              operation: 'ViewedProductCustom',
-              data: {
-                product: {
-                  ids: {
-                    bitrixId: '123',
-                  },
-                },
-              },
-            }));
+            assert.ok(window.mindbox.calledWith('performOperation', V2Stubs.onRemovedProductAddProductCustomStub));
           },
         });
-      });
-    });
-
-
-    describe('#onAddedProduct', () => {
-      beforeEach(() => {
-        mindbox.setOption('operationMapping', {
-          'Added Product': 'AddProduct',
-        });
-      });
-
-      it('should track added product with default operation', () => {
-        // TODO should track as custom event
-        assert.ok(true);
-      });
-    });
-
-
-    describe('#onViewedProductListing', () => {
-      beforeEach(() => {
-        mindbox.setOption('operationMapping', {
-          'Viewed Product Listing': 'CategoryView',
-        });
-      });
-
-      it('should track viewed product listing with default operation', () => {
-        window.digitalData.listing = {
-          categoryId: '123',
-        };
-        window.digitalData.events.push({
-          name: 'Viewed Product Listing',
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('async', {
-              operation: 'CategoryView',
-              data: {
-                productCategory: {
-                  ids: {
-                    bitrixId: '123',
-                  },
-                },
-              },
-            }));
-          },
-        });
-      });
-
-      it('should track viewed product listing with custom operation', () => {
-        window.digitalData.events.push({
-          name: 'Viewed Product Listing',
-          listing: {
-            categoryId: '123',
-          },
-          operation: 'CategoryViewCustom',
-          callback: () => {
-            assert.ok(window.mindbox.calledWith('async', {
-              operation: 'CategoryViewCustom',
-              data: {
-                productCategory: {
-                  ids: {
-                    bitrixId: '123',
-                  },
-                },
-              },
-            }));
-          },
-        });
-      });
-    });
-
-
-    describe('#onRemovedProduct', () => {
-      beforeEach(() => {
-        mindbox.setOption('operationMapping', {
-          'Removed Product': 'RemoveProduct',
-        });
-      });
-
-      it('should track removed product with default operation', () => {
-        // TODO should track as custom event
-        assert.ok(true);
       });
     });
 
     describe('#onCompletedTransaction', () => {
-
       const transaction = {
         orderId: '123',
         lineItems: [
@@ -1251,16 +398,12 @@ describe('Integrations: Mindbox', () => {
         ],
         shippingMethod: 'Courier',
         paymentMethod: 'Visa',
-        customField: 'test',
         total: 5000,
       };
 
       beforeEach(() => {
         mindbox.setOption('operationMapping', {
           'Completed Transaction': 'CompletedOrder',
-        });
-        mindbox.setOption('orderVars', {
-          oneMoreField: 'transaction.customField',
         });
       });
 
@@ -1272,37 +415,11 @@ describe('Integrations: Mindbox', () => {
           name: 'Completed Transaction',
           transaction,
           callback: () => {
-            assert.ok(window.mindbox.calledWith('identify', {
-              operation: 'CompletedOrder',
-              identificator: {
-                provider: 'TestWebsiteId',
-                identity: 'user123',
-              },
-              data: {
-                order: {
-                  webSiteId: '123',
-                  price: 5000,
-                  deliveryType: 'Courier',
-                  paymentType: 'Visa',
-                  oneMoreField: 'test',
-                  items: [
-                    {
-                      productId: '123',
-                      skuId: 'sku123',
-                      quantity: 1,
-                      price: 100,
-                    },
-                    {
-                      productId: '234',
-                      skuId: 'sku234',
-                      quantity: 2,
-                      price: 150,
-                    },
-                  ],
-                },
-              },
-            }));
-          }
+            assert.ok(window.mindbox.calledWith(
+              'identify',
+              V2Stubs.onCompletedTransactionCompletedOrderStub,
+            ));
+          },
         });
       });
 
@@ -1315,57 +432,480 @@ describe('Integrations: Mindbox', () => {
           transaction,
           integrations: {
             mindbox: {
-              operation: 'CompletedOrderCustom'
+              operation: 'CompletedOrderCustom',
             },
           },
           callback: () => {
-            assert.ok(window.mindbox.calledWith('identify', {
-              operation: 'CompletedOrderCustom',
-              identificator: {
-                provider: 'TestWebsiteId',
-                identity: 'user123',
-              },
-              data: {
-                order: {
-                  webSiteId: '123',
-                  price: 5000,
-                  deliveryType: 'Courier',
-                  paymentType: 'Visa',
-                  oneMoreField: 'test',
-                  items: [
-                    {
-                      productId: '123',
-                      skuId: 'sku123',
-                      quantity: 1,
-                      price: 100,
-                    },
-                    {
-                      productId: '234',
-                      skuId: 'sku234',
-                      quantity: 2,
-                      price: 150,
-                    },
-                  ],
-                },
-              },
-            }));
+            assert.ok(window.mindbox.calledWith(
+              'identify',
+              V2Stubs.onCompletedTransactionCompletedOrderCustomStub,
+            ));
+          },
+        });
+      });
+    });
+
+    describe('#onSubscribed and #onRegistered', () => {
+      beforeEach(() => {
+        mindbox.setOption('operationMapping', {
+          Subscribed: 'EmailSubscribe',
+          Registered: 'Registration',
+          'Updated Profile Info': 'UpdateProfile',
+        });
+        mindbox.setOption('userVars', {
+          email: {
+            type: 'digitalData',
+            value: 'user.email',
+          },
+          firstName: {
+            type: 'digitalData',
+            value: 'user.firstName',
+          },
+          lastName: {
+            type: 'digitalData',
+            value: 'user.lastName',
+          },
+          authenticationTicket: {
+            type: 'digitalData',
+            value: 'user.authenticationTicket',
+          },
+        });
+        mindbox.prepareEnrichableUserIds();
+        mindbox.prepareEnrichableUserProps();
+        mindbox.prepareEnrichableAreaIds();
+      });
+
+      it('should track subscription with default operation', () => {
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          user: {
+            email: 'test@driveback.ru',
+            firstName: 'John',
+            lastName: 'Dow',
+            authenticationTicket: 'xxx',
+          },
+          callback: () => {
+            assert.ok(window.mindbox.calledWith('identify', V2Stubs.onSubscribedSubscribedStub));
+          },
+        });
+      });
+
+      it('should track subscription with custom operation', () => {
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          user: {
+            email: 'test@driveback.ru',
+            firstName: 'John',
+            lastName: 'Dow',
+            authenticationTicket: 'xxx',
+          },
+          integrations: {
+            mindbox: {
+              operation: 'EmailSubscribeCustom',
+            },
+          },
+          callback: () => {
+            assert.ok(window.mindbox.calledWith(
+              'identify',
+              V2Stubs.onSubscribedEmailSubscribeCustomStub,
+            ));
+          },
+        });
+      });
+
+      it('should track registration with default operation', () => {
+        window.digitalData.events.push({
+          name: 'Registered',
+          user: {
+            email: 'test@driveback.ru',
+            firstName: 'John',
+            lastName: 'Dow',
+            authenticationTicket: 'xxx',
+          },
+          callback: () => {
+            assert.ok(window.mindbox.calledWith('identify', V2Stubs.onRegisteredRegistrationStub));
+          },
+        });
+      });
+
+      it('should track registration with custom operation', () => {
+        window.digitalData.events.push({
+          name: 'Registered',
+          user: {
+            email: 'test@driveback.ru',
+            firstName: 'John',
+            lastName: 'Dow',
+            authenticationTicket: 'xxx',
+          },
+          integrations: {
+            mindbox: {
+              operation: 'RegistrationCustom',
+            },
+          },
+          callback: () => {
+            assert.ok(window.mindbox.calledWith(
+              'identify',
+              V2Stubs.onRegisteredRegistrationCustomStub,
+            ));
+          },
+        });
+      });
+
+      it('should track registration with subscription to email and sms', () => {
+        window.digitalData.events.push({
+          name: 'Registered',
+          user: {
+            isSubscribed: true,
+            isSubscribedBySms: true,
+            email: 'test@driveback.ru',
+            firstName: 'John',
+            lastName: 'Dow',
+            authenticationTicket: 'xxx',
+          },
+          callback: () => {
+            assert.ok(window.mindbox.calledWith(
+              'identify',
+              V2Stubs.onRegisteredRegistrationAndSubscriptionStub,
+            ));
+          },
+        });
+      });
+
+      it('should track update profile info with subscription to email and sms', () => {
+        window.digitalData.events.push({
+          name: 'Updated Profile Info',
+          user: {
+            isSubscribed: true,
+            isSubscribedBySms: true,
+            authenticationTicket: 'xxxxx',
+            email: 'test@driveback.ru',
+            firstName: 'John',
+            lastName: 'Dow',
+          },
+          callback: () => {
+            assert.ok(window.mindbox.calledWith(
+              'identify',
+              V2Stubs.onRegisteredUpdateProfileSubscriptionOnStub,
+            ));
+          },
+        });
+      });
+
+      it('should track update profile info with unsubscription to email and sms', () => {
+        window.digitalData.events.push({
+          name: 'Updated Profile Info',
+          user: {
+            isSubscribed: false,
+            isSubscribedBySms: false,
+            email: 'test@driveback.ru',
+            firstName: 'John',
+            lastName: 'Dow',
+          },
+          callback: () => {
+            assert.ok(window.mindbox.calledWith(
+              'identify',
+              V2Stubs.onRegisteredUpdateProfileSubscriptionOffStub,
+            ));
+          },
+        });
+      });
+    });
+
+    describe('#onLoggedIn', () => {
+      beforeEach(() => {
+        mindbox.setOption('operationMapping', {
+          'Logged In': 'EnterWebsite',
+        });
+        window.digitalData.user = {
+          userId: '123',
+        };
+      });
+
+      it('should track authorization with default operation', () => {
+        window.digitalData.events.push({
+          name: 'Logged In',
+          callback: () => {
+            assert.ok(window.mindbox.calledWith('identify', V2Stubs.onLoggedInLoggedInStub));
+          },
+        });
+      });
+    });
+  });
+
+  describe('after loading V3', () => {
+    beforeEach((done) => {
+      mindbox.setOption('apiVersion', 'V3');
+      mindbox.setOption('productIdsMapping', {
+        bitrixId: 'id',
+      });
+      mindbox.setOption('customerIdsMapping', {
+        bitrixId: {
+          type: 'digitalData',
+          value: 'user.userId',
+        },
+      });
+      mindbox.setOption('userVars', {
+        email: {
+          type: 'digitalData',
+          value: 'user.email',
+        },
+        mobilePhone: {
+          type: 'digitalData',
+          value: 'user.phone',
+        },
+      });
+      mindbox.setOption('areaIdsMapping', {
+        externalId: {
+          type: 'digitalData',
+          value: 'website.regionId',
+        },
+      });
+      mindbox.setOption('productSkuIdsMapping', {
+        bitrixId: 'skuCode',
+      });
+      mindbox.setOption('productCategoryIdsMapping', {
+        bitrixId: 'listing.categoryId',
+      });
+      mindbox.prepareEnrichableUserIds();
+      mindbox.prepareEnrichableUserProps();
+      mindbox.prepareEnrichableAreaIds();
+      sinon.stub(mindbox, 'load').callsFake(() => {
+        mindbox.onLoad();
+      });
+      ddManager.once('ready', done);
+      ddManager.initialize();
+      sinon.stub(window, 'mindbox');
+    });
+
+    afterEach(() => {
+      window.mindbox.restore();
+    });
+
+    describe('#onViewedPage', () => {
+      beforeEach(() => {
+        mindbox.setOption('setCartOperation', 'SetCart');
+      });
+
+      it('should track cart if set cart operation defined (no customer)', () => {
+        window.digitalData.cart = V3Stubs.onViewedPageCartStub;
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          callback: () => {
+            assert.ok(window.mindbox.calledWith('async', V3Stubs.onViewedPageSetCartUnauthorizedStub));
+          },
+        });
+      });
+
+      it('should track cart if set cart operation defined (authenticated customer)', () => {
+        window.digitalData.user = {
+          userId: 'user123',
+        };
+        window.digitalData.cart = V3Stubs.onViewedPageCartStub;
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          callback: () => {
+            assert.ok(window.mindbox.calledWith('async', V3Stubs.onViewedPageSetCartAuthorizedStub));
+          },
+        });
+      });
+    });
+
+    describe('#onViewedProductDetail', () => {
+      beforeEach(() => {
+        mindbox.setOption('operationMapping', {
+          'Viewed Product Detail': 'ViewProduct',
+        });
+      });
+
+      it('should track viewed product with default operation', () => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {
+            id: '123',
+          },
+          callback: () => {
+            assert.ok(window.mindbox.calledWith('async', V3Stubs.onViewedProductDetailViewProductStub));
+          },
+        });
+      });
+
+      it('should track viewed product with default operation and sku', () => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {
+            id: '123',
+            skuCode: 'sku123',
+          },
+          callback: () => {
+            assert.ok(window.mindbox.calledWith(
+              'async',
+              V3Stubs.onViewedProductDetailViewProductSkuStub,
+            ));
+          },
+        });
+      });
+
+      it('should track viewed product with custom operation', () => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          product: {
+            id: '123',
+          },
+          integrations: {
+            mindbox: {
+              operation: 'ViewedProductCustom',
+            },
+          },
+          callback: () => {
+            assert.ok(window.mindbox.calledWith(
+              'async',
+              V3Stubs.onViewedProductDetailViewedProductCustomStub,
+            ));
+          },
+        });
+      });
+    });
+
+
+    describe('#onAddedProduct', () => {
+      beforeEach(() => {
+        mindbox.setOption('operationMapping', {
+          'Added Product': 'AddProduct',
+        });
+      });
+
+      it('should track added product with default operation', () => {
+        // TODO should track as custom event
+        assert.ok(true);
+      });
+    });
+
+
+    describe('#onViewedProductListing', () => {
+      beforeEach(() => {
+        mindbox.setOption('operationMapping', {
+          'Viewed Product Listing': 'CategoryView',
+        });
+      });
+
+      it('should track viewed product listing with default operation', () => {
+        window.digitalData.listing = {
+          categoryId: '123',
+        };
+        window.digitalData.events.push({
+          name: 'Viewed Product Listing',
+          callback: () => {
+            assert.ok(window.mindbox.calledWith(
+              'async',
+              V3Stubs.onViewedProductListingCategoryViewStub,
+            ));
+          },
+        });
+      });
+
+      it('should track viewed product listing with custom operation', () => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Listing',
+          listing: {
+            categoryId: '123',
+          },
+          operation: 'CategoryViewCustom',
+          callback: () => {
+            assert.ok(window.mindbox.calledWith(
+              'async',
+              V3Stubs.onViewedProductListingCategoryViewCustomStub,
+            ));
+          },
+        });
+      });
+    });
+
+
+    describe('#onRemovedProduct', () => {
+      beforeEach(() => {
+        mindbox.setOption('operationMapping', {
+          'Removed Product': 'RemoveProduct',
+        });
+      });
+
+      it('should track removed product with default operation', () => {
+        // TODO should track as custom event
+        assert.ok(true);
+      });
+    });
+
+    describe('#onCompletedTransaction', () => {
+      beforeEach(() => {
+        mindbox.setOption('operationMapping', {
+          'Completed Transaction': 'CompletedOrder',
+        });
+        mindbox.setOption('orderVars', {
+          oneMoreField: 'transaction.customField',
+        });
+        mindbox.setOption('orderIdsMapping', {
+          bitrixId: {
+            type: 'event',
+            value: 'transaction.orderId',
+          },
+          sapId: {
+            type: 'event',
+            value: 'transaction.sapOrderId',
+          },
+        });
+      });
+
+      it('should track completed transaction with default operation', () => {
+        window.digitalData.website = {
+          regionId: 'region123',
+        };
+        window.digitalData.user = {
+          userId: 'user123',
+          email: 'test@driveback.ru',
+          phone: '+70000000000',
+        };
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          transaction: V3Stubs.onCompletedTransactionTransactionStub,
+          operation: 'CompletedOrder',
+          integrations: {
+            mindbox: {
+              operation: 'CompletedOrder',
+            },
+          },
+          callback: () => {
+            sinon.assert.calledWith(
+              window.mindbox,
+              'async',
+              V3Stubs.onCompletedTransactionCheckoutOperationStub,
+            );
+          },
+        });
+      });
+
+      it('should track completed transaction with default custom operation and sku', () => {
+        window.digitalData.user = {
+          userId: 'user123',
+        };
+        window.digitalData.website = {
+          regionId: 'region123',
+        };
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          transaction: V3Stubs.onCompletedTransactionTransactionSkuStub,
+          operation: 'CompletedOrderCustom',
+          callback: () => {
+            sinon.assert.calledWith(
+              window.mindbox,
+              'async',
+              V3Stubs.onCompletedTransactionCheckoutCustomOperationStub,
+            );
           },
         });
       });
     });
 
     describe('#onSubscribed and #onRegistered and #onUpdatedProfileInfo', () => {
-      const registeredUser = {
-        userId: 'user123',
-        authenticationTicket: 'xxxxx',
-        email: 'test@driveback.ru',
-        phone: '79374134389',
-        firstName: 'John',
-        lastName: 'Dow',
-        childrenNames: ['Helen', 'Bob'],
-        city: 'Moscow',
-        b2b: true,
-      };
+      const registeredUser = V3Stubs.onRegisteredUserStub;
 
       beforeEach(() => {
         mindbox.setOption('operationMapping', {
@@ -1430,29 +970,7 @@ describe('Integrations: Mindbox', () => {
             authenticationTicket: 'xxxxx',
           },
           callback: () => {
-            assert.ok(window.mindbox.calledWith('async', {
-              operation: 'EmailSubscribe',
-              data: {
-                customer: {
-                  email: 'test@driveback.ru',
-                  firstName: 'John',
-                  lastName: 'Dow',
-                  customFields: {
-                    source: 'Driveback',
-                  },
-                  area: {
-                    ids: {
-                      externalId: 'region123',
-                    },
-                  },
-                  subscriptions: [
-                    {
-                      pointOfContact: 'Email',
-                    },
-                  ],
-                },
-              },
-            }));
+            assert.ok(window.mindbox.calledWith('async', V3Stubs.onSubscribedEmailSubscribeStub));
           },
         });
       });
@@ -1469,24 +987,7 @@ describe('Integrations: Mindbox', () => {
             authenticationTicket: 'xxxxx',
           },
           callback: () => {
-            assert.ok(window.mindbox.calledWith('async', {
-              operation: 'EmailSubscribeCustom',
-              data: {
-                customer: {
-                  email: 'test@driveback.ru',
-                  firstName: 'John',
-                  lastName: 'Dow',
-                  customFields: {
-                    source: 'Driveback',
-                  },
-                  subscriptions: [
-                    {
-                      pointOfContact: 'Email',
-                    },
-                  ],
-                },
-              },
-            }));
+            assert.ok(window.mindbox.calledWith('async', V3Stubs.onSubscribedEmailSubscribeCustomStub));
           },
         });
       });
@@ -1521,32 +1022,10 @@ describe('Integrations: Mindbox', () => {
           },
           operation: 'EmailSubscribeCustom',
           callback: () => {
-            assert.ok(window.mindbox.calledWith('async', {
-              operation: 'EmailSubscribeCustom',
-              data: {
-                customer: {
-                  email: 'test@driveback.ru',
-                  firstName: 'John',
-                  lastName: 'Dow',
-                  mobilePhone: '111111111',
-                  subscriptions: [
-                    {
-                      pointOfContact: 'Email',
-                      topic: 'News',
-                    },
-                    {
-                      pointOfContact: 'Email',
-                      topic: 'Special Offers',
-                    },
-                    {
-                      pointOfContact: 'Sms',
-                      topic: 'Special Offers',
-                    },
-                  ],
-                },
-                pointOfContact: 'Footer Form',
-              },
-            }));
+            assert.ok(window.mindbox.calledWith(
+              'async',
+              V3Stubs.onSubscribedEmailSubscribeAlterCustomStub,
+            ));
           },
         });
       });
@@ -1557,29 +1036,7 @@ describe('Integrations: Mindbox', () => {
           name: 'Registered',
           source: 'Driveback',
           callback: () => {
-            assert.ok(window.mindbox.calledWith('async', {
-              operation: 'Registration',
-              data: {
-                customer: {
-                  ids: {
-                    bitrixId: 'user123',
-                  },
-                  firstName: 'John',
-                  lastName: 'Dow',
-                  email: 'test@driveback.ru',
-                  mobilePhone: '79374134389',
-                  customFields: {
-                    source: 'Driveback',
-                    city: 'Moscow',
-                    b2b: true,
-                    childrenNames: [
-                      'Helen',
-                      'Bob',
-                    ],
-                  },
-                },
-              },
-            }));
+            assert.ok(window.mindbox.calledWith('async', V3Stubs.onRegisteredRegistrationStub));
           },
         });
       });
@@ -1591,29 +1048,7 @@ describe('Integrations: Mindbox', () => {
           source: 'Driveback',
           operation: 'RegistrationCustom',
           callback: () => {
-            assert.ok(window.mindbox.calledWith('async', {
-              operation: 'RegistrationCustom',
-              data: {
-                customer: {
-                  ids: {
-                    bitrixId: 'user123',
-                  },
-                  firstName: 'John',
-                  lastName: 'Dow',
-                  email: 'test@driveback.ru',
-                  mobilePhone: '79374134389',
-                  customFields: {
-                    source: 'Driveback',
-                    city: 'Moscow',
-                    b2b: true,
-                    childrenNames: [
-                      'Helen',
-                      'Bob',
-                    ],
-                  },
-                },
-              },
-            }));
+            assert.ok(window.mindbox.calledWith('async', V3Stubs.onRegisteredRegistrationCustomStub));
           },
         });
       });
@@ -1628,41 +1063,10 @@ describe('Integrations: Mindbox', () => {
           name: 'Registered',
           source: 'Driveback',
           callback: () => {
-            assert.ok(window.mindbox.calledWith('async', {
-              operation: 'Registration',
-              data: {
-                customer: {
-                  ids: {
-                    bitrixId: 'user123',
-                  },
-                  firstName: 'John',
-                  lastName: 'Dow',
-                  email: 'test@driveback.ru',
-                  mobilePhone: '79374134389',
-                  customFields: {
-                    source: 'Driveback',
-                    city: 'Moscow',
-                    b2b: true,
-                    childrenNames: [
-                      'Helen',
-                      'Bob',
-                    ],
-                  },
-                  subscriptions: [
-                    {
-                      pointOfContact: 'Email',
-                      isSubscribed: true,
-                      valueByDefault: true,
-                    },
-                    {
-                      pointOfContact: 'Sms',
-                      isSubscribed: true,
-                      valueByDefault: true,
-                    },
-                  ],
-                },
-              },
-            }));
+            assert.ok(window.mindbox.calledWith(
+              'async',
+              V3Stubs.onRegisteredRegistrationWithSubscriptionStub,
+            ));
           },
         });
       });
@@ -1691,48 +1095,10 @@ describe('Integrations: Mindbox', () => {
           name: 'Registered',
           source: 'Driveback',
           callback: () => {
-            assert.ok(window.mindbox.calledWith('async', {
-              operation: 'Registration',
-              data: {
-                customer: {
-                  ids: {
-                    bitrixId: 'user123',
-                  },
-                  firstName: 'John',
-                  lastName: 'Dow',
-                  email: 'test@driveback.ru',
-                  mobilePhone: '79374134389',
-                  customFields: {
-                    source: 'Driveback',
-                    city: 'Moscow',
-                    b2b: true,
-                    childrenNames: [
-                      'Helen',
-                      'Bob',
-                    ],
-                  },
-                  subscriptions: [
-                    {
-                      pointOfContact: 'Email',
-                      topic: 'News',
-                      isSubscribed: true,
-                      valueByDefault: true,
-                    },
-                    {
-                      pointOfContact: 'Email',
-                      topic: 'Offers',
-                      isSubscribed: true,
-                      valueByDefault: true,
-                    },
-                    {
-                      pointOfContact: 'Sms',
-                      isSubscribed: true,
-                      valueByDefault: true,
-                    },
-                  ],
-                },
-              },
-            }));
+            assert.ok(window.mindbox.calledWith(
+              'async',
+              V3Stubs.onRegisteredRegistrationWithMassSubscriptionsStub,
+            ));
           },
         });
       });
@@ -1740,76 +1106,20 @@ describe('Integrations: Mindbox', () => {
       it('should track Updated Profile Info with mass subscriptions', () => {
         window.digitalData.user = {
           ...registeredUser,
-          subscriptions: [
-            {
-              type: 'email',
-              topic: 'News',
-              isSubscribed: true,
-            },
-            {
-              type: 'email',
-              topic: 'Offers',
-              isSubscribed: false,
-            },
-            {
-              type: 'sms',
-              isSubscribed: true,
-            },
-          ],
+          subscriptions: V3Stubs.onUpdatedProfileInfoSubscriptionsStub,
         };
         window.digitalData.events.push({
           name: 'Updated Profile Info',
           source: 'Driveback',
           callback: () => {
-            assert.ok(window.mindbox.calledWith('async', {
-              operation: 'UpdateProfile',
-              data: {
-                customer: {
-                  authenticationTicket: 'xxxxx',
-                  ids: {
-                    bitrixId: 'user123',
-                  },
-                  firstName: 'John',
-                  lastName: 'Dow',
-                  email: 'test@driveback.ru',
-                  mobilePhone: '79374134389',
-                  customFields: {
-                    source: 'Driveback',
-                    city: 'Moscow',
-                    b2b: true,
-                    childrenNames: [
-                      'Helen',
-                      'Bob',
-                    ],
-                  },
-                  subscriptions: [
-                    {
-                      pointOfContact: 'Email',
-                      topic: 'News',
-                      isSubscribed: true,
-                    },
-                    {
-                      pointOfContact: 'Email',
-                      topic: 'Offers',
-                      isSubscribed: false,
-                    },
-                    {
-                      pointOfContact: 'Sms',
-                      isSubscribed: true,
-                    },
-                  ],
-                },
-              },
-            }));
+            assert.ok(window.mindbox.calledWith('async', V3Stubs.onUpdatedProfileInfoStub));
           },
         });
       });
       // end onSubscribed and onRegistered tests
     });
 
-
     describe('#onLoggedIn', () => {
-
       beforeEach(() => {
         mindbox.setOption('operationMapping', {
           'Logged In': 'EnterWebsite',
@@ -1838,18 +1148,7 @@ describe('Integrations: Mindbox', () => {
         window.digitalData.events.push({
           name: 'Logged In',
           callback: () => {
-            assert.ok(window.mindbox.calledWith('async', {
-              operation: 'EnterWebsite',
-              data: {
-                customer: {
-                  ids: {
-                    bitrixId: 'user123',
-                  },
-                  email: 'test@driveback.ru',
-                  mobilePhone: '74957777777',
-                },
-              },
-            }));
+            assert.ok(window.mindbox.calledWith('async', V3Stubs.onLoggedInEnterWebsiteStub));
           },
         });
       });
