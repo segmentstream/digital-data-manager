@@ -85,12 +85,12 @@ module.exports = function init(config) {
         platform: 'Android',
         version: '4.4',
         deviceName: 'Samsung Galaxy S3 Emulator',
-      }
+      },
     };
     browsers = Object.keys(customLaunchers);
   } else {
     customLaunchers = null;
-    browsers = ["Safari"];
+    browsers = ['Safari'];
   }
 
   config.set({
@@ -101,12 +101,12 @@ module.exports = function init(config) {
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: [/*'browserify',*/'mocha'],
+    frameworks: ['mocha'],
 
     client: {
       mocha: {
-        timeout : 7000
-      }
+        timeout: 7000,
+      },
     },
 
     sauceLabs: {
@@ -123,7 +123,7 @@ module.exports = function init(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'build/dd-manager-test.js'
+      'build/dd-manager-test.js',
     ],
 
 
@@ -152,7 +152,11 @@ module.exports = function init(config) {
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['dots'/* , 'saucelabs' */],
+    reporters: process.env.MOCHA ? ['mocha'/* , 'saucelabs' */] : ['dots'/* , 'saucelabs' */],
+
+    mochaReporter: {
+      showDiff: true,
+    },
 
 
     // web server port
@@ -174,7 +178,7 @@ module.exports = function init(config) {
 
     // Increase timeout in case connection in CI is slow
     captureTimeout: 120000,
-    customLaunchers: customLaunchers,
+    customLaunchers,
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher

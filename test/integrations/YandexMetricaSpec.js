@@ -105,7 +105,7 @@ describe('Integrations: Yandex Metrica', () => {
 
   describe('loading', function () {
     beforeEach(() => {
-      sinon.stub(ym, 'load', () => {
+      sinon.stub(ym, 'load').callsFake(() => {
         window.Ya = {};
         window.Ya.Metrika = function(options) {
           assert.equal(options.id, ym.getOption('counterId'));
@@ -135,7 +135,7 @@ describe('Integrations: Yandex Metrica', () => {
 
   describe('after loading', () => {
     beforeEach((done) => {
-      sinon.stub(ym, 'load', () => {
+      sinon.stub(ym, 'load').callsFake(() => {
         window.Ya = {};
         window.Ya.Metrika = function() {
           this.reachGoal = noop;

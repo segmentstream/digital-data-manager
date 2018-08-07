@@ -38,7 +38,7 @@ describe('SendPulse', function() {
         }
       };
 
-      sinon.stub(_sp, 'load', function(callback) {
+      sinon.stub(_sp, 'load').callsFake(function(callback) {
         window.oSpP = {
           detectSite: () => {
             return true;
@@ -202,7 +202,7 @@ describe('SendPulse', function() {
       });
 
       it('should call oSpP.startSubscription for https website', (done) => {
-        sinon.stub(_sp, 'isHttps', () => {
+        sinon.stub(_sp, 'isHttps').callsFake(() => {
           return true;
         });
         window.oSpP.isServiceWorkerChromeSupported = () => {

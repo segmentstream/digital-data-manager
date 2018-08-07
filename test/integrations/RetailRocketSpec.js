@@ -114,7 +114,7 @@ describe('Integrations: RetailRocket', () => {
     };
 
     beforeEach((done) => {
-      sinon.stub(retailRocket, 'load', () => {
+      sinon.stub(retailRocket, 'load').callsFake(() => {
         window.rrApi._initialize = () => {};
         retailRocket.onLoad();
       });
