@@ -8,6 +8,7 @@
   "scripts": {
     "lint": "eslint src",
     "test": "npm run build-test && karma start karma.conf.js",
+    "build-snippet": "./scripts/snippet/build",
     "build": "browserify src/index.js -t babelify --debug | exorcist --base=./build build/dd-manager.js.map > build/dd-manager.js",
     "build-test": "mkdir -p build && browserify test/index.test.js -t babelify --debug | exorcist --base=./build build/dd-manager-test.js.map > build/dd-manager-test.js",
     "dist": "browserify src/index.js -t babelify > dist/dd-manager.js && grunt wrap && uglifyjs dist/dd-manager.js -c -m --output dist/dd-manager.min.js",
@@ -44,6 +45,7 @@
     "eslint-config-airbnb-base": "^11.3.2",
     "eslint-plugin-import": "^2.13.0",
     "exorcist": "^0.4.0",
+    "google-closure-compiler": "^20180805.0.0",
     "grunt": "^1.0.3",
     "grunt-aws-s3": "^0.14.5",
     "grunt-contrib-clean": "^1.0.0",

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+cd scripts/snippet
+npx google-closure-compiler --js=../../src/snippet.js --js_output_file=index.min.js
+sed "/SNIPPET CODE/r ../../src/snippet.js" index.html.tmpl         | sed "/SNIPPET CODE/d" > ../../snippet/snippet.html
+sed "/SNIPPET CODE/r index.min.js" index.min.html.tmpl | sed "/SNIPPET CODE/d" > ../../snippet/snippet.min.html
+sed "/SNIPPET_PLACEHOLDER/r index.min.js" README.md    | sed '/SNIPPET_PLACEHOLDER/d' > ../../README.md
+rm index.min.js
