@@ -1,8 +1,10 @@
-import Integration from './../Integration';
+import cleanObject from 'driveback-utils/cleanObject';
+import cookie from 'js-cookie';
 import getQueryParam from 'driveback-utils/getQueryParam';
 import topDomain from 'driveback-utils/topDomain';
 import { getProp } from 'driveback-utils/dotProp';
 import normalizeString from 'driveback-utils/normalizeString';
+import Integration from '../Integration';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_LISTING,
@@ -15,9 +17,7 @@ import {
   ADDED_PRODUCT_TO_WISHLIST,
   REMOVED_PRODUCT_FROM_WISHLIST,
   REGISTERED,
-} from './../events/semanticEvents';
-import cookie from 'js-cookie';
-import cleanObject from 'driveback-utils/cleanObject';
+} from '../events/semanticEvents';
 
 const PARTNER_ID_GET_PARAM = 'actionpay';
 const DEFAULT_COOKIE_NAME = 'actionpay';
@@ -56,7 +56,7 @@ class Actionpay extends Integration {
     this.addTag('trackingPixel', {
       type: 'img',
       attr: {
-        src: '//apypx.com/ok/{{ goalId }}.png?actionpay={{ partnerId }}&apid={{ actionId }}&price={{ total }}',
+        src: '//apypp.com/ok/{{ goalId }}.png?actionpay={{ partnerId }}&apid={{ actionId }}&price={{ total }}',
       },
     });
 
@@ -166,12 +166,14 @@ class Actionpay extends Integration {
         return { fields: ['product.id', 'product.category', 'product.categoryId', 'product.name', 'product.unitSalePrice'] };
       case VIEWED_CART:
       case VIEWED_CHECKOUT_STEP:
-        return { fields: [
-          'cart.lineItems[].product.id',
-          'cart.lineItems[].product.name',
-          'cart.lineItems[].product.unitSalePrice',
-          'cart.lineItems[].quantity',
-        ] };
+        return {
+          fields: [
+            'cart.lineItems[].product.id',
+            'cart.lineItems[].product.name',
+            'cart.lineItems[].product.unitSalePrice',
+            'cart.lineItems[].quantity',
+          ],
+        };
       case REGISTERED:
         return { fields: ['user.userId'] };
       case COMPLETED_TRANSACTION:
@@ -264,7 +266,7 @@ class Actionpay extends Integration {
 
   onViewedProductListing(event) {
     const listing = event.listing || {};
-    const categoryId = listing.categoryId;
+    const { categoryId } = listing;
     let category;
     if (Array.isArray(listing.category) && listing.category.length) {
       category = listing.category[listing.category.length - 1];
@@ -378,7 +380,7 @@ class Actionpay extends Integration {
   }
 
   trackSale(event, partnerId) {
-    const transaction = event.transaction;
+    const { transaction } = event;
 
     if (!transaction || !transaction.orderId || !transaction.total) {
       return;
@@ -389,7 +391,12 @@ class Actionpay extends Integration {
     const shippingCost = transaction.shippingCost || 0;
     const total = transaction.total - shippingCost;
 
-    this.load('trackingPixel', { goalId, actionId, partnerId, total });
+    this.load('trackingPixel', {
+      goalId,
+      actionId,
+      partnerId,
+      total,
+    });
   }
 }
 
