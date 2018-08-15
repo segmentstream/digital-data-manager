@@ -1,6 +1,9 @@
-driveback_cdn:
-  image: kyma/docker-nginx:latest
-  volumes:
-    - ./build:/var/www
-  ports:
-    - 80
+version: '3'
+
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - 8008:80
+    volumes:
+      - ./dist:/usr/share/nginx/html
