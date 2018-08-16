@@ -1,15 +1,16 @@
 import assert from 'assert';
 import sinon from 'sinon';
-import reset from './../reset.js';
-import deleteProperty from 'driveback-utils/deleteProperty.js';
-import RetailRocket from './../../src/integrations/RetailRocket.js';
-import ddManager from './../../src/ddManager.js';
+import deleteProperty from 'driveback-utils/deleteProperty';
+import reset from '../reset';
+import { DIGITALDATA_VAR, PRODUCT_VAR } from '../../src/variableTypes';
+import RetailRocket from '../../src/integrations/RetailRocket';
+import ddManager from '../../src/ddManager';
+
 
 describe('Integrations: RetailRocket', () => {
   // this var will be reused in all Retail Rocket tests
   // as Retail Rocket throws error when loaded few times
   let retailRocket;
-  let stubsPrepared = false;
 
   const options = {
     partnerId: '567c343e6c7d3d14101afee5',
@@ -100,7 +101,6 @@ describe('Integrations: RetailRocket', () => {
       sinon.stub(window.rrApi, 'search');
       sinon.stub(window.rrApi, 'recomMouseDown');
       window.rrApi.setEmail = () => {};
-      stubsPrepared = true;
     };
 
     const restoreStubs = () => {
@@ -349,7 +349,7 @@ describe('Integrations: RetailRocket', () => {
 
       it('should not track "Added Product" event without product id', (done) => {
         window.digitalData.page = {};
-        window.digitalData.product = {
+        window.digitalData.product = { // TODO why do we add id ???
           id: '327',
         };
         window.digitalData.events.push({
@@ -395,6 +395,39 @@ describe('Integrations: RetailRocket', () => {
           product: '123_23',
           callback: () => {
             assert.ok(window.rrApi.addToBasket.calledWith('12323'));
+            done();
+          },
+        });
+      });
+
+      it('should track "Added Product" with custom product variables ', (done) => {
+        window.digitalData.color = 'black';
+        window.digitalData.website.regionId = 'Los Angeles';
+        retailRocket.setOption('productVariables', {
+          stockId: {
+            type: DIGITALDATA_VAR,
+            value: 'website.regionId',
+          },
+          quantity: {
+            type: 'event',
+            value: 'quantity',
+          },
+          variant: {
+            type: PRODUCT_VAR,
+            value: 'color',
+          },
+        });
+
+        window.digitalData.events.push({
+          name: 'Added Product',
+          product: {
+            id: '123_23',
+            color: 'red',
+          },
+          quantity: 2,
+          callback: () => {
+            assert.ok(window.rrApi.addToBasket.calledWith('12323',
+              { stockId: 'Los Angeles', variant: 'red', quantity: 2 }));
             done();
           },
         });
@@ -708,7 +741,7 @@ describe('Integrations: RetailRocket', () => {
                     price: 245,
                   },
                 ],
-              }
+              },
             ));
             done();
           },
@@ -914,7 +947,7 @@ describe('Integrations: RetailRocket', () => {
             value: 'user.firstName',
           },
         });
-        window.digitalData.website = window.digitalData.website || {}
+        window.digitalData.website = window.digitalData.website || {};
         window.digitalData.website.language = 'en';
         window.digitalData.user = window.digitalData.user || {};
         window.digitalData.user.firstName = 'John Dow';
