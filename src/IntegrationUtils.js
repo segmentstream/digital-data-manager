@@ -15,19 +15,26 @@ export function getEnrichableVariableMappingProps(variableMapping) {
 /**
  * Possible options:
  * - booleanToString: true/false (default - false)
+ * - multipleScopes: true/false (default - false)
  */
 export function extractVariableMappingValues(source, variableMapping, options = {}) {
   const values = {};
+  let srcObject = source;
   each(variableMapping, (key, variable) => {
     let value;
-    if (typeof variable === 'object' && variable.type) {
-      value = getProp(source, variable.value);
-    } else {
-      value = getProp(source, variable);
-    }
-    if (value !== undefined) {
-      if (typeof value === 'boolean' && options.booleanToString) value = value.toString();
-      values[key] = value;
+    const vartype = variable.type === DIGITALDATA_VAR ? 'event' : variable.type;
+    if (options.multipleScopes) srcObject = source[vartype];
+
+    if (srcObject) {
+      if (typeof variable === 'object' && variable.type) {
+        value = getProp(srcObject, variable.value);
+      } else {
+        value = getProp(srcObject, variable);
+      }
+      if (value !== undefined) {
+        if (typeof value === 'boolean' && options.booleanToString) value = value.toString();
+        values[key] = value;
+      }
     }
   });
   return values;
