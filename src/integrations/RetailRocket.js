@@ -1,8 +1,13 @@
-import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
+import noop from 'driveback-utils/noop';
 import { getProp } from 'driveback-utils/dotProp';
 import getVarValue from 'driveback-utils/getVarValue';
 import each from 'driveback-utils/each';
+import Integration from '../Integration';
+import {
+  getEnrichableVariableMappingProps,
+  extractVariableMappingValues,
+} from '../IntegrationUtils';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -12,7 +17,7 @@ import {
   SEARCHED_PRODUCTS,
   COMPLETED_TRANSACTION,
   SUBSCRIBED,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 const SEMANTIC_EVENTS = [
   VIEWED_PAGE,
@@ -36,6 +41,7 @@ class RetailRocket extends Integration {
       useGroupView: false,
       listMethods: {},
       customVariables: {},
+      productVariables: {},
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -61,14 +67,21 @@ class RetailRocket extends Integration {
   getEnrichableEventProps(event) {
     let enrichableProps = [];
     switch (event.name) {
+      case SUBSCRIBED:
+        enrichableProps = [
+          ...getEnrichableVariableMappingProps(this.getOption('customVariables')),
+        ];
+        break;
       case VIEWED_PAGE:
         enrichableProps = [
+          ...getEnrichableVariableMappingProps(this.getOption('customVariables')),
           'user.email',
           'user.isSubscribed',
         ];
         break;
       case VIEWED_PRODUCT_DETAIL:
         enrichableProps = [
+          ...getEnrichableVariableMappingProps(this.getOption('productVariables')),
           'product',
         ];
         break;
@@ -87,17 +100,12 @@ class RetailRocket extends Integration {
           'transaction',
         ];
         break;
+      case ADDED_PRODUCT:
+        enrichableProps = [
+          ...getEnrichableVariableMappingProps(this.getOption('productVariables')),
+        ];
+        break;
       default:
-      // do nothing
-    }
-
-    if ([VIEWED_PAGE, SUBSCRIBED].indexOf(event.name) >= 0) {
-      const settings = this.getOption('customVariables');
-      each(settings, (key, variable) => {
-        if (variable.type === 'digitalData') {
-          enrichableProps.push(variable.value);
-        }
-      });
     }
 
     return enrichableProps;
@@ -193,12 +201,11 @@ class RetailRocket extends Integration {
     if (userId) {
       window.rrPartnerUserId = userId;
     }
-    window.rrApi = {};
+
     window.rrApiOnReady = window.rrApiOnReady || [];
-    window.rrApi.pageView = window.rrApi.addToBasket =
-      window.rrApi.order = window.rrApi.categoryView = window.rrApi.setEmail = window.rrApi.view =
-      window.rrApi.groupView = window.rrApi.recomMouseDown = window.rrApi.recomAddToCart =
-      window.rrApi.search = () => {};
+    window.rrApi = {};
+    'pageView addToBasket order categoryView setEmail view groupView recomMouseDown recomAddToCart search'
+      .split(/\s+/).forEach((m) => { window.rrApi[m] = noop; });
   }
 
   isLoaded() {
@@ -226,9 +233,9 @@ class RetailRocket extends Integration {
       } else if (event.name === VIEWED_PRODUCT_LISTING) {
         this.onViewedProductCategory(event.listing);
       } else if (event.name === ADDED_PRODUCT) {
-        this.onAddedProduct(event.product);
+        this.onAddedProduct(event);
       } else if (event.name === VIEWED_PRODUCT_DETAIL) {
-        this.onViewedProductDetail(event.product);
+        this.onViewedProductDetail(event);
       } else if (event.name === CLICKED_PRODUCT) {
         this.onClickedProduct(event.listItem);
       } else if (event.name === COMPLETED_TRANSACTION) {
@@ -244,7 +251,7 @@ class RetailRocket extends Integration {
   }
 
   onViewedPage(event) {
-    const user = event.user;
+    const { user } = event;
     if (user && user.email) {
       if (this.getOption('trackAllEmails') === true || user.isSubscribed === true) {
         this.onSubscribed(event);
@@ -253,11 +260,9 @@ class RetailRocket extends Integration {
   }
 
   onViewedProductCategory(listing) {
-    listing = listing || {};
-    const categoryId = listing.categoryId;
-    if (!categoryId) {
-      return;
-    }
+    const { categoryId } = listing || {};
+    if (!categoryId) return;
+
     window.rrApiOnReady.push(() => {
       try {
         window.rrApi.categoryView(categoryId);
@@ -267,15 +272,17 @@ class RetailRocket extends Integration {
     });
   }
 
-  onViewedProductDetail(product) {
+  onViewedProductDetail(event) {
+    const { product } = event;
     const productId = this.getProductId(product);
-    if (!productId) {
-      return;
-    }
+    if (!productId) return;
+
+    const productVariables = this.getProductVariables(event);
+
     window.rrApiOnReady.push(() => {
       try {
         if (!this.getOption('useGroupView')) {
-          window.rrApi.view(productId);
+          window.rrApi.view(productId, productVariables);
         } else {
           const variations = product.variations || [];
           let skuCodes;
@@ -284,7 +291,7 @@ class RetailRocket extends Integration {
           } else {
             skuCodes = [product.skuCode];
           }
-          window.rrApi.groupView(skuCodes);
+          window.rrApi.groupView(skuCodes, productVariables);
         }
       } catch (e) {
         // do nothing
@@ -292,17 +299,19 @@ class RetailRocket extends Integration {
     });
   }
 
-  onAddedProduct(product) {
+  onAddedProduct(event) {
+    const { product } = event;
     const productId = this.getProductId(product);
-    if (!productId) {
-      return;
-    }
+    if (!productId) return;
+
+    const productVariables = this.getProductVariables(event);
+
     window.rrApiOnReady.push(() => {
       try {
         if (!this.getOption('useGroupView')) {
-          window.rrApi.addToBasket(productId);
+          window.rrApi.addToBasket(productId, productVariables);
         } else {
-          window.rrApi.addToBasket(product.skuCode);
+          window.rrApi.addToBasket(product.skuCode, productVariables);
         }
       } catch (e) {
         // do nothing
@@ -311,21 +320,17 @@ class RetailRocket extends Integration {
   }
 
   onClickedProduct(listItem) {
-    if (!listItem) {
-      return;
-    }
+    if (!listItem) return;
+
     const productId = this.getProductId(listItem.product);
-    if (!productId) {
-      return;
-    }
-    const listId = listItem.listId;
-    if (!listId) {
-      return;
-    }
+    if (!productId) return;
+
+    const { listId } = listItem;
+    if (!listId) return;
+
     const methodName = this.getOption('listMethods')[listId];
-    if (!methodName) {
-      return;
-    }
+    if (!methodName) return;
+
     window.rrApiOnReady.push(() => {
       try {
         if (!this.getOption('useGroupView')) {
@@ -342,33 +347,23 @@ class RetailRocket extends Integration {
   onCompletedTransaction(event) {
     const transaction = event.transaction || {};
 
-    if (!this.validateTransaction(transaction)) {
-      return;
-    }
+    if (!this.validateTransaction(transaction)) return;
 
     if (this.getOption('trackAllEmails') === true) {
       this.onSubscribed(event);
     }
 
-    let areLineItemsValid = true;
-    const items = [];
-    const lineItems = transaction.lineItems;
-    for (let i = 0, length = lineItems.length; i < length; i += 1) {
-      if (!this.validateTransactionLineItem(lineItems[i])) {
-        areLineItemsValid = false;
-        break;
-      }
-      const product = lineItems[i].product;
-      items.push({
-        id: (!this.getOption('useGroupView')) ? product.id : product.skuCode,
-        qnt: lineItems[i].quantity,
-        price: product.unitSalePrice || product.unitPrice,
-      });
-    }
+    const { lineItems } = transaction;
+    if (!lineItems.every(lineItem => this.validateTransactionLineItem(lineItem))) return;
 
-    if (!areLineItemsValid) {
-      return;
-    }
+    const items = lineItems.map((lineItem) => {
+      const { product } = lineItem;
+      return {
+        id: (!this.getOption('useGroupView')) ? product.id : product.skuCode,
+        qnt: lineItem.quantity,
+        price: product.unitSalePrice || product.unitPrice,
+      };
+    });
 
     window.rrApiOnReady.push(() => {
       try {
@@ -384,9 +379,8 @@ class RetailRocket extends Integration {
 
   onSubscribed(event) {
     const user = event.user || {};
-    if (!user.email) {
-      return;
-    }
+    if (!user.email) return;
+
 
     const rrCustoms = {};
     const settings = this.getOption('customVariables');
@@ -414,9 +408,8 @@ class RetailRocket extends Integration {
 
   onSearched(listing) {
     listing = listing || {};
-    if (!listing.query) {
-      return;
-    }
+    if (!listing.query) return;
+
     window.rrApiOnReady.push(() => {
       try {
         window.rrApi.search(listing.query);
@@ -427,50 +420,41 @@ class RetailRocket extends Integration {
   }
 
   validateTransaction(transaction) {
-    let isValid = true;
     if (!transaction.orderId) {
-      isValid = false;
+      return false;
     }
 
-    const lineItems = transaction.lineItems;
-    if (!lineItems || !Array.isArray(lineItems) || lineItems.length === 0) {
-      isValid = false;
-    }
-
-    return isValid;
+    const { lineItems } = transaction;
+    return !(!lineItems || !Array.isArray(lineItems) || lineItems.length === 0);
   }
 
   validateLineItem(lineItem) {
-    let isValid = true;
-    if (!lineItem.product) {
-      isValid = false;
-    }
-
-    return isValid;
+    return !!lineItem.product;
   }
 
   validateTransactionLineItem(lineItem) {
-    let isValid = this.validateLineItem(lineItem);
+    if (!this.validateLineItem(lineItem)) return false;
 
-    const product = lineItem.product;
-    if (!product.id) {
-      isValid = false;
-    }
-    if (!product.unitSalePrice && !product.unitPrice) {
-      isValid = false;
-    }
-    if (!lineItem.quantity) {
-      isValid = false;
-    }
+    const { product } = lineItem;
+    return !!(product.id
+      && (product.unitSalePrice || product.unitPrice)
+      && lineItem.quantity);
+  }
 
-    return isValid;
+  getProductVariables(event) {
+    const { product } = event;
+    const mapping = this.getOption('productVariables');
+    return extractVariableMappingValues(
+      { event, product },
+      mapping,
+      { multipleScopes: true },
+    );
   }
 
   getProductId(product) {
-    product = product || {};
-    const productId = product.id;
+    const { id } = product || {};
 
-    return productId;
+    return id;
   }
 }
 
