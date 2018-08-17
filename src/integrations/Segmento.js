@@ -1,5 +1,5 @@
-import Integration from './../Integration';
 import { getProp } from 'driveback-utils/dotProp';
+import Integration from '../Integration';
 import {
   VIEWED_PAGE,
   VIEWED_CART,
@@ -9,7 +9,7 @@ import {
   REMOVED_PRODUCT,
   VIEWED_CHECKOUT_STEP,
   COMPLETED_TRANSACTION,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 const SEMANTIC_EVENTS = [
   VIEWED_PAGE,
@@ -143,6 +143,8 @@ class Segmento extends Integration {
       [VIEWED_CHECKOUT_STEP]: cartValidationConfig,
       [COMPLETED_TRANSACTION]: {
         fields: [
+          'transaction.orderId',
+          'transaction.total',
           'transaction.lineItems[].product.id',
           'transaction.lineItems[].product.unitSalePrice',
           'transaction.lineItems[].quantity',
@@ -204,10 +206,10 @@ class Segmento extends Integration {
   }
 
   onViewedProductListing(event) {
-    const listing = event.listing;
+    const { listing } = event;
     if (!listing || !listing.categoryId || !listing.category) return;
 
-    const category = listing.category;
+    const { category } = listing;
     let categoryName;
     if (category && Array.isArray(category)) {
       categoryName = category[category.length - 1];
@@ -222,7 +224,7 @@ class Segmento extends Integration {
   }
 
   onViewedProductDetail(event) {
-    const product = event.product;
+    const { product } = event;
     if (!product || !product.id || !product.unitSalePrice) return;
 
     window._rutarget.push({
@@ -234,7 +236,7 @@ class Segmento extends Integration {
   }
 
   onAddedProduct(event) {
-    const product = event.product;
+    const { product } = event;
     if (!product || !product.id || !product.unitSalePrice) return;
 
     window._rutarget.push({
@@ -246,7 +248,7 @@ class Segmento extends Integration {
   }
 
   onRemovedProduct(event) {
-    const product = event.product;
+    const { product } = event;
     if (!product || !product.id) return;
 
     window._rutarget.push({
@@ -259,7 +261,7 @@ class Segmento extends Integration {
   onViewedCart(event) {
     if (this.cartTracked) return;
 
-    const cart = event.cart;
+    const { cart } = event;
     if (!cart || !cart.lineItems) return;
 
     window._rutarget.push({
@@ -273,7 +275,7 @@ class Segmento extends Integration {
   onViewedCheckoutStep(event) {
     if (this.cartTracked) return;
 
-    const cart = event.cart;
+    const { cart } = event;
     if (!cart || !cart.lineItems) return;
 
     window._rutarget.push({
@@ -285,12 +287,14 @@ class Segmento extends Integration {
   }
 
   onCompletedTransaction(event) {
-    const transaction = event.transaction;
+    const { transaction } = event;
     if (!transaction || !transaction.lineItems) return;
 
     window._rutarget.push({
       event: 'thankYou',
       products: mapLineItems(transaction.lineItems),
+      order_id: transaction.orderId,
+      total_cost: transaction.total,
     });
     this.cartTracked = true;
     this.pageTracked = true;
