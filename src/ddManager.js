@@ -2,6 +2,7 @@ import clone from 'driveback-utils/clone';
 import nextTick from 'async/nextTick';
 import cleanObject from 'driveback-utils/cleanObject';
 import emitter from 'component-emitter';
+import { error as errorLog } from 'driveback-utils/safeConsole';
 import Integration from './Integration';
 import EventManager from './EventManager';
 import IntegrationsLoader from './IntegrationsLoader';
@@ -17,7 +18,6 @@ import { isTestMode, logEnrichedIntegrationEvent, showTestModeOverlay } from './
 import { VIEWED_PAGE, mapEvent } from './events/semanticEvents';
 import { validateIntegrationEvent, trackValidationErrors } from './EventValidator';
 import { enableErrorTracking } from './ErrorTracker';
-import { error as errorLog } from 'driveback-utils/safeConsole';
 import { trackLink, trackImpression } from './trackers';
 import DDManagerStreaming from './integrations/DDManagerStreaming';
 
@@ -115,7 +115,8 @@ function _shouldTrackEvent(event, integrationName) {
   if (inc) {
     if (inc.indexOf(integrationName) >= 0) return true;
     return false;
-  } else if (ex) {
+  }
+  if (ex) {
     if (ex.indexOf(integrationName) < 0) return true;
     return false;
   }
@@ -210,7 +211,7 @@ function _initializeCustomEnrichments(settings) {
 
 const ddManager = {
 
-  VERSION: '1.2.140',
+  VERSION: '1.2.141',
 
   setAvailableIntegrations: (availableIntegrations) => {
     IntegrationsLoader.setAvailableIntegrations(availableIntegrations);
