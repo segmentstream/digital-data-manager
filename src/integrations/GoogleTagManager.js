@@ -1,5 +1,5 @@
-import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
+import Integration from '../Integration';
 
 class GoogleTagManager extends Integration {
   constructor(digitalData, options) {
@@ -50,8 +50,7 @@ class GoogleTagManager extends Integration {
 
   trackEvent(event) {
     const dlEvent = Object.assign({}, event);
-    const name = dlEvent.name;
-    const category = dlEvent.category;
+    const { name, category } = dlEvent;
     deleteProperty(dlEvent, 'name');
     deleteProperty(dlEvent, 'category');
     dlEvent.event = name;

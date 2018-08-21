@@ -1,12 +1,11 @@
 import assert from 'assert';
-import reset from './../reset.js';
 import sinon from 'sinon';
-import GoogleTagManager from './../../src/integrations/GoogleTagManager.js';
-import ddManager from './../../src/ddManager.js';
+import reset from '../reset';
+import GoogleTagManager from '../../src/integrations/GoogleTagManager';
+import ddManager from '../../src/ddManager';
 
 describe('Integrations: GoogleTagManager', () => {
   describe('using containerID', () => {
-
     let gtm;
     const options = {
       containerId: 'GTM-M9CMLZ',
@@ -24,7 +23,6 @@ describe('Integrations: GoogleTagManager', () => {
     });
 
     describe('#constructor', () => {
-
       it('should create GTM integrations with proper options and tags', () => {
         assert.equal(options.containerId, gtm.getOption('containerId'));
         assert.equal('script', gtm.getTag().type);
@@ -50,30 +48,21 @@ describe('Integrations: GoogleTagManager', () => {
       });
 
       it('should update dataLayer', (done) => {
-        let dl = window.dataLayer;
+        const dl = window.dataLayer;
         assert.ok(dl);
         setTimeout(() => {
-          assert.ok(dl.find((dlItem) => {
-            return dlItem.event === 'gtm.js';
-          }));
-          assert.ok(dl.find((dlItem) => {
-            return dlItem.event === 'DDManager Ready';
-          }));
+          assert.ok(dl.find(dlItem => dlItem.event === 'gtm.js'));
+          assert.ok(dl.find(dlItem => dlItem.event === 'DDManager Ready'));
           // assert.ok(dl.find((dlItem) => {
           //   return dlItem.event === 'DDManager Loaded';
           // }));
-          assert.ok(dl.find((dlItem) => {
-            return dlItem.event === 'gtm.dom';
-          }));
-          assert.ok(dl.find((dlItem) => {
-            return dlItem.event === 'gtm.load';
-          }));
+          assert.ok(dl.find(dlItem => dlItem.event === 'gtm.dom'));
+          assert.ok(dl.find(dlItem => dlItem.event === 'gtm.load'));
           done();
         }, 10);
       });
 
       describe('#trackEvent', () => {
-
         beforeEach(() => {
           window.dataLayer = [];
           sinon.stub(window.dataLayer, 'push');
@@ -88,13 +77,12 @@ describe('Integrations: GoogleTagManager', () => {
             name: 'some-event',
             category: 'some-category',
             callback: () => {
-              let dl = window.dataLayer;
               assert.ok(window.dataLayer.push.calledWithMatch({
                 event: 'some-event',
                 eventCategory: 'some-category',
               }));
               done();
-            }
+            },
           });
         });
 
@@ -109,16 +97,14 @@ describe('Integrations: GoogleTagManager', () => {
                 additionalParam: true,
               }));
               done();
-            }
+            },
           });
         });
       });
     });
-
   });
 
   describe('using existing GTM', () => {
-
     let gtm;
 
     beforeEach(() => {
@@ -150,7 +136,6 @@ describe('Integrations: GoogleTagManager', () => {
       });
 
       describe('#trackEvent', () => {
-
         it('should send event with additional parameters to existing GTM', (done) => {
           window.digitalData.events.push({
             name: 'some-event',
@@ -159,15 +144,13 @@ describe('Integrations: GoogleTagManager', () => {
             callback: () => {
               assert.ok(window.dataLayer.push.calledWithMatch({
                 event: 'some-event',
-                additionalParam: true
+                additionalParam: true,
               }));
               done();
-            }
+            },
           });
         });
-
       });
     });
   });
-
 });
