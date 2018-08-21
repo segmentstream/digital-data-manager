@@ -96,7 +96,7 @@ export default class Integration extends EventEmitter {
   }
 
   initialize() {
-    const onLoad = this.onLoad;
+    const { onLoad } = this;
     this._isLoaded = true;
     nextTick(onLoad);
   }

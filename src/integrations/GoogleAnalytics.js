@@ -1,13 +1,13 @@
-import Integration from './../Integration';
-import transliterate from './utils/transliterate';
 import deleteProperty from 'driveback-utils/deleteProperty';
-import { setProp, getProp } from 'driveback-utils/dotProp';
+import { getProp } from 'driveback-utils/dotProp';
 import cleanObject from 'driveback-utils/cleanObject';
 import each from 'driveback-utils/each';
 import size from 'driveback-utils/size';
 import clone from 'driveback-utils/clone';
 import cookie from 'js-cookie';
 import arrayMerge from 'driveback-utils/arrayMerge';
+import Integration from '../Integration';
+import transliterate from './utils/transliterate';
 import {
   SESSION_STARTED,
   VIEWED_PAGE,
@@ -26,12 +26,12 @@ import {
   VIEWED_CAMPAIGN,
   CLICKED_CAMPAIGN,
   EXCEPTION,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 import {
   EVENT_VAR,
   DIGITALDATA_VAR,
   PRODUCT_VAR,
-} from './../variableTypes';
+} from '../variableTypes';
 
 const SEMANTIC_EVENTS = [
   VIEWED_PAGE,
@@ -55,14 +55,7 @@ const EC_SEMANTIC_EVENTS = [
 ];
 
 function getTransactionVoucher(transaction) {
-  let voucher;
-  if (Array.isArray(transaction.vouchers)) {
-    voucher = transaction.vouchers[0];
-  } else {
-    voucher = transaction.voucher;
-  }
-
-  return voucher;
+  return Array.isArray(transaction.vouchers) ? transaction.vouchers[0] : transaction.voucher;
 }
 
 function getCheckoutOptions(event, checkoutOptions) {
@@ -214,31 +207,35 @@ class GoogleAnalytics extends Integration {
         warnings: ['required', 'string'],
       },
     };
-    const addProductFields =
-      () => productFields.concat('quantity');
-    const listItemFields =
-      () => productFields.map(productField => ['listItem', productField].join('.')).concat(['listItem.listName', 'listItem.position']);
-    const listItemsFields =
-      () => productFields.map(productField => ['listItems[]', productField].join('.')).concat(['listItems[].listName', 'listItems[].position']);
-    const cartLineItemsFields =
-      () => productFields.map(productField => ['cart.lineItems[]', productField].join('.')).concat(['cart.lineItems[].quantity']);
-    const transactionLineItemsFields =
-      () => productFields.map(productField => ['transaction.lineItems[]', productField].join('.')).concat(['transaction.lineItems[].quantity']);
-    const viewedCheckoutStepFields =
-      () => {
-        const fields =
-          (event.transaction) ? transactionLineItemsFields() : cartLineItemsFields();
-        arrayMerge(fields, ['step', 'option']);
-        return fields;
-      };
+    const addProductFields = () => productFields.concat('quantity');
+
+    const listItemFields = () => productFields.map(productField => ['listItem', productField].join('.'))
+      .concat(['listItem.listName', 'listItem.position']);
+
+    const listItemsFields = () => productFields.map(productField => ['listItems[]', productField].join('.'))
+      .concat(['listItems[].listName', 'listItems[].position']);
+
+    const cartLineItemsFields = () => productFields.map(productField => ['cart.lineItems[]', productField].join('.'))
+      .concat(['cart.lineItems[].quantity']);
+
+    const transactionLineItemsFields = () => productFields
+      .map(productField => ['transaction.lineItems[]', productField].join('.'))
+      .concat(['transaction.lineItems[].quantity']);
+
+    const viewedCheckoutStepFields = () => {
+      const fields = (event.transaction) ? transactionLineItemsFields() : cartLineItemsFields();
+      arrayMerge(fields, ['step', 'option']);
+      return fields;
+    };
 
     const addProductValidations = () => Object.assign(productValidations, {
       quantity: {
         warnings: ['required', 'numeric'],
       },
     });
-    const listItemValidations =
-      () => Object.keys(productValidations).reduce((validations, productField) => {
+
+    const listItemValidations = () => Object.keys(productValidations)
+      .reduce((validations, productField) => {
         const key = ['listItem', productField].join('.');
         validations[key] = productValidations[productField];
         return validations;
@@ -250,8 +247,9 @@ class GoogleAnalytics extends Integration {
           warnings: ['numeric'],
         },
       });
-    const listItemsValidations =
-      () => Object.keys(productValidations).reduce((validations, productField) => {
+
+    const listItemsValidations = () => Object.keys(productValidations)
+      .reduce((validations, productField) => {
         const key = ['listItems[]', productField].join('.');
         validations[key] = productValidations[productField];
         return validations;
@@ -263,8 +261,9 @@ class GoogleAnalytics extends Integration {
           warnings: ['numeric'],
         },
       });
-    const cartLineItemsValidations =
-      () => Object.keys(productValidations).reduce((validations, productField) => {
+
+    const cartLineItemsValidations = () => Object.keys(productValidations)
+      .reduce((validations, productField) => {
         const key = ['cart.lineItems[]', productField].join('.');
         validations[key] = productValidations[productField];
         return validations;
@@ -273,8 +272,9 @@ class GoogleAnalytics extends Integration {
           warnings: ['required', 'numeric'],
         },
       });
-    const transactionLineItemsValidations =
-      () => Object.keys(productValidations).reduce((validations, productField) => {
+
+    const transactionLineItemsValidations = () => Object.keys(productValidations)
+      .reduce((validations, productField) => {
         const key = ['transaction.lineItems[]', productField].join('.');
         validations[key] = productValidations[productField];
         return validations;
@@ -283,9 +283,9 @@ class GoogleAnalytics extends Integration {
           warnings: ['required', 'numeric'],
         },
       });
+
     const viewedCheckoutStepValidations = () => {
-      const validations =
-        (event.transaction) ? transactionLineItemsValidations() : cartLineItemsValidations();
+      const validations = (event.transaction) ? transactionLineItemsValidations() : cartLineItemsValidations();
       return Object.assign(validations, {
         step: {
           errors: ['required'],
@@ -531,6 +531,15 @@ class GoogleAnalytics extends Integration {
       // anonymize after initializing, otherwise a warning is shown
       // in google analytics debugger
       if (this.getOption('anonymizeIp')) this.ga(['set', 'anonymizeIp', true], this.getOption('noConflict'));
+
+      // send client id
+      const clientIdCustomDimension = this.getOption('clientIdCustomDimension');
+      if (clientIdCustomDimension) {
+        this.ga([(tracker) => {
+          const clientId = tracker.get('clientId');
+          tracker.set(clientIdCustomDimension, clientId);
+        }]);
+      }
     }
 
     this.enrichDigitalData();
@@ -681,7 +690,8 @@ class GoogleAnalytics extends Integration {
       this.flushPageview();
     } else {
       // Send a custom non-interaction event to ensure all EE data is pushed.
-      // Without doing this we'd need to require page display after setting EE data.
+      // Without doing this we'd need to require page display
+      // after setting EE data.
       const cleanedArgs = [];
       const args = [
         'send',
@@ -704,19 +714,23 @@ class GoogleAnalytics extends Integration {
     }
   }
 
-  enrichDigitalData() {
+  getGaClientId() {
     const gaCookie = cookie.get('_ga');
-    let googleClientId;
     if (gaCookie) {
       const match = gaCookie.match(/(\d+\.\d+)$/);
-      googleClientId = (match) ? match[1] : null;
-      if (googleClientId) {
-        this.digitalData.changes.push([
-          'user.googleClientId',
-          googleClientId,
-          `${this.getName()} Integration`,
-        ]);
-      }
+      return (match) ? match[1] : null;
+    }
+    return undefined;
+  }
+
+  enrichDigitalData() {
+    const googleClientId = this.getGaClientId();
+    if (googleClientId) {
+      this.digitalData.changes.push([
+        'user.googleClientId',
+        googleClientId,
+        `${this.getName()} Integration`,
+      ]);
     }
 
     // TODO: remove asynс enrichment
@@ -761,7 +775,7 @@ class GoogleAnalytics extends Integration {
   }
 
   getProductCategory(product) {
-    let category = product.category;
+    let { category } = product;
     if (Array.isArray(category)) {
       category = category.join('/');
     } else if (category && product.subcategory) {
@@ -841,7 +855,7 @@ class GoogleAnalytics extends Integration {
     }
 
     // send global id
-    const page = event.page;
+    const { page } = event;
     const pageview = {};
     const pageUrl = page.url;
     let pagePath = page.path;
@@ -894,13 +908,13 @@ class GoogleAnalytics extends Integration {
 
   onViewedProduct(event) {
     event.nonInteraction = true;
-    let listItems = event.listItems;
+    let { listItems } = event;
     if ((!listItems || !Array.isArray(listItems)) && event.listItem) {
       listItems = [event.listItem];
     }
 
     listItems.forEach((listItem) => {
-      const product = listItem.product;
+      const { product } = listItem;
       if (!product.id && !product.skuCode && !product.name) {
         return;
       }
@@ -950,7 +964,7 @@ class GoogleAnalytics extends Integration {
   }
 
   onCompletedTransaction(event) {
-    const transaction = event.transaction;
+    const { transaction } = event;
     // orderId is required.
     if (!transaction || !transaction.orderId) return;
 
@@ -972,7 +986,7 @@ class GoogleAnalytics extends Integration {
 
     // add products
     each(transaction.lineItems, (key, lineItem) => {
-      const product = lineItem.product;
+      const { product } = lineItem;
       if (product) {
         this.ga(['ecommerce:addItem', {
           id: product.id,
@@ -991,13 +1005,13 @@ class GoogleAnalytics extends Integration {
   }
 
   onCompletedTransactionEnhanced(event) {
-    const transaction = event.transaction;
+    const { transaction } = event;
 
     // orderId is required.
     if (!transaction || !transaction.orderId) return;
 
     each(transaction.lineItems, (key, lineItem) => {
-      const product = lineItem.product;
+      const { product } = lineItem;
       if (product) {
         product.currency = product.currency || transaction.currency || this.getOption('defaultCurrency');
         this.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
@@ -1018,13 +1032,13 @@ class GoogleAnalytics extends Integration {
   }
 
   onRefundedTransaction(event) {
-    const transaction = event.transaction;
+    const { transaction } = event;
 
     // orderId is required.
     if (!transaction || !transaction.orderId) return;
 
     each(transaction.lineItems, (key, lineItem) => {
-      const product = lineItem.product;
+      const { product } = lineItem;
       if (product) {
         product.currency = product.currency || transaction.currency || this.getOption('defaultCurrency');
         this.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
@@ -1041,7 +1055,7 @@ class GoogleAnalytics extends Integration {
   onViewedCampaign(event) {
     event.nonInteraction = true;
 
-    let campaigns = event.campaigns;
+    let { campaigns } = event;
     if ((!campaigns || !Array.isArray(campaigns)) && event.campaign) {
       campaigns = [event.campaign];
     }
@@ -1063,11 +1077,9 @@ class GoogleAnalytics extends Integration {
   }
 
   onClickedCampaign(event) {
-    const campaign = event.campaign;
+    const { campaign } = event;
 
-    if (!campaign || !campaign.id) {
-      return;
-    }
+    if (!campaign || !campaign.id) return;
 
     this.ga(['ec:addPromo', {
       id: campaign.id,
@@ -1085,7 +1097,7 @@ class GoogleAnalytics extends Integration {
     const cartOrTransaction = getProp(event, 'cart') || getProp(event, 'transaction');
 
     each(cartOrTransaction.lineItems, (key, lineItem) => {
-      const product = lineItem.product;
+      const { product } = lineItem;
       if (product) {
         product.currency = product.currency || cartOrTransaction.currency || this.getOption('defaultCurrency');
         this.enhancedEcommerceTrackProduct(lineItem.product, lineItem.quantity);
@@ -1164,20 +1176,16 @@ class GoogleAnalytics extends Integration {
     if (quantity) gaProduct.quantity = quantity;
     if (position) gaProduct.position = position;
     // append coupon if it set
-    // https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#measuring-transactions
+    // https://developers.google.com/analytics/devguides/collection
+    //  /analyticsjs/enhanced-ecommerce#measuring-transactions
     if (product.voucher) gaProduct.coupon = product.voucher;
     this.ga(['ec:addProduct', gaProduct], this.getOption('noConflict'));
   }
 
   enhancedEcommerceProductAction(event, action, data) {
-    let position;
-    let product;
-    if (event.listItem) {
-      position = event.listItem.position;
-      product = event.listItem.product;
-    } else {
-      product = event.product;
-    }
+    const position = (event.listItem) ? event.listItem.position : undefined;
+    const product = (event.listItem) ? event.listItem.product : event.product;
+
     if (!product || !product.id) return;
 
     this.enhancedEcommerceTrackProduct(product, event.quantity, position);
