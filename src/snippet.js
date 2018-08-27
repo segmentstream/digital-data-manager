@@ -50,13 +50,14 @@
       }
       if (testMode) {
         b.load(window.DDMANAGER_TESTMODE_INIT_URL
-               || 'https://api.ddmanager.ru/v1/ddm-initialization/' + a + '.js');
+          || ('https://api.ddmanager.ru/v1/ddm-initialization/' + a + '.js'));
       } else {
-        b.load('https://' + domain + '/ddm-initialization/' + a + '.js');
+        b.load(window.DDMANAGER_INIT_URL || ('https://' + domain + '/ddm-initialization/' + a + '.js'));
       }
+
     };
     b.CDN_DOMAIN = domain;
-    b.SNIPPET_VERSION = '1.0.10';
+    b.SNIPPET_VERSION = '1.0.11';
     b.loadProject(a);
   }
 })('<PROJECT_ID>', '<CDN_DOMAIN>');
