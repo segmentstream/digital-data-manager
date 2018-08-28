@@ -426,8 +426,7 @@ class GoogleAnalytics extends Integration {
             warning: ['string'],
           },
           'transaction.lineItems[].product.id': {
-            errors: ['required'],
-            warnings: ['string'],
+            warnings: ['required', 'string'],
           },
           'transaction.lineItems[].product.name': {
             warnings: ['required', 'string'],
