@@ -188,7 +188,9 @@ class Filters {
     return this.filterCommonEvent(event);
   }
 
-  filterProduct(product = {}) {
+  filterProduct(product) {
+    if (!product) return;
+
     const customDimensions = extractCustoms(product, this.productDimensions, CUSTOM_TYPE_STRING);
     const customMetrics = extractCustoms(product, this.productMetrics, CUSTOM_TYPE_NUMERIC);
 
