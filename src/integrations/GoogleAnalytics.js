@@ -534,10 +534,12 @@ class GoogleAnalytics extends Integration {
       // send client id
       const clientIdCustomDimension = this.getOption('clientIdCustomDimension');
       if (clientIdCustomDimension) {
-        this.ga([(tracker) => {
+        window.ga((tracker) => {
+          const trackerName = this.getOption('namespace');
+          tracker = tracker || window.ga.getByName(trackerName);
           const clientId = tracker.get('clientId');
           tracker.set(clientIdCustomDimension, clientId);
-        }]);
+        });
       }
     }
 
