@@ -7,7 +7,7 @@ import clone from 'driveback-utils/clone';
 import noop from 'driveback-utils/noop';
 import log from 'driveback-utils/log';
 import deleteProperty from 'driveback-utils/deleteProperty';
-import { error as errorLog } from 'driveback-utils/safeConsole';
+import { warn, error as errorLog } from 'driveback-utils/safeConsole';
 import each from 'driveback-utils/each';
 import nextTick from 'async/nextTick';
 import EventEmitter from 'component-emitter';
@@ -148,8 +148,10 @@ export default class Integration extends EventEmitter {
 
     if (params) {
       each(attr, (attrKey, attrVal) => {
+        if (attrKey === 'onError') return;
         if (attrVal) {
-          attr[attrKey] = attrVal.replace(/\{\{\ *(\w+)\ *\}\}/g, (_, $1) => ((params[$1] !== undefined) ? params[$1] : ''));
+          attr[attrKey] = attrVal
+            .replace(/\{\{\ *(\w+)\ *\}\}/g, (_, $1) => ((params[$1] !== undefined) ? params[$1] : ''));
         }
         if (attrKey === 'src' || attrKey === 'href') {
           attr[attrKey] = attr[attrKey].replace(/[^=&]+=(&|$)/g, '').replace(/&$/, '');
@@ -181,6 +183,9 @@ export default class Integration extends EventEmitter {
         el = loadLink(attr, (err) => {
           if (!err) {
             safeCallback();
+          } else if (params && typeof params.onError === 'function') {
+            warn(`error loading "${tagName}" error="${err}"`);
+            params.onError();
           } else {
             errorLog(`error loading "${tagName}" error="${err}"`);
           }
