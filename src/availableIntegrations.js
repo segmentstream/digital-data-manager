@@ -44,6 +44,7 @@ import VeInteractive from './integrations/VeInteractive';
 import REES46 from './integrations/REES46';
 import PushWorld from './integrations/PushWorld';
 import Get4Click from './integrations/Get4Click';
+import Renta from './integrations/Renta';
 import Target2Sell from './integrations/Target2Sell';
 import TradeTracker from './integrations/TradeTracker';
 import TryFit from './integrations/TryFit';
@@ -97,6 +98,7 @@ const integrations = {
   REES46,
   'Push.world': PushWorld,
   Get4Click,
+  Renta,
   Target2Sell,
   TradeTracker,
   'Try.Fit': TryFit,
