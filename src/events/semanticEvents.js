@@ -31,6 +31,7 @@ export const ALLOWED_PUSH_NOTIFICATIONS = 'Allowed Push Notifications';
 export const BLOCKED_PUSH_NOTIFICATIONS = 'Blocked Push Notifications';
 export const CLOSED_PUSH_NOTIFICATIONS_PROMPT = 'Closed Push Notifications Prompt';
 export const UPDATED_CART = 'Updated Cart';
+export const ASSIGNED_SEGMENT = 'Assigned Segment';
 
 // legacy events
 export const VIEWED_PRODUCT_CATEGORY = 'Viewed Product Category';

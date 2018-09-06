@@ -3,6 +3,7 @@ import semver from 'driveback-utils/semver';
 import getQueryParam from 'driveback-utils/getQueryParam';
 import cleanObject from 'driveback-utils/cleanObject';
 import { getProp, setProp } from 'driveback-utils/dotProp';
+import { camelize } from 'driveback-utils/camelize';
 import { warn } from 'driveback-utils/safeConsole';
 import uuid from 'uuid/v1';
 import UAParser from 'ua-parser-js';
@@ -13,6 +14,7 @@ import {
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
   SESSION_STARTED,
+  ASSIGNED_SEGMENT,
 } from '../events/semanticEvents';
 import {
   SDK_EVENT_SOURCE, SDK_CHANGE_SOURCE,
@@ -71,6 +73,19 @@ class DigitalDataEnricher {
     this.ddStorage.setLastEventTimestamp(Date.now());
   }
 
+  addToSegment(event) {
+    const segment = getProp(event, 'segment');
+    if (segment) {
+      const { id, name, value } = segment;
+      const segmentName = id || camelize(name);
+
+      const userSegment = getProp(this.digitalData, 'user.segment') || {};
+      userSegment[segmentName] = value;
+      this.digitalData.changes.push(['user.segment', userSegment, SDK_CHANGE_SOURCE]);
+      this.ddStorage.persist('user.segment');
+    }
+  }
+
   listenToEvents() {
     // enrich DDL based on semantic events
     this.ddListener.push(['on', 'event', (event) => {
@@ -86,6 +101,8 @@ class DigitalDataEnricher {
       } else if (event.name === UPDATED_CART && semver.cmp(this.digitalData.version, '1.1.3') >= 0) {
         this.fireAddRemoveProduct(event);
         this.digitalData.changes.push(['cart', event.cart, SDK_CHANGE_SOURCE]);
+      } else if (event.name === ASSIGNED_SEGMENT) {
+        this.addToSegment(event);
       }
     }]);
   }
@@ -100,8 +117,8 @@ class DigitalDataEnricher {
 
     const comparerUnique = otherLineItems => (
       current => (!otherLineItems.some(other => (
-        productKey(getProp(current, 'product.id'), getProp(current, 'product.skuCode')) ===
-        productKey(getProp(other, 'product.id'), getProp(other, 'product.skuCode'))
+        productKey(getProp(current, 'product.id'), getProp(current, 'product.skuCode'))
+          === productKey(getProp(other, 'product.id'), getProp(other, 'product.skuCode'))
       )))
     );
 
@@ -157,7 +174,7 @@ class DigitalDataEnricher {
   }
 
   enrichDefaultUserData() {
-    const user = this.digitalData.user;
+    const { user } = this.digitalData;
 
     if (user.isReturning === undefined) {
       user.isReturning = false;
@@ -175,7 +192,7 @@ class DigitalDataEnricher {
   }
 
   persistUserData() {
-    const user = this.digitalData.user;
+    const { user } = this.digitalData;
 
     // persist user.everLoggedIn
     if (user.isLoggedIn && !user.everLoggedIn) {
