@@ -10,7 +10,7 @@ import each from 'driveback-utils/each';
 import { warn } from 'driveback-utils/safeConsole';
 import uuid from 'uuid/v1';
 import UAParser from 'ua-parser-js';
-import Integration from './../Integration';
+import Integration from '../Integration';
 import StreamingFilters, {
   pageProps,
   listingProps,
@@ -24,7 +24,7 @@ import StreamingFilters, {
 import {
   DIGITALDATA_VAR,
   PRODUCT_VAR,
-} from './../variableTypes';
+} from '../variableTypes';
 import {
   VIEWED_PAGE,
   VIEWED_CART,
@@ -41,7 +41,7 @@ import {
   VIEWED_EXPERIMENT,
   INTEGRATION_VALIDATION_FAILED,
   EXCEPTION,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 class DDManagerStreaming extends Integration {
   constructor(digitalData, options) {
@@ -53,6 +53,7 @@ class DDManagerStreaming extends Integration {
       dimensions: {},
       metrics: {},
       internal: false,
+      streamingEndpoint: '',
     }, options);
     super(digitalData, optionsWithDefaults);
     this.website = {};
@@ -90,6 +91,15 @@ class DDManagerStreaming extends Integration {
       this.productDimensions,
       this.productMetrics,
     );
+
+    this.setupStreamingEndpoints();
+  }
+
+  setupStreamingEndpoints() {
+    const streamingEndpoint = this.getOption('streamingEndpoint') || '';
+
+    this.streamingEndpoints = [this.getOption('trackingUrl')];
+    if (streamingEndpoint.match(/^(https?):\/\/[^ "]+$/)) this.streamingEndpoints.push(streamingEndpoint);
   }
 
   initialize() {
@@ -223,10 +233,9 @@ class DDManagerStreaming extends Integration {
       if (!campaign.medium) campaign.medium = 'cpc';
     }
     let path = htmlGlobals.getLocation().pathname;
-    let referrer = htmlGlobals.getDocument().referrer;
-    let search = htmlGlobals.getLocation().search;
-    let url = htmlGlobals.getLocation().href;
-    let hash = htmlGlobals.getLocation().hash;
+    let { referrer } = htmlGlobals.getDocument();
+    const location = htmlGlobals.getLocation();
+    let { search, href: url, hash } = location;
 
     try { path = (path) ? decodeURIComponent(path) : undefined; } catch (e) { warn(e); }
     try { referrer = (referrer) ? decodeURI(referrer) : undefined; } catch (e) { warn(e); }
@@ -234,7 +243,7 @@ class DDManagerStreaming extends Integration {
     try { url = (url) ? decodeURI(url) : undefined; } catch (e) { warn(e); }
     try { hash = (hash) ? decodeURIComponent(hash) : undefined; } catch (e) { warn(e); }
 
-    const title = htmlGlobals.getDocument().title;
+    const { title } = htmlGlobals.getDocument();
 
     const uaParser = new UAParser();
     const browser = uaParser.getBrowser();
@@ -250,7 +259,9 @@ class DDManagerStreaming extends Integration {
       context: {
         campaign: size(campaign) ? campaign : undefined,
         library: this.library,
-        page: { path, referrer, search, title, url, hash },
+        page: {
+          path, referrer, search, title, url, hash,
+        },
         userAgent: htmlGlobals.getNavigator().userAgent,
         browser,
         device,
@@ -304,8 +315,7 @@ class DDManagerStreaming extends Integration {
     }
 
     if (event.name === VIEWED_PAGE && event.website) {
-      const website = event.website;
-      this.website = this.filters.filterWebsite(website);
+      this.website = this.filters.filterWebsite(event.website);
     }
 
     this.sendEventHit(event);
@@ -326,24 +336,26 @@ class DDManagerStreaming extends Integration {
 
   send(hitData) {
     /*
-    try {
+      try {
       const streamCache = window.localStorage.getItem(this.getCacheKey());
       window.localStorage.setItem(this.getCacheKey(hitId), JSON.stringify(hitData));
-    } catch (e) {
+      } catch (e) {
       // localstorage not supported
       // TODO: save to memory
-    } */
-    window.fetch(this.getOption('trackingUrl'), {
-      method: 'post',
-      credentials: 'include',
-      mode: 'cors',
-      body: JSON.stringify(hitData),
-    }).then((response) => {
-      if (response.ok) {
-        // window.localStorage.removeItem(this.getCacheKey(hitData.hitId));
-      }
-    }).catch((e) => {
-      warn(e);
+      } */
+    this.streamingEndpoints.forEach((endpoint) => {
+      window.fetch(endpoint, {
+        method: 'post',
+        credentials: 'include',
+        mode: 'cors',
+        body: JSON.stringify(hitData),
+      }).then((response) => {
+        if (response.ok) {
+          // window.localStorage.removeItem(this.getCacheKey(hitData.hitId));
+        }
+      }).catch((e) => {
+        warn(e);
+      });
     });
   }
 }
