@@ -4,12 +4,16 @@ import size from 'driveback-utils/size';
 import after from 'driveback-utils/after';
 import jsonIsEqual from 'driveback-utils/jsonIsEqual';
 import { error as errorLog } from 'driveback-utils/safeConsole';
+import cleanObject from 'driveback-utils/cleanObject';
 import DDHelper from './DDHelper';
 import EventDataEnricher from './enrichments/EventDataEnricher';
 import CustomEvent from './events/CustomEvent';
 import { VIEWED_PAGE } from './events/semanticEvents';
-import { SDK_EVENT_SOURCE } from './constants';
-import cleanObject from 'driveback-utils/cleanObject';
+import {
+  CUSTOM_CHANGE_SOURCE,
+  SDK_CHANGE_SOURCE,
+  SDK_EVENT_SOURCE,
+} from './constants';
 
 let _callbacks = {};
 let _ddListener = [];
@@ -68,7 +72,7 @@ class EventManager {
   }
 
   initialize() {
-    const events = _digitalData.events;
+    const { events } = _digitalData;
 
     // initialize custom events tracking
     _customEvents.forEach((customEvent) => {
@@ -115,7 +119,7 @@ class EventManager {
   }
 
   enableEventsTracking() {
-    const events = _digitalData.events;
+    const { events } = _digitalData;
     events.push = (event) => {
       events[events.length] = event;
       this.fireEvent(event);
@@ -123,7 +127,7 @@ class EventManager {
   }
 
   enableChangesTracking() {
-    const changes = _digitalData.changes;
+    const { changes } = _digitalData;
 
     changes.push = (changeInfo) => {
       changes[changes.length] = changeInfo;
@@ -146,8 +150,8 @@ class EventManager {
 
   checkForChanges() {
     if (
-      (_callbacks.change && _callbacks.change.length > 0) ||
-      (_callbacks.define && _callbacks.define.length > 0)
+      (_callbacks.change && _callbacks.change.length > 0)
+      || (_callbacks.define && _callbacks.define.length > 0)
     ) {
       const digitalDataWithoutEvents = _getCopyWithoutEvents(_digitalData);
       if (!jsonIsEqual(_previousDigitalData, digitalDataWithoutEvents)) {
@@ -180,7 +184,7 @@ class EventManager {
   }
 
   isViewedPageSent() {
-    const events = _digitalData.events;
+    const { events } = _digitalData;
     return events.some(event => event.name === VIEWED_PAGE);
   }
 
@@ -196,7 +200,7 @@ class EventManager {
       _callbacks.define.forEach((callback) => {
         let value;
         if (callback.key) {
-          const key = callback.key;
+          const { key } = callback;
           value = DDHelper.get(key, _digitalData);
         } else {
           value = _digitalData;
@@ -225,7 +229,7 @@ class EventManager {
     if (_callbacks.change && _callbacks.change.length > 0) {
       _callbacks.change.forEach((callback) => {
         if (callback.key) {
-          const key = callback.key;
+          const { key } = callback;
           const newKeyValue = DDHelper.get(key, newValue);
           const previousKeyValue = DDHelper.get(key, previousValue);
           if (!jsonIsEqual(newKeyValue, previousKeyValue)) {
@@ -239,15 +243,28 @@ class EventManager {
   }
 
   applyEarlyChanges() {
-    const changes = _digitalData.changes;
+    const { changes } = _digitalData;
     changes.forEach((changeInfo) => {
       this.applyChange(changeInfo);
     });
   }
 
+  isNotSystemSource(source) {
+    return [CUSTOM_CHANGE_SOURCE, SDK_CHANGE_SOURCE].indexOf(source) < 0
+      && !/\sIntegration$/.test(source);
+  }
+
   applyChange(changeInfo) {
     if (Array.isArray(changeInfo)) {
-      const [key, value] = changeInfo;
+      const [key, value, source] = changeInfo;
+      if (this.isNotSystemSource(source)) {
+        _digitalData.events.push({
+          name: 'DigitalData Changes Pushed',
+          category: 'Debug',
+          label: key,
+          includeIntegrations: ['DDManager Streaming'],
+        });
+      }
       DDHelper.set(key, value, _digitalData);
     } else if (typeof changeInfo === 'object') {
       DDHelper.replace(changeInfo, _digitalData);
@@ -333,7 +350,7 @@ class EventManager {
   }
 
   applyCallbackForPastEvents(handler) {
-    const events = _digitalData.events;
+    const { events } = _digitalData;
     events.forEach((event) => {
       if (event.hasFired) {
         let eventCopy = clone(event, true);
@@ -356,7 +373,7 @@ class EventManager {
   }
 
   fireUnfiredEvents() {
-    const events = _digitalData.events;
+    const { events } = _digitalData;
     events.forEach((event) => {
       if (!event.hasFired) {
         this.fireEvent(event);
