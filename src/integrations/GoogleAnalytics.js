@@ -81,6 +81,8 @@ class GoogleAnalytics extends Integration {
       sendUserId: false,
       anonymizeIp: false,
       domain: 'auto',
+      crossDomainTracking: false,
+      linkedDomains: [],
       siteSpeedSampleRate: 1,
       defaultCurrency: 'USD',
       fields: {},
@@ -612,6 +614,11 @@ class GoogleAnalytics extends Integration {
       allowLinker: true,
       name: namespace || undefined,
     }));
+    if (this.getOption('crossDomainTracking')) {
+      const prefix = namespace ? `${namespace}.` : '';
+      window.ga(`${prefix}require`, 'linker');
+      window.ga(`${prefix}linker:autoLink`, this.getOption('linkedDomains') || []);
+    }
   }
 
   hasAlternativeTracker() {
