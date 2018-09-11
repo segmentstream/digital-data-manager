@@ -1,15 +1,18 @@
-import Integration from './../Integration';
 import { getProp } from 'driveback-utils/dotProp';
+import cleanObject from 'driveback-utils/cleanObject';
+import Integration from '../Integration';
 import {
+  VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
   VIEWED_PRODUCT_LISTING,
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
   COMPLETED_TRANSACTION,
   SEARCHED_PRODUCTS,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 const SEMANTIC_EVENTS = [
+  VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
   VIEWED_PRODUCT_LISTING,
   ADDED_PRODUCT,
@@ -47,20 +50,19 @@ class REES46 extends Integration {
   }
 
   getEnrichableEventProps(event) {
-    if (event.name === VIEWED_PRODUCT_DETAIL) {
-      return ['product'];
-    } else if (event.name === VIEWED_PRODUCT_LISTING) {
-      return ['listing.categoryId'];
-    } else if (event.name === SEARCHED_PRODUCTS) {
-      return ['listing.query'];
-    } else if (event.name === COMPLETED_TRANSACTION) {
-      return ['transaction'];
+    switch (event.name) {
+      case VIEWED_PAGE: return ['user'];
+      case VIEWED_PRODUCT_DETAIL: return ['product'];
+      case VIEWED_PRODUCT_LISTING: return ['listing.categoryId'];
+      case SEARCHED_PRODUCTS: return ['listing.query'];
+      case COMPLETED_TRANSACTION: return ['transaction'];
+      default: return [];
     }
-    return [];
   }
 
   trackEvent(event) {
     const eventMap = {
+      [VIEWED_PAGE]: this.onViewedPage.bind(this),
       [VIEWED_PRODUCT_DETAIL]: this.onViewedProductDetail.bind(this),
       [VIEWED_PRODUCT_LISTING]: this.onViewedProductListing.bind(this),
       [SEARCHED_PRODUCTS]: this.onSearchedProducts.bind(this),
@@ -73,12 +75,27 @@ class REES46 extends Integration {
     }
   }
 
+  onViewedPage(event) {
+    const { user } = event;
+    if (!user || !user.userId || !user.email) return;
+    const gender = String(user.gender).toLowerCase();
+
+    const rees46Data = cleanObject({
+      id: user.userId,
+      email: user.email,
+      gender: ['m', 'f'].indexOf(gender) >= 0 ? gender : undefined,
+      birthday: user.birthDate,
+    });
+
+    window.r46('profile', 'set', rees46Data);
+  }
+
   onViewedProductDetail(event) {
     const product = event.product || {};
     const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
     const productId = (feedWithGroupedProducts) ? product.skuCode : product.id;
     if (productId) {
-      const stock = product.stock;
+      const { stock } = product;
       if (stock !== undefined) {
         window.r46('track', 'view', {
           id: productId,
@@ -113,7 +130,7 @@ class REES46 extends Integration {
 
   onViewedProductListing(event) {
     const listing = event.listing || {};
-    const categoryId = listing.categoryId;
+    const { categoryId } = listing;
     if (categoryId) {
       window.r46('track', 'category', categoryId);
     }
@@ -121,7 +138,7 @@ class REES46 extends Integration {
 
   onSearchedProducts(event) {
     const listing = event.listing || {};
-    const query = listing.query;
+    const { query } = listing;
     if (query) {
       window.r46('track', 'search', query);
     }
