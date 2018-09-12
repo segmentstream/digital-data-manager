@@ -27,7 +27,7 @@ describe('Integrations: Vkontakte', () => {
     vk = new Vkontakte(window.digitalData, options);
     ddManager.addIntegration('Vkontakte', vk);
 
-    sinon.stub(vk, 'onLoad', () => { return true; });
+    sinon.stub(vk, 'onLoad').callsFake(() => { return true; });
     window.VK = window.VK || {};
     window.VK.Retargeting = window.VK.Retargeting || {
       Init: noop,

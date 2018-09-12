@@ -38,7 +38,7 @@ describe('Integrations: FacebookPixel', () => {
 
     it('should load', (done) => {
       assert.ok(!fbPixel.isLoaded());
-      sinon.stub(fbPixel, 'load', () => {
+      sinon.stub(fbPixel, 'load').callsFake(() => {
         window.fbq.callMethod = () => {};
         fbPixel.onLoad();
       });
@@ -54,7 +54,7 @@ describe('Integrations: FacebookPixel', () => {
   describe('after loading', () => {
 
     beforeEach((done) => {
-      sinon.stub(fbPixel, 'load', () => {
+      sinon.stub(fbPixel, 'load').callsFake(() => {
         fbPixel.onLoad();
       });
       fbPixel.once('ready', done);

@@ -73,7 +73,7 @@ describe('OneSignal', function() {
 
   describe('loading', function () {
     beforeEach(() => {
-      sinon.stub(_oneSignal, 'load', () => {
+      sinon.stub(_oneSignal, 'load').callsFake(() => {
         window.OneSignal = {
           push: () => {}
         };
@@ -108,11 +108,11 @@ describe('OneSignal', function() {
       window.digitalData.cart = {
         total: 1000,
       };
-      sinon.stub(_oneSignal, 'load', () => {
+      sinon.stub(_oneSignal, 'load').callsFake(() => {
         _oneSignal.onLoad();
       });
       window.OneSignal = window.OneSignal || [];
-      sinon.stub(window.OneSignal, 'push', (cmdArr) => {
+      sinon.stub(window.OneSignal, 'push').callsFake((cmdArr) => {
         if (typeof cmdArr === 'function') {
           cmdArr();
         }

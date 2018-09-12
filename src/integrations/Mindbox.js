@@ -1,9 +1,9 @@
-import Integration from './../Integration';
 import { getProp, setProp } from 'driveback-utils/dotProp';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import cleanObject from 'driveback-utils/cleanObject';
 import isEmpty from 'driveback-utils/isEmpty';
 import arrayMerge from 'driveback-utils/arrayMerge';
+import Integration from '../Integration';
 import {
   VIEWED_PAGE,
   LOGGED_IN,
@@ -16,11 +16,11 @@ import {
   REMOVED_PRODUCT,
   UPDATED_CART,
   COMPLETED_TRANSACTION,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 import {
   getEnrichableVariableMappingProps,
   extractVariableMappingValues,
-} from './../IntegrationUtils';
+} from '../IntegrationUtils';
 
 const PROVIDER_USER_ID = 'userId';
 const PROVIDER_EMAIL = 'email';
@@ -72,6 +72,7 @@ class Mindbox extends Integration {
       productSkuIdsMapping: {},
       productCategoryIdsMapping: {},
       areaIdsMapping: {},
+      orderIdsMapping: {},
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -194,9 +195,13 @@ class Mindbox extends Integration {
         }
         break;
       case COMPLETED_TRANSACTION:
-        enrichableProps = this.getEnrichableUserProps();
-        enrichableProps.push('user.userId');
-        enrichableProps.push('transaction');
+        enrichableProps = [
+          ...this.getEnrichableUserIds(),
+          ...this.getEnrichableAreaIds(),
+          ...this.getEnrichableUserProps(),
+          'user.userId', // might be duplicated (failing V2 tests)
+          'transaction',
+        ];
         break;
       case VIEWED_PRODUCT_DETAIL:
         enrichableProps = ['product'];
@@ -424,11 +429,13 @@ class Mindbox extends Integration {
     if (userData[CUSTOMER_FIELDS_AUTHENTICATION_TICKET] && event.name !== UPDATED_PROFILE_INFO) {
       deleteProperty(userData, CUSTOMER_FIELDS_AUTHENTICATION_TICKET);
     }
-    if (this.getOption('apiVersion') === V3 && event.name !== COMPLETED_TRANSACTION) {
+    if (this.getOption('apiVersion') === V3) {
       const customerIds = this.getCustomerIds(event);
       const area = this.getV3Area(event);
       if (customerIds) userData.ids = customerIds;
-      if (area) userData.area = area;
+      if (area && event.name !== COMPLETED_TRANSACTION) {
+        userData.area = area;
+      }
       const keys = Object.keys(userData);
       keys.reduce((acc, key) => {
         if (DEFAULT_CUSTOMER_FIELDS.indexOf(key) < 0) {
@@ -511,6 +518,12 @@ class Mindbox extends Integration {
     return (!isEmpty(areaIds)) ? areaIds : undefined;
   }
 
+  getOrderIds(event) {
+    const mapping = this.getOption('orderIdsMapping');
+    const orderIds = extractVariableMappingValues(event, mapping);
+    return (!isEmpty(orderIds)) ? orderIds : undefined;
+  }
+
   getCustomerIds(event) {
     const mapping = this.getOption('customerIdsMapping');
     const customerIds = extractVariableMappingValues(event, mapping);
@@ -528,6 +541,7 @@ class Mindbox extends Integration {
     return {
       ids: this.getProductIds(product),
       sku: (skuIds) ? { ids: skuIds } : undefined,
+      price: product.unitSalePrice,
     };
   }
 
@@ -538,7 +552,6 @@ class Mindbox extends Integration {
       return {
         product,
         count,
-        price: lineItem.subtotal || count * getProp(lineItem, 'product.unitSalePrice'),
       };
     });
   }
@@ -558,9 +571,9 @@ class Mindbox extends Integration {
       [COMPLETED_TRANSACTION]: this.onCompletedTransaction.bind(this),
     };
     // get operation name either from email or from integration settings
-    const operation = event.operation ||
-      getProp(event, 'integrations.mindbox.operation') ||
-      this.getOperationName(event.name);
+    const operation = event.operation
+      || getProp(event, 'integrations.mindbox.operation')
+      || this.getOperationName(event.name);
 
     if (!operation && event.name !== VIEWED_PAGE) return;
 
@@ -580,7 +593,7 @@ class Mindbox extends Integration {
 
   onUpdatedCart(event, operation) {
     const cart = event.cart || {};
-    const lineItems = cart.lineItems;
+    const { lineItems } = cart;
     if (!lineItems || !lineItems.length) {
       return;
     }
@@ -674,7 +687,7 @@ class Mindbox extends Integration {
 
   onSubscribed(event, operation) {
     const user = event.user || {};
-    const email = user.email;
+    const { email } = user;
     if (!email) return;
 
     let subscriptions;
@@ -802,7 +815,61 @@ class Mindbox extends Integration {
     }
   }
 
+  onCompletedTransactionV3(event, operation) {
+    const customer = this.getCustomerData(event);
+
+    const lineItems = getProp(event, 'transaction.lineItems');
+    let mindboxItems = [];
+    if (lineItems && lineItems.length) {
+      mindboxItems = lineItems.map(
+        (lineItem) => {
+          let customs = this.getProductCustoms(lineItem.product);
+          customs = customs && Object.keys(customs).length !== 0 ? customs : undefined;
+
+          return cleanObject({
+            product: this.getV3Product(lineItem.product),
+            quantity: lineItem.quantity || 1,
+            basePricePerItem: getProp(lineItem, 'product.unitPrice'),
+            customFields: customs,
+          });
+        },
+      );
+    }
+
+    const orderVars = this.getOption('orderVars');
+    const orderCustomFields = extractVariableMappingValues(event, orderVars);
+    const payments = [
+      {
+        type: getProp(event, 'transaction.paymentMethod'),
+        amount: getProp(event, 'transaction.total'),
+      },
+    ];
+
+    const order = {
+      ids: this.getOrderIds(event),
+      totalPrice: getProp(event, 'transaction.total'),
+      deliveryCost: getProp(event, 'transaction.shippingCost'),
+      lines: mindboxItems,
+      payments,
+      area: this.getV3Area(event),
+      customFields: orderCustomFields,
+    };
+
+    window.mindbox('async', cleanObject({
+      operation,
+      data: {
+        executionDateTimeUtc: (new Date()).toISOString(),
+        customer,
+        order,
+      },
+    }));
+  }
+
   onCompletedTransaction(event, operation) {
+    if (this.getOption('apiVersion') === V3) {
+      this.onCompletedTransactionV3(event, operation);
+      return;
+    }
     const identificator = this.getIdentificator(event);
     if (!identificator) return;
 

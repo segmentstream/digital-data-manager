@@ -31,13 +31,13 @@ describe('DigitalDataEnricher', () => {
     _ddListener = [];
     _digitalDataEnricher = new DigitalDataEnricher(_digitalData, _ddListener);
     _htmlGlobals = _digitalDataEnricher.getHtmlGlobals();
-    sinon.stub(_htmlGlobals, 'getDocument', () => {
+    sinon.stub(_htmlGlobals, 'getDocument').callsFake(() => {
       return _document;
     });
-    sinon.stub(_htmlGlobals, 'getLocation', () => {
+    sinon.stub(_htmlGlobals, 'getLocation').callsFake(() => {
       return _location;
     });
-    sinon.stub(_htmlGlobals, 'getNavigator', () => {
+    sinon.stub(_htmlGlobals, 'getNavigator').callsFake(() => {
       return _navigator;
     });
   });
@@ -285,7 +285,7 @@ describe('DigitalDataEnricher', () => {
 
       // overddie location
       _htmlGlobals.getLocation.restore();
-      sinon.stub(_htmlGlobals, 'getLocation', () => {
+      sinon.stub(_htmlGlobals, 'getLocation').callsFake(() => {
         return {
           search: ''
         };
