@@ -56,7 +56,7 @@ module.exports = function init(config) {
       slSafariOsx: {
         base: 'SauceLabs',
         browserName: 'safari',
-        platform: 'OS X 10.9'
+        platform: 'OS X 10.10'
       },
       slIphone: {
         base: 'SauceLabs',
