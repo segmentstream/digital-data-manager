@@ -226,6 +226,29 @@ class RetailRocket extends Integration {
     }
   }
 
+  getTransactionItems(transactionItems) {
+    const itemsCache = {};
+    const id = this.getOption('useGroupView') ? 'skuCode' : 'id';
+
+    transactionItems.forEach((lineItem) => {
+      const { product } = lineItem;
+      const item = {
+        id: (!this.getOption('useGroupView')) ? product.id : product.skuCode,
+        qnt: lineItem.quantity,
+        price: product.unitSalePrice || product.unitPrice,
+      };
+
+      const cachedItem = itemsCache[product.id];
+      if (cachedItem) {
+        cachedItem.qnt += 1;
+      } else {
+        itemsCache[product.id] = item;
+      }
+    });
+
+    return Object.keys(itemsCache).map(k => itemsCache[k]);
+  }
+
   trackEvent(event) {
     if (this.getOption('noConflict') !== true) {
       if (event.name === VIEWED_PAGE) {
@@ -356,20 +379,11 @@ class RetailRocket extends Integration {
     const { lineItems } = transaction;
     if (!lineItems.every(lineItem => this.validateTransactionLineItem(lineItem))) return;
 
-    const items = lineItems.map((lineItem) => {
-      const { product } = lineItem;
-      return {
-        id: (!this.getOption('useGroupView')) ? product.id : product.skuCode,
-        qnt: lineItem.quantity,
-        price: product.unitSalePrice || product.unitPrice,
-      };
-    });
-
     window.rrApiOnReady.push(() => {
       try {
         window.rrApi.order({
           transaction: transaction.orderId,
-          items,
+          items: this.getTransactionItems(lineItems),
         });
       } catch (e) {
         // do nothing
