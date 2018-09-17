@@ -1,9 +1,10 @@
-var fs = require('fs');
+const fs = require('fs');
 
 module.exports = function init(config) {
-  var customLaunchers;
-  var browsers;
+  let customLaunchers;
+  let browsers;
   if (!process.env.SAUCE_USERNAME || !process.env.SAUCE_ACCESS_KEY) {
+    /* eslint-disable */
     if (!fs.existsSync('sauce.json')) {
       console.log('Create a sauce.json with your credentials based on the sauce-sample.json file.');
       process.exit(1);
@@ -12,16 +13,18 @@ module.exports = function init(config) {
       process.env.SAUCE_USERNAME = require('./sauce.json').username;
       process.env.SAUCE_ACCESS_KEY = require('./sauce.json').accessKey;
     }
+    /* eslint-enable */
   } else {
     process.env.SAUCE_ENABLED = true;
   }
 
-  if (process.env.SAUCE_ENABLED == "true") {
+
+  if (process.env.SAUCE_ENABLED === 'true') {
     customLaunchers = {
       slChromeWin7: {
         base: 'SauceLabs',
         browserName: 'chrome',
-        platform: 'Windows 7'
+        platform: 'Windows 7',
       },
       slFirefoxWin7: {
         base: 'SauceLabs',
@@ -33,43 +36,43 @@ module.exports = function init(config) {
         base: 'SauceLabs',
         browserName: 'internet explorer',
         platform: 'Windows 7',
-        version: '10'
+        version: '10',
       },
       slIe9Win7: {
         base: 'SauceLabs',
         browserName: 'internet explorer',
         platform: 'Windows 7',
-        version: '9'
+        version: '9',
       },
       slIe11Win10: {
         base: 'SauceLabs',
         browserName: 'internet explorer',
         platform: 'Windows 10',
-        version: '11'
+        version: '11',
       },
       slME25Win10: {
         base: 'SauceLabs',
         browserName: 'microsoftedge',
         platform: 'Windows 10',
-        version: '13'
+        version: '13',
       },
       slSafariOsx: {
         base: 'SauceLabs',
         browserName: 'safari',
-        platform: 'OS X 10.10'
+        platform: 'OS X 10.10',
       },
       slIphone: {
         base: 'SauceLabs',
         browserName: 'iphone',
         platform: 'iOS',
-        version: '9.3',
+        version: '10.2',
         deviceName: 'iPhone Simulator',
       },
       slIpad: {
         base: 'SauceLabs',
         browserName: 'iphone',
         platform: 'iOS',
-        version: '9.3',
+        version: '10.2',
         deviceName: 'iPad Simulator',
       },
       slAndroid: {
