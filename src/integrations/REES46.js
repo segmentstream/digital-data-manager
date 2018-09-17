@@ -1,5 +1,9 @@
 import { getProp } from 'driveback-utils/dotProp';
-import cleanObject from 'driveback-utils/cleanObject';
+import {
+  getEnrichableVariableMappingProps,
+  extractVariableMappingValues,
+} from '../IntegrationUtils';
+
 import Integration from '../Integration';
 import {
   VIEWED_PAGE,
@@ -26,6 +30,7 @@ class REES46 extends Integration {
     const optionsWithDefaults = Object.assign({
       storeKey: '',
       feedWithGroupedProducts: false,
+      productVariables: {},
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -52,12 +57,26 @@ class REES46 extends Integration {
   getEnrichableEventProps(event) {
     switch (event.name) {
       case VIEWED_PAGE: return ['user', 'website'];
-      case VIEWED_PRODUCT_DETAIL: return ['product'];
       case VIEWED_PRODUCT_LISTING: return ['listing.categoryId'];
       case SEARCHED_PRODUCTS: return ['listing.query'];
       case COMPLETED_TRANSACTION: return ['transaction'];
+      case VIEWED_PRODUCT_DETAIL:
+        return [
+          ...getEnrichableVariableMappingProps(this.getOption('productVariables')),
+          'product',
+        ];
       default: return [];
     }
+  }
+
+  getProductVariables(event) {
+    const { product } = event;
+    const mapping = this.getOption('productVariables');
+    return extractVariableMappingValues(
+      { event, product },
+      mapping,
+      { multipleScopes: true },
+    );
   }
 
   trackEvent(event) {
@@ -95,16 +114,21 @@ class REES46 extends Integration {
     const product = event.product || {};
     const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
     const productId = (feedWithGroupedProducts) ? product.skuCode : product.id;
-    if (productId) {
-      const { stock } = product;
-      if (stock !== undefined) {
-        window.r46('track', 'view', {
-          id: productId,
-          stock: (stock > 0),
-        });
-      } else {
-        window.r46('track', 'view', productId);
-      }
+    if (!productId) return;
+
+    const productVariables = this.getProductVariables(event);
+    const { stock } = product;
+    if (stock !== undefined) {
+      productVariables.stock = (stock > 0);
+    }
+
+    if (Object.keys(productVariables).length > 0) {
+      window.r46('track', 'view', {
+        id: productId,
+        ...productVariables,
+      });
+    } else {
+      window.r46('track', 'view', productId);
     }
   }
 
