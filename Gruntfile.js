@@ -1,4 +1,10 @@
 module.exports = function runGrunt(grunt) {
+  const ddmNameSrc = 'dd-manager.js';
+  const ddmMinNameSrc = 'dd-manager.min.js';
+  const staging = parseInt(grunt.option('staging'), 10);
+  const ddmName = staging ? `dd-manager-${staging}.js` : ddmNameSrc;
+  const ddmMinName = staging ? `dd-manager-${staging}.min.js` : ddmMinNameSrc;
+
   // Project configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
@@ -59,12 +65,10 @@ module.exports = function runGrunt(grunt) {
             CacheControl: 'max-age=0',
           },
         },
-        files: [{
-          expand: true,
-          cwd: 'dist',
-          src: ['**'],
-          dest: 'sdk/',
-        }],
+        files: [
+          { src: `dist/${ddmNameSrc}`, dest: `dist/${ddmName}` },
+          { src: `dist/${ddmMinNameSrc}`, dest: `dist/${ddmMinName}` },
+        ],
       },
     },
   });
@@ -82,7 +86,6 @@ module.exports = function runGrunt(grunt) {
   ]);
 
   grunt.registerTask('build:stage', [
-    'clean:pre_build',
     'aws_s3:stage',
   ]);
 };
