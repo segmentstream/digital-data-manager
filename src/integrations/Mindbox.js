@@ -593,10 +593,7 @@ class Mindbox extends Integration {
 
   onUpdatedCart(event, operation) {
     const cart = event.cart || {};
-    const { lineItems } = cart;
-    if (!lineItems || !lineItems.length) {
-      return;
-    }
+    const lineItems = cart.lineItems || [];
 
     if (this.getOption('apiVersion') === V3) {
       const customerIds = this.getCustomerIds(event);
