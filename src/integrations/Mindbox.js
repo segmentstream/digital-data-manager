@@ -541,7 +541,6 @@ class Mindbox extends Integration {
     return {
       ids: this.getProductIds(product),
       sku: (skuIds) ? { ids: skuIds } : undefined,
-      price: product.unitSalePrice,
     };
   }
 
@@ -552,6 +551,7 @@ class Mindbox extends Integration {
       return {
         product,
         count,
+        price: lineItem.subtotal || count * getProp(lineItem, 'product.unitSalePrice'),
       };
     });
   }
@@ -815,6 +815,15 @@ class Mindbox extends Integration {
     }
   }
 
+  getV3ProductForTransaction(product) {
+    const skuIds = this.getProductSkuIds(product);
+    return {
+      ids: this.getProductIds(product),
+      sku: (skuIds) ? { ids: skuIds } : undefined,
+      price: product.unitSalePrice,
+    };
+  }
+
   onCompletedTransactionV3(event, operation) {
     const customer = this.getCustomerData(event);
 
@@ -827,7 +836,7 @@ class Mindbox extends Integration {
           customs = customs && Object.keys(customs).length !== 0 ? customs : undefined;
 
           return cleanObject({
-            product: this.getV3Product(lineItem.product),
+            product: this.getV3ProductForTransaction(lineItem.product),
             quantity: lineItem.quantity || 1,
             basePricePerItem: getProp(lineItem, 'product.unitPrice'),
             customFields: customs,

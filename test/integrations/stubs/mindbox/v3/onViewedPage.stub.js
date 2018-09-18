@@ -30,9 +30,9 @@ const productList = [
           bitrixId: 'sku123',
         },
       },
-      price: 1000,
     },
     count: 2,
+    price: 2*1000,
   },
   {
     product: {
@@ -44,9 +44,10 @@ const productList = [
           bitrixId: 'sku234',
         },
       },
-      price: 1000,
     },
     count: 1,
+    price: 1000,
+
   },
 ];
 
