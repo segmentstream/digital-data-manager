@@ -1,4 +1,4 @@
-import Integration from './../Integration';
+import Integration from '../Integration';
 
 class Weborama extends Integration {
   constructor(digitalData, options) {
@@ -17,12 +17,23 @@ class Weborama extends Integration {
     this.SEMANTIC_EVENTS = Object.keys(this.getOption('eventPixels'));
     this._isLoaded = false;
 
-    this.addTag({
-      type: 'img',
-      attr: {
-        src: `https://rtbprojects.solution.weborama.fr/fcgi-bin/dispatch.fcgi?a.A=co&a.si=${options.siteId}&a.cp={{ conversionId }}&a.ct=d`,
-      },
-    });
+    const siteId = this.getOption('siteId');
+
+    if (siteId) {
+      this.addTag({
+        type: 'img',
+        attr: {
+          src: `https://rtbprojects.solution.weborama.fr/fcgi-bin/dispatch.fcgi?a.A=co&a.si=${siteId}&a.cp={{ conversionId }}&a.ct=d`,
+        },
+      });
+    } else {
+      this.addTag('weborama-event-pixel', {
+        type: 'img',
+        attr: {
+          src: '{{ url }}',
+        },
+      });
+    }
   }
 
   initialize() {
@@ -39,9 +50,13 @@ class Weborama extends Integration {
 
   trackEvent(event) {
     const eventPixels = this.getOption('eventPixels');
-    const conversionId = eventPixels[event.name];
-    if (conversionId) {
-      this.load({ conversionId });
+    if (this.getOption('siteId')) {
+      const conversionId = eventPixels[event.name];
+      if (conversionId) {
+        this.load({ conversionId });
+      }
+    } else if (eventPixels[event.name]) {
+      this.load('weborama-event-pixel', { url: eventPixels[event.name] });
     }
   }
 }
