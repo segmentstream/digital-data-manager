@@ -1,6 +1,5 @@
 import getQueryParam from 'driveback-utils/getQueryParam';
 import cookie from 'js-cookie';
-import DDHelper from './DDHelper';
 import domQuery from 'driveback-utils/domQuery';
 import loadScript from 'driveback-utils/loadScript';
 import loadLink from 'driveback-utils/loadLink';
@@ -8,13 +7,16 @@ import loadIframe from 'driveback-utils/loadIframe';
 import loadPixel from 'driveback-utils/loadPixel';
 import { getProp } from 'driveback-utils/dotProp';
 import getDataLayerProp from 'driveback-utils/getDataLayerProp';
-
+import DDHelper from './DDHelper';
+import { counterInc, counter } from './DDBehavioralAttributesHelper';
 
 class Handler {
   constructor(handler, digitalData, args) {
     this.handler = handler;
     this.args = args;
     this.utils = {
+      counterInc: (paramName, granularity, ttl) => counterInc(paramName, granularity, ttl, digitalData),
+      counter: paramName => counter(paramName, digitalData),
       queryParam: getQueryParam,
       cookie: cookie.get,
       get: (target, key) => getProp(target, key),

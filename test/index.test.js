@@ -9,6 +9,7 @@ import './../src/polyfill';
 // tests
 import './polyfillSpec';
 
+import './DDBehavioralAttributesHelper.spec';
 import './ddManagerSpec';
 import './DDHelperSpec';
 import './DDStorageSpec';

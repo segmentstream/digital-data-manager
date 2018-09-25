@@ -12,6 +12,12 @@
     "prefer-rest-params": 0,
     "prefer-spread": 0,
     "no-useless-escape": 0,
+    "no-unused-vars": [1, {
+      "vars": "local",
+      "varsIgnorePattern": "^__",
+      "args": "after-used",
+      "argsIgnorePattern": "^__"
+    }],
     "max-len": ["error", {"code": 120, "comments": 100}]
   },
   "env": {
