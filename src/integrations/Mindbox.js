@@ -16,11 +16,15 @@ import {
   REMOVED_PRODUCT,
   UPDATED_CART,
   COMPLETED_TRANSACTION,
+  ALLOWED_PUSH_NOTIFICATIONS,
+  BLOCKED_PUSH_NOTIFICATIONS,
 } from '../events/semanticEvents';
 import {
   getEnrichableVariableMappingProps,
   extractVariableMappingValues,
 } from '../IntegrationUtils';
+
+const PUSH_NOTIFICATIONS_EVENTS_CATEGORY = 'Push Notifications';
 
 const PROVIDER_USER_ID = 'userId';
 const PROVIDER_EMAIL = 'email';
@@ -58,6 +62,8 @@ class Mindbox extends Integration {
       apiVersion: V2,
       endpointId: '',
       projectSystemName: '',
+      webpush: false,
+      firebaseMessagingSenderId: '',
       brandSystemName: '',
       pointOfContactSystemName: '',
       projectDomain: '',
@@ -73,6 +79,7 @@ class Mindbox extends Integration {
       productCategoryIdsMapping: {},
       areaIdsMapping: {},
       orderIdsMapping: {},
+      pushSubscriptionTriggerEvent: 'Agreed to Receive Push Notifications',
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -90,6 +97,9 @@ class Mindbox extends Integration {
       COMPLETED_TRANSACTION,
       UPDATED_CART,
     ];
+    if (this.isWebpush()) {
+      this.SEMANTIC_EVENTS.push(this.getOption('pushSubscriptionTriggerEvent'));
+    }
 
     this.prepareEnrichableUserProps();
     this.prepareEnrichableAreaIds();
@@ -110,6 +120,16 @@ class Mindbox extends Integration {
         src: '//api.mindbox.ru/scripts/v1/tracker.js',
       },
     });
+
+    if (this.isWebpush()) {
+      this.addTag('webpush', {
+        type: 'link',
+        attr: {
+          rel: 'manifest',
+          href: 'https://api.mindbox.ru/assets/manifest.json',
+        },
+      });
+    }
   }
 
   initialize() {
@@ -118,18 +138,28 @@ class Mindbox extends Integration {
     };
     window.mindbox.queue = window.mindbox.queue || [];
 
-    if (this.getOption('apiVersion') === V3) {
-      window.mindbox('create', {
-        endpointId: this.getOption('endpointId'),
-      });
-    } else {
-      window.mindbox('create', {
+    const options = this.getOption('apiVersion') === V3
+      ? { endpointId: this.getOption('endpointId') }
+      : {
         projectSystemName: this.getOption('projectSystemName'),
         brandSystemName: this.getOption('brandSystemName'),
         pointOfContactSystemName: this.getOption('pointOfContactSystemName'),
         projectDomain: this.getOption('projectDomain'),
-      });
+      };
+
+    if (this.isWebpush()) {
+      this.load('webpush');
+      options.firebaseMessagingSenderId = this.getOption('firebaseMessagingSenderId');
     }
+
+    window.mindbox('create', options);
+
+    if (this.isWebpush()) window.mindbox('webpush.create');
+  }
+
+
+  isWebpush() {
+    return this.getOption('webpush');
   }
 
   getSemanticEvents() {
@@ -570,6 +600,15 @@ class Mindbox extends Integration {
       [UPDATED_CART]: this.onUpdatedCart.bind(this),
       [COMPLETED_TRANSACTION]: this.onCompletedTransaction.bind(this),
     };
+
+    // if event name match pushSubscriptionTriggerEvent
+    // show push notifications subscription to user, and proceed
+    // event as usial
+    const pushSubscriptionTriggerEvent = this.getOption('pushSubscriptionTriggerEvent');
+    if (pushSubscriptionTriggerEvent === event.name) {
+      this.onPushSubscriptionTriggerEvent(event);
+    }
+
     // get operation name either from email or from integration settings
     const operation = event.operation
       || getProp(event, 'integrations.mindbox.operation')
@@ -913,6 +952,24 @@ class Mindbox extends Integration {
       identificator,
       data,
     }));
+  }
+
+  onPushSubscriptionTriggerEvent() {
+    if (!this.isWebpush()) return;
+
+    const category = PUSH_NOTIFICATIONS_EVENTS_CATEGORY;
+    window.mindbox(
+      'webpush.subscribe', {
+        getSubscriptionOperation: 'GetWebPushSubscription',
+        subscribeOperation: 'SubscribeToWebpush',
+        onGranted: () => {
+          this.digitalData.events.push({ category, name: ALLOWED_PUSH_NOTIFICATIONS });
+        },
+        onDenied: () => {
+          this.digitalData.events.push({ category, name: BLOCKED_PUSH_NOTIFICATIONS });
+        },
+      },
+    );
   }
 
   onCustomEvent(event, operation) {

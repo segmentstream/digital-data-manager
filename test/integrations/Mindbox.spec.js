@@ -8,17 +8,66 @@ import ddManager from '../../src/ddManager';
 import V2Stubs from './stubs/mindbox/v2';
 import V3Stubs from './stubs/mindbox/v3';
 
+const options = {
+  projectSystemName: 'Test',
+  brandSystemName: 'drivebackru',
+  pointOfContactSystemName: 'test-services.mindbox.ru',
+  projectDomain: 'test.com',
+  userIdProvider: 'TestWebsiteId',
+  endpointId: 'endpointId',
+};
+
+describe('Integrations: Mindbox web push', () => {
+  let mindbox;
+  const pushOptions = Object.assign({
+    webpush: true,
+    pushSubscriptionTriggerEvent: 'Viewed Page',
+  }, options);
+
+  beforeEach(() => {
+    window.digitalData = {
+      website: {},
+      page: {},
+      product: {},
+      listing: {},
+      cart: {},
+      transaction: {},
+      user: {},
+      events: [],
+    };
+    mindbox = new Mindbox(window.digitalData, pushOptions);
+    ddManager.addIntegration('Mindbox', mindbox);
+
+    window.mindbox = noop;
+    sinon.stub(window, 'mindbox');
+    sinon.stub(mindbox, 'load').callsFake(() => {
+      mindbox.onLoad();
+    });
+    ddManager.initialize();
+  });
+
+  afterEach(() => {
+    mindbox.reset();
+    ddManager.reset();
+    reset();
+  });
+
+  it('should load webpush if option set', () => {
+    assert.ok(window.mindbox.calledWith('webpush.create'));
+  });
+
+  it('should call webpush subscription on trigger pushSubscriptionTriggerEvent', () => {
+    window.digitalData.events.push({
+      name: 'Viewed Page',
+      callback: () => {
+        assert.ok(window.mindbox.calledWith('webpush.subscribe', sinon.match.any));
+      },
+    });
+  });
+});
+
 describe('Integrations: Mindbox', () => {
   let mindbox;
-  const options = {
-    projectSystemName: 'Test',
-    brandSystemName: 'drivebackru',
-    pointOfContactSystemName: 'test-services.mindbox.ru',
-    projectDomain: 'test.com',
-    userIdProvider: 'TestWebsiteId',
-    endpointId: 'endpointId',
-  };
-
   beforeEach(() => {
     window.digitalData = {
       website: {},
