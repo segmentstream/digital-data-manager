@@ -36,7 +36,6 @@ import DDManagerStreaming from './integrations/DDManagerStreaming';
 import Recreativ from './integrations/Recreativ';
 import Multilead from './integrations/Multilead';
 import AdvCake from './integrations/AdvCake';
-import DuMedia from './integrations/DuMedia';
 import JivoChat from './integrations/JivoChat';
 import Adnetic from './integrations/Adnetic';
 import AnyQuery from './integrations/AnyQuery';
@@ -90,7 +89,6 @@ const integrations = {
   Recreativ,
   Multilead,
   AdvCake,
-  DuMedia,
   JivoChat,
   Adnetic,
   AnyQuery,
