@@ -8,15 +8,15 @@ import loadPixel from 'driveback-utils/loadPixel';
 import { getProp } from 'driveback-utils/dotProp';
 import getDataLayerProp from 'driveback-utils/getDataLayerProp';
 import DDHelper from './DDHelper';
-import { counterInc, counter } from './DDBehavioralAttributesHelper';
+import { counterInc, counter } from './RollingAttributesHelper';
 
 class Handler {
   constructor(handler, digitalData, args) {
     this.handler = handler;
     this.args = args;
     this.utils = {
-      counterInc: (paramName, granularity, ttl) => counterInc(paramName, granularity, ttl, digitalData),
-      counter: paramName => counter(paramName, digitalData),
+      counterInc: (key, granularity, ttl) => counterInc(key, granularity, ttl, digitalData),
+      counter: key => counter(key, digitalData),
       queryParam: getQueryParam,
       cookie: cookie.get,
       get: (target, key) => getProp(target, key),
