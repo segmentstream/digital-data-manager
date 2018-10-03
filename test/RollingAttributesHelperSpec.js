@@ -1,35 +1,66 @@
 import assert from 'assert';
-import reset from './reset';
 import {
   objectToTime,
-  cleanOrderedTimestamps,
+  cleanData,
   counterInc,
   counter,
 } from '../src/RollingAttributesHelper';
 
-describe('DDBehavioralAttributesHelper', () => {
-  // describe('#cleanOrderedTimestamps', () => {
-  //   it('should work with empty array', () => {
-  //     const data = [];
-  //     cleanOrderedTimestamps(data, 123);
-  //     assert.deepEqual(data, []);
-  //   });
+function getData(currentTime) {
+  const ct = parseInt(currentTime / 1000, 10);
+  return {
+    [ct - 10]: 9,
+    [ct - 8]: 7,
+    [ct - 5]: 2,
+    [ct - 3]: 1,
+  };
+}
 
-  //   it('should not drop topical data', () => {
-  //     const data = [[11, 9], [5, 7], [4, 2], [3, 1]];
-  //     cleanOrderedTimestamps(data, 1);
-  //     assert.deepEqual(data, [[11, 9], [5, 7], [4, 2], [3, 1]]);
-  //   });
+describe('RollingAttributesHelper', () => {
+  describe('#cleanData', () => {
+    it('should work with empty dict', () => {
+      const paramStorage = {
+        ttl: 2592000,
+        data: {},
+        granularity: 86400,
+      };
 
-  //   it('should drop outdated data', () => {
-  //     const data1 = [[11, 9], [5, 7], [4, 2], [3, 1]];
-  //     const data2 = [[11, 9], [5, 7], [4, 2], [3, 1]];
-  //     cleanOrderedTimestamps(data1, 4);
-  //     cleanOrderedTimestamps(data2, 12);
-  //     assert.deepEqual(data1, [[11, 9], [5, 7]]);
-  //     assert.deepEqual(data2, []);
-  //   });
-  // });
+      const { data } = cleanData(paramStorage);
+      assert.deepEqual(data, {});
+    });
+
+    it('should not drop topical data', () => {
+      const currentTime = Date.now();
+      const paramStorage = {
+        ttl: 2592000,
+        data: getData(currentTime),
+        granularity: 86400,
+      };
+
+      const { data } = cleanData(paramStorage, currentTime);
+      assert.deepEqual(data, getData(currentTime));
+    });
+
+    it('should drop outdated data', () => {
+      const currentTime = Date.now();
+      const ttl = 2592000;
+      const paramStorage = {
+        ttl,
+        data: getData(currentTime),
+        granularity: 86400,
+      };
+      const currentTimeShort = parseInt(currentTime / 1000, 10);
+
+
+      // clear half of data
+      const { data: data1 } = cleanData(paramStorage, currentTime + (ttl - 8) * 1000);
+      // clear all data
+      const { data: data2 } = cleanData(paramStorage, currentTime + (ttl - 3) * 1000);
+
+      assert.deepEqual(data1, { [currentTimeShort - 5]: 2, [currentTimeShort - 3]: 1 });
+      assert.deepEqual(data2, {});
+    });
+  });
 
   describe('#objectToTime', () => {
     it('should work with string arguments', () => {
@@ -59,21 +90,24 @@ describe('DDBehavioralAttributesHelper', () => {
       assert.equal(paramsStorage.data[firstKey], 2);
     });
 
-    // it('should increment counter on non empty data', () => {
-    //   const previosEventsCount = 7;
-    //   let paramsStorage = {
-    //     foo: {
-    //       ttl: 2592000000,
-    //       data: { [new Date().getTime() - 86400001]: previosEventsCount },
-    //     },
-    //   };
+    it('should increment counter on non empty data', () => {
+      const previosEventsCount = 7;
+      const timestamp = new Date().getTime() - 86400001;
+      let paramsStorage = {
+        foo: {
+          ttl: 2592000,
+          data: { [timestamp]: previosEventsCount },
+        },
+      };
 
-    //   paramsStorage = counterInc('foo', '1day', '1month', paramsStorage);
+      paramsStorage = counterInc('foo', '1day', '1month', paramsStorage);
+      const otherTimestamp = Object.keys(paramsStorage.data).filter(k => k !== timestamp)[0];
 
-    //   assert.equal(paramsStorage.data.length, 2);
-    //   assert.equal(paramsStorage.data[0][1], 1);
-    //   assert.equal(paramsStorage.data[1][1], previosEventsCount);
-    // });
+
+      assert.equal(Object.keys(paramsStorage.data).length, 2);
+      assert.equal(paramsStorage.data[timestamp], previosEventsCount);
+      assert.equal(paramsStorage.data[otherTimestamp], 1);
+    });
   });
 
   describe('#counter', () => {
@@ -83,6 +117,7 @@ describe('DDBehavioralAttributesHelper', () => {
         foo: {
           ttl: 2592000,
           data: { [new Date().getTime() - 86401]: previosEventsCount },
+          granularity: 86400,
         },
       };
 
