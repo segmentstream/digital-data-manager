@@ -1,13 +1,13 @@
-import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import { getProp } from 'driveback-utils/dotProp';
+import Integration from '../Integration';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
   VIEWED_PRODUCT_LISTING,
   SEARCHED_PRODUCTS,
   COMPLETED_TRANSACTION,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 const SEMANTIC_EVENTS = [
   VIEWED_PAGE,
@@ -18,7 +18,7 @@ const SEMANTIC_EVENTS = [
 ];
 
 function calculateLineItemSubtotal(lineItem) {
-  const product = lineItem.product;
+  const { product } = lineItem;
   const price = product.unitSalePrice || product.unitPrice || 0;
   const quantity = lineItem.quantity || 1;
   return price * quantity;
@@ -26,7 +26,7 @@ function calculateLineItemSubtotal(lineItem) {
 
 function mapLineItems(lineItems) {
   return lineItems.map((lineItem) => {
-    const product = lineItem.product;
+    const { product } = lineItem;
     const lineItemSubtotal = lineItem.subtotal || calculateLineItemSubtotal(lineItem);
     return {
       item: product.id || product.skuCode,
@@ -41,7 +41,6 @@ class Emarsys extends Integration {
     const optionsWithDefaults = Object.assign({
       merchantId: '',
       categorySeparator: ' > ',
-      noConflict: false,
     }, options);
 
     super(digitalData, optionsWithDefaults);
@@ -243,9 +242,9 @@ class Emarsys extends Integration {
 
     const method = methods[event.name];
     if (this.getOption('merchantId')) {
-      if (method && !this.getOption('noConflict')) {
+      if (method) {
         this[method](event);
-      } else if (!method) {
+      } else {
         this.trackCustomEvent(event);
       }
     }
@@ -279,7 +278,7 @@ class Emarsys extends Integration {
 
   onViewedProductListing(event) {
     const listing = event.listing || {};
-    let category = listing.category;
+    let { category } = listing;
     if (category) {
       if (Array.isArray(category)) {
         category = category.join(this.getOption('categorySeparator'));

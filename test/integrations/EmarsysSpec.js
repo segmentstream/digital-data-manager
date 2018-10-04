@@ -1,8 +1,8 @@
 import assert from 'assert';
 import sinon from 'sinon';
-import reset from './../reset';
-import Emarsys from './../../src/integrations/Emarsys';
-import ddManager from './../../src/ddManager';
+import reset from '../reset';
+import Emarsys from '../../src/integrations/Emarsys';
+import ddManager from '../../src/ddManager';
 
 function viewedPage(callback, page = {}) {
   if (!window.digitalData.page.type) {
@@ -100,7 +100,8 @@ describe('Integrations: Emarsys', () => {
       it('should add proper tags and options', () => {
         assert.equal(options.merchantId, emarsys.getOption('merchantId'));
         assert.equal('script', emarsys.getTag().type);
-        assert.equal(emarsys.getTag().attr.src, `//recommender.scarabresearch.com/js/${options.merchantId}/scarab-v2.js`);
+        assert.equal(emarsys.getTag().attr.src,
+          `//recommender.scarabresearch.com/js/${options.merchantId}/scarab-v2.js`);
       });
     });
 
