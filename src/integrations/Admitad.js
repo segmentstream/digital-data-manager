@@ -82,6 +82,7 @@ class Admitad extends Integration {
           src: `//cdn.asbmit.com/static/js/ddpixel.js?r=${Date.now()}`,
         },
       });
+      this._isLoaded = false;
     } else {
       /* eslint-disable */
       this.addTag({
@@ -103,6 +104,8 @@ class Admitad extends Integration {
   }
 
   initialize() {
+    if (this._pixelAPI) this._isLoaded = true;
+
     if (this.getOption('reTag')) {
       window._retag = window._retag || [];
     }
