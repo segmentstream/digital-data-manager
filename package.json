@@ -74,7 +74,7 @@
     "crypto-js": "^3.1.9-1",
     "driveback-utils": "git://github.com/driveback/utils.git",
     "js-cookie": "^2.2.0",
-    "lockr": "^0.8.4",
+    "lockr": "^0.8.5",
     "promise-polyfill": "8.0.0",
     "ua-parser-js": "^0.7.18",
     "uuid": "^3.3.2",
