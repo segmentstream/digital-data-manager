@@ -256,19 +256,19 @@ class Admitad extends Integration {
     const utmSource = this.getOption('utmSource');
     const deduplication = this.getOption('deduplication');
     const deduplicationUtmMedium = this.getOption('deduplicationUtmMedium');
+
     const broker = deduplication
           && isDeduplication(campaign, utmSource, deduplicationUtmMedium) ? 'na' : 'adm';
-
     window.ADMITAD.Invoice.broker = broker;
-    window.ADMITAD.Invoice.category = getProp(event, 'admitad.defaultActionCode') || '1';
 
+    window.ADMITAD.Invoice.category = getProp(event, 'admitad.defaultActionCode') || '1';
 
     const orderedItems = [];
     lineItems.forEach((lineItem) => {
       orderedItems.push(cleanObject({
         Product: {
           productID: getProp(lineItem, 'product.id'),
-          category: getProp(lineItem, 'product.categoryId'),
+          category: getProp(lineItem, 'admitad.tariffCode') || '1',
           price: getProp(lineItem, 'product.unitSalePrice') || getProp(lineItem, 'product.unitPrice'),
           priceCurrency: getProp(lineItem, 'product.currency') || getProp(event, 'website.currency'),
         },
