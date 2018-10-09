@@ -51,7 +51,7 @@ class REES46 extends Integration {
 
   getEnrichableEventProps(event) {
     switch (event.name) {
-      case VIEWED_PAGE: return ['user'];
+      case VIEWED_PAGE: return ['user', 'website'];
       case VIEWED_PRODUCT_DETAIL: return ['product'];
       case VIEWED_PRODUCT_LISTING: return ['listing.categoryId'];
       case SEARCHED_PRODUCTS: return ['listing.query'];
@@ -85,6 +85,7 @@ class REES46 extends Integration {
       email: user.email,
       gender: ['m', 'f'].indexOf(gender) >= 0 ? gender : undefined,
       birthday: user.birthDate,
+      location: getProp(event, 'website.regionId'),
     });
 
     window.r46('profile', 'set', rees46Data);
