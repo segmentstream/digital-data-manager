@@ -31,7 +31,7 @@ const ajvValidate = (schema, obj, key) => {
   }
 };
 
-export const validate = (data, schema, key) => {
+export const validate = (schema, obj, key) => {
   if (!isTestMode()) return;
   if (!ajvLoadInitiated) {
     asyncQueue.init();
@@ -40,6 +40,6 @@ export const validate = (data, schema, key) => {
   }
   asyncQueue.push(() => {
     if (!ajv) ajv = new window.Ajv();
-    ajvValidate(data, schema, key);
+    ajvValidate(schema, obj, key);
   });
 };
