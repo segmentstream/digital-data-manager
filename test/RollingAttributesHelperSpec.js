@@ -67,13 +67,14 @@ describe('RollingAttributesHelper', () => {
       assert.equal(objectToTime('1day'), 86400);
       assert.equal(objectToTime('1week'), 7 * 86400);
       assert.equal(objectToTime('1month'), 30 * 86400);
+      assert.equal(objectToTime('1year'), 365 * 86400);
       assert.equal(objectToTime('whatever'), 86400);
     });
 
     it('should work with object arguments', () => {
       assert.equal(objectToTime({ days: 2 }), 2 * 86400);
       assert.equal(objectToTime({ weeks: 3 }), 21 * 86400);
-      assert.equal(objectToTime({ monthes: 2 }), 60 * 86400);
+      assert.equal(objectToTime({ months: 2 }), 60 * 86400);
       assert.equal(objectToTime({ hours: 5 }), 5 * 3600);
       assert.equal(objectToTime({ minutes: 17 }), 17 * 60);
     });

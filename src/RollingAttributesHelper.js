@@ -12,7 +12,8 @@ export function objectToTime(obj) {
   if (typeof obj === 'string') {
     switch (obj) {
       case '1week': obj = { weeks: 1 }; break;
-      case '1month': obj = { monthes: 1 }; break;
+      case '1month': obj = { months: 1 }; break;
+      case '1year': obj = { days: 365 }; break;
       default: obj = { days: 1 };
     }
   }
@@ -23,7 +24,7 @@ export function objectToTime(obj) {
       case 'hours': time += HOUR * parseInt(val, 10); break;
       case 'days': time += DAY * parseInt(val, 10); break;
       case 'weeks': time += DAY * 7 * parseInt(val, 10); break;
-      case 'monthes': time += MONTH * parseInt(val, 10); break;
+      case 'months': time += MONTH * parseInt(val, 10); break;
       default:
     }
   });
