@@ -2,6 +2,7 @@ import loadScript from 'driveback-utils/loadScript';
 import { log, group, groupEnd } from 'driveback-utils/safeConsole';
 import { isTestMode } from './../testMode';
 import AsyncQueue from './../integrations/utils/AsyncQueue';
+import { getProp } from 'driveback-utils/dotProp';
 
 const isAjvLoaded = () => !!window.Ajv;
 const asyncQueue = new AsyncQueue(isAjvLoaded);
@@ -9,25 +10,28 @@ const asyncQueue = new AsyncQueue(isAjvLoaded);
 let ajvLoadInitiated = false;
 let ajv;
 
-const ajvValidate = (data, schema) => {
+const ajvValidate = (schema, obj, key) => {
   const validate = ajv.compile(schema);
-  const valid = validate(window.digitalData);
+  const data = (key) ? getProp(obj, key) : obj;
+  const valid = validate(data);
+
+  let prefix;
+  if (data && data.name && data.timestamp) {
+    prefix = `"${event.name}" event`;
+  } else {
+    prefix = `window.digitalData${key ? `.${key}` : ''}`;
+  }
+
   if (!valid) {
-    if (data.name && data.timestamp) {
-      group(`"${data.name}" event validation errors:`);
-    } else {
-      group('window.digitalData validation errors:');
-    }
+    group(`"${prefix}" validation errors:`);
     validate.errors.map(error => log(['%c', error.dataPath, error.message].join(' '), 'color: red'));
     groupEnd();
-  } else if (data.name && data.hasFired !== undefined) {
-    log(`%c "${event.name}" event is valid!', 'color: green`);
   } else {
-    log('%c window.digitalData is valid!', 'color: green');
+    log(`%c ${prefix} is valid!`, 'color: green');
   }
 };
 
-export const validate = (data, schema) => {
+export const validate = (data, schema, key) => {
   if (!isTestMode()) return;
   if (!ajvLoadInitiated) {
     asyncQueue.init();
@@ -36,6 +40,6 @@ export const validate = (data, schema) => {
   }
   asyncQueue.push(() => {
     if (!ajv) ajv = new window.Ajv();
-    ajvValidate(data, schema);
+    ajvValidate(data, schema, key);
   });
 };

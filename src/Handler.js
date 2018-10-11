@@ -18,7 +18,7 @@ class Handler {
     this.utils = {
       counterInc: (key, granularity, ttl) => counterInc(key, granularity, ttl, digitalData),
       counter: key => counter(key, digitalData),
-      validate: (data, schema) => validate(data, schema),
+      validate: (schema, obj, key) => validate(schema, obj, key),
       queryParam: getQueryParam,
       cookie: cookie.get,
       get: (target, key) => getProp(target, key),
