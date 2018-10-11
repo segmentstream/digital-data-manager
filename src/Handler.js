@@ -9,6 +9,7 @@ import { getProp } from 'driveback-utils/dotProp';
 import getDataLayerProp from 'driveback-utils/getDataLayerProp';
 import DDHelper from './DDHelper';
 import { counterInc, counter } from './RollingAttributesHelper';
+import { validate } from './helpers/ValidationHelper';
 
 class Handler {
   constructor(handler, digitalData, args) {
@@ -17,6 +18,7 @@ class Handler {
     this.utils = {
       counterInc: (key, granularity, ttl) => counterInc(key, granularity, ttl, digitalData),
       counter: key => counter(key, digitalData),
+      validate: (data, schema) => validate(data, schema),
       queryParam: getQueryParam,
       cookie: cookie.get,
       get: (target, key) => getProp(target, key),

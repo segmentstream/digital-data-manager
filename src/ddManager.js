@@ -94,9 +94,9 @@ function _trackIntegrationEvent(event, integration, trackValidationErrorsOption)
   const integrationName = integration.getName();
   const isInitialized = integration.isInitialized();
 
-  if (isTestMode()) {
-    logEnrichedIntegrationEvent(event, integrationName, result, messages, isInitialized);
-  }
+  // if (isTestMode()) {
+  //   logEnrichedIntegrationEvent(event, integrationName, result, messages, isInitialized);
+  // }
 
   if (result && isInitialized) {
     integration.pushEventQueue(event);
