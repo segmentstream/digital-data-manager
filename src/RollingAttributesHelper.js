@@ -72,7 +72,9 @@ export function counterInc(paramName, granularityObj, ttlObj, digitalData) {
 }
 
 export function counter(paramName, digitalData) {
-  const paramStorage = cleanData(getProp(digitalData, paramName));
+  const rawParamStorage = getProp(digitalData, paramName);
+  if (!rawParamStorage) return 0;
+  const paramStorage = cleanData(rawParamStorage);
   const data = paramStorage.data || {};
 
   return Object.keys(data).reduce((acc, timestamp) => (acc + data[timestamp]), 0);

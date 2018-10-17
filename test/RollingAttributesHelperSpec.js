@@ -112,6 +112,10 @@ describe('RollingAttributesHelper', () => {
   });
 
   describe('#counter', () => {
+    it('should return zero if counter not set', () => {
+      assert.equal(counter('whatever', {}), 0);
+    });
+
     it('should eval counter correct', () => {
       const previosEventsCount = 33;
       let paramsStorage = {
