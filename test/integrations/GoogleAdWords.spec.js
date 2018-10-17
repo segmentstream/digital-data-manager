@@ -1,8 +1,8 @@
 import assert from 'assert';
 import sinon from 'sinon';
-import reset from './../reset';
-import GoogleAdWords from './../../src/integrations/GoogleAdWords';
-import ddManager from './../../src/ddManager';
+import reset from '../reset';
+import GoogleAdWords from '../../src/integrations/GoogleAdWords';
+import ddManager from '../../src/ddManager';
 
 // Google AdWords doesn't have stubs for async loading
 // so we emulate async queue in integration and wait
@@ -55,7 +55,7 @@ function viewedSearchResults(query, callback) {
 function viewedProductDetail(product, callback) {
   window.digitalData.events.push({
     name: 'Viewed Product Detail',
-    product: product,
+    product,
     callback: asyncCallback(callback),
   });
 }
@@ -78,7 +78,6 @@ function viewedCart(cart, callback) {
 }
 
 describe('Integrations: GoogleAdWords', () => {
-
   let adwords;
   const options = {
     conversionId: '123',
@@ -89,7 +88,7 @@ describe('Integrations: GoogleAdWords', () => {
       website: {},
       page: {},
       user: {},
-      events: []
+      events: [],
     };
     adwords = new GoogleAdWords(window.digitalData, options);
     ddManager.addIntegration('Google AdWords', adwords);
@@ -102,11 +101,11 @@ describe('Integrations: GoogleAdWords', () => {
   });
 
   describe('before loading', () => {
-    beforeEach(function () {
+    beforeEach(() => {
       sinon.stub(adwords, 'load');
     });
 
-    afterEach(function () {
+    afterEach(() => {
       adwords.load.restore();
     });
 
@@ -232,7 +231,7 @@ describe('Integrations: GoogleAdWords', () => {
 
       it('should send category with default separator (digitalData)', (done) => {
         window.digitalData.listing = {
-          category: ['Category', 'Subcategory 1', 'Subcategory 2']
+          category: ['Category', 'Subcategory 1', 'Subcategory 2'],
         };
         viewedPageOfType('listing', () => {});
         viewedProductCategory(undefined, () => {
@@ -279,11 +278,9 @@ describe('Integrations: GoogleAdWords', () => {
           done();
         });
       });
-
     });
 
     describe('#onViewedProductDetail', () => {
-
       it('should send product id, value and category', (done) => {
         viewedPageOfType('product', () => {});
         viewedProductDetail({
@@ -310,7 +307,7 @@ describe('Integrations: GoogleAdWords', () => {
         window.digitalData.product = {
           id: '123',
           unitSalePrice: 100,
-          category: ['Category', 'Subcategory']
+          category: ['Category', 'Subcategory'],
         };
         viewedPageOfType('product', () => {});
         viewedProductDetail(undefined, () => {
@@ -321,7 +318,7 @@ describe('Integrations: GoogleAdWords', () => {
               ecomm_prodid: '123',
               ecomm_totalvalue: 100,
               ecomm_pagetype: 'product',
-              ecomm_category: 'Category/Subcategory'
+              ecomm_category: 'Category/Subcategory',
             },
             google_remarketing_only: true,
           }));
@@ -335,7 +332,7 @@ describe('Integrations: GoogleAdWords', () => {
           id: '123',
           skuCode: 'sku123',
           unitSalePrice: 100,
-          category: ['Category', 'Subcategory']
+          category: ['Category', 'Subcategory'],
         };
         viewedPageOfType('product', () => {});
         viewedProductDetail(undefined, () => {
@@ -346,7 +343,7 @@ describe('Integrations: GoogleAdWords', () => {
               ecomm_prodid: 'sku123',
               ecomm_totalvalue: 100,
               ecomm_pagetype: 'product',
-              ecomm_category: 'Category/Subcategory'
+              ecomm_category: 'Category/Subcategory',
             },
             google_remarketing_only: true,
           }));
@@ -360,7 +357,7 @@ describe('Integrations: GoogleAdWords', () => {
           id: '123',
           unitSalePrice: 100,
           category: 'Category',
-          subcategory: 'Subcategory'
+          subcategory: 'Subcategory',
         }, () => {
           assert.ok(window.google_trackConversion.calledOnce);
           assert.ok(window.google_trackConversion.calledWith({
@@ -369,7 +366,7 @@ describe('Integrations: GoogleAdWords', () => {
               ecomm_prodid: '123',
               ecomm_totalvalue: 100,
               ecomm_pagetype: 'product',
-              ecomm_category: 'Category/Subcategory'
+              ecomm_category: 'Category/Subcategory',
             },
             google_remarketing_only: true,
           }));
@@ -385,26 +382,26 @@ describe('Integrations: GoogleAdWords', () => {
             product: {
               id: '123',
               skuCode: 'sku123',
-              unitSalePrice: 100
+              unitSalePrice: 100,
             },
             quantity: 2,
-            subtotal: 180
+            subtotal: 180,
           },
           {
             product: {
               id: '234',
               skuCode: 'sku234',
-              unitSalePrice: 100
+              unitSalePrice: 100,
             },
-            quantity: 2
-          }
+            quantity: 2,
+          },
         ],
-        subtotal: 300
+        subtotal: 300,
       };
 
       it('should send product ids, value and pagetype', (done) => {
         viewedPageOfType('cart', () => {});
-        viewedCart(cart , () => {
+        viewedCart(cart, () => {
           assert.ok(window.google_trackConversion.calledOnce);
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
@@ -416,13 +413,13 @@ describe('Integrations: GoogleAdWords', () => {
             google_remarketing_only: true,
           }));
           done();
-        })
+        });
       });
 
       it('should send product ids, value and pagetype (digitalData)', (done) => {
         window.digitalData.cart = cart;
         viewedPageOfType('cart', () => {});
-        viewedCart(undefined , () => {
+        viewedCart(undefined, () => {
           assert.ok(window.google_trackConversion.calledOnce);
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
@@ -434,14 +431,14 @@ describe('Integrations: GoogleAdWords', () => {
             google_remarketing_only: true,
           }));
           done();
-        })
+        });
       });
 
       it('should send product sdkIds, value and pagetype (digitalData)', (done) => {
         adwords.setOption('feedWithGroupedProducts', true);
         window.digitalData.cart = cart;
         viewedPageOfType('cart', () => {});
-        viewedCart(undefined , () => {
+        viewedCart(undefined, () => {
           assert.ok(window.google_trackConversion.calledOnce);
           assert.ok(window.google_trackConversion.calledWith({
             google_conversion_id: adwords.getOption('conversionId'),
@@ -453,7 +450,7 @@ describe('Integrations: GoogleAdWords', () => {
             google_remarketing_only: true,
           }));
           done();
-        })
+        });
       });
     });
 
@@ -465,21 +462,21 @@ describe('Integrations: GoogleAdWords', () => {
             product: {
               id: '123',
               skuCode: 'sku123',
-              unitSalePrice: 100
+              unitSalePrice: 100,
             },
             quantity: 2,
-            subtotal: 180
+            subtotal: 180,
           },
           {
             product: {
               id: '234',
               skuCode: 'sku234',
-              unitSalePrice: 100
+              unitSalePrice: 100,
             },
-            quantity: 2
-          }
+            quantity: 2,
+          },
         ],
-        subtotal: 300
+        subtotal: 300,
       };
 
       it('should send product ids, value and pagetype', (done) => {
@@ -518,7 +515,7 @@ describe('Integrations: GoogleAdWords', () => {
       });
 
       it('should send product ids, value and pagetype (digitalData)', (done) => {
-        adwords.setOption('feedWithGroupedProducts', true)
+        adwords.setOption('feedWithGroupedProducts', true);
         window.digitalData.transaction = transaction;
         viewedPageOfType('confirmation', () => {});
         completedTransaction(undefined, () => {

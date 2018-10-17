@@ -1,6 +1,8 @@
+import cleanObject from 'driveback-utils/cleanObject';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import Integration from '../Integration';
 import AsyncQueue from './utils/AsyncQueue';
+
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -44,18 +46,35 @@ class GoogleAdWords extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
       conversionId: '',
+      apiVersion: '',
       businessType: BUSINESS_TYPE_RETAIL,
       feedWithGroupedProducts: false,
     }, options);
 
     super(digitalData, optionsWithDefaults);
+    this.isLoaded = this.isLoaded.bind(this);
 
-    this.addTag({
-      type: 'script',
-      attr: {
-        src: '//www.googleadservices.com/pagead/conversion_async.js',
-      },
-    });
+    if (this.isGtag()) {
+      this.addTag({
+        type: 'script',
+        attr: {
+          async: true,
+          src: `//www.googletagmanager.com/gtag/js?id=${this.getOption('conversionId')}`,
+        },
+      });
+      this.load();
+    } else {
+      this.addTag({
+        type: 'script',
+        attr: {
+          src: '//www.googleadservices.com/pagead/conversion_async.js',
+        },
+      });
+    }
+  }
+
+  isGtag() {
+    return this.getOption('apiVersion') === 'gtag.js';
   }
 
   getSemanticEvents() {
@@ -78,6 +97,9 @@ class GoogleAdWords extends Integration {
       case VIEWED_PRODUCT_LISTING:
         enrichableProps = this.getOption('businessType') === BUSINESS_TYPE_RETAIL
           ? ['listing.category'] : ['listing.items'];
+        break;
+      case SEARCHED_PRODUCTS:
+        enrichableProps = ['listing.items'];
         break;
       case VIEWED_CART:
       case STARTED_ORDER:
@@ -198,19 +220,35 @@ class GoogleAdWords extends Integration {
   }
 
   initialize() {
-    this.asyncQueue = new AsyncQueue(this.isLoaded);
+    if (this.isGtag()) {
+      window.dataLayer = window.dataLayer || [];
+
+      if (!window.gtag) {
+        const gtag = function gtag() { window.dataLayer.push(arguments); };
+        gtag('js', new Date());
+        window.gtag = gtag;
+      }
+      window.gtag('config', this.getOption('trackingId'), { send_page_view: false });
+    } else {
+      this.asyncQueue = new AsyncQueue(this.isLoaded);
+    }
   }
 
   onLoadInitiated() {
-    this.asyncQueue.init();
+    if (!this.isGtag()) this.asyncQueue.init();
   }
 
   isLoaded() {
+    if (this.isGtag()) return !!window.gtag;
     return !!window.google_trackConversion;
   }
 
   reset() {
-    deleteProperty(window, 'google_trackConversion');
+    if (this.isGtag()) {
+      deleteProperty(window, 'gtag');
+    } else {
+      deleteProperty(window, 'google_trackConversion');
+    }
   }
 
   trackEvent(event) {
@@ -230,12 +268,17 @@ class GoogleAdWords extends Integration {
     }
   }
 
+  trackGtag(eventName, params) {
+    params.send_to = this.getOption('conversionId');
+    window.gtag('event', eventName, cleanObject(params));
+  }
+
   trackConversion(params) {
-    const trackConversionEvent = {
+    const trackConversionEvent = cleanObject({
       google_conversion_id: this.getOption('conversionId'),
       google_custom_params: params,
       google_remarketing_only: true,
-    };
+    });
     if (this.isLoaded()) {
       window.google_trackConversion(trackConversionEvent);
     } else {
@@ -243,6 +286,24 @@ class GoogleAdWords extends Integration {
         window.google_trackConversion(trackConversionEvent);
       });
     }
+  }
+
+  getViewedCartParams(productIds, totalPrice) {
+    const pageType = this.getOption('businessType') === BUSINESS_TYPE_CUSTOM ? 'conversionintent' : 'cart';
+
+    return {
+      [`${this.getPrefix()}_prodid`]: productIds,
+      [`${this.getPrefix()}_totalvalue`]: totalPrice,
+      [`${this.getPrefix()}_pagetype`]: pageType,
+    };
+  }
+
+  getOrderStartParams(productIds, totalPrice) {
+    return {
+      [`${this.getPrefix()}_itemid`]: productIds,
+      [`${this.getPrefix()}_pagetype`]: 'conversionintent',
+      [`${this.getPrefix()}_totalvalue`]: totalPrice,
+    };
   }
 
   getPrefix() {
@@ -260,7 +321,7 @@ class GoogleAdWords extends Integration {
     };
   }
 
-  getViewedProductDetailParams(productId, unitSalePrice, category) {
+  getViewedProductDetailParams(productId, category, unitPrice, unitSalePrice) {
     switch (this.getOption('businessType')) {
       case BUSINESS_TYPE_CUSTOM:
         return {
@@ -268,12 +329,13 @@ class GoogleAdWords extends Integration {
           [`${this.getPrefix()}_itemid`]: productId,
           [`${this.getPrefix()}_totalvalue`]: unitSalePrice,
         };
-      default:
+      default: // retail
         return {
           [`${this.getPrefix()}_pagetype`]: 'product',
           [`${this.getPrefix()}_prodid`]: productId,
           [`${this.getPrefix()}_totalvalue`]: unitSalePrice,
           [`${this.getPrefix()}_category`]: category,
+          isSaleItem: this.isGtag() ? unitSalePrice < unitPrice : undefined,
         };
     }
   }
@@ -287,6 +349,7 @@ class GoogleAdWords extends Integration {
         };
       default:
         return {
+          [`${this.getPrefix()}_prodid`]: this.isGtag() ? productIds : undefined,
           [`${this.getPrefix()}_pagetype`]: 'category',
           [`${this.getPrefix()}_category`]: category,
         };
@@ -302,6 +365,7 @@ class GoogleAdWords extends Integration {
         };
       default:
         return {
+          [`${this.getPrefix()}_prodid`]: this.isGtag() ? productIds : undefined,
           [`${this.getPrefix()}_pagetype`]: 'searchresults',
         };
     }
@@ -329,16 +393,21 @@ class GoogleAdWords extends Integration {
     this.pageTracked = false;
     setTimeout(() => {
       if (!this.pageTracked) {
-        this.trackConversion(this.getViewedPageParams(page.type));
+        const params = this.getViewedPageParams(page.type);
+        if (this.isGtag()) {
+          this.trackGtag('page_view', params);
+        } else {
+          this.trackConversion(params);
+        }
       }
     }, 100);
   }
 
   onViewedProductDetail(event) {
     const { product } = event;
-    if (!product) {
-      return;
-    }
+
+    if (!product) return;
+
     let { category } = product;
     if (Array.isArray(category)) {
       category = category.join('/');
@@ -350,8 +419,12 @@ class GoogleAdWords extends Integration {
     const productId = (!feedWithGroupedProducts) ? product.id : product.skuCode;
     const unitSalePrice = product.unitSalePrice || 0;
 
-    const params = this.getViewedProductDetailParams(productId, unitSalePrice, category);
-    this.trackConversion(params);
+    const params = this.getViewedProductDetailParams(productId, category, product.unitPrice, unitSalePrice);
+    if (this.isGtag()) {
+      this.trackGtag('page_view', params);
+    } else {
+      this.trackConversion(params);
+    }
 
     this.pageTracked = true;
   }
@@ -359,9 +432,13 @@ class GoogleAdWords extends Integration {
   onSearchedProducts(event) {
     const listing = event.listing || [];
     const productIds = itemsToProductIds(listing.items);
-    const params = this.getSearchedProductsParams(productIds);
 
-    this.trackConversion(params);
+    const params = this.getSearchedProductsParams(productIds);
+    if (this.isGtag()) {
+      this.trackGtag('page_view', params);
+    } else {
+      this.trackConversion(params);
+    }
     this.pageTracked = true;
   }
 
@@ -371,32 +448,40 @@ class GoogleAdWords extends Integration {
 
     if (listing) {
       let { category } = listing;
-      if (category) {
-        if (Array.isArray(category)) {
-          category = category.join('/');
-        }
+
+      if (Array.isArray(category)) {
+        category = category.join('/');
       }
+
       const productIds = itemsToProductIds(listing.items);
       params = this.getViewedProductListingParams(productIds, category);
     }
 
-    this.trackConversion(params);
+    if (this.isGtag()) {
+      this.trackGtag('page_view', params);
+    } else {
+      this.trackConversion(params);
+    }
     this.pageTracked = true;
   }
 
   onViewedCart(event) {
     const { cart } = event;
     const businessType = this.getOption('businessType');
-    if (!cart || (businessType && businessType !== BUSINESS_TYPE_RETAIL)) {
+    if (!cart
+        || (!this.isGtag()
+            && (businessType && businessType !== BUSINESS_TYPE_RETAIL))) {
       return;
     }
 
     const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
-    this.trackConversion({
-      ecomm_prodid: lineItemsToProductIds(cart.lineItems, feedWithGroupedProducts),
-      ecomm_pagetype: 'cart',
-      ecomm_totalvalue: cart.subtotal || cart.total || 0,
-    });
+    const productIds = lineItemsToProductIds(cart.lineItems, feedWithGroupedProducts);
+    const params = this.getViewedCartParams(productIds, cart.subtotal || cart.total || 0);
+    if (this.isGtag()) {
+      this.trackGtag('page_view', params);
+    } else {
+      this.trackConversion(params);
+    }
     this.pageTracked = true;
   }
 
@@ -408,26 +493,33 @@ class GoogleAdWords extends Integration {
     }
 
     const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
-    this.trackConversion({
-      [`${this.getPrefix()}_itemid`]: lineItemsToProductIds(cart.lineItems, feedWithGroupedProducts),
-      [`${this.getPrefix()}_pagetype`]: 'conversionintent',
-      [`${this.getPrefix()}_totalvalue`]: cart.subtotal || cart.total || 0,
-    });
+    const productIds = lineItemsToProductIds(cart.lineItems, feedWithGroupedProducts);
+    const totalPrice = cart.subtotal || cart.total || 0;
+    const params = this.getOrderStartParams(productIds, totalPrice);
+
+    if (this.isGtag()) {
+      this.trackGtag('page_view', params);
+    } else {
+      this.trackConversion(params);
+    }
     this.pageTracked = true;
   }
 
   onCompletedTransaction(event) {
     const { transaction } = event;
-    if (!transaction) {
-      return;
-    }
+
+    if (!transaction) return;
 
     const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
     const productIds = lineItemsToProductIds(transaction.lineItems, feedWithGroupedProducts);
     const transactionTotal = transaction.subtotal || transaction.total || 0;
-    const params = this.getCompletedTransactionParams(productIds, transactionTotal);
 
-    this.trackConversion(params);
+    const params = this.getCompletedTransactionParams(productIds, transactionTotal);
+    if (this.isGtag()) {
+      this.trackGtag('page_view', params);
+    } else {
+      this.trackConversion(params);
+    }
 
     this.pageTracked = true;
   }
