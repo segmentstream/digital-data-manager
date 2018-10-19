@@ -4,46 +4,46 @@ console.warn = () => {};
 
 // window.__DEV_MODE__ = true; // disable catching exceptions
 
-import './../src/polyfill';
+import '../src/polyfill';
 
 // tests
-import './polyfillSpec';
+import './polyfill.spec';
 
-import './RollingAttributesHelperSpec';
-import './ddManagerSpec';
-import './DDHelperSpec';
-import './DDStorageSpec';
-import './EventManagerSpec';
-import './EventDataEnricherSpec';
-import './DigitalDataEnricherSpec';
-import './EventValidatorSpec';
+import './RollingAttributesHelper.spec';
+import './ddManager.spec';
+import './DDHelper.spec';
+import './DDStorage.spec';
+import './EventManager.spec';
+import './EventDataEnricher.spec';
+import './DigitalDataEnricher.spec';
+import './EventValidator.spec';
 
 // enrichments & events
-import './enrichments/CustomEnrichmentsSpec';
-import './events/CustomEventsSpec';
-import './scripts/CustomScriptsSpec';
+import './enrichments/CustomEnrichments.spec';
+import './events/CustomEvents.spec';
+import './scripts/CustomScripts.spec';
 
 // trackers
-import './trackers/trackLinkSpec';
+import './trackers/trackLink.spec';
 
 // integrations
-import './integrations/GoogleAnalyticsSpec';
-import './integrations/GoogleTagManagerSpec';
-import './integrations/GoogleAdWordsSpec';
-import './integrations/DrivebackSpec';
-import './integrations/RetailRocketSpec';
-import './integrations/FacebookPixelSpec';
-import './integrations/SegmentStreamSpec';
-import './integrations/SendPulseSpec';
-import './integrations/OWOXBIStreamingSpec';
-import './integrations/CriteoSpec';
-import './integrations/MyTargetSpec';
-import './integrations/YandexMetricaSpec';
-import './integrations/VkontakteSpec';
-import './integrations/EmarsysSpec';
-import './integrations/OneSignalSpec';
-import './integrations/SociomanticSpec';
-import './integrations/MindboxSpec';
-import './integrations/DoubleClickFloodlightSpec';
-import './integrations/RTBHouseSpec';
-import './integrations/SolowaySpec';
+import './integrations/GoogleAnalytics.spec';
+import './integrations/GoogleTagManager.spec';
+import './integrations/GoogleAdWords.spec';
+import './integrations/Driveback.spec';
+import './integrations/RetailRocket.spec';
+import './integrations/FacebookPixel.spec';
+import './integrations/SegmentStream.spec';
+import './integrations/SendPulse.spec';
+import './integrations/OWOXBIStreaming.spec';
+import './integrations/Criteo.spec';
+import './integrations/MyTarget.spec';
+import './integrations/YandexMetrica.spec';
+import './integrations/Vkontakte.spec';
+import './integrations/Emarsys.spec';
+import './integrations/OneSignal.spec';
+import './integrations/Sociomantic.spec';
+import './integrations/Mindbox.spec';
+import './integrations/DoubleClickFloodlight.spec';
+import './integrations/RTBHouse.spec';
+import './integrations/Soloway.spec';
