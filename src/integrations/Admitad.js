@@ -261,7 +261,8 @@ class Admitad extends Integration {
           && isDeduplication(campaign, utmSource, deduplicationUtmMedium) ? 'na' : 'adm';
     window.ADMITAD.Invoice.broker = broker;
 
-    window.ADMITAD.Invoice.category = getProp(event, 'admitad.defaultActionCode') || '1';
+    window.ADMITAD.Invoice.category = getProp(event, 'integrations.admitad.actionCode')
+      || this.getOption('defaultActionCode') || '1';
 
     const orderedItems = [];
     lineItems.forEach((lineItem) => {
