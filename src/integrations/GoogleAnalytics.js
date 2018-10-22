@@ -97,6 +97,7 @@ class GoogleAnalytics extends Integration {
       noConflict: false,
       // useProxy: false,
       checkoutOptions: ['option', 'paymentMethod', 'shippingMethod'],
+      clientIdCustomDimension: undefined,
       transliteration: false,
     }, options);
 
@@ -516,6 +517,8 @@ class GoogleAnalytics extends Integration {
         this.initializeTracker(this.getOption('alternativeTrackingId'), this.getOption('alternativeNamespace'));
       }
 
+      this.sendClientId();
+
       // https://support.google.com/analytics/answer/2558867?hl=en
       if (this.getOption('enhancedLinkAttribution')) {
         this.ga(['require', 'linkid', 'linkid.js'], this.getOption('noConflict'));
@@ -532,20 +535,18 @@ class GoogleAnalytics extends Integration {
       // anonymize after initializing, otherwise a warning is shown
       // in google analytics debugger
       if (this.getOption('anonymizeIp')) this.ga(['set', 'anonymizeIp', true], this.getOption('noConflict'));
-
-      // send client id
-      const clientIdCustomDimension = this.getOption('clientIdCustomDimension');
-      if (clientIdCustomDimension) {
-        window.ga((tracker) => {
-          const trackerName = this.getOption('namespace');
-          tracker = tracker || window.ga.getByName(trackerName);
-          const clientId = tracker.get('clientId');
-          tracker.set(clientIdCustomDimension, clientId);
-        });
-      }
     }
 
     this.enrichDigitalData();
+  }
+
+  sendClientId() {
+    const clientIdCustomDimension = this.getOption('clientIdCustomDimension');
+    if (clientIdCustomDimension) {
+      this.ga(['set', 'customTask', (model) => {
+        model.set(clientIdCustomDimension, model.get('clientId'));
+      }]);
+    }
   }
 
   prepareCustomDimensions() {
