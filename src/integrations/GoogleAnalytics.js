@@ -95,7 +95,7 @@ class GoogleAnalytics extends Integration {
       namespace: undefined,
       alternativeNamespace: undefined,
       noConflict: false,
-      useProxy: false,
+      // useProxy: false,
       checkoutOptions: ['option', 'paymentMethod', 'shippingMethod'],
       transliteration: false,
     }, options);
@@ -109,12 +109,12 @@ class GoogleAnalytics extends Integration {
       },
     });
 
-    this.addTag('proxy', {
-      type: 'script',
-      attr: {
-        src: 'https://google-analytics.ddmanager.ru/proxy/analytics.js',
-      },
-    });
+    // this.addTag('proxy', {
+    //   type: 'script',
+    //   attr: {
+    //     src: 'https://google-analytics.ddmanager.ru/proxy/analytics.js',
+    //   },
+    // });
   }
 
   getSemanticEvents() {
@@ -858,9 +858,9 @@ class GoogleAnalytics extends Integration {
   }
 
   onViewedPage(event) {
-    if (!this.pageCalled && this.getOption('useProxy') === true) {
-      this.load('proxy');
-    }
+    // if (!this.pageCalled && this.getOption('useProxy') === true) {
+    //   this.load('proxy');
+    // }
 
     // send global id
     const { page } = event;
