@@ -17,13 +17,13 @@ const ajvValidate = (schema, obj, key) => {
 
   let prefix;
   if (data && data.name && data.timestamp) {
-    prefix = `"${event.name}" event`;
+    prefix = `"${data.name}" event`;
   } else {
     prefix = `window.digitalData${key ? `.${key}` : ''}`;
   }
 
   if (!valid) {
-    group(`"${prefix}" validation errors:`);
+    group(`${prefix} validation errors:`);
     validate.errors.map(error => log(['%c', error.dataPath, error.message].join(' '), 'color: red'));
     groupEnd();
   } else {
