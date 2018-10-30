@@ -24,7 +24,7 @@ const ajvValidate = (schema, obj, key) => {
 
   if (!valid) {
     group(`${prefix} validation errors:`);
-    validate.errors.map(error => log(['%c', error.dataPath, error.message].join(' '), 'color: red'));
+    validate.errors.forEach(error => log(['%c', error.dataPath, error.message].join(' '), 'color: red'));
     groupEnd();
   } else {
     log(`%c ${prefix} is valid!`, 'color: green');
@@ -39,7 +39,7 @@ export const validate = (schema, obj, key) => {
     ajvLoadInitiated = true;
   }
   asyncQueue.push(() => {
-    if (!ajv) ajv = new window.Ajv();
+    if (!ajv) ajv = new window.Ajv({ allErrors: true });
     ajvValidate(schema, obj, key);
   });
 };
