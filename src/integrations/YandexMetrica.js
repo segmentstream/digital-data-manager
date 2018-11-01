@@ -333,7 +333,8 @@ class YandexMetrica extends Integration {
       });
     };
 
-    if (window[this.yaCallbacksArrayName]) {
+    if (!this.isLoaded() && window[this.yaCallbacksArrayName]) {
+      // callback will work only if library is not loaded yet
       window[this.yaCallbacksArrayName].push(() => {
         newCounter();
       });
@@ -372,7 +373,10 @@ class YandexMetrica extends Integration {
   }
 
   isLoaded() {
-    return !!(window.Ya && (window.Ya.Metrika || window.Ya.Metrika2));
+    return window.Ya && (
+      (this.getOption('webvisorVersion') === 1 && window.Ya.Metrika) ||
+      (this.getOption('webvisorVersion') === 2 && window.Ya.Metrika2)
+    );
   }
 
   reset() {
