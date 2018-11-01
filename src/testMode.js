@@ -27,37 +27,18 @@ export function prepareValueForLog(value) {
   return value;
 }
 
-export function showTestModeOverlay() {
-  const css = [
-    'position: fixed',
-    'width: 100%',
-    'bottom: 0',
-    'font-size: 15px',
-    "font-family: 'Helvetica Neue',Helvetica, Arial",
-    'text-align: center',
-    'background-color: #1392e0',
-    'opacity: 0.5',
-    'color: #FFF !important',
-    'padding: 5px 0',
-    'z-index: 2147483646',
-    'line-height: 15px',
-    '-webkit-transform: translate3d(0,0,0)',
-  ];
-  const overlayDiv = document.createElement('div');
-  overlayDiv.innerHTML = '<a style="color: #fff;" href="#" onclick="window.localStorage.removeItem(\'_ddm_test_mode\');location.reload();return false;">Выйти из превью</a>';
-
-  overlayDiv.style.cssText = css.join(';');
-  document.addEventListener('DOMContentLoaded', () => {
-    document.body.appendChild(overlayDiv);
-  }, false);
+export function showTestModeMessage() {
+  log('%c DigitalDataManager: Test Mode', 'color: blue; font-size: 18px');
 }
 
 export function logValidationResult(event, messages) {
   messages.forEach(([field, errorMsg, value, resultType]) => {
     if (resultType === TYPE_SUCCESS) {
-      log(`%c[${resultType}] ${field}: ${prepareValueForLog(value)}`, `color: ${validationMessagesColors[resultType]};`);
+      log(`%c[${resultType}] ${field}: ${prepareValueForLog(value)}`,
+        `color: ${validationMessagesColors[resultType]};`);
     } else {
-      log(`%c[${resultType}] ${field} ${errorMsg}: ${prepareValueForLog(value)}`, `color: ${validationMessagesColors[resultType]};`);
+      log(`%c[${resultType}] ${field} ${errorMsg}: ${prepareValueForLog(value)}`,
+        `color: ${validationMessagesColors[resultType]};`);
     }
   });
 }
@@ -80,4 +61,4 @@ export function logEnrichedIntegrationEvent(
   groupEnd();
 }
 
-export default { isTestMode, showTestModeOverlay };
+export default { isTestMode, showTestModeMessage };

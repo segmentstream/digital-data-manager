@@ -14,7 +14,7 @@ import CustomScripts from './scripts/CustomScripts';
 import Storage from './Storage';
 import DDStorage from './DDStorage';
 import CookieStorage from './CookieStorage';
-import { isTestMode, logEnrichedIntegrationEvent, showTestModeOverlay } from './testMode';
+import { isTestMode, logEnrichedIntegrationEvent, showTestModeMessage } from './testMode';
 import { VIEWED_PAGE, mapEvent } from './events/semanticEvents';
 import { validateIntegrationEvent, trackValidationErrors } from './EventValidator';
 import { enableErrorTracking } from './ErrorTracker';
@@ -322,7 +322,7 @@ const ddManager = {
 
     if (isTestMode()) {
       try {
-        showTestModeOverlay();
+        showTestModeMessage();
       } catch (e) {
         errorLog(e);
       }
