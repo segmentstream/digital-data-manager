@@ -297,7 +297,7 @@ class YandexMetrica extends Integration {
   }
 
   yaCounterCall(method, args) {
-    if (window[this.yaCallbacksArrayName]) {
+    if (!this.isLoaded() && window[this.yaCallbacksArrayName]) {
       window[this.yaCallbacksArrayName].push(() => {
         this.yaCounter[method].apply(this, args);
       });
