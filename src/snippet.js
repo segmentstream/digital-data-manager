@@ -8,7 +8,7 @@
   c.changes = c.changes || [];
   if (!b.initialize) if (b.invoked) window.console && console.error && console.error('Digital Data Manager snippet included twice.'); else {
     b.invoked = !0;
-    b.methods = 'initialize addIntegration persist unpersist on once off'.split(' ');
+    b.methods = 'initialize addIntegration persist unpersist on once off getConsent setConsent'.split(' ');
     b.factory = function(a) {
       return function() {
         var c = Array.prototype.slice.call(arguments);

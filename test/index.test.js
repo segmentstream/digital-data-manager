@@ -11,6 +11,7 @@ import './polyfill.spec';
 
 import './RollingAttributesHelper.spec';
 import './ddManager.spec';
+import './ConsentManager.spec';
 import './DDHelper.spec';
 import './DDStorage.spec';
 import './EventManager.spec';

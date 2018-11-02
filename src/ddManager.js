@@ -21,6 +21,7 @@ import { validateIntegrationEvent, trackValidationErrors } from './EventValidato
 import { enableErrorTracking } from './ErrorTracker';
 import { trackLink, trackImpression } from './trackers';
 import DDManagerStreaming from './integrations/DDManagerStreaming';
+import ConsentManager from './ConsentManager';
 
 /**
  * @type {Object}
@@ -107,6 +108,8 @@ function _trackIntegrationEvent(event, integration, trackValidationErrorsOption)
 }
 
 function _shouldTrackEvent(event, integrationName) {
+  if (!ConsentManager.isConsentObtained()) return false;
+
   const ex = event.excludeIntegrations;
   const inc = event.includeIntegrations;
 
@@ -129,7 +132,6 @@ function _initializeIntegrations(settings) {
     const mappedEventName = mapEvent(event.name);
 
     const integrations = IntegrationsLoader.getIntegrationsByPriority();
-
     // initialization circle (only for "Viewed Page" event)
     if (mappedEventName === VIEWED_PAGE) {
       integrations.forEach((integration) => {
@@ -218,6 +220,9 @@ const ddManager = {
 
   VERSION: '1.2.183',
 
+  setConsent: ConsentManager.setConsent,
+  getConsent: ConsentManager.getConsent,
+
   setAvailableIntegrations: (availableIntegrations) => {
     IntegrationsLoader.setAvailableIntegrations(availableIntegrations);
   },
@@ -256,6 +261,7 @@ const ddManager = {
       trackValidationErrors: false,
       trackJsErrors: false,
       enableMonitoring: true,
+      cookieConsent: 'none',
     }, settings);
 
     if (_isReady) {
@@ -277,6 +283,8 @@ const ddManager = {
     } else {
       _ddStorage = new DDStorage(_digitalData, localStorage, cookieStorage);
     }
+
+    ConsentManager.initialize(settings.cookieConsent, _digitalData, _ddStorage);
 
     // initialize digital data enricher
     _digitalDataEnricher = new DigitalDataEnricher(_digitalData, _ddListener, _ddStorage, {
