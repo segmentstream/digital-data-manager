@@ -9,11 +9,9 @@ steps:
   - 'SAUCE_ACCESS_KEY=${_SAUCE_ACCESS_KEY}'
 - name: 'gcr.io/cloud-builders/npm'
   args: ['run', 'dist']
+- name: gcr.io/cloud-builders/gsutil
+  args: ["-m", "rsync", "-r", "-c", "-d", "./dist", "${_DDM_BUCKET_NAME}/sdk/"]
 artifacts:
   objects:
     location: 'gs://${_BUCKET_NAME}/sdk/'
-    paths: ['dist/dd-manager.js', 'dist/dd-manager.min.js']
-artifacts:
-  objects:
-    location: 'gs://${_DDM_BUCKET_NAME}/sdk/'
     paths: ['dist/dd-manager.js', 'dist/dd-manager.min.js']
