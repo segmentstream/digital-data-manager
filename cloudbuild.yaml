@@ -10,7 +10,7 @@ steps:
 - name: 'gcr.io/cloud-builders/npm'
   args: ['run', 'dist']
 - name: gcr.io/cloud-builders/gsutil
-  args: ["-m", "rsync", "-r", "-c", "-d", "./dist", "${_DDM_BUCKET_NAME}/sdk/"]
+  args: ["-m", "rsync", "-r", "-c", "-d", "./dist", "gs://${_DDM_BUCKET_NAME}/sdk/"]
 artifacts:
   objects:
     location: 'gs://${_BUCKET_NAME}/sdk/'
