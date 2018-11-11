@@ -11,5 +11,5 @@ steps:
   args: ['run', 'dist']
 artifacts:
   objects:
-    location: 'gs://${_BUCKET_NAME}/sdk/'
+    location: ['gs://${_BUCKET_NAME}/sdk/', 'gs://${_DDM_BUCKET_NAME}/sdk/']
     paths: ['dist/dd-manager.js', 'dist/dd-manager.min.js']
