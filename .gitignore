@@ -7,5 +7,4 @@ sauce.json
 deploy
 sauce_connect.log
 build/*
-dist/*
 snippet/snippet*

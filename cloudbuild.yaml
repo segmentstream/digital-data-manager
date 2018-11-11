@@ -1,0 +1,15 @@
+steps:
+- name: 'gcr.io/cloud-builders/npm'
+  args: ['install']
+- name: 'gcr.io/cloud-builders/npm'
+  args: ['test']
+  env: 
+  - 'SAUCE_ENABLED=true'
+  - 'SAUCE_USERNAME=${_SAUCE_USERNAME}'
+  - 'SAUCE_ACCESS_KEY=${_SAUCE_ACCESS_KEY}'
+- name: 'gcr.io/cloud-builders/npm'
+  args: ['run', 'dist']
+artifacts:
+  objects:
+    location: 'gs://${_BUCKET_NAME}/sdk/'
+    paths: ['dist/dd-manager.js', 'dist/dd-manager.min.js']

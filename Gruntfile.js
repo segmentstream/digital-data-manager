@@ -1,3 +1,6 @@
+const fs = require('fs');
+
+
 module.exports = function runGrunt(grunt) {
   const ddmNameSrc = 'dd-manager.js';
   const ddmMinNameSrc = 'dd-manager.min.js';
@@ -31,7 +34,10 @@ module.exports = function runGrunt(grunt) {
     clean: {
       pre_build: ['deploy/dd-manager.js'],
     },
-    aws: grunt.file.readJSON('aws-keys.json'),
+    aws: (fs.existsSync('aws-keys.json')) ? grunt.file.readJSON('aws-keys.json') : {
+      AWSAccessKeyId: process.env.AWS_ACCESS_KEY,
+      AWSSecretKey: process.env.AWS_SECRET_KEY,
+    },
     aws_s3: {
       options: {
         accessKeyId: '<%= aws.AWSAccessKeyId %>', // Use the variables

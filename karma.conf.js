@@ -1,4 +1,5 @@
 const fs = require('fs');
+const uuid = require('uuid');
 
 module.exports = function init(config) {
   let customLaunchers;
@@ -114,9 +115,9 @@ module.exports = function init(config) {
 
     sauceLabs: {
       testName: 'Digital Data Manager Unit Tests',
-      tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
+      tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER || uuid.v4(),
       recordScreenshots: false,
-      startConnect: false,
+      startConnect: true,
       // connectOptions: {
       //   port: 5757,
       //   logfile: 'sauce_connect.log'
@@ -155,7 +156,7 @@ module.exports = function init(config) {
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: process.env.MOCHA ? ['mocha'/* , 'saucelabs' */] : ['dots'/* , 'saucelabs' */],
+    reporters: process.env.MOCHA ? ['mocha', 'saucelabs'] : ['dots', 'saucelabs'],
 
     mochaReporter: {
       showDiff: true,
