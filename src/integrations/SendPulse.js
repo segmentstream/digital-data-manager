@@ -1,6 +1,6 @@
-import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import { getProp } from 'driveback-utils/dotProp';
+import Integration from '../Integration';
 
 class SendPulse extends Integration {
   constructor(digitalData, options) {
@@ -87,7 +87,7 @@ class SendPulse extends Integration {
   }
 
   checkPushNotificationsSupport() {
-    const oSpP = window.oSpP;
+    const { oSpP } = window;
 
     if (!oSpP.detectSite()) {
       return false;
@@ -112,7 +112,7 @@ class SendPulse extends Integration {
     }
     if (browserName === 'safari') {
       return oSpP.isSafariNotificationSupported();
-    } else if (this.isHttps()) {
+    } if (this.isHttps()) {
       return oSpP.isServiceWorkerChromeSupported();
     }
 
@@ -120,8 +120,7 @@ class SendPulse extends Integration {
   }
 
   getPushSubscriptionInfo(callback) {
-    const oSpP = window.oSpP;
-    oSpP.getDbValue('SPIDs', 'SubscriptionId', (event) => {
+    window.oSpP.getDbValue('SPIDs', 'SubscriptionId', (event) => {
       callback(event.target.result);
     });
   }
@@ -136,8 +135,8 @@ class SendPulse extends Integration {
         value = getProp(digitalData, userVar);
       }
       if (
-        value !== undefined &&
-        typeof value !== 'object'
+        value !== undefined
+        && typeof value !== 'object'
       ) {
         window.oSpP.push(userVar, String(value));
       }

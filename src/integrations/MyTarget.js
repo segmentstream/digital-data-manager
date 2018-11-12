@@ -1,21 +1,20 @@
-import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import getVarValue from 'driveback-utils/getVarValue';
 import { getProp } from 'driveback-utils/dotProp';
-import { DIGITALDATA_VAR } from './../variableTypes';
+import Integration from '../Integration';
+import { DIGITALDATA_VAR } from '../variableTypes';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
   VIEWED_PRODUCT_LISTING,
   VIEWED_CART,
   COMPLETED_TRANSACTION,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 function lineItemsToProductIds(lineItems, feedWithGroupedProducts) {
   const productIds = lineItems
     .filter(lineItem => !!(lineItem.product.id))
-    .map(lineItem =>
-      ((feedWithGroupedProducts !== true) ? lineItem.product.id : lineItem.product.skuCode));
+    .map(lineItem => ((feedWithGroupedProducts !== true) ? lineItem.product.id : lineItem.product.skuCode));
   return productIds;
 }
 
@@ -273,7 +272,7 @@ class MyTarget extends Integration {
   }
 
   onViewedProductDetail(event) {
-    const product = event.product;
+    const { product } = event;
     const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
     window._tmr.push({
       type: 'itemView',
@@ -286,7 +285,7 @@ class MyTarget extends Integration {
   }
 
   onViewedCart(event) {
-    const cart = event.cart;
+    const { cart } = event;
     const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
 
     let productIds;
@@ -317,7 +316,7 @@ class MyTarget extends Integration {
   }
 
   onCompletedTransaction(event) {
-    const transaction = event.transaction;
+    const { transaction } = event;
     const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
     let productIds;
 

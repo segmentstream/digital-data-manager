@@ -1,8 +1,8 @@
-import Integration from './../Integration';
 import getQueryParam from 'driveback-utils/getQueryParam';
 import { getProp } from 'driveback-utils/dotProp';
 import normalizeString from 'driveback-utils/normalizeString';
-import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
+import Integration from '../Integration';
+import { COMPLETED_TRANSACTION } from '../events/semanticEvents';
 import { isDeduplication, addAffiliateCookie, getAffiliateCookie } from './utils/affiliate';
 
 const DEFAULT_COOKIE_NAME = 'mixmarket';
@@ -28,6 +28,7 @@ class Mixmarket extends Integration {
     this.addTag('trackingPixel', {
       type: 'img',
       attr: {
+        // eslint-disable-next-line max-len
         src: `//mixmarket.biz/uni/tev.php?id=${options.advertiserId}&r=${escape(window.document.referrer)}&t=${Date.now()}&a1={{ orderId }}&a2={{ total }}`,
       },
     });
@@ -107,14 +108,13 @@ class Mixmarket extends Integration {
   }
 
   trackSale(event) {
-    const transaction = event.transaction;
+    const { transaction } = event;
 
     if (!transaction || !transaction.orderId || !transaction.total) {
       return;
     }
 
-    const orderId = transaction.orderId;
-    const total = transaction.total;
+    const { orderId, total } = transaction;
 
     this.load('trackingPixel', { orderId, total });
   }

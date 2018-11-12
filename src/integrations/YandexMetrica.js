@@ -1,22 +1,22 @@
-import {
-  getEnrichableVariableMappingProps,
-  extractVariableMappingValues,
-} from './../IntegrationUtils';
-import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import cleanObject from 'driveback-utils/cleanObject';
 import arrayMerge from 'driveback-utils/arrayMerge';
 import size from 'driveback-utils/size';
 import cookie from 'js-cookie';
 import { getProp } from 'driveback-utils/dotProp';
+import { bind } from 'driveback-utils/eventListener';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
   COMPLETED_TRANSACTION,
-} from './../events/semanticEvents';
-import { bind } from 'driveback-utils/eventListener';
+} from '../events/semanticEvents';
+import Integration from '../Integration';
+import {
+  getEnrichableVariableMappingProps,
+  extractVariableMappingValues,
+} from '../IntegrationUtils';
 
 class YandexMetrica extends Integration {
   constructor(digitalData, options) {
@@ -86,7 +86,7 @@ class YandexMetrica extends Integration {
   }
 
   getProductCategory(product) {
-    let category = product.category;
+    let { category } = product;
     if (Array.isArray(category)) {
       category = category.join('/');
     } else if (category && product.subcategory) {
@@ -374,8 +374,8 @@ class YandexMetrica extends Integration {
 
   isLoaded() {
     return window.Ya && (
-      (this.getOption('webvisorVersion') === 1 && window.Ya.Metrika) ||
-      (this.getOption('webvisorVersion') === 2 && window.Ya.Metrika2)
+      (this.getOption('webvisorVersion') === 1 && window.Ya.Metrika)
+      || (this.getOption('webvisorVersion') === 2 && window.Ya.Metrika2)
     );
   }
 
@@ -441,7 +441,7 @@ class YandexMetrica extends Integration {
   }
 
   onViewedProductDetail(event) {
-    const product = event.product;
+    const { product } = event;
     if (!this.getProductId(product) && !product.name) return;
     this.dataLayer.push({
       ecommerce: {
@@ -453,7 +453,7 @@ class YandexMetrica extends Integration {
   }
 
   onAddedProduct(event) {
-    const product = event.product;
+    const { product } = event;
     if (!this.getProductId(product) && !product.name) return;
     const quantity = event.quantity || 1;
     this.dataLayer.push({
@@ -466,9 +466,9 @@ class YandexMetrica extends Integration {
   }
 
   onRemovedProduct(event) {
-    const product = event.product;
+    const { product } = event;
     if (!this.getProductId(product) && !product.name) return;
-    const quantity = event.quantity;
+    const { quantity } = event;
     this.dataLayer.push({
       ecommerce: {
         remove: {
@@ -486,14 +486,14 @@ class YandexMetrica extends Integration {
   }
 
   onCompletedTransaction(event) {
-    const transaction = event.transaction;
+    const { transaction } = event;
     if (!transaction || !transaction.orderId) return;
 
     const products = transaction.lineItems.filter((lineItem) => {
-      const product = lineItem.product;
+      const { product } = lineItem;
       return (this.getProductId(product) || product.name);
     }).map((lineItem) => {
-      const product = lineItem.product;
+      const { product } = lineItem;
       const quantity = lineItem.quantity || 1;
       return this.getProduct(product, quantity);
     });
@@ -506,7 +506,8 @@ class YandexMetrica extends Integration {
     };
 
     if (transaction.vouchers && transaction.vouchers.length) {
-      purchase.actionField.coupon = transaction.vouchers[0];
+      const coupon = transaction.vouchers[0];
+      purchase.actionField.coupon = coupon;
     }
 
     if (transaction.total) {

@@ -1,7 +1,7 @@
-import Handler from './../Handler';
 import { error as errorLog } from 'driveback-utils/safeConsole';
 import { setProp } from 'driveback-utils/dotProp';
 import isPromise from 'driveback-utils/isPromise';
+import Handler from '../Handler';
 
 class IntegrationEnrichment {
   constructor(prop, handler, digitalData) {

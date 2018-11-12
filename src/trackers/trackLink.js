@@ -9,8 +9,8 @@ function applyHandler(event, el, handler, followLink = true) {
   }
 
   const href = (
-    el.tagName === 'A' &&
-    (
+    el.tagName === 'A'
+    && (
       el.getAttribute('href')
       || el.getAttributeNS('http://www.w3.org/1999/xlink', 'href')
       || el.getAttribute('xlink:href')
@@ -24,12 +24,12 @@ function applyHandler(event, el, handler, followLink = true) {
   }
 
   if (
-    followLink &&
-    href &&
-    el.target !== '_blank' &&
-    !isMeta(event) &&
-    !event.defaultPrevented &&
-    event.returnValue !== false
+    followLink
+    && href
+    && el.target !== '_blank'
+    && !isMeta(event)
+    && !event.defaultPrevented
+    && event.returnValue !== false
   ) {
     preventDefault(event);
     setTimeout(() => {

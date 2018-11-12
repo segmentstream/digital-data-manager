@@ -1,5 +1,5 @@
-import Integration from './../Integration';
-import { VIEWED_PAGE, COMPLETED_TRANSACTION } from './../events/semanticEvents';
+import Integration from '../Integration';
+import { VIEWED_PAGE, COMPLETED_TRANSACTION } from '../events/semanticEvents';
 
 class VeInteractive extends Integration {
   constructor(digitalData, options) {

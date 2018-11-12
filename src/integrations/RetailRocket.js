@@ -228,7 +228,6 @@ class RetailRocket extends Integration {
 
   getTransactionItems(transactionItems) {
     const itemsCache = {};
-    const id = this.getOption('useGroupView') ? 'skuCode' : 'id';
 
     transactionItems.forEach((lineItem) => {
       const { product } = lineItem;

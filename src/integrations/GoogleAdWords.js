@@ -1,6 +1,6 @@
-import Integration from './../Integration';
-import AsyncQueue from './utils/AsyncQueue';
 import deleteProperty from 'driveback-utils/deleteProperty';
+import Integration from '../Integration';
+import AsyncQueue from './utils/AsyncQueue';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -9,7 +9,7 @@ import {
   VIEWED_CART,
   STARTED_ORDER,
   COMPLETED_TRANSACTION,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 const SEMANTIC_EVENTS = [
   VIEWED_PAGE,
@@ -76,8 +76,8 @@ class GoogleAdWords extends Integration {
         ];
         break;
       case VIEWED_PRODUCT_LISTING:
-        enrichableProps = this.getOption('businessType') === BUSINESS_TYPE_RETAIL ?
-          ['listing.category'] : ['listing.items'];
+        enrichableProps = this.getOption('businessType') === BUSINESS_TYPE_RETAIL
+          ? ['listing.category'] : ['listing.items'];
         break;
       case VIEWED_CART:
       case STARTED_ORDER:
@@ -325,7 +325,7 @@ class GoogleAdWords extends Integration {
   }
 
   onViewedPage(event) {
-    const page = event.page;
+    const { page } = event;
     this.pageTracked = false;
     setTimeout(() => {
       if (!this.pageTracked) {
@@ -335,11 +335,11 @@ class GoogleAdWords extends Integration {
   }
 
   onViewedProductDetail(event) {
-    const product = event.product;
+    const { product } = event;
     if (!product) {
       return;
     }
-    let category = product.category;
+    let { category } = product;
     if (Array.isArray(category)) {
       category = category.join('/');
     } else if (category && product.subcategory) { // legacy DDL support
@@ -366,11 +366,11 @@ class GoogleAdWords extends Integration {
   }
 
   onViewedProductListing(event) {
-    const listing = event.listing;
+    const { listing } = event;
     let params = {};
 
     if (listing) {
-      let category = listing.category;
+      let { category } = listing;
       if (category) {
         if (Array.isArray(category)) {
           category = category.join('/');
@@ -385,7 +385,7 @@ class GoogleAdWords extends Integration {
   }
 
   onViewedCart(event) {
-    const cart = event.cart;
+    const { cart } = event;
     const businessType = this.getOption('businessType');
     if (!cart || (businessType && businessType !== BUSINESS_TYPE_RETAIL)) {
       return;
@@ -401,7 +401,7 @@ class GoogleAdWords extends Integration {
   }
 
   onStartedOrder(event) {
-    const cart = event.cart;
+    const { cart } = event;
     const businessType = this.getOption('businessType');
     if (!cart || !businessType || businessType === BUSINESS_TYPE_RETAIL) {
       return;
@@ -417,7 +417,7 @@ class GoogleAdWords extends Integration {
   }
 
   onCompletedTransaction(event) {
-    const transaction = event.transaction;
+    const { transaction } = event;
     if (!transaction) {
       return;
     }

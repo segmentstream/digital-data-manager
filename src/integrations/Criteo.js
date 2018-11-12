@@ -1,10 +1,10 @@
-import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import { getProp } from 'driveback-utils/dotProp';
 import cleanObject from 'driveback-utils/cleanObject';
 import semver from 'driveback-utils/semver';
 import normalizeString from 'driveback-utils/normalizeString';
 import md5 from 'crypto-js/md5';
+import Integration from '../Integration';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -13,7 +13,7 @@ import {
   VIEWED_CART,
   COMPLETED_TRANSACTION,
   SUBSCRIBED,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 const SEMANTIC_EVENTS = [
   VIEWED_PAGE,
@@ -312,10 +312,10 @@ class Criteo extends Integration {
   onViewedPage(event) {
     this.pageTracked = false;
 
-    const page = event.page;
+    const { page } = event;
     let siteType;
     if (event.version && page && semver.cmp(event.version, '1.1.0') < 0) {
-      siteType = page.siteType;
+      ({ siteType } = page);
     } else if (event.website) {
       siteType = event.website.type;
     }
@@ -332,7 +332,7 @@ class Criteo extends Integration {
     if (event.user) {
       let emailHash;
       if (event.user.emailHash) {
-        emailHash = event.user.emailHash;
+        ({ emailHash } = event.user);
       } else if (event.user.email) {
         const email = normalizeString(event.user.email);
         emailHash = md5(email).toString();
@@ -361,14 +361,14 @@ class Criteo extends Integration {
   }
 
   onViewedProductListing(event) {
-    const listing = event.listing;
+    const { listing } = event;
     if (!listing || !listing.items || !listing.items.length) return;
 
-    const items = listing.items;
+    const { items } = listing;
     const productIds = [];
     let length = 3;
     if (items.length < 3) {
-      length = items.length;
+      ({ length } = items);
     }
 
     const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
@@ -404,7 +404,7 @@ class Criteo extends Integration {
   }
 
   onViewedCart(event) {
-    const cart = event.cart;
+    const { cart } = event;
     if (cart && cart.lineItems && cart.lineItems.length > 0) {
       const products = lineItemsToCriteoItems(cart.lineItems, this.getOption('feedWithGroupedProducts'));
       if (products.length > 0) {
@@ -421,7 +421,7 @@ class Criteo extends Integration {
   }
 
   onCompletedTransaction(event) {
-    const transaction = event.transaction;
+    const { transaction } = event;
     if (transaction && transaction.lineItems && transaction.lineItems.length > 0) {
       const products = lineItemsToCriteoItems(transaction.lineItems, this.getOption('feedWithGroupedProducts'));
       if (products.length > 0) {
@@ -436,7 +436,7 @@ class Criteo extends Integration {
         };
 
         if (customDeduplication) {
-          const context = event.context;
+          const { context } = event;
           if (
             context
             && context.campaign
@@ -458,7 +458,7 @@ class Criteo extends Integration {
   }
 
   onSubscribed(event) {
-    const user = event.user;
+    const { user } = event;
     if (user && user.email) {
       const email = normalizeString(user.email);
       const emailHash = md5(email).toString();

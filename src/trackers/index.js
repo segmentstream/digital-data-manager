@@ -1,2 +1,2 @@
-export { default as trackLink } from './trackLink.js';
-export { default as trackImpression } from './trackImpression.js';
+export { default as trackLink } from './trackLink';
+export { default as trackImpression } from './trackImpression';

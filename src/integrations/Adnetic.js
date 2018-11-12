@@ -1,10 +1,10 @@
-import Integration from './../Integration';
 import cleanObject from 'driveback-utils/cleanObject';
+import Integration from '../Integration';
 import {
   VIEWED_PRODUCT_DETAIL,
   ADDED_PRODUCT,
   COMPLETED_TRANSACTION,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 const mapProduct = product => cleanObject({
   id: product.id,

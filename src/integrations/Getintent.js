@@ -1,6 +1,8 @@
 import { getProp } from 'driveback-utils/dotProp';
 import Integration from '../Integration';
-import { VIEWED_PAGE, VIEWED_PRODUCT_DETAIL, ADDED_PRODUCT, COMPLETED_TRANSACTION } from '../events/semanticEvents';
+import {
+  VIEWED_PAGE, VIEWED_PRODUCT_DETAIL, ADDED_PRODUCT, COMPLETED_TRANSACTION,
+} from '../events/semanticEvents';
 
 const ACTION_TYPE_VIEW = 'VIEW';
 const ACTION_TYPE_CART_ADD = 'CART_ADD';

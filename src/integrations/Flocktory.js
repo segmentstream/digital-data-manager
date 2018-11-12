@@ -1,7 +1,7 @@
-import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import { getProp } from 'driveback-utils/dotProp';
 import cleanObject from 'driveback-utils/cleanObject';
+import Integration from '../Integration';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -9,7 +9,7 @@ import {
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
   COMPLETED_TRANSACTION,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 class Flocktory extends Integration {
   constructor(digitalData, options) {
@@ -273,7 +273,7 @@ class Flocktory extends Integration {
       }]);
     }
 
-    const cart = event.cart;
+    const { cart } = event;
     if (cart && cart.lineItems && Array.isArray(cart.lineItems)) {
       window.flocktory.push(['updateCart', {
         cart: {

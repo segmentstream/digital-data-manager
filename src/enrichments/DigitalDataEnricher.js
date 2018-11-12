@@ -162,8 +162,8 @@ class DigitalDataEnricher {
   fireSessionStarted() {
     const lastEventTimestamp = this.ddStorage.getLastEventTimestamp();
     if (
-      !lastEventTimestamp ||
-      (Date.now() - lastEventTimestamp) > this.options.sessionLength * 1000
+      !lastEventTimestamp
+      || (Date.now() - lastEventTimestamp) > this.options.sessionLength * 1000
     ) {
       this.digitalData.events.push({
         name: SESSION_STARTED,
@@ -219,10 +219,10 @@ class DigitalDataEnricher {
 
   enrichIsReturningStatus() {
     const lastEventTimestamp = this.ddStorage.getLastEventTimestamp();
-    const user = this.digitalData.user;
+    const { user } = this.digitalData;
     if (
-      !user.isReturning && lastEventTimestamp &&
-      (Date.now() - lastEventTimestamp) > this.options.sessionLength * 1000
+      !user.isReturning && lastEventTimestamp
+      && (Date.now() - lastEventTimestamp) > this.options.sessionLength * 1000
     ) {
       this.digitalData.user.isReturning = true;
       this.ddStorage.persist('user.isReturning');
@@ -230,7 +230,7 @@ class DigitalDataEnricher {
   }
 
   enrichHasSubscribed(email) {
-    const user = this.digitalData.user;
+    const { user } = this.digitalData;
     if (!user.isSubscribed) {
       user.isSubscribed = true;
       this.ddStorage.persist('user.isSubscribed');
@@ -242,7 +242,7 @@ class DigitalDataEnricher {
   }
 
   enrichHasTransacted() {
-    const user = this.digitalData.user;
+    const { user } = this.digitalData;
     if (!user.hasTransacted) {
       user.hasTransacted = true;
       this.ddStorage.persist('user.hasTransacted');
@@ -267,21 +267,22 @@ class DigitalDataEnricher {
   }
 
   enrichPageData() {
-    const page = this.digitalData.page;
+    const { page } = this.digitalData;
+    const document = this.getHtmlGlobals().getDocument();
+    const location = this.getHtmlGlobals().getLocation();
+    const { title } = document;
 
-    let path = this.getHtmlGlobals().getLocation().pathname;
-    let referrer = this.getHtmlGlobals().getDocument().referrer;
-    let queryString = this.getHtmlGlobals().getLocation().search;
-    let url = this.getHtmlGlobals().getLocation().href;
-    let hash = this.getHtmlGlobals().getLocation().hash;
+    let path = location.pathname;
+    let queryString = location.search;
+    let url = location.href;
+    let { hash } = location;
+    let { referrer } = document;
 
     try { path = decodeURIComponent(path); } catch (e) { warn(e); }
     try { referrer = decodeURI(referrer); } catch (e) { warn(e); }
     try { queryString = decodeURIComponent(queryString); } catch (e) { warn(e); }
     try { url = decodeURI(url); } catch (e) { warn(e); }
     try { hash = decodeURIComponent(hash); } catch (e) { warn(e); }
-
-    const title = this.getHtmlGlobals().getDocument().title;
 
     page.path = page.path || path;
     page.referrer = page.referrer || referrer;
@@ -292,8 +293,8 @@ class DigitalDataEnricher {
   }
 
   enrichContextData() {
-    const context = this.digitalData.context;
-    const userAgent = this.getHtmlGlobals().getNavigator().userAgent;
+    const { context } = this.digitalData;
+    const { userAgent } = this.getHtmlGlobals().getNavigator();
     context.userAgent = userAgent;
     const uaParser = new UAParser();
     context.browser = uaParser.getBrowser();
@@ -334,7 +335,7 @@ class DigitalDataEnricher {
     // compatibility with version <1.1.1
     if (this.digitalData.version && semver.cmp(this.digitalData.version, '1.1.1') < 0) {
       // enrich listing.listId
-      const listing = this.digitalData.listing;
+      const { listing } = this.digitalData;
       if (listing && listing.listName && !listing.listId) {
         listing.listId = listing.listName;
       }
@@ -353,7 +354,7 @@ class DigitalDataEnricher {
     // compatibility with version <1.1.0
     if (this.digitalData.version && semver.cmp(this.digitalData.version, '1.1.0') < 0) {
       // enrich listing.categoryId
-      const page = this.digitalData.page;
+      const { page } = this.digitalData;
       if (page.type === 'category' && page.categoryId) {
         const listing = this.digitalData.listing = this.digitalData.listing || {};
         listing.categoryId = page.categoryId;

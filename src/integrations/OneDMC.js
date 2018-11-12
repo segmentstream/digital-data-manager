@@ -1,8 +1,8 @@
-import Integration from './../Integration';
 import { getProp, setProp } from 'driveback-utils/dotProp';
-import { VIEWED_PAGE } from './../events/semanticEvents';
 import cookie from 'js-cookie';
 import topDomain from 'driveback-utils/topDomain';
+import { VIEWED_PAGE } from '../events/semanticEvents';
+import Integration from '../Integration';
 
 const TAG_COOKIE_SYNC = 'cookieSync';
 const TAG_SUPER_SYNC = 'superSync';
@@ -30,6 +30,7 @@ class OneDMC extends Integration {
     this.addTag(TAG_COOKIE_SYNC, {
       type: 'img',
       attr: {
+        // eslint-disable-next-line max-len
         src: `https://sync.1dmp.io/pixel.gif?cid=${options.clientId}&brid=${options.brandId}&pid=w&uid={{ anonymousId }}`,
       },
     });
@@ -113,7 +114,7 @@ class OneDMC extends Integration {
   enrichDigitalData(token) {
     this.getProfile(token, (profile) => {
       const ttlInSeconds = PROFILE_ENRICHMENT_FOUND_TTL * 24 * 60 * 60;
-      const attributes = profile.attributes;
+      const { attributes } = profile;
       const attributesMapping = this.getOption('attributesMapping');
       attributes.forEach((attribute) => {
         let key = attribute.primary;

@@ -80,19 +80,20 @@ function isVisible(el) {
   const elemLeft = el.getBoundingClientRect().left;
   const elemRight = elemLeft + elemWidth;
 
-  const visible = !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length) && Number(getStyle(el, 'opacity')) > 0 && getStyle(el, 'visibility') !== 'hidden';
+  const visible = !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)
+        && Number(getStyle(el, 'opacity')) > 0 && getStyle(el, 'visibility') !== 'hidden';
   if (!visible) {
     return false;
   }
 
   const fitsVertical = (
-    ((elemBottom - (elemHeight / 4)) <= docEl.clientHeight) &&
-    ((elemTop + (elemHeight / 4)) >= 0)
+    ((elemBottom - (elemHeight / 4)) <= docEl.clientHeight)
+    && ((elemTop + (elemHeight / 4)) >= 0)
   );
 
   const fitsHorizontal = (
-    (elemLeft + (elemWidth / 4) >= 0) &&
-    (elemRight - (elemWidth / 4) <= docEl.clientWidth)
+    (elemLeft + (elemWidth / 4) >= 0)
+    && (elemRight - (elemWidth / 4) <= docEl.clientWidth)
   );
 
   if (!fitsVertical || !fitsHorizontal) {
@@ -117,7 +118,7 @@ function trackViews() {
   batches.forEach((batch) => {
     const newViewedBlocks = [];
 
-    const blocks = batch.blocks;
+    const { blocks } = batch;
     blocks.forEach((block) => {
       if (isVisible(block) && !batch.isViewedBlock(block)) {
         newViewedBlocks.push(block);

@@ -1,12 +1,12 @@
-import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import each from 'driveback-utils/each';
+import Integration from '../Integration';
 
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
   ADDED_PRODUCT,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 const SEMANTIC_EVENTS = [
   VIEWED_PAGE,
@@ -99,7 +99,7 @@ class SegmentStream extends Integration {
     }
 
     window.ssApi.pushOnReady(() => {
-      const attributes = window.ssApi.getData().attributes;
+      const { attributes } = window.ssApi.getData();
       const ssAttributes = {};
       each(attributes, (name, value) => {
         const key = lowercaseFirstLetter(name);

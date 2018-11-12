@@ -70,7 +70,7 @@ const validateField = (field, value, validations = {}) => {
   const warnings = validations.warnings || [];
 
   // validate errors
-  for (let i = 0, length = errors.length; i < length; i += 1) {
+  for (let i = 0, { length } = errors; i < length; i += 1) {
     const ruleName = errors[i];
     const errorMsg = ruleHandlers[ruleName](value);
     if (!empty(errorMsg)) {
@@ -81,7 +81,7 @@ const validateField = (field, value, validations = {}) => {
   }
 
   // validate warnings
-  for (let i = 0, length = warnings.length; i < length; i += 1) {
+  for (let i = 0, { length } = warnings; i < length; i += 1) {
     const ruleName = warnings[i];
     const errorMsg = ruleHandlers[ruleName](value);
     if (!empty(errorMsg)) {

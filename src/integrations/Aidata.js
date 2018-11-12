@@ -1,4 +1,4 @@
-import Integration from './../Integration';
+import Integration from '../Integration';
 
 class Aidata extends Integration {
   constructor(digitalData, options) {

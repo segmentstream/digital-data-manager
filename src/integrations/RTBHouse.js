@@ -1,5 +1,5 @@
-import Integration from './../Integration';
 import { getProp } from 'driveback-utils/dotProp';
+import Integration from '../Integration';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -8,7 +8,7 @@ import {
   STARTED_ORDER,
   COMPLETED_TRANSACTION,
   VIEWED_CART,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 const SEMANTIC_EVENTS = [
   VIEWED_PAGE,
@@ -50,30 +50,35 @@ class RTBHouse extends Integration {
     this.addTag('category2', {
       type: 'script',
       attr: {
+        // eslint-disable-next-line max-len
         src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_category2_{{ categoryId }}{{ userSegmentParams }}`,
       },
     });
     this.addTag('offer', {
       type: 'script',
       attr: {
+        // eslint-disable-next-line max-len
         src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_offer_{{ productId }}{{ userSegmentParams }}`,
       },
     });
     this.addTag('listing', {
       type: 'script',
       attr: {
+        // eslint-disable-next-line max-len
         src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_listing_{{ productIds }}{{ userSegmentParams }}`,
       },
     });
     this.addTag('basketadd', {
       type: 'script',
       attr: {
+        // eslint-disable-next-line max-len
         src: '//creativecdn.com/tags?type=script&id=pr_VB82iQFyqcxTg1HWJlJM_basketadd_{{ productId }}{{ userSegmentParams }}',
       },
     });
     this.addTag('basketstatus', {
       type: 'script',
       attr: {
+        // eslint-disable-next-line max-len
         src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_basketstatus_{{ productIds }}{{ userSegmentParams }}`,
       },
     });
@@ -86,6 +91,7 @@ class RTBHouse extends Integration {
     this.addTag('orderstatus2', {
       type: 'script',
       attr: {
+        // eslint-disable-next-line max-len
         src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_orderstatus2_{{ total }}_{{ orderId }}_{{ productIds }}&cd={{ deduplication }}{{ userSegmentParams }}`,
       },
     });
@@ -274,7 +280,7 @@ class RTBHouse extends Integration {
   }
 
   onViewedPage(event) {
-    const page = event.page;
+    const { page } = event;
 
     if (page && page.type === 'home') {
       this.onViewedHome(event);
@@ -290,7 +296,7 @@ class RTBHouse extends Integration {
   }
 
   onViewedCart(event) {
-    const cart = event.cart;
+    const { cart } = event;
     if (!cart || !cart.lineItems || !cart.lineItems.length) return;
     const productIds = cart.lineItems.reduce((str, lineItem, index) => {
       const productId = getProp(lineItem, 'product.id');
@@ -321,7 +327,7 @@ class RTBHouse extends Integration {
   }
 
   onViewedProductListing(event) {
-    const listing = event.listing;
+    const { listing } = event;
     if (!listing || !listing.categoryId) return;
 
     this.load('category2', {
@@ -332,7 +338,7 @@ class RTBHouse extends Integration {
   }
 
   onSearchedProducts(event) {
-    const listing = event.listing;
+    const { listing } = event;
     if (!listing || !listing.items || !listing.items.length) return;
 
     const productIds = listing.items.reduce((str, product, index) => {
@@ -353,7 +359,7 @@ class RTBHouse extends Integration {
   }
 
   onViewedProductDetail(event) {
-    const product = event.product;
+    const { product } = event;
     if (product && product.id) {
       this.load('offer', {
         productId: product.id,
@@ -380,13 +386,12 @@ class RTBHouse extends Integration {
   }
 
   onCompletedTransaction(event) {
-    const transaction = event.transaction;
+    const { transaction } = event;
     if (
       transaction && transaction.orderId && transaction.lineItems
       && transaction.lineItems.length > 0
     ) {
-      const orderId = transaction.orderId;
-      const total = transaction.total;
+      const { orderId, total } = transaction;
       const productIds = transaction.lineItems.reduce((str, lineItem, index) => {
         const productId = getProp(lineItem, 'product.id');
         if (index > 0) {

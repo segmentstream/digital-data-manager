@@ -1,6 +1,6 @@
 import sha256 from 'crypto-js/sha256';
-import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
+import Integration from '../Integration';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -8,13 +8,13 @@ import {
   VIEWED_CART,
   SEARCHED_PRODUCTS,
   COMPLETED_TRANSACTION,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 let timeoutHandler;
 
 function lineItemsToSociomanticsItems(lineItems) {
   const products = [];
-  for (let i = 0, length = lineItems.length; i < length; i += 1) {
+  for (let i = 0, { length } = lineItems; i < length; i += 1) {
     const lineItem = lineItems[i];
     if (lineItem && lineItem.product) {
       const productId = lineItem.product.id || lineItem.product.skuCode;
@@ -183,7 +183,7 @@ class Sociomantic extends Integration {
 
     const prefix = this.getOption('prefix');
     const trackingObjectCustomerName = `${prefix}customer`;
-    const user = event.user;
+    const { user } = event;
 
     if (user && (user.userId || user.email)) {
       let userId;
@@ -211,7 +211,7 @@ class Sociomantic extends Integration {
   onViewedProductDetail(event) {
     const prefix = this.getOption('prefix');
     const trackingObjectName = `${prefix}product`;
-    const product = event.product;
+    const { product } = event;
 
     if (product && (product.id || product.skuCode)) {
       let productId;
@@ -232,7 +232,7 @@ class Sociomantic extends Integration {
   onViewedProductListing(event) {
     const prefix = this.getOption('prefix');
     const trackingObjectName = `${prefix}product`;
-    const listing = event.listing;
+    const { listing } = event;
 
     if (listing && listing.category && listing.category.length) {
       window[trackingObjectName] = {
@@ -245,7 +245,7 @@ class Sociomantic extends Integration {
   onSearchedProducts(event) {
     const prefix = this.getOption('prefix');
     const trackingObjectName = `${prefix}search`;
-    const listing = event.listing;
+    const { listing } = event;
 
     if (listing && listing.query) {
       window[trackingObjectName] = {
@@ -259,7 +259,7 @@ class Sociomantic extends Integration {
   onViewedCart(event) {
     const prefix = this.getOption('prefix');
     const trackingObjectBasketName = `${prefix}basket`;
-    const cart = event.cart;
+    const { cart } = event;
 
     if (cart && cart.lineItems) {
       const products = lineItemsToSociomanticsItems(cart.lineItems);
@@ -275,7 +275,7 @@ class Sociomantic extends Integration {
   onCompletedTransaction(event) {
     const prefix = this.getOption('prefix');
     const trackingObjectBasketName = `${prefix}basket`;
-    const transaction = event.transaction;
+    const { transaction } = event;
 
     if (transaction && transaction.lineItems) {
       const products = lineItemsToSociomanticsItems(transaction.lineItems);

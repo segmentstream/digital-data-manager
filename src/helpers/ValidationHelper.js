@@ -1,8 +1,8 @@
 import loadScript from 'driveback-utils/loadScript';
 import { log, group, groupEnd } from 'driveback-utils/safeConsole';
-import { isTestMode } from './../testMode';
-import AsyncQueue from './../integrations/utils/AsyncQueue';
 import { getProp } from 'driveback-utils/dotProp';
+import { isTestMode } from '../testMode';
+import AsyncQueue from '../integrations/utils/AsyncQueue';
 
 const isAjvLoaded = () => !!window.Ajv;
 const asyncQueue = new AsyncQueue(isAjvLoaded);

@@ -42,7 +42,7 @@ describe('Integrations: Renta', () => {
       });
 
       describe('#initialize', () => {
-        it.only('should require Google Analytics Renta plugin', () => {
+        it('should require Google Analytics Renta plugin', () => {
           window.ga = noop;
           sinon.stub(window, 'ga');
           ddManager.initialize();

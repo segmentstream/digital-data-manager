@@ -1,11 +1,11 @@
-import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import noop from 'driveback-utils/noop';
+import Integration from '../Integration';
 import {
   VIEWED_PAGE,
   VIEWED_EXPERIMENT,
   ACHIEVED_EXPERIMENT_GOAL,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 function getExperment(experiment) {
   if (typeof experiment === 'object') {

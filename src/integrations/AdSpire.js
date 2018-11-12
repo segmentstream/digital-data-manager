@@ -1,16 +1,16 @@
-import Integration from './../Integration';
 import cleanObject from 'driveback-utils/cleanObject';
 import { getProp } from 'driveback-utils/dotProp';
 import ipToLong from 'driveback-utils/ipToLong';
 import normalizeString from 'driveback-utils/normalizeString';
 import md5 from 'crypto-js/md5';
+import Integration from '../Integration';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
   VIEWED_PRODUCT_LISTING,
   COMPLETED_TRANSACTION,
   VIEWED_CART,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 function mapLineItems(lineItems) {
   lineItems = lineItems || [];
@@ -265,7 +265,7 @@ class AdSpire extends Integration {
   onViewedPage(event) {
     this.pageTracked = false;
 
-    const page = event.page;
+    const { page } = event;
     const ip = getProp(event, 'context.ip');
 
     if (ip) {

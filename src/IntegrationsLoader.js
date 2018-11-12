@@ -1,8 +1,8 @@
 import each from 'driveback-utils/each';
 import { warn, error as errorLog } from 'driveback-utils/safeConsole';
-import Integration from './Integration';
 import clone from 'driveback-utils/clone';
 import { bind } from 'driveback-utils/eventListener';
+import Integration from './Integration';
 
 /**
  * @type {Object}
@@ -66,11 +66,10 @@ const IntegrationsLoader = {
     if (integrationSettings) {
       if (Array.isArray(integrationSettings)) {
         integrationSettings.forEach((integrationSetting) => {
-          const name = integrationSetting.name;
+          const { name } = integrationSetting;
           const options = clone(integrationSetting.options, true);
           if (typeof _availableIntegrations[name] === 'function') {
-            const integration =
-              new _availableIntegrations[name](ddManager.getDigitalData(), options || {});
+            const integration = new _availableIntegrations[name](ddManager.getDigitalData(), options || {});
             IntegrationsLoader.addIntegration(name, integration, ddManager);
           }
         });
@@ -78,8 +77,7 @@ const IntegrationsLoader = {
         each(integrationSettings, (name, options) => {
           if (typeof _availableIntegrations[name] === 'function') {
             try {
-              const integration =
-                new _availableIntegrations[name](ddManager.getDigitalData(), clone(options, true));
+              const integration = new _availableIntegrations[name](ddManager.getDigitalData(), clone(options, true));
               IntegrationsLoader.addIntegration(name, integration, ddManager);
             } catch (e) {
               errorLog(e);

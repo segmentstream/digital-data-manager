@@ -1,9 +1,9 @@
-import Integration from './../Integration';
 import { getProp } from 'driveback-utils/dotProp';
 import cleanObject from 'driveback-utils/cleanObject';
 import deletePropery from 'driveback-utils/deleteProperty';
 import normalizeString from 'driveback-utils/normalizeString';
 import md5 from 'crypto-js/md5';
+import Integration from '../Integration';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -14,7 +14,7 @@ import {
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
   VIEWED_CART,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 const SEMANTIC_EVENTS = [
   VIEWED_PAGE,

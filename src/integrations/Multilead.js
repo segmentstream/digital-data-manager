@@ -1,9 +1,9 @@
-import Integration from './../Integration';
 import { getProp } from 'driveback-utils/dotProp';
+import Integration from '../Integration';
 import {
   VIEWED_PRODUCT_DETAIL,
   COMPLETED_TRANSACTION,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 const SEMANTIC_EVENTS = [
   VIEWED_PRODUCT_DETAIL,
@@ -27,6 +27,7 @@ class Multilead extends Integration {
     this.addTag('productMailRuPixel', {
       type: 'img',
       attr: {
+        // eslint-disable-next-line max-len
         src: `https://ad.mail.ru/${options.rbProductPixelId}.gif?shop=${options.shopId}&offer={{ productId }}&rnd=${Date.now()}`,
       },
     });
@@ -41,6 +42,7 @@ class Multilead extends Integration {
     this.addTag('conversionPixel', {
       type: 'img',
       attr: {
+        // eslint-disable-next-line max-len
         src: `https://track.multilead.ru/success.php?afid={{ orderId }}&afprice={{ total }}&afcurrency={{ currency }}&afsecure=${options.afsecure}`,
       },
     });
@@ -117,7 +119,7 @@ class Multilead extends Integration {
   }
 
   onViewedProductDetail(event) {
-    const product = event.product;
+    const { product } = event;
     if (product && product.id) {
       this.load('productMailRuPixel', {
         productId: product.id,
@@ -129,8 +131,7 @@ class Multilead extends Integration {
     const transaction = event.transaction || {};
     const campaign = getProp(event, 'context.campaign') || {};
     if (transaction.orderId && campaign.source === this.getOption('utmSource')) {
-      const orderId = transaction.orderId;
-      const total = transaction.total;
+      const { orderId, total } = transaction;
       const currency = transaction.currency || 'RUB';
       this.load('conversionMailRuPixel');
       this.load('conversionPixel', { orderId, total, currency });

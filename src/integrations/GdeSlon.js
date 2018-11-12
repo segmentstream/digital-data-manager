@@ -1,7 +1,7 @@
-import Integration from './../Integration';
 import getQueryParam from 'driveback-utils/getQueryParam';
 import { getProp } from 'driveback-utils/dotProp';
-import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
+import Integration from '../Integration';
+import { COMPLETED_TRANSACTION } from '../events/semanticEvents';
 import { isDeduplication, addAffiliateCookie, getAffiliateCookie } from './utils/affiliate';
 
 const DEFAULT_UTM_SOURCE = 'gdeslon';
@@ -32,6 +32,7 @@ class GdeSlon extends Integration {
     this.addTag('trackingPixel', {
       type: 'script',
       attr: {
+        // eslint-disable-next-line max-len
         src: `https://www.gdeslon.ru/thanks.js?codes={{ productCodes }}{{ code }}:{{ total }}&order_id={{ orderId }}&merchant_id=${options.merchantId}`,
       },
     });
@@ -117,15 +118,14 @@ class GdeSlon extends Integration {
   }
 
   trackSale(event) {
-    const transaction = event.transaction;
+    const { transaction } = event;
 
     if (!transaction || !transaction.orderId || !transaction.total) {
       return;
     }
 
     const code = getProp(event, 'integrations.gdeslon.code') || this.getOption('defaultCode');
-    const orderId = transaction.orderId;
-    const total = transaction.total;
+    const { orderId, total } = transaction;
 
     let productCodes = '';
     if (transaction.lineItems || Array.isArray(transaction.lineItems)) {
@@ -144,7 +144,9 @@ class GdeSlon extends Integration {
     }
     if (productCodes) productCodes += ',';
 
-    this.load('trackingPixel', { productCodes, code, orderId, total });
+    this.load('trackingPixel', {
+      productCodes, code, orderId, total,
+    });
   }
 }
 

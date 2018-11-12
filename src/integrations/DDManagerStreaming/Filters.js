@@ -19,7 +19,7 @@ import {
   VIEWED_PRODUCT,
   CLICKED_PRODUCT,
   VIEWED_EXPERIMENT,
-} from './../../events/semanticEvents';
+} from '../../events/semanticEvents';
 
 const CUSTOM_TYPE_NUMERIC = 'number';
 const CUSTOM_TYPE_STRING = 'string';
@@ -189,12 +189,12 @@ class Filters {
   }
 
   filterProduct(product) {
-    if (!product) return;
+    if (!product) return undefined;
 
     const customDimensions = extractCustoms(product, this.productDimensions, CUSTOM_TYPE_STRING);
     const customMetrics = extractCustoms(product, this.productMetrics, CUSTOM_TYPE_NUMERIC);
 
-    let category = product.category;
+    let { category } = product;
     if (category) {
       if (Array.isArray(category)) {
         category = category.join('/');
@@ -230,16 +230,16 @@ class Filters {
       ...listing,
       query: (listing.query) ? String(listing.query) : undefined,
       categoryId: (listing.categoryId) ? String(listing.categoryId) : undefined,
-      category: (listing.category && Array.isArray(listing.category)) ?
-        listing.category.join('/') : String(listing.category),
+      category: (listing.category && Array.isArray(listing.category))
+        ? listing.category.join('/') : String(listing.category),
     }, listingProps);
   }
 
   filterLineItems(lineItems = []) {
     return lineItems.map(lineItem => cleanObject({
       product: this.filterProduct(lineItem.product),
-      quantity: !isNaN(Number(lineItem.quantity)) ? Number(lineItem.quantity) : 1,
-      subtotal: !isNaN(Number(lineItem.subtotal)) ? Number(lineItem.subtotal) : undefined,
+      quantity: !Number.isNaN(Number(lineItem.quantity)) ? Number(lineItem.quantity) : 1,
+      subtotal: !Number.isNaN(Number(lineItem.subtotal)) ? Number(lineItem.subtotal) : undefined,
     }));
   }
 
@@ -276,16 +276,15 @@ class Filters {
   }
 
   filterPage(page = {}) {
-    let url = page.url;
-    let queryString = page.queryString;
+    let { url, queryString } = page;
     try { url = (url) ? decodeURI(url) : undefined; } catch (e) { warn(e); }
     try { queryString = (queryString) ? decodeURI(queryString) : undefined; } catch (e) { warn(e); }
     return filterObject({
       type: (page.type) ? String(page.type) : undefined,
       name: (page.name) ? String(page.name) : undefined,
       category: (page.category) ? String(page.category) : undefined,
-      breadcrumb: (page.breadcrumb && Array.isArray(page.breadcrumb)) ?
-        page.breadcrumb.join('/') : page.breadcrumb,
+      breadcrumb: (page.breadcrumb && Array.isArray(page.breadcrumb))
+        ? page.breadcrumb.join('/') : page.breadcrumb,
       url,
       path: (page.path) ? String(page.path) : undefined,
       queryString,
@@ -305,8 +304,8 @@ class Filters {
     return cleanObject({
       id: experiment.id,
       name: experiment.name,
-      variantId: (experiment.variationId !== undefined) ?
-        String(experiment.variationId) : undefined,
+      variantId: (experiment.variationId !== undefined)
+        ? String(experiment.variationId) : undefined,
       variantName: experiment.variationName,
     });
   }
@@ -331,7 +330,7 @@ class Filters {
     return {
       ...filtered,
       product: this.filterProduct(event.product),
-      quantity: !isNaN(quantity) ? quantity : 1,
+      quantity: !Number.isNaN(quantity) ? quantity : 1,
     };
   }
 
@@ -352,7 +351,7 @@ class Filters {
     const step = Number(event.step);
     return {
       ...filtered,
-      step: !isNaN(step) ? step : undefined,
+      step: !Number.isNaN(step) ? step : undefined,
     };
   }
 
@@ -403,7 +402,7 @@ class Filters {
     if (event.campaign) {
       campaigns = [event.campaign];
     } else if (event.campaigns) {
-      campaigns = event.campaigns;
+      ({ campaigns } = event);
     }
 
     if (campaigns) {
@@ -422,7 +421,7 @@ class Filters {
     if (event.listItem) {
       listItems = [event.listItem];
     } else if (event.listItems) {
-      listItems = event.listItems;
+      ({ listItems } = event);
     }
 
     if (listItems) {

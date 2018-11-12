@@ -1,7 +1,7 @@
-import Integration from './../Integration';
 import { getProp } from 'driveback-utils/dotProp';
-import AsyncQueue from './utils/AsyncQueue';
 import cleanObject from 'driveback-utils/cleanObject';
+import Integration from '../Integration';
+import AsyncQueue from './utils/AsyncQueue';
 import {
   VIEWED_PRODUCT_DETAIL,
   ADDED_PRODUCT,
@@ -10,7 +10,7 @@ import {
   VIEWED_CART,
   STARTED_ORDER,
   COMPLETED_TRANSACTION,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 class AnyQuery extends Integration {
   constructor(digitalData, options) {

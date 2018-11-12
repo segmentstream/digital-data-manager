@@ -1,15 +1,15 @@
-import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import { getProp } from 'driveback-utils/dotProp';
 import each from 'driveback-utils/each';
+import Integration from '../Integration';
 import {
   VIEWED_PAGE,
   SUBSCRIBED,
   ALLOWED_PUSH_NOTIFICATIONS,
   BLOCKED_PUSH_NOTIFICATIONS,
   CLOSED_PUSH_NOTIFICATIONS_PROMPT,
-} from './../events/semanticEvents';
-import { DIGITALDATA_VAR } from './../variableTypes';
+} from '../events/semanticEvents';
+import { DIGITALDATA_VAR } from '../variableTypes';
 
 const PUSH_NOTIFICATIONS_EVENTS_CATEGORY = 'Push Notifications';
 
@@ -145,8 +145,8 @@ class OneSignal extends Integration {
 
     if (this.getOption('notifyButton') && this.getOption('notifyButton').displayPredicate) {
       try {
-        this.getOption('notifyButton').displayPredicate =
-          Function(this.getOption('notifyButton').displayPredicate); // eslint-disable-line no-new-func
+        // eslint-disable-next-line no-new-func
+        this.getOption('notifyButton').displayPredicate = Function(this.getOption('notifyButton').displayPredicate);
       } catch (e) {
         deleteProperty(this.getOption('notifyButton'), 'displayPredicate');
       }

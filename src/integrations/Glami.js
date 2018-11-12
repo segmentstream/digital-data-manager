@@ -1,17 +1,17 @@
-import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import cleanObject from 'driveback-utils/cleanObject';
 import { getProp } from 'driveback-utils/dotProp';
+import Integration from '../Integration';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
   VIEWED_PRODUCT_LISTING,
   ADDED_PRODUCT,
   COMPLETED_TRANSACTION,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 function getListingCategory(listing) {
-  let category = listing.category;
+  let { category } = listing;
   if (Array.isArray(category)) {
     category = category.join('/');
   } else if (category && listing.subcategory) {
@@ -178,15 +178,13 @@ class Glami extends Integration {
     const listing = event.listing || {};
     const listingItems = listing.items || [];
     const category = getListingCategory(listing);
-    const categoryId = listing.categoryId;
+    const { categoryId } = listing;
     if (!category && !categoryId) return;
 
     const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
     window.glami('track', 'ViewContent', cleanObject({
       content_type: 'category',
-      item_ids: listingItems.slice(0, 10).map(product =>
-        ((!feedWithGroupedProducts) ? product.id : product.skuCode),
-      ),
+      item_ids: listingItems.slice(0, 10).map(product => ((!feedWithGroupedProducts) ? product.id : product.skuCode)),
       product_names: listingItems.slice(0, 10).map(product => product.name),
       category_id: categoryId,
       category_text: category,
@@ -210,10 +208,10 @@ class Glami extends Integration {
     const lineItems = transaction.lineItems || [];
     const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
     const idProp = (feedWithGroupedProducts) ? 'product.skuCode' : 'product.id';
-    const productIds = lineItems.length ?
-      transaction.lineItems.map(lineItem => getProp(lineItem, idProp)) : undefined;
-    const productNames = lineItems.length ?
-      transaction.lineItems.map(lineItem => getProp(lineItem, 'product.name')) : undefined;
+    const productIds = lineItems.length
+      ? transaction.lineItems.map(lineItem => getProp(lineItem, idProp)) : undefined;
+    const productNames = lineItems.length
+      ? transaction.lineItems.map(lineItem => getProp(lineItem, 'product.name')) : undefined;
 
     window.glami('track', 'Purchase', cleanObject({
       item_ids: productIds,

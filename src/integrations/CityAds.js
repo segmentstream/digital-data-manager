@@ -1,10 +1,10 @@
-import Integration from './../Integration';
 import getQueryParam from 'driveback-utils/getQueryParam';
 import topDomain from 'driveback-utils/topDomain';
 import { getProp } from 'driveback-utils/dotProp';
 import normalizeString from 'driveback-utils/normalizeString';
-import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
 import cookie from 'js-cookie';
+import { COMPLETED_TRANSACTION } from '../events/semanticEvents';
+import Integration from '../Integration';
 
 const CLICK_ID_GET_PARAM = 'click_id';
 const DEFAULT_CLICK_ID_COOKIE_NAME = 'cityads_click_id';
@@ -61,6 +61,7 @@ class CityAds extends Integration {
     this.addTag({
       type: 'script',
       attr: {
+        // eslint-disable-next-line max-len
         src: `https://cityadstrack.com/tr/js/{{ orderId }}/ct/{{ targetName }}/c/${options.partnerId}?click_id={{ clickId }}&customer_type={{ customerType }}&customer_id={{ customerId }}&payment_method={{ paymentMethod }}&order_total={{ orderTotal }}&currency={{ currency }}&coupon={{ coupon }}&discount={{ discount }}&basket={{ basket }}&md=2`,
       },
     });
@@ -175,23 +176,23 @@ class CityAds extends Integration {
   }
 
   onCompletedTransaction(event, clickId) {
-    const transaction = event.transaction;
+    const { transaction } = event;
 
     if (!transaction || !transaction.orderId) {
       return;
     }
 
-    const orderId = transaction.orderId;
+    const { orderId } = transaction;
     const targetName = getProp(event, 'targetName') || this.getOption('defaultTargetName');
     const customerType = (transaction.isFirst) ? CUSTOMER_TYPE_NEW : CUSTOMER_TYPE_RETURNED;
-    const paymentMethod = transaction.paymentMethod;
+    const { paymentMethod } = transaction;
     const vouchers = transaction.vouchers || [];
     const coupon = vouchers.join(',');
     const discount = transaction.vouchersDiscount;
     const customerId = getProp(event, 'user.userId');
     const shippingCost = transaction.shippingCost || 0;
     const orderTotal = transaction.total - shippingCost;
-    let currency = transaction.currency;
+    let { currency } = transaction;
     if (currency === 'RUB') currency = 'RUR'; // for some reason cityads uses RUR instead of RUB
 
     const lineItems = transaction.lineItems || [];

@@ -1,6 +1,6 @@
 window.localStorage.clear();
-console.error = () => {};
-console.warn = () => {};
+console.error = () => {}; // eslint-disable-line no-console
+console.warn = () => {}; // eslint-disable-line no-console
 
 // window.__DEV_MODE__ = true; // disable catching exceptions
 
@@ -25,6 +25,9 @@ import './scripts/CustomScripts.spec';
 
 // trackers
 import './trackers/trackLink.spec';
+
+// integration utils
+import './integrations/utils/transliterate.spec';
 
 // integrations
 import './integrations/GoogleAnalytics.spec';

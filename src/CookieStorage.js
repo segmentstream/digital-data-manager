@@ -4,7 +4,7 @@ import topDomain from 'driveback-utils/topDomain';
 class CookieStorage {
   constructor(options = {}) {
     this.options = Object.assign({
-      cookieDomain: topDomain(location.href),
+      cookieDomain: topDomain(window.location.href),
       cookieMaxAge: 31536000000, // default to a year
       prefix: 'dd_',
     }, options);

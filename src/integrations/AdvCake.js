@@ -1,19 +1,21 @@
-import Integration from './../Integration';
 import cleanObject from 'driveback-utils/cleanObject';
 import noop from 'driveback-utils/noop';
+import topDomain from 'driveback-utils/topDomain';
+import normalizeString from 'driveback-utils/normalizeString';
+import uuid from 'uuid/v1';
+import { getProp } from 'driveback-utils/dotProp';
+import getQueryParam from 'driveback-utils/getQueryParam';
+import {
+  normalizeOptions, addAffiliateCookie, removeAffiliateCookie, isDeduplication, getAffiliateCookie,
+} from './utils/affiliate';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
   VIEWED_PRODUCT_LISTING,
   COMPLETED_TRANSACTION,
   VIEWED_CART,
-} from './../events/semanticEvents';
-import { normalizeOptions, addAffiliateCookie, removeAffiliateCookie, isDeduplication, getAffiliateCookie } from './utils/affiliate';
-import topDomain from 'driveback-utils/topDomain';
-import normalizeString from 'driveback-utils/normalizeString';
-import uuid from 'uuid/v1';
-import { getProp } from 'driveback-utils/dotProp';
-import getQueryParam from 'driveback-utils/getQueryParam';
+} from '../events/semanticEvents';
+import Integration from '../Integration';
 
 const DEFAUL_TRACK_ID_COOKIE_NAME = 'advcake_trackid';
 const DEFAULT_URL_COOKIE_NAME = 'advcake_url';

@@ -1,5 +1,5 @@
 import { error as errorLog } from 'driveback-utils/safeConsole';
-import Handler from './../Handler';
+import Handler from '../Handler';
 
 class CustomScript {
   constructor(name, event, handler, fireOnce, digitalData) {

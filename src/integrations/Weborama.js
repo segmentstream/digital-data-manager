@@ -23,6 +23,7 @@ class Weborama extends Integration {
       this.addTag({
         type: 'img',
         attr: {
+          // eslint-disable-next-line max-len
           src: `https://rtbprojects.solution.weborama.fr/fcgi-bin/dispatch.fcgi?a.A=co&a.si=${siteId}&a.cp={{ conversionId }}&a.ct=d`,
         },
       });

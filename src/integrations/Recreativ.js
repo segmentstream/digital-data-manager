@@ -1,10 +1,10 @@
-import Integration from './../Integration';
 import { getProp } from 'driveback-utils/dotProp';
+import Integration from '../Integration';
 import {
   VIEWED_PRODUCT_DETAIL,
   VIEWED_CART,
   COMPLETED_TRANSACTION,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 const SEMANTIC_EVENTS = [
   VIEWED_PRODUCT_DETAIL,
@@ -25,6 +25,7 @@ class Recreativ extends Integration {
     this.addTag('product', {
       type: 'script',
       attr: {
+        // eslint-disable-next-line max-len
         src: `//recreativ.ru/trck.php?shop=${options.shopId}&offer={{ productId }}&rnd=${Math.floor(Math.random() * 999)}`,
       },
     });
@@ -32,6 +33,7 @@ class Recreativ extends Integration {
     this.addTag('cart', {
       type: 'script',
       attr: {
+        // eslint-disable-next-line max-len
         src: `//recreativ.ru/trck.php?shop=${options.shopId}&cart={{ productIds }}&rnd=${Math.floor(Math.random() * 999)}`,
       },
     });
@@ -39,6 +41,7 @@ class Recreativ extends Integration {
     this.addTag('transaction', {
       type: 'script',
       attr: {
+        // eslint-disable-next-line max-len
         src: `//recreativ.ru/trck.php?shop=${options.shopId}&del={{ productIds }}&rnd=${Math.floor(Math.random() * 999)}`,
       },
     });
@@ -133,7 +136,7 @@ class Recreativ extends Integration {
   }
 
   onViewedProductDetail(event) {
-    const product = event.product;
+    const { product } = event;
     if (product && product.id) {
       this.load('product', {
         productId: product.id,
@@ -142,7 +145,7 @@ class Recreativ extends Integration {
   }
 
   onViewedCart(event) {
-    const cart = event.cart;
+    const { cart } = event;
     if (!getProp(cart, 'lineItems.length')) return;
     const productIds = cart.lineItems.reduce((str, lineItem, index) => {
       const productId = getProp(lineItem, 'product.id');
@@ -156,7 +159,7 @@ class Recreativ extends Integration {
   }
 
   onCompletedTransaction(event) {
-    const transaction = event.transaction;
+    const { transaction } = event;
     if (!getProp(transaction, 'lineItems.length')) return;
     const productIds = transaction.lineItems.reduce((str, lineItem, index) => {
       const productId = getProp(lineItem, 'product.id');

@@ -1,8 +1,8 @@
-import trackImpression from './../trackers/trackImpression';
-import trackLink from './../trackers/trackLink';
-import Handler from './../Handler';
 import { error as errorLog } from 'driveback-utils/safeConsole';
 import isPromise from 'driveback-utils/isPromise';
+import trackImpression from '../trackers/trackImpression';
+import trackLink from '../trackers/trackLink';
+import Handler from '../Handler';
 import { CUSTOM_EVENT_SOURCE } from '../constants';
 
 const TRIGGER_EVENT = 'event';

@@ -163,7 +163,15 @@ class Actionpay extends Integration {
       case REMOVED_PRODUCT:
       case ADDED_PRODUCT_TO_WISHLIST:
       case REMOVED_PRODUCT_FROM_WISHLIST:
-        return { fields: ['product.id', 'product.category', 'product.categoryId', 'product.name', 'product.unitSalePrice'] };
+        return {
+          fields: [
+            'product.id',
+            'product.category',
+            'product.categoryId',
+            'product.name',
+            'product.unitSalePrice',
+          ],
+        };
       case VIEWED_CART:
       case VIEWED_CHECKOUT_STEP:
         return {

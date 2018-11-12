@@ -1,8 +1,8 @@
-import Integration from './../Integration';
 import getQueryParam from 'driveback-utils/getQueryParam';
 import { getProp } from 'driveback-utils/dotProp';
 import normalizeString from 'driveback-utils/normalizeString';
-import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
+import Integration from '../Integration';
+import { COMPLETED_TRANSACTION } from '../events/semanticEvents';
 import { isDeduplication, addAffiliateCookie, getAffiliateCookie } from './utils/affiliate';
 
 const DEFAULT_COOKIE_NAME = 'tradetracker';
@@ -28,6 +28,7 @@ class TradeTracker extends Integration {
     this.addTag('trackingPixel', {
       type: 'img',
       attr: {
+        // eslint-disable-next-line max-len
         src: `//ts.tradetracker.net/?cid=${options.campaignId}&tid={{ orderId }}&tam={{ subtotal }}&qty=1&event=sales&currency={{ currency }}`,
       },
     });
@@ -108,15 +109,14 @@ class TradeTracker extends Integration {
   }
 
   trackSale(event) {
-    const transaction = event.transaction;
+    const { transaction } = event;
 
     if (!transaction || !transaction.orderId) {
       return;
     }
 
-    const orderId = transaction.orderId;
+    const { orderId, currency } = transaction;
     const subtotal = transaction.subtotal || transaction.total;
-    const currency = transaction.currency;
 
     this.load('trackingPixel', { orderId, subtotal, currency });
   }

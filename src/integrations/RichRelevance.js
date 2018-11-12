@@ -1,8 +1,8 @@
-import Integration from './../Integration';
 import { getProp } from 'driveback-utils/dotProp';
-import AsyncQueue from './utils/AsyncQueue';
 import cleanObject from 'driveback-utils/cleanObject';
 import deleteProperty from 'driveback-utils/deleteProperty';
+import AsyncQueue from './utils/AsyncQueue';
+import Integration from '../Integration';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -11,7 +11,7 @@ import {
   SEARCHED_PRODUCTS,
   VIEWED_CART,
   COMPLETED_TRANSACTION,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 const DEVELOPMENT_URL_PREFIX = 'integration';
 const PRODUCTION_URL_PREFIX = 'recs';
@@ -228,8 +228,7 @@ class RichRelevance extends Integration {
           this.onEnrich();
           return;
         }
-        let recommendation
-          = this.digitalData.recommendation = this.digitalData.recommendation || [];
+        let recommendation = this.digitalData.recommendation = this.digitalData.recommendation || [];
         if (!Array.isArray(recommendation)) {
           recommendation = [recommendation];
         }
@@ -448,7 +447,7 @@ class RichRelevance extends Integration {
   }
 
   onViewedCart(event) {
-    const cart = event.cart;
+    const { cart } = event;
     if (!cart) return;
     const lineItems = cart.lineItems || [];
 
@@ -467,7 +466,7 @@ class RichRelevance extends Integration {
   }
 
   onCompletedTransaction(event) {
-    const transaction = event.transaction;
+    const { transaction } = event;
     if (!transaction || !transaction.orderId) return;
     const lineItems = transaction.lineItems || [];
 

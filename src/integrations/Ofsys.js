@@ -1,7 +1,7 @@
-import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import cleanObject from 'driveback-utils/cleanObject';
 import { getProp } from 'driveback-utils/dotProp';
+import Integration from '../Integration';
 import AsyncQueue from './utils/AsyncQueue';
 import {
   VIEWED_PAGE,
@@ -9,7 +9,7 @@ import {
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
   COMPLETED_TRANSACTION,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 const SEMANTIC_EVENTS = [
   VIEWED_PAGE,
@@ -173,12 +173,12 @@ class Ofsys extends Integration {
   }
 
   getCartItemNewQuantity(productId, additionalQuantity) {
-    const cart = this.cart;
+    const { cart } = this;
     if (!cart || !cart.lineItems || !cart.lineItems.length) {
       return additionalQuantity;
     }
     return cart.lineItems.reduce((acc, lineItem) => {
-      const product = lineItem.product;
+      const { product } = lineItem;
       if (product && String(product.id) === String(productId)) {
         acc += (lineItem.quantity || 1);
       }
@@ -221,7 +221,7 @@ class Ofsys extends Integration {
   }
 
   onViewedProductDetail(event) {
-    const product = event.product;
+    const { product } = event;
     if (!product || !product.id) return;
 
     this.asyncQueue.push(() => {
@@ -230,7 +230,7 @@ class Ofsys extends Integration {
   }
 
   onAddedProduct(event) {
-    const product = event.product;
+    const { product } = event;
     if (!product || !product.id || !this.cartId) return;
 
     const newCartTotal = this.getNewCartTotal(product.unitSalePrice, event.quantity || 1);
@@ -252,7 +252,7 @@ class Ofsys extends Integration {
   }
 
   onRemovedProduct(event) {
-    const product = event.product;
+    const { product } = event;
     if (!product || !product.id || !this.cartId) return;
 
     const newCartTotal = this.getNewCartTotal(product.unitSalePrice, -event.quantity || -1);
@@ -271,7 +271,7 @@ class Ofsys extends Integration {
   }
 
   onCompletedTransaction(event) {
-    const transaction = event.transaction;
+    const { transaction } = event;
     if (!transaction || !transaction.orderId) return;
 
     this.asyncQueue.push(() => {

@@ -1,7 +1,7 @@
-import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import cleanObject from 'driveback-utils/cleanObject';
 import { getProp } from 'driveback-utils/dotProp';
+import Integration from '../Integration';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -10,7 +10,7 @@ import {
   ADDED_PRODUCT_TO_WISHLIST,
   COMPLETED_TRANSACTION,
   STARTED_ORDER,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 const FB_STANDARD_EVENTS = [
   'ViewContent',
@@ -25,7 +25,7 @@ const FB_STANDARD_EVENTS = [
 ];
 
 function getProductCategory(product) {
-  let category = product.category;
+  let { category } = product;
   if (Array.isArray(category)) {
     category = category.join('/');
   } else if (category && product.subcategory) {
@@ -301,8 +301,8 @@ class FacebookPixel extends Integration {
     const lineItems = cart.lineItems || [];
     const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
     const idProp = (feedWithGroupedProducts) ? 'product.skuCode' : 'product.id';
-    const contentIds = lineItems.length ?
-      lineItems.map(lineItem => getProp(lineItem, idProp)) : undefined;
+    const contentIds = lineItems.length
+      ? lineItems.map(lineItem => getProp(lineItem, idProp)) : undefined;
 
     window.fbq('track', 'InitiateCheckout', cleanObject({
       content_ids: contentIds,
@@ -317,8 +317,8 @@ class FacebookPixel extends Integration {
     const lineItems = transaction.lineItems || [];
     const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
     const idProp = (feedWithGroupedProducts) ? 'product.skuCode' : 'product.id';
-    const contentIds = lineItems.length ?
-      transaction.lineItems.map(lineItem => getProp(lineItem, idProp)) : undefined;
+    const contentIds = lineItems.length
+      ? transaction.lineItems.map(lineItem => getProp(lineItem, idProp)) : undefined;
 
     window.fbq('track', 'Purchase', cleanObject({
       content_ids: contentIds,

@@ -1,3 +1,4 @@
+/* eslint-disable */
 (function(a, domain) {
   domain = domain || 'cdn.ddmanager.ru';
   var b = window.ddManager = window.ddManager || [];
@@ -61,3 +62,4 @@
     b.loadProject(a);
   }
 })('<PROJECT_ID>', '<CDN_DOMAIN>');
+/* eslint-enable */

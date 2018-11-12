@@ -108,7 +108,7 @@ class DDHelper {
         }
         listings.some((listing) => {
           if (listing.items && listing.items.length && (!listId || listId === listing.listId)) {
-            for (let i = 0, length = listing.items.length; i < length; i += 1) {
+            for (let i = 0, { length } = listing.items; i < length; i += 1) {
               if (matchProductById(id, listing.items[i])) {
                 const product = clone(listing.items[i]);
                 result = {};

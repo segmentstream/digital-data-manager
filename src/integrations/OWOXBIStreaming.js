@@ -1,5 +1,5 @@
-import Integration from './../Integration';
 import { warn } from 'driveback-utils/safeConsole';
+import Integration from '../Integration';
 
 class OWOXBIStreaming extends Integration {
   constructor(digitalData, options) {

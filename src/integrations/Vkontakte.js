@@ -1,8 +1,8 @@
-import Integration from './../Integration';
-import AsyncQueue from './utils/AsyncQueue';
 import arrayMerge from 'driveback-utils/arrayMerge';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import { getProp } from 'driveback-utils/dotProp';
+import AsyncQueue from './utils/AsyncQueue';
+import Integration from '../Integration';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -15,7 +15,7 @@ import {
   STARTED_ORDER,
   ADDED_PAYMENT_INFO,
   COMPLETED_TRANSACTION,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 const mapProduct = product => ({
   id: product.id,

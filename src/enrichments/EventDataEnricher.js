@@ -1,10 +1,10 @@
-import DDHelper from './../DDHelper';
 import dotProp from 'driveback-utils/dotProp';
 import deleteProperty from 'driveback-utils/deleteProperty';
+import DDHelper from '../DDHelper';
 import {
   VIEWED_PRODUCT_DETAIL,
   COMPLETED_TRANSACTION,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 import IntegrationEnrichment from './IntegrationEnrichment';
 
 class EventDataEnricher {
@@ -74,8 +74,8 @@ class EventDataEnricher {
     // handle custom event enrichments
     integration.getEventEnrichments()
       .filter(eventEnrichment => (
-        (!eventEnrichment.scope || eventEnrichment.scope === 'event') &&
-        (!eventEnrichment.event || eventEnrichment.event === event.name)
+        (!eventEnrichment.scope || eventEnrichment.scope === 'event')
+        && (!eventEnrichment.event || eventEnrichment.event === event.name)
       ))
       .forEach((eventEnrichment) => {
         const enrichment = new IntegrationEnrichment(
@@ -103,11 +103,11 @@ class EventDataEnricher {
 
   static hasProductFields(event) {
     return (
-      event.product ||
-      (event.listing && event.listing.items) ||
-      (event.cart && event.cart.lineItems) ||
-      (event.transaction && event.transaction.lineItems) ||
-      (event.listItem || event.listItems)
+      event.product
+      || (event.listing && event.listing.items)
+      || (event.cart && event.cart.lineItems)
+      || (event.transaction && event.transaction.lineItems)
+      || (event.listItem || event.listItems)
     );
   }
 

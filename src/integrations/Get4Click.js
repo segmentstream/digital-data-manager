@@ -1,11 +1,11 @@
-import Integration from './../Integration';
 import deleteProperty from 'driveback-utils/deleteProperty';
 import { getProp } from 'driveback-utils/dotProp';
 import { stringify } from 'driveback-utils/queryString';
 import cleanObject from 'driveback-utils/cleanObject';
+import Integration from '../Integration';
 import {
   COMPLETED_TRANSACTION,
-} from './../events/semanticEvents';
+} from '../events/semanticEvents';
 
 class Get4Click extends Integration {
   constructor(digitalData, options) {

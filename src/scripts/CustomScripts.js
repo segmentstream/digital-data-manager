@@ -19,7 +19,7 @@ class CustomScripts {
     });
     scriptsConfig.forEach((scriptConfig) => {
       let eventName = scriptConfig.event;
-      let fireOnce = scriptConfig.fireOnce;
+      let { fireOnce } = scriptConfig;
       if (!eventName) {
         eventName = 'Viewed Page'; // support legacy
         fireOnce = true;

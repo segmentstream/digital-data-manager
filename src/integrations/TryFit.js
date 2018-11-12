@@ -1,4 +1,4 @@
-import Integration from './../Integration';
+import Integration from '../Integration';
 import { VIEWED_PRODUCT_DETAIL } from '../events/semanticEvents';
 
 class TryFit extends Integration {

@@ -1,11 +1,11 @@
+import { stringify } from 'driveback-utils/queryString';
+import cleanObject from 'driveback-utils/cleanObject';
 import {
   getEnrichableVariableMappingProps,
   extractVariableMappingValues,
-} from './../IntegrationUtils';
-import Integration from './../Integration';
-import { stringify } from 'driveback-utils/queryString';
-import cleanObject from 'driveback-utils/cleanObject';
-import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
+} from '../IntegrationUtils';
+import Integration from '../Integration';
+import { COMPLETED_TRANSACTION } from '../events/semanticEvents';
 
 /**
 * Example:
@@ -41,14 +41,14 @@ class DoubleClickFloodlight extends Integration {
       const eventName = eventOptions.event;
       if (!eventName) return;
 
-      this.enrichableEventProps[eventName] =
-        getEnrichableVariableMappingProps(eventOptions.customVars);
+      this.enrichableEventProps[eventName] = getEnrichableVariableMappingProps(eventOptions.customVars);
       this.SEMANTIC_EVENTS.push(eventName);
     });
 
     this.addTag('counter', {
       type: 'iframe',
       attr: {
+        // eslint-disable-next-line max-len
         src: 'https://{{ src }}.fls.doubleclick.net/activityi;src={{ src }};type={{ type }};cat={{ cat }};dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;ord={{ ord }}{{ customVariables }}?',
       },
     });
@@ -56,6 +56,7 @@ class DoubleClickFloodlight extends Integration {
     this.addTag('sales', {
       type: 'iframe',
       attr: {
+        // eslint-disable-next-line max-len
         src: 'https://{{ src }}.fls.doubleclick.net/activityi;src={{ src }};type={{ type }};cat={{ cat }};qty={{ qty }};cost={{ cost }};dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;ord={{ ord }}{{ customVariables }}?',
       },
     });
@@ -112,13 +113,13 @@ class DoubleClickFloodlight extends Integration {
 
   getSaleTagParams(transaction) {
     if (transaction) {
-      const lineItems = transaction.lineItems;
+      const { lineItems } = transaction;
       const hasLineItems = lineItems && Array.isArray(lineItems);
       return cleanObject({
         ord: transaction.orderId,
         cost: transaction.total || transaction.subtotal,
-        qty: (hasLineItems) ?
-          lineItems.reduce((acc, lineItem) => acc + lineItem.quantity || 1, 0) : undefined,
+        qty: (hasLineItems)
+          ? lineItems.reduce((acc, lineItem) => acc + lineItem.quantity || 1, 0) : undefined,
       });
     }
     return this.getCustomEventTagParams();

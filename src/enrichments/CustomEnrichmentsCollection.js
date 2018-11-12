@@ -27,7 +27,7 @@ class CustomEnrichmentsCollection {
   }
 
   addEnrichment(config) {
-    const prop = config.prop;
+    const { prop } = config;
     const enrichment = new CustomEnrichment(config, this);
     this.enrichments.push(enrichment);
     this.enrichmentsIndex[prop] = enrichment;

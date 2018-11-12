@@ -1,8 +1,8 @@
-import Integration from './../Integration';
 import getQueryParam from 'driveback-utils/getQueryParam';
 import topDomain from 'driveback-utils/topDomain';
 import { getProp } from 'driveback-utils/dotProp';
-import { COMPLETED_TRANSACTION } from './../events/semanticEvents';
+import Integration from '../Integration';
+import { COMPLETED_TRANSACTION } from '../events/semanticEvents';
 import { isDeduplication, addAffiliateCookie, getAffiliateCookie } from './utils/affiliate';
 
 const CLICK_HASH_GET_PARAM = 'ClickHash';
@@ -31,6 +31,7 @@ class Linkprofit extends Integration {
     this.addTag({
       type: 'img',
       attr: {
+        // eslint-disable-next-line max-len
         src: 'https://cpa.linkprofit.ru/sale?OrderID={{ orderId }}&ClickHash={{ clickHash }}&CampaignID={{ campaignId }}&AffiliateID={{ affiliateId }}',
       },
     });
@@ -127,13 +128,13 @@ class Linkprofit extends Integration {
   }
 
   onCompletedTransaction(event, clickHash, affiliateId) {
-    const transaction = event.transaction;
+    const { transaction } = event;
 
     if (!transaction || !transaction.orderId) {
       return;
     }
 
-    const orderId = transaction.orderId;
+    const { orderId } = transaction;
     const campaignId = getProp(event, 'integrations.linkprofit.campaignId') || this.getOption('defaultCampaignId');
 
     this.load({

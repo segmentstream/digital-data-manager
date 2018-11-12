@@ -1,6 +1,6 @@
-import Handler from './../Handler';
 import { error as errorLog } from 'driveback-utils/safeConsole';
 import isPromise from 'driveback-utils/isPromise';
+import Handler from '../Handler';
 import { CUSTOM_CHANGE_SOURCE } from '../constants';
 
 class CustomEnrichment {

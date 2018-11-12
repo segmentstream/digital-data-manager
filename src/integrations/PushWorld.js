@@ -1,5 +1,5 @@
 import cookie from 'js-cookie';
-import Integration from './../Integration';
+import Integration from '../Integration';
 
 class PushWorld extends Integration {
   constructor(digitalData, options) {

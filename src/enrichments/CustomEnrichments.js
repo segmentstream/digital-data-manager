@@ -1,5 +1,5 @@
 import CustomEnrichmentsCollection from './CustomEnrichmentsCollection';
-import { VIEWED_PAGE } from './../events/semanticEvents';
+import { VIEWED_PAGE } from '../events/semanticEvents';
 
 const BEFORE_EVENT = 'beforeEvent';
 const AFTER_EVENT = 'afterEvent';
@@ -10,9 +10,9 @@ const storage = {
 };
 
 const checkEnrichment = enrichment => (
-  typeof enrichment === 'object' &&
-    typeof enrichment.handler === 'function' &&
-    typeof enrichment.prop === 'string'
+  typeof enrichment === 'object'
+    && typeof enrichment.handler === 'function'
+    && typeof enrichment.prop === 'string'
 );
 
 class CustomEnrichments {
