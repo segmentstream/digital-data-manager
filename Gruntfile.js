@@ -20,20 +20,20 @@ module.exports = function runGrunt(grunt) {
         },
       },
     },
-    compress: {
-      build: {
-        options: {
-          mode: 'gzip',
-        },
-        files: [{
-          src: ['dist/dd-manager.min.js'],
-          dest: 'deploy/dd-manager.js',
-        }],
-      },
-    },
-    clean: {
-      pre_build: ['deploy/dd-manager.js'],
-    },
+    // compress: {
+    //   build: {
+    //     options: {
+    //       mode: 'gzip',
+    //     },
+    //     files: [{
+    //       src: ['dist/dd-manager.min.js'],
+    //       dest: 'deploy/dd-manager.min.js',
+    //     }],
+    //   },
+    // },
+    // clean: {
+    //   pre_build: ['deploy/dd-manager.js'],
+    // },
     aws: (fs.existsSync('aws-keys.json')) ? grunt.file.readJSON('aws-keys.json') : {
       AWSAccessKeyId: process.env.AWS_ACCESS_KEY,
       AWSSecretKey: process.env.AWS_SECRET_KEY,
@@ -45,7 +45,6 @@ module.exports = function runGrunt(grunt) {
         region: 'eu-west-1',
         params: {
           CacheControl: 'max-age=86400',
-          ContentEncoding: 'gzip',
         },
       },
       production: {
@@ -54,12 +53,10 @@ module.exports = function runGrunt(grunt) {
           differential: true, // Only uploads the files that have changed
           gzipRename: 'ext', // when uploading a gz file, keep the original extension
         },
-        files: [{
-          expand: true,
-          cwd: 'deploy',
-          src: ['**'],
-          dest: 'sdk/',
-        }],
+        files: [
+          { src: `dist/${ddmMinNameSrc}`, dest: `sdk/${ddmName}` }, // TODO: change SRC to non-minified ddmNameSrc
+          { src: `dist/${ddmMinNameSrc}`, dest: `sdk/${ddmMinName}` },
+        ],
       },
       stage: {
         options: {
@@ -72,8 +69,8 @@ module.exports = function runGrunt(grunt) {
           },
         },
         files: [
-          { src: `dist/${ddmNameSrc}`, dest: `dist/${ddmName}` },
-          { src: `dist/${ddmMinNameSrc}`, dest: `dist/${ddmMinName}` },
+          { src: `dist/${ddmNameSrc}`, dest: `sdk/${ddmName}` },
+          { src: `dist/${ddmMinNameSrc}`, dest: `sdk/${ddmMinName}` },
         ],
       },
     },
@@ -86,8 +83,8 @@ module.exports = function runGrunt(grunt) {
 
   // Default task(s).
   grunt.registerTask('build', [
-    'clean:pre_build',
-    'compress',
+    // 'clean:pre_build',
+    // 'compress',
     'aws_s3:production',
   ]);
 
