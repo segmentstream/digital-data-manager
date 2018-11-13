@@ -10,8 +10,6 @@ import EventDataEnricher from './enrichments/EventDataEnricher';
 import CustomEvent from './events/CustomEvent';
 import { VIEWED_PAGE } from './events/semanticEvents';
 import {
-  CUSTOM_CHANGE_SOURCE,
-  SDK_CHANGE_SOURCE,
   SDK_EVENT_SOURCE,
 } from './constants';
 
@@ -249,22 +247,9 @@ class EventManager {
     });
   }
 
-  isNotSystemSource(source) {
-    return [CUSTOM_CHANGE_SOURCE, SDK_CHANGE_SOURCE].indexOf(source) < 0
-      && !/\sIntegration$/.test(source);
-  }
-
   applyChange(changeInfo) {
     if (Array.isArray(changeInfo)) {
-      const [key, value, source] = changeInfo;
-      if (this.isNotSystemSource(source)) {
-        _digitalData.events.push({
-          name: 'DigitalData Changes Pushed',
-          category: 'Debug',
-          label: key,
-          includeIntegrations: ['DDManager Streaming'],
-        });
-      }
+      const [key, value] = changeInfo;
       DDHelper.set(key, value, _digitalData);
     } else if (typeof changeInfo === 'object') {
       DDHelper.replace(changeInfo, _digitalData);
