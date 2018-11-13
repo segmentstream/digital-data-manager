@@ -1,5 +1,3 @@
-import sinon from 'sinon';
-
 // --------------------------------------------------------------------------------
 // Transactions
 // --------------------------------------------------------------------------------
@@ -57,7 +55,6 @@ function getCheckoutObjectStub() {
   return {
     operation: 'CompletedOrder',
     data: {
-      executionDateTimeUtc: sinon.match.any,
       customer: {
         ids: {
           bitrixId: 'user123',

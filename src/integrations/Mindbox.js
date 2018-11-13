@@ -903,7 +903,6 @@ class Mindbox extends Integration {
     window.mindbox('async', cleanObject({
       operation,
       data: {
-        executionDateTimeUtc: (new Date()).toISOString(),
         customer,
         order,
       },
