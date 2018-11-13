@@ -14,7 +14,7 @@ import CustomScripts from './scripts/CustomScripts';
 import Storage from './Storage';
 import DDStorage from './DDStorage';
 import CookieStorage from './CookieStorage';
-import { isTestMode, logEnrichedIntegrationEvent, showTestModeMessage } from './testMode';
+import { isTestMode, showTestModeMessage } from './testMode';
 import { VIEWED_PAGE, mapEvent } from './events/semanticEvents';
 import { validateIntegrationEvent, trackValidationErrors } from './EventValidator';
 import { enableErrorTracking } from './ErrorTracker';
@@ -211,7 +211,7 @@ function _initializeCustomEnrichments(settings) {
 
 const ddManager = {
 
-  VERSION: '1.2.174',
+  VERSION: '1.2.175',
 
   setAvailableIntegrations: (availableIntegrations) => {
     IntegrationsLoader.setAvailableIntegrations(availableIntegrations);
