@@ -1,0 +1,9 @@
+steps:
+- name: 'gcr.io/cloud-builders/npm'
+  args: ['install']
+- name: 'gcr.io/cloud-builders/npm'
+  args: ['test']
+  env:
+  - 'SAUCE_ENABLED=true'
+  - 'SAUCE_USERNAME=${_SAUCE_USERNAME}'
+  - 'SAUCE_ACCESS_KEY=${_SAUCE_ACCESS_KEY}'
