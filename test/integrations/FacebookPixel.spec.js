@@ -1,13 +1,14 @@
 import assert from 'assert';
 import sinon from 'sinon';
-import reset from './../reset.js';
-import FacebookPixel from './../../src/integrations/FacebookPixel.js';
-import ddManager from './../../src/ddManager.js';
+import reset from '../reset';
+import FacebookPixel from '../../src/integrations/FacebookPixel';
+import ddManager from '../../src/ddManager';
 
 describe('Integrations: FacebookPixel', () => {
   let fbPixel;
+  const pixelId = '946986105422948';
   const options = {
-    pixelId: '946986105422948',
+    pixelId,
     customEvents: {
       'Downloaded Tutorial': 'TutorialDownload',
       'Applied For Trial': 'Lead',
@@ -26,16 +27,13 @@ describe('Integrations: FacebookPixel', () => {
   });
 
   describe('#constructor', () => {
-
     it('should create Facebook Pixel integrations with proper options and tags', () => {
       assert.equal(options.pixelId, fbPixel.getOption('pixelId'));
       assert.equal('script', fbPixel.getTag().type);
     });
-
   });
 
   describe('#load', () => {
-
     it('should load', (done) => {
       assert.ok(!fbPixel.isLoaded());
       sinon.stub(fbPixel, 'load').callsFake(() => {
@@ -48,11 +46,9 @@ describe('Integrations: FacebookPixel', () => {
       });
       ddManager.initialize();
     });
-
   });
 
   describe('after loading', () => {
-
     beforeEach((done) => {
       sinon.stub(fbPixel, 'load').callsFake(() => {
         fbPixel.onLoad();
@@ -74,24 +70,21 @@ describe('Integrations: FacebookPixel', () => {
     });
 
     describe('#onViewedPage', () => {
-
       it('should call fbq track PageView', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {
-            type: 'home'
+            type: 'home',
           },
           callback: () => {
-            assert.ok(window.fbq.calledWith('track', 'PageView'));
+            assert.ok(window.fbq.calledWith('trackSingle', pixelId, 'PageView'));
             done();
-          }
+          },
         });
       });
-
     });
 
     describe('#onViewedProductDetail', () => {
-
       it('should call fbq track ViewContent (legacy product.category format)', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
@@ -101,17 +94,17 @@ describe('Integrations: FacebookPixel', () => {
             name: 'Test Product',
             category: 'Category 1',
             currency: 'USD',
-            unitSalePrice: 10000
+            unitSalePrice: 10000,
           },
           callback: () => {
-            assert.ok(window.fbq.calledWith('track', 'ViewContent', {
+            assert.ok(window.fbq.calledWith('trackSingle', pixelId, 'ViewContent', {
               content_ids: ['123'],
               content_type: 'product',
               content_name: 'Test Product',
               content_category: 'Category 1',
-            }), 'fbq("track", "ViewContent") was not called');
+            }), `fbq('trackSingle', ${pixelId}, 'ViewContent') was not called`);
             done();
-          }
+          },
         });
       });
 
@@ -124,17 +117,17 @@ describe('Integrations: FacebookPixel', () => {
             category: 'Category 1',
             subcategory: 'Subcategory 1',
             currency: 'USD',
-            unitSalePrice: 10000
+            unitSalePrice: 10000,
           },
           callback: () => {
-            assert.ok(window.fbq.calledWith('track', 'ViewContent', {
+            assert.ok(window.fbq.calledWith('trackSingle', pixelId, 'ViewContent', {
               content_ids: ['123'],
               content_type: 'product',
               content_name: 'Test Product',
               content_category: 'Category 1/Subcategory 1',
-            }), 'fbq("track", "ViewContent") was not called with correct params');
+            }), `fbq('trackSingle', ${pixelId}, 'ViewContent') was not called with correct params`);
             done();
-          }
+          },
         });
       });
 
@@ -146,17 +139,17 @@ describe('Integrations: FacebookPixel', () => {
             name: 'Test Product',
             category: ['Category 1', 'Subcategory 1'],
             currency: 'USD',
-            unitSalePrice: 10000
+            unitSalePrice: 10000,
           },
           callback: () => {
-            assert.ok(window.fbq.calledWith('track', 'ViewContent', {
+            assert.ok(window.fbq.calledWith('trackSingle', pixelId, 'ViewContent', {
               content_ids: ['123'],
               content_type: 'product',
               content_name: 'Test Product',
               content_category: 'Category 1/Subcategory 1',
-            }), 'fbq("track", "ViewContent") was not called');
+            }), `fbq('trackSingle', ${pixelId}, 'ViewContent') was not called`);
             done();
-          }
+          },
         });
       });
 
@@ -172,16 +165,16 @@ describe('Integrations: FacebookPixel', () => {
             unitSalePrice: 10000,
           },
           callback: () => {
-            assert.ok(window.fbq.calledWith('track', 'ViewContent', {
+            assert.ok(window.fbq.calledWith('trackSingle', pixelId, 'ViewContent', {
               content_ids: ['123'],
               content_type: 'product',
               content_name: 'Test Product',
               content_category: 'Category 1/Subcategory 1',
               value: 10000,
               currency: 'USD',
-            }), 'fbq("track", "ViewContent") was not called');
+            }), `fbq('trackSingle', ${pixelId}, 'ViewContent') was not called`);
             done();
-          }
+          },
         });
       });
 
@@ -191,44 +184,42 @@ describe('Integrations: FacebookPixel', () => {
           name: 'Test Product',
           category: ['Category 1', 'Subcategory 1'],
           currency: 'USD',
-          unitSalePrice: 10000
+          unitSalePrice: 10000,
         };
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           callback: () => {
-            assert.ok(window.fbq.calledWith('track', 'ViewContent', {
+            assert.ok(window.fbq.calledWith('trackSingle', pixelId, 'ViewContent', {
               content_ids: ['123'],
               content_type: 'product',
               content_name: 'Test Product',
               content_category: 'Category 1/Subcategory 1',
-            }), 'fbq("track", "ViewContent") was not called');
+            }), `fbq('trackSingle', ${pixelId}, 'ViewContent') was not called`);
             done();
-          }
+          },
         });
       });
     });
 
     describe('#onSearchedProducts', () => {
-
       it('should call fbq track Search', (done) => {
         window.digitalData.events.push({
           name: 'Searched Products',
           listing: {
-            query: 'Test Query'
+            query: 'Test Query',
           },
           quantity: 2,
           callback: () => {
-            assert.ok(window.fbq.calledWith('track', 'Search', {
+            assert.ok(window.fbq.calledWith('trackSingle', pixelId, 'Search', {
               search_string: 'Test Query',
-            }), 'fbq("track", "Search") was not called');
+            }), `fbq('trackSingle', ${pixelId}, 'Search') was not called`);
             done();
-          }
+          },
         });
       });
     });
 
     describe('#onAddedProductToWishlist', () => {
-
       it('should call fbq track AddToWishlist', (done) => {
         window.digitalData.events.push({
           name: 'Added Product to Wishlist',
@@ -238,20 +229,19 @@ describe('Integrations: FacebookPixel', () => {
             category: ['Category 1', 'Subcategory 1'],
           },
           callback: () => {
-            assert.ok(window.fbq.calledWith('track', 'AddToWishlist', {
+            assert.ok(window.fbq.calledWith('trackSingle', pixelId, 'AddToWishlist', {
               content_ids: ['123'],
               content_type: 'product',
               content_name: 'Test Product',
               content_category: 'Category 1/Subcategory 1',
-            }), 'fbq("track", "AddToWishlist") was not called');
+            }), `fbq('trackSingle', ${pixelId}, 'AddToWishlist') was not called`);
             done();
-          }
+          },
         });
       });
     });
 
     describe('#onAddedProduct', () => {
-
       it('should call fbq track AddToCart (legacy product.category format)', (done) => {
         window.digitalData.events.push({
           name: 'Added Product',
@@ -260,18 +250,18 @@ describe('Integrations: FacebookPixel', () => {
             name: 'Test Product',
             category: 'Category 1',
             currency: 'USD',
-            unitSalePrice: 10000
+            unitSalePrice: 10000,
           },
           quantity: 2,
           callback: () => {
-            assert.ok(window.fbq.calledWith('track', 'AddToCart', {
+            assert.ok(window.fbq.calledWith('trackSingle', pixelId, 'AddToCart', {
               content_ids: ['123'],
               content_type: 'product',
               content_name: 'Test Product',
               content_category: 'Category 1',
-            }), 'fbq("track", "AddToCart") was not called');
+            }), `fbq('trackSingle', ${pixelId}, 'AddToCart') was not called`);
             done();
-          }
+          },
         });
       });
 
@@ -284,22 +274,22 @@ describe('Integrations: FacebookPixel', () => {
             category: 'Category 1',
             subcategory: 'Subcategory 1',
             currency: 'USD',
-            unitSalePrice: 10000
+            unitSalePrice: 10000,
           },
           quantity: 2,
           callback: () => {
-            assert.ok(window.fbq.calledWith('track', 'AddToCart', {
+            assert.ok(window.fbq.calledWith('trackSingle', pixelId, 'AddToCart', {
               content_ids: ['123'],
               content_type: 'product',
               content_name: 'Test Product',
               content_category: 'Category 1/Subcategory 1',
-            }), 'fbq("track", "AddToCart") was not called');
+            }), `fbq('trackSingle', ${pixelId}, 'AddToCart') was not called`);
             done();
-          }
+          },
         });
       });
 
-      it('should call fbq track AddToCart' , (done) => {
+      it('should call fbq track AddToCart', (done) => {
         window.digitalData.events.push({
           name: 'Added Product',
           product: {
@@ -307,18 +297,18 @@ describe('Integrations: FacebookPixel', () => {
             name: 'Test Product',
             category: ['Category 1', 'Subcategory 1'],
             currency: 'USD',
-            unitSalePrice: 10000
+            unitSalePrice: 10000,
           },
           quantity: 2,
           callback: () => {
-            assert.ok(window.fbq.calledWith('track', 'AddToCart', {
+            assert.ok(window.fbq.calledWith('trackSingle', pixelId, 'AddToCart', {
               content_ids: ['123'],
               content_type: 'product',
               content_name: 'Test Product',
               content_category: 'Category 1/Subcategory 1',
-            }), 'fbq("track", "AddToCart") was not called');
+            }), `fbq('trackSingle', ${pixelId}, 'AddToCart') was not called`);
             done();
-          }
+          },
         });
       });
 
@@ -331,23 +321,22 @@ describe('Integrations: FacebookPixel', () => {
             name: 'Test Product',
             category: 'Category 1',
             currency: 'USD',
-            unitSalePrice: 10000
+            unitSalePrice: 10000,
           },
           callback: () => {
-            assert.ok(window.fbq.calledWith('track', 'AddToCart', {
+            assert.ok(window.fbq.calledWith('trackSingle', pixelId, 'AddToCart', {
               content_ids: ['123'],
               content_type: 'product',
               content_name: 'Test Product',
               content_category: 'Category 1',
-            }), 'fbq("track", "AddToCart") was not called');
+            }), `fbq('trackSingle', ${pixelId}, 'AddToCart') was not called`);
             done();
-          }
+          },
         });
       });
     });
 
     describe('#onStartedOrder', () => {
-
       const cart = {
         total: 20000,
         currency: 'USD',
@@ -358,10 +347,10 @@ describe('Integrations: FacebookPixel', () => {
               name: 'Test Product',
               category: 'Category 1',
               currency: 'USD',
-              unitSalePrice: 10000
+              unitSalePrice: 10000,
             },
             quantity: 1,
-            subtotal: 10000
+            subtotal: 10000,
           },
           {
             product: {
@@ -369,13 +358,12 @@ describe('Integrations: FacebookPixel', () => {
               name: 'Test Product 2',
               category: 'Category 1',
               currency: 'USD',
-              unitSalePrice: 5000
+              unitSalePrice: 5000,
             },
             quantity: 2,
-            subtotal: 10000
-          }
+            subtotal: 10000,
+          },
         ],
-        total: 20000
       };
 
       it('should call fbq track InitiateCheckout', (done) => {
@@ -384,20 +372,19 @@ describe('Integrations: FacebookPixel', () => {
         window.digitalData.events.push({
           name: 'Started Order',
           callback: () => {
-            assert.ok(window.fbq.calledWith('track', 'InitiateCheckout', {
+            assert.ok(window.fbq.calledWith('trackSingle', pixelId, 'InitiateCheckout', {
               content_ids: ['123', '234'],
               content_type: 'product',
               currency: 'USD',
-              value: 20000
-            }), 'fbq("track", "InitiateCheckout") was not called');
+              value: 20000,
+            }), `fbq('trackSingle', ${pixelId}, 'InitiateCheckout') was not called`);
             done();
-          }
+          },
         });
       });
     });
 
     describe('#onCompletedTransaction', () => {
-
       const transaction = {
         orderId: '123',
         total: 20000,
@@ -409,10 +396,10 @@ describe('Integrations: FacebookPixel', () => {
               name: 'Test Product',
               category: 'Category 1',
               currency: 'USD',
-              unitSalePrice: 10000
+              unitSalePrice: 10000,
             },
             quantity: 1,
-            subtotal: 10000
+            subtotal: 10000,
           },
           {
             product: {
@@ -420,27 +407,27 @@ describe('Integrations: FacebookPixel', () => {
               name: 'Test Product 2',
               category: 'Category 1',
               currency: 'USD',
-              unitSalePrice: 5000
+              unitSalePrice: 5000,
             },
             quantity: 2,
-            subtotal: 10000
-          }
-        ]
+            subtotal: 10000,
+          },
+        ],
       };
 
       it('should call fbq track Purchase', (done) => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
-          transaction: transaction,
+          transaction,
           callback: () => {
-            assert.ok(window.fbq.calledWith('track', 'Purchase', {
+            assert.ok(window.fbq.calledWith('trackSingle', pixelId, 'Purchase', {
               content_ids: ['123', '234'],
               content_type: 'product',
               currency: 'USD',
-              value: 20000
-            }), 'fbq("track", "Purchase") was not called');
+              value: 20000,
+            }), `fbq('trackSingle', ${pixelId}, 'Purchase') was not called`);
             done();
-          }
+          },
         });
       });
 
@@ -449,17 +436,16 @@ describe('Integrations: FacebookPixel', () => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
           callback: () => {
-            assert.ok(window.fbq.calledWith('track', 'Purchase', {
+            assert.ok(window.fbq.calledWith('trackSingle', pixelId, 'Purchase', {
               content_ids: ['123', '234'],
               content_type: 'product',
               currency: 'USD',
-              value: 20000
-            }), 'fbq("track", "Purchase") was not called');
+              value: 20000,
+            }), `fbq('trackSingle', ${pixelId}, 'Purchase') was not called`);
             done();
-          }
+          },
         });
       });
-
     });
 
 
@@ -468,9 +454,10 @@ describe('Integrations: FacebookPixel', () => {
         window.digitalData.events.push({
           name: 'Downloaded Tutorial',
           callback: () => {
-            assert.ok(window.fbq.calledWith('trackCustom', 'TutorialDownload'), 'fbq("track", "Downloaded Tutorial") was not called');
+            assert.ok(window.fbq.calledWith('trackSingleCustom', pixelId, 'TutorialDownload'),
+              `fbq('trackSingleCustom', ${pixelId}, "'Downloaded' Tutorial") was not called`);
             done();
-          }
+          },
         });
       });
 
@@ -478,13 +465,12 @@ describe('Integrations: FacebookPixel', () => {
         window.digitalData.events.push({
           name: 'Applied For Trial',
           callback: () => {
-            assert.ok(window.fbq.calledWith('track', 'Lead'), 'fbq("track", "Lead") was not called');
+            assert.ok(window.fbq.calledWith('trackSingle', pixelId, 'Lead'),
+              `fbq('trackSingle', ${pixelId}, 'Lead') was not called`);
             done();
-          }
+          },
         });
       });
     });
-
   });
-
 });

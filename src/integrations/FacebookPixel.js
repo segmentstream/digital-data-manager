@@ -92,6 +92,10 @@ class FacebookPixel extends Integration {
     }
   }
 
+  getPixelIds() {
+    return this.getOption('pixelId').split(',');
+  }
+
   getSemanticEvents() {
     return this.SEMANTIC_EVENTS;
   }
@@ -240,8 +244,16 @@ class FacebookPixel extends Integration {
     }
   }
 
+  trackSingle(eventName, params) {
+    this.getPixelIds().forEach(pixelId => window.fbq('trackSingle', pixelId, eventName, params));
+  }
+
+  trackSingleCustom(eventName, params) {
+    this.getPixelIds().forEach(pixelId => window.fbq('trackSingleCustom', pixelId, eventName, params));
+  }
+
   onViewedPage() {
-    window.fbq('track', 'PageView');
+    this.trackSingle('PageView');
   }
 
   onViewedProductDetail(event) {
@@ -249,7 +261,8 @@ class FacebookPixel extends Integration {
     const category = getProductCategory(product);
     const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
 
-    window.fbq('track', 'ViewContent', cleanObject({
+
+    this.trackSingle('ViewContent', cleanObject({
       content_ids: [product.id || ''],
       content_type: (feedWithGroupedProducts) ? 'product_group' : 'product',
       content_name: product.name || '',
@@ -264,7 +277,7 @@ class FacebookPixel extends Integration {
     const category = getProductCategory(product);
     const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
 
-    window.fbq('track', 'AddToCart', cleanObject({
+    this.trackSingle('AddToCart', cleanObject({
       content_ids: (feedWithGroupedProducts) ? [product.skuCode || ''] : [product.id || ''],
       content_type: 'product',
       content_name: product.name,
@@ -279,7 +292,7 @@ class FacebookPixel extends Integration {
     const category = getProductCategory(product);
     const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
 
-    window.fbq('track', 'AddToWishlist', cleanObject({
+    this.trackSingle('AddToWishlist', cleanObject({
       content_ids: (feedWithGroupedProducts) ? [product.skuCode || ''] : [product.id || ''],
       content_type: 'product',
       content_name: product.name,
@@ -291,7 +304,7 @@ class FacebookPixel extends Integration {
 
   onSearchedProducts(event) {
     const listing = event.listing || {};
-    window.fbq('track', 'Search', cleanObject({
+    this.trackSingle('Search', cleanObject({
       search_string: listing.query,
     }));
   }
@@ -304,7 +317,7 @@ class FacebookPixel extends Integration {
     const contentIds = lineItems.length
       ? lineItems.map(lineItem => getProp(lineItem, idProp)) : undefined;
 
-    window.fbq('track', 'InitiateCheckout', cleanObject({
+    this.trackSingle('InitiateCheckout', cleanObject({
       content_ids: contentIds,
       content_type: 'product',
       currency: cart.currency,
@@ -320,7 +333,7 @@ class FacebookPixel extends Integration {
     const contentIds = lineItems.length
       ? transaction.lineItems.map(lineItem => getProp(lineItem, idProp)) : undefined;
 
-    window.fbq('track', 'Purchase', cleanObject({
+    this.trackSingle('Purchase', cleanObject({
       content_ids: contentIds,
       content_type: 'product',
       currency: transaction.currency,
@@ -333,9 +346,9 @@ class FacebookPixel extends Integration {
     const customEventName = customEvents[event.name];
     if (customEventName) {
       if (FB_STANDARD_EVENTS.indexOf(customEventName) < 0) {
-        window.fbq('trackCustom', customEventName);
+        this.trackSingleCustom(customEventName);
       } else {
-        window.fbq('track', customEventName);
+        this.trackSingle(customEventName);
       }
     }
   }
