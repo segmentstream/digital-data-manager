@@ -51,7 +51,6 @@ const IntegrationsLoader = {
     const diff = allIntegrations.filter(x => beforeAndAfter.indexOf(x) === -1);
     // add integrations to beforeList if were not defined in before or after
     beforeList = beforeList.concat(diff);
-
     return (beforeList.concat(afterList))
       .map(integrationName => _integrations[integrationName])
       .filter(integration => !!integration); // check if integration is not undefined
@@ -114,9 +113,9 @@ const IntegrationsLoader = {
     integration.onLoadInitiated();
   },
 
-  queueIntegrationLoad: (integration) => {
+  queueIntegrationLoad: (integration, ignorePriorities = false) => {
     const integrationsPriority = _integrationsPriority || {};
-    const afterList = integrationsPriority.after || [];
+    const afterList = ignorePriorities ? [] : integrationsPriority.after || [];
     const pageLoaded = window.document.readyState === 'complete';
     let integrationLoaded = false;
 

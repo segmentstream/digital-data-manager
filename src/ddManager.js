@@ -3,6 +3,7 @@ import nextTick from 'async/nextTick';
 import cleanObject from 'driveback-utils/cleanObject';
 import emitter from 'component-emitter';
 import { error as errorLog } from 'driveback-utils/safeConsole';
+import { getProp } from 'driveback-utils/dotProp';
 import Integration from './Integration';
 import EventManager from './EventManager';
 import IntegrationsLoader from './IntegrationsLoader';
@@ -144,9 +145,13 @@ function _initializeIntegrations(settings) {
             );
             if (!integrationEvent.name || integrationEvent.ignore) return;
 
-            // initialize intrgration if all checks passed
+            // initialize integration if all checks passed
             IntegrationsLoader.initializeIntegration(integration);
-            IntegrationsLoader.queueIntegrationLoad(integration);
+            /* TO-DO: remove ignorePriorities after the test is finished 09-01-2019 */
+            const ignorePriorities = settings.prioritiesTest
+              && settings.prioritiesTestVar
+              && getProp(_digitalData, settings.prioritiesTestVar) === 1;
+            IntegrationsLoader.queueIntegrationLoad(integration, ignorePriorities);
           } catch (e) {
             errorLog(e);
           }
