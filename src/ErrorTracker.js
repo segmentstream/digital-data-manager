@@ -20,7 +20,7 @@ export function enableErrorTracking(digitalData) {
       name: 'Exception',
       category: 'JS Errors',
       exception: {
-        message: errorMessage,
+        message: String(errorMessage),
         description: exceptionDescription,
         lineNumber,
         columnNumber,
