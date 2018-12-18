@@ -96,8 +96,8 @@ class REES46 extends Integration {
   }
 
   onViewedPage(event) {
-    const { user } = event;
-    if (!user || !user.userId || !user.email) return;
+    const user = event.user || {};
+    const location = getProp(event, 'website.regionId');
     const gender = String(user.gender).toLowerCase();
 
     const rees46Data = cleanObject({
@@ -105,10 +105,12 @@ class REES46 extends Integration {
       email: user.email,
       gender: ['m', 'f'].indexOf(gender) >= 0 ? gender : undefined,
       birthday: user.birthDate,
-      location: getProp(event, 'website.regionId'),
+      location,
     });
 
-    window.r46('profile', 'set', rees46Data);
+    if (Object.keys(rees46Data).length > 0) {
+      window.r46('profile', 'set', rees46Data);
+    }
   }
 
   onViewedProductDetail(event) {
