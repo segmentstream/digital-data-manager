@@ -1,19 +1,48 @@
 import assert from 'assert';
 import sinon from 'sinon';
+import cleanObject from 'driveback-utils/cleanObject';
+import htmlGlobals from 'driveback-utils/htmlGlobals';
 import reset from '../reset';
 import argumentsToArray from '../functions/argumentsToArray';
 import GoogleAnalytics from '../../src/integrations/GoogleAnalytics';
 import ddManager from '../../src/ddManager';
 
-function getCurrentLocation() {
-  return [
-    `${window.location.protocol}//${window.location.hostname}`,
-    window.location.port ? `:${window.location.port}` : '',
-    `${window.location.pathname}${window.location.search}`,
-  ].join('');
-}
-
 describe('Integrations: GoogleAnalytics', () => {
+  // TODO move _document & _location to a separate stub module
+  const _document = {
+    referrer: 'https://google.com',
+    title: 'Example home page',
+  };
+
+  const _location = {
+    protocol: 'https:',
+    hostname: 'example.com',
+    port: '',
+    pathname: '/home',
+    href: 'https://example.com/home?utm_source=newsletter&utm_medium=email&utm_campaign=test_campaign',
+    search: '?utm_source=newsletter&utm_medium=email&utm_campaign=test_campaign',
+    hash: '#title1',
+  };
+
+  const getCurrentLocation = () => {
+    const location = htmlGlobals.getLocation();
+    return [
+      `${location.protocol}//${location.hostname}`,
+      location.port ? `:${location.port}` : '',
+      `${location.pathname}${location.search}`,
+    ].join('');
+  };
+
+  before(() => {
+    sinon.stub(htmlGlobals, 'getDocument').callsFake(() => _document);
+    sinon.stub(htmlGlobals, 'getLocation').callsFake(() => _location);
+  });
+
+  after(() => {
+    htmlGlobals.getLocation.restore();
+    htmlGlobals.getDocument.restore();
+  });
+
   describe('Universal', () => {
     let ga;
     const options = {
@@ -197,11 +226,13 @@ describe('Integrations: GoogleAnalytics', () => {
             name: 'Viewed Page',
             page: window.digitalData.page,
             callback: () => {
-              assert.ok(window.ga.calledWith('send', 'pageview', {
-                page: window.location.pathname,
-                title: document.title,
+              const page = htmlGlobals.getLocation().pathname + htmlGlobals.getLocation().search;
+
+              assert.ok(window.ga.calledWith('send', 'pageview', cleanObject({
+                page,
+                title: htmlGlobals.getDocument().title,
                 location: getCurrentLocation(),
-              }));
+              })));
               done();
             },
           });
@@ -211,32 +242,35 @@ describe('Integrations: GoogleAnalytics', () => {
           window.digitalData.events.push({
             name: 'Viewed Page',
             callback: () => {
-              assert.ok(window.ga.calledWith('send', 'pageview', {
-                page: window.location.pathname,
-                title: document.title,
+              const page = htmlGlobals.getLocation().pathname + htmlGlobals.getLocation().search;
+              assert.ok(window.ga.calledWith('send', 'pageview', cleanObject({
+                page,
+                title: htmlGlobals.getDocument().title,
                 location: getCurrentLocation(),
-              }));
+              })));
               done();
             },
           });
         });
 
-        it('should send only one pageview using pageviewFlush', (done) => {
+        it.only('should send only one pageview using pageviewFlush', (done) => {
           ga.setOption('enhancedEcommerce', true);
           window.digitalData.events.push({
             name: 'Viewed Page',
             page: {
               type: 'product',
-              path: window.location.pathname,
+              path: htmlGlobals.getLocation().pathname,
+              queryString: htmlGlobals.getLocation().search,
               url: getCurrentLocation(),
-              title: document.title,
+              title: htmlGlobals.getDocument().title,
             },
             callback: () => {
-              assert.ok(!window.ga.calledWith('send', 'pageview', {
-                page: window.location.pathname,
-                title: document.title,
+              const page = htmlGlobals.getLocation().pathname + htmlGlobals.getLocation().search;
+              assert.ok(!window.ga.calledWith('send', 'pageview', cleanObject({
+                page,
+                title: htmlGlobals.getDocument().title,
                 location: getCurrentLocation(),
-              }));
+              })));
               window.digitalData.events.push({
                 name: 'Viewed Product Detail',
                 product: {
@@ -244,11 +278,11 @@ describe('Integrations: GoogleAnalytics', () => {
                   unitSalePrice: 1000,
                 },
                 callback: () => {
-                  assert.ok(window.ga.calledWith('send', 'pageview', {
-                    page: window.location.pathname,
-                    title: document.title,
+                  assert.ok(window.ga.calledWith('send', 'pageview', cleanObject({
+                    page,
+                    title: htmlGlobals.getDocument().title,
                     location: getCurrentLocation(),
-                  }));
+                  })));
                   done();
                 },
               });
@@ -261,19 +295,20 @@ describe('Integrations: GoogleAnalytics', () => {
             name: 'Viewed Page',
             page: window.digitalData.page,
             callback: () => {
-              assert.ok(window.ga.calledWith('send', 'pageview', {
-                page: window.location.pathname,
-                title: document.title,
+              const page = htmlGlobals.getLocation().pathname + htmlGlobals.getLocation().search;
+              assert.ok(window.ga.calledWith('send', 'pageview', cleanObject({
+                page,
+                title: htmlGlobals.getDocument().title,
                 location: getCurrentLocation(),
-              }));
+              })));
               window.digitalData.events.push({
                 name: 'Viewed Page',
                 page: window.digitalData.page,
                 callback: () => {
-                  assert.ok(window.ga.calledWith('send', 'pageview', {
-                    page: window.location.pathname,
-                    title: document.title,
-                  }));
+                  assert.ok(window.ga.calledWith('send', 'pageview', cleanObject({
+                    page,
+                    title: htmlGlobals.getDocument().title,
+                  })));
                   done();
                 },
               });
@@ -287,8 +322,8 @@ describe('Integrations: GoogleAnalytics', () => {
             page: {},
             callback: () => {
               window.ga.calledWith('set', {
-                page: window.location.pathname,
-                title: document.title,
+                page: htmlGlobals.getLocation().pathname,
+                title: htmlGlobals.getDocument().title,
               });
               done();
             },
@@ -379,7 +414,7 @@ describe('Integrations: GoogleAnalytics', () => {
               },
               test: 'test',
               callback: () => {
-                assert.ok(window.ga.calledWith('set', {
+                assert.ok(window.ga.calledWith('send', 'pageview', {
                   metric1: 21,
                   metric2: sinon.match.any, // timestamp is added for every event inside EventManager
                   dimension1: 'Author',
@@ -437,12 +472,21 @@ describe('Integrations: GoogleAnalytics', () => {
             callback: () => {
               assert.ok(window.ga.calledWith('set', {
                 metric1: 21,
-                metric2: sinon.match.any, // timestamp is added for every event inside EventManager
                 dimension1: 'Author',
                 dimension2: 'blog',
-                dimension3: 'test',
                 contentGroup1: 'News',
               }));
+
+              const page = htmlGlobals.getLocation().pathname + htmlGlobals.getLocation().search;
+              // event based metrics & dimensions send with hit
+              assert.ok(window.ga.calledWith('send', 'pageview', cleanObject({
+                metric2: sinon.match.any, // timestamp is added for every event inside EventManager
+                dimension3: 'test',
+                title: htmlGlobals.getDocument().title,
+                page,
+                location: getCurrentLocation(),
+              })));
+
               done();
             },
           });
@@ -467,7 +511,6 @@ describe('Integrations: GoogleAnalytics', () => {
               assert.ok(window.ga.calledWith('send', 'event', {
                 eventCategory: 'All',
                 eventAction: 'Test Event',
-                eventLabel: undefined,
                 eventValue: 0,
                 nonInteraction: false,
               }));
@@ -484,7 +527,6 @@ describe('Integrations: GoogleAnalytics', () => {
               assert.ok(window.ga.calledWith('send', 'event', {
                 eventCategory: 'All',
                 eventAction: 'test 123',
-                eventLabel: undefined,
                 eventValue: 0,
                 nonInteraction: false,
               }));
@@ -501,7 +543,6 @@ describe('Integrations: GoogleAnalytics', () => {
               assert.ok(window.ga.calledWith('send', 'event', {
                 eventCategory: 'category',
                 eventAction: 'Test Event',
-                eventLabel: undefined,
                 eventValue: 0,
                 nonInteraction: false,
               }));
@@ -535,7 +576,6 @@ describe('Integrations: GoogleAnalytics', () => {
               assert.ok(window.ga.calledWith('send', 'event', {
                 eventCategory: 'All',
                 eventAction: 'Test Event',
-                eventLabel: undefined,
                 eventValue: 1,
                 nonInteraction: false,
               }));
@@ -552,7 +592,6 @@ describe('Integrations: GoogleAnalytics', () => {
               assert.ok(window.ga.calledWith('send', 'event', {
                 eventCategory: 'All',
                 eventAction: 'Test Event',
-                eventLabel: undefined,
                 eventValue: 0,
                 nonInteraction: true,
               }));
@@ -587,7 +626,11 @@ describe('Integrations: GoogleAnalytics', () => {
             levelAchieved: '5',
             referrer: 'Google',
             callback: () => {
-              assert.ok(window.ga.calledWith('set', {
+              assert.ok(window.ga.calledWith('send', 'event', {
+                eventAction: 'Level Unlocked',
+                eventCategory: 'All',
+                eventValue: 0,
+                nonInteraction: false,
                 metric1: '100',
                 metric2: '5',
                 dimension2: 'Google',

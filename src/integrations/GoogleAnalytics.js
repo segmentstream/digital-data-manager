@@ -54,6 +54,10 @@ const EC_SEMANTIC_EVENTS = [
   EXCEPTION,
 ];
 
+const SCOPE_PRODUCT = 'product';
+const SCOPE_USER = 'user';
+const SCOPE_HIT = 'hit';
+
 function getTransactionVoucher(transaction) {
   return Array.isArray(transaction.vouchers) ? transaction.vouchers[0] : transaction.voucher;
 }
@@ -554,6 +558,7 @@ class GoogleAnalytics extends Integration {
     this.allDimensionsProps = [];
     this.productLevelDimensions = {};
     this.hitLevelDimensions = {};
+    this.userLevelDimensions = {};
 
     let settings = Object.assign(
       this.getOption('metrics'),
@@ -582,7 +587,7 @@ class GoogleAnalytics extends Integration {
         } else if (variable.type === DIGITALDATA_VAR) {
           this.enrichableDimensionsProps.push(variable.value);
           this.allDimensionsProps.push(variable.value);
-          this.hitLevelDimensions[key] = variable.value;
+          this.userLevelDimensions[key] = variable.value;
         } else if (variable.type === EVENT_VAR) {
           this.allDimensionsProps.push(variable.value);
           this.hitLevelDimensions[key] = variable.value;
@@ -605,6 +610,10 @@ class GoogleAnalytics extends Integration {
 
   getHitLevelDimensions() {
     return this.hitLevelDimensions || [];
+  }
+
+  getUserLevelDimensions() {
+    return this.userLevelDimensions || [];
   }
 
   initializeTracker(trackingId, namespace) {
@@ -665,10 +674,14 @@ class GoogleAnalytics extends Integration {
     this.pageCalled = false;
   }
 
-  getCustomDimensions(source, productScope = false) {
+
+  getCustomDimensions(source, scope) {
     let settings;
-    if (productScope) {
+
+    if (scope === SCOPE_PRODUCT) {
       settings = this.getProductLevelDimensions();
+    } else if (scope === SCOPE_USER) {
+      settings = this.getUserLevelDimensions();
     } else {
       settings = this.getHitLevelDimensions();
     }
@@ -694,7 +707,7 @@ class GoogleAnalytics extends Integration {
   }
 
   pushEnhancedEcommerce(event, noConflict) {
-    this.setEventCustomDimensions(event, noConflict);
+    this.setUserCustomDimensions(event, noConflict);
     if (this.getPageview()) {
       this.flushPageview();
     } else {
@@ -702,15 +715,17 @@ class GoogleAnalytics extends Integration {
       // Without doing this we'd need to require page display
       // after setting EE data.
       const cleanedArgs = [];
+      const customDimensions = this.getCustomDimensions(this.getEventProps(event), SCOPE_HIT);
+      const payload = Object.assign({
+        nonInteraction: !!event.nonInteraction,
+      }, customDimensions);
       const args = [
         'send',
         'event',
         event.category || 'Ecommerce',
         event.action || event.name || 'not defined',
         event.label,
-        {
-          nonInteraction: !!event.nonInteraction,
-        },
+        payload,
       ];
 
       args.forEach((arg) => {
@@ -845,7 +860,7 @@ class GoogleAnalytics extends Integration {
   }
 
   setPageview(pageview) {
-    this.pageview = pageview;
+    this.pageview = cleanObject(pageview);
   }
 
   getPageview() {
@@ -880,7 +895,11 @@ class GoogleAnalytics extends Integration {
     if (this.pageCalled) {
       deleteProperty(pageview, 'location');
     }
-    this.setPageview(pageview);
+
+    const customDimensions = this.getCustomDimensions(this.getEventProps(event), SCOPE_HIT);
+    const pageviewAndDimensions = Object.assign(pageview, customDimensions);
+    this.setPageview(pageviewAndDimensions);
+
     // set
     if (this.getOption('sendUserId')) {
       const userId = getProp(event, 'user.userId');
@@ -902,7 +921,7 @@ class GoogleAnalytics extends Integration {
     }], this.getOption('noConflict'));
 
     // send
-    this.setEventCustomDimensions(event, this.getOption('noConflict'));
+    this.setUserCustomDimensions(event, this.getOption('noConflict'));
 
     if (!this.isPageviewDelayed(page.type)) {
       this.flushPageview();
@@ -928,7 +947,7 @@ class GoogleAnalytics extends Integration {
         return;
       }
 
-      const custom = this.getCustomDimensions(product, true);
+      const custom = this.getCustomDimensions(product, SCOPE_PRODUCT);
       const gaProduct = Object.assign({
         id: product.id || product.skuCode,
         name: this.transliterate(product.name),
@@ -1136,16 +1155,16 @@ class GoogleAnalytics extends Integration {
   }
 
   onCustomEvent(event) {
-    const payload = {
+    const payload = Object.assign({
       eventAction: event.action || event.name || 'event',
       eventCategory: event.category || 'All',
       eventLabel: event.label,
       eventValue: Math.round(event.value) || 0,
       nonInteraction: !!event.nonInteraction,
-    };
+    }, this.getCustomDimensions(this.getEventProps(event), SCOPE_HIT));
 
-    this.setEventCustomDimensions(event);
-    this.ga(['send', 'event', payload]);
+    this.setUserCustomDimensions(event);
+    this.ga(['send', 'event', cleanObject(payload)]);
   }
 
   onException(event) {
@@ -1158,13 +1177,18 @@ class GoogleAnalytics extends Integration {
     }
   }
 
-  setEventCustomDimensions(event, noConflict) {
-    // custom dimensions & metrics
+  getEventProps(event) {
     const source = clone(event);
     ['name', 'category', 'label', 'nonInteraction', 'value'].forEach((prop) => {
       deleteProperty(source, prop);
     });
-    const custom = this.getCustomDimensions(source);
+    return source;
+  }
+
+  setUserCustomDimensions(event, noConflict) {
+    // custom dimensions & metrics
+    // get user level dimensions
+    const custom = this.getCustomDimensions(this.getEventProps(event), SCOPE_USER);
     if (size(custom)) {
       this.ga(['set', custom], noConflict);
     }
@@ -1172,7 +1196,7 @@ class GoogleAnalytics extends Integration {
 
   enhancedEcommerceTrackProduct(product, quantity, position) {
     if (!product) return;
-    const custom = this.getCustomDimensions(product, true);
+    const custom = this.getCustomDimensions(product, SCOPE_PRODUCT);
     const gaProduct = Object.assign({
       id: product.id || product.skuCode,
       name: this.transliterate(product.name),
