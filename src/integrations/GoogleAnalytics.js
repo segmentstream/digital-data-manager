@@ -201,8 +201,7 @@ class GoogleAnalytics extends Integration {
         warnings: ['required', 'array'],
       },
       'product.unitSalePrice': {
-        errors: ['required'],
-        warnings: ['numeric'],
+        warnings: ['required', 'numeric'],
       },
       'product.manufacturer': {
         warnings: ['string'],
