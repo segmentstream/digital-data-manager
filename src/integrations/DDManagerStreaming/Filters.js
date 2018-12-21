@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-globals */
 import cleanObject from 'driveback-utils/cleanObject';
 import { getProp } from 'driveback-utils/dotProp';
 import each from 'driveback-utils/each';
@@ -238,8 +239,8 @@ class Filters {
   filterLineItems(lineItems = []) {
     return lineItems.map(lineItem => cleanObject({
       product: this.filterProduct(lineItem.product),
-      quantity: !Number.isNaN(Number(lineItem.quantity)) ? Number(lineItem.quantity) : 1,
-      subtotal: !Number.isNaN(Number(lineItem.subtotal)) ? Number(lineItem.subtotal) : undefined,
+      quantity: !isNaN(Number(lineItem.quantity)) ? Number(lineItem.quantity) : 1,
+      subtotal: !isNaN(Number(lineItem.subtotal)) ? Number(lineItem.subtotal) : undefined,
     }));
   }
 
@@ -330,7 +331,7 @@ class Filters {
     return {
       ...filtered,
       product: this.filterProduct(event.product),
-      quantity: !Number.isNaN(quantity) ? quantity : 1,
+      quantity: !isNaN(quantity) ? quantity : 1,
     };
   }
 
@@ -351,7 +352,7 @@ class Filters {
     const step = Number(event.step);
     return {
       ...filtered,
-      step: !Number.isNaN(step) ? step : undefined,
+      step: !isNaN(step) ? step : undefined,
     };
   }
 
