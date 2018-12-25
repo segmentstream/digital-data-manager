@@ -253,7 +253,7 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
-        it.only('should send only one pageview using pageviewFlush', (done) => {
+        it('should send only one pageview using pageviewFlush', (done) => {
           ga.setOption('enhancedEcommerce', true);
           window.digitalData.events.push({
             name: 'Viewed Page',
