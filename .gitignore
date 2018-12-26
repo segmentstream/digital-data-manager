@@ -8,3 +8,4 @@ deploy
 sauce_connect.log
 build/*
 snippet/snippet*
+dist

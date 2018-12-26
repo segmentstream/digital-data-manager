@@ -1,5 +1,6 @@
 const fs = require('fs');
 const uuid = require('uuid');
+process.env.CHROME_BIN = require('puppeteer').executablePath();
 
 module.exports = function init(config) {
   let customLaunchers;
@@ -101,18 +102,20 @@ module.exports = function init(config) {
 
     // base path that will be used to resolve all patterns (eg. files, exclude)
     basePath: '',
-
-
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha'],
-
+    plugins: ['karma-mocha',
+      'karma-chrome-launcher',
+      'karma-safari-launcher',
+      'mocha',
+      'karma-mocha-reporter',
+      'karma-sauce-launcher'],
     client: {
       mocha: {
         timeout: 7000,
       },
     },
-
     sauceLabs: {
       testName: 'Digital Data Manager Unit Tests',
       tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER || uuid.v4(),
@@ -124,17 +127,13 @@ module.exports = function init(config) {
       // },
       // public: 'public'
     },
-
     // list of files / patterns to load in the browser
     files: [
       'build/dd-manager-test.js',
     ],
-
-
     // list of files to exclude
     exclude: [
     ],
-
 
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
