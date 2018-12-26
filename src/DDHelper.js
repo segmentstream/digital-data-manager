@@ -47,7 +47,11 @@ class DDHelper {
       }
     });
     digitalData.changes.length = 0;
-    digitalData.events.length = 0;
+
+    // clear events only if we fired all of them
+    if (digitalData.events.filter(e => !e.hasFired).length === 0) {
+      digitalData.events.length = 0;
+    }
   }
 
   static getProduct(id, skuCode, digitalData) {
