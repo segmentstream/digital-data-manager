@@ -706,15 +706,23 @@ class GoogleAnalytics extends Integration {
   }
 
   pushEnhancedEcommerce(event, noConflict) {
-    this.setUserCustomDimensions(event, noConflict);
+    const eventProps = this.getEventProps(event);
+
+    // get user level dimensions
+    const custom = this.getCustomDimensions(eventProps, SCOPE_USER);
+    this.setUserCustomDimensions(custom, noConflict);
     if (this.getPageview()) {
+      // if enhanced ecommerce data is pushed together with pageview
+      // hit level custom dimensions and metrics should be sent globally
+      const hitLevelCustom = this.getCustomDimensions(eventProps, SCOPE_HIT);
+      this.setUserCustomDimensions(hitLevelCustom, noConflict);
       this.flushPageview();
     } else {
       // Send a custom non-interaction event to ensure all EE data is pushed.
       // Without doing this we'd need to require page display
       // after setting EE data.
       const cleanedArgs = [];
-      const customDimensions = this.getCustomDimensions(this.getEventProps(event), SCOPE_HIT);
+      const customDimensions = this.getCustomDimensions(eventProps, SCOPE_HIT);
       const payload = Object.assign({
         nonInteraction: !!event.nonInteraction,
       }, customDimensions);
@@ -919,8 +927,9 @@ class GoogleAnalytics extends Integration {
       title: pageTitle,
     }], this.getOption('noConflict'));
 
-    // send
-    this.setUserCustomDimensions(event, this.getOption('noConflict'));
+    // send user level custom dimensions and metrics
+    const custom = this.getCustomDimensions(this.getEventProps(event), SCOPE_USER);
+    this.setUserCustomDimensions(custom, this.getOption('noConflict'));
 
     if (!this.isPageviewDelayed(page.type)) {
       this.flushPageview();
@@ -1154,15 +1163,20 @@ class GoogleAnalytics extends Integration {
   }
 
   onCustomEvent(event) {
+    const eventProps = this.getEventProps(event);
+
+    // get user level dimensions
+    const custom = this.getCustomDimensions(eventProps, SCOPE_USER);
+    this.setUserCustomDimensions(custom, this.getOption('noConflict'));
+
     const payload = Object.assign({
       eventAction: event.action || event.name || 'event',
       eventCategory: event.category || 'All',
       eventLabel: event.label,
       eventValue: Math.round(event.value) || 0,
       nonInteraction: !!event.nonInteraction,
-    }, this.getCustomDimensions(this.getEventProps(event), SCOPE_HIT));
+    }, this.getCustomDimensions(eventProps, SCOPE_HIT));
 
-    this.setUserCustomDimensions(event);
     this.ga(['send', 'event', cleanObject(payload)]);
   }
 
@@ -1184,10 +1198,8 @@ class GoogleAnalytics extends Integration {
     return source;
   }
 
-  setUserCustomDimensions(event, noConflict) {
+  setUserCustomDimensions(custom, noConflict) {
     // custom dimensions & metrics
-    // get user level dimensions
-    const custom = this.getCustomDimensions(this.getEventProps(event), SCOPE_USER);
     if (size(custom)) {
       this.ga(['set', custom], noConflict);
     }
