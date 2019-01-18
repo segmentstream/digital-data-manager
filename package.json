@@ -67,7 +67,7 @@
     "nps": "^5.9.3",
     "nps-utils": "^1.7.0",
     "puppeteer": "^1.11.0",
-    "sinon": "^6.1.4",
+    "sinon": "6.1.4",
     "uglifyify": "^3.0.1"
   },
   "dependencies": {
