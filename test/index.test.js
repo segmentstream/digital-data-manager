@@ -51,3 +51,4 @@ import './integrations/Mindbox.spec';
 import './integrations/DoubleClickFloodlight.spec';
 import './integrations/RTBHouse.spec';
 import './integrations/Soloway.spec';
+import './integrations/GdeSlon.spec';

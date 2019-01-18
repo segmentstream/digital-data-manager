@@ -1,3 +1,4 @@
+/* eslint-disable */
 const {
   series, ifWindows, rimraf, mkdirp,
 } = require('nps-utils');

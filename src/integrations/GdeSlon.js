@@ -1,8 +1,16 @@
 import getQueryParam from 'driveback-utils/getQueryParam';
 import { getProp } from 'driveback-utils/dotProp';
 import Integration from '../Integration';
-import { COMPLETED_TRANSACTION } from '../events/semanticEvents';
 import { isDeduplication, addAffiliateCookie, getAffiliateCookie } from './utils/affiliate';
+
+import {
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  VIEWED_PRODUCT_LISTING,
+  SEARCHED_PRODUCTS,
+  COMPLETED_TRANSACTION,
+  VIEWED_CART,
+} from '../events/semanticEvents';
 
 const DEFAULT_UTM_SOURCE = 'gdeslon';
 const COOKIE_TTL_URL_PARAM = '_gs_cttl';
@@ -10,6 +18,15 @@ const CLICK_REF_URL_PARAM = '_gs_ref';
 const AID_URL_PARAM = 'gsaid';
 const DEFAULT_CLICK_REF_COOKIE_NAME = 'gdeslon_ref';
 const DEFAULT_AID_COOKIE_NAME = 'gdeslon_aid';
+
+const SEMANTIC_EVENTS = [
+  VIEWED_PAGE,
+  VIEWED_PRODUCT_DETAIL,
+  VIEWED_PRODUCT_LISTING,
+  SEARCHED_PRODUCTS,
+  COMPLETED_TRANSACTION,
+  VIEWED_CART,
+];
 
 class GdeSlon extends Integration {
   constructor(digitalData, options) {
@@ -23,17 +40,72 @@ class GdeSlon extends Integration {
       deduplication: false,
       utmSource: DEFAULT_UTM_SOURCE, // utm_source for mixmarket leads
       deduplicationUtmMedium: [],
+      isRetargetingEnabled: false,
+      feedWithGroupedProducts: false,
     }, options);
 
     super(digitalData, optionsWithDefaults);
 
     this._isLoaded = false;
 
+    // default
     this.addTag('trackingPixel', {
       type: 'script',
       attr: {
         // eslint-disable-next-line max-len
         src: `https://www.gdeslon.ru/thanks.js?codes={{ productCodes }}{{ code }}:{{ total }}&order_id={{ orderId }}&merchant_id=${options.merchantId}`,
+      },
+    });
+
+    // retargeting
+    this.addTag('thanks', {
+      type: 'script',
+      attr: {
+        // eslint-disable-next-line max-len
+        src: `https://www.gdeslon.ru/landing.js?codes={{ productCodes }}&order_id={{ orderId }}&mid=${options.merchantId}&mode=thanks`,
+      },
+    });
+
+    this.addTag('other', {
+      type: 'script',
+      attr: {
+        src: `https://www.gdeslon.ru/landing.js?mid=${options.merchantId}&mode=other`,
+      },
+    });
+
+    this.addTag('main', {
+      type: 'script',
+      attr: {
+        src: `https://www.gdeslon.ru/landing.js?mid=${options.merchantId}&mode=main`,
+      },
+    });
+
+    this.addTag('card', {
+      type: 'script',
+      attr: {
+        src: `https://www.gdeslon.ru/landing.js?codes={{ productCodes }}&mid=${options.merchantId}&mode=card`,
+      },
+    });
+
+    this.addTag('basket', {
+      type: 'script',
+      attr: {
+        src: `https://www.gdeslon.ru/landing.js?codes={{ productCodes }}&mid=${options.merchantId}&mode=basket`,
+      },
+    });
+
+    this.addTag('search list', {
+      type: 'script',
+      attr: {
+        src: `https://www.gdeslon.ru/landing.js?codes={{ productCodes }}&mid=${options.merchantId}&mode=list`,
+      },
+    });
+
+    this.addTag('category', {
+      type: 'script',
+      attr: {
+        // eslint-disable-next-line max-len
+        src: `https://www.gdeslon.ru/landing.js?codes={{ productCodes }}&cat_id={{ categoryId }}&mid=${options.merchantId}&mode=list`,
       },
     });
   }
@@ -58,17 +130,51 @@ class GdeSlon extends Integration {
   }
 
   getSemanticEvents() {
+    if (this.getOption('isRetargetingEnabled')) {
+      return SEMANTIC_EVENTS;
+    }
     return [COMPLETED_TRANSACTION];
   }
 
   getEnrichableEventProps(event) {
     let enrichableProps = [];
+    switch (event.name) {
+      case VIEWED_PAGE:
+        enrichableProps = [
+          'page.type',
+        ];
+        break;
+      case VIEWED_PRODUCT_DETAIL:
+        enrichableProps = [
+          'product',
+        ];
+        break;
+      case VIEWED_PRODUCT_LISTING:
+        enrichableProps = [
+          'listing.items',
+          'listing.categoryId',
+        ];
+        break;
+      case SEARCHED_PRODUCTS:
+        enrichableProps = [
+          'listing.items',
+          'listing.categoryId',
+        ];
+        break;
+      case VIEWED_CART:
+        enrichableProps = [
+          'cart',
+        ];
+        break;
+      case COMPLETED_TRANSACTION:
+        enrichableProps = [
+          'transaction',
+          'context.campaign',
+        ];
+        break;
 
-    if (event.name === COMPLETED_TRANSACTION) {
-      enrichableProps = [
-        'transaction',
-        'context.campaign',
-      ];
+      default:
+        enrichableProps = [];
     }
 
     return enrichableProps;
@@ -105,15 +211,135 @@ class GdeSlon extends Integration {
   }
 
   trackEvent(event) {
-    if (event.name === COMPLETED_TRANSACTION) {
-      if (!getAffiliateCookie(this.getOption('clickRefCookieName'))) return;
+    const methods = {
+      [VIEWED_PAGE]: 'onViewedPage',
+      [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
+      [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
+      [VIEWED_PRODUCT_LISTING]: 'onViewedProductListing',
+      [SEARCHED_PRODUCTS]: 'onSearchedProducts',
+      [VIEWED_CART]: 'onViewedCart',
+    };
 
-      const campaign = getProp(event, 'context.campaign');
-      const utmSource = this.getOption('utmSource');
-      const deduplicationUtmMedium = this.getOption('deduplicationUtmMedium');
-      if (isDeduplication(campaign, utmSource, deduplicationUtmMedium)) return;
+    const method = methods[event.name];
 
-      this.trackSale(event);
+    if (method) {
+      this[method](event);
+    }
+  }
+
+  onViewedPage(event) {
+    if (!this.getOption('isRetargetingEnabled')) return;
+
+    const { page } = event;
+
+    if (page && page.type === 'home') {
+      this.onViewedHome();
+    }
+
+    setTimeout(() => {
+      if (!this.pageTracked) {
+        this.onViewedOther();
+      }
+    }, 100);
+  }
+
+  onViewedOther() {
+    this.load('other');
+    this.pageTracked = true;
+  }
+
+  onViewedHome() {
+    this.load('main');
+    this.pageTracked = true;
+  }
+
+  onViewedProductDetail(event) {
+    const { product } = event;
+    const productCodes = this.formatProductCodes([{ product }]);
+
+    this.load('card', { productCodes });
+    this.pageTracked = true;
+  }
+
+  onViewedCart(event) {
+    const { lineItems } = event.cart;
+    const productCodes = this.formatProductCodes(lineItems);
+
+    this.load('basket', { productCodes });
+    this.pageTracked = true;
+  }
+
+  onSearchedProducts(event) {
+    const productCodes = this.formatProductCodes(getProp(event, 'listing.items'));
+
+    this.load('search list', { productCodes });
+    this.pageTracked = true;
+  }
+
+  onViewedProductListing(event) {
+    const productCodes = this.formatProductCodes(getProp(event, 'listing.items'));
+    const { categoryId } = event.listing;
+
+    this.load('category', { productCodes, categoryId });
+    this.pageTracked = true;
+  }
+
+  onCompletedTransaction(event) {
+    this.trackCompletedTransactionRetargeting(event);
+    this.pageTracked = true;
+
+    if (!getAffiliateCookie(this.getOption('clickRefCookieName'))) return;
+    const campaign = getProp(event, 'context.campaign');
+    const utmSource = this.getOption('utmSource');
+    const deduplicationUtmMedium = this.getOption('deduplicationUtmMedium');
+    if (isDeduplication(campaign, utmSource, deduplicationUtmMedium)) return;
+
+    this.trackSale(event);
+  }
+
+  formatProductCodes(items) {
+    let productCodes = '';
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
+    if (Array.isArray(items)) {
+      productCodes = items.reduce((acc, lineItem) => {
+        const product = lineItem.product || lineItem || {};
+        const quantity = lineItem.quantity || 1;
+        const productId = (!feedWithGroupedProducts) ? product.id : product.skuCode;
+        let newVal = [productId, product.unitSalePrice].join(':');
+        if (quantity > 1) {
+          newVal = Array(quantity).fill(newVal).join(',');
+        }
+        if (acc) {
+          return [acc, newVal].join(',');
+        }
+        return newVal;
+      }, '');
+    }
+
+    return productCodes;
+  }
+
+  getCode(event) {
+    return getProp(event, 'integrations.gdeslon.code') || this.getOption('defaultCode');
+  }
+
+  trackCompletedTransactionRetargeting(event) {
+    if (!this.getOption('isRetargetingEnabled')) return;
+
+    const { transaction } = event;
+
+    if (!transaction || !transaction.orderId || !transaction.total) {
+      return;
+    }
+
+    const { orderId } = transaction;
+
+    const productCodes = this.formatProductCodes(transaction.lineItems);
+
+    if (this.getOption('isRetargetingEnabled')) {
+      this.load('thanks', {
+        productCodes, orderId,
+      });
     }
   }
 
@@ -124,25 +350,12 @@ class GdeSlon extends Integration {
       return;
     }
 
-    const code = getProp(event, 'integrations.gdeslon.code') || this.getOption('defaultCode');
     const { orderId, total } = transaction;
 
-    let productCodes = '';
-    if (transaction.lineItems || Array.isArray(transaction.lineItems)) {
-      productCodes = transaction.lineItems.reduce((acc, lineItem) => {
-        const product = lineItem.product || {};
-        const quantity = lineItem.quantity || 1;
-        let newVal = [product.id, product.unitSalePrice].join(':');
-        if (quantity > 1) {
-          newVal = Array(quantity).fill(newVal).join(',');
-        }
-        if (acc) {
-          return [acc, newVal].join(',');
-        }
-        return newVal;
-      }, '');
-    }
+    let productCodes = this.formatProductCodes(transaction.lineItems);
     if (productCodes) productCodes += ',';
+
+    const code = this.getCode(event);
 
     this.load('trackingPixel', {
       productCodes, code, orderId, total,
