@@ -218,7 +218,7 @@ function _initializeCustomEnrichments(settings) {
 
 const ddManager = {
 
-  VERSION: '1.2.189',
+  VERSION: '1.2.190',
 
   setConsent: ConsentManager.setConsent,
   getConsent: ConsentManager.getConsent,
@@ -398,7 +398,7 @@ const ddManager = {
     if (_customEnricher) {
       _customEnricher.reset();
     }
-    
+
     IntegrationsLoader.reset();
     ddManager.removeAllListeners();
     _eventManager = null;
