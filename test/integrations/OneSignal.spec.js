@@ -1,34 +1,33 @@
-import OneSignal from './../../src/integrations/OneSignal.js';
-import ddManager from './../../src/ddManager.js';
 import sinon from 'sinon';
 import assert from 'assert';
-import reset from './../reset.js';
-import after from 'driveback-utils/after.js';
-import deleteProperty from 'driveback-utils/deleteProperty.js';
 import noop from 'driveback-utils/noop';
+import reset from '../reset';
+import ddManager from '../../src/ddManager';
+import OneSignal from '../../src/integrations/OneSignal';
 
-describe('OneSignal', function() {
-
+describe('OneSignal', () => {
   let _oneSignal;
-  let options = {
+  const options = {
     appId: 'b7b8fc3c-4e98-499d-a727-3696caa518fc',
     safariWebId: 'web.onesignal.auto.5694d1e9-fcaa-415d-b1f1-1ef52daca700',
     subdomainName: 'test',
+    pushSubscriptionTriggerEvent: 'Viewed Product',
+    isSlidePrompt: false, // shown http prompt
     tagVars: {
-      'tag1': {
+      tag1: {
         type: 'digitalData',
         value: 'cart.total',
       },
-      'tag3': {
+      tag3: {
         type: 'event',
-        value: 'page.test'
-      }
-    }
+        value: 'page.test',
+      },
+    },
   };
 
   beforeEach(() => {
     window.digitalData = {
-      events: []
+      events: [],
     };
     _oneSignal = new OneSignal(window.digitalData, options);
     ddManager.addIntegration('OneSignal', _oneSignal);
@@ -41,11 +40,11 @@ describe('OneSignal', function() {
   });
 
   describe('before loading', () => {
-    beforeEach(function () {
+    beforeEach(() => {
       sinon.stub(_oneSignal, 'load');
     });
 
-    afterEach(function () {
+    afterEach(() => {
       _oneSignal.load.restore();
     });
 
@@ -71,11 +70,11 @@ describe('OneSignal', function() {
     });
   });
 
-  describe('loading', function () {
+  describe('loading', () => {
     beforeEach(() => {
       sinon.stub(_oneSignal, 'load').callsFake(() => {
         window.OneSignal = {
-          push: () => {}
+          push: () => { },
         };
         _oneSignal.onLoad();
       });
@@ -85,7 +84,7 @@ describe('OneSignal', function() {
       _oneSignal.load.restore();
     });
 
-    it('should load', function (done) {
+    it('should load', (done) => {
       assert.ok(!_oneSignal.isLoaded());
       _oneSignal.once('load', () => {
         assert.ok(_oneSignal.isLoaded());
@@ -95,15 +94,14 @@ describe('OneSignal', function() {
     });
   });
 
-  describe('after loading', function () {
-
+  describe('after loading', () => {
     beforeEach(() => {
       window.digitalData.user = {
         test: 'test',
         obj: {
           param1: 'test',
-          param2: 'test'
-        }
+          param2: 'test',
+        },
       };
       window.digitalData.cart = {
         total: 1000,
@@ -112,6 +110,7 @@ describe('OneSignal', function() {
         _oneSignal.onLoad();
       });
       window.OneSignal = window.OneSignal || [];
+
       sinon.stub(window.OneSignal, 'push').callsFake((cmdArr) => {
         if (typeof cmdArr === 'function') {
           cmdArr();
@@ -128,16 +127,12 @@ describe('OneSignal', function() {
         if (cmdArr[0] === 'getTags') {
           cmdArr[1]({
             tag1: '1000',
-            tag2: 'value2'
+            tag2: 'value2',
           });
         }
       });
-      window.OneSignal.isPushNotificationsSupported = () => {
-        return true;
-      };
-      window.OneSignal.on = () => {
-        return true;
-      };
+      window.OneSignal.isPushNotificationsSupported = () => true;
+      window.OneSignal.on = () => true;
       window.OneSignal.sendTags = noop;
       window.OneSignal.deleteTags = noop;
       sinon.stub(window.OneSignal, 'sendTags');
@@ -164,17 +159,32 @@ describe('OneSignal', function() {
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {
-            test: 'test value'
+            test: 'test value',
           },
           callback: () => {
             _oneSignal.onGetTags(() => {
               assert.ok(window.OneSignal.sendTags.calledWith({
-                tag3: 'test value'
+                tag3: 'test value',
               }));
               assert.ok(window.OneSignal.deleteTags.calledWith(['tag2']));
               done();
             });
-          }
+          },
+        });
+      });
+    });
+
+    describe('Prompt UseCases', () => {
+      it('expected push after shownPrompt with current pushSubscriptionTriggerEvent', () => {
+        _oneSignal.setOption('isSlidePrompt',true);
+        window.digitalData.events.push({
+          name: 'Viewed Product',
+          source: 'DDManager SDK',
+          callback: () => {
+            _oneSignal.onGetTags(() => {
+              assert.ok(window.OneSignal.push.calledWith(['showHttpPrompt']));
+            });
+          },
         });
       });
     });

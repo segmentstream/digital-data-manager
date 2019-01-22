@@ -309,6 +309,7 @@ class OneSignal extends Integration {
       const newTags = this.extractTagValuesFromEvent(event);
       const tagsToDelete = this.getTagsToDelete(currentTags);
       const tagsToSend = this.getTagsToSend(newTags, currentTags);
+
       window.OneSignal.push(() => {
         if (tagsToSend) {
           window.OneSignal.sendTags(tagsToSend);
@@ -326,7 +327,11 @@ class OneSignal extends Integration {
 
   trackEvent(event) {
     if (event.name === this.getOption('pushSubscriptionTriggerEvent')) {
-      window.OneSignal.push(['registerForPushNotifications']);
+      if (this.getOption('isSlidePrompt')) {
+        window.OneSignal.push(['showHttpPrompt']);
+      } else {
+        window.OneSignal.push(['registerForPushNotifications']);
+      }
       this.sendTagsUpdate(event);
     } else if (this.SEMANTIC_EVENTS.indexOf(event.name) >= 0) {
       this.sendTagsUpdate(event);

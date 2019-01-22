@@ -398,7 +398,7 @@ const ddManager = {
     if (_customEnricher) {
       _customEnricher.reset();
     }
-
+    
     IntegrationsLoader.reset();
     ddManager.removeAllListeners();
     _eventManager = null;
