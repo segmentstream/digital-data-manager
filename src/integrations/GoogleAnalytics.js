@@ -3,7 +3,6 @@ import { getProp } from 'driveback-utils/dotProp';
 import cleanObject from 'driveback-utils/cleanObject';
 import each from 'driveback-utils/each';
 import size from 'driveback-utils/size';
-import clone from 'driveback-utils/clone';
 import cookie from 'js-cookie';
 import arrayMerge from 'driveback-utils/arrayMerge';
 import Integration from '../Integration';
@@ -706,15 +705,13 @@ class GoogleAnalytics extends Integration {
   }
 
   pushEnhancedEcommerce(event, noConflict) {
-    const eventProps = this.getEventProps(event);
-
     // get user level dimensions
-    const custom = this.getCustomDimensions(eventProps, SCOPE_USER);
+    const custom = this.getCustomDimensions(event, SCOPE_USER);
     this.setUserCustomDimensions(custom, noConflict);
     if (this.getPageview()) {
       // if enhanced ecommerce data is pushed together with pageview
       // hit level custom dimensions and metrics should be sent globally
-      const hitLevelCustom = this.getCustomDimensions(eventProps, SCOPE_HIT);
+      const hitLevelCustom = this.getCustomDimensions(event, SCOPE_HIT);
       this.setUserCustomDimensions(hitLevelCustom, noConflict);
       this.flushPageview();
     } else {
@@ -722,7 +719,7 @@ class GoogleAnalytics extends Integration {
       // Without doing this we'd need to require page display
       // after setting EE data.
       const cleanedArgs = [];
-      const customDimensions = this.getCustomDimensions(eventProps, SCOPE_HIT);
+      const customDimensions = this.getCustomDimensions(event, SCOPE_HIT);
       const payload = Object.assign({
         nonInteraction: !!event.nonInteraction,
       }, customDimensions);
@@ -903,7 +900,7 @@ class GoogleAnalytics extends Integration {
       deleteProperty(pageview, 'location');
     }
 
-    const customDimensions = this.getCustomDimensions(this.getEventProps(event), SCOPE_HIT);
+    const customDimensions = this.getCustomDimensions(event, SCOPE_HIT);
     const pageviewAndDimensions = Object.assign(pageview, customDimensions);
     this.setPageview(pageviewAndDimensions);
 
@@ -928,7 +925,7 @@ class GoogleAnalytics extends Integration {
     }], this.getOption('noConflict'));
 
     // send user level custom dimensions and metrics
-    const custom = this.getCustomDimensions(this.getEventProps(event), SCOPE_USER);
+    const custom = this.getCustomDimensions(event, SCOPE_USER);
     this.setUserCustomDimensions(custom, this.getOption('noConflict'));
 
     if (!this.isPageviewDelayed(page.type)) {
@@ -1163,10 +1160,8 @@ class GoogleAnalytics extends Integration {
   }
 
   onCustomEvent(event) {
-    const eventProps = this.getEventProps(event);
-
     // get user level dimensions
-    const custom = this.getCustomDimensions(eventProps, SCOPE_USER);
+    const custom = this.getCustomDimensions(event, SCOPE_USER);
     this.setUserCustomDimensions(custom, this.getOption('noConflict'));
 
     const payload = Object.assign({
@@ -1175,7 +1170,7 @@ class GoogleAnalytics extends Integration {
       eventLabel: event.label,
       eventValue: Math.round(event.value) || 0,
       nonInteraction: !!event.nonInteraction,
-    }, this.getCustomDimensions(eventProps, SCOPE_HIT));
+    }, this.getCustomDimensions(event, SCOPE_HIT));
 
     this.ga(['send', 'event', cleanObject(payload)]);
   }
@@ -1188,14 +1183,6 @@ class GoogleAnalytics extends Integration {
         nonInteraction: true,
       }]);
     }
-  }
-
-  getEventProps(event) {
-    const source = clone(event);
-    ['name', 'category', 'label', 'nonInteraction', 'value'].forEach((prop) => {
-      deleteProperty(source, prop);
-    });
-    return source;
   }
 
   setUserCustomDimensions(custom, noConflict) {

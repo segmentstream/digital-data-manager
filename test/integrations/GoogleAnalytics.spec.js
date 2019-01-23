@@ -1342,6 +1342,65 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
+        it('should send viewed product detail and pageview data with custom dimensions and metrics', () => {
+          ga.initVersion = '1.2.8';
+          ga.setOption('enhancedEcommerce', true);
+          ga.setOption('dimensions', {
+            dimension10: {
+              type: 'event',
+              value: 'label',
+            },
+          });
+          ga.setOption('metrics', {
+            metric11: {
+              type: 'event',
+              value: 'myMetric',
+            },
+          });
+          ga.prepareCustomDimensions();
+          window.digitalData.events.push({
+            name: 'Viewed Page',
+            page: {
+              type: 'product',
+              path: htmlGlobals.getLocation().pathname,
+              queryString: htmlGlobals.getLocation().search,
+              url: getCurrentLocation(),
+              title: htmlGlobals.getDocument().title,
+            },
+          });
+          window.digitalData.events.push({
+            name: 'Viewed Product Detail',
+            label: 'some label',
+            myMetric: 'foo',
+            product: {
+              id: '123',
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298',
+              stock: 25,
+              weight: 100,
+            },
+            callback: () => {
+              const page = htmlGlobals.getLocation().pathname + htmlGlobals.getLocation().search;
+
+              // dimensions & metrics with type event set globaly
+              assert.ok(window.ga.calledWith('set', {
+                dimension10: 'some label',
+                metric11: 'foo',
+              }));
+
+              // enhancedEcommerce data sended with pagewiew
+              assert.ok(window.ga.calledWith('send', 'pageview', {
+                page,
+                title: htmlGlobals.getDocument().title,
+                location: getCurrentLocation(),
+              }));
+            },
+          });
+        });
+
         it('should send clicked product data with custom dimensions and metrics', () => {
           ga.setOption('productDimensions', {
             dimension10: 'stock',
