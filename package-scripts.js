@@ -8,8 +8,8 @@ const distDir = 'dist';
 
 const createDist = mkdirp(distDir);
 const createBuild = mkdirp(buildDir);
-const cleanDist = rimraf(distDir + '/*');
-const cleanBuild = rimraf(buildDir + '/*');
+const cleanDist = rimraf(`${distDir}/*`);
+const cleanBuild = rimraf(`${buildDir}/*`);
 
 const browserifyDebug = 'browserify src/index.js -t babelify --debug | exorcist --base=./build build/dd-manager.js.map > build/dd-manager.js';
 const browserifyProd = 'browserify src/index.js -t babelify > dist/dd-manager.js && grunt wrap && uglifyjs dist/dd-manager.js -c -m --output dist/dd-manager.min.js';
