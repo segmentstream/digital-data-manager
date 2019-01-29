@@ -97,7 +97,7 @@ class DigitalDataEnricher {
         this.enrichHasSubscribed(email);
       } else if (event.name === COMPLETED_TRANSACTION) {
         this.enrichHasTransacted();
-        if (this.options.unpersistContextCampaignOnTransaction === true){
+        if (this.options.unpersistContextCampaignOnTransaction !== false){
           this.ddStorage.unpersist('context.campaign');
         }
       } else if (event.name === UPDATED_CART && semver.cmp(this.digitalData.version, '1.1.3') >= 0) {
