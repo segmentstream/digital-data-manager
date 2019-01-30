@@ -8,12 +8,11 @@ module.exports = function init(config) {
   if (!process.env.SAUCE_USERNAME || !process.env.SAUCE_ACCESS_KEY) {
     /* eslint-disable */
     if (!fs.existsSync('sauce.json')) {
-      console.log('Create a sauce.json with your credentials based on the sauce-sample.json file.');
-      process.exit(1);
+      console.log('Create a sauce.json with your credentials based on the sauce-sample.json file if you want to test in diffirent browsers in the cloud.');
     } else {
       process.env.SAUCE_ENABLED = require('./sauce.json').enabled;
       process.env.SAUCE_USERNAME = require('./sauce.json').username;
-      process.env.SAUCE_ACCESS_KEY = require('./sauce.json').accessKey;
+      process.env.SAUCE_ACCESS_KEY = require('./sauce.json').accessKey; 
     }
     /* eslint-enable */
   } else {
@@ -95,7 +94,7 @@ module.exports = function init(config) {
     browsers = Object.keys(customLaunchers);
   } else {
     customLaunchers = null;
-    browsers = ['Safari'];
+    browsers = ['Chrome'];
   }
 
   config.set({
