@@ -1,14 +1,14 @@
 import assert from 'assert';
 import sinon from 'sinon';
-import reset from './../reset.js';
-import RTBHouse from './../../src/integrations/RTBHouse.js';
-import ddManager from './../../src/ddManager.js';
+import reset from '../reset';
+import RTBHouse from '../../src/integrations/RTBHouse';
+import ddManager from '../../src/ddManager';
 
 describe('Integrations: RTBHouse', () => {
   let rtbHouse;
   const options = {
     accountKey: 'xxx',
-    customDeduplication: false
+    customDeduplication: false,
   };
 
   beforeEach(() => {
@@ -64,15 +64,15 @@ describe('Integrations: RTBHouse', () => {
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {
-            type: 'home'
+            type: 'home',
           },
           callback: () => {
             assert.ok(rtbHouse.load.calledWith('home', {
               userSegmentParams: '',
             }));
             done();
-          }
-        })
+          },
+        });
       });
 
       it('should track home page with user segment', (done) => {
@@ -80,35 +80,35 @@ describe('Integrations: RTBHouse', () => {
         window.digitalData.events.push({
           name: 'Viewed Page',
           user: {
-            rtbHouseSegment: 0
+            rtbHouseSegment: 0,
           },
           page: {
-            type: 'home'
+            type: 'home',
           },
           callback: () => {
             assert.ok(rtbHouse.load.calledWith('home', {
-              userSegmentParams: '&id1=pr_xxx_custom_user_0'
+              userSegmentParams: '&id1=pr_xxx_custom_user_0',
             }));
             done();
-          }
-        })
+          },
+        });
       });
 
       it('should track other page', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {
-            type: 'content'
+            type: 'content',
           },
           callback: () => {
             setTimeout(() => {
               assert.ok(rtbHouse.load.calledWith({
-                userSegmentParams: ''
+                userSegmentParams: '',
               }));
               done();
-            }, 200)
-          }
-        })
+            }, 200);
+          },
+        });
       });
 
       it('should track other page with custom user segment', (done) => {
@@ -116,20 +116,20 @@ describe('Integrations: RTBHouse', () => {
         window.digitalData.events.push({
           name: 'Viewed Page',
           user: {
-            rtbHouseSegment: 'vip'
+            rtbHouseSegment: 'vip',
           },
           page: {
-            type: 'content'
+            type: 'content',
           },
           callback: () => {
             setTimeout(() => {
               assert.ok(rtbHouse.load.calledWith({
-                userSegmentParams: '&id1=pr_xxx_custom_user_vip'
+                userSegmentParams: '&id1=pr_xxx_custom_user_vip',
               }));
               done();
-            }, 200)
-          }
-        })
+            }, 200);
+          },
+        });
       });
     });
 
@@ -145,15 +145,15 @@ describe('Integrations: RTBHouse', () => {
             lineItems: [
               {
                 product: {
-                  id: '123'
-                }
+                  id: '123',
+                },
               },
               {
                 product: {
-                  id: '234'
-                }
-              }
-            ]
+                  id: '234',
+                },
+              },
+            ],
           },
           callback: () => {
             assert.ok(rtbHouse.load.calledWith('basketstatus', {
@@ -161,8 +161,41 @@ describe('Integrations: RTBHouse', () => {
               userSegmentParams: '',
             }));
             done();
-          }
-        })
+          },
+        });
+      });
+    });
+
+    describe('#onUpdatedCart', () => {
+      beforeEach(() => {
+        window.digitalData.events.push({ name: 'Viewed Page' });
+      });
+
+      it('should track updated cart info', (done) => {
+        window.digitalData.events.push({
+          name: 'Updated Cart',
+          cart: {
+            lineItems: [
+              {
+                product: {
+                  id: '123',
+                },
+              },
+              {
+                product: {
+                  id: '234',
+                },
+              },
+            ],
+          },
+          callback: () => {
+            assert.ok(rtbHouse.load.calledWith('basketstatus', {
+              productIds: '123,234',
+              userSegmentParams: '',
+            }));
+            done();
+          },
+        });
       });
     });
 
@@ -175,7 +208,7 @@ describe('Integrations: RTBHouse', () => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           product: {
-            id: '123'
+            id: '123',
           },
           callback: () => {
             assert.ok(rtbHouse.load.calledWith('offer', {
@@ -183,8 +216,8 @@ describe('Integrations: RTBHouse', () => {
               userSegmentParams: '',
             }));
             done();
-          }
-        })
+          },
+        });
       });
     });
 
@@ -197,7 +230,7 @@ describe('Integrations: RTBHouse', () => {
         window.digitalData.events.push({
           name: 'Viewed Product Listing',
           listing: {
-            categoryId: '123'
+            categoryId: '123',
           },
           callback: () => {
             assert.ok(rtbHouse.load.calledWith('category2', {
@@ -205,8 +238,8 @@ describe('Integrations: RTBHouse', () => {
               userSegmentParams: '',
             }));
             done();
-          }
-        })
+          },
+        });
       });
     });
 
@@ -221,24 +254,24 @@ describe('Integrations: RTBHouse', () => {
           listing: {
             items: [
               {
-                id: '123'
+                id: '123',
               },
               {
-                id: '234'
+                id: '234',
               },
               {
-                id: '345'
+                id: '345',
               },
               {
-                id: '456'
+                id: '456',
               },
               {
-                id: '567'
+                id: '567',
               },
               {
-                id: '678'
+                id: '678',
               },
-            ]
+            ],
           },
           callback: () => {
             assert.ok(rtbHouse.load.calledWith('listing', {
@@ -246,8 +279,8 @@ describe('Integrations: RTBHouse', () => {
               userSegmentParams: '',
             }));
             done();
-          }
-        })
+          },
+        });
       });
     });
 
@@ -290,7 +323,6 @@ describe('Integrations: RTBHouse', () => {
       });
 
       it('should not track second+ checkout step', (done) => {
-
         window.digitalData.events.push({
           name: 'Viewed Checkout Step',
           step: 2,
@@ -299,8 +331,8 @@ describe('Integrations: RTBHouse', () => {
               userSegmentParams: '',
             }));
             done();
-          }
-        })
+          },
+        });
       });
     });
 
@@ -314,16 +346,16 @@ describe('Integrations: RTBHouse', () => {
         lineItems: [
           {
             product: {
-              id: '123'
-            }
+              id: '123',
+            },
           },
           {
             product: {
-              id: '234'
-            }
-          }
+              id: '234',
+            },
+          },
         ],
-        total: 1500
+        total: 1500,
       };
 
       it('should track completed transaction with default deduplication', (done) => {
@@ -339,7 +371,7 @@ describe('Integrations: RTBHouse', () => {
               userSegmentParams: '',
             }));
             done();
-          }
+          },
         });
       });
 
@@ -357,7 +389,7 @@ describe('Integrations: RTBHouse', () => {
               userSegmentParams: '',
             }));
             done();
-          }
+          },
         });
       });
 
@@ -368,8 +400,8 @@ describe('Integrations: RTBHouse', () => {
           transaction,
           context: {
             campaign: {
-              source: 'rtbhouse'
-            }
+              source: 'rtbhouse',
+            },
           },
           callback: () => {
             assert.ok(rtbHouse.load.calledWith('orderstatus2', {
@@ -380,11 +412,9 @@ describe('Integrations: RTBHouse', () => {
               userSegmentParams: '',
             }));
             done();
-          }
+          },
         });
       });
-
     });
-
   });
 });

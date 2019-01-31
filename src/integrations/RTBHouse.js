@@ -8,6 +8,7 @@ import {
   STARTED_ORDER,
   COMPLETED_TRANSACTION,
   VIEWED_CART,
+  UPDATED_CART,
 } from '../events/semanticEvents';
 
 const SEMANTIC_EVENTS = [
@@ -18,6 +19,7 @@ const SEMANTIC_EVENTS = [
   STARTED_ORDER,
   COMPLETED_TRANSACTION,
   VIEWED_CART,
+  UPDATED_CART,
 ];
 
 const DEFAULT_DEDUPLICATION = 'default';
@@ -130,6 +132,11 @@ class RTBHouse extends Integration {
           'cart',
         ];
         break;
+      case UPDATED_CART:
+        enrichableProps = [
+          'cart',
+        ];
+        break;
       case COMPLETED_TRANSACTION:
         enrichableProps = [
           'context.campaign',
@@ -194,6 +201,15 @@ class RTBHouse extends Integration {
         validations: listingValidations,
       },
       [VIEWED_CART]: {
+        fields: ['cart.lineItems[].product.id'],
+        validations: {
+          'cart.lineItems[].product.id': {
+            errors: ['required'],
+            warnings: ['string'],
+          },
+        },
+      },
+      [UPDATED_CART]: {
         fields: ['cart.lineItems[].product.id'],
         validations: {
           'cart.lineItems[].product.id': {
@@ -271,6 +287,7 @@ class RTBHouse extends Integration {
       [SEARCHED_PRODUCTS]: 'onSearchedProducts',
       [STARTED_ORDER]: 'onStartedOrder',
       [VIEWED_CART]: 'onViewedCart',
+      [UPDATED_CART]: 'onUpdatedCart',
     };
 
     const method = methods[event.name];
@@ -296,6 +313,23 @@ class RTBHouse extends Integration {
   }
 
   onViewedCart(event) {
+    const { cart } = event;
+    if (!cart || !cart.lineItems || !cart.lineItems.length) return;
+    const productIds = cart.lineItems.reduce((str, lineItem, index) => {
+      const productId = getProp(lineItem, 'product.id');
+      if (index > 0) {
+        return [str, productId].join(',');
+      }
+      return productId;
+    }, '');
+    this.load('basketstatus', {
+      productIds,
+      userSegmentParams: this.getUserSegmentParams(event),
+    });
+    this.pageTracked = true;
+  }
+
+  onUpdatedCart(event) {
     const { cart } = event;
     if (!cart || !cart.lineItems || !cart.lineItems.length) return;
     const productIds = cart.lineItems.reduce((str, lineItem, index) => {
