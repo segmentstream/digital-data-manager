@@ -186,6 +186,51 @@ describe('Integrations: GdeSlon', () => {
         });
       });
 
+      it('should execute basket script with expected parameters after viewed cart ', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Cart',
+          cart: {
+            lineItems: [
+              {
+                product: {
+                  id: '22', unitSalePrice: 100,
+                },
+                quantity: 1,
+              },
+              {
+                product: {
+                  id: '23', unitSalePrice: 200,
+                },
+                quantity: 1,
+              },
+            ],
+          },
+          callback: () => {
+            assert.ok(gdeSlon.load.calledWith('basket', {
+              productCodes: '22:100,23:200',
+            }));
+            done();
+          },
+        });
+      });
+
+      it('should execute basket script with empty production codes after viewed cart ', (done) => {
+        window.digitalData.events.push({
+          name: 'Viewed Cart',
+          cart: {
+            lineItems: [
+            ],
+          },
+          callback: () => {
+            assert.ok(gdeSlon.load.calledWith('basket', {
+              productCodes: '',
+            }));
+
+            done();
+          },
+        });
+      });
+
       it('should execute thanks script with expected parameters after completed transaction', (done) => {
         window.digitalData.events.push({
           name: 'Completed Transaction',

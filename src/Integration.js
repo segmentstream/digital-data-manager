@@ -146,18 +146,7 @@ export default class Integration extends EventEmitter {
     let el;
     const attr = clone(tag.attr); // should be cloned as modified later
 
-    if (params) {
-      each(attr, (attrKey, attrVal) => {
-        if (attrKey === 'onError') return;
-        if (attrVal) {
-          attr[attrKey] = attrVal
-            .replace(/\{\{\ *(\w+)\ *\}\}/g, (_, $1) => ((params[$1] !== undefined) ? params[$1] : ''));
-        }
-        if (attrKey === 'src' || attrKey === 'href') {
-          attr[attrKey] = attr[attrKey].replace(/[^=&]+=(&|$)/g, '').replace(/&$/, '');
-        }
-      });
-    }
+    this.replaceAttrTemplate(params, attr);
 
     switch (tag.type) {
       case 'img':
@@ -197,6 +186,23 @@ export default class Integration extends EventEmitter {
       default:
       // No default case
     }
+  }
+
+  // TODO to pure function
+  replaceAttrTemplate(params, attr) {
+    if (!params) return attr;
+
+    each(attr, (attrKey, attrVal) => {
+      if (attrKey === 'onError') return;
+      if (attrVal) {
+        attr[attrKey] = attrVal
+          .replace(/\{\{\ *(\w+)\ *\}\}/g, (_, $1) => ((params[$1] !== undefined) ? params[$1] : ''));
+      }
+      if (attrKey === 'src' || attrKey === 'href') {
+        attr[attrKey] = attr[attrKey].replace(/[^?=&]+=(&|$)/g, '').replace(/&$/, '');
+      }
+    });
+    return attr;
   }
 
   isLoaded() {

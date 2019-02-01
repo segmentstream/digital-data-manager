@@ -18,6 +18,7 @@ import './EventManager.spec';
 import './EventDataEnricher.spec';
 import './DigitalDataEnricher.spec';
 import './EventValidator.spec';
+import './IntegrationBase.spec';
 
 // enrichments & events
 import './enrichments/CustomEnrichments.spec';
