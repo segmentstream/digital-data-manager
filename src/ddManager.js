@@ -262,6 +262,7 @@ const ddManager = {
       trackJsErrors: false,
       enableMonitoring: true,
       cookieConsent: 'none',
+      unpersistContextCampaignOnTransaction: true,
     }, settings);
 
     if (_isReady) {
@@ -289,6 +290,7 @@ const ddManager = {
     // initialize digital data enricher
     _digitalDataEnricher = new DigitalDataEnricher(_digitalData, _ddListener, _ddStorage, {
       sessionLength: settings.sessionLength,
+      unpersistContextCampaignOnTransaction: settings.unpersistContextCampaignOnTransaction,
     });
 
     // initialize event manager

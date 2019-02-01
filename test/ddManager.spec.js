@@ -1,13 +1,15 @@
 import assert from 'assert';
-import reset from './reset.js';
 import sinon from 'sinon';
-import snippet from './snippet.js';
-import ddManager from '../src/ddManager.js';
-import Integration from '../src/Integration.js';
-import availableIntegrations from '../src/availableIntegrations.js';
+import reset from './reset';
+import snippet from './snippet';
+import ddManager from '../src/ddManager';
+import Integration from '../src/Integration';
+import availableIntegrations from '../src/availableIntegrations';
+import DDStorage from '../src/DDStorage';
+import Storage from '../src/Storage';
+import jsonIsEqual from 'driveback-utils/jsonIsEqual';
 
 describe('DDManager', () => {
-
   beforeEach(() => {
     window.localStorage.clear();
   });
@@ -21,7 +23,7 @@ describe('DDManager', () => {
   describe('#initialize', () => {
     it('should initialize Array objects for window.digitalData.events and window.ddListener', () => {
       ddManager.initialize({
-        sendViewedPageEvent: false
+        sendViewedPageEvent: false,
       });
       assert.ok(Array.isArray(window.digitalData.events));
       assert.ok(Array.isArray(window.ddListener));
@@ -29,7 +31,7 @@ describe('DDManager', () => {
 
     it('should initialize website, page, user and cart objects', () => {
       ddManager.initialize({
-        sendViewedPageEvent: true
+        sendViewedPageEvent: true,
       });
       assert.ok(window.digitalData.website);
       assert.ok(window.digitalData.page);
@@ -40,7 +42,7 @@ describe('DDManager', () => {
     it('should work well with async load using stubs from the snippet', () => {
       snippet();
       window.ddManager.initialize({
-        sendViewedPageEvent: false
+        sendViewedPageEvent: false,
       });
       ddManager.processEarlyStubCalls(window.ddManager);
 
@@ -52,7 +54,7 @@ describe('DDManager', () => {
     it('should initialize after all other stubs', (done) => {
       snippet();
       window.ddManager.initialize({
-        sendViewedPageEvent: false
+        sendViewedPageEvent: false,
       });
       window.ddManager.on('ready', () => {
         done();
@@ -62,7 +64,7 @@ describe('DDManager', () => {
 
     it('should initialize DDManager instance', () => {
       ddManager.initialize({
-        sendViewedPageEvent: false
+        sendViewedPageEvent: false,
       });
       assert.ok(ddManager.isReady());
     });
@@ -73,9 +75,9 @@ describe('DDManager', () => {
         sendViewedPageEvent: false,
         integrations: {
           'Google Tag Manager': {
-            componentId: 'XXX'
-          }
-        }
+            componentId: 'XXX',
+          },
+        },
       });
 
       assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration);
@@ -86,8 +88,8 @@ describe('DDManager', () => {
       ddManager.initialize({
         sendViewedPageEvent: false,
         integrations: {
-          'Google Tag Manager': true
-        }
+          'Google Tag Manager': true,
+        },
       });
 
       assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration);
@@ -99,12 +101,12 @@ describe('DDManager', () => {
         sendViewedPageEvent: false,
         integrations: [
           {
-            'name': 'Google Tag Manager',
-            'options': {
-              'componentId': 'XXX'
-            }
-          }
-        ]
+            name: 'Google Tag Manager',
+            options: {
+              componentId: 'XXX',
+            },
+          },
+        ],
       });
 
       assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration);
@@ -116,9 +118,9 @@ describe('DDManager', () => {
         sendViewedPageEvent: false,
         integrations: [
           {
-            'name': 'Google Tag Manager'
-          }
-        ]
+            name: 'Google Tag Manager',
+          },
+        ],
       });
 
       assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration);
@@ -136,7 +138,7 @@ describe('DDManager', () => {
 
     it('it should fire on("ready") event even if ddManager was ready before', (done) => {
       ddManager.initialize({
-        sendViewedPageEvent: false
+        sendViewedPageEvent: false,
       });
       if (ddManager.isReady()) {
         ddManager.on('ready', () => {
@@ -149,7 +151,7 @@ describe('DDManager', () => {
 
     it('it should fire once("ready") event even if ddManager was ready before', (done) => {
       ddManager.initialize({
-        sendViewedPageEvent: false
+        sendViewedPageEvent: false,
       });
       if (ddManager.isReady()) {
         ddManager.once('ready', () => {
@@ -162,7 +164,7 @@ describe('DDManager', () => {
 
     it('it should fire on("initialize") event even if ddManager was initialized before', (done) => {
       ddManager.initialize({
-        sendViewedPageEvent: false
+        sendViewedPageEvent: false,
       });
       if (ddManager.isReady()) {
         ddManager.on('ready', () => {
@@ -175,7 +177,7 @@ describe('DDManager', () => {
 
     it('it should fire once("initialize") event even if ddManager was initialized before', (done) => {
       ddManager.initialize({
-        sendViewedPageEvent: false
+        sendViewedPageEvent: false,
       });
       if (ddManager.isReady()) {
         ddManager.once('ready', () => {
@@ -188,7 +190,7 @@ describe('DDManager', () => {
 
     it('it should enrich digital data', (done) => {
       ddManager.initialize({
-        sendViewedPageEvent: true
+        sendViewedPageEvent: true,
       });
       if (ddManager.isReady()) {
         ddManager.once('ready', () => {
@@ -205,20 +207,20 @@ describe('DDManager', () => {
         user: {
           isSubscribed: false,
           isLoggedIn: true,
-          hasTransacted: false
-        }
+          hasTransacted: false,
+        },
       };
 
       ddManager.once('ready', () => {
         window.digitalData.events.push({
-          name: 'Completed Transaction'
+          name: 'Completed Transaction',
         });
 
         window.digitalData.events.push({
           name: 'Subscribed',
           user: {
-            email: 'test@email.com'
-          }
+            email: 'test@email.com',
+          },
         });
 
         setTimeout(() => {
@@ -267,30 +269,102 @@ describe('DDManager', () => {
                     assert.ok(!window.digitalData.user.isReturning);
                     done();
                   }, 110);
-                }
+                },
               });
             }, 110);
-          }
+          },
         });
       });
       ddManager.initialize({
         sessionLength: 20,
-        sendViewedPageEvent: false
+        sendViewedPageEvent: false,
+      });
+    });
+
+    it('should unpersist context.campaing', (done) => {
+      window.digitalData = {
+        context: {
+          campaign: {
+            name: 'segmentstream.com',
+            source: 'segmentstream.com',
+            medium: 'segmentstream.com',
+          },
+        },
+      };
+
+      const localStorage = new Storage();
+      const _ddStorage = new DDStorage(window.digitalData, localStorage);
+
+      ddManager.once('ready', () => {
+        ddManager.persist('context.campaign');
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          callback: () => {
+            setTimeout(() => {
+              window.digitalData.events.push({
+                name: 'Completed Transaction',
+                callback: () => {
+                  setTimeout(() => {
+                    const val = _ddStorage.get('context.campaign');
+                    assert.ok(val === undefined);
+                    done();
+                  }, 110);
+                },
+              });
+            }, 110);
+          },
+        });
+      });
+      ddManager.initialize();
+    });
+
+    it('should persist context.campaing', (done) => {
+      window.digitalData = {
+        context: {
+          campaign: {
+            name: 'segmentstream.com',
+            source: 'segmentstream.com',
+            medium: 'segmentstream.com',
+          },
+        },
+      };
+
+      const localStorage = new Storage();
+      const _ddStorage = new DDStorage(window.digitalData, localStorage);
+
+      ddManager.once('ready', () => {
+        ddManager.persist('context.campaign');
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          callback: () => {
+            setTimeout(() => {
+              const oldVal = _ddStorage.get('context.campaign');
+              window.digitalData.events.push({
+                name: 'Completed Transaction',
+                callback: () => {
+                  setTimeout(() => {
+                    const newVal = _ddStorage.get('context.campaign');
+                    assert.ok(jsonIsEqual(oldVal, newVal));
+                    done();
+                  }, 110);
+                },
+              });
+            }, 110);
+          },
+        });
+      });
+      ddManager.initialize({
+        unpersistContextCampaignOnTransaction: false,
       });
     });
   });
 
   describe('exclude/include tracking', () => {
-
     const integration1 = new Integration(window.digitalData);
     const integration2 = new Integration(window.digitalData);
     const integration3 = new Integration(window.digitalData);
 
-    integration1.allowCustomEvents =
-    integration2.allowCustomEvents =
-    integration3.allowCustomEvents = () => {
-      return true;
-    };
+    integration1.allowCustomEvents = integration2.allowCustomEvents = integration3.allowCustomEvents = () => true;
 
     beforeEach(() => {
       sinon.stub(integration1, 'trackEvent');
@@ -352,23 +426,21 @@ describe('DDManager', () => {
     });
 
     it('should not send Session Started event', () => {
-      assert.ok(!integration1.trackEvent.calledWithMatch({ name: 'Session Started'}));
-      assert.ok(!integration2.trackEvent.calledWithMatch({ name: 'Session Started'}));
-      assert.ok(!integration3.trackEvent.calledWithMatch({ name: 'Session Started'}));
+      assert.ok(!integration1.trackEvent.calledWithMatch({ name: 'Session Started' }));
+      assert.ok(!integration2.trackEvent.calledWithMatch({ name: 'Session Started' }));
+      assert.ok(!integration3.trackEvent.calledWithMatch({ name: 'Session Started' }));
     });
-
   });
 
   describe('override options', () => {
-
     const integration = new Integration(window.digitalData, {
       option1: 'initial_value',
       option2: 'initial_value',
       overrideFunctions: {
-        options: function(options) {
-          options.option1 = 'overriden_value'
-        }
-      }
+        options(options) {
+          options.option1 = 'overriden_value';
+        },
+      },
     });
 
     beforeEach(() => {
@@ -383,7 +455,6 @@ describe('DDManager', () => {
       assert.ok(integration.getOption('option1'), 'overriden_value');
       assert.ok(integration.getOption('option1'), 'initial_value');
     });
-
   });
 
   describe('override product', () => {
@@ -404,12 +475,8 @@ describe('DDManager', () => {
           },
         },
       });
-      integration.getEnrichableEventProps = () => {
-        return ['product'];
-      };
-      integration.getSemanticEvents = () => {
-        return ['Viewed Product Detail'];
-      };
+      integration.getEnrichableEventProps = () => ['product'];
+      integration.getSemanticEvents = () => ['Viewed Product Detail'];
       sinon.stub(integration, 'trackEvent');
       ddManager.addIntegration('integration1', integration);
       ddManager.initialize();
@@ -425,15 +492,14 @@ describe('DDManager', () => {
         callback: () => {
           assert.ok(integration.trackEvent.calledWithMatch({
             product: {
-              id: '123-test'
-            }
+              id: '123-test',
+            },
           }));
           assert.equal(window.digitalData.product.id, '123');
           done();
-        }
+        },
       });
     });
-
   });
 
   describe('Custom enrichments', () => {
@@ -491,14 +557,9 @@ describe('DDManager', () => {
   });
 
   describe('Named/Categorized Pages', () => {
-
     const integration = new Integration(window.digitalData);
-    integration.getEnrichableEventProps = () => {
-      return ['page'];
-    };
-    integration.getSemanticEvents = () => {
-      return ['Viewed Page'];
-    };
+    integration.getEnrichableEventProps = () => ['page'];
+    integration.getSemanticEvents = () => ['Viewed Page'];
 
     beforeEach(() => {
       sinon.stub(integration, 'trackEvent');
@@ -512,17 +573,13 @@ describe('DDManager', () => {
     });
 
     it('should not track named and categorized pages', (done) => {
-      integration.trackNamedPages = () => {
-        return false;
-      };
-      integration.trackCategorizedPages = () => {
-        return false;
-      };
+      integration.trackNamedPages = () => false;
+      integration.trackCategorizedPages = () => false;
 
       window.digitalData.page = {
         type: 'home',
         name: 'Test Name',
-        category: 'Test Category'
+        category: 'Test Category',
       };
       window.digitalData.events.push({
         name: 'Viewed Page',
@@ -532,7 +589,7 @@ describe('DDManager', () => {
             page: {
               type: 'home',
               name: 'Test Name',
-              category: 'Test Category'
+              category: 'Test Category',
             },
           }));
           assert.ok(!integration.trackEvent.calledWithMatch({
@@ -540,7 +597,7 @@ describe('DDManager', () => {
             page: {
               type: 'home',
               name: 'Test Name',
-              category: 'Test Category'
+              category: 'Test Category',
             },
           }));
           assert.ok(!integration.trackEvent.calledWithMatch({
@@ -548,14 +605,12 @@ describe('DDManager', () => {
             page: {
               type: 'home',
               name: 'Test Name',
-              category: 'Test Category'
+              category: 'Test Category',
             },
           }));
           done();
-        }
+        },
       });
     });
-
   });
-
 });
