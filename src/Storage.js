@@ -26,7 +26,13 @@ class Storage {
 
   get(key) {
     key = this.getOption('prefix') + key;
+
+    if (!window.localStorage) { // SRP violation, but its ok for this case
+      // TODO add logging;
+      return undefined;
+    }
     const info = store.get(key);
+
     if (info instanceof Object) {
       if (info.val !== undefined && info.exp && info.time) {
         if ((Date.now() - info.time) > info.exp) {
