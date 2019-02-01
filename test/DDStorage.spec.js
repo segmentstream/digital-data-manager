@@ -2,7 +2,7 @@ import assert from 'assert';
 import { expect } from 'chai';
 import Storage from '../src/Storage';
 import DDStorage from '../src/DDStorage';
-
+import Bowser from 'bowser';
 
 describe('DDStorage', () => {
   let _digitalData;
@@ -45,6 +45,16 @@ describe('DDStorage', () => {
     });
 
     describe('Empty localStorage use cases', () => {
+      const browser = Bowser.getParser(window.navigator.userAgent);
+
+      const isSafariOld = browser.satisfies({
+        macos: {
+          safari: '<10.0',
+        },
+      });
+
+      if (isSafariOld) return;
+
       const tempStorage = window.localStorage;
       beforeEach(() => {
         Object.defineProperty(window, 'localStorage', {
