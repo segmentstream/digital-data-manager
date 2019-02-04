@@ -166,7 +166,7 @@ class OneSignal extends Integration {
 
     window.OneSignal.push(['init', {
       appId: this.getOption('appId'),
-      autoRegister: this.getOption('autoRegister'),
+      autoRegister: this.getOption('isSlidePrompt') ? false : this.getOption('autoRegister'),
       subdomainName: this.getOption('subdomainName'),
       path: this.getOption('path'),
       safari_web_id: this.getOption('safariWebId'),
@@ -326,7 +326,9 @@ class OneSignal extends Integration {
   }
 
   trackEvent(event) {
-    if (event.name === this.getOption('pushSubscriptionTriggerEvent')) {
+    if (this.getOption('autoRegister') && event.name === VIEWED_PAGE && this.getOption('isSlidePrompt')) { // slide prompt use case
+      window.OneSignal.push(['showHttpPrompt']);
+    } else if (event.name === this.getOption('pushSubscriptionTriggerEvent')) {
       if (this.getOption('isSlidePrompt')) {
         window.OneSignal.push(['showHttpPrompt']);
       } else {
