@@ -33,9 +33,13 @@ const ajvValidate = (schema, obj, key) => {
 
 export const validate = (schema, obj, key) => {
   if (!isTestMode()) return;
+  if (!schema) {
+    log('%c Schema undefined', 'color: red');
+    return;
+  }
   if (!ajvLoadInitiated) {
     asyncQueue.init();
-    loadScript({ src: 'https://cdnjs.cloudflare.com/ajax/libs/ajv/6.5.4/ajv.min.js' });
+    loadScript({ src: 'https://cdnjs.cloudflare.com/ajax/libs/ajv/6.8.1/ajv.min.js' });
     ajvLoadInitiated = true;
   }
   asyncQueue.push(() => {
