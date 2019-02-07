@@ -34,8 +34,7 @@ const ajvValidate = (schema, obj, key) => {
 export const validate = (schema, obj, key) => {
   if (!isTestMode()) return;
   if (!schema) {
-    log('%c Schema undefined', 'color: red');
-    return;
+    throw new Error('validate() helper requires "schema" as a first argument with object or boolean value');
   }
   if (!ajvLoadInitiated) {
     asyncQueue.init();
