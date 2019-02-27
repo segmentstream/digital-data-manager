@@ -304,11 +304,15 @@ class DigitalDataEnricher {
     context.os = uaParser.getOS();
     if (!context.campaign) {
       const gclid = getQueryParam('gclid');
+      const yclid = getQueryParam('yclid');
+      const ymclid = getQueryParam('ymclid');
       const utmCampaign = getQueryParam('utm_campaign');
       let utmSource = getQueryParam('utm_source');
       let utmMedium = getQueryParam('utm_medium');
       utmSource = gclid ? utmSource || 'google' : utmSource;
-      utmMedium = gclid ? utmMedium || 'cpc' : utmMedium;
+      utmSource = yclid ? utmSource || 'yandex' : utmSource;
+      utmSource = ymclid ? utmSource || 'yandex_market' : utmSource;
+      utmMedium = (gclid || yclid || ymclid) ? utmMedium || 'cpc' : utmMedium;
       if (utmSource || utmMedium || utmCampaign) {
         context.campaign = cleanObject({
           name: utmCampaign,

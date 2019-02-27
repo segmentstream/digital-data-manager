@@ -8,6 +8,7 @@ import size from 'driveback-utils/size';
 import isCrawler from 'driveback-utils/isCrawler';
 import each from 'driveback-utils/each';
 import { warn } from 'driveback-utils/safeConsole';
+import utmParamsFromReferrer from 'driveback-utils/utmParamsFromReferrer';
 import uuid from 'uuid/v1';
 import UAParser from 'ua-parser-js';
 import Integration from '../Integration';
@@ -224,18 +225,33 @@ class DDManagerStreaming extends Integration {
     return true;
   }
 
+  getCampaign(referrer, search) {
+    let campaign = utmParams(search);
+    const gclid = getQueryParam('gclid');
+    const yclid = getQueryParam('yclid');
+    const ymclid = getQueryParam('ymclid');
+
+    if (!size(campaign)) {
+      if (gclid) campaign.source = 'google';
+      if (yclid) campaign.source = 'yandex';
+      if (ymclid) campaign.source = 'yandex_market';
+      if (gclid || yclid || ymclid) campaign.medium = 'cpc';
+    }
+
+    if (!size(campaign)) {
+      campaign = utmParamsFromReferrer(referrer);
+    }
+    return campaign;
+  }
+
   normalize(hitData) {
     const hitId = uuid();
-    const gclid = getQueryParam('gclid');
-    const campaign = utmParams(htmlGlobals.getLocation().search);
-    if (gclid) {
-      if (!campaign.source) campaign.source = 'google';
-      if (!campaign.medium) campaign.medium = 'cpc';
-    }
     let path = htmlGlobals.getLocation().pathname;
     let { referrer } = htmlGlobals.getDocument();
     const location = htmlGlobals.getLocation();
     let { search, href: url, hash } = location;
+
+    const campaign = this.getCampaign(referrer, search);
 
     try { path = (path) ? decodeURIComponent(path) : undefined; } catch (e) { warn(e); }
     try { referrer = (referrer) ? decodeURI(referrer) : undefined; } catch (e) { warn(e); }

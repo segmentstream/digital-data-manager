@@ -32,6 +32,7 @@ import './trackers/trackLink.spec';
 import './integrations/utils/transliterate.spec';
 
 // integrations
+import './integrations/DDManagerStreaming.spec';
 import './integrations/GoogleAnalytics.spec';
 import './integrations/GoogleTagManager.spec';
 import './integrations/GoogleAdWords.spec';

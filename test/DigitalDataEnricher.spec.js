@@ -1,45 +1,38 @@
 import assert from 'assert';
 import sinon from 'sinon';
-import deleteProperty from 'driveback-utils/deleteProperty.js';
-import DigitalDataEnricher from './../src/enrichments/DigitalDataEnricher.js';
-import Storage from './../src/Storage.js';
-import DDStorage from './../src/DDStorage.js';
-import ddManager from './../src/ddManager';
+import deleteProperty from 'driveback-utils/deleteProperty';
+import DigitalDataEnricher from '../src/enrichments/DigitalDataEnricher';
+import Storage from '../src/Storage';
+import DDStorage from '../src/DDStorage';
+import ddManager from '../src/ddManager';
 
 describe('DigitalDataEnricher', () => {
-
   let _ddListener = [];
   let _ddStorage;
   let _digitalData;
   let _htmlGlobals;
   let _digitalDataEnricher;
-  let _document = {
+  const _document = {
     referrer: 'http://google.com',
-    title: 'Website Home Page'
+    title: 'Website Home Page',
   };
-  let _location = {
+  const _location = {
     pathname: '/home',
     href: 'Website Home Page',
     search: '?utm_source=newsletter&utm_medium=email&utm_campaign=test_campaign',
-    hash: '#title1'
+    hash: '#title1',
   };
-  let _navigator = {
-    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1'
+  const _navigator = {
+    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1', // eslint-disable-line max-len
   };
 
   before(() => {
     _ddListener = [];
     _digitalDataEnricher = new DigitalDataEnricher(_digitalData, _ddListener);
     _htmlGlobals = _digitalDataEnricher.getHtmlGlobals();
-    sinon.stub(_htmlGlobals, 'getDocument').callsFake(() => {
-      return _document;
-    });
-    sinon.stub(_htmlGlobals, 'getLocation').callsFake(() => {
-      return _location;
-    });
-    sinon.stub(_htmlGlobals, 'getNavigator').callsFake(() => {
-      return _navigator;
-    });
+    sinon.stub(_htmlGlobals, 'getDocument').callsFake(() => _document);
+    sinon.stub(_htmlGlobals, 'getLocation').callsFake(() => _location);
+    sinon.stub(_htmlGlobals, 'getNavigator').callsFake(() => _navigator);
   });
 
   after(() => {
@@ -61,7 +54,6 @@ describe('DigitalDataEnricher', () => {
   });
 
   describe('#enrichPageData', () => {
-
     before(() => {
       _digitalData = {
         page: {
@@ -84,7 +76,6 @@ describe('DigitalDataEnricher', () => {
   });
 
   describe('#enrichContextData', () => {
-
     before(() => {
       _digitalData = {
         page: {
@@ -112,22 +103,109 @@ describe('DigitalDataEnricher', () => {
       assert.deepEqual(_digitalData.context.campaign, {
         name: 'test_campaign',
         source: 'newsletter',
-        medium: 'email'
+        medium: 'email',
+      });
+    });
+  });
+
+  describe('#enrichContextData', () => {
+    it('should enrich DDL context campaign variable for gclid', () => {
+      const __digitalData = {
+        context: {},
+      };
+
+      const __location = {
+        pathname: '/home',
+        href: 'Website Home Page',
+        search: '?gclid=test',
+        hash: '#title1',
+      };
+
+      _htmlGlobals.getLocation.restore();
+      sinon.stub(_htmlGlobals, 'getLocation').callsFake(() => __location);
+      deleteProperty(__digitalData.context, 'campaign');
+
+      _ddStorage = new DDStorage(__digitalData, new Storage());
+      _ddStorage.clear();
+
+      _digitalDataEnricher.setDigitalData(__digitalData);
+      _digitalDataEnricher.setDDStorage(_ddStorage);
+      _digitalDataEnricher.enrichContextData();
+
+      assert.deepEqual(__digitalData.context.campaign, {
+        source: 'google',
+        medium: 'cpc',
       });
     });
 
+    it('should enrich DDL context campaign variable for yclid', () => {
+      const __digitalData = {
+        context: {},
+      };
+
+      const __location = {
+        pathname: '/home',
+        href: 'Website Home Page',
+        search: '?yclid=test',
+        hash: '#title1',
+      };
+
+      _htmlGlobals.getLocation.restore();
+      sinon.stub(_htmlGlobals, 'getLocation').callsFake(() => __location);
+      deleteProperty(__digitalData.context, 'campaign');
+
+      _ddStorage = new DDStorage(__digitalData, new Storage());
+      _ddStorage.clear();
+
+      _digitalDataEnricher.setDigitalData(__digitalData);
+      _digitalDataEnricher.setDDStorage(_ddStorage);
+      _digitalDataEnricher.enrichContextData();
+
+      assert.deepEqual(__digitalData.context.campaign, {
+        source: 'yandex',
+        medium: 'cpc',
+      });
+    });
+
+    it('should enrich DDL context campaign variable for ymclid', () => {
+      const __digitalData = {
+        context: {},
+      };
+
+      const __location = {
+        pathname: '/home',
+        href: 'Website Home Page',
+        search: '?ymclid=test',
+        hash: '#title1',
+      };
+
+      _htmlGlobals.getLocation.restore();
+      sinon.stub(_htmlGlobals, 'getLocation').callsFake(() => __location);
+      deleteProperty(__digitalData.context, 'campaign');
+
+      _ddStorage = new DDStorage(__digitalData, new Storage());
+      _ddStorage.clear();
+
+      _digitalDataEnricher.setDigitalData(__digitalData);
+      _digitalDataEnricher.setDDStorage(_ddStorage);
+      _digitalDataEnricher.enrichContextData();
+
+      assert.deepEqual(__digitalData.context.campaign, {
+        source: 'yandex_market',
+        medium: 'cpc',
+      });
+    });
   });
 
   describe('#enrichLegacyVersions', () => {
-
     it('should enrich DDL listing variable with categoryId', () => {
       _digitalData = {
         page: {
           type: 'category',
-          categoryId: '123'
+          categoryId: '123',
         },
         events: [],
-        version: '1.0.0'
+        version: '1.0.0',
       };
       _digitalDataEnricher.setDigitalData(_digitalData);
       _digitalDataEnricher.enrichLegacyVersions();
@@ -138,16 +216,16 @@ describe('DigitalDataEnricher', () => {
       _digitalData = {
         page: {
           type: 'category',
-          categoryId: '123'
+          categoryId: '123',
         },
         listing: {
-          listName: 'main'
+          listName: 'main',
         },
         recommendation: {
-          listName: 'recommendation'
+          listName: 'recommendation',
         },
         events: [],
-        version: '1.1.0'
+        version: '1.1.0',
       };
       _digitalDataEnricher.setDigitalData(_digitalData);
       _digitalDataEnricher.enrichLegacyVersions();
@@ -159,21 +237,21 @@ describe('DigitalDataEnricher', () => {
       _digitalData = {
         page: {
           type: 'category',
-          categoryId: '123'
+          categoryId: '123',
         },
         listing: {
-          listName: 'main'
+          listName: 'main',
         },
         recommendation: [
           {
-            listName: 'recom1'
+            listName: 'recom1',
           },
           {
-            listName: 'recom2'
-          }
+            listName: 'recom2',
+          },
         ],
         events: [],
-        version: '1.0.0'
+        version: '1.0.0',
       };
       _digitalDataEnricher.setDigitalData(_digitalData);
       _digitalDataEnricher.enrichLegacyVersions();
@@ -211,8 +289,8 @@ describe('DigitalDataEnricher', () => {
         user: {
           userId: '123',
           isSubscribed: false,
-          hasFerrari: false
-        }
+          hasFerrari: false,
+        },
       };
       _digitalDataEnricher.setDigitalData(_digitalData);
       _ddStorage = new DDStorage(_digitalData, new Storage());
@@ -234,12 +312,11 @@ describe('DigitalDataEnricher', () => {
       assert.ok(_ddStorage.get('user.hasCoffeeMachine'));
       assert.ok(_ddStorage.get('user.isSubscribed'));
       assert.ok(_ddStorage.get('user.hasFerrari') === true);
-    })
+    });
   });
 
 
   describe('default enrichments', () => {
-
     function enirch(digitalData, clear = false) {
       _ddStorage = new DDStorage(digitalData, new Storage());
       if (clear) {
@@ -257,15 +334,15 @@ describe('DigitalDataEnricher', () => {
           isLoggedIn: true,
           email: 'test@email.com',
           hasTransacted: true,
-          lastTransactionDate: '2016-03-30T10:05:26.041Z'
-        }
+          lastTransactionDate: '2016-03-30T10:05:26.041Z',
+        },
       };
       enirch(_digitalData);
 
       _digitalData = {
         user: {
           isLoggedIn: false,
-        }
+        },
       };
       enirch(_digitalData);
       assert.ok(!_digitalData.user.isLoggedIn);
@@ -277,18 +354,14 @@ describe('DigitalDataEnricher', () => {
     });
 
     it('should enrich context.campaign data', () => {
+      // overddie location
+      _htmlGlobals.getLocation.restore();
+      sinon.stub(_htmlGlobals, 'getLocation').callsFake(() => _location);
+
       _digitalData = {};
       enirch(_digitalData);
       assert.deepEqual(_digitalData.context.campaign, {
-        name: 'test_campaign', source: 'newsletter', medium: 'email'
-      });
-
-      // overddie location
-      _htmlGlobals.getLocation.restore();
-      sinon.stub(_htmlGlobals, 'getLocation').callsFake(() => {
-        return {
-          search: ''
-        };
+        name: 'test_campaign', source: 'newsletter', medium: 'email',
       });
 
       // reset dd
@@ -298,57 +371,12 @@ describe('DigitalDataEnricher', () => {
       // enirch again
       enirch(_digitalData);
       assert.deepEqual(_digitalData.context.campaign, {
-        name: 'test_campaign', source: 'newsletter', medium: 'email'
+        name: 'test_campaign', source: 'newsletter', medium: 'email',
       });
     });
-
-    /*
-    it('should update user.isReturning status', (done) => {
-      _digitalData = {};
-      _ddStorage = new DDStorage(_digitalData, new Storage());
-      _ddStorage.clear(); // to prevent using previous lastEventTimestamp value
-      _digitalDataEnricher.setDigitalData(_digitalData);
-      _digitalDataEnricher.setDDStorage(_ddStorage);
-      _digitalDataEnricher.setOption('sessionLength', 0.01);
-      _digitalDataEnricher.enrichDigitalData();
-
-      assert.ok(!_digitalData.user.isReturning, 'isReturning should be false');
-
-      setTimeout(() => {
-        _digitalDataEnricher.enrichDigitalData();
-        assert.ok(_digitalData.user.isReturning, 'isReturning should be true');
-        done();
-      }, 200);
-    });
-    */
-
-    // it('should fire Started Session event', (done) => {
-    //   _digitalData = {};
-    //   _ddStorage = new DDStorage(_digitalData, new Storage());
-    //   _ddStorage.clear(); // to prevent using previous lastEventTimestamp value
-    //   _digitalDataEnricher.setDigitalData(_digitalData);
-    //   _digitalDataEnricher.setDDStorage(_ddStorage);
-    //   _digitalDataEnricher.setOption('sessionLength', 0.1);
-    //   _digitalDataEnricher.enrichDigitalData();
-    //
-    //   assert.equal(_digitalData.events[0].name, 'Session Started', 'should fire Session Started');
-    //
-    //   _digitalDataEnricher.enrichDigitalData();
-    //
-    //   assert.ok(!_digitalData.events[1]);
-    //
-    //   setTimeout(() => {
-    //     _digitalDataEnricher.enrichDigitalData();
-    //     setTimeout(() => {
-    //       assert.equal(_digitalData.events[1].name, 'Session Started', 'should fire Session Started again');
-    //       done();
-    //     }, 202);
-    //   }, 110);
-    // });
   });
 
   describe('Updated Cart enrichments', () => {
-
     afterEach(() => {
       ddManager.reset();
     });
