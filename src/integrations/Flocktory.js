@@ -304,13 +304,15 @@ class Flocktory extends Integration {
   }
 
   onAddedProduct(event) {
-    window.flocktory.push(['addToCart', {
+    window.flocktory.push(['addToCart', cleanObject({
       item: {
         id: String(getProp(event, 'product.id')),
         price: getProp(event, 'product.unitSalePrice'),
         count: getProp(event, 'quantity') || 1,
+        brand: getProp(event, 'product.manufacturer'),
+        categoryId: getProp(event, 'product.categoryId'),
       },
-    }]);
+    })]);
   }
 
   onRemovedProduct(event) {
