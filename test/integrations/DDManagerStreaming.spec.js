@@ -9,7 +9,6 @@ import ddManager from '../../src/ddManager';
 
 describe('Integrations: DDManagerStreaming', () => {
   let ddManagerStreaming;
-  const options = {};
 
   const _location = {
     protocol: 'https:',
@@ -33,7 +32,7 @@ describe('Integrations: DDManagerStreaming', () => {
     window.digitalData = {
       context: {},
     };
-    ddManagerStreaming = new DDManagerStreaming(window.digitalData, options);
+    ddManagerStreaming = new DDManagerStreaming(window.digitalData);
     ddManager.addIntegration('DDManager Streaming', ddManagerStreaming);
   });
 
@@ -82,14 +81,13 @@ describe('Integrations: DDManagerStreaming', () => {
 
     it('#visit from Search Engine', () => {
       const _document = {
-        referrer: 'https://www.google.com/search?ei=5m92XOv5KYyxkwWe66WABQ&q=segmentstream&oq=segmentstream',
+        referrer: 'https://www.google.com/',
       };
       sinon.stub(htmlGlobals, 'getDocument').callsFake(() => _document);
       sinon.stub(htmlGlobals, 'getLocation').callsFake(() => _location);
       assert.deepEqual(ddManagerStreaming.normalize({}).context.campaign, {
         source: 'google',
         medium: 'organic',
-        term: 'segmentstream',
       });
     });
 
