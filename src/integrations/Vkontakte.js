@@ -69,12 +69,6 @@ class Vkontakte extends Integration {
     });
   }
 
-  initialize() {
-    this.asyncQueue.push(() => {
-      window.VK.Retargeting.Init(this.getOption('pixelId')); // eslint-disable-line new-cap
-    });
-  }
-
   onLoadInitiated() {
     this.asyncQueue.init();
   }
@@ -128,6 +122,7 @@ class Vkontakte extends Integration {
   trackSingleProduct(event, method) {
     const product = event.product || {};
     this.asyncQueue.push(() => {
+      window.VK.Retargeting.Init(this.getOption('pixelId'));
       window.VK.Retargeting.ProductEvent(this.getPriceListId(event), method, {
         products: [mapProduct(product)],
         total_price: product.unitSalePrice,
@@ -139,6 +134,7 @@ class Vkontakte extends Integration {
 
   trackLineItems(lineItems, subtotal, currency, pricelistId, method) {
     this.asyncQueue.push(() => {
+      window.VK.Retargeting.Init(this.getOption('pixelId'));
       window.VK.Retargeting.ProductEvent(pricelistId, method, {
         products: lineItems.map(lineItem => mapProduct(lineItem.product)),
         total_price: subtotal,
@@ -189,6 +185,7 @@ class Vkontakte extends Integration {
     const customEventName = customEvents[event.name];
     if (customEventName) {
       this.asyncQueue.push(() => {
+        window.VK.Retargeting.Init(this.getOption('pixelId'));
         window.VK.Retargeting.Event(customEventName); // eslint-disable-line new-cap
       });
     }
@@ -205,12 +202,14 @@ class Vkontakte extends Integration {
     this.pageTracked = false;
 
     this.asyncQueue.push(() => {
+      window.VK.Retargeting.Init(this.getOption('pixelId'));
       window.VK.Retargeting.Hit(); // eslint-disable-line new-cap
     });
 
     const page = event.page || {};
     if (page.type === 'home') {
       this.asyncQueue.push(() => {
+        window.VK.Retargeting.Init(this.getOption('pixelId'));
         window.VK.Retargeting.ProductEvent(this.getPriceListId(event), 'view_home');
       });
       this.pageTracked = true;
@@ -225,6 +224,7 @@ class Vkontakte extends Integration {
 
   onViewedOther(event) {
     this.asyncQueue.push(() => {
+      window.VK.Retargeting.Init(this.getOption('pixelId'));
       window.VK.Retargeting.ProductEvent(this.getPriceListId(event), 'view_other');
     });
     this.pageTracked = true;
@@ -233,6 +233,7 @@ class Vkontakte extends Integration {
   onViewedProductListing(event) {
     const items = getProp(event, 'listing.items') || [];
     this.asyncQueue.push(() => {
+      window.VK.Retargeting.Init(this.getOption('pixelId'));
       window.VK.Retargeting.ProductEvent(this.getPriceListId(event), 'view_category', {
         category_ids: [getProp(event, 'listing.categoryId')],
         products_recommended_ids: items.slice(0, 4).map(item => item.id),
@@ -249,6 +250,7 @@ class Vkontakte extends Integration {
     const items = getProp(event, 'listing.items') || [];
     const query = getProp(event, 'listing.query');
     this.asyncQueue.push(() => {
+      window.VK.Retargeting.Init(this.getOption('pixelId'));
       window.VK.Retargeting.ProductEvent(this.getPriceListId(event), 'view_search', {
         search_string: query,
         products_recommended_ids: items.slice(0, 4).map(item => item.id),
