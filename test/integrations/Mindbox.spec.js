@@ -815,6 +815,48 @@ describe('Integrations: Mindbox', () => {
       });
     });
 
+    describe('#onUpdatedCart', () => {
+      beforeEach(() => {
+        mindbox.setOption('operationMapping', {
+          'Updated Cart': 'SetCart',
+        });
+        mindbox.setOption('productIdsMapping', {
+          exampleId: 'id',
+        });
+        mindbox.setOption('productSkuIdsMapping', {
+          exampleSku: 'skuCode',
+        });
+      });
+
+      it('should update cart', () => {
+        window.digitalData.events.push({
+          name: 'Updated Cart',
+          cart: {
+            lineItems: [
+              {
+                product: {
+                  id: '123',
+                  unitSalePrice: 1000,
+                  skuCode: 'sku123',
+                },
+                quantity: 2,
+              },
+              {
+                product: {
+                  id: '234',
+                  unitSalePrice: 1000,
+                  skuCode: 'sku234',
+                },
+                quantity: 1,
+              },
+            ],
+          },
+          callback: () => {
+            assert.ok(window.mindbox.calledWith('async', V3Stubs.onUpdateCartSetCartStub));
+          },
+        });
+      });
+    });
 
     describe('#onAddedProduct', () => {
       beforeEach(() => {
@@ -824,11 +866,43 @@ describe('Integrations: Mindbox', () => {
       });
 
       it('should track added product with default operation', () => {
-        // TODO should track as custom event
-        assert.ok(true);
+        window.digitalData.events.push({
+          name: 'Added Product',
+          product: {
+            id: '123',
+            skuCode: 'sku123',
+            unitSalePrice: 2500,
+          },
+          quantity: 5,
+          callback: () => {
+            assert.ok(window.mindbox.calledWith('async', V3Stubs.onAddedProductAddProductStub));
+          },
+        });
       });
     });
 
+    describe('#onRemovedProduct', () => {
+      beforeEach(() => {
+        mindbox.setOption('operationMapping', {
+          'Removed Product': 'RemoveProduct',
+        });
+      });
+
+      it('should track removed product with default operation', () => {
+        window.digitalData.events.push({
+          name: 'Removed Product',
+          product: {
+            id: '123',
+            unitSalePrice: 1000,
+            skuCode: 'sku123',
+          },
+          quantity: 1,
+          callback: () => {
+            assert.ok(window.mindbox.calledWith('async', V3Stubs.onRemovedProductRemoveProductStub));
+          },
+        });
+      });
+    });
 
     describe('#onViewedProductListing', () => {
       beforeEach(() => {

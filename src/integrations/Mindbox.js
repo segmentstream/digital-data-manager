@@ -815,7 +815,7 @@ class Mindbox extends Integration {
 
   onAddedProduct(event, operation) {
     if (this.getOption('apiVersion') === V3) {
-      this.onCustomEvent(event);
+      this.onCustomEvent(event, operation);
     } else {
       const product = getProp(event, 'product') || {};
       if (!product.id) return;
@@ -834,7 +834,7 @@ class Mindbox extends Integration {
 
   onRemovedProduct(event, operation) {
     if (this.getOption('apiVersion') === V3) {
-      this.onCustomEvent(event);
+      this.onCustomEvent(event, operation);
     } else {
       const product = getProp(event, 'product') || {};
       if (!product.id) return;
@@ -978,11 +978,18 @@ class Mindbox extends Integration {
       identificator = this.getIdentificator(event);
       data = this.getCustomerData(event);
     }
-    window.mindbox('performOperation', cleanObject({
-      operation,
-      identificator,
-      data,
-    }));
+    if (this.getOption('apiVersion') === V3) {
+      window.mindbox('async', cleanObject({
+        operation,
+        data,
+      }));
+    } else {
+      window.mindbox('performOperation', cleanObject({
+        operation,
+        identificator,
+        data,
+      }));
+    }
   }
 }
 

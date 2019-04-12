@@ -4,6 +4,9 @@ import {
   onViewedPageCartStub,
 } from './onViewedPage.stub';
 
+import { onUpdateCartSetCartStub } from './onUpdateCart.stub';
+import { onAddedProductAddProductStub } from './onAddedProduct.stub';
+import { onRemovedProductRemoveProductStub } from './onRemovedProduct.stub';
 import {
   onViewedProductDetailViewProductStub,
   onViewedProductDetailViewProductSkuStub,
@@ -52,6 +55,9 @@ export default {
   onViewedPageSetCartUnauthorizedStub,
   onViewedPageSetCartAuthorizedStub,
   onViewedPageCartStub,
+  onUpdateCartSetCartStub,
+  onAddedProductAddProductStub,
+  onRemovedProductRemoveProductStub,
   onViewedProductDetailViewProductStub,
   onViewedProductDetailViewProductSkuStub,
   onViewedProductDetailViewedProductCustomStub,
