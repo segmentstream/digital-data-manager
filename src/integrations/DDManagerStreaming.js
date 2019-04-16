@@ -65,7 +65,7 @@ class DDManagerStreaming extends Integration {
     this.productMetrics = {};
     this.customEnrichableProps = [];
 
-    this.isViewedPageSent = false;
+    this.viewedPageCounter = 0;
 
     // TODO: refactoring
     each(optionsWithDefaults.dimensions, (key, variable) => {
@@ -248,7 +248,7 @@ class DDManagerStreaming extends Integration {
 
   normalize(hitData) {
     const hitId = uuid();
-    let { referrer } = !this.isViewedPageSent ? htmlGlobals.getDocument() : {};
+    let { referrer } = (this.viewedPageCounter < 2) ? htmlGlobals.getDocument() : {};
     const location = htmlGlobals.getLocation();
     let {
       search,
@@ -342,7 +342,7 @@ class DDManagerStreaming extends Integration {
 
     this.sendEventHit(event);
     // for SPA apps we create campaign only on first pageview
-    if (event.name === VIEWED_PAGE) this.isViewedPageSent = true;
+    if (event.name === VIEWED_PAGE) this.viewedPageCounter += 1;
   }
 
   sendEventHit(event) {
