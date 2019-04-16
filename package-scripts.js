@@ -13,7 +13,7 @@ const cleanBuild = rimraf(`${buildDir}/*`);
 
 const browserifyDebug = 'browserify src/index.js -t babelify --debug | exorcist --base=./build build/segmentstream.js.map > build/segmentstream.js';
 const browserifyProd = 'browserify src/index.js -t babelify > dist/segmentstream.js && grunt wrap && uglifyjs dist/segmentstream.js -c -m --output dist/segmentstream.min.js';
-
+const browserifyTest = 'browserify test/index.test.js -t babelify --debug | exorcist --base=./build build/segmentstream-test.js.map > build/segmentstream-test.js';
 module.exports = {
   scripts: {
     build: {
@@ -29,7 +29,7 @@ module.exports = {
       },
     },
     standard: 'standard',
-    buildTest: series(cleanBuild, createBuild, 'browserify test/index.test.js -t babelify --debug | exorcist --base=./build build/segmentstream-test.js.map > build/segmentstream-test.js'),
+    buildTest: series(cleanBuild, createBuild, browserifyTest),
     mocha: 'mocha build/segmentstream-test.js',
     test: {
       default: series.nps('standard', 'buildTest', 'karma')
