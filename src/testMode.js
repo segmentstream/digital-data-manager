@@ -8,7 +8,7 @@ const validationMessagesColors = {
 };
 
 export function isTestMode() {
-  return window.localStorage.getItem('_ddm_test_mode') === '1';
+  return window.localStorage.getItem('_segmentstream_test_mode') === '1';
 }
 
 export function prepareValueForLog(value) {

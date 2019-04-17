@@ -2,7 +2,7 @@ import './polyfill';
 import ddManager from './ddManager';
 import availableIntegrations from './availableIntegrations';
 
-const earlyStubsQueue = window.ddManager;
+const earlyStubsQueue = window.ddManager || window.segmentstream;
 window.ddManager = ddManager;
 window.segmentstream = ddManager;
 

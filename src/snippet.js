@@ -1,12 +1,12 @@
 /* eslint-disable */
 (function(a, domain) {
-  domain = domain || 'cdn.ddmanager.ru';
-  var b = window.ddManager = window.ddManager || [];
+  domain = domain || 'cdn.segmentstream.com';
+  var b = window.segmentstream = window.segmentstream || [];
   window.ddListener = window.ddListener || [];
   var c = window.digitalData = window.digitalData || {};
   c.events = c.events || [];
   c.changes = c.changes || [];
-  if (!b.initialize) if (b.invoked) window.console && console.error && console.error('Digital Data Manager snippet included twice.'); else {
+  if (!b.initialize) if (b.invoked) window.console && console.error && console.error('SegmentStream snippet included twice.'); else {
     b.invoked = !0;
     b.methods = 'initialize addIntegration persist unpersist on once off getConsent setConsent'.split(' ');
     b.factory = function(a) {
@@ -34,31 +34,31 @@
       var queryString = window.location.search;
       var initUrl;
       var testMode;
-      if (queryString.indexOf('ddm_test_mode=1') >= 0) {
+      if (queryString.indexOf('segmentstream_test_mode=1') >= 0) {
         try {
           testMode = true;
-          window.localStorage.setItem('_ddm_test_mode', '1');
+          window.localStorage.setItem('_segmentstream_test_mode', '1');
         } catch (e) {}
-      } else if (queryString.indexOf('ddm_test_mode=0') >= 0) {
+      } else if (queryString.indexOf('segmentstream_test_mode=0') >= 0) {
         try {
           testMode = false;
-          window.localStorage.removeItem('_ddm_test_mode');
+          window.localStorage.removeItem('_segmentstream_test_mode');
         } catch (e) {}
       } else {
         try {
-          testMode = ('1' === window.localStorage.getItem('_ddm_test_mode'));
+          testMode = ('1' === window.localStorage.getItem('_segmentstream_test_mode'));
         } catch (e) {}
       }
       if (testMode) {
-        b.load(window.DDMANAGER_TESTMODE_INIT_URL
-          || ('https://api.ddmanager.ru/v1/ddm-initialization/' + a + '.js'));
+        b.load(window.SEGMENTSTREAM_TESTMODE_INIT_URL
+          || ('https://api.segmentstream.com/v1/project/' + a + '.js'));
       } else {
-        b.load(window.DDMANAGER_INIT_URL || ('https://' + domain + '/ddm-initialization/' + a + '.js'));
+        b.load(window.SEGMENTSTREAM_INIT_URL || ('https://' + domain + '/project/' + a + '.js'));
       }
 
     };
     b.CDN_DOMAIN = domain;
-    b.SNIPPET_VERSION = '1.0.11';
+    b.SNIPPET_VERSION = '1.0.12';
     b.loadProject(a);
   }
 })('<PROJECT_ID>', '<CDN_DOMAIN>');
