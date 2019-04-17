@@ -11,8 +11,8 @@ const createBuild = mkdirp(buildDir);
 const cleanDist = rimraf(`${distDir}/*`);
 const cleanBuild = rimraf(`${buildDir}/*`);
 
-const browserifyDebug = 'browserify src/index.js -t babelify --debug | exorcist --base=./build build/dd-manager.js.map > build/dd-manager.js';
-const browserifyProd = 'browserify src/index.js -t babelify > dist/dd-manager.js && grunt wrap && uglifyjs dist/dd-manager.js -c -m --output dist/dd-manager.min.js';
+const browserifyDebug = 'browserify src/index.js -t babelify --debug | exorcist --base=./build build/segmentstream.js.map > build/segmentstream.js';
+const browserifyProd = 'browserify src/index.js -t babelify > dist/segmentstream.js && grunt wrap && uglifyjs dist/segmentstream.js -c -m --output dist/segmentstream.min.js';
 
 module.exports = {
   scripts: {
@@ -30,8 +30,8 @@ module.exports = {
     },
     lint: 'eslint src',
     buildSnippet: './scripts/snippet/build',
-    buildTest: series(cleanBuild, createBuild, 'browserify test/index.test.js -t babelify --debug | exorcist --base=./build build/dd-manager-test.js.map > build/dd-manager-test.js'),
-    mocha: 'mocha build/dd-manager-test.js',
+    buildTest: series(cleanBuild, createBuild, 'browserify test/index.test.js -t babelify --debug | exorcist --base=./build build/segmentstream-test.js.map > build/segmentstream-test.js'),
+    mocha: 'mocha build/segmentstream-test.js',
     test: {
       default: series.nps('buildTest', 'karma'), dev: series.nps('buildTest', 'karma.dev')
     },

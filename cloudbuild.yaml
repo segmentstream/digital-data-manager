@@ -9,12 +9,11 @@ steps:
   - 'SAUCE_ACCESS_KEY=${_SAUCE_ACCESS_KEY}'
 - name: 'gcr.io/cloud-builders/npm'
   args: ['run', 'dist']
-# TODO: replace dd-manager.min.js to dd-manager.js for non-minified version
 - name: gcr.io/cloud-builders/gsutil
-  args: ["cp", "./dist/dd-manager.min.js", "gs://${_DDM_BUCKET_NAME}/sdk/dd-manager.js"]
+  args: ["cp", "./dist/segmentstream.min.js", "gs://${_DDM_BUCKET_NAME}/sdk/dd-manager.js"]
 - name: gcr.io/cloud-builders/gsutil
-  args: ["cp", "./dist/dd-manager.min.js", "gs://${_DDM_BUCKET_NAME}/sdk/dd-manager.min.js"]
+  args: ["cp", "./dist/segmentstream.min.js", "gs://${_DDM_BUCKET_NAME}/sdk/dd-manager.min.js"]
 artifacts:
   objects:
     location: 'gs://${_BUCKET_NAME}/sdk/'
-    paths: ['dist/dd-manager.js', 'dist/dd-manager.min.js']
+    paths: ['dist/segmentstream.js', 'dist/segmentstream.min.js']

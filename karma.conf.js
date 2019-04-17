@@ -128,7 +128,7 @@ module.exports = function init(config) {
     },
     // list of files / patterns to load in the browser
     files: [
-      'build/dd-manager-test.js',
+      'build/segmentstream-test.js',
     ],
     // list of files to exclude
     exclude: [

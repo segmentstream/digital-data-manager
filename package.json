@@ -4,7 +4,7 @@
   "author": "Driveback LLC <opensource@driveback.ru>",
   "version": "1.2.200",
   "license": "MIT",
-  "main": "dist/dd-manager.js",
+  "main": "dist/segmentstream.js",
   "scripts": {
     "start": "nps",
     "test": "nps test",
