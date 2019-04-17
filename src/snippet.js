@@ -58,7 +58,7 @@
 
     };
     b.CDN_DOMAIN = domain;
-    b.SNIPPET_VERSION = '1.0.12';
+    b.SNIPPET_VERSION = '1.1.0';
     b.loadProject(a);
   }
 })('<PROJECT_ID>', '<CDN_DOMAIN>');
