@@ -339,10 +339,10 @@ class DDManagerStreaming extends Integration {
     if (event.name === VIEWED_PAGE && event.website) {
       this.website = this.filters.filterWebsite(event.website);
     }
-
-    this.sendEventHit(event);
     // for SPA apps we create campaign only on first pageview
     if (event.name === VIEWED_PAGE) this.viewedPageCounter += 1;
+
+    this.sendEventHit(event);
   }
 
   sendEventHit(event) {
