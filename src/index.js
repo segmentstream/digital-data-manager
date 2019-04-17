@@ -4,6 +4,7 @@ import availableIntegrations from './availableIntegrations';
 
 const earlyStubsQueue = window.ddManager;
 window.ddManager = ddManager;
+window.segmentstream = ddManager;
 
 ddManager.setAvailableIntegrations(availableIntegrations);
 ddManager.processEarlyStubCalls(earlyStubsQueue);
