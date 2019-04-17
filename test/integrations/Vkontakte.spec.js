@@ -1,20 +1,23 @@
 import assert from 'assert';
 import sinon from 'sinon';
-import reset from './../reset.js';
 import noop from 'driveback-utils/noop';
-import Vkontakte from './../../src/integrations/Vkontakte.js';
-import ddManager from './../../src/ddManager.js';
+import reset from '../reset';
+import Vkontakte from '../../src/integrations/Vkontakte';
+import ddManager from '../../src/ddManager';
 
 describe('Integrations: Vkontakte', () => {
-
   let vk;
   const options = {
-    pixelId: 'VK-RTRG-96471-KZ24cpR',
+    pixels: [{
+      pixelId: 'VK-RTRG-96471-KZ24cpR',
+      priceListId: 2,
+    }],
     customEvents: {
-      'Viewed Product Detail': 'product-detail'
+      'Viewed Product Detail': 'product-detail',
     },
     eventPixels: {
-      'Viewed Product Detail': '//vk.com/rtrg?r=Ug6K6tdSZ*shxgTtjsI9bzDBp1ShCs3q3RdXVNHK1asqy2mLKDvJxuvWw8M7hqktulxtbSlnJsT7*/7Jf5MzEfqO3K5TF9z2zwlFLTuWCy3PiRkO9Ga1I6yOoseM*lfVbhVlQRoHjI5Bt66fOiB1TZLJEZ5nGwFALsuVd5WmSrk-'
+      // eslint-disable-next-line
+      'Viewed Product Detail': '//vk.com/rtrg?r=Ug6K6tdSZ*shxgTtjsI9bzDBp1ShCs3q3RdXVNHK1asqy2mLKDvJxuvWw8M7hqktulxtbSlnJsT7*/7Jf5MzEfqO3K5TF9z2zwlFLTuWCy3PiRkO9Ga1I6yOoseM*lfVbhVlQRoHjI5Bt66fOiB1TZLJEZ5nGwFALsuVd5WmSrk-',
     },
   };
 
@@ -22,12 +25,12 @@ describe('Integrations: Vkontakte', () => {
     window.digitalData = {
       page: {},
       user: {},
-      events: []
+      events: [],
     };
     vk = new Vkontakte(window.digitalData, options);
     ddManager.addIntegration('Vkontakte', vk);
 
-    sinon.stub(vk, 'onLoad').callsFake(() => { return true; });
+    sinon.stub(vk, 'onLoad').callsFake(() => true);
     window.VK = window.VK || {};
     window.VK.Retargeting = window.VK.Retargeting || {
       Init: noop,
@@ -48,7 +51,6 @@ describe('Integrations: Vkontakte', () => {
   });
 
   describe('before loading', () => {
-
     describe('#constructor', () => {
       it('should add proper options', () => {
         assert.equal(options.eventPixels, vk.getOption('eventPixels'));
@@ -58,7 +60,9 @@ describe('Integrations: Vkontakte', () => {
     describe('#initialize', () => {
       it('should call init after initialization', () => {
         ddManager.initialize();
-        assert.ok(window.VK.Retargeting.Init.calledWith(vk.getOption('pixelId')));
+        vk.getOption('pixels').forEach((pixelSetting) => {
+          assert.ok(window.VK.Retargeting.Init.calledWith(pixelSetting.pixelId));
+        });
       });
     });
   });
@@ -82,9 +86,9 @@ describe('Integrations: Vkontakte', () => {
           callback: () => {
             assert.ok(window.VK.Retargeting.Hit.calledTwice);
             done();
-          }
+          },
         });
-      })
+      });
     });
 
     describe('#onAnyEvent', () => {
@@ -95,7 +99,7 @@ describe('Integrations: Vkontakte', () => {
           callback: () => {
             assert.ok(vk.addPixel.called);
             done();
-          }
+          },
         });
       });
 
@@ -106,7 +110,7 @@ describe('Integrations: Vkontakte', () => {
           callback: () => {
             assert.ok(window.VK.Retargeting.Event.calledWith('product-detail'));
             done();
-          }
+          },
         });
       });
 
@@ -117,10 +121,9 @@ describe('Integrations: Vkontakte', () => {
           callback: () => {
             assert.ok(!vk.addPixel.called);
             done();
-          }
+          },
         });
       });
-
     });
   });
 });

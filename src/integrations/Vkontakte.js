@@ -31,16 +31,18 @@ const getCurrencyCode = (currency) => {
 class Vkontakte extends Integration {
   constructor(digitalData, options) {
     const optionsWithDefaults = Object.assign({
-      pixelId: '',
-      priceListId: '',
+      pixels: options.pixelId ? [{
+        pixelId: options.pixelId,
+        priceListId: options.priceListId,
+      }] : [],
       customEvents: {},
       eventPixels: {}, // legacy version of Vkontakte
+      pixelId: '',
+      priceListId: '',
     }, options);
     super(digitalData, optionsWithDefaults);
-
     this.asyncQueue = new AsyncQueue(this.isLoaded);
-
-    if (this.getOption('pixelId')) {
+    if (this.hasPixels()) {
       this.SEMANTIC_EVENTS = [
         VIEWED_PAGE,
         VIEWED_PRODUCT_DETAIL,
@@ -67,6 +69,10 @@ class Vkontakte extends Integration {
         src: 'https://vk.com/js/api/openapi.js?150',
       },
     });
+  }
+
+  hasPixels() {
+    return !!(this.getOption('pixels') || []).length;
   }
 
   onLoadInitiated() {
@@ -108,13 +114,13 @@ class Vkontakte extends Integration {
     deleteProperty(window, 'VK');
   }
 
-  getPriceListId(event) {
+  getPriceListId(event, pixelSetting) {
     let priceListId;
     if (event) {
       priceListId = getProp(event, 'priceListId');
     }
     if (!priceListId) {
-      priceListId = this.getOption('priceListId');
+      priceListId = pixelSetting.priceListId;
     }
     return priceListId;
   }
@@ -122,23 +128,27 @@ class Vkontakte extends Integration {
   trackSingleProduct(event, method) {
     const product = event.product || {};
     this.asyncQueue.push(() => {
-      window.VK.Retargeting.Init(this.getOption('pixelId'));
-      window.VK.Retargeting.ProductEvent(this.getPriceListId(event), method, {
-        products: [mapProduct(product)],
-        total_price: product.unitSalePrice,
-        currency_code: getCurrencyCode(product.currency),
+      this.getOption('pixels').forEach((pixelSetting) => {
+        window.VK.Retargeting.Init(pixelSetting.pixelId);
+        window.VK.Retargeting.ProductEvent(this.getPriceListId(event, pixelSetting), method, {
+          products: [mapProduct(product)],
+          total_price: product.unitSalePrice,
+          currency_code: getCurrencyCode(product.currency),
+        });
       });
     });
     this.pageTracked = true;
   }
 
-  trackLineItems(lineItems, subtotal, currency, pricelistId, method) {
+  trackLineItems(lineItems, subtotal, currency, event, method) {
     this.asyncQueue.push(() => {
-      window.VK.Retargeting.Init(this.getOption('pixelId'));
-      window.VK.Retargeting.ProductEvent(pricelistId, method, {
-        products: lineItems.map(lineItem => mapProduct(lineItem.product)),
-        total_price: subtotal,
-        currency_code: getCurrencyCode(currency),
+      this.getOption('pixels').forEach((pixelSetting) => {
+        window.VK.Retargeting.Init(pixelSetting.pixelId);
+        window.VK.Retargeting.ProductEvent(this.getPriceListId(event, pixelSetting), method, {
+          products: lineItems.map(lineItem => mapProduct(lineItem.product)),
+          total_price: subtotal,
+          currency_code: getCurrencyCode(currency),
+        });
       });
     });
     this.pageTracked = true;
@@ -148,18 +158,18 @@ class Vkontakte extends Integration {
     const lineItems = getProp(event, 'cart.lineItems') || [];
     const subtotal = getProp(event, 'cart.subtotal');
     const currency = getProp(event, 'cart.currency');
-    this.trackLineItems(lineItems, subtotal, currency, this.getPriceListId(event), method);
+    this.trackLineItems(lineItems, subtotal, currency, event, method);
   }
 
   trackTransaction(event, method) {
     const lineItems = getProp(event, 'transaction.lineItems') || [];
     const subtotal = getProp(event, 'transaction.subtotal');
     const currency = getProp(event, 'transaction.currency');
-    this.trackLineItems(lineItems, subtotal, currency, this.getPriceListId(event), method);
+    this.trackLineItems(lineItems, subtotal, currency, event, method);
   }
 
   trackEvent(event) {
-    if (this.getOption('pixelId')) { // works only with new version of pixel
+    if (this.hasPixels()) { // works only with new version of pixel
       const methods = {
         [VIEWED_PAGE]: 'onViewedPage',
         [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
@@ -185,8 +195,10 @@ class Vkontakte extends Integration {
     const customEventName = customEvents[event.name];
     if (customEventName) {
       this.asyncQueue.push(() => {
-        window.VK.Retargeting.Init(this.getOption('pixelId'));
-        window.VK.Retargeting.Event(customEventName); // eslint-disable-line new-cap
+        this.getOption('pixels').forEach((pixelSetting) => {
+          window.VK.Retargeting.Init(pixelSetting.pixelId);
+          window.VK.Retargeting.Event(customEventName); // eslint-disable-line new-cap
+        });
       });
     }
 
@@ -202,15 +214,19 @@ class Vkontakte extends Integration {
     this.pageTracked = false;
 
     this.asyncQueue.push(() => {
-      window.VK.Retargeting.Init(this.getOption('pixelId'));
-      window.VK.Retargeting.Hit(); // eslint-disable-line new-cap
+      this.getOption('pixels').forEach((pixelSetting) => {
+        window.VK.Retargeting.Init(pixelSetting.pixelId);
+        window.VK.Retargeting.Hit(); // eslint-disable-line new-cap
+      });
     });
 
     const page = event.page || {};
     if (page.type === 'home') {
       this.asyncQueue.push(() => {
-        window.VK.Retargeting.Init(this.getOption('pixelId'));
-        window.VK.Retargeting.ProductEvent(this.getPriceListId(event), 'view_home');
+        this.getOption('pixels').forEach((pixelSetting) => {
+          window.VK.Retargeting.Init(pixelSetting.pixelId);
+          window.VK.Retargeting.ProductEvent(this.getPriceListId(event, pixelSetting), 'view_home');
+        });
       });
       this.pageTracked = true;
     } else {
@@ -224,8 +240,10 @@ class Vkontakte extends Integration {
 
   onViewedOther(event) {
     this.asyncQueue.push(() => {
-      window.VK.Retargeting.Init(this.getOption('pixelId'));
-      window.VK.Retargeting.ProductEvent(this.getPriceListId(event), 'view_other');
+      this.getOption('pixels').forEach((pixelSetting) => {
+        window.VK.Retargeting.Init(pixelSetting.pixelId);
+        window.VK.Retargeting.ProductEvent(this.getPriceListId(event, pixelSetting), 'view_other');
+      });
     });
     this.pageTracked = true;
   }
@@ -233,10 +251,12 @@ class Vkontakte extends Integration {
   onViewedProductListing(event) {
     const items = getProp(event, 'listing.items') || [];
     this.asyncQueue.push(() => {
-      window.VK.Retargeting.Init(this.getOption('pixelId'));
-      window.VK.Retargeting.ProductEvent(this.getPriceListId(event), 'view_category', {
-        category_ids: [getProp(event, 'listing.categoryId')],
-        products_recommended_ids: items.slice(0, 4).map(item => item.id),
+      this.getOption('pixels').forEach((pixelSetting) => {
+        window.VK.Retargeting.Init(pixelSetting.pixelId);
+        window.VK.Retargeting.ProductEvent(this.getPriceListId(event, pixelSetting), 'view_category', {
+          category_ids: [getProp(event, 'listing.categoryId')],
+          products_recommended_ids: items.slice(0, 4).map(item => item.id),
+        });
       });
     });
     this.pageTracked = true;
@@ -250,10 +270,12 @@ class Vkontakte extends Integration {
     const items = getProp(event, 'listing.items') || [];
     const query = getProp(event, 'listing.query');
     this.asyncQueue.push(() => {
-      window.VK.Retargeting.Init(this.getOption('pixelId'));
-      window.VK.Retargeting.ProductEvent(this.getPriceListId(event), 'view_search', {
-        search_string: query,
-        products_recommended_ids: items.slice(0, 4).map(item => item.id),
+      this.getOption('pixels').forEach((pixelSetting) => {
+        window.VK.Retargeting.Init(pixelSetting.pixelId);
+        window.VK.Retargeting.ProductEvent(this.getPriceListId(event, pixelSetting), 'view_search', {
+          search_string: query,
+          products_recommended_ids: items.slice(0, 4).map(item => item.id),
+        });
       });
     });
     this.pageTracked = true;
