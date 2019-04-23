@@ -125,8 +125,6 @@ ddManager.once('ready', function() {
 
 ## Learn more at https://segmentstream.com/
 
-- [Driveback Blog](http://blog.driveback.ru)
-
 ## License
 
 The Digital Data Manager is licensed under the MIT license. See [License File](LICENSE.txt) for more information.
