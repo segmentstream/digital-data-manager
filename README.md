@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/driveback/digital-data-manager.svg?branch=master)](https://travis-ci.org/driveback/digital-data-manager)
 
-Digital Data Manager is an open source library which provides the hassle-free way to integrate Digital Data Layer on your website, collect customer data with one API and send it to hundreds of tools for analytics, marketing, and data warehousing. More info at [https://docs.ddmanager.ru/](https://docs.ddmanager.ru/).
+Digital Data Manager is an open source library which provides the hassle-free way to integrate Digital Data Layer on your website, collect customer data with one API and send it to hundreds of tools for analytics, marketing, and data warehousing. More info at [https://docs.segmentstream.com/ru](https://docs.segmentstream.com/ru/).
 
 ## Defining Digital Data Layer
 ```html
@@ -123,8 +123,8 @@ ddManager.once('ready', function() {
 });
 ```
 
-## Learn more at these links
-- [DigitalData Documentation](https://ddmanager.readme.io)
+## Learn more at https://segmentstream.com/
+
 - [Driveback Blog](http://blog.driveback.ru)
 
 ## License
