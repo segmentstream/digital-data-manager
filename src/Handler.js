@@ -47,6 +47,13 @@ class Handler {
           resolve(callback());
         }, delay);
       }),
+      retry: (delegate, retriesLeft = 5, delay = 1000) => {
+        try {
+          if (retriesLeft > 0) delegate();
+        } catch (e) {
+          setTimeout(() => { this.utils.retry(delegate, retriesLeft - 1); }, delay);
+        }
+      },
       loadPixel,
       loadScript,
       loadIframe,
