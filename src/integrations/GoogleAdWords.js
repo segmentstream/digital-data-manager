@@ -234,6 +234,10 @@ class GoogleAdWords extends Integration {
     }
   }
 
+  allowNoConflictInitialization() {
+    return true;
+  }
+
   onLoadInitiated() {
     if (!this.isGtag()) this.asyncQueue.init();
   }
