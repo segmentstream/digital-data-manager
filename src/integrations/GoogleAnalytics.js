@@ -883,11 +883,10 @@ class GoogleAnalytics extends Integration {
     // }
 
     // send global id
-    const { page } = event;
+    const { page, nonInteraction } = event;
     const pageview = {};
     const pageUrl = page.url;
     let pagePath = page.path;
-
     if (page.queryString) {
       pagePath += page.queryString;
     }
@@ -895,6 +894,7 @@ class GoogleAnalytics extends Integration {
     pageview.page = pagePath;
     pageview.title = pageTitle;
     pageview.location = pageUrl;
+    pageview.nonInteraction = nonInteraction;
 
     if (this.pageCalled) {
       deleteProperty(pageview, 'location');
