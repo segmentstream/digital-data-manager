@@ -12,7 +12,7 @@ module.exports = function init(config) {
     } else {
       process.env.SAUCE_ENABLED = require('./sauce.json').enabled;
       process.env.SAUCE_USERNAME = require('./sauce.json').username;
-      process.env.SAUCE_ACCESS_KEY = require('./sauce.json').accessKey; 
+      process.env.SAUCE_ACCESS_KEY = require('./sauce.json').accessKey;
     }
     /* eslint-enable */
   } else {
@@ -62,23 +62,23 @@ module.exports = function init(config) {
         browserName: 'safari',
         platform: 'OS X 10.10',
       },
-      slIphone: {
-        base: 'SauceLabs',
-        browserName: 'iphone',
-        platform: 'iOS',
-        version: '10.2',
-        deviceName: 'iPhone Simulator',
-      },
-      slIpad: {
-        base: 'SauceLabs',
-        browserName: 'iphone',
-        platform: 'iOS',
-        version: '10.2',
-        deviceName: 'iPad Simulator',
-      },
+      // slIphone: {
+      //   base: 'SauceLabs',
+      //   browserName: 'Safari',
+      //   platform: 'iOS',
+      //   version: '11',
+      //   deviceName: 'iPhone 5 Simulator',
+      // },
+      // slIpad: {
+      //   base: 'SauceLabs',
+      //   browserName: 'Safari',
+      //   platform: 'iOS',
+      //   version: '11',
+      //   deviceName: 'iPad Air Simulator',
+      // },
       slAndroid: {
         base: 'SauceLabs',
-        browserName: 'android',
+        browserName: 'Browser',
         platform: 'Linux',
         version: '5.1',
         deviceName: 'Android Emulator',
@@ -87,8 +87,8 @@ module.exports = function init(config) {
         base: 'SauceLabs',
         browserName: 'Browser',
         platform: 'Android',
-        version: '4.4',
-        deviceName: 'Samsung Galaxy S3 Emulator',
+        version: '7.0',
+        deviceName: 'Samsung Galaxy S8 HD GoogleAPI Emulator',
       },
     };
     browsers = Object.keys(customLaunchers);
@@ -193,9 +193,9 @@ module.exports = function init(config) {
 
     // Concurrency level
     // how many browser should be started simultanous
-    // concurrency: 1,
-    // browserDisconnectTimeout: 10000,
-    // browserDisconnectTolerance: 10,
-    // browserNoActivityTimeout: 20000,
+    concurrency: 1,
+    browserDisconnectTimeout: 10000,
+    browserDisconnectTolerance: 10,
+    browserNoActivityTimeout: 20000,
   });
 };
