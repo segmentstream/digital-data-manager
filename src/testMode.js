@@ -8,8 +8,8 @@ const validationMessagesColors = {
 };
 
 export function isTestMode() {
-  return window.localStorage.getItem('_segmentstream_test_mode') === '1' ||
-    window.localStorage.getItem('_ddm_test_mode') === '1';
+  return window.localStorage.getItem('_segmentstream_test_mode') === '1'
+  || window.localStorage.getItem('_ddm_test_mode') === '1';
 }
 
 export function prepareValueForLog(value) {
@@ -29,7 +29,7 @@ export function prepareValueForLog(value) {
 }
 
 export function showTestModeMessage() {
-  log('%c DigitalDataManager: Test Mode', 'color: blue; font-size: 18px');
+  log('%c SegmentStream: Test Mode', 'color: blue; font-size: 18px');
 }
 
 export function logValidationResult(event, messages) {
