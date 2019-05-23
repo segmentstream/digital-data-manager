@@ -62,18 +62,19 @@ module.exports = function init(config) {
         browserName: 'safari',
         platform: 'OS X 10.10',
       },
-      // slIphone: {
-      //   base: 'SauceLabs',
-      //   browserName: 'Safari',
-      //   platform: 'iOS',
-      //   version: '11',
-      //   deviceName: 'iPhone 5 Simulator',
-      // },
+      slIphone: {
+        base: 'SauceLabs',
+        browserName: 'Safari',
+        platform: 'iOS',
+        version: '10.3',
+        deviceName: 'iPhone 6s Plus Simulator',
+      },
+      // commented out because of 10 minute test timeout limit
       // slIpad: {
       //   base: 'SauceLabs',
       //   browserName: 'Safari',
       //   platform: 'iOS',
-      //   version: '11',
+      //   version: '10.3',
       //   deviceName: 'iPad Air Simulator',
       // },
       slAndroid: {
