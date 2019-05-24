@@ -14,7 +14,6 @@ import {
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
   SESSION_STARTED,
-  ASSIGNED_SEGMENT,
 } from '../events/semanticEvents';
 import {
   SDK_EVENT_SOURCE, SDK_CHANGE_SOURCE,
@@ -73,19 +72,6 @@ class DigitalDataEnricher {
     this.ddStorage.setLastEventTimestamp(Date.now());
   }
 
-  addToSegment(event) {
-    const segment = getProp(event, 'segment');
-    if (segment) {
-      const { id, name, value } = segment;
-      const segmentName = id || camelize(name);
-
-      const userSegment = getProp(this.digitalData, 'user.segment') || {};
-      userSegment[segmentName] = value;
-      this.digitalData.changes.push(['user.segment', userSegment, SDK_CHANGE_SOURCE]);
-      this.ddStorage.persist('user.segment');
-    }
-  }
-
   listenToEvents() {
     // enrich DDL based on semantic events
     this.ddListener.push(['on', 'event', (event) => {
@@ -103,8 +89,6 @@ class DigitalDataEnricher {
       } else if (event.name === UPDATED_CART && semver.cmp(this.digitalData.version, '1.1.3') >= 0) {
         this.fireAddRemoveProduct(event);
         this.digitalData.changes.push(['cart', event.cart, SDK_CHANGE_SOURCE]);
-      } else if (event.name === ASSIGNED_SEGMENT) {
-        this.addToSegment(event);
       }
     }]);
   }
