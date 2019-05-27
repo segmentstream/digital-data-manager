@@ -326,7 +326,8 @@ class OneSignal extends Integration {
   }
 
   trackEvent(event) {
-    if (this.getOption('autoRegister') && event.name === VIEWED_PAGE && this.getOption('isSlidePrompt')) { // slide prompt use case
+    if (this.getOption('autoRegister') && event.name === VIEWED_PAGE && this.getOption('isSlidePrompt')) {
+      // slide prompt use case
       window.OneSignal.push(['showHttpPrompt']);
     } else if (event.name === this.getOption('pushSubscriptionTriggerEvent')) {
       if (this.getOption('isSlidePrompt')) {
