@@ -17,3 +17,4 @@ artifacts:
   objects:
     location: 'gs://${_BUCKET_NAME}/sdk/'
     paths: ['dist/segmentstream.js', 'dist/segmentstream.min.js']
+timeout: 720s
