@@ -3,7 +3,6 @@ import semver from 'driveback-utils/semver';
 import getQueryParam from 'driveback-utils/getQueryParam';
 import cleanObject from 'driveback-utils/cleanObject';
 import { getProp, setProp } from 'driveback-utils/dotProp';
-import { camelize } from 'driveback-utils/camelize';
 import { warn } from 'driveback-utils/safeConsole';
 import uuid from 'uuid/v1';
 import UAParser from 'ua-parser-js';
