@@ -1,10 +1,12 @@
+import { bind } from 'driveback-utils/eventListener';
 import CustomScript from './CustomScript';
 
 let storage = {};
 
 class CustomScripts {
-  constructor(digitalData) {
+  constructor(digitalData, pageLoadTimeout) {
     this.digitalData = digitalData;
+    this.pageLoadTimeout = pageLoadTimeout;
   }
 
   import(scriptsConfig) {
@@ -29,6 +31,7 @@ class CustomScripts {
         eventName,
         scriptConfig.handler,
         fireOnce,
+        scriptConfig.runAfterPageLoaded,
         this.digitalData,
       );
 
@@ -47,8 +50,23 @@ class CustomScripts {
     if (event.stopPropagation) return;
 
     const customScripts = storage[event.name] || [];
+
     customScripts.forEach((customScript) => {
-      customScript.run(event);
+      const pageLoaded = window.document.readyState === 'complete';
+      if (customScript.runAfterPageLoaded && !pageLoaded) {
+        // set page load timeout
+        const timeoutId = setTimeout(() => {
+          customScript.run(event);
+        }, this.pageLoadTimeout || 3000);
+
+        // wait for page load
+        bind(window, 'load', () => {
+          clearTimeout(timeoutId);
+          customScript.run(event);
+        });
+      } else {
+        customScript.run(event);
+      }
     });
   }
 

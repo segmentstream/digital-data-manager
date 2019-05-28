@@ -191,7 +191,7 @@ function _initializeIntegrations(settings) {
 
 function _initializeCustomScripts(settings) {
   // initialize custom scripts
-  _customScripts = new CustomScripts(_digitalData);
+  _customScripts = new CustomScripts(_digitalData, settings.pageLoadTimeout);
   _customScripts.import(settings.scripts);
   _eventManager.addCallback(['on', 'event', (event) => {
     _customScripts.run(event);

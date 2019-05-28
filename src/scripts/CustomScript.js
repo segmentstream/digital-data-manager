@@ -2,13 +2,14 @@ import { error as errorLog } from 'driveback-utils/safeConsole';
 import Handler from '../Handler';
 
 class CustomScript {
-  constructor(name, event, handler, fireOnce, digitalData) {
+  constructor(name, event, handler, fireOnce, runAfterPageLoaded, digitalData) {
     this.name = name;
     this.event = event;
     this.handler = handler;
     this.fireOnce = fireOnce || false;
     this.digitalData = digitalData;
     this.hasFired = false;
+    this.runAfterPageLoaded = runAfterPageLoaded || false;
   }
 
   newHandler(args) {
