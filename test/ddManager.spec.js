@@ -1,5 +1,6 @@
-import assert from 'assert';
+import assert, { deepEqual } from 'assert';
 import sinon from 'sinon';
+import jsonIsEqual from 'driveback-utils/jsonIsEqual';
 import reset from './reset';
 import snippet from './snippet';
 import ddManager from '../src/ddManager';
@@ -7,7 +8,7 @@ import Integration from '../src/Integration';
 import availableIntegrations from '../src/availableIntegrations';
 import DDStorage from '../src/DDStorage';
 import Storage from '../src/Storage';
-import jsonIsEqual from 'driveback-utils/jsonIsEqual';
+import '../src/index';
 
 describe('DDManager', () => {
   beforeEach(() => {
@@ -21,6 +22,13 @@ describe('DDManager', () => {
   });
 
   describe('#initialize', () => {
+    it('passing the ddManager object by reference', () => {
+      window.ddManager.TEST_VAR = 'TEST_VAL';
+      window.segmentstream.TEST_VAR = 'TEST_VAL';
+      deepEqual(window.ddManager, ddManager);
+      deepEqual(window.segmentstream, ddManager);
+    });
+
     it('should initialize Array objects for window.digitalData.events and window.ddListener', () => {
       ddManager.initialize({
         sendViewedPageEvent: false,
