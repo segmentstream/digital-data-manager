@@ -40,7 +40,7 @@ class GoogleTagManager extends Integration {
   }
 
   isLoaded() {
-    return !!(window.dataLayer && Array.prototype.push !== window.dataLayer.push);
+    return !!(window.google_tag_manager && window.google_tag_manager[this.getOption('containerId')]);
   }
 
   reset() {

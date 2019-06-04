@@ -30,6 +30,29 @@ describe('Integrations: GoogleTagManager', () => {
       });
     });
 
+    describe('#isLoaded', () => {
+      it('should return false if current gtm is not loaded ', () => {
+        const anotherGTM = 'GTM-1351ME';
+        assert.ok(!gtm.isLoaded());
+
+        // emulate loading of another GTM from site code
+        window.google_tag_manager = { [anotherGTM]: { dataLayer: { push: () => {} } } };
+        window.dataLayer = { push: () => {} };
+
+        assert.ok(!gtm.isLoaded());
+      });
+
+      it('should return true if current gtm is loaded ', () => {
+        assert.ok(!gtm.isLoaded());
+
+        // emulate loading same GTM from site code
+        window.google_tag_manager = { [options.containerId]: { dataLayer: { push: () => {} } } };
+        window.dataLayer = { push: () => {} };
+
+        assert.ok(gtm.isLoaded());
+      });
+    });
+
     describe('#load', () => {
       it('should load', (done) => {
         assert.ok(!gtm.isLoaded());
