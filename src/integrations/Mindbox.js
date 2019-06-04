@@ -196,7 +196,6 @@ class Mindbox extends Integration {
         break;
       case LOGGED_IN:
       case REGISTERED:
-      case SUBSCRIBED:
         enrichableProps = [
           ...this.getEnrichableUserIds(),
           ...this.getEnrichableAreaIds(),
@@ -205,6 +204,20 @@ class Mindbox extends Integration {
           arrayMerge(enrichableProps, [
             ...this.getEnrichableUserProps(),
             'user.userId', // might be duplicated
+            'user.isSubscribed',
+            'user.isSubscribedBySms',
+            'user.subscriptions',
+          ]);
+        }
+        break;
+      // we should't pass userId for subscriptions
+      case SUBSCRIBED:
+        enrichableProps = [
+          ...this.getEnrichableAreaIds(),
+        ];
+        if (!event.user) {
+          arrayMerge(enrichableProps, [
+            ...this.getEnrichableUserProps(),
             'user.isSubscribed',
             'user.isSubscribedBySms',
             'user.subscriptions',
