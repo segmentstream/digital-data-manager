@@ -72,7 +72,6 @@ function getCheckoutObjectStub() {
               ids: {
                 bitrixId: 'product123',
               },
-              price: 100,
             },
             quantity: 1,
             basePricePerItem: 100,
@@ -82,7 +81,6 @@ function getCheckoutObjectStub() {
               ids: {
                 bitrixId: 'product567',
               },
-              price: 120,
             },
             quantity: 2,
             basePricePerItem: 150,

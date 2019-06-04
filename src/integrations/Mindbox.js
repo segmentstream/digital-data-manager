@@ -856,7 +856,6 @@ class Mindbox extends Integration {
     return {
       ids: this.getProductIds(product),
       sku: (skuIds) ? { ids: skuIds } : undefined,
-      price: product.unitSalePrice,
     };
   }
 
