@@ -43,6 +43,7 @@ import './integrations/SegmentStream.spec';
 import './integrations/SendPulse.spec';
 import './integrations/OWOXBIStreaming.spec';
 import './integrations/Criteo.spec';
+import './integrations/AdvCake/AdvCake.spec';
 import './integrations/MyTarget.spec';
 import './integrations/YandexMetrica.spec';
 import './integrations/Vkontakte.spec';

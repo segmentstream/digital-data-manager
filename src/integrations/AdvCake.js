@@ -30,6 +30,9 @@ function getBasketProducts(lineItems) {
       name: product.name,
       price: product.unitSalePrice,
       quantity: lineItem.quantity || 1,
+      categoryId: product.categoryId,
+      categoryName: product.category[product.category.length - 1],
+      brand: product.manufacturer,
     });
   });
 }
@@ -59,6 +62,7 @@ function getCurrentProduct(product) {
     id: product.id,
     name: product.name,
     price: product.unitSalePrice,
+    brand: product.manufacturer,
   };
 }
 
