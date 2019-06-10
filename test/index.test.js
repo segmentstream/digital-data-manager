@@ -54,3 +54,4 @@ import './integrations/DoubleClickFloodlight.spec';
 import './integrations/RTBHouse.spec';
 import './integrations/Soloway.spec';
 import './integrations/GdeSlon.spec';
+import './integrations/Flocktory.spec';

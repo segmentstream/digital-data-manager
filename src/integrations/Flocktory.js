@@ -24,6 +24,8 @@ class Flocktory extends Integration {
 
     this.SEMANTIC_EVENTS = [];
 
+    this.pageTracked = false;
+
     this.addTag({
       type: 'script',
       attr: {
@@ -263,6 +265,13 @@ class Flocktory extends Integration {
   }
 
   onViewedPage(event) {
+    // Call flocktory reinitialization if page changed on SPA
+    if (this.pageTracked) {
+      window.flocktory.reInit();
+    }
+
+    this.pageTracked = true;
+
     const isLoggedIn = getProp(event, 'user.isLoggedIn') || false;
     if (isLoggedIn) {
       window.flocktory.push(['addData', {
