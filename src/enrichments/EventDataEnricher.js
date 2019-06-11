@@ -24,7 +24,6 @@ class EventDataEnricher {
         event[enrichableVar] = enricherMethod(eventVar, digitalData)
       }
     })
-
     if (event.name === VIEWED_PRODUCT_DETAIL && !event.product && digitalData.product) {
       event.product = DDHelper.get('product', digitalData)
     } else if (
@@ -38,7 +37,6 @@ class EventDataEnricher {
     if (!event.version && digitalData.version) {
       event.version = digitalData.version
     }
-
     return event
   }
 

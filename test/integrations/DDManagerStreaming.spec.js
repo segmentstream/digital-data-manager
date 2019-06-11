@@ -29,7 +29,8 @@ describe('Integrations: DDManagerStreaming', () => {
 
   beforeEach(() => {
     window.digitalData = {
-      context: {}
+      context: {},
+      events: []
     }
     ddManagerStreaming = new DDManagerStreaming(window.digitalData)
     ddManager.addIntegration('DDManager Streaming', ddManagerStreaming)
@@ -66,6 +67,7 @@ describe('Integrations: DDManagerStreaming', () => {
   describe('after loading', () => {
     beforeEach((done) => {
       sinon.stub(ddManagerStreaming, 'load')
+      sinon.stub(ddManagerStreaming, 'send')
       ddManager.once('ready', () => {
         done()
       })
@@ -75,6 +77,7 @@ describe('Integrations: DDManagerStreaming', () => {
     afterEach(() => {
       htmlGlobals.getLocation.restore()
       htmlGlobals.getDocument.restore()
+      ddManagerStreaming.send.restore()
     })
 
     it('#visit from Search Engine', () => {
@@ -167,6 +170,62 @@ describe('Integrations: DDManagerStreaming', () => {
       sinon.stub(htmlGlobals, 'getDocument').callsFake(() => _document)
       sinon.stub(htmlGlobals, 'getLocation').callsFake(() => _location)
       assert.ok(!ddManagerStreaming.normalize({}).context.campaign)
+    })
+
+    describe('tracking wishlist events', () => {
+      beforeEach(() => {
+        const _document = {
+          referrer: 'https://www.google.com/'
+        }
+        sinon.stub(htmlGlobals, 'getDocument').callsFake(() => _document)
+        sinon.stub(htmlGlobals, 'getLocation').callsFake(() => _location)
+      })
+
+      it('should track product added to wishlist', (done) => {
+        window.digitalData.events.push({
+          name: 'Added Product to Wishlist',
+          category: 'Ecommerce',
+          product: {
+            id: '124'
+          },
+          callback: () => {
+            const { event } = ddManagerStreaming.send.secondCall.args[0]
+            assert.deepStrictEqual({
+              category: 'Ecommerce',
+              name: 'Added Product to Wishlist',
+              product: {
+                id: '124',
+                customDimensions: [],
+                customMetrics: []
+              }
+            }, event)
+            done()
+          }
+        })
+      })
+
+      it('should track product removed from wishlist', (done) => {
+        window.digitalData.events.push({
+          name: 'Removed Product from Wishlist',
+          category: 'Ecommerce',
+          product: {
+            id: '123'
+          },
+          callback: () => {
+            const { event } = ddManagerStreaming.send.secondCall.args[0]
+            assert.deepStrictEqual({
+              category: 'Ecommerce',
+              name: 'Removed Product from Wishlist',
+              product: {
+                id: '123',
+                customDimensions: [],
+                customMetrics: []
+              }
+            }, event)
+            done()
+          }
+        })
+      })
     })
   })
 })

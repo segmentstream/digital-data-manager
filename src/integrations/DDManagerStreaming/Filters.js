@@ -11,6 +11,8 @@ import {
   VIEWED_CART,
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
+  ADDED_PRODUCT_TO_WISHLIST,
+  REMOVED_PRODUCT_FROM_WISHLIST,
   VIEWED_CHECKOUT_STEP,
   COMPLETED_CHECKOUT_STEP,
   SEARCHED_PRODUCTS,
@@ -169,6 +171,8 @@ class Filters {
       [VIEWED_PRODUCT_DETAIL]: this.filterViewedProductDetail.bind(this),
       [ADDED_PRODUCT]: this.filterAddedProduct.bind(this),
       [REMOVED_PRODUCT]: this.filterRemovedProduct.bind(this),
+      [ADDED_PRODUCT_TO_WISHLIST]: this.filterAddedProductToWishlist.bind(this),
+      [REMOVED_PRODUCT_FROM_WISHLIST]: this.filterRemovedProductFromWishlist.bind(this),
       [VIEWED_CART]: this.filterViewedCart.bind(this),
       [COMPLETED_TRANSACTION]: this.filterCompletedTransaction.bind(this),
       [REFUNDED_TRANSACTION]: this.filterRefundedTransaction.bind(this),
@@ -340,11 +344,15 @@ class Filters {
   }
 
   filterAddedProductToWishlist (event) {
-    return this.filterAddedProduct(event)
+    const filtered = this.filterCommonEvent(event)
+    return {
+      ...filtered,
+      product: this.filterProduct(event.product)
+    }
   }
 
   filterRemovedProductFromWishlist (event) {
-    return this.filterAddedProduct(event)
+    return this.filterAddedProductToWishlist(event)
   }
 
   filterViewedCheckoutStep (event) {

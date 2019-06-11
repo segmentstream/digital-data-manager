@@ -35,6 +35,8 @@ import {
   VIEWED_PRODUCT_DETAIL,
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
+  ADDED_PRODUCT_TO_WISHLIST,
+  REMOVED_PRODUCT_FROM_WISHLIST,
   VIEWED_PRODUCT_LISTING,
   SEARCHED_PRODUCTS,
   VIEWED_CAMPAIGN,
@@ -195,6 +197,12 @@ class DDManagerStreaming extends Integration {
         fields: productFields
       },
       [REMOVED_PRODUCT]: {
+        fields: productFields
+      },
+      [ADDED_PRODUCT_TO_WISHLIST]: {
+        fields: productFields
+      },
+      [REMOVED_PRODUCT_FROM_WISHLIST]: {
         fields: productFields
       },
       [VIEWED_PRODUCT_LISTING]: {
