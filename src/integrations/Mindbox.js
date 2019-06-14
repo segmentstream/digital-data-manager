@@ -895,12 +895,15 @@ class Mindbox extends Integration {
 
     const orderVars = this.getOption('orderVars');
     const orderCustomFields = extractVariableMappingValues(event, orderVars);
-    const payments = [
-      {
-        type: getProp(event, 'transaction.paymentMethod'),
+
+    const paymentMethod = getProp(event, 'transaction.paymentMethod');
+    let payments;
+    if (paymentMethod) {
+      payments = [{
+        type: paymentMethod,
         amount: getProp(event, 'transaction.total'),
-      },
-    ];
+      }];
+    }
 
     const order = {
       ids: this.getOrderIds(event),
