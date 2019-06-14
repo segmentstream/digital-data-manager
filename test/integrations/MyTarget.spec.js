@@ -1,14 +1,41 @@
 import assert from 'assert'
 import sinon from 'sinon'
-import reset from './../reset.js'
-import MyTarget from './../../src/integrations/MyTarget.js'
-import ddManager from './../../src/ddManager.js'
+import reset from '../reset'
+import MyTarget from '../../src/integrations/MyTarget'
+import ddManager from '../../src/ddManager'
 
 describe('Integrations: MyTarget', () => {
   let myTarget
   const options = {
     counterId: '123'
   }
+
+  const multipleCounters = [
+    {
+      counterId: '123',
+      listVar: {
+        type: 'constant',
+        value: '1'
+      },
+      feedWithGroupedProducts: true
+    },
+    {
+      counterId: '456',
+      listVar: {
+        type: 'constant',
+        value: '2'
+      },
+      feedWithGroupedProducts: false
+    },
+    {
+      counterId: '789',
+      listVar: {
+        type: 'digitalData',
+        value: 'website.myTargetList'
+      },
+      feedWithGroupedProducts: false
+    }
+  ]
 
   beforeEach(() => {
     window.digitalData = {
@@ -28,21 +55,50 @@ describe('Integrations: MyTarget', () => {
   })
 
   describe('before loading', () => {
-    beforeEach(function () {
+    beforeEach(() => {
       sinon.stub(myTarget, 'load')
     })
 
-    afterEach(function () {
+    afterEach(() => {
       myTarget.load.restore()
     })
 
     describe('#constructor', () => {
       it('should add proper tags and options', () => {
         assert.strict.equal(options.counterId, myTarget.getOption('counterId'))
-        assert.strict.equal(options.listProperty, myTarget.getOption('listProperty'))
-        assert.strict.deepEqual(options.listPropertyMapping, myTarget.getOption('listPropertyMapping'))
         assert.strict.equal('script', myTarget.getTag().type)
         assert.strict.equal(myTarget.getTag().attr.src, '//top-fwz1.mail.ru/js/code.js')
+      })
+
+      it('should correctly set missing properties with defaults for multiple counters', () => {
+        const multipleCountersOptions = {
+          counters: [
+            {
+              counterId: '123',
+              feedWithGroupedProducts: true
+            },
+            {
+              counterId: '456',
+              listVar: {
+                type: 'constant',
+                value: '2'
+              }
+            },
+            {
+              counterId: '789',
+              listVar: {
+                type: 'digitalData',
+                value: 'website.myTargetList'
+              }
+            }
+          ]
+        }
+        const myTargetWithMultipleCounters = new MyTarget(window.digitalData, multipleCountersOptions)
+        const counters = myTargetWithMultipleCounters.getOption('counters')
+
+        assert.strict.deepEqual(counters[0].listVar, { type: 'constant', value: '1' })
+        assert.strict.equal(counters[1].feedWithGroupedProducts, false)
+        assert.strict.equal(counters[2].feedWithGroupedProducts, false)
       })
     })
 
@@ -54,18 +110,21 @@ describe('Integrations: MyTarget', () => {
       })
 
       it('should call tags load after initialization', () => {
+        assert.ok(myTarget.load.notCalled)
         ddManager.initialize()
         assert.ok(myTarget.load.calledOnce)
       })
     })
   })
 
-  describe('loading', function () {
+  describe('loading', () => {
     beforeEach(() => {
       sinon.stub(myTarget, 'load').callsFake(() => {
         window._tmr = {
-          push: function () {},
-          unload: function () {}
+          push () {
+          },
+          unload () {
+          }
         }
         myTarget.onLoad()
       })
@@ -75,7 +134,7 @@ describe('Integrations: MyTarget', () => {
       myTarget.load.restore()
     })
 
-    it('should load', function (done) {
+    it('should load', (done) => {
       assert.ok(!myTarget.isLoaded())
       myTarget.once('load', () => {
         assert.ok(myTarget.isLoaded())
@@ -94,7 +153,7 @@ describe('Integrations: MyTarget', () => {
       ddManager.initialize()
     })
 
-    afterEach(function () {
+    afterEach(() => {
       myTarget.load.restore()
     })
 
@@ -141,6 +200,30 @@ describe('Integrations: MyTarget', () => {
           }
         })
       })
+
+      it('should send pageView for every "Viewed Page" event and for multiple counters', (done) => {
+        myTarget.setOption('counterId', '')
+        myTarget.setOption('counters', multipleCounters)
+
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'other'
+          },
+          callback: () => {
+            setTimeout(() => {
+              assert.strict.equal(window._tmr.length, 6)
+              assert.strict.equal(window._tmr[0].id, multipleCounters[0].counterId)
+              assert.strict.equal(window._tmr[0].type, 'pageView')
+              assert.strict.equal(window._tmr[1].id, multipleCounters[1].counterId)
+              assert.strict.equal(window._tmr[1].type, 'pageView')
+              assert.strict.equal(window._tmr[2].id, multipleCounters[2].counterId)
+              assert.strict.equal(window._tmr[2].type, 'pageView')
+              done()
+            }, 101)
+          }
+        })
+      })
     })
 
     describe('#onViewedHome', () => {
@@ -154,11 +237,12 @@ describe('Integrations: MyTarget', () => {
             setTimeout(() => {
               assert.strict.equal(window._tmr.length, 2)
               assert.strict.deepEqual(window._tmr[1], {
+                id: myTarget.getOption('counterId'),
                 type: 'itemView',
                 productid: '',
                 pagetype: 'home',
                 totalvalue: '',
-                list: myTarget.getList()
+                list: '1'
               })
               done()
             }, 101)
@@ -175,11 +259,12 @@ describe('Integrations: MyTarget', () => {
           callback: () => {
             assert.strict.equal(window._tmr.length, 2)
             assert.strict.deepEqual(window._tmr[1], {
+              id: myTarget.getOption('counterId'),
               type: 'itemView',
               productid: '',
               pagetype: 'home',
               totalvalue: '',
-              list: myTarget.getList()
+              list: '1'
             })
             done()
           }
@@ -238,6 +323,29 @@ describe('Integrations: MyTarget', () => {
           }
         })
       })
+
+      it('should send viewHome event with different list value for each counter', (done) => {
+        myTarget.setOption('counterId', '')
+        myTarget.setOption('counters', multipleCounters)
+
+        window.digitalData.website = {
+          myTargetList: '3'
+        }
+
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'home'
+          },
+          callback: () => {
+            assert.strict.equal(window._tmr.length, 6)
+            assert.strict.equal(window._tmr[3].list, '1') // default value
+            assert.strict.equal(window._tmr[4].list, '2') // constant value
+            assert.strict.equal(window._tmr[5].list, '3') // digitalData value
+            done()
+          }
+        })
+      })
     })
 
     describe('#onViewedProductCategory', () => {
@@ -246,11 +354,12 @@ describe('Integrations: MyTarget', () => {
           name: 'Viewed Product Category',
           callback: () => {
             assert.strict.deepEqual(window._tmr[0], {
+              id: myTarget.getOption('counterId'),
               type: 'itemView',
               productid: '',
               pagetype: 'category',
               totalvalue: '',
-              list: myTarget.getList()
+              list: '1'
             })
             done()
           }
@@ -281,11 +390,12 @@ describe('Integrations: MyTarget', () => {
           },
           callback: () => {
             assert.strict.deepEqual(window._tmr[0], {
+              id: myTarget.getOption('counterId'),
               type: 'itemView',
               productid: '123',
               pagetype: 'product',
               totalvalue: 150,
-              list: myTarget.getList()
+              list: '1'
             })
             done()
           }
@@ -304,11 +414,12 @@ describe('Integrations: MyTarget', () => {
           },
           callback: () => {
             assert.strict.deepEqual(window._tmr[0], {
+              id: myTarget.getOption('counterId'),
               type: 'itemView',
               productid: 'sku123',
               pagetype: 'product',
               totalvalue: 150,
-              list: myTarget.getList()
+              list: '1'
             })
             done()
           }
@@ -324,11 +435,12 @@ describe('Integrations: MyTarget', () => {
           name: 'Viewed Product Detail',
           callback: () => {
             assert.strict.deepEqual(window._tmr[0], {
+              id: myTarget.getOption('counterId'),
               type: 'itemView',
               productid: '123',
               pagetype: 'product',
               totalvalue: 150,
-              list: myTarget.getList()
+              list: '1'
             })
             done()
           }
@@ -345,6 +457,27 @@ describe('Integrations: MyTarget', () => {
           },
           callback: () => {
             assert.strict.equal(window._tmr.length, 0)
+            done()
+          }
+        })
+      })
+
+      it('should send itemView event with product SKU or product id (depends on counter settings)', (done) => {
+        myTarget.setOption('counterId', '')
+        myTarget.setOption('counters', multipleCounters)
+
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: {
+            id: '123',
+            skuCode: 'sku123',
+            unitSalePrice: 150
+          },
+          callback: () => {
+            assert.strict.equal(window._tmr[0].productid, 'sku123')
+            assert.strict.equal(window._tmr[1].productid, '123')
+            assert.strict.equal(window._tmr[2].productid, '123')
             done()
           }
         })
@@ -390,11 +523,12 @@ describe('Integrations: MyTarget', () => {
           name: 'Viewed Cart',
           callback: () => {
             assert.strict.deepEqual(window._tmr[0], {
+              id: myTarget.getOption('counterId'),
               type: 'itemView',
               productid: ['123', '234', '345', '456'],
               pagetype: 'cart',
               totalvalue: 230,
-              list: myTarget.getList()
+              list: '1'
             })
             done()
           }
@@ -453,16 +587,17 @@ describe('Integrations: MyTarget', () => {
           transaction: {
             orderId: '123',
             isFirst: true,
-            lineItems: lineItems,
+            lineItems,
             total: 230
           },
           callback: () => {
             assert.strict.deepEqual(window._tmr[0], {
+              id: myTarget.getOption('counterId'),
               type: 'itemView',
               productid: ['123', '234', '345', '456'],
               pagetype: 'purchase',
               totalvalue: 230,
-              list: myTarget.getList()
+              list: '1'
             })
             done()
           }
@@ -473,18 +608,19 @@ describe('Integrations: MyTarget', () => {
         window.digitalData.transaction = {
           orderId: '123',
           isFirst: true,
-          lineItems: lineItems,
+          lineItems,
           total: 230
         }
         window.digitalData.events.push({
           name: 'Completed Transaction',
           callback: () => {
             assert.strict.deepEqual(window._tmr[0], {
+              id: myTarget.getOption('counterId'),
               type: 'itemView',
               productid: ['123', '234', '345', '456'],
               pagetype: 'purchase',
               totalvalue: 230,
-              list: myTarget.getList()
+              list: '1'
             })
             done()
           }
@@ -498,7 +634,7 @@ describe('Integrations: MyTarget', () => {
           category: 'Ecommerce',
           transaction: {
             orderId: '123',
-            lineItems: lineItems
+            lineItems
           },
           callback: () => {
             assert.strict.equal(window._tmr.length, 0)
@@ -511,7 +647,7 @@ describe('Integrations: MyTarget', () => {
     describe('#onCustomEvent', () => {
       it('should send reachGoal event for any other DDL event', (done) => {
         myTarget.setOption('goals', {
-          'Subscribed': 'userSubscription'
+          Subscribed: 'userSubscription'
         })
         myTarget.addGoalsToSemanticEvents()
         window.digitalData.events.push({
@@ -576,7 +712,7 @@ describe('Integrations: MyTarget', () => {
       it('should send reachGoal event for any other DDL event event if noConflict option is true', (done) => {
         myTarget.setOption('noConflict', true)
         myTarget.setOption('goals', {
-          'Subscribed': 'userSubscription'
+          Subscribed: 'userSubscription'
         })
         myTarget.addGoalsToSemanticEvents()
         window.digitalData.events.push({

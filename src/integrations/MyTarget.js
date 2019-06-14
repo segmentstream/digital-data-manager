@@ -20,13 +20,22 @@ function lineItemsToProductIds (lineItems, feedWithGroupedProducts) {
 
 class MyTarget extends Integration {
   constructor (digitalData, options) {
-    const optionsWithDefaults = Object.assign({
+    const counterDefaults = {
       counterId: '',
       listVar: {
         type: 'constant',
         value: '1'
       },
-      feedWithGroupedProducts: false,
+      feedWithGroupedProducts: false
+    }
+
+    const counters = getProp(options, 'counters')
+    if (counters) {
+      options.counters = counters.map(item => ({ ...counterDefaults, ...item }))
+    }
+
+    const optionsWithDefaults = Object.assign({
+      ...counterDefaults, // todo remove after migrate [backward compatibility]
       noConflict: false,
       goals: {}
     }, options)
@@ -49,6 +58,29 @@ class MyTarget extends Integration {
         src: '//top-fwz1.mail.ru/js/code.js'
       }
     })
+  }
+
+  getCounters () {
+    const counters = this.getOption('counters')
+
+    if (counters) {
+      return counters
+    }
+
+    // todo remove after migrate [backward compatibility]
+    return [{
+      counterId: this.getOption('counterId'),
+      feedWithGroupedProducts: this.getOption('feedWithGroupedProducts'),
+      listVar: this.getOption('listVar')
+    }]
+  }
+
+  getDigitalDataListVarValues () {
+    return this.getCounters()
+      .map(counter => counter.listVar) // get listVar from all counters
+      .filter(listVar => (listVar && listVar.type === DIGITALDATA_VAR)) // filter by type
+      .map(listVar => listVar.value) // get value field
+      .filter((item, index, array) => array.indexOf(item) === index) // unique
   }
 
   initialize () {
@@ -99,10 +131,8 @@ class MyTarget extends Integration {
       // do nothing
     }
 
-    const listVar = this.getOption('listVar')
-    if (listVar && listVar.type === 'digitalData') {
-      enrichableProps.push(listVar.value)
-    }
+    this.getDigitalDataListVarValues().forEach(listVarValue => enrichableProps.push(listVarValue))
+
     return enrichableProps
   }
 
@@ -172,14 +202,13 @@ class MyTarget extends Integration {
 
     if (validationConfig) {
       // check if listVar presents in event
-      const listVar = this.getOption('listVar')
-      if (listVar && listVar.type === DIGITALDATA_VAR) {
+      this.getDigitalDataListVarValues().forEach((listVarValue) => {
         validationConfig.fields.push('listVar.value')
-        validationConfig.validations[listVar.value] = {
+        validationConfig.validations[listVarValue] = {
           errors: ['required'],
           warnings: ['numeric']
         }
-      }
+      })
     }
 
     return validationConfig
@@ -193,13 +222,13 @@ class MyTarget extends Integration {
     deleteProperty(window, '_tmr')
   }
 
-  getList (event) {
+  getList (event, counter) {
     let list
     if (event) {
       list = getProp(event, 'integrations.mytarget.list')
     }
     if (list === undefined) {
-      const listVar = this.getOption('listVar')
+      const listVar = getProp(counter, 'listVar')
       if (listVar) {
         list = getVarValue(listVar, event)
       }
@@ -218,7 +247,7 @@ class MyTarget extends Integration {
     }
 
     const method = methods[event.name]
-    if (this.getOption('counterId')) {
+    if (this.getCounters().length > 0) {
       if (method && !this.getOption('noConflict')) {
         this[method](event)
       }
@@ -228,11 +257,12 @@ class MyTarget extends Integration {
 
   onViewedPage (event) {
     this.pageTracked = false
-
-    window._tmr.push({
-      id: this.getOption('counterId'),
-      type: 'pageView',
-      start: Date.now()
+    this.getCounters().forEach((counter) => {
+      window._tmr.push({
+        id: counter.counterId,
+        type: 'pageView',
+        start: Date.now()
+      })
     })
 
     const page = event.page || {}
@@ -250,85 +280,101 @@ class MyTarget extends Integration {
   }
 
   onViewedHome (event) {
-    window._tmr.push({
-      type: 'itemView',
-      productid: '',
-      pagetype: 'home',
-      totalvalue: '',
-      list: this.getList(event)
+    this.getCounters().forEach((counter) => {
+      window._tmr.push({
+        id: counter.counterId,
+        type: 'itemView',
+        productid: '',
+        pagetype: 'home',
+        totalvalue: '',
+        list: this.getList(event, counter)
+      })
     })
     this.pageTracked = true
   }
 
   onViewedProductCategory (event) {
-    window._tmr.push({
-      type: 'itemView',
-      productid: '',
-      pagetype: 'category',
-      totalvalue: '',
-      list: this.getList(event)
+    this.getCounters().forEach((counter) => {
+      window._tmr.push({
+        id: counter.counterId,
+        type: 'itemView',
+        productid: '',
+        pagetype: 'category',
+        totalvalue: '',
+        list: this.getList(event, counter)
+      })
     })
     this.pageTracked = true
   }
 
   onViewedProductDetail (event) {
     const { product } = event
-    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts')
-    window._tmr.push({
-      type: 'itemView',
-      productid: ((feedWithGroupedProducts !== true) ? product.id : product.skuCode) || '',
-      pagetype: 'product',
-      totalvalue: product.unitSalePrice || '',
-      list: this.getList(event)
+    this.getCounters().forEach((counter) => {
+      window._tmr.push({
+        id: counter.counterId,
+        type: 'itemView',
+        productid: ((counter.feedWithGroupedProducts !== true) ? product.id : product.skuCode) || '',
+        pagetype: 'product',
+        totalvalue: product.unitSalePrice || '',
+        list: this.getList(event, counter)
+      })
     })
     this.pageTracked = true
   }
 
   onViewedCart (event) {
     const { cart } = event
-    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts')
+    this.getCounters().forEach((counter) => {
+      let productIds
 
-    let productIds
+      if (cart.lineItems && cart.lineItems.length > 0) {
+        productIds = lineItemsToProductIds(cart.lineItems, counter.feedWithGroupedProducts)
+      }
 
-    if (cart.lineItems && cart.lineItems.length > 0) {
-      productIds = lineItemsToProductIds(cart.lineItems, feedWithGroupedProducts)
-    }
-
-    window._tmr.push({
-      type: 'itemView',
-      productid: productIds || '',
-      pagetype: 'cart',
-      totalvalue: cart.total || '',
-      list: this.getList(event)
+      window._tmr.push({
+        id: counter.counterId,
+        type: 'itemView',
+        productid: productIds || '',
+        pagetype: 'cart',
+        totalvalue: cart.total || '',
+        list: this.getList(event, counter)
+      })
     })
     this.pageTracked = true
   }
 
   onViewedOtherPage (event) {
-    window._tmr.push({
-      type: 'itemView',
-      productid: '',
-      pagetype: 'other',
-      totalvalue: '',
-      list: this.getList(event)
+    this.getCounters().forEach((counter) => {
+      window._tmr.push({
+        id: counter.counterId,
+        type: 'itemView',
+        productid: '',
+        pagetype: 'other',
+        totalvalue: '',
+        list: this.getList(event, counter)
+      })
     })
     this.pageTracked = true
   }
 
   onCompletedTransaction (event) {
     const { transaction } = event
-    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts')
-    let productIds
 
-    if (transaction.lineItems && transaction.lineItems.length > 0) {
-      productIds = lineItemsToProductIds(transaction.lineItems, feedWithGroupedProducts)
-    }
-    window._tmr.push({
-      type: 'itemView',
-      productid: productIds || '',
-      pagetype: 'purchase',
-      totalvalue: transaction.total || transaction.subtotal || '',
-      list: this.getList(event)
+    this.getCounters().forEach((counter) => {
+      let productIds
+
+      if (transaction.lineItems && transaction.lineItems.length > 0) {
+        productIds = lineItemsToProductIds(transaction.lineItems, counter.feedWithGroupedProducts)
+      }
+
+      window._tmr.push({
+        id: counter.counterId,
+        type: 'itemView',
+        productid: productIds || '',
+        pagetype: 'purchase',
+        totalvalue: transaction.total || transaction.subtotal || '',
+        list: this.getList(event, counter)
+      })
     })
     this.pageTracked = true
   }
@@ -337,10 +383,12 @@ class MyTarget extends Integration {
     const goals = this.getOption('goals')
     const goalIdentificator = goals[event.name]
     if (goalIdentificator) {
-      window._tmr.push({
-        id: this.getOption('counterId'),
-        type: 'reachGoal',
-        goal: goalIdentificator
+      this.getCounters().forEach((counter) => {
+        window._tmr.push({
+          id: counter.counterId,
+          type: 'reachGoal',
+          goal: goalIdentificator
+        })
       })
     }
   }
