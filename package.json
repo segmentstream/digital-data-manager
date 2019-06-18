@@ -12,7 +12,9 @@
     "build": "nps build",
     "dist": "nps build.prod",
     "build-test": "nps buildTest",
-    "mocha": "nps mocha"
+    "mocha": "nps mocha",
+    "lint": "standard",
+    "lint-fix": "standard --fix"
   },
   "standard": {
     "env": [

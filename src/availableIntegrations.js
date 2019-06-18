@@ -49,6 +49,7 @@ import TradeTracker from './integrations/TradeTracker'
 import TryFit from './integrations/TryFit'
 import Getintent from './integrations/Getintent'
 import Glami from './integrations/Glami'
+import K50 from './integrations/K50'
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -101,7 +102,8 @@ const integrations = {
   TradeTracker,
   'Try.Fit': TryFit,
   Getintent,
-  Glami
+  Glami,
+  K50
 }
 
 export default integrations

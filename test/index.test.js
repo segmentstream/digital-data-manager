@@ -53,6 +53,9 @@ import './integrations/DoubleClickFloodlight.spec'
 import './integrations/RTBHouse.spec'
 import './integrations/Soloway.spec'
 import './integrations/GdeSlon.spec'
-import './integrations/Flocktory.spec'; window.localStorage.clear()
+import './integrations/Flocktory.spec'
+import './integrations/K50.spec'
+
+window.localStorage.clear()
 console.error = () => {}
 console.warn = () => {}
