@@ -518,6 +518,22 @@ describe('Integrations: GoogleAnalytics', () => {
           });
         });
 
+        it('should send Viewed Cart event', () => {
+          window.digitalData.events.push({ name: 'Viewed Page' });
+          window.digitalData.events.push({
+            name: 'Viewed Cart',
+            category: 'Ecommerce',
+            callback: () => {
+              assert.ok(window.ga.calledWith('send', 'event', {
+                eventCategory: 'Ecommerce',
+                eventAction: 'Viewed Cart',
+                eventValue: 0,
+                nonInteraction: false,
+              }));
+            },
+          });
+        });
+
         it('should send a action property', () => {
           window.digitalData.events.push({ name: 'Viewed Page' });
           window.digitalData.events.push({
