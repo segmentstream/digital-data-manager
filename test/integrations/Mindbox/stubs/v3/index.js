@@ -5,8 +5,10 @@ import {
 } from './onViewedPage.stub'
 
 import { onUpdateCartSetCartStub } from './onUpdateCart.stub'
-import { onAddedProductAddProductStub } from './onAddedProduct.stub'
-import { onRemovedProductRemoveProductStub } from './onRemovedProduct.stub'
+import { onAddedProductMappedAddProductStub } from './onAddedProduct.stub'
+import { onRemovedProductMappedRemoveProductStub } from './onRemovedProduct.stub'
+import { onAddedProductToWishlistStub } from './onAddedProductToWishlistStub.stub'
+import { onRemovedProductFromWishlistStub } from './onRemovedProductFromWishlistStub.stub'
 import {
   onViewedProductDetailViewProductStub,
   onViewedProductDetailViewProductSkuStub,
@@ -54,8 +56,8 @@ export default {
   onViewedPageSetCartAuthorizedStub,
   onViewedPageCartStub,
   onUpdateCartSetCartStub,
-  onAddedProductAddProductStub,
-  onRemovedProductRemoveProductStub,
+  onAddedProductMappedAddProductStub,
+  onRemovedProductMappedRemoveProductStub,
   onViewedProductDetailViewProductStub,
   onViewedProductDetailViewProductSkuStub,
   onViewedProductDetailViewedProductCustomStub,
@@ -83,5 +85,8 @@ export default {
   onUpdatedProfileInfoSubscriptionsStub,
   onUpdatedProfileInfoStub,
 
-  onLoggedInEnterWebsiteStub
+  onLoggedInEnterWebsiteStub,
+
+  onAddedProductToWishlistStub,
+  onRemovedProductFromWishlistStub
 }

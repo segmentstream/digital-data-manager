@@ -14,6 +14,8 @@ import {
   VIEWED_PRODUCT_LISTING,
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
+  ADDED_PRODUCT_TO_WISHLIST,
+  REMOVED_PRODUCT_FROM_WISHLIST,
   UPDATED_CART,
   COMPLETED_TRANSACTION,
   ALLOWED_PUSH_NOTIFICATIONS,
@@ -94,6 +96,8 @@ class Mindbox extends Integration {
       VIEWED_PRODUCT_LISTING,
       ADDED_PRODUCT,
       REMOVED_PRODUCT,
+      ADDED_PRODUCT_TO_WISHLIST,
+      REMOVED_PRODUCT_FROM_WISHLIST,
       COMPLETED_TRANSACTION,
       UPDATED_CART
     ]
@@ -355,6 +359,14 @@ class Mindbox extends Integration {
         fields: addRemoveProductFields,
         validations: addRemoveProductValidations
       },
+      [ADDED_PRODUCT_TO_WISHLIST]: {
+        fields: addRemoveProductFields,
+        validations: addRemoveProductValidations
+      },
+      [REMOVED_PRODUCT_FROM_WISHLIST]: {
+        fields: addRemoveProductFields,
+        validations: addRemoveProductValidations
+      },
       [COMPLETED_TRANSACTION]: {
         fields: [
           ...userFields,
@@ -610,7 +622,9 @@ class Mindbox extends Integration {
       [SUBSCRIBED]: this.onSubscribed.bind(this),
       [UPDATED_PROFILE_INFO]: this.onUpdatedProfileInfo.bind(this),
       [UPDATED_CART]: this.onUpdatedCart.bind(this),
-      [COMPLETED_TRANSACTION]: this.onCompletedTransaction.bind(this)
+      [COMPLETED_TRANSACTION]: this.onCompletedTransaction.bind(this),
+      [ADDED_PRODUCT_TO_WISHLIST]: this.onAddedProductToWishlist.bind(this),
+      [REMOVED_PRODUCT_FROM_WISHLIST]: this.onRemovedProductFromWishlist.bind(this)
     }
 
     // if event name match pushSubscriptionTriggerEvent
@@ -826,10 +840,24 @@ class Mindbox extends Integration {
   }
 
   onAddedProduct (event, operation) {
+    const product = getProp(event, 'product') || {}
     if (this.getOption('apiVersion') === V3) {
-      this.onCustomEvent(event, operation)
+      const customerIds = this.getCustomerIds(event)
+      let customer
+      if (customerIds) {
+        customer = { ids: customerIds }
+      }
+      window.mindbox('async', cleanObject({
+        operation: operation,
+        data: {
+          customer,
+          addProductToList: {
+            product: this.getV3Product(product),
+            price: product.unitSalePrice
+          }
+        }
+      }))
     } else {
-      const product = getProp(event, 'product') || {}
       if (!product.id) return
       window.mindbox('performOperation', {
         operation,
@@ -845,10 +873,90 @@ class Mindbox extends Integration {
   }
 
   onRemovedProduct (event, operation) {
+    const product = getProp(event, 'product') || {}
     if (this.getOption('apiVersion') === V3) {
-      this.onCustomEvent(event, operation)
+      const customerIds = this.getCustomerIds(event)
+      let customer
+      if (customerIds) {
+        customer = { ids: customerIds }
+      }
+      window.mindbox('async', cleanObject({
+        operation: operation,
+        data: {
+          customer,
+          removeProductFromList: {
+            product: this.getV3Product(product),
+            price: product.unitSalePrice
+          }
+        }
+      }))
     } else {
-      const product = getProp(event, 'product') || {}
+      if (!product.id) return
+      window.mindbox('performOperation', {
+        operation,
+        data: {
+          action: {
+            productId: product.id,
+            price: product.unitSalePrice,
+            ...this.getProductCustoms(product)
+          }
+        }
+      })
+    }
+  }
+
+  onAddedProductToWishlist (event, operation) {
+    const product = getProp(event, 'product') || {}
+    if (this.getOption('apiVersion') === V3) {
+      const customerIds = this.getCustomerIds(event)
+      let customer
+      if (customerIds) {
+        customer = { ids: customerIds }
+      }
+      window.mindbox('async', cleanObject({
+        operation,
+        data: {
+          customer,
+          addProductToList: {
+            product: this.getV3Product(product),
+            price: product.unitSalePrice
+          }
+        }
+      }))
+    } else {
+      if (!product.id) return
+      window.mindbox('performOperation', {
+        operation,
+        data: {
+          action: {
+            productId: product.id,
+            price: product.unitSalePrice,
+            ...this.getProductCustoms(product)
+          }
+        }
+      })
+    }
+  }
+
+  onRemovedProductFromWishlist (event, operation) {
+    const product = getProp(event, 'product') || {}
+    if (this.getOption('apiVersion') === V3) {
+      const customerIds = this.getCustomerIds(event)
+      let customer
+      if (customerIds) {
+        customer = { ids: customerIds }
+      }
+      window.mindbox('async', cleanObject({
+        operation,
+        data: {
+          customer,
+          removeProductFromList: {
+            product: this.getV3Product(product),
+            price: product.unitSalePrice
+          }
+        }
+      }))
+    } else {
       if (!product.id) return
       window.mindbox('performOperation', {
         operation,

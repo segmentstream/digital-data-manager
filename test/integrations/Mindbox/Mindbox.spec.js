@@ -1,12 +1,12 @@
 import assert from 'assert'
 import sinon from 'sinon'
 import noop from '@segmentstream/utils/noop'
-import reset from '../reset'
-import Mindbox from '../../src/integrations/Mindbox'
-import ddManager from '../../src/ddManager'
+import reset from '../../reset'
+import Mindbox from '../../../src/integrations/Mindbox'
+import ddManager from '../../../src/ddManager'
 
-import V2Stubs from './stubs/mindbox/v2'
-import V3Stubs from './stubs/mindbox/v3'
+import V2Stubs from './stubs/v2'
+import V3Stubs from './stubs/v3'
 
 const options = {
   projectSystemName: 'Test',
@@ -857,12 +857,18 @@ describe('Integrations: Mindbox', () => {
 
     describe('#onAddedProduct', () => {
       beforeEach(() => {
-        mindbox.setOption('operationMapping', {
-          'Added Product': 'AddProduct'
+        mindbox.setOption('productIdsMapping', {
+          testId: 'id'
+        })
+        mindbox.setOption('productSkuIdsMapping', {
+          testSku: 'skuCode'
         })
       })
 
-      it('should track added product with default operation', () => {
+      it('should track added product with mapped operation', () => {
+        mindbox.setOption('operationMapping', {
+          'Added Product': 'AddProduct'
+        })
         window.digitalData.events.push({
           name: 'Added Product',
           product: {
@@ -872,7 +878,7 @@ describe('Integrations: Mindbox', () => {
           },
           quantity: 5,
           callback: () => {
-            assert.ok(window.mindbox.calledWith('async', V3Stubs.onAddedProductAddProductStub))
+            assert.ok(window.mindbox.calledWith('async', V3Stubs.onAddedProductMappedAddProductStub))
           }
         })
       })
@@ -880,12 +886,18 @@ describe('Integrations: Mindbox', () => {
 
     describe('#onRemovedProduct', () => {
       beforeEach(() => {
-        mindbox.setOption('operationMapping', {
-          'Removed Product': 'RemoveProduct'
+        mindbox.setOption('productIdsMapping', {
+          testId: 'id'
+        })
+        mindbox.setOption('productSkuIdsMapping', {
+          testSku: 'skuCode'
         })
       })
 
-      it('should track removed product with default operation', () => {
+      it('should track removed product with mapped operation', () => {
+        mindbox.setOption('operationMapping', {
+          'Removed Product': 'RemoveProduct'
+        })
         window.digitalData.events.push({
           name: 'Removed Product',
           product: {
@@ -895,7 +907,63 @@ describe('Integrations: Mindbox', () => {
           },
           quantity: 1,
           callback: () => {
-            assert.ok(window.mindbox.calledWith('async', V3Stubs.onRemovedProductRemoveProductStub))
+            assert.ok(window.mindbox.calledWith('async', V3Stubs.onRemovedProductMappedRemoveProductStub))
+          }
+        })
+      })
+    })
+
+    describe('#onAddedProductToWishlist', () => {
+      beforeEach(() => {
+        mindbox.setOption('operationMapping', {
+          'Added Product to Wishlist': 'AddProductToWishlist'
+        })
+        mindbox.setOption('productIdsMapping', {
+          testId: 'id'
+        })
+        mindbox.setOption('productSkuIdsMapping', {
+          testSku: 'skuCode'
+        })
+      })
+
+      it('should track added product with mapped operation', () => {
+        window.digitalData.events.push({
+          name: 'Added Product to Wishlist',
+          product: {
+            id: '123',
+            skuCode: 'sku123',
+            unitSalePrice: 2500
+          },
+          callback: () => {
+            assert.ok(window.mindbox.calledWith('async', V3Stubs.onAddedProductToWishlistStub))
+          }
+        })
+      })
+    })
+
+    describe('#onRemovedProductFromWishlist', () => {
+      beforeEach(() => {
+        mindbox.setOption('operationMapping', {
+          'Removed Product from Wishlist': 'RemoveProductFromWishlist'
+        })
+        mindbox.setOption('productIdsMapping', {
+          testId: 'id'
+        })
+        mindbox.setOption('productSkuIdsMapping', {
+          testSku: 'skuCode'
+        })
+      })
+
+      it('should track added product with mapped operation', () => {
+        window.digitalData.events.push({
+          name: 'Removed Product from Wishlist',
+          product: {
+            id: '123',
+            skuCode: 'sku123',
+            unitSalePrice: 2500
+          },
+          callback: () => {
+            assert.ok(window.mindbox.calledWith('async', V3Stubs.onRemovedProductFromWishlistStub))
           }
         })
       })
@@ -937,19 +1005,6 @@ describe('Integrations: Mindbox', () => {
             ))
           }
         })
-      })
-    })
-
-    describe('#onRemovedProduct', () => {
-      beforeEach(() => {
-        mindbox.setOption('operationMapping', {
-          'Removed Product': 'RemoveProduct'
-        })
-      })
-
-      it('should track removed product with default operation', () => {
-        // TODO should track as custom event
-        assert.ok(true)
       })
     })
 

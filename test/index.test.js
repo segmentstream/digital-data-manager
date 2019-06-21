@@ -1,6 +1,6 @@
 // eslint-disable-line no-console
 
-// window.__DEV_MODE__ = true; // disable catching exceptions
+// window.__DEV_MODE__ = true // disable catching exceptions
 
 import '../src/polyfill'
 
@@ -48,11 +48,11 @@ import './integrations/Vkontakte/Vkontakte.spec'
 import './integrations/Emarsys.spec'
 import './integrations/OneSignal.spec'
 import './integrations/Sociomantic.spec'
-import './integrations/Mindbox.spec'
+import './integrations/Mindbox/Mindbox.spec'
 import './integrations/DoubleClickFloodlight.spec'
 import './integrations/RTBHouse.spec'
 import './integrations/Soloway.spec'
 import './integrations/GdeSlon.spec'
 import './integrations/Flocktory.spec'; window.localStorage.clear()
-console.error = () => {} // eslint-disable-line no-console
+console.error = () => {}
 console.warn = () => {}
