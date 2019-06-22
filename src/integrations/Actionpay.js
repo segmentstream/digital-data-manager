@@ -1,9 +1,9 @@
-import cleanObject from 'driveback-utils/cleanObject';
+import cleanObject from '@segmentstream/utils/cleanObject';
 import cookie from 'js-cookie';
-import getQueryParam from 'driveback-utils/getQueryParam';
-import topDomain from 'driveback-utils/topDomain';
-import { getProp } from 'driveback-utils/dotProp';
-import normalizeString from 'driveback-utils/normalizeString';
+import getQueryParam from '@segmentstream/utils/getQueryParam';
+import topDomain from '@segmentstream/utils/topDomain';
+import { getProp } from '@segmentstream/utils/dotProp';
+import normalizeString from '@segmentstream/utils/normalizeString';
 import Integration from '../Integration';
 import {
   VIEWED_PAGE,

@@ -1,7 +1,7 @@
-import { bind, unbind } from 'driveback-utils/eventListener';
-import isMeta from 'driveback-utils/isMeta';
-import preventDefault from 'driveback-utils/preventDefault';
-import domQuery from 'driveback-utils/domQuery';
+import { bind, unbind } from '@segmentstream/utils/eventListener';
+import isMeta from '@segmentstream/utils/isMeta';
+import preventDefault from '@segmentstream/utils/preventDefault';
+import domQuery from '@segmentstream/utils/domQuery';
 
 function applyHandler(event, el, handler, followLink = true) {
   if (event.detail === 0) {

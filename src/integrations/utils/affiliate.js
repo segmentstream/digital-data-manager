@@ -1,6 +1,6 @@
 import cookie from 'js-cookie';
-import normalizeString from 'driveback-utils/normalizeString';
-import topDomain from 'driveback-utils/topDomain';
+import normalizeString from '@segmentstream/utils/normalizeString';
+import topDomain from '@segmentstream/utils/topDomain';
 
 export function isDeduplication(campaign = {}, utmSource = '', deduplicationUtmMedium = []) {
   const campaignSource = campaign.source || '';

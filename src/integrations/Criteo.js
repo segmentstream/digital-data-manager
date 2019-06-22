@@ -1,8 +1,8 @@
-import deleteProperty from 'driveback-utils/deleteProperty';
-import { getProp } from 'driveback-utils/dotProp';
-import cleanObject from 'driveback-utils/cleanObject';
-import semver from 'driveback-utils/semver';
-import normalizeString from 'driveback-utils/normalizeString';
+import deleteProperty from '@segmentstream/utils/deleteProperty';
+import { getProp } from '@segmentstream/utils/dotProp';
+import cleanObject from '@segmentstream/utils/cleanObject';
+import semver from '@segmentstream/utils/semver';
+import normalizeString from '@segmentstream/utils/normalizeString';
 import md5 from 'crypto-js/md5';
 import Integration from '../Integration';
 import {

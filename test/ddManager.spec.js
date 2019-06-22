@@ -1,6 +1,6 @@
 import assert, { deepEqual } from 'assert';
 import sinon from 'sinon';
-import jsonIsEqual from 'driveback-utils/jsonIsEqual';
+import jsonIsEqual from '@segmentstream/utils/jsonIsEqual';
 import reset from './reset';
 import snippet from './snippet';
 import ddManager from '../src/ddManager';

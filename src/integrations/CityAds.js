@@ -1,7 +1,7 @@
-import getQueryParam from 'driveback-utils/getQueryParam';
-import topDomain from 'driveback-utils/topDomain';
-import { getProp } from 'driveback-utils/dotProp';
-import normalizeString from 'driveback-utils/normalizeString';
+import getQueryParam from '@segmentstream/utils/getQueryParam';
+import topDomain from '@segmentstream/utils/topDomain';
+import { getProp } from '@segmentstream/utils/dotProp';
+import normalizeString from '@segmentstream/utils/normalizeString';
 import cookie from 'js-cookie';
 import { COMPLETED_TRANSACTION } from '../events/semanticEvents';
 import Integration from '../Integration';

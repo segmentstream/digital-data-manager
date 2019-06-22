@@ -1,6 +1,6 @@
 import assert from 'assert';
 import sinon from 'sinon';
-import deleteProperty from 'driveback-utils/deleteProperty';
+import deleteProperty from '@segmentstream/utils/deleteProperty';
 import DigitalDataEnricher from '../src/enrichments/DigitalDataEnricher';
 import Storage from '../src/Storage';
 import DDStorage from '../src/DDStorage';

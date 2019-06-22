@@ -1,5 +1,5 @@
 import sinon from 'sinon';
-import noop from 'driveback-utils/noop';
+import noop from '@segmentstream/utils/noop';
 import reset from '../reset';
 import GoogleAnalytics from '../../src/integrations/GoogleAnalytics';
 import Renta from '../../src/integrations/Renta';

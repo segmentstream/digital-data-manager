@@ -1,7 +1,7 @@
-import deleteProperty from 'driveback-utils/deleteProperty';
-import { getProp } from 'driveback-utils/dotProp';
-import { stringify } from 'driveback-utils/queryString';
-import cleanObject from 'driveback-utils/cleanObject';
+import deleteProperty from '@segmentstream/utils/deleteProperty';
+import { getProp } from '@segmentstream/utils/dotProp';
+import { stringify } from '@segmentstream/utils/queryString';
+import cleanObject from '@segmentstream/utils/cleanObject';
 import Integration from '../Integration';
 import {
   COMPLETED_TRANSACTION,

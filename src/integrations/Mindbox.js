@@ -1,8 +1,8 @@
-import { getProp, setProp } from 'driveback-utils/dotProp';
-import deleteProperty from 'driveback-utils/deleteProperty';
-import cleanObject from 'driveback-utils/cleanObject';
-import isEmpty from 'driveback-utils/isEmpty';
-import arrayMerge from 'driveback-utils/arrayMerge';
+import { getProp, setProp } from '@segmentstream/utils/dotProp';
+import deleteProperty from '@segmentstream/utils/deleteProperty';
+import cleanObject from '@segmentstream/utils/cleanObject';
+import isEmpty from '@segmentstream/utils/isEmpty';
+import arrayMerge from '@segmentstream/utils/arrayMerge';
 import Integration from '../Integration';
 import {
   VIEWED_PAGE,

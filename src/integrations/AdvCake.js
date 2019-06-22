@@ -1,10 +1,10 @@
-import cleanObject from 'driveback-utils/cleanObject';
-import noop from 'driveback-utils/noop';
-import topDomain from 'driveback-utils/topDomain';
-import normalizeString from 'driveback-utils/normalizeString';
+import cleanObject from '@segmentstream/utils/cleanObject';
+import noop from '@segmentstream/utils/noop';
+import topDomain from '@segmentstream/utils/topDomain';
+import normalizeString from '@segmentstream/utils/normalizeString';
 import uuid from 'uuid/v1';
-import { getProp } from 'driveback-utils/dotProp';
-import getQueryParam from 'driveback-utils/getQueryParam';
+import { getProp } from '@segmentstream/utils/dotProp';
+import getQueryParam from '@segmentstream/utils/getQueryParam';
 import {
   normalizeOptions, addAffiliateCookie, removeAffiliateCookie, isDeduplication, getAffiliateCookie,
 } from './utils/affiliate';

@@ -1,8 +1,8 @@
 /* eslint-disable no-restricted-globals */
-import cleanObject from 'driveback-utils/cleanObject';
-import { getProp } from 'driveback-utils/dotProp';
-import each from 'driveback-utils/each';
-import { warn } from 'driveback-utils/safeConsole';
+import cleanObject from '@segmentstream/utils/cleanObject';
+import { getProp } from '@segmentstream/utils/dotProp';
+import each from '@segmentstream/utils/each';
+import { warn } from '@segmentstream/utils/safeConsole';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,

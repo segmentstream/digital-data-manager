@@ -1,5 +1,5 @@
-import { getProp } from 'driveback-utils/dotProp';
-import cleanObject from 'driveback-utils/cleanObject';
+import { getProp } from '@segmentstream/utils/dotProp';
+import cleanObject from '@segmentstream/utils/cleanObject';
 import Integration from '../Integration';
 import AsyncQueue from './utils/AsyncQueue';
 import {

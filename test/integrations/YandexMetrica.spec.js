@@ -1,7 +1,7 @@
 import assert from 'assert';
 import sinon from 'sinon';
 import reset from './../reset.js';
-import noop from 'driveback-utils/noop';
+import noop from '@segmentstream/utils/noop';
 import YandexMetrica from './../../src/integrations/YandexMetrica.js';
 import ddManager from './../../src/ddManager.js';
 

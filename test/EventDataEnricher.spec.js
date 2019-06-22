@@ -1,5 +1,5 @@
 import assert from 'assert';
-import deleteProperty from 'driveback-utils/deleteProperty.js';
+import deleteProperty from '@segmentstream/utils/deleteProperty.js';
 import EventDataEnricher from './../src/enrichments/EventDataEnricher.js';
 import Emarsys from './../src/integrations/Emarsys';
 

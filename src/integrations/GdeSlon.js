@@ -1,5 +1,5 @@
-import getQueryParam from 'driveback-utils/getQueryParam';
-import { getProp } from 'driveback-utils/dotProp';
+import getQueryParam from '@segmentstream/utils/getQueryParam';
+import { getProp } from '@segmentstream/utils/dotProp';
 import Integration from '../Integration';
 import { isDeduplication, addAffiliateCookie, getAffiliateCookie } from './utils/affiliate';
 

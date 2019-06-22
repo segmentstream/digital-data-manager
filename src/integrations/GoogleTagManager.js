@@ -1,4 +1,4 @@
-import deleteProperty from 'driveback-utils/deleteProperty';
+import deleteProperty from '@segmentstream/utils/deleteProperty';
 import Integration from '../Integration';
 
 class GoogleTagManager extends Integration {

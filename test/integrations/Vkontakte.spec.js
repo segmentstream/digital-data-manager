@@ -1,6 +1,6 @@
 import assert from 'assert';
 import sinon from 'sinon';
-import noop from 'driveback-utils/noop';
+import noop from '@segmentstream/utils/noop';
 import reset from '../reset';
 import Vkontakte from '../../src/integrations/Vkontakte';
 import ddManager from '../../src/ddManager';

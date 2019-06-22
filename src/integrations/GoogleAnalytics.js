@@ -1,10 +1,10 @@
-import deleteProperty from 'driveback-utils/deleteProperty';
-import { getProp } from 'driveback-utils/dotProp';
-import cleanObject from 'driveback-utils/cleanObject';
-import each from 'driveback-utils/each';
-import size from 'driveback-utils/size';
+import deleteProperty from '@segmentstream/utils/deleteProperty';
+import { getProp } from '@segmentstream/utils/dotProp';
+import cleanObject from '@segmentstream/utils/cleanObject';
+import each from '@segmentstream/utils/each';
+import size from '@segmentstream/utils/size';
 import cookie from 'js-cookie';
-import arrayMerge from 'driveback-utils/arrayMerge';
+import arrayMerge from '@segmentstream/utils/arrayMerge';
 import Integration from '../Integration';
 import transliterate from './utils/transliterate';
 import {

@@ -1,10 +1,10 @@
-import clone from 'driveback-utils/clone';
-import deleteProperty from 'driveback-utils/deleteProperty';
-import size from 'driveback-utils/size';
-import after from 'driveback-utils/after';
-import jsonIsEqual from 'driveback-utils/jsonIsEqual';
-import { error as errorLog } from 'driveback-utils/safeConsole';
-import cleanObject from 'driveback-utils/cleanObject';
+import clone from '@segmentstream/utils/clone';
+import deleteProperty from '@segmentstream/utils/deleteProperty';
+import size from '@segmentstream/utils/size';
+import after from '@segmentstream/utils/after';
+import jsonIsEqual from '@segmentstream/utils/jsonIsEqual';
+import { error as errorLog } from '@segmentstream/utils/safeConsole';
+import cleanObject from '@segmentstream/utils/cleanObject';
 import DDHelper from './DDHelper';
 import EventDataEnricher from './enrichments/EventDataEnricher';
 import CustomEvent from './events/CustomEvent';

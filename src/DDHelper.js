@@ -1,6 +1,6 @@
-import { getProp, setProp } from 'driveback-utils/dotProp';
-import clone from 'driveback-utils/clone';
-import deleteProperty from 'driveback-utils/deleteProperty';
+import { getProp, setProp } from '@segmentstream/utils/dotProp';
+import clone from '@segmentstream/utils/clone';
+import deleteProperty from '@segmentstream/utils/deleteProperty';
 
 function matchProductById(id, product) {
   return product.id && String(product.id) === String(id);

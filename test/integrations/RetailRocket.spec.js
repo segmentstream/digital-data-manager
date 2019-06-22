@@ -1,6 +1,6 @@
 import assert from 'assert';
 import sinon from 'sinon';
-import deleteProperty from 'driveback-utils/deleteProperty';
+import deleteProperty from '@segmentstream/utils/deleteProperty';
 import reset from '../reset';
 import { DIGITALDATA_VAR, PRODUCT_VAR } from '../../src/variableTypes';
 import RetailRocket from '../../src/integrations/RetailRocket';

@@ -1,4 +1,4 @@
-import { error as errorLog } from 'driveback-utils/safeConsole';
+import { error as errorLog } from '@segmentstream/utils/safeConsole';
 import Handler from '../Handler';
 
 class CustomScript {

@@ -1,5 +1,5 @@
-import deleteProperty from 'driveback-utils/deleteProperty';
-import noop from 'driveback-utils/noop';
+import deleteProperty from '@segmentstream/utils/deleteProperty';
+import noop from '@segmentstream/utils/noop';
 import Integration from '../Integration';
 import {
   VIEWED_PAGE,

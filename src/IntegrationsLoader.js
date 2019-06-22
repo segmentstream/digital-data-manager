@@ -1,7 +1,7 @@
-import each from 'driveback-utils/each';
-import { warn, error as errorLog } from 'driveback-utils/safeConsole';
-import clone from 'driveback-utils/clone';
-import { bind } from 'driveback-utils/eventListener';
+import each from '@segmentstream/utils/each';
+import { warn, error as errorLog } from '@segmentstream/utils/safeConsole';
+import clone from '@segmentstream/utils/clone';
+import { bind } from '@segmentstream/utils/eventListener';
 import Integration from './Integration';
 
 /**

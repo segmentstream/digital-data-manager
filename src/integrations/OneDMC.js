@@ -1,6 +1,6 @@
-import { getProp, setProp } from 'driveback-utils/dotProp';
+import { getProp, setProp } from '@segmentstream/utils/dotProp';
 import cookie from 'js-cookie';
-import topDomain from 'driveback-utils/topDomain';
+import topDomain from '@segmentstream/utils/topDomain';
 import { VIEWED_PAGE } from '../events/semanticEvents';
 import Integration from '../Integration';
 

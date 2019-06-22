@@ -1,5 +1,5 @@
-import cleanObject from 'driveback-utils/cleanObject';
-import { getProp } from 'driveback-utils/dotProp';
+import cleanObject from '@segmentstream/utils/cleanObject';
+import { getProp } from '@segmentstream/utils/dotProp';
 import {
   getEnrichableVariableMappingProps,
   extractVariableMappingValues,

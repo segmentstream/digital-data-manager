@@ -1,5 +1,5 @@
-import cleanObject from 'driveback-utils/cleanObject';
-import deleteProperty from 'driveback-utils/deleteProperty';
+import cleanObject from '@segmentstream/utils/cleanObject';
+import deleteProperty from '@segmentstream/utils/deleteProperty';
 import Integration from '../Integration';
 import AsyncQueue from './utils/AsyncQueue';
 

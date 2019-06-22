@@ -1,7 +1,7 @@
 import assert from 'assert';
 import sinon from 'sinon';
-import { setIgnoreSameDomainCheck } from 'driveback-utils/utmParamsFromReferrer';
-import htmlGlobals from 'driveback-utils/htmlGlobals';
+import { setIgnoreSameDomainCheck } from '@segmentstream/utils/utmParamsFromReferrer';
+import htmlGlobals from '@segmentstream/utils/htmlGlobals';
 import reset from '../reset';
 import DDManagerStreaming from '../../src/integrations/DDManagerStreaming';
 import ddManager from '../../src/ddManager';

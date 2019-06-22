@@ -1,6 +1,6 @@
-import getQueryParam from 'driveback-utils/getQueryParam';
-import topDomain from 'driveback-utils/topDomain';
-import { getProp } from 'driveback-utils/dotProp';
+import getQueryParam from '@segmentstream/utils/getQueryParam';
+import topDomain from '@segmentstream/utils/topDomain';
+import { getProp } from '@segmentstream/utils/dotProp';
 import Integration from '../Integration';
 import { COMPLETED_TRANSACTION } from '../events/semanticEvents';
 import { isDeduplication, addAffiliateCookie, getAffiliateCookie } from './utils/affiliate';

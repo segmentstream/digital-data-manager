@@ -1,5 +1,5 @@
 import sha256 from 'crypto-js/sha256';
-import deleteProperty from 'driveback-utils/deleteProperty';
+import deleteProperty from '@segmentstream/utils/deleteProperty';
 import Integration from '../Integration';
 import {
   VIEWED_PAGE,

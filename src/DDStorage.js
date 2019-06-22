@@ -1,5 +1,5 @@
-import { getProp } from 'driveback-utils/dotProp';
-import arrayMerge from 'driveback-utils/arrayMerge';
+import { getProp } from '@segmentstream/utils/dotProp';
+import arrayMerge from '@segmentstream/utils/arrayMerge';
 
 const keyPersistedKeys = '_persistedKeys';
 const keyLastEventTimestamp = '_lastEventTimestamp';

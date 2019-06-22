@@ -1,10 +1,10 @@
-import deleteProperty from 'driveback-utils/deleteProperty';
-import cleanObject from 'driveback-utils/cleanObject';
-import arrayMerge from 'driveback-utils/arrayMerge';
-import size from 'driveback-utils/size';
+import deleteProperty from '@segmentstream/utils/deleteProperty';
+import cleanObject from '@segmentstream/utils/cleanObject';
+import arrayMerge from '@segmentstream/utils/arrayMerge';
+import size from '@segmentstream/utils/size';
 import cookie from 'js-cookie';
-import { getProp } from 'driveback-utils/dotProp';
-import { bind } from 'driveback-utils/eventListener';
+import { getProp } from '@segmentstream/utils/dotProp';
+import { bind } from '@segmentstream/utils/eventListener';
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,

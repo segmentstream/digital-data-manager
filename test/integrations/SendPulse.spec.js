@@ -3,8 +3,8 @@ import ddManager from './../../src/ddManager.js';
 import sinon from 'sinon';
 import assert from 'assert';
 import reset from './../reset.js';
-import after from 'driveback-utils/after.js';
-import deleteProperty from 'driveback-utils/deleteProperty.js';
+import after from '@segmentstream/utils/after.js';
+import deleteProperty from '@segmentstream/utils/deleteProperty.js';
 
 describe('SendPulse', function() {
 

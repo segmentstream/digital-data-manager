@@ -1,5 +1,5 @@
-import deleteProperty from 'driveback-utils/deleteProperty';
-import each from 'driveback-utils/each';
+import deleteProperty from '@segmentstream/utils/deleteProperty';
+import each from '@segmentstream/utils/each';
 import Integration from '../Integration';
 
 import {

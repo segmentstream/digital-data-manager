@@ -1,4 +1,4 @@
-import { getProp } from 'driveback-utils/dotProp';
+import { getProp } from '@segmentstream/utils/dotProp';
 import Integration from '../Integration';
 import {
   VIEWED_PRODUCT_DETAIL,

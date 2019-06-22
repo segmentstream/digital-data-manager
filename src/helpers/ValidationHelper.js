@@ -1,6 +1,6 @@
-import loadScript from 'driveback-utils/loadScript';
-import { log, group, groupEnd } from 'driveback-utils/safeConsole';
-import { getProp } from 'driveback-utils/dotProp';
+import loadScript from '@segmentstream/utils/loadScript';
+import { log, group, groupEnd } from '@segmentstream/utils/safeConsole';
+import { getProp } from '@segmentstream/utils/dotProp';
 import { isTestMode } from '../testMode';
 import AsyncQueue from '../integrations/utils/AsyncQueue';
 

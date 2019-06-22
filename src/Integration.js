@@ -1,14 +1,14 @@
-import loadScript from 'driveback-utils/loadScript';
-import loadLink from 'driveback-utils/loadLink';
-import loadIframe from 'driveback-utils/loadIframe';
-import loadPixel from 'driveback-utils/loadPixel';
-import format from 'driveback-utils/format';
-import clone from 'driveback-utils/clone';
-import noop from 'driveback-utils/noop';
-import log from 'driveback-utils/log';
-import deleteProperty from 'driveback-utils/deleteProperty';
-import { warn, error as errorLog } from 'driveback-utils/safeConsole';
-import each from 'driveback-utils/each';
+import loadScript from '@segmentstream/utils/loadScript';
+import loadLink from '@segmentstream/utils/loadLink';
+import loadIframe from '@segmentstream/utils/loadIframe';
+import loadPixel from '@segmentstream/utils/loadPixel';
+import format from '@segmentstream/utils/format';
+import clone from '@segmentstream/utils/clone';
+import noop from '@segmentstream/utils/noop';
+import log from '@segmentstream/utils/log';
+import deleteProperty from '@segmentstream/utils/deleteProperty';
+import { warn, error as errorLog } from '@segmentstream/utils/safeConsole';
+import each from '@segmentstream/utils/each';
 import nextTick from 'async/nextTick';
 import EventEmitter from 'component-emitter';
 

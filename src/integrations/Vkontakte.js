@@ -1,6 +1,6 @@
-import arrayMerge from 'driveback-utils/arrayMerge';
-import deleteProperty from 'driveback-utils/deleteProperty';
-import { getProp } from 'driveback-utils/dotProp';
+import arrayMerge from '@segmentstream/utils/arrayMerge';
+import deleteProperty from '@segmentstream/utils/deleteProperty';
+import { getProp } from '@segmentstream/utils/dotProp';
 import AsyncQueue from './utils/AsyncQueue';
 import Integration from '../Integration';
 import {

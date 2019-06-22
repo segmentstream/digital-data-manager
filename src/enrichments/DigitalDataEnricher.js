@@ -1,9 +1,9 @@
-import htmlGlobals from 'driveback-utils/htmlGlobals';
-import semver from 'driveback-utils/semver';
-import getQueryParam from 'driveback-utils/getQueryParam';
-import cleanObject from 'driveback-utils/cleanObject';
-import { getProp, setProp } from 'driveback-utils/dotProp';
-import { warn } from 'driveback-utils/safeConsole';
+import htmlGlobals from '@segmentstream/utils/htmlGlobals';
+import semver from '@segmentstream/utils/semver';
+import getQueryParam from '@segmentstream/utils/getQueryParam';
+import cleanObject from '@segmentstream/utils/cleanObject';
+import { getProp, setProp } from '@segmentstream/utils/dotProp';
+import { warn } from '@segmentstream/utils/safeConsole';
 import uuid from 'uuid/v1';
 import UAParser from 'ua-parser-js';
 import {

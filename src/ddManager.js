@@ -1,9 +1,9 @@
-import clone from 'driveback-utils/clone';
+import clone from '@segmentstream/utils/clone';
 import nextTick from 'async/nextTick';
-import cleanObject from 'driveback-utils/cleanObject';
+import cleanObject from '@segmentstream/utils/cleanObject';
 import emitter from 'component-emitter';
-import { error as errorLog } from 'driveback-utils/safeConsole';
-import { getProp } from 'driveback-utils/dotProp';
+import { error as errorLog } from '@segmentstream/utils/safeConsole';
+import { getProp } from '@segmentstream/utils/dotProp';
 import Integration from './Integration';
 import EventManager from './EventManager';
 import IntegrationsLoader from './IntegrationsLoader';

@@ -1,5 +1,5 @@
-import each from 'driveback-utils/each';
-import { getProp } from 'driveback-utils/dotProp';
+import each from '@segmentstream/utils/each';
+import { getProp } from '@segmentstream/utils/dotProp';
 
 const MINUTE = 60;
 const HOUR = MINUTE * 60;

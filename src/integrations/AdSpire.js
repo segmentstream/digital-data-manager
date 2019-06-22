@@ -1,7 +1,7 @@
-import cleanObject from 'driveback-utils/cleanObject';
-import { getProp } from 'driveback-utils/dotProp';
-import ipToLong from 'driveback-utils/ipToLong';
-import normalizeString from 'driveback-utils/normalizeString';
+import cleanObject from '@segmentstream/utils/cleanObject';
+import { getProp } from '@segmentstream/utils/dotProp';
+import ipToLong from '@segmentstream/utils/ipToLong';
+import normalizeString from '@segmentstream/utils/normalizeString';
 import md5 from 'crypto-js/md5';
 import Integration from '../Integration';
 import {

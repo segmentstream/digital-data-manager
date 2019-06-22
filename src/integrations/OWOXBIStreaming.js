@@ -1,4 +1,4 @@
-import { warn } from 'driveback-utils/safeConsole';
+import { warn } from '@segmentstream/utils/safeConsole';
 import Integration from '../Integration';
 
 class OWOXBIStreaming extends Integration {

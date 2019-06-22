@@ -1,6 +1,6 @@
 import assert from 'assert';
 import sinon from 'sinon';
-import noop from 'driveback-utils/noop';
+import noop from '@segmentstream/utils/noop';
 import reset from './../reset.js';
 import argumentsToArray from './../functions/argumentsToArray.js';
 import GoogleAnalytics from './../../src/integrations/GoogleAnalytics.js';

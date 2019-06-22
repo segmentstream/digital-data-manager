@@ -1,6 +1,6 @@
-import deleteProperty from 'driveback-utils/deleteProperty';
-import { getProp } from 'driveback-utils/dotProp';
-import each from 'driveback-utils/each';
+import deleteProperty from '@segmentstream/utils/deleteProperty';
+import { getProp } from '@segmentstream/utils/dotProp';
+import each from '@segmentstream/utils/each';
 import Integration from '../Integration';
 import {
   VIEWED_PAGE,

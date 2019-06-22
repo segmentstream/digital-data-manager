@@ -1,8 +1,8 @@
-import deleteProperty from 'driveback-utils/deleteProperty';
-import noop from 'driveback-utils/noop';
-import { getProp } from 'driveback-utils/dotProp';
-import getVarValue from 'driveback-utils/getVarValue';
-import each from 'driveback-utils/each';
+import deleteProperty from '@segmentstream/utils/deleteProperty';
+import noop from '@segmentstream/utils/noop';
+import { getProp } from '@segmentstream/utils/dotProp';
+import getVarValue from '@segmentstream/utils/getVarValue';
+import each from '@segmentstream/utils/each';
 import Integration from '../Integration';
 import {
   getEnrichableVariableMappingProps,

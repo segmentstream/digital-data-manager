@@ -1,5 +1,5 @@
-import { error as errorLog } from 'driveback-utils/safeConsole';
-import isPromise from 'driveback-utils/isPromise';
+import { error as errorLog } from '@segmentstream/utils/safeConsole';
+import isPromise from '@segmentstream/utils/isPromise';
 import trackImpression from '../trackers/trackImpression';
 import trackLink from '../trackers/trackLink';
 import Handler from '../Handler';

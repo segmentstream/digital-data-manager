@@ -1,4 +1,4 @@
-import cleanObject from 'driveback-utils/cleanObject';
+import cleanObject from '@segmentstream/utils/cleanObject';
 import Integration from '../Integration';
 import {
   VIEWED_PRODUCT_DETAIL,

@@ -1,5 +1,5 @@
-import dotProp from 'driveback-utils/dotProp';
-import deleteProperty from 'driveback-utils/deleteProperty';
+import dotProp from '@segmentstream/utils/dotProp';
+import deleteProperty from '@segmentstream/utils/deleteProperty';
 import DDHelper from '../DDHelper';
 import {
   VIEWED_PRODUCT_DETAIL,

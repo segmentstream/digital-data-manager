@@ -1,5 +1,5 @@
-import { stringify } from 'driveback-utils/queryString';
-import cleanObject from 'driveback-utils/cleanObject';
+import { stringify } from '@segmentstream/utils/queryString';
+import cleanObject from '@segmentstream/utils/cleanObject';
 import {
   getEnrichableVariableMappingProps,
   extractVariableMappingValues,

@@ -1,4 +1,4 @@
-import { bind, unbind } from 'driveback-utils/eventListener';
+import { bind, unbind } from '@segmentstream/utils/eventListener';
 
 import { SDK_CHANGE_SOURCE } from './constants';
 

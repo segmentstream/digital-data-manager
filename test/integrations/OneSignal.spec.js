@@ -1,6 +1,6 @@
 import sinon from 'sinon';
 import assert from 'assert';
-import noop from 'driveback-utils/noop';
+import noop from '@segmentstream/utils/noop';
 import reset from '../reset';
 import ddManager from '../../src/ddManager';
 import OneSignal from '../../src/integrations/OneSignal';

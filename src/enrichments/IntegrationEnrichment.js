@@ -1,6 +1,6 @@
-import { error as errorLog } from 'driveback-utils/safeConsole';
-import { setProp } from 'driveback-utils/dotProp';
-import isPromise from 'driveback-utils/isPromise';
+import { error as errorLog } from '@segmentstream/utils/safeConsole';
+import { setProp } from '@segmentstream/utils/dotProp';
+import isPromise from '@segmentstream/utils/isPromise';
 import Handler from '../Handler';
 
 class IntegrationEnrichment {

@@ -1,4 +1,4 @@
-import { bind } from 'driveback-utils/eventListener';
+import { bind } from '@segmentstream/utils/eventListener';
 import CustomScript from './CustomScript';
 
 let storage = {};

@@ -1,6 +1,6 @@
-import deleteProperty from 'driveback-utils/deleteProperty';
-import getVarValue from 'driveback-utils/getVarValue';
-import { getProp } from 'driveback-utils/dotProp';
+import deleteProperty from '@segmentstream/utils/deleteProperty';
+import getVarValue from '@segmentstream/utils/getVarValue';
+import { getProp } from '@segmentstream/utils/dotProp';
 import Integration from '../Integration';
 import { DIGITALDATA_VAR } from '../variableTypes';
 import {
