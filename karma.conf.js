@@ -1,5 +1,6 @@
 const fs = require('fs');
 const uuid = require('uuid');
+// eslint-disable-next-line
 process.env.CHROME_BIN = require('puppeteer').executablePath();
 
 module.exports = function init(config) {
@@ -18,7 +19,6 @@ module.exports = function init(config) {
   } else {
     process.env.SAUCE_ENABLED = true;
   }
-
 
   if (process.env.SAUCE_ENABLED === 'true') {
     customLaunchers = {
@@ -94,63 +94,55 @@ module.exports = function init(config) {
     };
     browsers = Object.keys(customLaunchers);
   } else {
-    customLaunchers = null;
-    browsers = ['Chrome'];
+    customLaunchers = {
+      PhantomJS_custom: {
+        base: 'PhantomJS',
+        options: {
+          windowName: 'my-window',
+          settings: {
+            webSecurityEnabled: false,
+          },
+        },
+        flags: ['--load-images=true'],
+        debug: false,
+      },
+    };
+    browsers = ['PhantomJS_custom'];
   }
 
   config.set({
 
     // base path that will be used to resolve all patterns (eg. files, exclude)
-    basePath: '',
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha'],
-    plugins: ['karma-mocha',
-      'karma-chrome-launcher',
-      'karma-safari-launcher',
+
+    plugins: [
+      'karma-*',
       'mocha',
-      'karma-mocha-reporter',
-      'karma-sauce-launcher'],
+    ],
+
     client: {
       mocha: {
         timeout: 7000,
       },
     },
+
     sauceLabs: {
       testName: 'Digital Data Manager Unit Tests',
       tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER || uuid.v4(),
       recordScreenshots: false,
       startConnect: true,
-      // connectOptions: {
-      //   port: 5757,
-      //   logfile: 'sauce_connect.log'
-      // },
-      // public: 'public'
     },
-    // list of files / patterns to load in the browser
+
     files: [
-      'build/segmentstream-test.js',
-    ],
-    // list of files to exclude
-    exclude: [
+      './build/segmentstream-test.js',
     ],
 
-    // preprocess matching files before serving them to the browser
-    // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
-    // preprocessors: {
-    //  'src/**/*.js': ['browserify'],
-    //  'test/**/*.js': ['browserify']
-    // },
-    //
-    // browserify: {
-    //  debug: true,
-    //  transform: ['babelify', ['polyify', { 'browsers': 'IE >= 7' }]],
-    //  configure: function(bundle) {
-    //    bundle.on('bundled', function(err, content) {
-    //      console.log(content);
-    //    });
-    //  }
-    // },
+    browsers,
+
+    // you can define custom flags
+    customLaunchers,
 
     // test results reporter to use
     // possible values: 'dots', 'progress'
@@ -161,32 +153,19 @@ module.exports = function init(config) {
       showDiff: true,
     },
 
-
-    // web server port
-    port: 9876,
-
-
     // enable / disable colors in the output (reporters and logs)
     colors: true,
-
 
     // level of logging
     // possible values: config.LOG_DISABLE || config.LOG_ERROR ||
     // config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
     logLevel: config.LOG_ERROR,
 
-
     // enable / disable watching file and executing tests whenever any file changes
     autoWatch: true,
 
     // Increase timeout in case connection in CI is slow
     captureTimeout: 120000,
-    customLaunchers,
-
-    // start these browsers
-    // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers,
-
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits

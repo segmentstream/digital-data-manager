@@ -33,10 +33,10 @@ module.exports = {
     buildTest: series(cleanBuild, createBuild, 'browserify test/index.test.js -t babelify --debug | exorcist --base=./build build/segmentstream-test.js.map > build/segmentstream-test.js'),
     mocha: 'mocha build/segmentstream-test.js',
     test: {
-      default: series.nps('buildTest', 'karma'), dev: series.nps('buildTest', 'karma.dev')
+      default: series.nps('buildTest', 'karma')
     },
     karma: {
-      default: `karma start karma.conf.js ${ifWindows('--browsers=ChromeHeadless', '')}`, dev:'cross-env MOCHA=1 karma start karma.conf.js --browsers=ChromeHeadless'
+      default: 'karma start'
     },
   },
 };

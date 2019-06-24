@@ -1,8 +1,8 @@
 import assert from 'assert';
 import { expect } from 'chai';
+import Bowser from 'bowser';
 import Storage from '../src/Storage';
 import DDStorage from '../src/DDStorage';
-import Bowser from 'bowser';
 
 describe('DDStorage', () => {
   let _digitalData;
@@ -57,9 +57,7 @@ describe('DDStorage', () => {
 
       const tempStorage = window.localStorage;
       beforeEach(() => {
-        Object.defineProperty(window, 'localStorage', {
-          value: null,
-        });
+        window.localStorage.clear();
       });
       afterEach(() => {
         Object.defineProperty(window, 'localStorage', {

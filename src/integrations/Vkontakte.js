@@ -120,7 +120,7 @@ class Vkontakte extends Integration {
       priceListId = getProp(event, 'priceListId');
     }
     if (!priceListId) {
-      priceListId = pixelSetting.priceListId;
+      ({ priceListId } = pixelSetting);
     }
     return priceListId;
   }

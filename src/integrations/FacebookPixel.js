@@ -76,7 +76,7 @@ class FacebookPixel extends Integration {
     if (pixelIds && !window.fbq) {
       window.fbq = window._fbq = function fbq() {
         if (window.fbq.callMethod) {
-          window.fbq.callMethod.apply(window.fbq, arguments);
+          window.fbq.callMethod(...arguments);
         } else {
           window.fbq.queue.push(arguments);
         }

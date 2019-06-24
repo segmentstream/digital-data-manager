@@ -196,7 +196,7 @@ export default class Integration extends EventEmitter {
       if (attrKey === 'onError') return;
       if (attrVal) {
         attr[attrKey] = attrVal
-          .replace(/\{\{\ *(\w+)\ *\}\}/g, (_, $1) => ((params[$1] !== undefined) ? params[$1] : ''));
+          .replace(/\{\{ *(\w+) *\}\}/g, (_, $1) => ((params[$1] !== undefined) ? params[$1] : ''));
       }
       if (attrKey === 'src' || attrKey === 'href') {
         attr[attrKey] = attr[attrKey].replace(/[^?=&]+=(&|$)/g, '').replace(/&$/, '');

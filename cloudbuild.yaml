@@ -1,5 +1,13 @@
 steps:
-- name: 'gcr.io/cloud-builders/npm'
-  args: ['install']
-- name: 'gcr.io/cloud-builders/npm'
+- name: node:10.13.0
+  entrypoint: npm
+  args: ['install', 'eslint']
+- name: node:10.13.0
+  entrypoint: npm
   args: ['run', 'lint']
+- name: node:10.13.0
+  entrypoint: npm
+  args: ['test']
+  env:
+  - 'PHANTOMJS_VERSION=2.1.1'
+  - 'PHANTOMJS_DIR=/phantomjs'
