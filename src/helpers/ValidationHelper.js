@@ -36,13 +36,33 @@ export const validate = (schema, obj, key) => {
   if (!schema) {
     throw new Error('validate() helper requires "schema" as a first argument with object or boolean value');
   }
+
+  let originalRequire;
+  let originalDefine;
+
   if (!ajvLoadInitiated) {
     asyncQueue.init();
+
+    // Hack for SPA sites with overrided require and define methods
+    originalRequire = window.require;
+    originalDefine = window.define;
+    window.require = undefined;
+    window.define = undefined;
+
     loadScript({ src: 'https://cdnjs.cloudflare.com/ajax/libs/ajv/6.8.1/ajv.min.js' });
+
     ajvLoadInitiated = true;
   }
   asyncQueue.push(() => {
-    if (!ajv) ajv = new window.Ajv({ allErrors: true });
+    if (!ajv) {
+      ajv = new window.Ajv({ allErrors: true });
+
+      // Hack for SPA sites with overrided require and define methods
+      window.require = originalRequire;
+      window.define = originalDefine;
+      originalRequire = undefined;
+      originalDefine = undefined;
+    }
     ajvValidate(schema, obj, key);
   });
 };
