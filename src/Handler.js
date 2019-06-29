@@ -1,20 +1,20 @@
-import getQueryParam from '@segmentstream/utils/getQueryParam';
-import cookie from 'js-cookie';
-import domQuery from '@segmentstream/utils/domQuery';
-import loadScript from '@segmentstream/utils/loadScript';
-import loadLink from '@segmentstream/utils/loadLink';
-import loadIframe from '@segmentstream/utils/loadIframe';
-import loadPixel from '@segmentstream/utils/loadPixel';
-import { getProp } from '@segmentstream/utils/dotProp';
-import getDataLayerProp from '@segmentstream/utils/getDataLayerProp';
-import DDHelper from './DDHelper';
-import { counterInc, counter } from './RollingAttributesHelper';
-import { validate } from './helpers/ValidationHelper';
+import getQueryParam from '@segmentstream/utils/getQueryParam'
+import cookie from 'js-cookie'
+import domQuery from '@segmentstream/utils/domQuery'
+import loadScript from '@segmentstream/utils/loadScript'
+import loadLink from '@segmentstream/utils/loadLink'
+import loadIframe from '@segmentstream/utils/loadIframe'
+import loadPixel from '@segmentstream/utils/loadPixel'
+import { getProp } from '@segmentstream/utils/dotProp'
+import getDataLayerProp from '@segmentstream/utils/getDataLayerProp'
+import DDHelper from './DDHelper'
+import { counterInc, counter } from './RollingAttributesHelper'
+import { validate } from './helpers/ValidationHelper'
 
 class Handler {
-  constructor(handler, digitalData, args) {
-    this.handler = handler;
-    this.args = args;
+  constructor (handler, digitalData, args) {
+    this.handler = handler
+    this.args = args
     this.utils = {
       counterInc: (key, granularity, ttl) => counterInc(key, granularity, ttl, digitalData),
       counter: key => counter(key, digitalData),
@@ -28,43 +28,43 @@ class Handler {
       dataLayer: getDataLayerProp,
       fetch: (url, options, callback) => {
         if (!callback) {
-          callback = options; // arguments shift
-          options = undefined;
+          callback = options // arguments shift
+          options = undefined
         }
         return new Promise((resolve) => {
           window.fetch(url, options).then(response => response.text()).then((text) => {
             try {
-              text = JSON.parse(text);
+              text = JSON.parse(text)
             } catch (error) {
               // do nothing
             }
-            resolve(callback(text));
-          });
-        });
+            resolve(callback(text))
+          })
+        })
       },
       timeout: (delay, callback) => new Promise((resolve) => {
         setTimeout(() => {
-          resolve(callback());
-        }, delay);
+          resolve(callback())
+        }, delay)
       }),
       retry: (delegate, retriesLeft = 5, delay = 1000) => {
         try {
-          if (retriesLeft > 0) delegate();
+          if (retriesLeft > 0) delegate()
         } catch (e) {
-          setTimeout(() => { this.utils.retry(delegate, retriesLeft - 1); }, delay);
+          setTimeout(() => { this.utils.retry(delegate, retriesLeft - 1) }, delay)
         }
       },
       loadPixel,
       loadScript,
       loadIframe,
-      loadLink,
-    };
+      loadLink
+    }
   }
 
-  run() {
-    const handlerWithUtils = this.handler.bind(this.utils);
-    return handlerWithUtils(...this.args);
+  run () {
+    const handlerWithUtils = this.handler.bind(this.utils)
+    return handlerWithUtils(...this.args)
   }
 }
 
-export default Handler;
+export default Handler

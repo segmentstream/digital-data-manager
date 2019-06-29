@@ -1,11 +1,11 @@
-import assert from 'assert';
-import sinon from 'sinon';
-import reset from './../reset';
-import DoubleClickFloodlight from './../../src/integrations/DoubleClickFloodlight';
-import ddManager from './../../src/ddManager';
+import assert from 'assert'
+import sinon from 'sinon'
+import reset from './../reset'
+import DoubleClickFloodlight from './../../src/integrations/DoubleClickFloodlight'
+import ddManager from './../../src/ddManager'
 
 describe('Integrations: DoubleClick Floodlight', () => {
-  let doubleClick;
+  let doubleClick
   const options = {
     advertiserId: '123123',
     eventTags: {
@@ -38,64 +38,63 @@ describe('Integrations: DoubleClick Floodlight', () => {
         }
       }
     }
-  };
+  }
 
   beforeEach(() => {
     window.digitalData = {
       website: {},
       page: {},
       user: {
-        userId: 'user123',
+        userId: 'user123'
       },
       events: []
-    };
-    doubleClick = new DoubleClickFloodlight(window.digitalData, options);
-    ddManager.addIntegration('DoubleClick Floodlight', doubleClick);
-  });
+    }
+    doubleClick = new DoubleClickFloodlight(window.digitalData, options)
+    ddManager.addIntegration('DoubleClick Floodlight', doubleClick)
+  })
 
   afterEach(() => {
-    doubleClick.reset();
-    ddManager.reset();
-    reset();
-  });
+    doubleClick.reset()
+    ddManager.reset()
+    reset()
+  })
 
   describe('before loading', () => {
     beforeEach(function () {
-      sinon.stub(doubleClick, 'load');
-    });
+      sinon.stub(doubleClick, 'load')
+    })
 
     afterEach(function () {
-      doubleClick.load.restore();
-    });
+      doubleClick.load.restore()
+    })
 
     describe('#constructor', () => {
       it('should add proper options', () => {
-        assert.equal(options.advertiserId, doubleClick.getOption('advertiserId'));
-      });
-    });
+        assert.strict.equal(options.advertiserId, doubleClick.getOption('advertiserId'))
+      })
+    })
 
     describe('#initialize', () => {
       it('should initialize', () => {
-        ddManager.initialize();
-        assert.ok(doubleClick.isLoaded());
-      });
+        ddManager.initialize()
+        assert.ok(doubleClick.isLoaded())
+      })
 
       it('should not load any tags load after initialization', () => {
-        ddManager.initialize();
-        assert.ok(!doubleClick.load.calledOnce);
-      });
-    });
-  });
-
+        ddManager.initialize()
+        assert.ok(!doubleClick.load.calledOnce)
+      })
+    })
+  })
 
   describe('after loading', () => {
     beforeEach((done) => {
-      sinon.stub(doubleClick, 'load');
+      sinon.stub(doubleClick, 'load')
       ddManager.once('ready', () => {
-        done();
-      });
-      ddManager.initialize();
-    });
+        done()
+      })
+      ddManager.initialize()
+    })
 
     describe('#Custom Event', () => {
       it('should track custom event', (done) => {
@@ -109,12 +108,12 @@ describe('Integrations: DoubleClick Floodlight', () => {
               cat: 'customActivity',
               ord: sinon.match.number,
               customVariables: 'u1=user123;u2=testVal'
-            });
-            done();
+            })
+            done()
           }
-        });
-      });
-    });
+        })
+      })
+    })
 
     describe('#Completed Transaction', () => {
       it('should track sale', (done) => {
@@ -134,7 +133,7 @@ describe('Integrations: DoubleClick Floodlight', () => {
                   id: '234'
                 },
                 quantity: 2
-              },
+              }
             ],
             total: 10000
           },
@@ -148,12 +147,11 @@ describe('Integrations: DoubleClick Floodlight', () => {
               qty: 3,
               cost: 10000,
               customVariables: 'u1=user123;u2=testVal'
-            });
-            done();
+            })
+            done()
           }
-        });
-      });
-    });
-
-  });
-});
+        })
+      })
+    })
+  })
+})

@@ -7,16 +7,15 @@ const onRegisteredUserStub = {
   lastName: 'Dow',
   childrenNames: ['Helen', 'Bob'],
   city: 'Moscow',
-  b2b: true,
-};
-
+  b2b: true
+}
 
 const onRegisteredRegistrationStub = {
   operation: 'Registration',
   data: {
     customer: {
       ids: {
-        bitrixId: 'user123',
+        bitrixId: 'user123'
       },
       firstName: 'John',
       lastName: 'Dow',
@@ -28,19 +27,19 @@ const onRegisteredRegistrationStub = {
         b2b: true,
         childrenNames: [
           'Helen',
-          'Bob',
-        ],
-      },
-    },
-  },
-};
+          'Bob'
+        ]
+      }
+    }
+  }
+}
 
 const onRegisteredRegistrationCustomStub = {
   operation: 'RegistrationCustom',
   data: {
     customer: {
       ids: {
-        bitrixId: 'user123',
+        bitrixId: 'user123'
       },
       firstName: 'John',
       lastName: 'Dow',
@@ -52,19 +51,19 @@ const onRegisteredRegistrationCustomStub = {
         b2b: true,
         childrenNames: [
           'Helen',
-          'Bob',
-        ],
-      },
-    },
-  },
-};
+          'Bob'
+        ]
+      }
+    }
+  }
+}
 
 const onRegisteredRegistrationWithSubscriptionStub = {
   operation: 'Registration',
   data: {
     customer: {
       ids: {
-        bitrixId: 'user123',
+        bitrixId: 'user123'
       },
       firstName: 'John',
       lastName: 'Dow',
@@ -76,31 +75,31 @@ const onRegisteredRegistrationWithSubscriptionStub = {
         b2b: true,
         childrenNames: [
           'Helen',
-          'Bob',
-        ],
+          'Bob'
+        ]
       },
       subscriptions: [
         {
           pointOfContact: 'Email',
           isSubscribed: true,
-          valueByDefault: true,
+          valueByDefault: true
         },
         {
           pointOfContact: 'Sms',
           isSubscribed: true,
-          valueByDefault: true,
-        },
-      ],
-    },
-  },
-};
+          valueByDefault: true
+        }
+      ]
+    }
+  }
+}
 
 const onRegisteredRegistrationWithMassSubscriptionsStub = {
   operation: 'Registration',
   data: {
     customer: {
       ids: {
-        bitrixId: 'user123',
+        bitrixId: 'user123'
       },
       firstName: 'John',
       lastName: 'Dow',
@@ -112,36 +111,36 @@ const onRegisteredRegistrationWithMassSubscriptionsStub = {
         b2b: true,
         childrenNames: [
           'Helen',
-          'Bob',
-        ],
+          'Bob'
+        ]
       },
       subscriptions: [
         {
           pointOfContact: 'Email',
           topic: 'News',
           isSubscribed: true,
-          valueByDefault: true,
+          valueByDefault: true
         },
         {
           pointOfContact: 'Email',
           topic: 'Offers',
           isSubscribed: true,
-          valueByDefault: true,
+          valueByDefault: true
         },
         {
           pointOfContact: 'Sms',
           isSubscribed: true,
-          valueByDefault: true,
-        },
-      ],
-    },
-  },
-};
+          valueByDefault: true
+        }
+      ]
+    }
+  }
+}
 
 export {
   onRegisteredUserStub,
   onRegisteredRegistrationStub,
   onRegisteredRegistrationCustomStub,
   onRegisteredRegistrationWithSubscriptionStub,
-  onRegisteredRegistrationWithMassSubscriptionsStub,
-};
+  onRegisteredRegistrationWithMassSubscriptionsStub
+}

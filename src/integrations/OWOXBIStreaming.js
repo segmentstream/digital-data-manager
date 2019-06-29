@@ -1,36 +1,36 @@
-import { warn } from '@segmentstream/utils/safeConsole';
-import Integration from '../Integration';
+import { warn } from '@segmentstream/utils/safeConsole'
+import Integration from '../Integration'
 
 class OWOXBIStreaming extends Integration {
-  constructor(digitalData, options) {
+  constructor (digitalData, options) {
     const optionsWithDefaults = Object.assign({
       namespace: undefined,
       sessionStreaming: false,
-      sessionIdDimension: undefined,
-    }, options);
+      sessionIdDimension: undefined
+    }, options)
 
-    super(digitalData, optionsWithDefaults);
+    super(digitalData, optionsWithDefaults)
   }
 
-  initialize(version) {
-    this.initVersion = version;
+  initialize (version) {
+    this.initVersion = version
 
     if (!window.ga) {
-      warn('Google Analytics integration should be initialized before OWOX BI Streaming integration');
-      return false;
+      warn('Google Analytics integration should be initialized before OWOX BI Streaming integration')
+      return false
     }
 
     // support of legacy version
     if (!this.initVersion && !this.getOption('namespace') && this.getOption('namespace') !== false) {
-      this.setOption('namespace', 'ddl');
+      this.setOption('namespace', 'ddl')
     }
 
     if (this.getOption('sessionStreaming')) {
       this.ga('require', 'OWOXBIStreaming', {
-        sessionIdDimension: this.getOption('sessionIdDimension'),
-      });
+        sessionIdDimension: this.getOption('sessionIdDimension')
+      })
     } else {
-      this.ga('require', 'OWOXBIStreaming');
+      this.ga('require', 'OWOXBIStreaming')
     }
 
     /* eslint-disable */
@@ -38,28 +38,28 @@ class OWOXBIStreaming extends Integration {
     f(a,e){var d=new Image;d.onload=function(){};d.src=a+'?'+e}var g=b&&b.domain?b.domain:'google-analytics.bi.owox.com';return{send:function(b){var e=location.protocol+'//'+g+'/collect',d;try{navigator.sendBeacon&&navigator.sendBeacon(d=e+'?tid='+h.get('trackingId'),b)||(2036<b.length?a(d?d:e+'?tid='+h.get('trackingId'),b):f(e,b))}catch(c){}}}}();h.set('sendHitTask',function(a){if(b&&0<b.sessionIdDimension)try{a.set('dimension'+b.sessionIdDimension,a.get('clientId')+'_'+Date.now()),a.get('buildHitTask')(a)}catch(h){}f(a);g.send(a.get('hitPayload'))})}var
         f=window[window.GoogleAnalyticsObject||'ga'];'function'==typeof f&&f('provide','OWOXBIStreaming',g)})();
     /* eslint-enable */
-    this._loaded = true;
-    return true;
+    this._loaded = true
+    return true
   }
 
-  isLoaded() {
-    return !!this._loaded;
+  isLoaded () {
+    return !!this._loaded
   }
 
-  reset() {
+  reset () {
 
   }
 
-  ga() {
+  ga () {
     if (!this.getOption('namespace')) {
-      window.ga(...arguments);
+      window.ga(...arguments)
     } else {
       if (arguments[0]) {
-        arguments[0] = `${this.getOption('namespace')}.${arguments[0]}`;
+        arguments[0] = `${this.getOption('namespace')}.${arguments[0]}`
       }
-      window.ga(...arguments);
+      window.ga(...arguments)
     }
   }
 }
 
-export default OWOXBIStreaming;
+export default OWOXBIStreaming

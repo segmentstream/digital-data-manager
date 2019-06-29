@@ -1,20 +1,20 @@
-let errorTrackingEnabled = false;
+let errorTrackingEnabled = false
 
-export function enableErrorTracking(digitalData) {
-  if (errorTrackingEnabled) return;
+export function enableErrorTracking (digitalData) {
+  if (errorTrackingEnabled) return
 
-  const originalWindowErrorCallback = window.onerror;
+  const originalWindowErrorCallback = window.onerror
 
   window.onerror = (errorMessage, url, lineNumber, columnNumber, errorObject) => {
     // In case the "errorObject" is available, use its data, else fallback
     // on the default "errorMessage" provided:
-    let exceptionDescription = errorMessage;
+    let exceptionDescription = errorMessage
     if (errorObject && typeof errorObject.message !== 'undefined') {
-      exceptionDescription = errorObject.message;
+      exceptionDescription = errorObject.message
     }
 
     // Format the message to log to Analytics (might also use "errorObject.stack" if defined):
-    exceptionDescription += ` @ ${url}:${lineNumber}:${columnNumber}`;
+    exceptionDescription += ` @ ${url}:${lineNumber}:${columnNumber}`
 
     digitalData.events.push({
       name: 'Exception',
@@ -24,17 +24,17 @@ export function enableErrorTracking(digitalData) {
         description: exceptionDescription,
         lineNumber,
         columnNumber,
-        isFatal: true,
-      },
-    });
+        isFatal: true
+      }
+    })
 
     // If the previous "window.onerror" callback can be called, pass it the data:
     if (typeof originalWindowErrorCallback === 'function') {
-      return originalWindowErrorCallback(errorMessage, url, lineNumber, columnNumber, errorObject);
+      return originalWindowErrorCallback(errorMessage, url, lineNumber, columnNumber, errorObject)
     }
     // Otherwise, Let the default handler run:
-    return false;
-  };
+    return false
+  }
 
-  errorTrackingEnabled = true;
+  errorTrackingEnabled = true
 }

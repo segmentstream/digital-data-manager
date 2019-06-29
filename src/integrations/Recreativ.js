@@ -1,176 +1,176 @@
-import { getProp } from '@segmentstream/utils/dotProp';
-import Integration from '../Integration';
+import { getProp } from '@segmentstream/utils/dotProp'
+import Integration from '../Integration'
 import {
   VIEWED_PRODUCT_DETAIL,
   VIEWED_CART,
-  COMPLETED_TRANSACTION,
-} from '../events/semanticEvents';
+  COMPLETED_TRANSACTION
+} from '../events/semanticEvents'
 
 const SEMANTIC_EVENTS = [
   VIEWED_PRODUCT_DETAIL,
   VIEWED_CART,
-  COMPLETED_TRANSACTION,
-];
+  COMPLETED_TRANSACTION
+]
 
 class Recreativ extends Integration {
-  constructor(digitalData, options) {
+  constructor (digitalData, options) {
     const optionsWithDefaults = Object.assign({
-      shopId: '',
-    }, options);
+      shopId: ''
+    }, options)
 
-    super(digitalData, optionsWithDefaults);
+    super(digitalData, optionsWithDefaults)
 
-    this._isLoaded = false;
+    this._isLoaded = false
 
     this.addTag('product', {
       type: 'script',
       attr: {
         // eslint-disable-next-line max-len
-        src: `//recreativ.ru/trck.php?shop=${options.shopId}&offer={{ productId }}&rnd=${Math.floor(Math.random() * 999)}`,
-      },
-    });
+        src: `//recreativ.ru/trck.php?shop=${options.shopId}&offer={{ productId }}&rnd=${Math.floor(Math.random() * 999)}`
+      }
+    })
 
     this.addTag('cart', {
       type: 'script',
       attr: {
         // eslint-disable-next-line max-len
-        src: `//recreativ.ru/trck.php?shop=${options.shopId}&cart={{ productIds }}&rnd=${Math.floor(Math.random() * 999)}`,
-      },
-    });
+        src: `//recreativ.ru/trck.php?shop=${options.shopId}&cart={{ productIds }}&rnd=${Math.floor(Math.random() * 999)}`
+      }
+    })
 
     this.addTag('transaction', {
       type: 'script',
       attr: {
         // eslint-disable-next-line max-len
-        src: `//recreativ.ru/trck.php?shop=${options.shopId}&del={{ productIds }}&rnd=${Math.floor(Math.random() * 999)}`,
-      },
-    });
+        src: `//recreativ.ru/trck.php?shop=${options.shopId}&del={{ productIds }}&rnd=${Math.floor(Math.random() * 999)}`
+      }
+    })
   }
 
-  getSemanticEvents() {
-    return SEMANTIC_EVENTS;
+  getSemanticEvents () {
+    return SEMANTIC_EVENTS
   }
 
-  getEnrichableEventProps(event) {
-    let enrichableProps;
+  getEnrichableEventProps (event) {
+    let enrichableProps
 
     switch (event.name) {
       case VIEWED_PRODUCT_DETAIL:
         enrichableProps = [
-          'product.id',
-        ];
-        break;
+          'product.id'
+        ]
+        break
       case VIEWED_CART:
         enrichableProps = [
-          'cart',
-        ];
-        break;
+          'cart'
+        ]
+        break
       case COMPLETED_TRANSACTION:
         enrichableProps = [
-          'transaction',
-        ];
-        break;
+          'transaction'
+        ]
+        break
       default:
-        enrichableProps = [];
-        break;
+        enrichableProps = []
+        break
     }
 
-    return enrichableProps;
+    return enrichableProps
   }
 
-  getEventValidationConfig(event) {
+  getEventValidationConfig (event) {
     const config = {
       [VIEWED_PRODUCT_DETAIL]: {
         fields: ['product.id'],
         validations: {
           'product.id': {
             errors: ['required'],
-            warnings: ['string'],
-          },
-        },
+            warnings: ['string']
+          }
+        }
       },
       [VIEWED_CART]: {
         fields: ['cart.lineItems[].product.id'],
         validations: {
           'cart.lineItems[].product.id': {
             errors: ['required'],
-            warnings: ['string'],
-          },
-        },
+            warnings: ['string']
+          }
+        }
       },
       [COMPLETED_TRANSACTION]: {
         fields: [
-          'transaction.lineItems[].product.id',
+          'transaction.lineItems[].product.id'
         ],
         validation: {
           'transaction.lineItems[].product.id': {
             errors: ['required'],
-            warnings: ['string'],
-          },
-        },
-      },
-    };
+            warnings: ['string']
+          }
+        }
+      }
+    }
 
-    return config[event.name];
+    return config[event.name]
   }
 
-  initialize() {
-    this._isLoaded = true;
+  initialize () {
+    this._isLoaded = true
   }
 
-  isLoaded() {
-    return this._isLoaded;
+  isLoaded () {
+    return this._isLoaded
   }
 
-  trackEvent(event) {
+  trackEvent (event) {
     const methods = {
       [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
       [VIEWED_CART]: 'onViewedCart',
-      [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
-    };
+      [COMPLETED_TRANSACTION]: 'onCompletedTransaction'
+    }
 
-    const method = methods[event.name];
+    const method = methods[event.name]
     if (method) {
-      this[method](event);
+      this[method](event)
     }
   }
 
-  onViewedProductDetail(event) {
-    const { product } = event;
+  onViewedProductDetail (event) {
+    const { product } = event
     if (product && product.id) {
       this.load('product', {
-        productId: product.id,
-      });
+        productId: product.id
+      })
     }
   }
 
-  onViewedCart(event) {
-    const { cart } = event;
-    if (!getProp(cart, 'lineItems.length')) return;
+  onViewedCart (event) {
+    const { cart } = event
+    if (!getProp(cart, 'lineItems.length')) return
     const productIds = cart.lineItems.reduce((str, lineItem, index) => {
-      const productId = getProp(lineItem, 'product.id');
+      const productId = getProp(lineItem, 'product.id')
       if (index > 0) {
-        return [str, productId].join(',');
+        return [str, productId].join(',')
       }
-      return productId;
-    }, '');
+      return productId
+    }, '')
 
-    this.load('cart', { productIds });
+    this.load('cart', { productIds })
   }
 
-  onCompletedTransaction(event) {
-    const { transaction } = event;
-    if (!getProp(transaction, 'lineItems.length')) return;
+  onCompletedTransaction (event) {
+    const { transaction } = event
+    if (!getProp(transaction, 'lineItems.length')) return
     const productIds = transaction.lineItems.reduce((str, lineItem, index) => {
-      const productId = getProp(lineItem, 'product.id');
+      const productId = getProp(lineItem, 'product.id')
       if (index > 0) {
-        return [str, productId].join(',');
+        return [str, productId].join(',')
       }
-      return productId;
-    }, '');
+      return productId
+    }, '')
 
-    this.load('transaction', { productIds });
+    this.load('transaction', { productIds })
   }
 }
 
-export default Recreativ;
+export default Recreativ

@@ -2,18 +2,18 @@ const onUpdatedProfileInfoSubscriptionsStub = [
   {
     type: 'email',
     topic: 'News',
-    isSubscribed: true,
+    isSubscribed: true
   },
   {
     type: 'email',
     topic: 'Offers',
-    isSubscribed: false,
+    isSubscribed: false
   },
   {
     type: 'sms',
-    isSubscribed: true,
-  },
-];
+    isSubscribed: true
+  }
+]
 
 const onUpdatedProfileInfoStub = {
   operation: 'UpdateProfile',
@@ -21,7 +21,7 @@ const onUpdatedProfileInfoStub = {
     customer: {
       authenticationTicket: 'xxxxx',
       ids: {
-        bitrixId: 'user123',
+        bitrixId: 'user123'
       },
       firstName: 'John',
       lastName: 'Dow',
@@ -33,28 +33,27 @@ const onUpdatedProfileInfoStub = {
         b2b: true,
         childrenNames: [
           'Helen',
-          'Bob',
-        ],
+          'Bob'
+        ]
       },
       subscriptions: [
         {
           pointOfContact: 'Email',
           topic: 'News',
-          isSubscribed: true,
+          isSubscribed: true
         },
         {
           pointOfContact: 'Email',
           topic: 'Offers',
-          isSubscribed: false,
+          isSubscribed: false
         },
         {
           pointOfContact: 'Sms',
-          isSubscribed: true,
-        },
-      ],
-    },
-  },
-};
+          isSubscribed: true
+        }
+      ]
+    }
+  }
+}
 
-
-export { onUpdatedProfileInfoSubscriptionsStub, onUpdatedProfileInfoStub };
+export { onUpdatedProfileInfoSubscriptionsStub, onUpdatedProfileInfoStub }

@@ -1,65 +1,65 @@
-import Integration from '../Integration';
+import Integration from '../Integration'
 
 class Weborama extends Integration {
-  constructor(digitalData, options) {
+  constructor (digitalData, options) {
     const optionsWithDefaults = Object.assign({
       siteId: '',
-      eventPixels: {},
+      eventPixels: {}
       /* example:
       eventPixels: {
         'Viewed Product Detail': '470'
       },
       */
-    }, options);
+    }, options)
 
-    super(digitalData, optionsWithDefaults);
+    super(digitalData, optionsWithDefaults)
 
-    this.SEMANTIC_EVENTS = Object.keys(this.getOption('eventPixels'));
-    this._isLoaded = false;
+    this.SEMANTIC_EVENTS = Object.keys(this.getOption('eventPixels'))
+    this._isLoaded = false
 
-    const siteId = this.getOption('siteId');
+    const siteId = this.getOption('siteId')
 
     if (siteId) {
       this.addTag({
         type: 'img',
         attr: {
           // eslint-disable-next-line max-len
-          src: `https://rtbprojects.solution.weborama.fr/fcgi-bin/dispatch.fcgi?a.A=co&a.si=${siteId}&a.cp={{ conversionId }}&a.ct=d`,
-        },
-      });
+          src: `https://rtbprojects.solution.weborama.fr/fcgi-bin/dispatch.fcgi?a.A=co&a.si=${siteId}&a.cp={{ conversionId }}&a.ct=d`
+        }
+      })
     } else {
       this.addTag('weborama-event-pixel', {
         type: 'img',
         attr: {
-          src: '{{ url }}',
-        },
-      });
+          src: '{{ url }}'
+        }
+      })
     }
   }
 
-  initialize() {
-    this._isLoaded = true;
+  initialize () {
+    this._isLoaded = true
   }
 
-  getSemanticEvents() {
-    return this.SEMANTIC_EVENTS;
+  getSemanticEvents () {
+    return this.SEMANTIC_EVENTS
   }
 
-  isLoaded() {
-    return this._isLoaded;
+  isLoaded () {
+    return this._isLoaded
   }
 
-  trackEvent(event) {
-    const eventPixels = this.getOption('eventPixels');
+  trackEvent (event) {
+    const eventPixels = this.getOption('eventPixels')
     if (this.getOption('siteId')) {
-      const conversionId = eventPixels[event.name];
+      const conversionId = eventPixels[event.name]
       if (conversionId) {
-        this.load({ conversionId });
+        this.load({ conversionId })
       }
     } else if (eventPixels[event.name]) {
-      this.load('weborama-event-pixel', { url: eventPixels[event.name] });
+      this.load('weborama-event-pixel', { url: eventPixels[event.name] })
     }
   }
 }
 
-export default Weborama;
+export default Weborama

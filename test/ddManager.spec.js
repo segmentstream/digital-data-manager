@@ -1,248 +1,248 @@
-import assert, { deepEqual } from 'assert';
-import sinon from 'sinon';
-import jsonIsEqual from '@segmentstream/utils/jsonIsEqual';
-import reset from './reset';
-import snippet from './snippet';
-import ddManager from '../src/ddManager';
-import Integration from '../src/Integration';
-import availableIntegrations from '../src/availableIntegrations';
-import DDStorage from '../src/DDStorage';
-import Storage from '../src/Storage';
-import '../src/index';
+import assert from 'assert'
+import sinon from 'sinon'
+import jsonIsEqual from '@segmentstream/utils/jsonIsEqual'
+import reset from './reset'
+import snippet from './snippet'
+import ddManager from '../src/ddManager'
+import Integration from '../src/Integration'
+import availableIntegrations from '../src/availableIntegrations'
+import DDStorage from '../src/DDStorage'
+import Storage from '../src/Storage'
+import '../src/index'
 
 describe('DDManager', () => {
   beforeEach(() => {
-    window.localStorage.clear();
-  });
+    window.localStorage.clear()
+  })
 
   afterEach(() => {
-    window.localStorage.clear();
-    ddManager.reset();
-    reset();
-  });
+    window.localStorage.clear()
+    ddManager.reset()
+    reset()
+  })
 
   describe('#initialize', () => {
     it('passing the ddManager object by reference', () => {
-      window.ddManager.TEST_VAR = 'TEST_VAL';
-      window.segmentstream.TEST_VAR = 'TEST_VAL';
-      deepEqual(window.ddManager, ddManager);
-      deepEqual(window.segmentstream, ddManager);
-    });
+      window.ddManager.TEST_VAR = 'TEST_VAL'
+      window.segmentstream.TEST_VAR = 'TEST_VAL'
+      assert.strict.deepEqual(window.ddManager, ddManager)
+      assert.strict.deepEqual(window.segmentstream, ddManager)
+    })
 
     it('should initialize Array objects for window.digitalData.events and window.ddListener', () => {
       ddManager.initialize({
-        sendViewedPageEvent: false,
-      });
-      assert.ok(Array.isArray(window.digitalData.events));
-      assert.ok(Array.isArray(window.ddListener));
-    });
+        sendViewedPageEvent: false
+      })
+      assert.ok(Array.isArray(window.digitalData.events))
+      assert.ok(Array.isArray(window.ddListener))
+    })
 
     it('should initialize website, page, user and cart objects', () => {
       ddManager.initialize({
-        sendViewedPageEvent: true,
-      });
-      assert.ok(window.digitalData.website);
-      assert.ok(window.digitalData.page);
-      assert.ok(window.digitalData.user);
-      assert.ok(window.digitalData.cart); // if page !== 'confirmation'
-    });
+        sendViewedPageEvent: true
+      })
+      assert.ok(window.digitalData.website)
+      assert.ok(window.digitalData.page)
+      assert.ok(window.digitalData.user)
+      assert.ok(window.digitalData.cart) // if page !== 'confirmation'
+    })
 
     it('should work well with async load using stubs from the snippet', () => {
-      snippet();
+      snippet()
       window.ddManager.initialize({
-        sendViewedPageEvent: false,
-      });
-      ddManager.processEarlyStubCalls(window.ddManager);
+        sendViewedPageEvent: false
+      })
+      ddManager.processEarlyStubCalls(window.ddManager)
 
-      assert.ok(ddManager.isReady());
-      assert.ok(Array.isArray(window.digitalData.events));
-      assert.ok(Array.isArray(window.ddListener));
-    });
+      assert.ok(ddManager.isReady())
+      assert.ok(Array.isArray(window.digitalData.events))
+      assert.ok(Array.isArray(window.ddListener))
+    })
 
     it('should initialize after all other stubs', (done) => {
-      snippet();
+      snippet()
       window.ddManager.initialize({
-        sendViewedPageEvent: false,
-      });
+        sendViewedPageEvent: false
+      })
       window.ddManager.on('ready', () => {
-        done();
-      });
-      ddManager.processEarlyStubCalls(window.ddManager);
-    });
+        done()
+      })
+      ddManager.processEarlyStubCalls(window.ddManager)
+    })
 
     it('should initialize DDManager instance', () => {
       ddManager.initialize({
-        sendViewedPageEvent: false,
-      });
-      assert.ok(ddManager.isReady());
-    });
+        sendViewedPageEvent: false
+      })
+      assert.ok(ddManager.isReady())
+    })
 
     it('should add integration if old-style object settings', () => {
-      ddManager.setAvailableIntegrations(availableIntegrations);
+      ddManager.setAvailableIntegrations(availableIntegrations)
       ddManager.initialize({
         sendViewedPageEvent: false,
         integrations: {
           'Google Tag Manager': {
-            componentId: 'XXX',
-          },
-        },
-      });
+            componentId: 'XXX'
+          }
+        }
+      })
 
-      assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration);
-    });
+      assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration)
+    })
 
     it('should add integration if old-style object settings without options', () => {
-      ddManager.setAvailableIntegrations(availableIntegrations);
+      ddManager.setAvailableIntegrations(availableIntegrations)
       ddManager.initialize({
         sendViewedPageEvent: false,
         integrations: {
-          'Google Tag Manager': true,
-        },
-      });
+          'Google Tag Manager': true
+        }
+      })
 
-      assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration);
-    });
+      assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration)
+    })
 
     it('should add integration if new array settings', () => {
-      ddManager.setAvailableIntegrations(availableIntegrations);
+      ddManager.setAvailableIntegrations(availableIntegrations)
       ddManager.initialize({
         sendViewedPageEvent: false,
         integrations: [
           {
             name: 'Google Tag Manager',
             options: {
-              componentId: 'XXX',
-            },
-          },
-        ],
-      });
+              componentId: 'XXX'
+            }
+          }
+        ]
+      })
 
-      assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration);
-    });
+      assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration)
+    })
 
     it('should add integration if new array settings without options', () => {
-      ddManager.setAvailableIntegrations(availableIntegrations);
+      ddManager.setAvailableIntegrations(availableIntegrations)
       ddManager.initialize({
         sendViewedPageEvent: false,
         integrations: [
           {
-            name: 'Google Tag Manager',
-          },
-        ],
-      });
+            name: 'Google Tag Manager'
+          }
+        ]
+      })
 
-      assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration);
-    });
+      assert.ok(ddManager.getIntegration('Google Tag Manager') instanceof Integration)
+    })
 
     it('shoud set EventManager\'s sendViewedPageEvent value to true', () => {
-      ddManager.initialize({ sendViewedPageEvent: true });
-      assert.ok(ddManager.getEventManager().getSendViewedPageEvent());
-    });
+      ddManager.initialize({ sendViewedPageEvent: true })
+      assert.ok(ddManager.getEventManager().getSendViewedPageEvent())
+    })
 
     it('shoud set EventManager\'s sendViewedPageEvent value to false', () => {
-      ddManager.initialize();
-      assert.ok(ddManager.getEventManager().getSendViewedPageEvent());
-    });
+      ddManager.initialize()
+      assert.ok(ddManager.getEventManager().getSendViewedPageEvent())
+    })
 
     it('it should fire on("ready") event even if ddManager was ready before', (done) => {
       ddManager.initialize({
-        sendViewedPageEvent: false,
-      });
+        sendViewedPageEvent: false
+      })
       if (ddManager.isReady()) {
         ddManager.on('ready', () => {
-          done();
-        });
+          done()
+        })
       } else {
-        assert.ok(false);
+        assert.ok(false)
       }
-    });
+    })
 
     it('it should fire once("ready") event even if ddManager was ready before', (done) => {
       ddManager.initialize({
-        sendViewedPageEvent: false,
-      });
+        sendViewedPageEvent: false
+      })
       if (ddManager.isReady()) {
         ddManager.once('ready', () => {
-          done();
-        });
+          done()
+        })
       } else {
-        assert.ok(false);
+        assert.ok(false)
       }
-    });
+    })
 
     it('it should fire on("initialize") event even if ddManager was initialized before', (done) => {
       ddManager.initialize({
-        sendViewedPageEvent: false,
-      });
+        sendViewedPageEvent: false
+      })
       if (ddManager.isReady()) {
         ddManager.on('ready', () => {
-          done();
-        });
+          done()
+        })
       } else {
-        assert.ok(false);
+        assert.ok(false)
       }
-    });
+    })
 
     it('it should fire once("initialize") event even if ddManager was initialized before', (done) => {
       ddManager.initialize({
-        sendViewedPageEvent: false,
-      });
+        sendViewedPageEvent: false
+      })
       if (ddManager.isReady()) {
         ddManager.once('ready', () => {
-          done();
-        });
+          done()
+        })
       } else {
-        assert.ok(false);
+        assert.ok(false)
       }
-    });
+    })
 
     it('it should enrich digital data', (done) => {
       ddManager.initialize({
-        sendViewedPageEvent: true,
-      });
+        sendViewedPageEvent: true
+      })
       if (ddManager.isReady()) {
         ddManager.once('ready', () => {
-          assert.ok(window.digitalData.context.userAgent);
-          done();
-        });
+          assert.ok(window.digitalData.context.userAgent)
+          done()
+        })
       } else {
-        assert.ok(false);
+        assert.ok(false)
       }
-    });
+    })
 
     it('should enrich digitalData based on semantic events', (done) => {
       window.digitalData = {
         user: {
           isSubscribed: false,
           isLoggedIn: true,
-          hasTransacted: false,
-        },
-      };
+          hasTransacted: false
+        }
+      }
 
       ddManager.once('ready', () => {
         window.digitalData.events.push({
-          name: 'Completed Transaction',
-        });
+          name: 'Completed Transaction'
+        })
 
         window.digitalData.events.push({
           name: 'Subscribed',
           user: {
-            email: 'test@email.com',
-          },
-        });
+            email: 'test@email.com'
+          }
+        })
 
         setTimeout(() => {
-          assert.ok(window.digitalData.user.isLoggedIn);
-          assert.ok(window.digitalData.user.everLoggedIn);
-          assert.ok(window.digitalData.user.hasTransacted);
-          assert.ok(window.digitalData.user.isSubscribed);
-          assert.equal(window.digitalData.user.email, 'test@email.com');
-          assert.ok(window.digitalData.user.lastTransactionDate);
-          done();
-        }, 101);
-      });
-      ddManager.initialize();
-    });
+          assert.ok(window.digitalData.user.isLoggedIn)
+          assert.ok(window.digitalData.user.everLoggedIn)
+          assert.ok(window.digitalData.user.hasTransacted)
+          assert.ok(window.digitalData.user.isSubscribed)
+          assert.strict.equal(window.digitalData.user.email, 'test@email.com')
+          assert.ok(window.digitalData.user.lastTransactionDate)
+          done()
+        }, 101)
+      })
+      ddManager.initialize()
+    })
 
     // it('should update user.isReturning status', (done) => {
     //   window.localStorage.clear(); // just to be sure
@@ -268,26 +268,26 @@ describe('DDManager', () => {
         window.digitalData.events.push({
           name: 'Viewed Page',
           callback: () => {
-            assert.ok(!window.digitalData.user.isReturning);
+            assert.ok(!window.digitalData.user.isReturning)
             setTimeout(() => {
               window.digitalData.events.push({
                 name: 'Viewed Page',
                 callback: () => {
                   setTimeout(() => {
-                    assert.ok(!window.digitalData.user.isReturning);
-                    done();
-                  }, 110);
-                },
-              });
-            }, 110);
-          },
-        });
-      });
+                    assert.ok(!window.digitalData.user.isReturning)
+                    done()
+                  }, 110)
+                }
+              })
+            }, 110)
+          }
+        })
+      })
       ddManager.initialize({
         sessionLength: 20,
-        sendViewedPageEvent: false,
-      });
-    });
+        sendViewedPageEvent: false
+      })
+    })
 
     it('should unpersist context.campaing', (done) => {
       window.digitalData = {
@@ -295,16 +295,16 @@ describe('DDManager', () => {
           campaign: {
             name: 'segmentstream.com',
             source: 'segmentstream.com',
-            medium: 'segmentstream.com',
-          },
-        },
-      };
+            medium: 'segmentstream.com'
+          }
+        }
+      }
 
-      const localStorage = new Storage();
-      const _ddStorage = new DDStorage(window.digitalData, localStorage);
+      const localStorage = new Storage()
+      const _ddStorage = new DDStorage(window.digitalData, localStorage)
 
       ddManager.once('ready', () => {
-        ddManager.persist('context.campaign');
+        ddManager.persist('context.campaign')
         window.digitalData.events.push({
           name: 'Viewed Page',
           callback: () => {
@@ -313,18 +313,18 @@ describe('DDManager', () => {
                 name: 'Completed Transaction',
                 callback: () => {
                   setTimeout(() => {
-                    const val = _ddStorage.get('context.campaign');
-                    assert.ok(val === undefined);
-                    done();
-                  }, 110);
-                },
-              });
-            }, 110);
-          },
-        });
-      });
-      ddManager.initialize();
-    });
+                    const val = _ddStorage.get('context.campaign')
+                    assert.ok(val === undefined)
+                    done()
+                  }, 110)
+                }
+              })
+            }, 110)
+          }
+        })
+      })
+      ddManager.initialize()
+    })
 
     it('should persist context.campaing', (done) => {
       window.digitalData = {
@@ -332,92 +332,92 @@ describe('DDManager', () => {
           campaign: {
             name: 'segmentstream.com',
             source: 'segmentstream.com',
-            medium: 'segmentstream.com',
-          },
-        },
-      };
+            medium: 'segmentstream.com'
+          }
+        }
+      }
 
-      const localStorage = new Storage();
-      const _ddStorage = new DDStorage(window.digitalData, localStorage);
+      const localStorage = new Storage()
+      const _ddStorage = new DDStorage(window.digitalData, localStorage)
 
       ddManager.once('ready', () => {
-        ddManager.persist('context.campaign');
+        ddManager.persist('context.campaign')
         window.digitalData.events.push({
           name: 'Viewed Page',
           callback: () => {
             setTimeout(() => {
-              const oldVal = _ddStorage.get('context.campaign');
+              const oldVal = _ddStorage.get('context.campaign')
               window.digitalData.events.push({
                 name: 'Completed Transaction',
                 callback: () => {
                   setTimeout(() => {
-                    const newVal = _ddStorage.get('context.campaign');
-                    assert.ok(jsonIsEqual(oldVal, newVal));
-                    done();
-                  }, 110);
-                },
-              });
-            }, 110);
-          },
-        });
-      });
+                    const newVal = _ddStorage.get('context.campaign')
+                    assert.ok(jsonIsEqual(oldVal, newVal))
+                    done()
+                  }, 110)
+                }
+              })
+            }, 110)
+          }
+        })
+      })
       ddManager.initialize({
-        unpersistContextCampaignOnTransaction: false,
-      });
-    });
-  });
+        unpersistContextCampaignOnTransaction: false
+      })
+    })
+  })
 
   describe('exclude/include tracking', () => {
-    const integration1 = new Integration(window.digitalData);
-    const integration2 = new Integration(window.digitalData);
-    const integration3 = new Integration(window.digitalData);
+    const integration1 = new Integration(window.digitalData)
+    const integration2 = new Integration(window.digitalData)
+    const integration3 = new Integration(window.digitalData)
 
-    integration1.allowCustomEvents = integration2.allowCustomEvents = integration3.allowCustomEvents = () => true;
+    integration1.allowCustomEvents = integration2.allowCustomEvents = integration3.allowCustomEvents = () => true
 
     beforeEach(() => {
-      sinon.stub(integration1, 'trackEvent');
-      sinon.stub(integration2, 'trackEvent');
-      sinon.stub(integration3, 'trackEvent');
+      sinon.stub(integration1, 'trackEvent')
+      sinon.stub(integration2, 'trackEvent')
+      sinon.stub(integration3, 'trackEvent')
 
-      window.localStorage.clear(); // clear
-      ddManager.addIntegration('integration1', integration1);
-      ddManager.addIntegration('integration2', integration2);
-      ddManager.addIntegration('integration3', integration3);
-      ddManager.initialize();
-    });
+      window.localStorage.clear() // clear
+      ddManager.addIntegration('integration1', integration1)
+      ddManager.addIntegration('integration2', integration2)
+      ddManager.addIntegration('integration3', integration3)
+      ddManager.initialize()
+    })
 
     afterEach(() => {
-      ddManager.reset();
-      integration1.trackEvent.restore();
-      integration2.trackEvent.restore();
-      integration3.trackEvent.restore();
-    });
+      ddManager.reset()
+      integration1.trackEvent.restore()
+      integration2.trackEvent.restore()
+      integration3.trackEvent.restore()
+    })
 
     it('should not send event to integration1', (done) => {
       window.digitalData.events.push({
         name: 'Test',
         excludeIntegrations: ['integration1'],
         callback: () => {
-          assert.ok(!integration1.trackEvent.calledWithMatch({ name: 'Test' }));
-          assert.ok(integration2.trackEvent.calledWithMatch({ name: 'Test' }));
-          assert.ok(integration3.trackEvent.calledWithMatch({ name: 'Test' }));
-          done();
-        },
-      });
-    });
+          assert.ok(!integration1.trackEvent.calledWithMatch({ name: 'Test' }))
+          assert.ok(integration2.trackEvent.calledWithMatch({ name: 'Test' }))
+          assert.ok(integration3.trackEvent.calledWithMatch({ name: 'Test' }))
+          done()
+        }
+      })
+    })
 
     it('should not send event to integration1', (done) => {
       window.digitalData.events.push({
         name: 'Test',
         includeIntegrations: ['integration2', 'integration3'],
         callback: () => {
-          assert.ok(!integration1.trackEvent.calledWithMatch({ name: 'Test' }));
-          assert.ok(integration2.trackEvent.calledWithMatch({ name: 'Test' }));
-          assert.ok(integration3.trackEvent.calledWithMatch({ name: 'Test' }));
-          done();
-        },
-      });
-    });
+          assert.ok(!integration1.trackEvent.calledWithMatch({ name: 'Test' }))
+          assert.ok(integration2.trackEvent.calledWithMatch({ name: 'Test' }))
+          assert.ok(integration3.trackEvent.calledWithMatch({ name: 'Test' }))
+          done()
+        }
+      })
+    })
 
     it('should not send event at all', (done) => {
       window.digitalData.events.push({
@@ -425,74 +425,74 @@ describe('DDManager', () => {
         includeIntegrations: ['integration2', 'integration3'],
         excludeIntegrations: ['integration1'],
         callback: () => {
-          assert.ok(!integration1.trackEvent.calledWithMatch({ name: 'Test' }));
-          assert.ok(!integration2.trackEvent.calledWithMatch({ name: 'Test' }));
-          assert.ok(!integration3.trackEvent.calledWithMatch({ name: 'Test' }));
-          done();
-        },
-      });
-    });
+          assert.ok(!integration1.trackEvent.calledWithMatch({ name: 'Test' }))
+          assert.ok(!integration2.trackEvent.calledWithMatch({ name: 'Test' }))
+          assert.ok(!integration3.trackEvent.calledWithMatch({ name: 'Test' }))
+          done()
+        }
+      })
+    })
 
     it('should not send Session Started event', () => {
-      assert.ok(!integration1.trackEvent.calledWithMatch({ name: 'Session Started' }));
-      assert.ok(!integration2.trackEvent.calledWithMatch({ name: 'Session Started' }));
-      assert.ok(!integration3.trackEvent.calledWithMatch({ name: 'Session Started' }));
-    });
-  });
+      assert.ok(!integration1.trackEvent.calledWithMatch({ name: 'Session Started' }))
+      assert.ok(!integration2.trackEvent.calledWithMatch({ name: 'Session Started' }))
+      assert.ok(!integration3.trackEvent.calledWithMatch({ name: 'Session Started' }))
+    })
+  })
 
   describe('override options', () => {
     const integration = new Integration(window.digitalData, {
       option1: 'initial_value',
       option2: 'initial_value',
       overrideFunctions: {
-        options(options) {
-          options.option1 = 'overriden_value';
-        },
-      },
-    });
+        options (options) {
+          options.option1 = 'overriden_value'
+        }
+      }
+    })
 
     beforeEach(() => {
-      ddManager.addIntegration('integration1', integration);
-    });
+      ddManager.addIntegration('integration1', integration)
+    })
 
     afterEach(() => {
-      ddManager.reset();
-    });
+      ddManager.reset()
+    })
 
     it('should override option1 and not override option2', () => {
-      assert.ok(integration.getOption('option1'), 'overriden_value');
-      assert.ok(integration.getOption('option1'), 'initial_value');
-    });
-  });
+      assert.ok(integration.getOption('option1'), 'overriden_value')
+      assert.ok(integration.getOption('option1'), 'initial_value')
+    })
+  })
 
   describe('override product', () => {
-    let integration;
+    let integration
 
     beforeEach(() => {
       window.digitalData = {
         product: {
-          id: '123',
-        },
-      };
+          id: '123'
+        }
+      }
       integration = new Integration(window.digitalData, {
         option1: 'initial_value',
         option2: 'initial_value',
         overrideFunctions: {
           product: (product) => {
-            product.id += '-test';
-          },
-        },
-      });
-      integration.getEnrichableEventProps = () => ['product'];
-      integration.getSemanticEvents = () => ['Viewed Product Detail'];
-      sinon.stub(integration, 'trackEvent');
-      ddManager.addIntegration('integration1', integration);
-      ddManager.initialize();
-    });
+            product.id += '-test'
+          }
+        }
+      })
+      integration.getEnrichableEventProps = () => ['product']
+      integration.getSemanticEvents = () => ['Viewed Product Detail']
+      sinon.stub(integration, 'trackEvent')
+      ddManager.addIntegration('integration1', integration)
+      ddManager.initialize()
+    })
 
     afterEach(() => {
-      ddManager.reset();
-    });
+      ddManager.reset()
+    })
 
     it('should not override original DDL', (done) => {
       window.digitalData.events.push({
@@ -500,19 +500,19 @@ describe('DDManager', () => {
         callback: () => {
           assert.ok(integration.trackEvent.calledWithMatch({
             product: {
-              id: '123-test',
-            },
-          }));
-          assert.equal(window.digitalData.product.id, '123');
-          done();
-        },
-      });
-    });
-  });
+              id: '123-test'
+            }
+          }))
+          assert.strict.equal(window.digitalData.product.id, '123')
+          done()
+        }
+      })
+    })
+  })
 
   describe('Custom enrichments', () => {
     it('should enrich digitalData with custom enrichments (version < 1.2.9)', () => {
-      window.digitalData = {};
+      window.digitalData = {}
       ddManager.initialize({
         version: '1.2.8',
         enrichments: [
@@ -521,25 +521,25 @@ describe('DDManager', () => {
             prop: 'user.prop1',
             handler: () => true,
             options: {
-              events: ['Viewed Page'],
-            },
+              events: ['Viewed Page']
+            }
           },
           {
             type: 'digitalData',
             prop: 'user.prop2',
             handler: () => true,
             options: {
-              events: ['Viewed Page'],
-            },
-          },
-        ],
-      });
-      assert.ok(window.digitalData.user.prop1);
-      assert.ok(window.digitalData.user.prop2);
-    });
+              events: ['Viewed Page']
+            }
+          }
+        ]
+      })
+      assert.ok(window.digitalData.user.prop1)
+      assert.ok(window.digitalData.user.prop2)
+    })
 
     it('should enrich digitalData with custom enrichments (version >= 1.2.9)', () => {
-      window.digitalData = {};
+      window.digitalData = {}
       ddManager.initialize({
         version: '1.2.9',
         enrichments: [
@@ -547,7 +547,7 @@ describe('DDManager', () => {
             prop: 'user.prop1',
             beforeEvent: true,
             event: 'Viewed Page',
-            handler: () => true,
+            handler: () => true
           },
           {
             prop: 'user.prop2',
@@ -555,40 +555,40 @@ describe('DDManager', () => {
             event: 'Viewed Page',
             handler: () => true,
             persist: true,
-            persistTtl: 100,
-          },
-        ],
-      });
-      assert.ok(window.digitalData.user.prop1);
-      assert.ok(window.digitalData.user.prop2);
-    });
-  });
+            persistTtl: 100
+          }
+        ]
+      })
+      assert.ok(window.digitalData.user.prop1)
+      assert.ok(window.digitalData.user.prop2)
+    })
+  })
 
   describe('Named/Categorized Pages', () => {
-    const integration = new Integration(window.digitalData);
-    integration.getEnrichableEventProps = () => ['page'];
-    integration.getSemanticEvents = () => ['Viewed Page'];
+    const integration = new Integration(window.digitalData)
+    integration.getEnrichableEventProps = () => ['page']
+    integration.getSemanticEvents = () => ['Viewed Page']
 
     beforeEach(() => {
-      sinon.stub(integration, 'trackEvent');
-      ddManager.addIntegration('integration1', integration);
-      ddManager.initialize();
-    });
+      sinon.stub(integration, 'trackEvent')
+      ddManager.addIntegration('integration1', integration)
+      ddManager.initialize()
+    })
 
     afterEach(() => {
-      ddManager.reset();
-      integration.trackEvent.restore();
-    });
+      ddManager.reset()
+      integration.trackEvent.restore()
+    })
 
     it('should not track named and categorized pages', (done) => {
-      integration.trackNamedPages = () => false;
-      integration.trackCategorizedPages = () => false;
+      integration.trackNamedPages = () => false
+      integration.trackCategorizedPages = () => false
 
       window.digitalData.page = {
         type: 'home',
         name: 'Test Name',
-        category: 'Test Category',
-      };
+        category: 'Test Category'
+      }
       window.digitalData.events.push({
         name: 'Viewed Page',
         callback: () => {
@@ -597,28 +597,28 @@ describe('DDManager', () => {
             page: {
               type: 'home',
               name: 'Test Name',
-              category: 'Test Category',
-            },
-          }));
+              category: 'Test Category'
+            }
+          }))
           assert.ok(!integration.trackEvent.calledWithMatch({
             name: 'Viewed Test Name Page',
             page: {
               type: 'home',
               name: 'Test Name',
-              category: 'Test Category',
-            },
-          }));
+              category: 'Test Category'
+            }
+          }))
           assert.ok(!integration.trackEvent.calledWithMatch({
             name: 'Viewed Test Category Page',
             page: {
               type: 'home',
               name: 'Test Name',
-              category: 'Test Category',
-            },
-          }));
-          done();
-        },
-      });
-    });
-  });
-});
+              category: 'Test Category'
+            }
+          }))
+          done()
+        }
+      })
+    })
+  })
+})

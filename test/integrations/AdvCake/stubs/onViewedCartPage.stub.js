@@ -6,7 +6,7 @@ const basketProducts = [
     id: '123',
     name: 'Hat',
     price: 100,
-    quantity: 2,
+    quantity: 2
   },
   {
     brand: 'DB',
@@ -15,16 +15,16 @@ const basketProducts = [
     id: '124',
     name: 'Shirt',
     price: 300,
-    quantity: 1,
-  },
-];
+    quantity: 1
+  }
+]
 
 const onViewedCartPageStub = {
   user: undefined,
   basketProducts,
-  pageType: 4,
-};
+  pageType: 4
+}
 
 export {
-  onViewedCartPageStub,
-};
+  onViewedCartPageStub
+}

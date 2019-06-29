@@ -6,21 +6,21 @@ const onSubscribedEmailSubscribeStub = {
       firstName: 'John',
       lastName: 'Dow',
       customFields: {
-        source: 'Driveback',
+        source: 'Driveback'
       },
       area: {
         ids: {
-          externalId: 'region123',
-        },
+          externalId: 'region123'
+        }
       },
       subscriptions: [
         {
-          pointOfContact: 'Email',
-        },
-      ],
-    },
-  },
-};
+          pointOfContact: 'Email'
+        }
+      ]
+    }
+  }
+}
 
 const onSubscribedEmailSubscribeCustomStub = {
   operation: 'EmailSubscribeCustom',
@@ -30,16 +30,16 @@ const onSubscribedEmailSubscribeCustomStub = {
       firstName: 'John',
       lastName: 'Dow',
       customFields: {
-        source: 'Driveback',
+        source: 'Driveback'
       },
       subscriptions: [
         {
-          pointOfContact: 'Email',
-        },
-      ],
-    },
-  },
-};
+          pointOfContact: 'Email'
+        }
+      ]
+    }
+  }
+}
 
 const onSubscribedEmailSubscribeAlterCustomStub = {
   operation: 'EmailSubscribeCustom',
@@ -52,24 +52,24 @@ const onSubscribedEmailSubscribeAlterCustomStub = {
       subscriptions: [
         {
           pointOfContact: 'Email',
-          topic: 'News',
+          topic: 'News'
         },
         {
           pointOfContact: 'Email',
-          topic: 'Special Offers',
+          topic: 'Special Offers'
         },
         {
           pointOfContact: 'Sms',
-          topic: 'Special Offers',
-        },
-      ],
+          topic: 'Special Offers'
+        }
+      ]
     },
-    pointOfContact: 'Footer Form',
-  },
-};
+    pointOfContact: 'Footer Form'
+  }
+}
 
 export {
   onSubscribedEmailSubscribeStub,
   onSubscribedEmailSubscribeCustomStub,
-  onSubscribedEmailSubscribeAlterCustomStub,
-};
+  onSubscribedEmailSubscribeAlterCustomStub
+}

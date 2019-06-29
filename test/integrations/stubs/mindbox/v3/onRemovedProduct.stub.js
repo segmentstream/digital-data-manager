@@ -1,5 +1,5 @@
 const onRemovedProductRemoveProductStub = {
-  operation: 'RemoveProduct',
-};
+  operation: 'RemoveProduct'
+}
 
-export { onRemovedProductRemoveProductStub };
+export { onRemovedProductRemoveProductStub }

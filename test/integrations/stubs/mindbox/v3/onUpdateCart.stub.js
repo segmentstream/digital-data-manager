@@ -5,33 +5,33 @@ const onUpdateCartSetCartStub = {
       {
         product: {
           ids: {
-            exampleId: '123',
+            exampleId: '123'
           },
           sku: {
             ids: {
-              exampleSku: 'sku123',
-            },
-          },
+              exampleSku: 'sku123'
+            }
+          }
         },
         count: 2,
-        price: 2000,
+        price: 2000
       },
       {
         product: {
           ids: {
-            exampleId: '234',
+            exampleId: '234'
           },
           sku: {
             ids: {
-              exampleSku: 'sku234',
-            },
-          },
+              exampleSku: 'sku234'
+            }
+          }
         },
         count: 1,
-        price: 1000,
-      },
-    ],
-  },
-};
+        price: 1000
+      }
+    ]
+  }
+}
 
-export { onUpdateCartSetCartStub };
+export { onUpdateCartSetCartStub }

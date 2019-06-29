@@ -1,73 +1,73 @@
-import deleteProperty from '@segmentstream/utils/deleteProperty';
-import cleanObject from '@segmentstream/utils/cleanObject';
-import { getProp } from '@segmentstream/utils/dotProp';
-import Integration from '../Integration';
-import AsyncQueue from './utils/AsyncQueue';
+import deleteProperty from '@segmentstream/utils/deleteProperty'
+import cleanObject from '@segmentstream/utils/cleanObject'
+import { getProp } from '@segmentstream/utils/dotProp'
+import Integration from '../Integration'
+import AsyncQueue from './utils/AsyncQueue'
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
-  COMPLETED_TRANSACTION,
-} from '../events/semanticEvents';
+  COMPLETED_TRANSACTION
+} from '../events/semanticEvents'
 
 const SEMANTIC_EVENTS = [
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
-  COMPLETED_TRANSACTION,
-];
+  COMPLETED_TRANSACTION
+]
 
 /* eslint-disable new-cap */
 
 class Ofsys extends Integration {
-  constructor(digitalData, options) {
+  constructor (digitalData, options) {
     const optionsWithDefaults = Object.assign({
-      accountKey: '',
-    }, options);
+      accountKey: ''
+    }, options)
 
-    super(digitalData, optionsWithDefaults);
+    super(digitalData, optionsWithDefaults)
 
     this.addTag({
       type: 'script',
       attr: {
-        src: `https://t.ofsys.com/js/Journey/1/${options.accountKey}/DI.Journey-min.js`,
-      },
-    });
+        src: `https://t.ofsys.com/js/Journey/1/${options.accountKey}/DI.Journey-min.js`
+      }
+    })
   }
 
-  getSemanticEvents() {
-    return SEMANTIC_EVENTS;
+  getSemanticEvents () {
+    return SEMANTIC_EVENTS
   }
 
-  getEnrichableEventProps(event) {
-    let enrichableProps = [];
+  getEnrichableEventProps (event) {
+    let enrichableProps = []
     switch (event.name) {
       case VIEWED_PAGE:
         enrichableProps = [
           'user.email',
-          'cart',
-        ];
-        break;
+          'cart'
+        ]
+        break
       case VIEWED_PRODUCT_DETAIL:
         enrichableProps = [
-          'product.id',
-        ];
-        break;
+          'product.id'
+        ]
+        break
       case COMPLETED_TRANSACTION:
         enrichableProps = [
-          'transaction',
-        ];
-        break;
+          'transaction'
+        ]
+        break
       default:
       // do nothing
     }
 
-    return enrichableProps;
+    return enrichableProps
   }
 
-  getEventValidationConfig(event) {
+  getEventValidationConfig (event) {
     const config = {
       [VIEWED_PAGE]: {
         fields: [
@@ -78,17 +78,17 @@ class Ofsys extends Integration {
           'cart.lineItems[].product.id',
           'cart.lineItems[].product.unitSalePrice',
           'cart.lineItems[].product.name',
-          'cart.lineItems[].quantity',
-        ],
+          'cart.lineItems[].quantity'
+        ]
       },
       [VIEWED_PRODUCT_DETAIL]: {
-        fields: ['product.id'],
+        fields: ['product.id']
       },
       [ADDED_PRODUCT]: {
-        fields: ['product.id', 'product.name', 'product.unitSalePrice', 'quantity'],
+        fields: ['product.id', 'product.name', 'product.unitSalePrice', 'quantity']
       },
       [REMOVED_PRODUCT]: {
-        fields: ['product.id'],
+        fields: ['product.id']
       },
       [COMPLETED_TRANSACTION]: {
         fields: [
@@ -103,57 +103,57 @@ class Ofsys extends Integration {
           'transaction.lineItems[].product.name',
           'transaction.lineItems[].product.unitSalePrice',
           'transaction.lineItems[].subtotal',
-          'transaction.lineItems[].quantity',
-        ],
-      },
-    };
+          'transaction.lineItems[].quantity'
+        ]
+      }
+    }
 
-    return config[event.name];
+    return config[event.name]
   }
 
-  initialize() {
-    this.asyncQueue = new AsyncQueue(this.isLoaded);
+  initialize () {
+    this.asyncQueue = new AsyncQueue(this.isLoaded)
   }
 
-  onLoadInitiated() {
-    this.asyncQueue.init();
+  onLoadInitiated () {
+    this.asyncQueue.init()
   }
 
-  flushQueue() {
-    let handler = this.asyncQueue.shift();
+  flushQueue () {
+    let handler = this.asyncQueue.shift()
     while (handler && typeof handler === 'function') {
-      handler();
-      handler = this.asyncQueue.shift();
+      handler()
+      handler = this.asyncQueue.shift()
     }
     this.asyncQueue.push = (callback) => {
-      callback();
-    };
+      callback()
+    }
   }
 
-  isLoaded() {
-    return !!(window.DI && window.DI.Journey);
+  isLoaded () {
+    return !!(window.DI && window.DI.Journey)
   }
 
-  reset() {
-    deleteProperty(window, 'OFSYS_Tracking_onload');
-    deleteProperty(window, 'DI');
+  reset () {
+    deleteProperty(window, 'OFSYS_Tracking_onload')
+    deleteProperty(window, 'DI')
   }
 
-  createCart(cart) {
-    cart = cart || {};
-    if (!cart.id) return;
+  createCart (cart) {
+    cart = cart || {}
+    if (!cart.id) return
 
-    cart.total = cart.total || 0;
+    cart.total = cart.total || 0
 
-    this.cartId = cart.id;
-    this.cart = cart;
+    this.cartId = cart.id
+    this.cart = cart
     this.asyncQueue.push(() => {
       window.DI.Journey.ECommerce.AddCart(cleanObject({ // eslint-disable-line new-cap
         idCart: cart.id,
         status: cart.checkoutStep,
-        TotalPrice: cart.total,
-      }));
-    });
+        TotalPrice: cart.total
+      }))
+    })
 
     if (cart.lineItems && cart.lineItems.length) {
       // add products to cart and submit cart
@@ -164,76 +164,76 @@ class Ofsys extends Integration {
             idProduct: getProp(lineItem, 'product.id'),
             productName: getProp(lineItem, 'product.name'),
             priceunit: getProp(lineItem, 'product.unitSalePrice') || getProp(lineItem, 'product.unitPrice'),
-            quantity: lineItem.quantity || 1,
-          });
-        });
+            quantity: lineItem.quantity || 1
+          })
+        })
         // window.DI.Journey.ECommerce.SubmitCart();
-      });
+      })
     }
   }
 
-  getCartItemNewQuantity(productId, additionalQuantity) {
-    const { cart } = this;
+  getCartItemNewQuantity (productId, additionalQuantity) {
+    const { cart } = this
     if (!cart || !cart.lineItems || !cart.lineItems.length) {
-      return additionalQuantity;
+      return additionalQuantity
     }
     return cart.lineItems.reduce((acc, lineItem) => {
-      const { product } = lineItem;
+      const { product } = lineItem
       if (product && String(product.id) === String(productId)) {
-        acc += (lineItem.quantity || 1);
+        acc += (lineItem.quantity || 1)
       }
-      return acc;
-    }, 0);
+      return acc
+    }, 0)
   }
 
-  getNewCartTotal(unitSalePrice, quantity) {
+  getNewCartTotal (unitSalePrice, quantity) {
     // quantity can be negative, if product price should be subtracted
-    const totalChange = unitSalePrice * quantity;
-    const newCartTotal = this.cart.total + totalChange;
-    return newCartTotal;
+    const totalChange = unitSalePrice * quantity
+    const newCartTotal = this.cart.total + totalChange
+    return newCartTotal
   }
 
-  trackEvent(event) {
+  trackEvent (event) {
     const methods = {
       [VIEWED_PAGE]: 'onViewedPage',
       [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
       [ADDED_PRODUCT]: 'onAddedProduct',
       [REMOVED_PRODUCT]: 'onRemovedProduct',
-      [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
-    };
+      [COMPLETED_TRANSACTION]: 'onCompletedTransaction'
+    }
 
-    const method = methods[event.name];
+    const method = methods[event.name]
     if (method) {
-      this[method](event);
+      this[method](event)
     }
   }
 
-  onViewedPage(event) {
-    const email = getProp(event, 'user.email');
+  onViewedPage (event) {
+    const email = getProp(event, 'user.email')
     if (email) {
       this.asyncQueue.push(() => {
-        window.DI.Journey.Set('f_EMail', email);
-        window.DI.Journey.Track();
-      });
+        window.DI.Journey.Set('f_EMail', email)
+        window.DI.Journey.Track()
+      })
     }
 
-    this.createCart(event.cart);
+    this.createCart(event.cart)
   }
 
-  onViewedProductDetail(event) {
-    const { product } = event;
-    if (!product || !product.id) return;
+  onViewedProductDetail (event) {
+    const { product } = event
+    if (!product || !product.id) return
 
     this.asyncQueue.push(() => {
-      window.DI.Journey.ECommerce.ProductView(product.id);
-    });
+      window.DI.Journey.ECommerce.ProductView(product.id)
+    })
   }
 
-  onAddedProduct(event) {
-    const { product } = event;
-    if (!product || !product.id || !this.cartId) return;
+  onAddedProduct (event) {
+    const { product } = event
+    if (!product || !product.id || !this.cartId) return
 
-    const newCartTotal = this.getNewCartTotal(product.unitSalePrice, event.quantity || 1);
+    const newCartTotal = this.getNewCartTotal(product.unitSalePrice, event.quantity || 1)
 
     this.asyncQueue.push(() => {
       window.DI.Journey.ECommerce.AddCartItem({
@@ -241,38 +241,38 @@ class Ofsys extends Integration {
         idProduct: product.id,
         productName: product.name,
         priceunit: product.unitSalePrice,
-        quantity: this.getCartItemNewQuantity(product.id, event.quantity),
-      });
+        quantity: this.getCartItemNewQuantity(product.id, event.quantity)
+      })
       window.DI.Journey.ECommerce.UpdateCart({
         idCart: this.cartId,
-        TotalPrice: newCartTotal,
-      });
-      window.DI.Journey.ECommerce.SubmitCart();
-    });
+        TotalPrice: newCartTotal
+      })
+      window.DI.Journey.ECommerce.SubmitCart()
+    })
   }
 
-  onRemovedProduct(event) {
-    const { product } = event;
-    if (!product || !product.id || !this.cartId) return;
+  onRemovedProduct (event) {
+    const { product } = event
+    if (!product || !product.id || !this.cartId) return
 
-    const newCartTotal = this.getNewCartTotal(product.unitSalePrice, -event.quantity || -1);
+    const newCartTotal = this.getNewCartTotal(product.unitSalePrice, -event.quantity || -1)
 
     this.asyncQueue.push(() => {
       window.DI.Journey.ECommerce.RemoveCartItem({
         idCart: this.cartId,
-        idProduct: product.id,
-      });
+        idProduct: product.id
+      })
       window.DI.Journey.ECommerce.UpdateCart({
         idCart: this.cartId,
-        TotalPrice: newCartTotal,
-      });
-      window.DI.Journey.ECommerce.SubmitCart();
-    });
+        TotalPrice: newCartTotal
+      })
+      window.DI.Journey.ECommerce.SubmitCart()
+    })
   }
 
-  onCompletedTransaction(event) {
-    const { transaction } = event;
-    if (!transaction || !transaction.orderId) return;
+  onCompletedTransaction (event) {
+    const { transaction } = event
+    if (!transaction || !transaction.orderId) return
 
     this.asyncQueue.push(() => {
       window.DI.Journey.ECommerce.AddTransaction(cleanObject({
@@ -281,15 +281,15 @@ class Ofsys extends Integration {
         affiliation: transaction.affiliation,
         revenue: transaction.total,
         tax: transaction.tax,
-        shipping: transaction.shippingCost,
-      }));
-    });
+        shipping: transaction.shippingCost
+      }))
+    })
 
     if (transaction.lineItems && Array.isArray(transaction.lineItems)) {
       this.asyncQueue.push(() => {
         transaction.lineItems.forEach((lineItem) => {
-          const unitSalePrice = getProp(lineItem, 'product.unitSalePrice') || getProp(lineItem, 'product.unitPrice');
-          const quantity = lineItem.quantity || 1;
+          const unitSalePrice = getProp(lineItem, 'product.unitSalePrice') || getProp(lineItem, 'product.unitPrice')
+          const quantity = lineItem.quantity || 1
           window.DI.Journey.ECommerce.AddItem({
             idTransaction: transaction.orderId,
             idCart: transaction.cartId || this.cartId,
@@ -297,16 +297,16 @@ class Ofsys extends Integration {
             productName: getProp(lineItem, 'product.name'),
             Price_unit: unitSalePrice,
             Price_total: lineItem.subtotal || unitSalePrice * quantity,
-            quantity,
-          });
-        });
-      });
+            quantity
+          })
+        })
+      })
     }
 
     this.asyncQueue.push(() => {
-      window.DI.Journey.ECommerce.SubmitTransaction();
-    });
+      window.DI.Journey.ECommerce.SubmitTransaction()
+    })
   }
 }
 
-export default Ofsys;
+export default Ofsys

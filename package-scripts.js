@@ -28,12 +28,11 @@ module.exports = {
         script: series(cleanDist, createDist, browserifyProd),
       },
     },
-    lint: 'eslint src',
-    buildSnippet: './scripts/snippet/build',
+    standard: 'standard',
     buildTest: series(cleanBuild, createBuild, 'browserify test/index.test.js -t babelify --debug | exorcist --base=./build build/segmentstream-test.js.map > build/segmentstream-test.js'),
     mocha: 'mocha build/segmentstream-test.js',
     test: {
-      default: series.nps('buildTest', 'karma')
+      default: series.nps('standard', 'buildTest', 'karma')
     },
     karma: {
       default: 'karma start'

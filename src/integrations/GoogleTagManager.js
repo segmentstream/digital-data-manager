@@ -1,62 +1,62 @@
-import deleteProperty from '@segmentstream/utils/deleteProperty';
-import Integration from '../Integration';
+import deleteProperty from '@segmentstream/utils/deleteProperty'
+import Integration from '../Integration'
 
 class GoogleTagManager extends Integration {
-  constructor(digitalData, options) {
+  constructor (digitalData, options) {
     const optionsWithDefaults = Object.assign({
       containerId: null,
-      noConflict: false,
-    }, options);
-    super(digitalData, optionsWithDefaults);
+      noConflict: false
+    }, options)
+    super(digitalData, optionsWithDefaults)
     this.addTag({
       type: 'script',
       attr: {
-        src: `//www.googletagmanager.com/gtm.js?id=${options.containerId}&l=dataLayer`,
-      },
-    });
+        src: `//www.googletagmanager.com/gtm.js?id=${options.containerId}&l=dataLayer`
+      }
+    })
   }
 
-  allowCustomEvents() {
-    return true;
+  allowCustomEvents () {
+    return true
   }
 
-  getEventValidationConfig(event) {
+  getEventValidationConfig (event) {
     return {
-      fields: Object.keys(event),
-    };
-  }
-
-  initialize() {
-    window.dataLayer = window.dataLayer || [];
-    this.ddManager.on('ready', () => {
-      window.dataLayer.push({ event: 'DDManager Ready' });
-    });
-    this.ddManager.on('load', () => {
-      window.dataLayer.push({ event: 'DDManager Loaded' });
-    });
-    if (this.getOption('containerId') && this.getOption('noConflict') === false) {
-      window.dataLayer.push({ 'gtm.start': Number(new Date()), event: 'gtm.js' });
+      fields: Object.keys(event)
     }
   }
 
-  isLoaded() {
-    return !!(window.google_tag_manager && window.google_tag_manager[this.getOption('containerId')]);
+  initialize () {
+    window.dataLayer = window.dataLayer || []
+    this.ddManager.on('ready', () => {
+      window.dataLayer.push({ event: 'DDManager Ready' })
+    })
+    this.ddManager.on('load', () => {
+      window.dataLayer.push({ event: 'DDManager Loaded' })
+    })
+    if (this.getOption('containerId') && this.getOption('noConflict') === false) {
+      window.dataLayer.push({ 'gtm.start': Number(new Date()), event: 'gtm.js' })
+    }
   }
 
-  reset() {
-    deleteProperty(window, 'dataLayer');
-    deleteProperty(window, 'google_tag_manager');
+  isLoaded () {
+    return !!(window.google_tag_manager && window.google_tag_manager[this.getOption('containerId')])
   }
 
-  trackEvent(event) {
-    const dlEvent = Object.assign({}, event);
-    const { name, category } = dlEvent;
-    deleteProperty(dlEvent, 'name');
-    deleteProperty(dlEvent, 'category');
-    dlEvent.event = name;
-    dlEvent.eventCategory = category;
-    window.dataLayer.push(dlEvent);
+  reset () {
+    deleteProperty(window, 'dataLayer')
+    deleteProperty(window, 'google_tag_manager')
+  }
+
+  trackEvent (event) {
+    const dlEvent = Object.assign({}, event)
+    const { name, category } = dlEvent
+    deleteProperty(dlEvent, 'name')
+    deleteProperty(dlEvent, 'category')
+    dlEvent.event = name
+    dlEvent.eventCategory = category
+    window.dataLayer.push(dlEvent)
   }
 }
 
-export default GoogleTagManager;
+export default GoogleTagManager

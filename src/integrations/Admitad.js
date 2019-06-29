@@ -1,46 +1,46 @@
-import deleteProperty from '@segmentstream/utils/deleteProperty';
-import cleanObject from '@segmentstream/utils/cleanObject';
-import getQueryParam from '@segmentstream/utils/getQueryParam';
-import topDomain from '@segmentstream/utils/topDomain';
-import { getProp } from '@segmentstream/utils/dotProp';
-import normalizeString from '@segmentstream/utils/normalizeString';
-import cookie from 'js-cookie';
+import deleteProperty from '@segmentstream/utils/deleteProperty'
+import cleanObject from '@segmentstream/utils/cleanObject'
+import getQueryParam from '@segmentstream/utils/getQueryParam'
+import topDomain from '@segmentstream/utils/topDomain'
+import { getProp } from '@segmentstream/utils/dotProp'
+import normalizeString from '@segmentstream/utils/normalizeString'
+import cookie from 'js-cookie'
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_LISTING,
   VIEWED_PRODUCT_DETAIL,
   VIEWED_CART,
   COMPLETED_TRANSACTION,
-  LEAD,
-} from '../events/semanticEvents';
-import Integration from '../Integration';
-import { isDeduplication } from './utils/affiliate';
+  LEAD
+} from '../events/semanticEvents'
+import Integration from '../Integration'
+import { isDeduplication } from './utils/affiliate'
 
-function getScreenResolution() {
-  return `${window.screen.width}x${window.screen.height}`;
+function getScreenResolution () {
+  return `${window.screen.width}x${window.screen.height}`
 }
 
-const PAYMENT_TYPE_SALE = 'sale';
-const PAYMENT_TYPE_LEAD = 'lead';
-const UID_GET_PARAM = 'admitad_uid';
-const DEFAULT_COOKIE_NAME = 'admitad_uid';
-const ADMITAD_PIXEL_VAR = '_admitadPixelDD';
-const ADMITAD_POSITIONS_VAR = '_admitadPositionsDD';
+const PAYMENT_TYPE_SALE = 'sale'
+const PAYMENT_TYPE_LEAD = 'lead'
+const UID_GET_PARAM = 'admitad_uid'
+const DEFAULT_COOKIE_NAME = 'admitad_uid'
+const ADMITAD_PIXEL_VAR = '_admitadPixelDD'
+const ADMITAD_POSITIONS_VAR = '_admitadPositionsDD'
 
-function normalizeOptions(options) {
+function normalizeOptions (options) {
   if (options.deduplication) {
     if (options.utmSource) {
-      options.utmSource = normalizeString(options.utmSource);
+      options.utmSource = normalizeString(options.utmSource)
     }
     if (options.deduplicationUtmMedium) {
-      options.deduplicationUtmMedium = options.deduplicationUtmMedium.map(normalizeString);
+      options.deduplicationUtmMedium = options.deduplicationUtmMedium.map(normalizeString)
     }
   }
 }
 
 class Admitad extends Integration {
-  constructor(digitalData, options) {
-    normalizeOptions(options);
+  constructor (digitalData, options) {
+    normalizeOptions(options)
     const optionsWithDefaults = Object.assign({
       campaignCode: '',
       paymentType: PAYMENT_TYPE_SALE,
@@ -55,34 +55,34 @@ class Admitad extends Integration {
       deduplicationUtmMedium: [],
       crossDeviceTrackingId: 'none',
       reTag: false,
-      reTagCode: '',
-    }, options);
+      reTagCode: ''
+    }, options)
 
-    super(digitalData, optionsWithDefaults);
+    super(digitalData, optionsWithDefaults)
 
     this.SEMANTIC_EVENTS = [
-      COMPLETED_TRANSACTION,
-    ];
+      COMPLETED_TRANSACTION
+    ]
     if (this.getOption('reTag')) {
       this.SEMANTIC_EVENTS.push(
         VIEWED_PAGE,
         VIEWED_PRODUCT_LISTING,
         VIEWED_PRODUCT_DETAIL,
-        VIEWED_CART,
-      );
+        VIEWED_CART
+      )
     }
 
-    this._pixelAPI = this.getOption('apiVersion') === 'pixel';
+    this._pixelAPI = this.getOption('apiVersion') === 'pixel'
 
     if (this._pixelAPI) {
       this.addTag('trackingPixel', {
         type: 'script',
         attr: {
           id: '_admitad-pixel-dd',
-          src: `//cdn.asbmit.com/static/js/ddpixel.js?r=${Date.now()}`,
-        },
-      });
-      this._isLoaded = false;
+          src: `//cdn.asbmit.com/static/js/ddpixel.js?r=${Date.now()}`
+        }
+      })
+      this._isLoaded = false
     } else {
       /* eslint-disable */
       this.addTag({
@@ -98,58 +98,58 @@ class Admitad extends Integration {
     this.addTag('reTag', {
       type: 'script',
       attr: {
-        src: '//cdn.admitad.com/static/js/retag.js',
-      },
-    });
+        src: '//cdn.admitad.com/static/js/retag.js'
+      }
+    })
   }
 
-  initialize() {
-    if (this._pixelAPI) this._isLoaded = true;
+  initialize () {
+    if (this._pixelAPI) this._isLoaded = true
 
     if (this.getOption('reTag')) {
-      window._retag = window._retag || [];
+      window._retag = window._retag || []
     }
 
     if (this.getOption('cookieTracking')) {
-      this.addAffiliateCookie();
+      this.addAffiliateCookie()
     }
   }
 
-  addAffiliateCookie() {
+  addAffiliateCookie () {
     if (window.self !== window.top) {
-      return; // protect from iframe cookie-stuffing
+      return // protect from iframe cookie-stuffing
     }
 
-    const uidInQuery = getQueryParam(UID_GET_PARAM);
+    const uidInQuery = getQueryParam(UID_GET_PARAM)
     if (uidInQuery) {
       cookie.set(this.getOption('cookieName'), uidInQuery, {
         expires: this.getOption('cookieTtl'),
-        domain: this.getOption('cookieDomain'),
-      });
+        domain: this.getOption('cookieDomain')
+      })
     }
   }
 
-  getSemanticEvents() {
-    return this.SEMANTIC_EVENTS;
+  getSemanticEvents () {
+    return this.SEMANTIC_EVENTS
   }
 
-  getEnrichableEventProps(event) {
-    if (event.name === VIEWED_PAGE) return ['page'];
-    if (event.name === VIEWED_PRODUCT_LISTING) return ['listing.categoryId'];
-    if (event.name === VIEWED_PRODUCT_DETAIL) return ['product'];
-    if (event.name === VIEWED_CART) return ['cart'];
+  getEnrichableEventProps (event) {
+    if (event.name === VIEWED_PAGE) return ['page']
+    if (event.name === VIEWED_PRODUCT_LISTING) return ['listing.categoryId']
+    if (event.name === VIEWED_PRODUCT_DETAIL) return ['product']
+    if (event.name === VIEWED_CART) return ['cart']
     if (event.name === COMPLETED_TRANSACTION) {
       return [
         'transaction',
         'user.userId',
         'website.currency',
-        'context.campaign',
-      ];
+        'context.campaign'
+      ]
     }
-    return [];
+    return []
   }
 
-  getEventValidationConfig(event) {
+  getEventValidationConfig (event) {
     const config = {
       [COMPLETED_TRANSACTION]: {
         fields: [
@@ -158,60 +158,60 @@ class Admitad extends Integration {
           'transaction.lineItems[].product.unitSalePrice',
           'context.campaign.source',
           'context.campaign.medium',
-          'integrations.admitad.actionCode',
+          'integrations.admitad.actionCode'
         ],
         validations: {
           'transaction.orderId': {
             errors: ['required'],
-            warnings: ['string'],
+            warnings: ['string']
           },
           'transaction.lineItems[].product.id': {
             errors: ['required'],
-            warnings: ['string'],
+            warnings: ['string']
           },
           'transaction.lineItems[].product.unitSalePrice': {
             errors: ['required'],
-            warnings: ['numeric'],
-          },
-        },
-      },
-    };
+            warnings: ['numeric']
+          }
+        }
+      }
+    }
 
-    return config[event.name];
+    return config[event.name]
   }
 
-  isLoaded() {
-    return this._isLoaded;
+  isLoaded () {
+    return this._isLoaded
   }
 
-  reset() {
-    deleteProperty(window, '_admitadPixel');
-    deleteProperty(window, '_admitadPositions');
-    deleteProperty(window, '_retag');
-    deleteProperty(window, 'ad_category');
-    deleteProperty(window, 'ad_product');
-    deleteProperty(window, 'ad_products');
-    deleteProperty(window, 'ad_order');
-    deleteProperty(window, 'ad_amount');
+  reset () {
+    deleteProperty(window, '_admitadPixel')
+    deleteProperty(window, '_admitadPositions')
+    deleteProperty(window, '_retag')
+    deleteProperty(window, 'ad_category')
+    deleteProperty(window, 'ad_product')
+    deleteProperty(window, 'ad_products')
+    deleteProperty(window, 'ad_order')
+    deleteProperty(window, 'ad_amount')
   }
 
-  trackSale(event) {
+  trackSale (event) {
     if (this._pixelAPI) {
       // affiliate actions tracking
-      const uid = cookie.get(this.getOption('cookieName'));
-      if (!uid || !this.getOption('campaignCode')) return;
+      const uid = cookie.get(this.getOption('cookieName'))
+      if (!uid || !this.getOption('campaignCode')) return
 
       if (event.name === COMPLETED_TRANSACTION && this.getOption('paymentType') === PAYMENT_TYPE_SALE) {
-        this.trackSaleWithPixel(event, uid);
+        this.trackSaleWithPixel(event, uid)
       } else if (event.name === LEAD && this.getOption('paymentType') === PAYMENT_TYPE_LEAD) {
-        this.trackLead(event, uid);
+        this.trackLead(event, uid)
       }
     } else if (event.name === COMPLETED_TRANSACTION && this.getOption('paymentType') === PAYMENT_TYPE_SALE) {
-      this.trackSaleWithTagtag(event);
+      this.trackSaleWithTagtag(event)
     }
   }
 
-  trackEvent(event) {
+  trackEvent (event) {
     // retag tracking
     if (this.getOption('reTag')) {
       const methods = {
@@ -219,94 +219,94 @@ class Admitad extends Integration {
         [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
         [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
         [VIEWED_PRODUCT_LISTING]: 'onViewedProductListing',
-        [VIEWED_CART]: 'onViewedCart',
-      };
+        [VIEWED_CART]: 'onViewedCart'
+      }
 
-      const method = methods[event.name];
+      const method = methods[event.name]
       if (method) {
-        this[method](event);
+        this[method](event)
       }
     }
 
-    const campaign = getProp(event, 'context.campaign');
-    const utmSource = this.getOption('utmSource');
-    const deduplication = this.getOption('deduplication');
-    const deduplicationUtmMedium = this.getOption('deduplicationUtmMedium');
+    const campaign = getProp(event, 'context.campaign')
+    const utmSource = this.getOption('utmSource')
+    const deduplication = this.getOption('deduplication')
+    const deduplicationUtmMedium = this.getOption('deduplicationUtmMedium')
 
-    if (this._pixelAPI
-        && deduplication
-        && isDeduplication(campaign, utmSource, deduplicationUtmMedium)) return;
+    if (this._pixelAPI &&
+        deduplication &&
+        isDeduplication(campaign, utmSource, deduplicationUtmMedium)) return
 
-    this.trackSale(event);
+    this.trackSale(event)
   }
 
-  trackSaleWithTagtag(event) {
-    const { transaction } = event;
+  trackSaleWithTagtag (event) {
+    const { transaction } = event
 
     if (!transaction || !transaction.lineItems || !transaction.lineItems.length) {
-      return;
+      return
     }
 
-    const { lineItems } = transaction;
-    const admitadLoaded = !!window.ADMITAD;
+    const { lineItems } = transaction
+    const admitadLoaded = !!window.ADMITAD
 
-    window.ADMITAD = window.ADMITAD || {};
-    window.ADMITAD.Invoice = window.ADMITAD.Invoice || {};
-    const campaign = getProp(event, 'context.campaign');
-    const utmSource = this.getOption('utmSource');
-    const deduplication = this.getOption('deduplication');
-    const deduplicationUtmMedium = this.getOption('deduplicationUtmMedium');
+    window.ADMITAD = window.ADMITAD || {}
+    window.ADMITAD.Invoice = window.ADMITAD.Invoice || {}
+    const campaign = getProp(event, 'context.campaign')
+    const utmSource = this.getOption('utmSource')
+    const deduplication = this.getOption('deduplication')
+    const deduplicationUtmMedium = this.getOption('deduplicationUtmMedium')
 
-    const broker = deduplication
-          && isDeduplication(campaign, utmSource, deduplicationUtmMedium) ? 'na' : 'adm';
-    window.ADMITAD.Invoice.broker = broker;
+    const broker = deduplication &&
+          isDeduplication(campaign, utmSource, deduplicationUtmMedium) ? 'na' : 'adm'
+    window.ADMITAD.Invoice.broker = broker
 
-    window.ADMITAD.Invoice.category = getProp(event, 'integrations.admitad.actionCode')
-      || this.getOption('defaultActionCode') || '1';
+    window.ADMITAD.Invoice.category = getProp(event, 'integrations.admitad.actionCode') ||
+      this.getOption('defaultActionCode') || '1'
 
-    const orderedItems = [];
+    const orderedItems = []
     lineItems.forEach((lineItem) => {
       orderedItems.push(cleanObject({
         Product: {
           productID: getProp(lineItem, 'product.id'),
           category: getProp(lineItem, 'admitad.tariffCode') || '1',
           price: getProp(lineItem, 'product.unitSalePrice') || getProp(lineItem, 'product.unitPrice'),
-          priceCurrency: getProp(lineItem, 'product.currency') || getProp(event, 'website.currency'),
+          priceCurrency: getProp(lineItem, 'product.currency') || getProp(event, 'website.currency')
         },
         orderQuantity: lineItem.quantity || 1,
-        additionalType: 'sale',
-      }));
-    });
+        additionalType: 'sale'
+      }))
+    })
 
     const orderObject = cleanObject({
       orderNumber: transaction.orderId,
       discountCode: (transaction.vouchers || []).join(','),
-      orderedItem: orderedItems,
-    });
+      orderedItem: orderedItems
+    })
 
-    window.ADMITAD.Invoice.referencesOrder = window.ADMITAD.Invoice.referencesOrder || [];
-    window.ADMITAD.Invoice.referencesOrder.push(orderObject);
+    window.ADMITAD.Invoice.referencesOrder = window.ADMITAD.Invoice.referencesOrder || []
+    window.ADMITAD.Invoice.referencesOrder.push(orderObject)
 
-    const crossDeviceTrackingId = this.getOption('crossDeviceTrackingId');
+    const crossDeviceTrackingId = this.getOption('crossDeviceTrackingId')
     if (crossDeviceTrackingId && crossDeviceTrackingId !== 'none') { // check project setting to transfer userId
-      const accountId = getProp(event, `user.${crossDeviceTrackingId}`);
-      if (accountId) window.ADMITAD.Invoice.accountId = accountId;
+      const accountId = getProp(event, `user.${crossDeviceTrackingId}`)
+      if (accountId) window.ADMITAD.Invoice.accountId = accountId
     }
 
-    if (admitadLoaded) window.ADMITAD.Tracking.processPositions();
+    if (admitadLoaded) window.ADMITAD.Tracking.processPositions()
   }
 
-  trackSaleWithPixel(event, uid) {
-    const { transaction } = event;
+  trackSaleWithPixel (event, uid) {
+    const { transaction } = event
 
     if (!transaction || !transaction.lineItems || !transaction.lineItems.length) {
-      return;
+      return
     }
 
-    this.setupPixel(event);
+    this.setupPixel(event)
 
-    const { lineItems } = transaction;
-    let index = 1;
+    const { lineItems } = transaction
+    let index = 1
     lineItems.forEach((lineItem) => {
       window[ADMITAD_POSITIONS_VAR].push(cleanObject({
         uid,
@@ -322,29 +322,29 @@ class Admitad extends Integration {
         screen: getScreenResolution(),
         old_customer: (transaction.isFirst === false) ? 1 : 0,
         coupon: (transaction.vouchers && transaction.vouchers.length) ? 1 : 0,
-        payment_type: PAYMENT_TYPE_SALE,
-      }));
-      index += 1;
-    });
+        payment_type: PAYMENT_TYPE_SALE
+      }))
+      index += 1
+    })
 
-    this.load('trackingPixel');
+    this.load('trackingPixel')
   }
 
-  setupPixel(event) {
+  setupPixel (event) {
     window[ADMITAD_PIXEL_VAR] = {
       response_type: this.getOption('responseType'),
       action_code: getProp(event, 'integrations.admitad.actionCode') || this.getOption('defaultActionCode'),
-      campaign_code: this.getOption('campaignCode'),
-    };
-    window[ADMITAD_POSITIONS_VAR] = window[ADMITAD_POSITIONS_VAR] || [];
+      campaign_code: this.getOption('campaignCode')
+    }
+    window[ADMITAD_POSITIONS_VAR] = window[ADMITAD_POSITIONS_VAR] || []
   }
 
-  trackLead(event, uid) {
+  trackLead (event, uid) {
     if (!event.lead || !event.lead.id) {
-      return;
+      return
     }
 
-    this.setupPixel(event);
+    this.setupPixel(event)
 
     window[ADMITAD_POSITIONS_VAR].push(cleanObject({
       uid,
@@ -352,44 +352,44 @@ class Admitad extends Integration {
       client_id: getProp(event, 'user.userId'),
       tariff_code: getProp(event, 'admitad.tariffCode') || '1',
       screen: getScreenResolution(),
-      payment_type: PAYMENT_TYPE_LEAD,
-    }));
+      payment_type: PAYMENT_TYPE_LEAD
+    }))
 
-    this.load('trackingPixel');
+    this.load('trackingPixel')
   }
 
-  reTagPush(level) {
+  reTagPush (level) {
     // for now ajax implementation not supported
-    if (this.pageTracked) return;
+    if (this.pageTracked) return
 
     window._retag.push({
       code: this.getOption('reTagCode'),
-      level,
-    });
-    this.load('reTag');
-    this.pageTracked = true;
+      level
+    })
+    this.load('reTag')
+    this.pageTracked = true
   }
 
-  onViewedPage(event) {
-    const page = event.page || {};
-    if (page.type !== 'home') return;
+  onViewedPage (event) {
+    const page = event.page || {}
+    if (page.type !== 'home') return
 
-    const reTagLevel = 0;
-    this.reTagPush(reTagLevel);
+    const reTagLevel = 0
+    this.reTagPush(reTagLevel)
   }
 
-  onViewedProductListing(event) {
-    const listing = event.listing || {};
-    const { categoryId } = listing;
-    if (!categoryId) return;
+  onViewedProductListing (event) {
+    const listing = event.listing || {}
+    const { categoryId } = listing
+    if (!categoryId) return
 
-    window.ad_category = categoryId;
-    const reTagLevel = 1;
-    this.reTagPush(reTagLevel);
+    window.ad_category = categoryId
+    const reTagLevel = 1
+    this.reTagPush(reTagLevel)
   }
 
-  onViewedProductDetail(event) {
-    const product = event.product || {};
+  onViewedProductDetail (event) {
+    const product = event.product || {}
     window.ad_product = cleanObject({
       id: product.id,
       vendor: product.manufacturer || product.brand,
@@ -397,40 +397,40 @@ class Admitad extends Integration {
       url: product.url,
       picture: product.imageUrl,
       name: product.name,
-      category: product.categoryId,
-    });
+      category: product.categoryId
+    })
 
-    const reTagLevel = 2;
-    this.reTagPush(reTagLevel);
+    const reTagLevel = 2
+    this.reTagPush(reTagLevel)
   }
 
-  onViewedCart(event) {
-    const cart = event.cart || {};
-    const lineItems = cart.lineItems || [];
+  onViewedCart (event) {
+    const cart = event.cart || {}
+    const lineItems = cart.lineItems || []
     window.ad_products = lineItems.map(lineItem => ({
       id: getProp(lineItem, 'product.id'),
-      number: lineItem.quantity || 1,
-    }));
+      number: lineItem.quantity || 1
+    }))
 
-    const reTagLevel = 3;
-    this.reTagPush(reTagLevel);
+    const reTagLevel = 3
+    this.reTagPush(reTagLevel)
   }
 
-  onCompletedTransaction(event) {
-    const transaction = event.transaction || {};
-    const lineItems = transaction.lineItems || [];
-    const { orderId, total } = transaction;
+  onCompletedTransaction (event) {
+    const transaction = event.transaction || {}
+    const lineItems = transaction.lineItems || []
+    const { orderId, total } = transaction
 
-    window.ad_order = orderId;
-    window.ad_amount = total;
+    window.ad_order = orderId
+    window.ad_amount = total
     window.ad_products = lineItems.map(lineItem => ({
       id: getProp(lineItem, 'product.id'),
-      number: lineItem.quantity || 1,
-    }));
+      number: lineItem.quantity || 1
+    }))
 
-    const reTagLevel = 4;
-    this.reTagPush(reTagLevel);
+    const reTagLevel = 4
+    this.reTagPush(reTagLevel)
   }
 }
 
-export default Admitad;
+export default Admitad

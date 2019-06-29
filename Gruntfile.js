@@ -1,4 +1,4 @@
-module.exports = function runGrunt(grunt) {
+module.exports = function runGrunt (grunt) {
   // Project configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
@@ -7,11 +7,11 @@ module.exports = function runGrunt(grunt) {
         src: ['dist/segmentstream.js'],
         dest: 'dist/segmentstream.js',
         options: {
-          wrapper: ['(function () { var define = undefined;', '})();'],
-        },
-      },
-    },
-  });
+          wrapper: ['(function () { var define = undefined;', '})();']
+        }
+      }
+    }
+  })
 
-  grunt.loadNpmTasks('grunt-wrap');
-};
+  grunt.loadNpmTasks('grunt-wrap')
+}

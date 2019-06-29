@@ -1,14 +1,13 @@
-import assert from 'assert';
-import sinon from 'sinon';
-import reset from './../reset.js';
-import noop from '@segmentstream/utils/noop';
-import YandexMetrica from './../../src/integrations/YandexMetrica.js';
-import ddManager from './../../src/ddManager.js';
+import assert from 'assert'
+import sinon from 'sinon'
+import reset from './../reset.js'
+import noop from '@segmentstream/utils/noop'
+import YandexMetrica from './../../src/integrations/YandexMetrica.js'
+import ddManager from './../../src/ddManager.js'
 
 describe('Integrations: Yandex Metrica', () => {
-
-  let ym;
-  let options;
+  let ym
+  let options
 
   beforeEach(() => {
     options = {
@@ -41,8 +40,8 @@ describe('Integrations: Yandex Metrica', () => {
           type: 'event',
           value: 'testParam'
         }
-      },
-    };
+      }
+    }
 
     window.digitalData = {
       website: {
@@ -55,134 +54,134 @@ describe('Integrations: Yandex Metrica', () => {
         isLoggedIn: true
       },
       events: []
-    };
-    ym = new YandexMetrica(window.digitalData, options);
-    ddManager.addIntegration('YandexMetrica', ym);
-  });
+    }
+    ym = new YandexMetrica(window.digitalData, options)
+    ddManager.addIntegration('YandexMetrica', ym)
+  })
 
   afterEach(() => {
-    ym.reset();
-    ddManager.reset();
-    reset();
-  });
+    ym.reset()
+    ddManager.reset()
+    reset()
+  })
 
   describe('before loading', () => {
     beforeEach(function () {
-      sinon.stub(ym, 'load');
-    });
+      sinon.stub(ym, 'load')
+    })
 
     afterEach(function () {
-      ym.load.restore();
-    });
+      ym.load.restore()
+    })
 
     describe('#constructor', () => {
       it('should add proper tags and options', () => {
-        assert.equal(options.counterId, ym.getOption('counterId'));
-        assert.equal(options.clickmap, ym.getOption('clickmap'));
-        assert.equal(options.webvisor, ym.getOption('webvisor'));
-        assert.equal(options.trackLinks, ym.getOption('trackLinks'));
-        assert.equal(options.trackHash, ym.getOption('trackHash'));
-        assert.equal(options.purchaseGoalId, ym.getOption('purchaseGoalId'));
-        assert.deepEqual(options.goals, ym.getOption('goals'));
-        assert.equal('script', ym.getTag().type);
-        assert.equal(ym.getTag().attr.src, 'https://mc.yandex.ru/metrika/watch.js');
-      });
-    });
+        assert.strict.equal(options.counterId, ym.getOption('counterId'))
+        assert.strict.equal(options.clickmap, ym.getOption('clickmap'))
+        assert.strict.equal(options.webvisor, ym.getOption('webvisor'))
+        assert.strict.equal(options.trackLinks, ym.getOption('trackLinks'))
+        assert.strict.equal(options.trackHash, ym.getOption('trackHash'))
+        assert.strict.equal(options.purchaseGoalId, ym.getOption('purchaseGoalId'))
+        assert.strict.deepEqual(options.goals, ym.getOption('goals'))
+        assert.strict.equal('script', ym.getTag().type)
+        assert.strict.equal(ym.getTag().attr.src, 'https://mc.yandex.ru/metrika/watch.js')
+      })
+    })
 
     describe('#initialize', () => {
       it('should initialize yandex metrica queue object', () => {
-        ddManager.initialize();
-        assert.ok(window.yandex_metrika_callbacks);
-        assert.ok(window.yandex_metrika_callbacks.push);
-      });
+        ddManager.initialize()
+        assert.ok(window.yandex_metrika_callbacks)
+        assert.ok(window.yandex_metrika_callbacks.push)
+      })
 
       it('should call tags load after initialization', () => {
-        ddManager.initialize();
-        assert.ok(ym.load.calledOnce);
-      });
-    });
-  });
+        ddManager.initialize()
+        assert.ok(ym.load.calledOnce)
+      })
+    })
+  })
 
   describe('loading', function () {
     beforeEach(() => {
       sinon.stub(ym, 'load').callsFake(() => {
-        window.Ya = {};
-        window.Ya.Metrika = function(options) {
-          assert.equal(options.id, ym.getOption('counterId'));
-          assert.equal(options.clickmap, ym.getOption('clickmap'));
-          assert.equal(options.webvisor, ym.getOption('webvisor'));
-          assert.equal(options.trackLinks, ym.getOption('trackLinks'));
-          assert.equal(options.trackHash, ym.getOption('trackHash'));
-        };
-        window.yandex_metrika_callbacks = undefined;
-        ym.onLoad();
-      });
-    });
+        window.Ya = {}
+        window.Ya.Metrika = function (options) {
+          assert.strict.equal(options.id, ym.getOption('counterId'))
+          assert.strict.equal(options.clickmap, ym.getOption('clickmap'))
+          assert.strict.equal(options.webvisor, ym.getOption('webvisor'))
+          assert.strict.equal(options.trackLinks, ym.getOption('trackLinks'))
+          assert.strict.equal(options.trackHash, ym.getOption('trackHash'))
+        }
+        window.yandex_metrika_callbacks = undefined
+        ym.onLoad()
+      })
+    })
 
     afterEach(() => {
-      ym.load.restore();
-    });
+      ym.load.restore()
+    })
 
     it('should load', function (done) {
-      assert.ok(!ym.isLoaded());
+      assert.ok(!ym.isLoaded())
       ym.once('load', () => {
-        assert.ok(ym.isLoaded());
-        done();
-      });
-      ddManager.initialize();
-    });
-  });
+        assert.ok(ym.isLoaded())
+        done()
+      })
+      ddManager.initialize()
+    })
+  })
 
   describe('after loading', () => {
     beforeEach((done) => {
       sinon.stub(ym, 'load').callsFake(() => {
-        window.Ya = {};
-        window.Ya.Metrika = function() {
-          this.reachGoal = noop;
-          this.params = noop;
-          this.userParams = noop;
-          this.hit = noop;
-          this.setUserID = noop;
+        window.Ya = {}
+        window.Ya.Metrika = function () {
+          this.reachGoal = noop
+          this.params = noop
+          this.userParams = noop
+          this.hit = noop
+          this.setUserID = noop
           this.getClientID = () => {
-            return '123';
-          };
-        };
-        let callback;
+            return '123'
+          }
+        }
+        let callback
         do {
-          callback = window.yandex_metrika_callbacks.pop();
-          if (callback) callback();
-        } while (callback);
-        window.yandex_metrika_callbacks = undefined;
-        ym.onLoad();
-      });
-      ddManager.once('ready', done);
+          callback = window.yandex_metrika_callbacks.pop()
+          if (callback) callback()
+        } while (callback)
+        window.yandex_metrika_callbacks = undefined
+        ym.onLoad()
+      })
+      ddManager.once('ready', done)
       ddManager.initialize({
-        sendViewedPageEvent: false,
-      });
-    });
+        sendViewedPageEvent: false
+      })
+    })
 
     afterEach(() => {
-      ym.load.restore();
+      ym.load.restore()
       if (ym.yaCounter.params.restore) {
-        ym.yaCounter.params.restore();
+        ym.yaCounter.params.restore()
       }
       if (ym.yaCounter.userParams.restore) {
-        ym.yaCounter.userParams.restore();
+        ym.yaCounter.userParams.restore()
       }
       if (ym.yaCounterCall.restore) {
-        ym.yaCounterCall.restore();
+        ym.yaCounterCall.restore()
       }
-    });
+    })
 
     describe('#onViewedPage', () => {
       it('should track params on first pageview', (done) => {
         ym.once('load', () => {
-          sinon.spy(window.Ya, 'Metrika');
-        });
+          sinon.spy(window.Ya, 'Metrika')
+        })
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {
-            type: 'home',
+            type: 'home'
           },
           testParam: 'testValue',
           callback: () => {
@@ -191,16 +190,16 @@ describe('Integrations: Yandex Metrica', () => {
                 'websiteType': 'desktop',
                 'customParam': 'testValue'
               }
-            }));
-            done();
+            }))
+            done()
           }
-        });
-      });
+        })
+      })
 
       it('should track userParams on first pageview', (done) => {
         ym.once('load', () => {
-          sinon.spy(window.Ya, 'Metrika');
-        });
+          sinon.spy(window.Ya, 'Metrika')
+        })
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {
@@ -213,11 +212,11 @@ describe('Integrations: Yandex Metrica', () => {
                 'userRfm': 'rfm1',
                 'customParam': 'testValue'
               }
-            }));
-            done();
+            }))
+            done()
           }
-        });
-      });
+        })
+      })
 
       it('should send additional hit with params on second pageview (ajax websites)', (done) => {
         window.digitalData.events.push({
@@ -225,12 +224,12 @@ describe('Integrations: Yandex Metrica', () => {
           page: {
             type: 'home'
           },
-          testParam: 'testValue',
-        });
+          testParam: 'testValue'
+        })
 
         // spy once counter created after 1st pageview
-        sinon.spy(ym.yaCounter, 'hit');
-        sinon.spy(ym.yaCounter, 'userParams');
+        sinon.spy(ym.yaCounter, 'hit')
+        sinon.spy(ym.yaCounter, 'userParams')
 
         window.digitalData.events.push({
           name: 'Viewed Page',
@@ -242,11 +241,11 @@ describe('Integrations: Yandex Metrica', () => {
             assert.ok(ym.yaCounter.userParams.calledWith({
               'userRfm': 'rfm1',
               'customParam': 'testValue'
-            }));
-            done();
+            }))
+            done()
           }
-        });
-      });
+        })
+      })
 
       it('should send userParams on second pageview (ajax websites)', (done) => {
         window.digitalData.events.push({
@@ -254,11 +253,11 @@ describe('Integrations: Yandex Metrica', () => {
           page: {
             type: 'home'
           },
-          testParam: 'testValue',
-        });
+          testParam: 'testValue'
+        })
 
         // spy once counter created after 1st pageview
-        sinon.spy(ym.yaCounter, 'hit');
+        sinon.spy(ym.yaCounter, 'hit')
 
         window.digitalData.events.push({
           name: 'Viewed Page',
@@ -274,35 +273,35 @@ describe('Integrations: Yandex Metrica', () => {
                 'websiteType': 'desktop',
                 'customParam': 'testValue'
               }
-            }));
-            done();
+            }))
+            done()
           }
-        });
-      });
+        })
+      })
 
       it('should send User ID if proper option specified', (done) => {
-        sinon.spy(ym, 'yaCounterCall');
-        ym.setOption('sendUserId', true);
+        sinon.spy(ym, 'yaCounterCall')
+        ym.setOption('sendUserId', true)
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {
-            type: 'home',
+            type: 'home'
           },
           user: {
             userId: '123'
           },
           callback: () => {
-            assert.ok(ym.yaCounterCall.calledWith('setUserID', ['123']));
-            done();
+            assert.ok(ym.yaCounterCall.calledWith('setUserID', ['123']))
+            done()
           }
-        });
-      });
-    });
+        })
+      })
+    })
 
     describe('#onViewedProductDetail', () => {
       beforeEach(() => {
-        window.digitalData.events.push({ name: 'Viewed Page' });
-      });
+        window.digitalData.events.push({ name: 'Viewed Page' })
+      })
 
       it('should push product detail into dataLayer (legacy DDL product.category)', (done) => {
         window.digitalData.events.push({
@@ -318,7 +317,7 @@ describe('Integrations: Yandex Metrica', () => {
             variant: 'Variant 1'
           },
           callback: () => {
-            assert.deepEqual(window.yandexDL[0], {
+            assert.strict.deepEqual(window.yandexDL[0], {
               ecommerce: {
                 detail: {
                   products: [
@@ -334,11 +333,11 @@ describe('Integrations: Yandex Metrica', () => {
                   ]
                 }
               }
-            });
-            done();
+            })
+            done()
           }
-        });
-      });
+        })
+      })
 
       it('should push product detail into dataLayer', (done) => {
         window.digitalData.events.push({
@@ -353,7 +352,7 @@ describe('Integrations: Yandex Metrica', () => {
             variant: 'Variant 1'
           },
           callback: () => {
-            assert.deepEqual(window.yandexDL[0], {
+            assert.strict.deepEqual(window.yandexDL[0], {
               ecommerce: {
                 detail: {
                   products: [
@@ -369,11 +368,11 @@ describe('Integrations: Yandex Metrica', () => {
                   ]
                 }
               }
-            });
-            done();
+            })
+            done()
           }
-        });
-      });
+        })
+      })
 
       it('should push product detail into dataLayer (digitalData)', (done) => {
         window.digitalData.product = {
@@ -384,11 +383,11 @@ describe('Integrations: Yandex Metrica', () => {
           voucher: 'VOUCHER1',
           unitSalePrice: 1500,
           variant: 'Variant 1'
-        };
+        }
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           callback: () => {
-            assert.deepEqual(window.yandexDL[0], {
+            assert.strict.deepEqual(window.yandexDL[0], {
               ecommerce: {
                 detail: {
                   products: [
@@ -404,14 +403,14 @@ describe('Integrations: Yandex Metrica', () => {
                   ]
                 }
               }
-            });
-            done();
+            })
+            done()
           }
-        });
-      });
+        })
+      })
 
       it('should push product detail into dataLayer with feedWithGrouped products option (digitalData)', (done) => {
-        ym.setOption('feedWithGroupedProducts', true);
+        ym.setOption('feedWithGroupedProducts', true)
         window.digitalData.product = {
           id: '123',
           skuCode: 'sku123',
@@ -421,11 +420,11 @@ describe('Integrations: Yandex Metrica', () => {
           voucher: 'VOUCHER1',
           unitSalePrice: 1500,
           variant: 'Variant 1'
-        };
+        }
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           callback: () => {
-            assert.deepEqual(window.yandexDL[0], {
+            assert.strict.deepEqual(window.yandexDL[0], {
               ecommerce: {
                 detail: {
                   products: [
@@ -441,12 +440,11 @@ describe('Integrations: Yandex Metrica', () => {
                   ]
                 }
               }
-            });
-            done();
+            })
+            done()
           }
-        });
-      });
-
+        })
+      })
 
       it('should not push product detail into dataLayer if product ID or product name is not defined', (done) => {
         window.digitalData.events.push({
@@ -455,17 +453,17 @@ describe('Integrations: Yandex Metrica', () => {
             price: 1500
           },
           callback: () => {
-            assert.ok(!window.yandexDL[0]);
-            done();
+            assert.ok(!window.yandexDL[0])
+            done()
           }
-        });
-      });
-    });
+        })
+      })
+    })
 
     describe('#onAddedProduct', () => {
       beforeEach(() => {
-        window.digitalData.events.push({ name: 'Viewed Page' });
-      });
+        window.digitalData.events.push({ name: 'Viewed Page' })
+      })
 
       it('should push added product into dataLayer', (done) => {
         window.digitalData.events.push({
@@ -478,11 +476,11 @@ describe('Integrations: Yandex Metrica', () => {
             subcategory: 'Subcategory 1',
             voucher: 'VOUCHER1',
             unitSalePrice: 1500,
-            variant: 'Variant 1',
+            variant: 'Variant 1'
           },
           quantity: 3,
           callback: () => {
-            assert.deepEqual(window.yandexDL[0], {
+            assert.strict.deepEqual(window.yandexDL[0], {
               ecommerce: {
                 add: {
                   products: [
@@ -499,14 +497,14 @@ describe('Integrations: Yandex Metrica', () => {
                   ]
                 }
               }
-            });
-            done();
+            })
+            done()
           }
-        });
-      });
+        })
+      })
 
       it('should push added product into dataLayer using product.skuCode', (done) => {
-        ym.setOption('feedWithGroupedProducts', true);
+        ym.setOption('feedWithGroupedProducts', true)
         window.digitalData.events.push({
           name: 'Added Product',
           product: {
@@ -518,11 +516,11 @@ describe('Integrations: Yandex Metrica', () => {
             subcategory: 'Subcategory 1',
             voucher: 'VOUCHER1',
             unitSalePrice: 1500,
-            variant: 'Variant 1',
+            variant: 'Variant 1'
           },
           quantity: 3,
           callback: () => {
-            assert.deepEqual(window.yandexDL[0], {
+            assert.strict.deepEqual(window.yandexDL[0], {
               ecommerce: {
                 add: {
                   products: [
@@ -539,11 +537,11 @@ describe('Integrations: Yandex Metrica', () => {
                   ]
                 }
               }
-            });
-            done();
+            })
+            done()
           }
-        });
-      });
+        })
+      })
 
       it('should not push added product into dataLayer if product ID or product name is not defined', (done) => {
         window.digitalData.events.push({
@@ -552,17 +550,17 @@ describe('Integrations: Yandex Metrica', () => {
             price: 1500
           },
           callback: () => {
-            assert.ok(!window.yandexDL[0]);
-            done();
+            assert.ok(!window.yandexDL[0])
+            done()
           }
-        });
-      });
-    });
+        })
+      })
+    })
 
     describe('#onRemovedProduct', () => {
       beforeEach(() => {
-        window.digitalData.events.push({ name: 'Viewed Page' });
-      });
+        window.digitalData.events.push({ name: 'Viewed Page' })
+      })
 
       it('should push removed product into dataLayer', (done) => {
         window.digitalData.events.push({
@@ -575,11 +573,11 @@ describe('Integrations: Yandex Metrica', () => {
             subcategory: 'Subcategory 1',
             voucher: 'VOUCHER1',
             unitSalePrice: 1500,
-            variant: 'Variant 1',
+            variant: 'Variant 1'
           },
           quantity: 3,
           callback: () => {
-            assert.deepEqual(window.yandexDL[0], {
+            assert.strict.deepEqual(window.yandexDL[0], {
               ecommerce: {
                 remove: {
                   products: [
@@ -592,11 +590,11 @@ describe('Integrations: Yandex Metrica', () => {
                   ]
                 }
               }
-            });
-            done();
+            })
+            done()
           }
-        });
-      });
+        })
+      })
 
       it('should push removed product into dataLayer usgin product.skuCode', (done) => {
         window.digitalData.events.push({
@@ -609,11 +607,11 @@ describe('Integrations: Yandex Metrica', () => {
             subcategory: 'Subcategory 1',
             voucher: 'VOUCHER1',
             unitSalePrice: 1500,
-            variant: 'Variant 1',
+            variant: 'Variant 1'
           },
           quantity: 3,
           callback: () => {
-            assert.deepEqual(window.yandexDL[0], {
+            assert.strict.deepEqual(window.yandexDL[0], {
               ecommerce: {
                 remove: {
                   products: [
@@ -626,11 +624,11 @@ describe('Integrations: Yandex Metrica', () => {
                   ]
                 }
               }
-            });
-            done();
+            })
+            done()
           }
-        });
-      });
+        })
+      })
 
       it('should not push removed product into dataLayer if product ID or product name is not defined', (done) => {
         window.digitalData.events.push({
@@ -639,18 +637,17 @@ describe('Integrations: Yandex Metrica', () => {
             price: 1500
           },
           callback: () => {
-            assert.ok(!window.yandexDL[0]);
-            done();
+            assert.ok(!window.yandexDL[0])
+            done()
           }
-        });
-      });
-
-    });
+        })
+      })
+    })
 
     describe('#onCompletedTransaction', () => {
       beforeEach(() => {
-        window.digitalData.events.push({ name: 'Viewed Page' });
-      });
+        window.digitalData.events.push({ name: 'Viewed Page' })
+      })
 
       const lineItems = [
         {
@@ -678,7 +675,7 @@ describe('Integrations: Yandex Metrica', () => {
             unitPrice: 30
           }
         }
-      ];
+      ]
 
       it('should push purchase information into dataLayer', (done) => {
         window.digitalData.events.push({
@@ -691,7 +688,7 @@ describe('Integrations: Yandex Metrica', () => {
             total: 1500
           },
           callback: () => {
-            assert.deepEqual(window.yandexDL[0], {
+            assert.strict.deepEqual(window.yandexDL[0], {
               ecommerce: {
                 purchase: {
                   actionField: {
@@ -716,15 +713,15 @@ describe('Integrations: Yandex Metrica', () => {
                       name: 'Test Product',
                       price: 30,
                       quantity: 1
-                    },
+                    }
                   ]
                 }
               }
-            });
-            done();
+            })
+            done()
           }
-        });
-      });      
+        })
+      })
 
       it('should push purchase information into dataLayer (digitalData)', (done) => {
         window.digitalData.transaction = {
@@ -732,11 +729,11 @@ describe('Integrations: Yandex Metrica', () => {
           vouchers: ['VOUCHER1'],
           lineItems: lineItems,
           total: 1500
-        };
+        }
         window.digitalData.events.push({
           name: 'Completed Transaction',
           callback: () => {
-            assert.deepEqual(window.yandexDL[0], {
+            assert.strict.deepEqual(window.yandexDL[0], {
               ecommerce: {
                 purchase: {
                   actionField: {
@@ -761,28 +758,28 @@ describe('Integrations: Yandex Metrica', () => {
                       name: 'Test Product',
                       price: 30,
                       quantity: 1
-                    },
+                    }
                   ]
                 }
               }
-            });
-            done();
+            })
+            done()
           }
-        });
-      });
+        })
+      })
 
       it('should push purchase information into dataLayer (digitalData) using product.skuCode', (done) => {
-        ym.setOption('feedWithGroupedProducts', true);
+        ym.setOption('feedWithGroupedProducts', true)
         window.digitalData.transaction = {
           orderId: '123',
           vouchers: ['VOUCHER1'],
           lineItems: lineItems,
           total: 1500
-        };
+        }
         window.digitalData.events.push({
           name: 'Completed Transaction',
           callback: () => {
-            assert.deepEqual(window.yandexDL[0], {
+            assert.strict.deepEqual(window.yandexDL[0], {
               ecommerce: {
                 purchase: {
                   actionField: {
@@ -807,25 +804,25 @@ describe('Integrations: Yandex Metrica', () => {
                       name: 'Test Product',
                       price: 30,
                       quantity: 1
-                    },
+                    }
                   ]
                 }
               }
-            });
-            done();
+            })
+            done()
           }
-        });
-      });
+        })
+      })
 
       it('should not purchase information into dataLayer if transaction object is not defined', (done) => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
           callback: () => {
-            assert.ok(!window.yandexDL[0]);
-            done();
+            assert.ok(!window.yandexDL[0])
+            done()
           }
-        });
-      });
+        })
+      })
 
       it('should not purchase information into dataLayer if transaction object is no orderId', (done) => {
         window.digitalData.events.push({
@@ -838,47 +835,46 @@ describe('Integrations: Yandex Metrica', () => {
                   unitSalePrice: 100
                 },
                 quantity: 1
-              },
+              }
             ]
           },
           callback: () => {
-            assert.ok(!window.yandexDL[0]);
-            done();
+            assert.ok(!window.yandexDL[0])
+            done()
           }
-        });
-      });
-
-    });
+        })
+      })
+    })
 
     describe('#onCustomEvent', () => {
       beforeEach(() => {
-        window.digitalData.events.push({ name: 'Viewed Page' });
-      });
+        window.digitalData.events.push({ name: 'Viewed Page' })
+      })
 
       it('should track custom event as a goal', (done) => {
-        sinon.stub(ym.yaCounter, 'reachGoal');
+        sinon.stub(ym.yaCounter, 'reachGoal')
         window.digitalData.events.push({
           name: 'Test Event',
           callback: () => {
-            assert.ok(ym.yaCounter.reachGoal.calledWith('GOAL1'));
-            done();
+            assert.ok(ym.yaCounter.reachGoal.calledWith('GOAL1'))
+            done()
           }
-        });
-      });
+        })
+      })
 
       it('should not track custom event as a goal', (done) => {
-        sinon.stub(ym.yaCounter, 'reachGoal');
+        sinon.stub(ym.yaCounter, 'reachGoal')
         window.digitalData.events.push({
           name: 'Test Event 2',
           callback: () => {
-            assert.ok(!ym.yaCounter.reachGoal.called);
-            done();
+            assert.ok(!ym.yaCounter.reachGoal.called)
+            done()
           }
-        });
-      });
+        })
+      })
 
       it('should track params on custom event', (done) => {
-        sinon.spy(ym.yaCounter, 'reachGoal');
+        sinon.spy(ym.yaCounter, 'reachGoal')
         window.digitalData.events.push({
           name: 'Test Event',
           testParam: 'testValue',
@@ -886,12 +882,11 @@ describe('Integrations: Yandex Metrica', () => {
             assert.ok(ym.yaCounter.reachGoal.calledWith('GOAL1', {
               'websiteType': 'desktop',
               'customParam': 'testValue'
-            }));
-            done();
+            }))
+            done()
           }
-        });
-      });
-    });
-  });
-
-});
+        })
+      })
+    })
+  })
+})

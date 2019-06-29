@@ -1,54 +1,54 @@
 // !!! LEGACY LIBRARY @TODO: remove after full propogation of initialization 1.2.9
 
-import CustomEnrichment from './CustomEnrichment';
+import CustomEnrichment from './CustomEnrichment'
 
 class CustomEnrichmentsCollection {
-  constructor(event, beforeEvent) {
-    this.event = event;
-    this.beforeEvent = beforeEvent;
-    this.enrichments = [];
-    this.enrichmentsIndex = {};
+  constructor (event, beforeEvent) {
+    this.event = event
+    this.beforeEvent = beforeEvent
+    this.enrichments = []
+    this.enrichmentsIndex = {}
   }
 
-  setDigitalData(digitalData) {
-    this.digitalData = digitalData;
+  setDigitalData (digitalData) {
+    this.digitalData = digitalData
   }
 
-  getDigitalData() {
-    return this.digitalData;
+  getDigitalData () {
+    return this.digitalData
   }
 
-  setDDStorage(ddStorage) {
-    this.ddStorage = ddStorage;
+  setDDStorage (ddStorage) {
+    this.ddStorage = ddStorage
   }
 
-  getDDStorage() {
-    return this.ddStorage;
+  getDDStorage () {
+    return this.ddStorage
   }
 
-  addEnrichment(config) {
-    const { prop } = config;
-    const enrichment = new CustomEnrichment(config, this);
-    this.enrichments.push(enrichment);
-    this.enrichmentsIndex[prop] = enrichment;
+  addEnrichment (config) {
+    const { prop } = config
+    const enrichment = new CustomEnrichment(config, this)
+    this.enrichments.push(enrichment)
+    this.enrichmentsIndex[prop] = enrichment
   }
 
-  getEnrichment(prop) {
-    return this.enrichmentsIndex[prop];
+  getEnrichment (prop) {
+    return this.enrichmentsIndex[prop]
   }
 
-  reset() {
+  reset () {
     this.enrichments.forEach((enrichment) => {
-      enrichment.reset();
-    });
+      enrichment.reset()
+    })
   }
 
-  enrich(target, args) {
-    this.reset();
+  enrich (target, args) {
+    this.reset()
     this.enrichments.forEach((enrichment) => {
-      enrichment.enrich(target, args);
-    });
+      enrichment.enrich(target, args)
+    })
   }
 }
 
-export default CustomEnrichmentsCollection;
+export default CustomEnrichmentsCollection

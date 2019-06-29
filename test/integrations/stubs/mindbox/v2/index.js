@@ -1,41 +1,41 @@
-import { onViewedPageSetCardStub } from './onViewedPage.stub';
+import { onViewedPageSetCardStub } from './onViewedPage.stub'
 import {
   onViewedProductDetailViewProductStub,
-  onViewedProductDetailViewedProductCustomStub,
-} from './onViewedProductDetail.stub';
+  onViewedProductDetailViewedProductCustomStub
+} from './onViewedProductDetail.stub'
 
-import { onUpdateCartSetCartStub } from './onUpdateCart.stub';
+import { onUpdateCartSetCartStub } from './onUpdateCart.stub'
 import {
   onAddedProductAddProductStub,
   onAddedProductAddProductSkuStub,
-  onAddedProductAddProductCustomStub,
-} from './onAddedProduct.stub';
+  onAddedProductAddProductCustomStub
+} from './onAddedProduct.stub'
 
 import {
   onViewedProductListingCategoryViewStub,
-  onViewedProductListingCategoryViewCustomStub,
-} from './onViewedProductListing.stub';
+  onViewedProductListingCategoryViewCustomStub
+} from './onViewedProductListing.stub'
 
-import { onRemovedProductRemoveProductStub, onRemovedProductAddProductCustomStub } from './onRemovedProduct.stub';
+import { onRemovedProductRemoveProductStub, onRemovedProductAddProductCustomStub } from './onRemovedProduct.stub'
 import {
   onCompletedTransactionCompletedOrderStub,
-  onCompletedTransactionCompletedOrderCustomStub,
-} from './onCompletedTransaction.stub';
+  onCompletedTransactionCompletedOrderCustomStub
+} from './onCompletedTransaction.stub'
 
 import {
   onSubscribedSubscribedStub,
-  onSubscribedEmailSubscribeCustomStub,
-} from './onSubscribed.stub';
+  onSubscribedEmailSubscribeCustomStub
+} from './onSubscribed.stub'
 
 import {
   onRegisteredRegistrationStub,
   onRegisteredRegistrationCustomStub,
   onRegisteredRegistrationAndSubscriptionStub,
   onRegisteredUpdateProfileSubscriptionOnStub,
-  onRegisteredUpdateProfileSubscriptionOffStub,
-} from './onRegistered.stub';
+  onRegisteredUpdateProfileSubscriptionOffStub
+} from './onRegistered.stub'
 
-import { onLoggedInLoggedInStub } from './onLoggedIn.stub';
+import { onLoggedInLoggedInStub } from './onLoggedIn.stub'
 
 export default {
   onViewedPageSetCardStub,
@@ -58,5 +58,5 @@ export default {
   onRegisteredRegistrationAndSubscriptionStub,
   onRegisteredUpdateProfileSubscriptionOnStub,
   onRegisteredUpdateProfileSubscriptionOffStub,
-  onLoggedInLoggedInStub,
-};
+  onLoggedInLoggedInStub
+}

@@ -1,10 +1,10 @@
-import cleanObject from '@segmentstream/utils/cleanObject';
-import Integration from '../Integration';
+import cleanObject from '@segmentstream/utils/cleanObject'
+import Integration from '../Integration'
 import {
   VIEWED_PRODUCT_DETAIL,
   ADDED_PRODUCT,
-  COMPLETED_TRANSACTION,
-} from '../events/semanticEvents';
+  COMPLETED_TRANSACTION
+} from '../events/semanticEvents'
 
 const mapProduct = product => cleanObject({
   id: product.id,
@@ -13,33 +13,33 @@ const mapProduct = product => cleanObject({
   category: Array.isArray(product.category) ? product.category.join('/') : product.category,
   variant: product.variant,
   currency: product.currency,
-  price: product.unitSalePrice,
-});
+  price: product.unitSalePrice
+})
 
 class Adnetic extends Integration {
-  constructor(digitalData, options) {
-    super(digitalData, options);
+  constructor (digitalData, options) {
+    super(digitalData, options)
 
     this.addTag({
       type: 'script',
       attr: {
-        src: 'https://shopnetic.com/js/embed/loader.js',
-      },
-    });
+        src: 'https://shopnetic.com/js/embed/loader.js'
+      }
+    })
   }
 
-  getEnrichableEventProps(event) {
+  getEnrichableEventProps (event) {
     switch (event.name) {
       case VIEWED_PRODUCT_DETAIL:
-        return ['product'];
+        return ['product']
       case COMPLETED_TRANSACTION:
-        return ['transaction'];
+        return ['transaction']
       default:
-        return [];
+        return []
     }
   }
 
-  getEventValidationConfig(event) {
+  getEventValidationConfig (event) {
     const productFields = [
       'product.id',
       'product.name',
@@ -47,14 +47,14 @@ class Adnetic extends Integration {
       'product.category',
       'product.variant',
       'product.currency',
-      'product.unitSalePrice',
-    ];
+      'product.unitSalePrice'
+    ]
     const config = {
       [VIEWED_PRODUCT_DETAIL]: {
-        fields: productFields,
+        fields: productFields
       },
       [ADDED_PRODUCT]: {
-        fields: productFields,
+        fields: productFields
       },
       [COMPLETED_TRANSACTION]: {
         fields: [
@@ -64,62 +64,62 @@ class Adnetic extends Integration {
           'transaction.lineItems[].product.category',
           'transaction.lineItems[].product.unitSalePrice',
           'transaction.lineItems[].product.currency',
-          'transaction.lineItems[].product.variant',
-        ],
-      },
-    };
+          'transaction.lineItems[].product.variant'
+        ]
+      }
+    }
 
-    return config[event.name];
+    return config[event.name]
   }
 
-  getSemanticEvents() {
+  getSemanticEvents () {
     return [
       VIEWED_PRODUCT_DETAIL,
       ADDED_PRODUCT,
-      COMPLETED_TRANSACTION,
-    ];
+      COMPLETED_TRANSACTION
+    ]
   }
 
-  initialize() {
+  initialize () {
     !function(n,u,t){n[u]||(n[u]={}),n[u][t]||(n[u][t]=function(){n[u].q||(n[u].q=[]),n[u].q.push(arguments)})}(window,'antc','run'); // eslint-disable-line
   }
 
-  isLoaded() {
-    return false;
+  isLoaded () {
+    return false
   }
 
-  trackEvent(event) {
+  trackEvent (event) {
     const methods = {
       [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
       [ADDED_PRODUCT]: 'onAddedProduct',
-      [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
-    };
+      [COMPLETED_TRANSACTION]: 'onCompletedTransaction'
+    }
 
-    const method = methods[event.name];
+    const method = methods[event.name]
     if (method) {
-      this[method](event);
+      this[method](event)
     }
   }
 
-  onViewedProductDetail(event) {
-    const product = event.product || {};
-    window.antc.run('antc.track.ecommerce', 'detail', mapProduct(product));
+  onViewedProductDetail (event) {
+    const product = event.product || {}
+    window.antc.run('antc.track.ecommerce', 'detail', mapProduct(product))
   }
 
-  onAddedProduct(event) {
-    const product = event.product || {};
-    window.antc.run('antc.track.ecommerce', 'add', mapProduct(product));
+  onAddedProduct (event) {
+    const product = event.product || {}
+    window.antc.run('antc.track.ecommerce', 'add', mapProduct(product))
   }
 
-  onCompletedTransaction(event) {
-    const transaction = event.transaction || {};
-    const lineItems = transaction.lineItems || [];
+  onCompletedTransaction (event) {
+    const transaction = event.transaction || {}
+    const lineItems = transaction.lineItems || []
 
     lineItems.forEach((lineItem) => {
-      const product = lineItem.product || {};
-      window.antc.run('antc.track.ecommerce', 'purchase', mapProduct(product));
-    });
+      const product = lineItem.product || {}
+      window.antc.run('antc.track.ecommerce', 'purchase', mapProduct(product))
+    })
   }
 }
 
-export default Adnetic;
+export default Adnetic

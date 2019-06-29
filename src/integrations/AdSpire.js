@@ -1,22 +1,22 @@
-import cleanObject from '@segmentstream/utils/cleanObject';
-import { getProp } from '@segmentstream/utils/dotProp';
-import ipToLong from '@segmentstream/utils/ipToLong';
-import normalizeString from '@segmentstream/utils/normalizeString';
-import md5 from 'crypto-js/md5';
-import Integration from '../Integration';
+import cleanObject from '@segmentstream/utils/cleanObject'
+import { getProp } from '@segmentstream/utils/dotProp'
+import ipToLong from '@segmentstream/utils/ipToLong'
+import normalizeString from '@segmentstream/utils/normalizeString'
+import md5 from 'crypto-js/md5'
+import Integration from '../Integration'
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
   VIEWED_PRODUCT_LISTING,
   COMPLETED_TRANSACTION,
-  VIEWED_CART,
-} from '../events/semanticEvents';
+  VIEWED_CART
+} from '../events/semanticEvents'
 
-function mapLineItems(lineItems) {
-  lineItems = lineItems || [];
+function mapLineItems (lineItems) {
+  lineItems = lineItems || []
   return lineItems.map((lineItem) => {
-    const product = lineItem.product || {};
-    product.category = product.category || [];
+    const product = lineItem.product || {}
+    product.category = product.category || []
     return cleanObject({
       pid: product.id,
       pname: product.name,
@@ -25,52 +25,52 @@ function mapLineItems(lineItems) {
       price: product.unitSalePrice,
       quantity: lineItem.quantity || 1,
       currency: product.currency,
-      variant_id: product.skuCode,
-    });
-  });
+      variant_id: product.skuCode
+    })
+  })
 }
 
 class AdSpire extends Integration {
-  constructor(digitalData, options) {
+  constructor (digitalData, options) {
     const optionsWithDefaults = Object.assign({
-      siteId: '',
-    }, options);
+      siteId: ''
+    }, options)
 
-    super(digitalData, optionsWithDefaults);
+    super(digitalData, optionsWithDefaults)
 
     this.addTag({
       type: 'script',
       attr: {
-        src: `//track.adspire.io/code/${options.siteId}/`,
-      },
-    });
+        src: `//track.adspire.io/code/${options.siteId}/`
+      }
+    })
   }
 
-  getEnrichableEventProps(event) {
+  getEnrichableEventProps (event) {
     switch (event.name) {
       case VIEWED_PAGE:
-        return ['page.type'];
+        return ['page.type']
       case VIEWED_PRODUCT_DETAIL:
-        return ['product'];
+        return ['product']
       case COMPLETED_TRANSACTION:
-        return ['transaction', 'user.email', 'user.firstName', 'user.lastName'];
+        return ['transaction', 'user.email', 'user.firstName', 'user.lastName']
       case VIEWED_PRODUCT_LISTING:
-        return ['listing.categoryId', 'listing.category'];
+        return ['listing.categoryId', 'listing.category']
       case VIEWED_CART:
-        return ['cart'];
+        return ['cart']
       default:
-        return [];
+        return []
     }
   }
 
-  getEventValidationConfig(event) {
+  getEventValidationConfig (event) {
     const config = {
       [VIEWED_PAGE]: {
         fields: ['page.type'],
         validations: {
           errors: ['required'],
-          warnings: ['string'],
-        },
+          warnings: ['string']
+        }
       },
       [VIEWED_PRODUCT_DETAIL]: {
         fields: [
@@ -81,49 +81,49 @@ class AdSpire extends Integration {
           'product.unitSalePrice',
           'product.currency',
           'product.url',
-          'product.imageUrl',
+          'product.imageUrl'
         ],
         validations: {
           'product.id': {
             errors: ['required'],
-            warnings: ['string'],
+            warnings: ['string']
           },
           'product.name': {
-            warnings: ['required', 'string'],
+            warnings: ['required', 'string']
           },
           'product.categoryId': {
-            warnings: ['required', 'string'],
+            warnings: ['required', 'string']
           },
           'product.category': {
-            warnings: ['required', 'array'],
+            warnings: ['required', 'array']
           },
           'product.unitSalePrice': {
-            warnings: ['required', 'numeric'],
+            warnings: ['required', 'numeric']
           },
           'product.currency': {
-            warnings: ['required', 'string'],
+            warnings: ['required', 'string']
           },
           'product.url': {
-            warnings: ['required', 'string'],
+            warnings: ['required', 'string']
           },
           'product.imageUrl': {
-            warnings: ['required', 'string'],
-          },
-        },
+            warnings: ['required', 'string']
+          }
+        }
       },
       [VIEWED_PRODUCT_LISTING]: {
         fields: [
           'listing.categoryId',
-          'listing.category',
+          'listing.category'
         ],
         validations: {
           'listing.categoryId': {
-            warnings: ['required', 'string'],
+            warnings: ['required', 'string']
           },
           'listing.category': {
-            warnings: ['required', 'array'],
-          },
-        },
+            warnings: ['required', 'array']
+          }
+        }
       },
       [VIEWED_CART]: {
         fields: [
@@ -133,32 +133,32 @@ class AdSpire extends Integration {
           'cart.lineItems[].product.category',
           'cart.lineItems[].product.unitSalePrice',
           'cart.lineItems[].product.currency',
-          'cart.lineItems[].quantity',
+          'cart.lineItems[].quantity'
         ],
         validations: {
           'cart.lineItems[].product.id': {
             errors: ['required'],
-            warnings: ['string'],
+            warnings: ['string']
           },
           'cart.lineItems[].product.name': {
-            warnings: ['required', 'string'],
+            warnings: ['required', 'string']
           },
           'cart.lineItems[].product.categoryId': {
-            warnings: ['required', 'string'],
+            warnings: ['required', 'string']
           },
           'cart.lineItems[].product.category': {
-            warnings: ['required', 'array'],
+            warnings: ['required', 'array']
           },
           'cart.lineItems[].product.unitSalePrice': {
-            warnings: ['required', 'numeric'],
+            warnings: ['required', 'numeric']
           },
           'cart.lineItems[].product.currency': {
-            warnings: ['required', 'string'],
+            warnings: ['required', 'string']
           },
           'cart.lineItems[].quantity': {
-            warnings: ['required', 'numeric'],
-          },
-        },
+            warnings: ['required', 'numeric']
+          }
+        }
       },
       [COMPLETED_TRANSACTION]: {
         fields: [
@@ -175,150 +175,150 @@ class AdSpire extends Integration {
           'transaction.lineItems[].quantity',
           'user.email',
           'user.firstName',
-          'user.lastName',
+          'user.lastName'
         ],
         validations: {
           'transaction.orderId': {
             errors: ['required'],
-            warnings: ['string'],
+            warnings: ['string']
           },
           'transaction.total': {
-            warnings: ['required', 'numeric'],
+            warnings: ['required', 'numeric']
           },
           'transaction.lineItems[].product.id': {
-            warnings: ['required', 'string'],
+            warnings: ['required', 'string']
           },
           'transaction.lineItems[].product.name': {
-            warnings: ['required', 'string'],
+            warnings: ['required', 'string']
           },
           'transaction.lineItems[].product.categoryId': {
-            warnings: ['required', 'string'],
+            warnings: ['required', 'string']
           },
           'transaction.lineItems[].product.category': {
-            warnings: ['required', 'array'],
+            warnings: ['required', 'array']
           },
           'transaction.lineItems[].product.unitSalePrice': {
-            warnings: ['required', 'numeric'],
+            warnings: ['required', 'numeric']
           },
           'transaction.lineItems[].product.currency': {
-            warnings: ['required', 'string'],
+            warnings: ['required', 'string']
           },
           'transaction.lineItems[].quantity': {
-            warnings: ['required', 'numeric'],
+            warnings: ['required', 'numeric']
           },
           'transaction.isFirst': {
-            warnings: ['boolean'],
+            warnings: ['boolean']
           },
           'transaction.vouchers': {
-            warning: ['array'],
-          },
-        },
-      },
-    };
+            warning: ['array']
+          }
+        }
+      }
+    }
 
-    return config[event.name];
+    return config[event.name]
   }
 
-  getSemanticEvents() {
+  getSemanticEvents () {
     return [
       VIEWED_PAGE,
       VIEWED_PRODUCT_DETAIL,
       VIEWED_PRODUCT_LISTING,
       COMPLETED_TRANSACTION,
-      VIEWED_CART,
-    ];
+      VIEWED_CART
+    ]
   }
 
-  initialize() {
-    window.adspire_track = window.adspire_track || [];
+  initialize () {
+    window.adspire_track = window.adspire_track || []
   }
 
-  isLoaded() {
-    return !!window.adspire_code_loaded;
+  isLoaded () {
+    return !!window.adspire_code_loaded
   }
 
-  getEmailMd5(event) {
-    const email = getProp(event, 'user.email');
+  getEmailMd5 (event) {
+    const email = getProp(event, 'user.email')
     if (email) {
-      const emailNorm = normalizeString(email);
-      const emailMd5 = md5(emailNorm).toString();
-      return emailMd5;
+      const emailNorm = normalizeString(email)
+      const emailMd5 = md5(emailNorm).toString()
+      return emailMd5
     }
-    return undefined;
+    return undefined
   }
 
-  trackEvent(event) {
+  trackEvent (event) {
     const methods = {
       [VIEWED_PAGE]: 'onViewedPage',
       [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
       [COMPLETED_TRANSACTION]: 'onCompletedTransaction',
       [VIEWED_PRODUCT_LISTING]: 'onViewedProductListing',
-      [VIEWED_CART]: 'onViewedCart',
-    };
+      [VIEWED_CART]: 'onViewedCart'
+    }
 
-    const method = methods[event.name];
+    const method = methods[event.name]
     if (method) {
-      this[method](event);
+      this[method](event)
     }
   }
 
-  onViewedPage(event) {
-    this.pageTracked = false;
+  onViewedPage (event) {
+    this.pageTracked = false
 
-    const { page } = event;
-    const ip = getProp(event, 'context.ip');
+    const { page } = event
+    const ip = getProp(event, 'context.ip')
 
     if (ip) {
-      window.adspire_ip = ipToLong(ip);
+      window.adspire_ip = ipToLong(ip)
     }
 
     if (page && page.type === 'home') {
-      this.onViewedHome();
+      this.onViewedHome()
     }
 
     if (!this.pageTracked) {
       setTimeout(() => {
         if (!this.pageTracked) {
-          this.onViewedOther();
+          this.onViewedOther()
         }
-      }, 100);
+      }, 100)
     }
   }
 
-  onViewedHome() {
+  onViewedHome () {
     window.adspire_track.push({
-      TypeOfPage: 'general',
-    });
-    this.pageTracked = true;
+      TypeOfPage: 'general'
+    })
+    this.pageTracked = true
   }
 
-  onViewedOther() {
+  onViewedOther () {
     window.adspire_track.push({
-      TypeOfPage: 'other',
-    });
-    this.pageTracked = true;
+      TypeOfPage: 'other'
+    })
+    this.pageTracked = true
   }
 
-  onViewedProductListing(event) {
-    const cid = getProp(event, 'listing.categoryId');
-    let cname;
-    const category = getProp(event, 'listing.category');
+  onViewedProductListing (event) {
+    const cid = getProp(event, 'listing.categoryId')
+    let cname
+    const category = getProp(event, 'listing.category')
     if (category && Array.isArray(category)) {
-      cname = category[category.length - 1];
+      cname = category[category.length - 1]
     }
 
     window.adspire_track.push(cleanObject({
       TypeOfPage: 'category',
-      Category: { cid, cname },
-    }));
-    this.pageTracked = true;
+      Category: { cid, cname }
+    }))
+    this.pageTracked = true
   }
 
-  onViewedProductDetail(event) {
-    const product = event.product || {};
-    const cid = product.categoryId;
-    const category = product.category || [];
-    const cname = category[category.length - 1];
+  onViewedProductDetail (event) {
+    const product = event.product || {}
+    const cid = product.categoryId
+    const category = product.category || []
+    const cname = category[category.length - 1]
 
     window.adspire_track.push(cleanObject({
       TypeOfPage: 'product',
@@ -330,26 +330,26 @@ class AdSpire extends Integration {
         picture: product.imageUrl,
         price: product.unitSalePrice,
         currency: product.currency,
-        variant_id: product.skuCode,
-      },
-    }));
-    this.pageTracked = true;
+        variant_id: product.skuCode
+      }
+    }))
+    this.pageTracked = true
   }
 
-  onViewedCart(event) {
-    const cart = event.cart || {};
+  onViewedCart (event) {
+    const cart = event.cart || {}
 
     window.adspire_track.push({
       TypeOfPage: 'basket',
-      Basket: mapLineItems(cart.lineItems),
-    });
-    this.pageTracked = true;
+      Basket: mapLineItems(cart.lineItems)
+    })
+    this.pageTracked = true
   }
 
-  onCompletedTransaction(event) {
-    const transaction = event.transaction || {};
-    const user = event.user || {};
-    transaction.vouchers = transaction.vouchers || [];
+  onCompletedTransaction (event) {
+    const transaction = event.transaction || {}
+    const user = event.user || {}
+    transaction.vouchers = transaction.vouchers || []
 
     window.adspire_track.push({
       TypeOfPage: 'confirm',
@@ -360,12 +360,12 @@ class AdSpire extends Integration {
         usermail: (transaction.isFirst) ? 'new' : 'old',
         name: user.firstName,
         lastname: user.lastName,
-        email: this.getEmailMd5(event),
+        email: this.getEmailMd5(event)
       }),
-      OrderItems: mapLineItems(transaction.lineItems),
-    });
-    this.pageTracked = true;
+      OrderItems: mapLineItems(transaction.lineItems)
+    })
+    this.pageTracked = true
   }
 }
 
-export default AdSpire;
+export default AdSpire

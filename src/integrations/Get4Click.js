@@ -1,45 +1,45 @@
-import deleteProperty from '@segmentstream/utils/deleteProperty';
-import { getProp } from '@segmentstream/utils/dotProp';
-import { stringify } from '@segmentstream/utils/queryString';
-import cleanObject from '@segmentstream/utils/cleanObject';
-import Integration from '../Integration';
+import deleteProperty from '@segmentstream/utils/deleteProperty'
+import { getProp } from '@segmentstream/utils/dotProp'
+import { stringify } from '@segmentstream/utils/queryString'
+import cleanObject from '@segmentstream/utils/cleanObject'
+import Integration from '../Integration'
 import {
-  COMPLETED_TRANSACTION,
-} from '../events/semanticEvents';
+  COMPLETED_TRANSACTION
+} from '../events/semanticEvents'
 
 class Get4Click extends Integration {
-  constructor(digitalData, options) {
+  constructor (digitalData, options) {
     const optionsWithDefaults = Object.assign({
       shopId: '',
-      bannerId: '',
-    }, options);
+      bannerId: ''
+    }, options)
 
-    super(digitalData, optionsWithDefaults);
+    super(digitalData, optionsWithDefaults)
 
     this.addTag('wrapper', {
       type: 'script',
       attr: {
-        src: 'https://get4click.ru/wrapper.php?method=main&jsc=iPromoCpnObj&{{ params }}',
-      },
-    });
+        src: 'https://get4click.ru/wrapper.php?method=main&jsc=iPromoCpnObj&{{ params }}'
+      }
+    })
   }
 
-  initialize() {
-    window._iPromoBannerObj = function _iPromoBannerObj() {
-      this.htmlElementId = 'promocode-element-container';
-      this.gc = function gc() {
-        return document.getElementById(this.htmlElementId);
-      };
-    };
-    window.iPromoCpnObj = new window._iPromoBannerObj();
-    this._isLoaded = true;
+  initialize () {
+    window._iPromoBannerObj = function _iPromoBannerObj () {
+      this.htmlElementId = 'promocode-element-container'
+      this.gc = function gc () {
+        return document.getElementById(this.htmlElementId)
+      }
+    }
+    window.iPromoCpnObj = new window._iPromoBannerObj()
+    this._isLoaded = true
   }
 
-  getSemanticEvents() {
-    return [COMPLETED_TRANSACTION];
+  getSemanticEvents () {
+    return [COMPLETED_TRANSACTION]
   }
 
-  getEnrichableEventProps(event) {
+  getEnrichableEventProps (event) {
     switch (event.name) {
       case COMPLETED_TRANSACTION:
         return [
@@ -48,14 +48,14 @@ class Get4Click extends Integration {
           'user.lastName',
           'user.phone',
           'user.gender',
-          'transaction',
-        ];
+          'transaction'
+        ]
       default:
-        return [];
+        return []
     }
   }
 
-  getEventValidationConfig(event) {
+  getEventValidationConfig (event) {
     const config = {
       [COMPLETED_TRANSACTION]: {
         fields: [
@@ -64,50 +64,50 @@ class Get4Click extends Integration {
           'user.lastName',
           'transaction.orderId',
           'transaction.total',
-          'transaction.vouchers',
+          'transaction.vouchers'
         ],
         validations: {
           'user.email': {
-            warnings: ['required', 'string'],
+            warnings: ['required', 'string']
           },
           'user.firstName': {
-            errors: ['string'],
+            errors: ['string']
           },
           'user.lastName': {
-            errors: ['string'],
+            errors: ['string']
           },
           'transaction.orderId': {
             errors: ['required'],
-            warnings: ['string'],
+            warnings: ['string']
           },
           'transaction.total': {
             errors: ['required'],
-            warnings: ['numeric'],
-          },
-        },
-      },
-    };
+            warnings: ['numeric']
+          }
+        }
+      }
+    }
 
-    return config[event.name];
+    return config[event.name]
   }
 
-  reset() {
-    deleteProperty(window, 'iPromoCpnObj');
-    deleteProperty(window, '_iPromoBannerObj');
+  reset () {
+    deleteProperty(window, 'iPromoCpnObj')
+    deleteProperty(window, '_iPromoBannerObj')
   }
 
-  trackEvent(event) {
+  trackEvent (event) {
     const eventMap = {
-      [COMPLETED_TRANSACTION]: this.onCompletedTransaction.bind(this),
-    };
+      [COMPLETED_TRANSACTION]: this.onCompletedTransaction.bind(this)
+    }
 
     if (eventMap[event.name]) {
-      eventMap[event.name](event);
+      eventMap[event.name](event)
     }
   }
 
-  onCompletedTransaction(event) {
-    const vouchers = getProp(event, 'transaction.vouchers');
+  onCompletedTransaction (event) {
+    const vouchers = getProp(event, 'transaction.vouchers')
     const params = cleanObject({
       _shopId: this.getOption('shopId'),
       _bannerId: this.getOption('bannerId'),
@@ -119,11 +119,11 @@ class Get4Click extends Integration {
       _orderId: getProp(event, 'transaction.orderId'),
       _orderValue: getProp(event, 'transaction.total'),
       _orderCurrency: getProp(event, 'transaction.currency'),
-      _usedPromoCode: Array.isArray(vouchers) ? vouchers.toString() : vouchers,
-    });
+      _usedPromoCode: Array.isArray(vouchers) ? vouchers.toString() : vouchers
+    })
 
-    this.load('wrapper', { params: stringify(params) });
+    this.load('wrapper', { params: stringify(params) })
   }
 }
 
-export default Get4Click;
+export default Get4Click

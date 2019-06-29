@@ -2,33 +2,33 @@ const onRegisteredRegistrationStub = {
   operation: 'Registration',
   identificator: {
     provider: 'email',
-    identity: 'test@driveback.ru',
+    identity: 'test@driveback.ru'
   },
   data: {
     email: 'test@driveback.ru',
     firstName: 'John',
-    lastName: 'Dow',
-  },
-};
+    lastName: 'Dow'
+  }
+}
 
 const onRegisteredRegistrationCustomStub = {
   operation: 'RegistrationCustom',
   identificator: {
     provider: 'email',
-    identity: 'test@driveback.ru',
+    identity: 'test@driveback.ru'
   },
   data: {
     email: 'test@driveback.ru',
     firstName: 'John',
-    lastName: 'Dow',
-  },
-};
+    lastName: 'Dow'
+  }
+}
 
 const onRegisteredRegistrationAndSubscriptionStub = {
   operation: 'Registration',
   identificator: {
     provider: 'email',
-    identity: 'test@driveback.ru',
+    identity: 'test@driveback.ru'
   },
   data: {
     email: 'test@driveback.ru',
@@ -38,22 +38,22 @@ const onRegisteredRegistrationAndSubscriptionStub = {
       {
         pointOfContact: 'Email',
         isSubscribed: true,
-        valueByDefault: true,
+        valueByDefault: true
       },
       {
         pointOfContact: 'Sms',
         isSubscribed: true,
-        valueByDefault: true,
-      },
-    ],
-  },
-};
+        valueByDefault: true
+      }
+    ]
+  }
+}
 
 const onRegisteredUpdateProfileSubscriptionOnStub = {
   operation: 'UpdateProfile',
   identificator: {
     provider: 'email',
-    identity: 'test@driveback.ru',
+    identity: 'test@driveback.ru'
   },
   data: {
     email: 'test@driveback.ru',
@@ -63,20 +63,20 @@ const onRegisteredUpdateProfileSubscriptionOnStub = {
     subscriptions: [
       {
         pointOfContact: 'Email',
-        isSubscribed: true,
+        isSubscribed: true
       },
       {
         pointOfContact: 'Sms',
-        isSubscribed: true,
-      },
-    ],
-  },
-};
+        isSubscribed: true
+      }
+    ]
+  }
+}
 const onRegisteredUpdateProfileSubscriptionOffStub = {
   operation: 'UpdateProfile',
   identificator: {
     provider: 'email',
-    identity: 'test@driveback.ru',
+    identity: 'test@driveback.ru'
   },
   data: {
     email: 'test@driveback.ru',
@@ -85,20 +85,20 @@ const onRegisteredUpdateProfileSubscriptionOffStub = {
     subscriptions: [
       {
         pointOfContact: 'Email',
-        isSubscribed: false,
+        isSubscribed: false
       },
       {
         pointOfContact: 'Sms',
-        isSubscribed: false,
-      },
-    ],
-  },
-};
+        isSubscribed: false
+      }
+    ]
+  }
+}
 
 export {
   onRegisteredRegistrationStub,
   onRegisteredRegistrationCustomStub,
   onRegisteredRegistrationAndSubscriptionStub,
   onRegisteredUpdateProfileSubscriptionOnStub,
-  onRegisteredUpdateProfileSubscriptionOffStub,
-};
+  onRegisteredUpdateProfileSubscriptionOffStub
+}

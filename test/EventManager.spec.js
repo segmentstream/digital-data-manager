@@ -1,468 +1,467 @@
-import assert from 'assert';
-import sinon from 'sinon';
-import reset from './reset';
-import EventManager from '../src/EventManager';
+import assert from 'assert'
+import sinon from 'sinon'
+import reset from './reset'
+import EventManager from '../src/EventManager'
 
 describe('EventManager', () => {
-  let _eventManager;
-  let _digitalData;
-  let _ddListener;
+  let _eventManager
+  let _digitalData
+  let _ddListener
 
   afterEach(() => {
     if (_eventManager) {
-      _eventManager.reset();
-      _eventManager = undefined;
+      _eventManager.reset()
+      _eventManager = undefined
     }
-    reset();
-  });
+    reset()
+  })
 
   describe('working with events:', () => {
     const eventTemplate = {
       name: 'Added Product',
-      category: 'Ecommerce',
-    };
+      category: 'Ecommerce'
+    }
 
     beforeEach(() => {
       _digitalData = {
         page: {
-          categoryId: 1,
+          categoryId: 1
         },
-        events: [],
-      };
-      _ddListener = [];
-      _eventManager = new EventManager(_digitalData, _ddListener);
-      _eventManager.setSendViewedPageEvent(true);
-    });
+        events: []
+      }
+      _ddListener = []
+      _eventManager = new EventManager(_digitalData, _ddListener)
+      _eventManager.setSendViewedPageEvent(true)
+    })
 
     it('should add time and hasFired fields to event', () => {
-      const event = Object.assign({}, eventTemplate);
+      const event = Object.assign({}, eventTemplate)
 
-      _eventManager.initialize();
+      _eventManager.initialize()
 
-      _digitalData.events.push(event);
+      _digitalData.events.push(event)
 
-      assert.ok(_digitalData.events.length === 2);
-      assert.ok(_digitalData.events[0].timestamp > 100000);
-      assert.ok(_digitalData.events[0].hasFired);
-      assert.ok(_digitalData.events[1].timestamp > 100000);
-      assert.ok(_digitalData.events[1].hasFired);
-    });
+      assert.ok(_digitalData.events.length === 2)
+      assert.ok(_digitalData.events[0].timestamp > 100000)
+      assert.ok(_digitalData.events[0].hasFired)
+      assert.ok(_digitalData.events[1].timestamp > 100000)
+      assert.ok(_digitalData.events[1].hasFired)
+    })
 
     it('should process callback for event', (done) => {
-      const event = Object.assign({}, eventTemplate);
+      const event = Object.assign({}, eventTemplate)
 
-      let callbackFired = false;
-      let receivedEvent;
+      let callbackFired = false
+      let receivedEvent
 
-      _eventManager.initialize();
+      _eventManager.initialize()
 
       _ddListener.push(['on', 'event', (e) => {
-        callbackFired = true;
-        receivedEvent = e;
-      }]);
+        callbackFired = true
+        receivedEvent = e
+      }])
 
       event.callback = () => {
-        assert.ok(callbackFired);
-        assert.equal(receivedEvent.name, event.name);
-        assert.equal(receivedEvent.category, event.category);
-        done();
-      };
-      _digitalData.events.push(event);
-    });
+        assert.ok(callbackFired)
+        assert.strict.equal(receivedEvent.name, event.name)
+        assert.strict.equal(receivedEvent.category, event.category)
+        done()
+      }
+      _digitalData.events.push(event)
+    })
 
     it('should process callback for beforeEvent and event', (done) => {
-      const event = Object.assign({}, eventTemplate);
-      let callbackFired = false;
-      let receivedEvent;
+      const event = Object.assign({}, eventTemplate)
+      let callbackFired = false
+      let receivedEvent
 
-      _eventManager.initialize();
+      _eventManager.initialize()
 
       _ddListener.push(['on', 'event', (e) => {
-        callbackFired = true;
-        receivedEvent = e;
-      }]);
+        callbackFired = true
+        receivedEvent = e
+      }])
       _ddListener.push(['on', 'beforeEvent', (e) => {
-        e.newVar = 'test';
-      }]);
-
+        e.newVar = 'test'
+      }])
 
       event.callback = () => {
-        assert.ok(callbackFired);
-        assert.equal(receivedEvent.name, event.name);
-        assert.equal(receivedEvent.category, event.category);
-        assert.equal(receivedEvent.newVar, 'test');
-        done();
-      };
-      _digitalData.events.push(event);
-    });
+        assert.ok(callbackFired)
+        assert.strict.equal(receivedEvent.name, event.name)
+        assert.strict.equal(receivedEvent.category, event.category)
+        assert.strict.equal(receivedEvent.newVar, 'test')
+        done()
+      }
+      _digitalData.events.push(event)
+    })
 
     it('should not process callback evet after beforeEvent callback returned false', () => {
-      const event = Object.assign({}, eventTemplate);
-      let callbackFired = false;
+      const event = Object.assign({}, eventTemplate)
+      let callbackFired = false
 
-      _eventManager.initialize();
+      _eventManager.initialize()
 
       _ddListener.push(['on', 'event', (e) => {
         if (e.name === event.name) {
-          callbackFired = true;
+          callbackFired = true
         }
-      }]);
-      _ddListener.push(['on', 'beforeEvent', () => false]);
-      _digitalData.events.push(event);
+      }])
+      _ddListener.push(['on', 'beforeEvent', () => false])
+      _digitalData.events.push(event)
 
-      assert.ok(!callbackFired);
-    });
+      assert.ok(!callbackFired)
+    })
 
     it('should process early callback for event', () => {
-      const event = Object.assign({}, eventTemplate);
+      const event = Object.assign({}, eventTemplate)
 
       _ddListener.push(['on', 'event', (e) => {
-        assert.ok(true);
-        assert.equal(e.name, event.name);
-        assert.equal(e.category, event.category);
-      }]);
+        assert.ok(true)
+        assert.strict.equal(e.name, event.name)
+        assert.strict.equal(e.category, event.category)
+      }])
 
-      _eventManager.initialize();
+      _eventManager.initialize()
 
-      _digitalData.events.push(event);
-    });
+      _digitalData.events.push(event)
+    })
 
     it('should process early callback for early event', () => {
-      const event = Object.assign({}, eventTemplate);
+      const event = Object.assign({}, eventTemplate)
 
       _ddListener.push(['on', 'event', (e) => {
-        assert.ok(true);
-        assert.equal(e.name, event.name);
-        assert.equal(e.category, event.category);
-      }]);
-      _digitalData.events.push(event);
+        assert.ok(true)
+        assert.strict.equal(e.name, event.name)
+        assert.strict.equal(e.category, event.category)
+      }])
+      _digitalData.events.push(event)
 
-      _eventManager.initialize();
-    });
+      _eventManager.initialize()
+    })
 
     it('should process early callback for early event and beforeEvent', () => {
-      const event = Object.assign({}, eventTemplate);
+      const event = Object.assign({}, eventTemplate)
 
       _ddListener.push(['on', 'event', (e) => {
-        assert.ok(true);
-        assert.equal(e.name, event.name);
-        assert.equal(e.category, event.category);
-        assert.equal(e.newVar, 'test');
-      }]);
+        assert.ok(true)
+        assert.strict.equal(e.name, event.name)
+        assert.strict.equal(e.category, event.category)
+        assert.strict.equal(e.newVar, 'test')
+      }])
       _ddListener.push(['on', 'beforeEvent', (e) => {
-        e.newVar = 'test';
-      }]);
-      _digitalData.events.push(event);
+        e.newVar = 'test'
+      }])
+      _digitalData.events.push(event)
 
-      _eventManager.initialize();
-    });
+      _eventManager.initialize()
+    })
 
     it('should fire event with callback inside when no listeners', (done) => {
-      _eventManager.initialize();
+      _eventManager.initialize()
       _digitalData.events.push({
         name: 'Test',
         category: 'Test',
-        callback() {
-          done();
-        },
-      });
-    });
+        callback () {
+          done()
+        }
+      })
+    })
 
     it('should fire event with callback inside after listeners completed', (done) => {
-      sinon.stub(window.console, 'error');
+      sinon.stub(window.console, 'error')
 
-      _eventManager.initialize();
+      _eventManager.initialize()
 
-      _ddListener.push(['on', 'event', () => 'test result']);
+      _ddListener.push(['on', 'event', () => 'test result'])
 
-      _ddListener.push(['on', 'event', () => window.fatal.error]);
+      _ddListener.push(['on', 'event', () => window.fatal.error])
 
-      _ddListener.push(['on', 'event', () => 'test result 2']);
+      _ddListener.push(['on', 'event', () => 'test result 2'])
 
       _digitalData.events.push({
         name: 'Test',
         category: 'Test',
         callback: (results, errors) => {
-          assert.ok(errors);
-          assert.equal(results[0], 'test result');
-          assert.equal(results[1], 'test result 2');
-        },
-      });
+          assert.ok(errors)
+          assert.strict.equal(results[0], 'test result')
+          assert.strict.equal(results[1], 'test result 2')
+        }
+      })
 
       setTimeout(() => {
-        assert.ok(window.console.error.called);
-        window.console.error.restore();
-        done();
-      }, 100);
-    });
+        assert.ok(window.console.error.called)
+        window.console.error.restore()
+        done()
+      }, 100)
+    })
 
     it('should add Viewed Page event if sendViewedPageEvent setting is enabled', () => {
-      _digitalData.events.push({ name: 'Viewed Product Detail' });
+      _digitalData.events.push({ name: 'Viewed Product Detail' })
 
-      _eventManager.setSendViewedPageEvent(true);
-      _eventManager.initialize();
+      _eventManager.setSendViewedPageEvent(true)
+      _eventManager.initialize()
 
-      assert.equal(_digitalData.events[0].name, 'Viewed Page');
-      assert.equal(_digitalData.events[1].name, 'Viewed Product Detail');
-      assert.equal(_digitalData.events.length, 2);
-    });
+      assert.strict.equal(_digitalData.events[0].name, 'Viewed Page')
+      assert.strict.equal(_digitalData.events[1].name, 'Viewed Product Detail')
+      assert.strict.equal(_digitalData.events.length, 2)
+    })
 
     it("shouldn't add Viewed Page event if sendViewedPageEvent setting is enabled and Viewed Page already sent", () => {
-      _digitalData.events.push({ name: 'Viewed Page' });
-      _digitalData.events.push({ name: 'Viewed Product Detail' });
+      _digitalData.events.push({ name: 'Viewed Page' })
+      _digitalData.events.push({ name: 'Viewed Product Detail' })
 
-      _eventManager.setSendViewedPageEvent(true);
-      _eventManager.initialize();
+      _eventManager.setSendViewedPageEvent(true)
+      _eventManager.initialize()
 
-      assert.equal(_digitalData.events[0].name, 'Viewed Page');
-      assert.equal(_digitalData.events[1].name, 'Viewed Product Detail');
-      assert.equal(_digitalData.events.length, 2);
-    });
+      assert.strict.equal(_digitalData.events[0].name, 'Viewed Page')
+      assert.strict.equal(_digitalData.events[1].name, 'Viewed Product Detail')
+      assert.strict.equal(_digitalData.events.length, 2)
+    })
 
     it('should enrich product data from DDL', (done) => {
       _digitalData.product = {
         id: '123',
-        name: 'Test Product',
-      };
+        name: 'Test Product'
+      }
 
-      _eventManager.initialize();
+      _eventManager.initialize()
 
       _ddListener.push(['on', 'event', (e) => {
-        assert(e.product.name === 'Test Product');
-        done();
-      }]);
+        assert(e.product.name === 'Test Product')
+        done()
+      }])
 
       _digitalData.events.push({
         name: 'Clicked Product',
         category: 'Ecommerce',
-        product: '123',
-      });
-    });
+        product: '123'
+      })
+    })
 
     it('should not enrich product data from DDL', (done) => {
       _digitalData.product = {
         id: '123',
-        name: 'Test Product',
-      };
+        name: 'Test Product'
+      }
 
-      _eventManager.initialize();
+      _eventManager.initialize()
 
       _ddListener.push(['on', 'event', (e) => {
-        assert(!e.product.name);
-        done();
-      }]);
+        assert(!e.product.name)
+        done()
+      }])
 
       _digitalData.events.push({
         name: 'Clicked Product',
         enrichEventData: false,
         category: 'Ecommerce',
-        product: '123',
-      });
-    });
+        product: '123'
+      })
+    })
 
     it('should process past events event if listener was added later', (done) => {
-      _eventManager.initialize();
+      _eventManager.initialize()
 
       _digitalData.events.push({
         name: 'Clicked Product',
         category: 'Ecommerce',
         product: {
           id: '123',
-          name: 'Test Product',
-        },
-      });
+          name: 'Test Product'
+        }
+      })
 
       _ddListener.push(['on', 'event', () => {
-        assert.ok(true);
-        done();
-      }]);
-    });
-  });
+        assert.ok(true)
+        done()
+      }])
+    })
+  })
 
   describe(': listening for digitalData changes', () => {
     beforeEach(() => {
       _digitalData = {
         user: {
-          returning: false,
+          returning: false
         },
         page: {
-          categoryId: 1,
+          categoryId: 1
         },
         listing: {
           items: [
             { id: 1 },
-            { id: 2 },
-          ],
+            { id: 2 }
+          ]
         },
-        test: 'test',
-      };
-      _ddListener = [];
-      _eventManager = new EventManager(_digitalData, _ddListener);
-      _eventManager.initialize();
-    });
+        test: 'test'
+      }
+      _ddListener = []
+      _eventManager = new EventManager(_digitalData, _ddListener)
+      _eventManager.initialize()
+    })
 
     it('should fire change callback using digitalData.changes interface', (done) => {
       _ddListener.push(['on', 'change', () => {
-        assert.equal(_digitalData.test2, 'test2');
-        assert.equal(_digitalData.page.categoryId, 2);
-        done();
-      }]);
-      _digitalData.changes.push(['test2', 'test2']);
+        assert.strict.equal(_digitalData.test2, 'test2')
+        assert.strict.equal(_digitalData.page.categoryId, 2)
+        done()
+      }])
+      _digitalData.changes.push(['test2', 'test2'])
       _digitalData.changes.push(['page', {
-        categoryId: 2,
-      }]);
-    });
+        categoryId: 2
+      }])
+    })
 
     it('should fire change callback', (done) => {
       _ddListener.push(['on', 'change', () => {
-        done();
-      }]);
-      _digitalData.test2 = 'test2';
-    });
+        done()
+      }])
+      _digitalData.test2 = 'test2'
+    })
 
     it('should fire change key callback', (done) => {
       _ddListener.push(['on', 'change:user.returning', (newValue, previousValue) => {
-        assert.ok(newValue === true);
-        assert.ok(previousValue === false);
-        done();
-      }]);
-      _digitalData.user.returning = true;
-    });
+        assert.ok(newValue === true)
+        assert.ok(previousValue === false)
+        done()
+      }])
+      _digitalData.user.returning = true
+    })
 
     it('should fire change callback for array', (done) => {
       _ddListener.push(['on', 'change:listing.items', (newValue, previousValue) => {
-        assert.ok(newValue.length === 3);
-        assert.ok(previousValue.length === 2);
-        done();
-      }]);
-      _digitalData.listing.items.push({ id: 3 });
-    });
+        assert.ok(newValue.length === 3)
+        assert.ok(previousValue.length === 2)
+        done()
+      }])
+      _digitalData.listing.items.push({ id: 3 })
+    })
 
     it('should fire length change callback for array', (done) => {
       _ddListener.push(['on', 'change:listing.items.length', (newValue, previousValue) => {
-        assert.ok(newValue === 3);
-        assert.ok(previousValue === 2);
-        done();
-      }]);
-      _digitalData.listing.items.push({ id: 3 });
-    });
+        assert.ok(newValue === 3)
+        assert.ok(previousValue === 2)
+        done()
+      }])
+      _digitalData.listing.items.push({ id: 3 })
+    })
 
     it('should fire change callbacks asynchronously', (done) => {
-      let listener1Called = false;
-      let listener2Called = false;
+      let listener1Called = false
+      let listener2Called = false
 
-      sinon.stub(window.console, 'error');
+      sinon.stub(window.console, 'error')
 
       _ddListener.push(['on', 'change', () => {
-        listener1Called = true;
-        throw new Error('test error');
-      }]);
+        listener1Called = true
+        throw new Error('test error')
+      }])
       _ddListener.push(['on', 'change', () => {
-        listener2Called = true;
-      }]);
-      _digitalData.test2 = 'test2';
+        listener2Called = true
+      }])
+      _digitalData.test2 = 'test2'
 
       setTimeout(() => {
-        assert.ok(listener1Called);
-        assert.ok(listener2Called);
-        assert.ok(window.console.error.calledOnce);
-        window.console.error.restore();
-        done();
-      }, 100);
-    });
+        assert.ok(listener1Called)
+        assert.ok(listener2Called)
+        assert.ok(window.console.error.calledOnce)
+        window.console.error.restore()
+        done()
+      }, 100)
+    })
 
     it('should handle change callback exception', (done) => {
       _ddListener.push(['on', 'change', () => {
-        throw new Error('test error');
-      }]);
-      _digitalData.test2 = 'test2';
-      setTimeout(done, 1000);
-    });
+        throw new Error('test error')
+      }])
+      _digitalData.test2 = 'test2'
+      setTimeout(done, 1000)
+    })
 
     it('should NOT fire change callback', (done) => {
       _ddListener.push(['on', 'change', () => {
-        assert.ok(false);
-        done();
-      }]);
+        assert.ok(false)
+        done()
+      }])
       setTimeout(() => {
-        assert.ok(true);
-        done();
-      }, 101); // check interval is 100, so 101 will work
+        assert.ok(true)
+        done()
+      }, 101) // check interval is 100, so 101 will work
 
-      _digitalData.test = 'test';
-    });
+      _digitalData.test = 'test'
+    })
 
     it('should NOT fire change key callback', (done) => {
       _ddListener.push(['on', 'change:user.returning', () => {
-        assert.ok(false);
-        done();
-      }]);
+        assert.ok(false)
+        done()
+      }])
       setTimeout(() => {
-        assert.ok(true);
-        done();
-      }, 101); // check interval is 100, so 101 will work
+        assert.ok(true)
+        done()
+      }, 101) // check interval is 100, so 101 will work
 
-      _digitalData.user.returning = false;
-    });
+      _digitalData.user.returning = false
+    })
 
     it('should NOT fire change callback for array', (done) => {
       _ddListener.push(['on', 'change:listing.items', () => {
-        assert.ok(false);
-        done();
-      }]);
+        assert.ok(false)
+        done()
+      }])
       setTimeout(() => {
-        assert.ok(true);
-        done();
-      }, 101); // check interval is 100, so 101 will work
+        assert.ok(true)
+        done()
+      }, 101) // check interval is 100, so 101 will work
 
-      _digitalData.listing.items.pop();
-      _digitalData.listing.items.push({ id: 2 });
-    });
+      _digitalData.listing.items.pop()
+      _digitalData.listing.items.push({ id: 2 })
+    })
 
     it('should NOT fire length change callback for array', (done) => {
       _ddListener.push(['on', 'change:listing.items.length', () => {
-        assert.ok(false);
-        done();
-      }]);
+        assert.ok(false)
+        done()
+      }])
       setTimeout(() => {
-        assert.ok(true);
-        done();
-      }, 101); // check interval is 100, so 101 will work
+        assert.ok(true)
+        done()
+      }, 101) // check interval is 100, so 101 will work
 
-      _digitalData.listing.items.pop();
-      _digitalData.listing.items.push({ id: 3 });
-    });
+      _digitalData.listing.items.pop()
+      _digitalData.listing.items.push({ id: 3 })
+    })
 
     it('should NOT fire change callback if event was added', (done) => {
       _ddListener.push(['on', 'change', () => {
-        assert.ok(false);
-        done();
-      }]);
+        assert.ok(false)
+        done()
+      }])
       setTimeout(() => {
-        assert.ok(true);
-        done();
-      }, 101); // check interval is 100, so 101 will work
+        assert.ok(true)
+        done()
+      }, 101) // check interval is 100, so 101 will work
 
       _digitalData.events.push({
-        name: 'Test Event',
-      });
-    });
+        name: 'Test Event'
+      })
+    })
 
     it('should fire change key callback for chaining listeners', (done) => {
-      let counter = 0;
+      let counter = 0
       _ddListener.push(['on', 'change:listing.categoryId', (newValue) => {
-        counter += 1;
-        assert.equal(newValue, counter + 1);
-        _digitalData.page.categoryId = (counter + 2);
+        counter += 1
+        assert.strict.equal(newValue, counter + 1)
+        _digitalData.page.categoryId = (counter + 2)
         if (counter === 3) {
-          done();
+          done()
         }
-      }]);
+      }])
       _ddListener.push(['on', 'change:page.categoryId', () => {
-        _digitalData.listing.categoryId = _digitalData.page.categoryId;
-      }]);
-      _digitalData.page.categoryId = 2;
-    });
+        _digitalData.listing.categoryId = _digitalData.page.categoryId
+      }])
+      _digitalData.page.categoryId = 2
+    })
 
     // it('should fire change key callback for chaining listeners ommiting first change',(done) => {
     //   let counter = 0;
@@ -474,7 +473,7 @@ describe('EventManager', () => {
     //       if (!firstNewValue) {
     //         firstNewValue = newValue;
     //       }
-    //       assert.equal(newValue, counter + 2);
+    //       assert.strict.equal(newValue, counter + 2);
     //       if (counter < 2) {
     //         _digitalData.page.categoryId = (counter + 3);
     //       }
@@ -486,169 +485,169 @@ describe('EventManager', () => {
     //       _digitalData.page.categoryId = 3;
     //       setTimeout(() => {
     //         assert.ok(firstNewValue > 2, 'should fire listener starting from categoriID = 3');
-    //         assert.equal(counter, 2);
+    //         assert.strict.equal(counter, 2);
     //         done();
     //       }, 550);
     //     }, 110);
     //   }, 3);
     // });
-  });
+  })
 
   describe(': listening for digitalData define events', () => {
     beforeEach(() => {
       _digitalData = {
         user: {
-          returning: false,
+          returning: false
         },
         listing: {
           items: [
             { id: 1 },
-            { id: 2 },
-          ],
+            { id: 2 }
+          ]
         },
-        test: 'test',
-      };
-      _ddListener = [];
-      _eventManager = new EventManager(_digitalData, _ddListener);
-      _eventManager.initialize();
-    });
+        test: 'test'
+      }
+      _ddListener = []
+      _eventManager = new EventManager(_digitalData, _ddListener)
+      _eventManager.initialize()
+    })
 
     it('should fire define callback', (done) => {
       _ddListener.push(['on', 'define', () => {
-        done();
-      }]);
-    });
+        done()
+      }])
+    })
 
     it('should fire define key callback', (done) => {
       _ddListener.push(['on', 'define:user.test', (value) => {
-        assert.ok(value === true);
-        done();
-      }]);
-      _digitalData.user.test = true;
-    });
+        assert.ok(value === true)
+        done()
+      }])
+      _digitalData.user.test = true
+    })
 
     it('should fire define key callback', (done) => {
-      _digitalData.user.test = true;
-      const ddListener = _ddListener || [];
+      _digitalData.user.test = true
+      const ddListener = _ddListener || []
       ddListener.push(['on', 'define:user.test', (value) => {
-        assert.ok(value === true);
-        done();
-      }]);
-    });
+        assert.ok(value === true)
+        done()
+      }])
+    })
 
     it('should fire define callback for array', (done) => {
       _ddListener.push(['on', 'define:listing.items', (value) => {
-        assert.ok(value.length === 3);
-        done();
-      }]);
-      _digitalData.listing.items.push({ id: 3 });
-    });
+        assert.ok(value.length === 3)
+        done()
+      }])
+      _digitalData.listing.items.push({ id: 3 })
+    })
 
     it('should fire length define callback for array', (done) => {
       _ddListener.push(['on', 'define:listing.items.length', (value) => {
-        assert.ok(value === 3);
-        done();
-      }]);
-      _digitalData.listing.items.push({ id: 3 });
-    });
+        assert.ok(value === 3)
+        done()
+      }])
+      _digitalData.listing.items.push({ id: 3 })
+    })
 
     it('should fire define callbacks despite errors', (done) => {
-      sinon.stub(window.console, 'error');
+      sinon.stub(window.console, 'error')
 
       _ddListener.push(['on', 'define', () => {
-        throw new Error('test error');
-      }]);
+        throw new Error('test error')
+      }])
       _ddListener.push(['on', 'define', () => {
-        assert.ok(window.console.error.calledOnce);
-        window.console.error.restore();
-        done();
-      }]);
-      _digitalData.test2 = 'test2';
-    });
+        assert.ok(window.console.error.calledOnce)
+        window.console.error.restore()
+        done()
+      }])
+      _digitalData.test2 = 'test2'
+    })
 
     it('should handle define callback exception', (done) => {
       _ddListener.push(['on', 'define', () => {
-        throw new Error('test error');
-      }]);
-      _digitalData.test2 = 'test2';
-      setTimeout(done, 1000);
-    });
+        throw new Error('test error')
+      }])
+      _digitalData.test2 = 'test2'
+      setTimeout(done, 1000)
+    })
 
     it('should fire define callback only once', (done) => {
       _ddListener.push(['on', 'define', () => {
-        assert.ok(true);
-        done();
-      }]);
+        assert.ok(true)
+        done()
+      }])
       _ddListener.push(['on', 'define', () => {
-        assert.ok(false);
-        done();
-      }]);
+        assert.ok(false)
+        done()
+      }])
       setTimeout(() => {
-        assert.ok(true);
-        done();
-      }, 101); // check interval is 100, so 101 will work
+        assert.ok(true)
+        done()
+      }, 101) // check interval is 100, so 101 will work
 
-      _digitalData.test = 'test';
-    });
+      _digitalData.test = 'test'
+    })
 
     it('should fire define key callback only once', (done) => {
       _ddListener.push(['on', 'define:user.returning', () => {
-        assert.ok(true);
-        done();
-      }]);
+        assert.ok(true)
+        done()
+      }])
       _ddListener.push(['on', 'define:user.returning', () => {
-        assert.ok(false);
-        done();
-      }]);
+        assert.ok(false)
+        done()
+      }])
       setTimeout(() => {
-        assert.ok(true);
-        done();
-      }, 101); // check interval is 100, so 101 will work
+        assert.ok(true)
+        done()
+      }, 101) // check interval is 100, so 101 will work
 
-      _digitalData.user.returning = false;
-    });
+      _digitalData.user.returning = false
+    })
 
     it('should fire define callback for array only once', (done) => {
       _ddListener.push(['on', 'define:listing.items', () => {
-        assert.ok(true);
-        done();
-      }]);
+        assert.ok(true)
+        done()
+      }])
       _ddListener.push(['on', 'define:listing.items', () => {
-        assert.ok(false);
-        done();
-      }]);
+        assert.ok(false)
+        done()
+      }])
       setTimeout(() => {
-        assert.ok(true);
-        done();
-      }, 101); // check interval is 100, so 101 will work
+        assert.ok(true)
+        done()
+      }, 101) // check interval is 100, so 101 will work
 
-      _digitalData.listing.items.pop();
-      _digitalData.listing.items.push({ id: 2 });
-    });
+      _digitalData.listing.items.pop()
+      _digitalData.listing.items.push({ id: 2 })
+    })
 
     it('should fire length define callback for array only once', (done) => {
       _ddListener.push(['on', 'define:listing.items.length', () => {
-        assert.ok(true);
-        done();
-      }]);
+        assert.ok(true)
+        done()
+      }])
       _ddListener.push(['on', 'define:listing.items.length', () => {
-        assert.ok(false);
-        done();
-      }]);
+        assert.ok(false)
+        done()
+      }])
       setTimeout(() => {
-        assert.ok(true);
-        done();
-      }, 101); // check interval is 100, so 101 will work
+        assert.ok(true)
+        done()
+      }, 101) // check interval is 100, so 101 will work
 
-      _digitalData.listing.items.pop();
-      _digitalData.listing.items.push({ id: 3 });
-    });
+      _digitalData.listing.items.pop()
+      _digitalData.listing.items.push({ id: 3 })
+    })
 
     it('should fire define callback event if key was already defined', (done) => {
       _ddListener.push(['on', 'define:user.returning', () => {
-        assert.ok(true);
-        done();
-      }]);
-    });
-  });
-});
+        assert.ok(true)
+        done()
+      }])
+    })
+  })
+})

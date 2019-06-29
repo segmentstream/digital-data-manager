@@ -1,70 +1,70 @@
-import deleteProperty from '@segmentstream/utils/deleteProperty';
-import { getProp } from '@segmentstream/utils/dotProp';
-import each from '@segmentstream/utils/each';
-import Integration from '../Integration';
+import deleteProperty from '@segmentstream/utils/deleteProperty'
+import { getProp } from '@segmentstream/utils/dotProp'
+import each from '@segmentstream/utils/each'
+import Integration from '../Integration'
 import {
   VIEWED_PAGE,
   SUBSCRIBED,
   ALLOWED_PUSH_NOTIFICATIONS,
   BLOCKED_PUSH_NOTIFICATIONS,
-  CLOSED_PUSH_NOTIFICATIONS_PROMPT,
-} from '../events/semanticEvents';
-import { DIGITALDATA_VAR } from '../variableTypes';
+  CLOSED_PUSH_NOTIFICATIONS_PROMPT
+} from '../events/semanticEvents'
+import { DIGITALDATA_VAR } from '../variableTypes'
 
-const PUSH_NOTIFICATIONS_EVENTS_CATEGORY = 'Push Notifications';
+const PUSH_NOTIFICATIONS_EVENTS_CATEGORY = 'Push Notifications'
 
-function isHttps() {
-  return (window.location.href.indexOf('https:') >= 0);
+function isHttps () {
+  return (window.location.href.indexOf('https:') >= 0)
 }
 
-function clickListenerWorkaround() {
-  function getDialogBody() {
-    return document.querySelector('.onesignal-bell-launcher-dialog-body');
+function clickListenerWorkaround () {
+  function getDialogBody () {
+    return document.querySelector('.onesignal-bell-launcher-dialog-body')
   }
 
-  function getSubscribeButton() {
-    return document.querySelector('#onesignal-bell-container .onesignal-bell-launcher #subscribe-button');
+  function getSubscribeButton () {
+    return document.querySelector('#onesignal-bell-container .onesignal-bell-launcher #subscribe-button')
   }
 
-  function getUnsubscribeButton() {
-    return document.querySelector('#onesignal-bell-container .onesignal-bell-launcher #unsubscribe-button');
+  function getUnsubscribeButton () {
+    return document.querySelector('#onesignal-bell-container .onesignal-bell-launcher #unsubscribe-button')
   }
 
-  function onSubscribeButtonClicked() {
-    window.OneSignal.event.trigger('notifyButtonSubscribeClick');
+  function onSubscribeButtonClicked () {
+    window.OneSignal.event.trigger('notifyButtonSubscribeClick')
   }
 
-  function onUnsubscribeButtonClicked() {
-    window.OneSignal.event.trigger('notifyButtonUnsubscribeClick');
+  function onUnsubscribeButtonClicked () {
+    window.OneSignal.event.trigger('notifyButtonUnsubscribeClick')
   }
 
-  function onDialogBodyModified() {
+  function onDialogBodyModified () {
     if (getSubscribeButton()) {
-      getSubscribeButton().removeEventListener('click', onSubscribeButtonClicked);
-      getSubscribeButton().addEventListener('click', onSubscribeButtonClicked);
+      getSubscribeButton().removeEventListener('click', onSubscribeButtonClicked)
+      getSubscribeButton().addEventListener('click', onSubscribeButtonClicked)
     }
     if (getUnsubscribeButton()) {
-      getUnsubscribeButton().removeEventListener('click', onUnsubscribeButtonClicked);
-      getUnsubscribeButton().addEventListener('click', onUnsubscribeButtonClicked);
+      getUnsubscribeButton().removeEventListener('click', onUnsubscribeButtonClicked)
+      getUnsubscribeButton().addEventListener('click', onUnsubscribeButtonClicked)
     }
   }
 
-  function hookTreeModified() {
+  function hookTreeModified () {
     if (getDialogBody()) {
-      getDialogBody().addEventListener('DOMSubtreeModified', onDialogBodyModified);
+      getDialogBody().addEventListener('DOMSubtreeModified', onDialogBodyModified)
     }
   }
 
-  window.OneSignal = window.OneSignal || [];
+  window.OneSignal = window.OneSignal || []
   window.OneSignal.push(() => {
     window.OneSignal.once('notifyButtonLauncherClick', () => {
-      hookTreeModified();
-    });
-  });
+      hookTreeModified()
+    })
+  })
 }
 
 class OneSignal extends Integration {
-  constructor(digitalData, options) {
+  constructor (digitalData, options) {
     const optionsWithDefaults = Object.assign({
       appId: '',
       autoRegister: false,
@@ -74,94 +74,94 @@ class OneSignal extends Integration {
       pushSubscriptionTriggerEvent: 'Agreed to Receive Push Notifications',
       tagVars: {},
       welcomeNotification: {
-        disable: true,
-      },
-    }, options);
+        disable: true
+      }
+    }, options)
 
-    super(digitalData, optionsWithDefaults);
+    super(digitalData, optionsWithDefaults)
 
-    this.userTags = {}; // not to conflict with this.tags named it userTags
-    this.enrichableTagProps = [];
+    this.userTags = {} // not to conflict with this.tags named it userTags
+    this.enrichableTagProps = []
 
     this.SEMANTIC_EVENTS = [
       VIEWED_PAGE,
       SUBSCRIBED,
-      this.getOption('pushSubscriptionTriggerEvent'),
-    ];
+      this.getOption('pushSubscriptionTriggerEvent')
+    ]
 
     this.addTag('manifest', {
       type: 'link',
       attr: {
         rel: 'manifest',
-        href: `${optionsWithDefaults.path.replace(/\/$/, '')}/manifest.json`,
-      },
-    });
+        href: `${optionsWithDefaults.path.replace(/\/$/, '')}/manifest.json`
+      }
+    })
     this.addTag({
       type: 'script',
       attr: {
-        src: 'https://cdn.onesignal.com/sdks/OneSignalSDK.js',
-      },
-    });
+        src: 'https://cdn.onesignal.com/sdks/OneSignalSDK.js'
+      }
+    })
   }
 
-  getSemanticEvents() {
+  getSemanticEvents () {
     if (this.initialized) {
-      return this.SEMANTIC_EVENTS;
+      return this.SEMANTIC_EVENTS
     }
-    return [];
+    return []
   }
 
-  allowCustomEvents() {
-    return false;
+  allowCustomEvents () {
+    return false
   }
 
-  getEnrichableEventProps(event) {
-    const enrichableProps = ['user.email'];
+  getEnrichableEventProps (event) {
+    const enrichableProps = ['user.email']
 
     if (this.SEMANTIC_EVENTS.indexOf(event.name) >= 0) {
-      const enrichableTagProps = this.getEnrichableTagProps();
+      const enrichableTagProps = this.getEnrichableTagProps()
       enrichableTagProps.forEach((enrichableTagProp) => {
-        enrichableProps.push(enrichableTagProp);
-      });
+        enrichableProps.push(enrichableTagProp)
+      })
     }
-    return enrichableProps;
+    return enrichableProps
   }
 
-  getEnrichableTagProps() {
-    return this.enrichableTagProps;
+  getEnrichableTagProps () {
+    return this.enrichableTagProps
   }
 
-  prepareEnrichableTagProps() {
-    const tagsSettings = this.getOption('tagVars');
+  prepareEnrichableTagProps () {
+    const tagsSettings = this.getOption('tagVars')
     each(tagsSettings, (key, variable) => {
       if (variable.type === DIGITALDATA_VAR) {
-        this.enrichableTagProps.push(variable.value);
+        this.enrichableTagProps.push(variable.value)
       }
-    });
+    })
   }
 
-  initialize() {
-    window.OneSignal = window.OneSignal || [];
+  initialize () {
+    window.OneSignal = window.OneSignal || []
 
     if (this.getOption('notifyButton') && this.getOption('notifyButton').displayPredicate) {
       try {
         // eslint-disable-next-line no-new-func
-        this.getOption('notifyButton').displayPredicate = Function(this.getOption('notifyButton').displayPredicate);
+        this.getOption('notifyButton').displayPredicate = Function(this.getOption('notifyButton').displayPredicate)
       } catch (e) {
-        deleteProperty(this.getOption('notifyButton'), 'displayPredicate');
+        deleteProperty(this.getOption('notifyButton'), 'displayPredicate')
       }
     }
 
     if (this.getOption('notifyButton') && this.getOption('notifyButton').enable) {
-      clickListenerWorkaround(); // temporary fix of notify bell click listener
+      clickListenerWorkaround() // temporary fix of notify bell click listener
     }
 
     if (this.getOption('path') && this.getOption('path') !== '/') {
       window.OneSignal.push(() => {
         // This registers the workers at the root scope, which is allowed
         // by the HTTP header "Service-Worker-Allowed: /"
-        window.OneSignal.SERVICE_WORKER_PARAM = { scope: '/' };
-      });
+        window.OneSignal.SERVICE_WORKER_PARAM = { scope: '/' }
+      })
     }
 
     window.OneSignal.push(['init', {
@@ -172,174 +172,174 @@ class OneSignal extends Integration {
       safari_web_id: this.getOption('safariWebId'),
       promptOptions: this.getOption('promptOptions'),
       notifyButton: this.getOption('notifyButton'),
-      welcomeNotification: this.getOption('welcomeNotification'),
-    }]);
+      welcomeNotification: this.getOption('welcomeNotification')
+    }])
 
     window.OneSignal.push(['getRegistrationId', (registrationId) => {
       if (registrationId) {
         window.OneSignal.push(['getTags', (tags) => {
-          this.currentTags = tags;
-          this.emit('getTags');
-        }]);
+          this.currentTags = tags
+          this.emit('getTags')
+        }])
       } else {
-        this.currentTags = {};
-        this.emit('getTags');
+        this.currentTags = {}
+        this.emit('getTags')
       }
-    }]);
+    }])
 
     // allowed/block events
     window.OneSignal.push(() => {
       window.OneSignal.on('notificationPermissionChange', (permissionChange) => {
-        const currentPermission = permissionChange.to;
-        const category = PUSH_NOTIFICATIONS_EVENTS_CATEGORY;
-        let name;
+        const currentPermission = permissionChange.to
+        const category = PUSH_NOTIFICATIONS_EVENTS_CATEGORY
+        let name
         if (currentPermission === 'granted') {
-          name = ALLOWED_PUSH_NOTIFICATIONS;
+          name = ALLOWED_PUSH_NOTIFICATIONS
         } else if (currentPermission === 'denied') {
-          name = BLOCKED_PUSH_NOTIFICATIONS;
+          name = BLOCKED_PUSH_NOTIFICATIONS
         } else {
-          name = CLOSED_PUSH_NOTIFICATIONS_PROMPT;
+          name = CLOSED_PUSH_NOTIFICATIONS_PROMPT
         }
-        this.digitalData.events.push({ category, name });
-      });
-    });
-    this.enrichDigitalData();
-    this.prepareEnrichableTagProps();
+        this.digitalData.events.push({ category, name })
+      })
+    })
+    this.enrichDigitalData()
+    this.prepareEnrichableTagProps()
 
-    this.load('manifest');
+    this.load('manifest')
 
-    this.initialized = true;
+    this.initialized = true
   }
 
-  onGetTags(fn) {
+  onGetTags (fn) {
     if (this.currentTags) {
-      fn(this.currentTags);
+      fn(this.currentTags)
     } else {
       this.on('getTags', () => {
-        fn(this.currentTags);
-      });
+        fn(this.currentTags)
+      })
     }
   }
 
-  extractTagValuesFromEvent(event) {
-    const tagsSettings = this.getOption('tagVars');
-    const newTags = {};
+  extractTagValuesFromEvent (event) {
+    const tagsSettings = this.getOption('tagVars')
+    const newTags = {}
     each(tagsSettings, (key, variable) => {
-      let tagVal = getProp(event, variable.value);
+      let tagVal = getProp(event, variable.value)
       if (tagVal !== undefined) {
-        if (typeof tagVal === 'boolean') tagVal = tagVal.toString();
-        newTags[key] = tagVal;
+        if (typeof tagVal === 'boolean') tagVal = tagVal.toString()
+        newTags[key] = tagVal
       }
-    });
-    return newTags;
+    })
+    return newTags
   }
 
-  getTagsToDelete(currentTags) {
-    const newTagsKeys = Object.keys(this.getOption('tagVars'));
-    const oldTagsKeys = Object.keys(currentTags);
-    const tagKeysToDelete = oldTagsKeys.filter(key => newTagsKeys.indexOf(key) < 0);
+  getTagsToDelete (currentTags) {
+    const newTagsKeys = Object.keys(this.getOption('tagVars'))
+    const oldTagsKeys = Object.keys(currentTags)
+    const tagKeysToDelete = oldTagsKeys.filter(key => newTagsKeys.indexOf(key) < 0)
     if (tagKeysToDelete.length) {
-      return tagKeysToDelete;
+      return tagKeysToDelete
     }
-    return null;
+    return null
   }
 
-  getTagsToSend(newTags, currentTags) {
-    const newTagsKeys = Object.keys(newTags);
-    const tagsToSend = {};
-    let tagsToSendCount = 0;
+  getTagsToSend (newTags, currentTags) {
+    const newTagsKeys = Object.keys(newTags)
+    const tagsToSend = {}
+    let tagsToSendCount = 0
     newTagsKeys.forEach((key) => {
       if (String(newTags[key]) !== String(currentTags[key])) {
-        tagsToSend[key] = newTags[key];
-        tagsToSendCount += 1;
+        tagsToSend[key] = newTags[key]
+        tagsToSendCount += 1
       }
-    });
+    })
     if (tagsToSendCount > 0) {
-      return tagsToSend;
+      return tagsToSend
     }
-    return null;
+    return null
   }
 
-  isHttps() {
-    return isHttps();
+  isHttps () {
+    return isHttps()
   }
 
-  isLoaded() {
-    return (window.OneSignal && !Array.isArray(window.OneSignal));
+  isLoaded () {
+    return (window.OneSignal && !Array.isArray(window.OneSignal))
   }
 
-  reset() {
-    deleteProperty(window, 'OneSignal');
+  reset () {
+    deleteProperty(window, 'OneSignal')
   }
 
-  enrichDigitalData() {
+  enrichDigitalData () {
     window.OneSignal.push(() => {
-      const pushNotification = this.digitalData.user.pushNotifications = {};
-      const isSupported = window.OneSignal.isPushNotificationsSupported();
-      pushNotification.isSupported = isSupported;
+      const pushNotification = this.digitalData.user.pushNotifications = {}
+      const isSupported = window.OneSignal.isPushNotificationsSupported()
+      pushNotification.isSupported = isSupported
       if (isSupported) {
         window.OneSignal.push(['getNotificationPermission', (permission) => {
           switch (permission) {
             case 'granted':
-              pushNotification.isSubscribed = true;
+              pushNotification.isSubscribed = true
               window.OneSignal.push(['getUserId', (userId) => {
-                pushNotification.userId = userId;
-                this.onEnrich();
-              }]);
-              break;
+                pushNotification.userId = userId
+                this.onEnrich()
+              }])
+              break
             case 'denied':
-              pushNotification.isSubscribed = false;
-              pushNotification.isDenied = true;
-              this.onEnrich();
-              break;
+              pushNotification.isSubscribed = false
+              pushNotification.isDenied = true
+              this.onEnrich()
+              break
             default:
-              pushNotification.isSubscribed = false;
-              this.onEnrich();
-              break;
+              pushNotification.isSubscribed = false
+              this.onEnrich()
+              break
           }
-        }]);
+        }])
       } else {
-        this.onEnrich();
+        this.onEnrich()
       }
-    });
+    })
   }
 
-  sendTagsUpdate(event) {
+  sendTagsUpdate (event) {
     this.onGetTags((currentTags) => {
-      const newTags = this.extractTagValuesFromEvent(event);
-      const tagsToDelete = this.getTagsToDelete(currentTags);
-      const tagsToSend = this.getTagsToSend(newTags, currentTags);
+      const newTags = this.extractTagValuesFromEvent(event)
+      const tagsToDelete = this.getTagsToDelete(currentTags)
+      const tagsToSend = this.getTagsToSend(newTags, currentTags)
 
       window.OneSignal.push(() => {
         if (tagsToSend) {
-          window.OneSignal.sendTags(tagsToSend);
-          Object.assign(this.currentTags, tagsToSend);
+          window.OneSignal.sendTags(tagsToSend)
+          Object.assign(this.currentTags, tagsToSend)
         }
         if (tagsToDelete) {
-          window.OneSignal.deleteTags(tagsToDelete);
+          window.OneSignal.deleteTags(tagsToDelete)
           tagsToDelete.forEach((tagKeyToDelete) => {
-            deleteProperty(this.currentTags, tagKeyToDelete);
-          });
+            deleteProperty(this.currentTags, tagKeyToDelete)
+          })
         }
-      });
-    });
+      })
+    })
   }
 
-  trackEvent(event) {
+  trackEvent (event) {
     if (this.getOption('autoRegister') && event.name === VIEWED_PAGE && this.getOption('isSlidePrompt')) {
       // slide prompt use case
-      window.OneSignal.push(['showHttpPrompt']);
+      window.OneSignal.push(['showHttpPrompt'])
     } else if (event.name === this.getOption('pushSubscriptionTriggerEvent')) {
       if (this.getOption('isSlidePrompt')) {
-        window.OneSignal.push(['showHttpPrompt']);
+        window.OneSignal.push(['showHttpPrompt'])
       } else {
-        window.OneSignal.push(['registerForPushNotifications']);
+        window.OneSignal.push(['registerForPushNotifications'])
       }
-      this.sendTagsUpdate(event);
+      this.sendTagsUpdate(event)
     } else if (this.SEMANTIC_EVENTS.indexOf(event.name) >= 0) {
-      this.sendTagsUpdate(event);
+      this.sendTagsUpdate(event)
     }
   }
 }
 
-export default OneSignal;
+export default OneSignal

@@ -1,25 +1,25 @@
-import cartStub from './cartStub.stub';
+import cartStub from './cartStub.stub'
 
 import {
   onViewedHomePageUnauthorizedStub,
-  onViewedHomePageAuthorizedStub,
-} from './onViewedHomePage.stub';
+  onViewedHomePageAuthorizedStub
+} from './onViewedHomePage.stub'
 
 import {
-  onViewedProductPageStub,
-} from './onViewedProductPage.stub';
+  onViewedProductPageStub
+} from './onViewedProductPage.stub'
 
 import {
-  onViewedListingPageStub,
-} from './onViewedListingPage.stub';
+  onViewedListingPageStub
+} from './onViewedListingPage.stub'
 
 import {
-  onViewedCartPageStub,
-} from './onViewedCartPage.stub';
+  onViewedCartPageStub
+} from './onViewedCartPage.stub'
 
 import {
-  onCompletedTransactionStub,
-} from './onCompletedTransaction.stub';
+  onCompletedTransactionStub
+} from './onCompletedTransaction.stub'
 
 export default {
   cartStub,
@@ -28,5 +28,5 @@ export default {
   onViewedProductPageStub,
   onViewedListingPageStub,
   onViewedCartPageStub,
-  onCompletedTransactionStub,
-};
+  onCompletedTransactionStub
+}

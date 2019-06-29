@@ -1,15 +1,15 @@
-import each from '@segmentstream/utils/each';
-import { getProp } from '@segmentstream/utils/dotProp';
-import { DIGITALDATA_VAR } from './variableTypes';
+import each from '@segmentstream/utils/each'
+import { getProp } from '@segmentstream/utils/dotProp'
+import { DIGITALDATA_VAR } from './variableTypes'
 
-export function getEnrichableVariableMappingProps(variableMapping) {
-  const enrichableProps = [];
+export function getEnrichableVariableMappingProps (variableMapping) {
+  const enrichableProps = []
   each(variableMapping, (key, variable) => {
     if (variable.type === DIGITALDATA_VAR) {
-      enrichableProps.push(variable.value);
+      enrichableProps.push(variable.value)
     }
-  });
-  return enrichableProps;
+  })
+  return enrichableProps
 }
 
 /**
@@ -17,33 +17,33 @@ export function getEnrichableVariableMappingProps(variableMapping) {
  * - booleanToString: true/false (default - false)
  * - multipleScopes: true/false (default - false)
  */
-export function extractVariableMappingValues(source, variableMapping, options = {}) {
-  const values = {};
-  let srcObject = source;
+export function extractVariableMappingValues (source, variableMapping, options = {}) {
+  const values = {}
+  let srcObject = source
   each(variableMapping, (key, variable) => {
-    let value;
-    const vartype = variable.type === DIGITALDATA_VAR ? 'event' : variable.type;
-    if (options.multipleScopes) srcObject = source[vartype];
+    let value
+    const vartype = variable.type === DIGITALDATA_VAR ? 'event' : variable.type
+    if (options.multipleScopes) srcObject = source[vartype]
 
     if (srcObject) {
       if (typeof variable === 'object' && variable.type) {
-        value = getProp(srcObject, variable.value);
+        value = getProp(srcObject, variable.value)
       } else {
-        value = getProp(srcObject, variable);
+        value = getProp(srcObject, variable)
       }
       if (value !== undefined) {
-        if (typeof value === 'boolean' && options.booleanToString) value = value.toString();
-        values[key] = value;
+        if (typeof value === 'boolean' && options.booleanToString) value = value.toString()
+        values[key] = value
       }
     }
-  });
-  return values;
+  })
+  return values
 }
 
-export function getVariableMappingValue(source, key, variableMapping) {
-  const variable = variableMapping[key];
+export function getVariableMappingValue (source, key, variableMapping) {
+  const variable = variableMapping[key]
   if (typeof variable === 'object' && variable.type) {
-    return getProp(source, variable.value);
+    return getProp(source, variable.value)
   }
-  return getProp(source, variable);
+  return getProp(source, variable)
 }

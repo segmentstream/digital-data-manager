@@ -9,18 +9,18 @@ const onCompletedTransactionStub = {
           unitSalePrice: 100,
           manufacturer: 'DB',
           categoryId: '2',
-          category: ['Accessories', 'Headwear'],
+          category: ['Accessories', 'Headwear']
         },
         quantity: 2,
-        subtotal: 200,
-      },
+        subtotal: 200
+      }
     ],
-    total: 200,
+    total: 200
   },
   out: {
     orderInfo: {
       id: '123',
-      totalPrice: 200,
+      totalPrice: 200
     },
     basketProducts: [
       {
@@ -30,13 +30,13 @@ const onCompletedTransactionStub = {
         quantity: 2,
         categoryId: '2',
         categoryName: 'Headwear',
-        brand: 'DB',
-      },
+        brand: 'DB'
+      }
     ],
-    pageType: 6,
-  },
-};
+    pageType: 6
+  }
+}
 
 export {
-  onCompletedTransactionStub,
-};
+  onCompletedTransactionStub
+}

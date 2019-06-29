@@ -1,14 +1,13 @@
-import assert from 'assert';
-import sinon from 'sinon';
-import { setIgnoreSameDomainCheck } from '@segmentstream/utils/utmParamsFromReferrer';
-import htmlGlobals from '@segmentstream/utils/htmlGlobals';
-import reset from '../reset';
-import DDManagerStreaming from '../../src/integrations/DDManagerStreaming';
-import ddManager from '../../src/ddManager';
-
+import assert from 'assert'
+import sinon from 'sinon'
+import { setIgnoreSameDomainCheck } from '@segmentstream/utils/utmParamsFromReferrer'
+import htmlGlobals from '@segmentstream/utils/htmlGlobals'
+import reset from '../reset'
+import DDManagerStreaming from '../../src/integrations/DDManagerStreaming'
+import ddManager from '../../src/ddManager'
 
 describe('Integrations: DDManagerStreaming', () => {
-  let ddManagerStreaming;
+  let ddManagerStreaming
 
   const _location = {
     protocol: 'https:',
@@ -17,158 +16,157 @@ describe('Integrations: DDManagerStreaming', () => {
     pathname: '/home',
     href: 'https://example.com/home',
     search: '',
-    hash: '#title1',
-  };
+    hash: '#title1'
+  }
 
   before(() => {
-    setIgnoreSameDomainCheck(true);
-  });
+    setIgnoreSameDomainCheck(true)
+  })
 
   after(() => {
-    setIgnoreSameDomainCheck(false);
-  });
+    setIgnoreSameDomainCheck(false)
+  })
 
   beforeEach(() => {
     window.digitalData = {
-      context: {},
-    };
-    ddManagerStreaming = new DDManagerStreaming(window.digitalData);
-    ddManager.addIntegration('DDManager Streaming', ddManagerStreaming);
-  });
+      context: {}
+    }
+    ddManagerStreaming = new DDManagerStreaming(window.digitalData)
+    ddManager.addIntegration('DDManager Streaming', ddManagerStreaming)
+  })
 
   afterEach(() => {
-    ddManagerStreaming.reset();
-    ddManager.reset();
-    reset();
-  });
+    ddManagerStreaming.reset()
+    ddManager.reset()
+    reset()
+  })
 
   describe('before loading', () => {
     beforeEach(() => {
-      sinon.stub(ddManagerStreaming, 'load');
-    });
+      sinon.stub(ddManagerStreaming, 'load')
+    })
 
     afterEach(() => {
-      ddManagerStreaming.load.restore();
-    });
+      ddManagerStreaming.load.restore()
+    })
 
     describe('#initialize', () => {
       it('should initialize', () => {
-        ddManager.initialize();
-        assert.ok(ddManagerStreaming.isLoaded());
-      });
+        ddManager.initialize()
+        assert.ok(ddManagerStreaming.isLoaded())
+      })
 
       it('should not load any tags load after initialization', () => {
-        ddManager.initialize();
-        assert.ok(!ddManagerStreaming.load.calledOnce);
-      });
-    });
-  });
-
+        ddManager.initialize()
+        assert.ok(!ddManagerStreaming.load.calledOnce)
+      })
+    })
+  })
 
   describe('after loading', () => {
     beforeEach((done) => {
-      sinon.stub(ddManagerStreaming, 'load');
+      sinon.stub(ddManagerStreaming, 'load')
       ddManager.once('ready', () => {
-        done();
-      });
-      ddManager.initialize();
-    });
+        done()
+      })
+      ddManager.initialize()
+    })
 
     afterEach(() => {
-      htmlGlobals.getLocation.restore();
-      htmlGlobals.getDocument.restore();
-    });
+      htmlGlobals.getLocation.restore()
+      htmlGlobals.getDocument.restore()
+    })
 
     it('#visit from Search Engine', () => {
       const _document = {
-        referrer: 'https://www.google.com/',
-      };
-      sinon.stub(htmlGlobals, 'getDocument').callsFake(() => _document);
-      sinon.stub(htmlGlobals, 'getLocation').callsFake(() => _location);
-      assert.deepEqual(ddManagerStreaming.normalize({}).context.campaign, {
+        referrer: 'https://www.google.com/'
+      }
+      sinon.stub(htmlGlobals, 'getDocument').callsFake(() => _document)
+      sinon.stub(htmlGlobals, 'getLocation').callsFake(() => _location)
+      assert.strict.deepEqual(ddManagerStreaming.normalize({}).context.campaign, {
         source: 'google',
-        medium: 'organic',
-      });
-    });
+        medium: 'organic'
+      })
+    })
 
     it('#visit from other site', () => {
       const _document = {
-        referrer: 'http://www.samesite.com',
-      };
-      sinon.stub(htmlGlobals, 'getDocument').callsFake(() => _document);
-      sinon.stub(htmlGlobals, 'getLocation').callsFake(() => _location);
-      assert.deepEqual(ddManagerStreaming.normalize({}).context.campaign, {
+        referrer: 'http://www.samesite.com'
+      }
+      sinon.stub(htmlGlobals, 'getDocument').callsFake(() => _document)
+      sinon.stub(htmlGlobals, 'getLocation').callsFake(() => _location)
+      assert.strict.deepEqual(ddManagerStreaming.normalize({}).context.campaign, {
         source: 'samesite.com',
-        medium: 'referral',
-      });
-    });
+        medium: 'referral'
+      })
+    })
 
     it('#visit with ymclid get param', () => {
       const _document = {
-        referrer: 'http://www.samesite.com',
-      };
-      _location.href = 'https://example.com/home?ymclid=1';
-      _location.search = '?ymclid=1';
-      sinon.stub(htmlGlobals, 'getDocument').callsFake(() => _document);
-      sinon.stub(htmlGlobals, 'getLocation').callsFake(() => _location);
-      assert.deepEqual(ddManagerStreaming.normalize({}).context.campaign, {
+        referrer: 'http://www.samesite.com'
+      }
+      _location.href = 'https://example.com/home?ymclid=1'
+      _location.search = '?ymclid=1'
+      sinon.stub(htmlGlobals, 'getDocument').callsFake(() => _document)
+      sinon.stub(htmlGlobals, 'getLocation').callsFake(() => _location)
+      assert.strict.deepEqual(ddManagerStreaming.normalize({}).context.campaign, {
         source: 'yandex_market',
-        medium: 'cpc',
-      });
-    });
+        medium: 'cpc'
+      })
+    })
 
     it('#visit with yclid get param', () => {
       const _document = {
-        referrer: 'http://www.samesite.com',
-      };
-      _location.href = 'https://example.com/home?yclid=1';
-      _location.search = '?yclid=1';
-      sinon.stub(htmlGlobals, 'getDocument').callsFake(() => _document);
-      sinon.stub(htmlGlobals, 'getLocation').callsFake(() => _location);
-      assert.deepEqual(ddManagerStreaming.normalize({}).context.campaign, {
+        referrer: 'http://www.samesite.com'
+      }
+      _location.href = 'https://example.com/home?yclid=1'
+      _location.search = '?yclid=1'
+      sinon.stub(htmlGlobals, 'getDocument').callsFake(() => _document)
+      sinon.stub(htmlGlobals, 'getLocation').callsFake(() => _location)
+      assert.strict.deepEqual(ddManagerStreaming.normalize({}).context.campaign, {
         source: 'yandex',
-        medium: 'cpc',
-      });
-    });
+        medium: 'cpc'
+      })
+    })
 
     it('#visit with gclid get param', () => {
       const _document = {
-        referrer: 'http://www.samesite.com',
-      };
-      _location.href = 'https://example.com/home?gclid=1';
-      _location.search = '?gclid=1';
-      sinon.stub(htmlGlobals, 'getDocument').callsFake(() => _document);
-      sinon.stub(htmlGlobals, 'getLocation').callsFake(() => _location);
-      assert.deepEqual(ddManagerStreaming.normalize({}).context.campaign, {
+        referrer: 'http://www.samesite.com'
+      }
+      _location.href = 'https://example.com/home?gclid=1'
+      _location.search = '?gclid=1'
+      sinon.stub(htmlGlobals, 'getDocument').callsFake(() => _document)
+      sinon.stub(htmlGlobals, 'getLocation').callsFake(() => _location)
+      assert.strict.deepEqual(ddManagerStreaming.normalize({}).context.campaign, {
         source: 'google',
-        medium: 'cpc',
-      });
-    });
+        medium: 'cpc'
+      })
+    })
 
     it('#do not override utm-params', () => {
       const _document = {
-        referrer: 'https://www.google.com/search?ei=5m92XOv5KYyxkwWe66WABQ&q=segmentstream&oq=segmentstream',
-      };
-      _location.href = 'https://example.com/home?utm_source=test&utm_medium=test';
-      _location.search = '?utm_source=test&utm_medium=test';
-      sinon.stub(htmlGlobals, 'getDocument').callsFake(() => _document);
-      sinon.stub(htmlGlobals, 'getLocation').callsFake(() => _location);
-      assert.deepEqual(ddManagerStreaming.normalize({}).context.campaign, {
+        referrer: 'https://www.google.com/search?ei=5m92XOv5KYyxkwWe66WABQ&q=segmentstream&oq=segmentstream'
+      }
+      _location.href = 'https://example.com/home?utm_source=test&utm_medium=test'
+      _location.search = '?utm_source=test&utm_medium=test'
+      sinon.stub(htmlGlobals, 'getDocument').callsFake(() => _document)
+      sinon.stub(htmlGlobals, 'getLocation').callsFake(() => _location)
+      assert.strict.deepEqual(ddManagerStreaming.normalize({}).context.campaign, {
         source: 'test',
-        medium: 'test',
-      });
-    });
+        medium: 'test'
+      })
+    })
 
     it('#internal visits', () => {
       const _document = {
-        referrer: 'https://example.com/home?utm_source=test&utm_medium=test',
-      };
-      _location.href = 'https://example.com/next';
-      _location.search = '';
-      setIgnoreSameDomainCheck(false);
-      sinon.stub(htmlGlobals, 'getDocument').callsFake(() => _document);
-      sinon.stub(htmlGlobals, 'getLocation').callsFake(() => _location);
-      assert.ok(!ddManagerStreaming.normalize({}).context.campaign);
-    });
-  });
-});
+        referrer: 'https://example.com/home?utm_source=test&utm_medium=test'
+      }
+      _location.href = 'https://example.com/next'
+      _location.search = ''
+      setIgnoreSameDomainCheck(false)
+      sinon.stub(htmlGlobals, 'getDocument').callsFake(() => _document)
+      sinon.stub(htmlGlobals, 'getLocation').callsFake(() => _location)
+      assert.ok(!ddManagerStreaming.normalize({}).context.campaign)
+    })
+  })
+})

@@ -3,12 +3,12 @@ const onLoggedInEnterWebsiteStub = {
   data: {
     customer: {
       ids: {
-        bitrixId: 'user123',
+        bitrixId: 'user123'
       },
       email: 'test@driveback.ru',
-      mobilePhone: '74957777777',
-    },
-  },
-};
+      mobilePhone: '74957777777'
+    }
+  }
+}
 
-export { onLoggedInEnterWebsiteStub };
+export { onLoggedInEnterWebsiteStub }

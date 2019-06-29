@@ -1,9 +1,9 @@
-import { getProp } from '@segmentstream/utils/dotProp';
-import cleanObject from '@segmentstream/utils/cleanObject';
-import deletePropery from '@segmentstream/utils/deleteProperty';
-import normalizeString from '@segmentstream/utils/normalizeString';
-import md5 from 'crypto-js/md5';
-import Integration from '../Integration';
+import { getProp } from '@segmentstream/utils/dotProp'
+import cleanObject from '@segmentstream/utils/cleanObject'
+import deletePropery from '@segmentstream/utils/deleteProperty'
+import normalizeString from '@segmentstream/utils/normalizeString'
+import md5 from 'crypto-js/md5'
+import Integration from '../Integration'
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -13,8 +13,8 @@ import {
   SUBSCRIBED,
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
-  VIEWED_CART,
-} from '../events/semanticEvents';
+  VIEWED_CART
+} from '../events/semanticEvents'
 
 const SEMANTIC_EVENTS = [
   VIEWED_PAGE,
@@ -25,20 +25,20 @@ const SEMANTIC_EVENTS = [
   SUBSCRIBED,
   ADDED_PRODUCT,
   REMOVED_PRODUCT,
-  VIEWED_CART,
-];
+  VIEWED_CART
+]
 
 class Soloway extends Integration {
-  constructor(digitalData, options) {
+  constructor (digitalData, options) {
     const optionsWithDefaults = Object.assign({
       siteId: '',
-      userSegmentVar: undefined,
-    }, options);
+      userSegmentVar: undefined
+    }, options)
 
-    super(digitalData, optionsWithDefaults);
+    super(digitalData, optionsWithDefaults)
   }
 
-  adriverCounterFactory() {
+  adriverCounterFactory () {
     /* eslint-disable */
     return function k() {
       var g = window.document;
@@ -100,75 +100,75 @@ class Soloway extends Integration {
     /* eslint-enable */
   }
 
-  initAdriverCounter(event, params) {
-    params = params || {};
-    params.custom = params.custom || {};
+  initAdriverCounter (event, params) {
+    params = params || {}
+    params.custom = params.custom || {}
     params.custom = Object.assign(params.custom, {
       153: this.getEmailMd5(event),
       160: getProp(event, 'user.hasTransacted') ? 0 : 1,
-      162: this.getUserSegment(event),
-    });
+      162: this.getUserSegment(event)
+    })
     params = Object.assign(params, {
       sid: this.getOption('siteId'),
-      bt: 62,
-    });
-    params = cleanObject(params);
+      bt: 62
+    })
+    params = cleanObject(params)
     new window.AdriverCounter(0, params); // eslint-disable-line
   }
 
-  getSemanticEvents() {
-    return SEMANTIC_EVENTS;
+  getSemanticEvents () {
+    return SEMANTIC_EVENTS
   }
 
-  getEnrichableEventProps(event) {
-    let enrichableProps;
+  getEnrichableEventProps (event) {
+    let enrichableProps
     switch (event.name) {
       case VIEWED_PRODUCT_DETAIL:
-        enrichableProps = ['product.id', 'product.categoryId'];
-        break;
+        enrichableProps = ['product.id', 'product.categoryId']
+        break
       case ADDED_PRODUCT:
-        enrichableProps = ['product.id', 'product.categoryId'];
-        break;
+        enrichableProps = ['product.id', 'product.categoryId']
+        break
       case REMOVED_PRODUCT:
-        enrichableProps = ['product.id', 'product.categoryId'];
-        break;
+        enrichableProps = ['product.id', 'product.categoryId']
+        break
       case COMPLETED_TRANSACTION:
-        enrichableProps = ['transaction'];
-        break;
+        enrichableProps = ['transaction']
+        break
       case REGISTERED:
-        enrichableProps = ['user.userId'];
-        break;
+        enrichableProps = ['user.userId']
+        break
       case LOGGED_IN:
-        enrichableProps = ['user.userId'];
-        break;
+        enrichableProps = ['user.userId']
+        break
       default:
-        enrichableProps = [];
+        enrichableProps = []
     }
 
-    enrichableProps.push('user.email', 'user.hasTransacted');
+    enrichableProps.push('user.email', 'user.hasTransacted')
 
-    const userSegmentVar = this.getOption('userSegmentVar');
+    const userSegmentVar = this.getOption('userSegmentVar')
     if (userSegmentVar) {
-      enrichableProps.push(userSegmentVar);
+      enrichableProps.push(userSegmentVar)
     }
 
-    return enrichableProps;
+    return enrichableProps
   }
 
-  getEventValidationConfig(event) {
+  getEventValidationConfig (event) {
     const productValidationConfig = {
       fields: ['product.id', 'product.categoryId'],
       validations: {
         'product.id': {
           errors: ['required'],
-          warnings: ['string'],
+          warnings: ['string']
         },
         'product.categoryId': {
           errors: ['required'],
-          warnings: ['string'],
-        },
-      },
-    };
+          warnings: ['string']
+        }
+      }
+    }
     const config = {
       [VIEWED_PRODUCT_DETAIL]: productValidationConfig,
       [ADDED_PRODUCT]: productValidationConfig,
@@ -178,106 +178,106 @@ class Soloway extends Integration {
         validations: {
           'transaction.orderId': {
             errors: ['required'],
-            warnings: ['string'],
+            warnings: ['string']
           },
           'transaction.total': {
             errors: ['required'],
-            warnings: ['numeric'],
+            warnings: ['numeric']
           },
           'transaction.lineItems[].product.id': {
-            warnings: ['required', 'string'],
-          },
-        },
+            warnings: ['required', 'string']
+          }
+        }
       },
       [REGISTERED]: {
         fields: ['user.userId', 'user.email'],
         validations: {
           'user.userId': {
             errors: ['required'],
-            warnings: ['string'],
-          },
-        },
+            warnings: ['string']
+          }
+        }
       },
       [LOGGED_IN]: {
         fields: ['user.userId', 'user.email'],
         validations: {
           'user.userId': {
             errors: ['required'],
-            warnings: ['string'],
-          },
-        },
+            warnings: ['string']
+          }
+        }
       },
       [SUBSCRIBED]: {
         fields: ['user.email'],
         validations: {
           'user.email': {
             errors: ['required'],
-            warnings: ['string'],
-          },
-        },
+            warnings: ['string']
+          }
+        }
       },
       [VIEWED_CART]: {
         fields: ['user.email'],
         validations: {
           'user.email': {
-            warnings: ['string'],
-          },
-        },
-      },
-    };
+            warnings: ['string']
+          }
+        }
+      }
+    }
 
-    let validationConfig = config[event.name];
-    const userSegmentVar = this.getOption('userSegmentVar');
+    let validationConfig = config[event.name]
+    const userSegmentVar = this.getOption('userSegmentVar')
 
     if (userSegmentVar) {
       if (!validationConfig) {
         validationConfig = {
-          fields: [userSegmentVar],
-        };
+          fields: [userSegmentVar]
+        }
       } else {
-        validationConfig.fields = validationConfig.fields || [];
-        validationConfig.fields.push(userSegmentVar);
+        validationConfig.fields = validationConfig.fields || []
+        validationConfig.fields.push(userSegmentVar)
       }
     }
 
-    return validationConfig;
+    return validationConfig
   }
 
-  initialize() {
-    window.AdriverCounter = this.adriverCounterFactory()();
+  initialize () {
+    window.AdriverCounter = this.adriverCounterFactory()()
   }
 
-  isLoaded() {
-    return !!window.AdriverCounter;
+  isLoaded () {
+    return !!window.AdriverCounter
   }
 
-  reset() {
-    deletePropery(window, 'AdriverCounter');
-    this.pageTracked = false;
+  reset () {
+    deletePropery(window, 'AdriverCounter')
+    this.pageTracked = false
     if (this.timeoutHandle) {
-      clearTimeout(this.timeoutHandle);
+      clearTimeout(this.timeoutHandle)
     }
   }
 
-  getEmailMd5(event) {
-    const email = getProp(event, 'user.email');
+  getEmailMd5 (event) {
+    const email = getProp(event, 'user.email')
     if (email) {
-      const emailNorm = normalizeString(email);
-      const emailMd5 = md5(emailNorm).toString();
-      return emailMd5;
+      const emailNorm = normalizeString(email)
+      const emailMd5 = md5(emailNorm).toString()
+      return emailMd5
     }
-    return undefined;
+    return undefined
   }
 
-  getUserSegment(event) {
-    const userSegmentVar = this.getOption('userSegmentVar');
+  getUserSegment (event) {
+    const userSegmentVar = this.getOption('userSegmentVar')
     if (userSegmentVar) {
-      return getProp(event, userSegmentVar);
+      return getProp(event, userSegmentVar)
     }
-    return undefined;
+    return undefined
   }
 
-  trackEvent(event) {
+  trackEvent (event) {
     const methods = {
       [VIEWED_PAGE]: 'onViewedPage',
       [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
@@ -287,65 +287,65 @@ class Soloway extends Integration {
       [SUBSCRIBED]: 'onSubscribed',
       [REMOVED_PRODUCT]: 'onRemovedProduct',
       [ADDED_PRODUCT]: 'onAddedProduct',
-      [VIEWED_CART]: 'onViewedCart',
-    };
+      [VIEWED_CART]: 'onViewedCart'
+    }
 
-    const method = methods[event.name];
+    const method = methods[event.name]
     if (method) {
-      this[method](event);
+      this[method](event)
     }
   }
 
-  onViewedPage(event) {
-    this.pageTracked = false;
+  onViewedPage (event) {
+    this.pageTracked = false
     this.timeoutHandle = setTimeout(() => {
       if (!this.pageTracked) {
-        this.onViewedOther(event);
+        this.onViewedOther(event)
       }
-    }, 100);
+    }, 100)
   }
 
-  onViewedOther(event) {
-    this.initAdriverCounter(event);
-    this.pageTracked = true;
+  onViewedOther (event) {
+    this.initAdriverCounter(event)
+    this.pageTracked = true
   }
 
-  onViewedProductDetail(event) {
-    const product = event.product || {};
-    if (!product.id) return;
+  onViewedProductDetail (event) {
+    const product = event.product || {}
+    if (!product.id) return
 
     this.initAdriverCounter(event, {
       custom: {
         10: product.id,
-        11: product.categoryId,
-      },
-    });
+        11: product.categoryId
+      }
+    })
 
-    this.pageTracked = true;
+    this.pageTracked = true
   }
 
-  onNewBuyer(event) {
-    const transaction = event.transaction || {};
-    if (!transaction.orderId) return;
+  onNewBuyer (event) {
+    const transaction = event.transaction || {}
+    if (!transaction.orderId) return
 
     this.initAdriverCounter(event, {
       sz: 'new_buyer',
       custom: {
         150: transaction.orderId,
-        151: transaction.total,
-      },
-    });
+        151: transaction.total
+      }
+    })
 
-    this.pageTracked = true;
+    this.pageTracked = true
   }
 
-  onCompletedTransaction(event) {
-    const transaction = event.transaction || {};
-    const lineItems = transaction.lineItems || [];
-    if (!transaction.orderId) return;
+  onCompletedTransaction (event) {
+    const transaction = event.transaction || {}
+    const lineItems = transaction.lineItems || []
+    if (!transaction.orderId) return
 
     if (transaction.isFirst) {
-      this.onNewBuyer(event);
+      this.onNewBuyer(event)
     }
 
     this.initAdriverCounter(event, {
@@ -353,89 +353,89 @@ class Soloway extends Integration {
       custom: {
         150: transaction.orderId,
         151: transaction.total,
-        10: lineItems.map(lineItem => getProp(lineItem, 'product.id')).join(','),
-      },
-    });
+        10: lineItems.map(lineItem => getProp(lineItem, 'product.id')).join(',')
+      }
+    })
 
-    this.pageTracked = true;
+    this.pageTracked = true
   }
 
-  onAddedProduct(event) {
-    const product = event.product || {};
-    if (!product.id) return;
+  onAddedProduct (event) {
+    const product = event.product || {}
+    if (!product.id) return
 
     this.initAdriverCounter(event, {
       sz: 'add_basket',
       custom: {
         10: product.id,
-        11: product.categoryId,
-      },
-    });
+        11: product.categoryId
+      }
+    })
 
-    this.pageTracked = true;
+    this.pageTracked = true
   }
 
-  onRemovedProduct(event) {
-    const product = event.product || {};
-    if (!product.id) return;
+  onRemovedProduct (event) {
+    const product = event.product || {}
+    if (!product.id) return
 
     this.initAdriverCounter(event, {
       sz: 'del_basket',
       custom: {
         10: product.id,
-        11: product.categoryId,
-      },
-    });
+        11: product.categoryId
+      }
+    })
 
-    this.pageTracked = true;
+    this.pageTracked = true
   }
 
-  onViewedCart(event) {
+  onViewedCart (event) {
     this.initAdriverCounter(event, {
-      sz: 'basket',
-    });
+      sz: 'basket'
+    })
 
-    this.pageTracked = true;
+    this.pageTracked = true
   }
 
-  onRegistered(event) {
-    const user = event.user || {};
-    if (!user.userId) return;
+  onRegistered (event) {
+    const user = event.user || {}
+    if (!user.userId) return
 
     this.initAdriverCounter(event, {
       sz: 'regist',
       custom: {
-        152: user.userId,
-      },
-    });
+        152: user.userId
+      }
+    })
 
-    this.pageTracked = true;
+    this.pageTracked = true
   }
 
-  onLoggedIn(event) {
-    const user = event.user || {};
-    if (!user.userId) return;
+  onLoggedIn (event) {
+    const user = event.user || {}
+    if (!user.userId) return
 
     this.initAdriverCounter(event, {
       sz: 'authorization',
       custom: {
-        152: user.userId,
-      },
-    });
+        152: user.userId
+      }
+    })
 
-    this.pageTracked = true;
+    this.pageTracked = true
   }
 
-  onSubscribed(event) {
-    const user = event.user || {};
-    if (!user.email) return;
+  onSubscribed (event) {
+    const user = event.user || {}
+    if (!user.email) return
 
     this.initAdriverCounter(event, {
-      sz: 'newsletter',
-    });
+      sz: 'newsletter'
+    })
 
-    this.pageTracked = true;
+    this.pageTracked = true
   }
 }
 
-export default Soloway;
+export default Soloway

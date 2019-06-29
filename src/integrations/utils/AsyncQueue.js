@@ -1,41 +1,41 @@
 class AsyncQueue {
-  constructor(isLoadedDelegate) {
-    this.isLoadedDelegate = isLoadedDelegate;
-    this.asyncQueue = [];
+  constructor (isLoadedDelegate) {
+    this.isLoadedDelegate = isLoadedDelegate
+    this.asyncQueue = []
   }
 
-  init() {
+  init () {
     // emulate async queue for Ofsys sync script
-    let invervalCounter = 0;
+    let invervalCounter = 0
     const invervalId = setInterval(() => {
-      invervalCounter += 1;
+      invervalCounter += 1
       if (this.isLoadedDelegate()) {
-        this.flushQueue();
-        clearInterval(invervalId);
+        this.flushQueue()
+        clearInterval(invervalId)
       } else if (invervalCounter > 20) {
-        clearInterval(invervalId);
+        clearInterval(invervalId)
       }
-    }, 200);
+    }, 200)
   }
 
-  flushQueue() {
-    let handler = this.asyncQueue.shift();
+  flushQueue () {
+    let handler = this.asyncQueue.shift()
     while (handler && typeof handler === 'function') {
-      handler();
-      handler = this.asyncQueue.shift();
+      handler()
+      handler = this.asyncQueue.shift()
     }
     this.asyncQueue.push = (callback) => {
-      callback();
-    };
+      callback()
+    }
   }
 
-  push(handler) {
+  push (handler) {
     if (this.isLoadedDelegate()) {
-      handler();
+      handler()
     } else {
-      this.asyncQueue.push(handler);
+      this.asyncQueue.push(handler)
     }
   }
 }
 
-export default AsyncQueue;
+export default AsyncQueue

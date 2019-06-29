@@ -1,11 +1,11 @@
-const fs = require('fs');
-const uuid = require('uuid');
+const fs = require('fs')
+const uuid = require('uuid')
 // eslint-disable-next-line
 process.env.CHROME_BIN = require('puppeteer').executablePath();
 
-module.exports = function init(config) {
-  let customLaunchers;
-  let browsers;
+module.exports = function init (config) {
+  let customLaunchers
+  let browsers
   if (!process.env.SAUCE_USERNAME || !process.env.SAUCE_ACCESS_KEY) {
     /* eslint-disable */
     if (!fs.existsSync('sauce.json')) {
@@ -17,7 +17,7 @@ module.exports = function init(config) {
     }
     /* eslint-enable */
   } else {
-    process.env.SAUCE_ENABLED = true;
+    process.env.SAUCE_ENABLED = true
   }
 
   if (process.env.SAUCE_ENABLED === 'true') {
@@ -25,49 +25,49 @@ module.exports = function init(config) {
       slChromeWin7: {
         base: 'SauceLabs',
         browserName: 'chrome',
-        platform: 'Windows 7',
+        platform: 'Windows 7'
       },
       slFirefoxWin7: {
         base: 'SauceLabs',
         browserName: 'firefox',
         platform: 'Windows 7',
-        version: '56',
+        version: '56'
       },
       slIe10Win7: {
         base: 'SauceLabs',
         browserName: 'internet explorer',
         platform: 'Windows 7',
-        version: '10',
+        version: '10'
       },
       slIe9Win7: {
         base: 'SauceLabs',
         browserName: 'internet explorer',
         platform: 'Windows 7',
-        version: '9',
+        version: '9'
       },
       slIe11Win10: {
         base: 'SauceLabs',
         browserName: 'internet explorer',
         platform: 'Windows 10',
-        version: '11',
+        version: '11'
       },
       slME25Win10: {
         base: 'SauceLabs',
         browserName: 'microsoftedge',
         platform: 'Windows 10',
-        version: '13',
+        version: '13'
       },
       slSafariOsx: {
         base: 'SauceLabs',
         browserName: 'safari',
-        platform: 'OS X 10.10',
+        platform: 'OS X 10.10'
       },
       slIphone: {
         base: 'SauceLabs',
         browserName: 'Safari',
         platform: 'iOS',
         version: '10.3',
-        deviceName: 'iPhone 6s Plus Simulator',
+        deviceName: 'iPhone 6s Plus Simulator'
       },
       // commented out because of 10 minute test timeout limit
       // slIpad: {
@@ -82,17 +82,17 @@ module.exports = function init(config) {
         browserName: 'Browser',
         platform: 'Linux',
         version: '5.1',
-        deviceName: 'Android Emulator',
+        deviceName: 'Android Emulator'
       },
       slSamsungAndroid: {
         base: 'SauceLabs',
         browserName: 'Browser',
         platform: 'Android',
         version: '7.0',
-        deviceName: 'Samsung Galaxy S8 HD GoogleAPI Emulator',
-      },
-    };
-    browsers = Object.keys(customLaunchers);
+        deviceName: 'Samsung Galaxy S8 HD GoogleAPI Emulator'
+      }
+    }
+    browsers = Object.keys(customLaunchers)
   } else {
     customLaunchers = {
       PhantomJS_custom: {
@@ -100,14 +100,14 @@ module.exports = function init(config) {
         options: {
           windowName: 'my-window',
           settings: {
-            webSecurityEnabled: false,
-          },
+            webSecurityEnabled: false
+          }
         },
         flags: ['--load-images=true'],
-        debug: false,
-      },
-    };
-    browsers = ['PhantomJS_custom'];
+        debug: false
+      }
+    }
+    browsers = ['PhantomJS_custom']
   }
 
   config.set({
@@ -119,24 +119,24 @@ module.exports = function init(config) {
 
     plugins: [
       'karma-*',
-      'mocha',
+      'mocha'
     ],
 
     client: {
       mocha: {
-        timeout: 7000,
-      },
+        timeout: 7000
+      }
     },
 
     sauceLabs: {
       testName: 'Digital Data Manager Unit Tests',
       tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER || uuid.v4(),
       recordScreenshots: false,
-      startConnect: true,
+      startConnect: true
     },
 
     files: [
-      './build/segmentstream-test.js',
+      './build/segmentstream-test.js'
     ],
 
     browsers,
@@ -150,7 +150,7 @@ module.exports = function init(config) {
     reporters: process.env.MOCHA ? ['mocha', 'saucelabs'] : ['dots', 'saucelabs'],
 
     mochaReporter: {
-      showDiff: true,
+      showDiff: true
     },
 
     // enable / disable colors in the output (reporters and logs)
@@ -176,6 +176,6 @@ module.exports = function init(config) {
     concurrency: 1,
     browserDisconnectTimeout: 10000,
     browserDisconnectTolerance: 10,
-    browserNoActivityTimeout: 20000,
-  });
-};
+    browserNoActivityTimeout: 20000
+  })
+}

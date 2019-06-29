@@ -1,8 +1,8 @@
 /* eslint-disable no-restricted-globals */
-import cleanObject from '@segmentstream/utils/cleanObject';
-import { getProp } from '@segmentstream/utils/dotProp';
-import each from '@segmentstream/utils/each';
-import { warn } from '@segmentstream/utils/safeConsole';
+import cleanObject from '@segmentstream/utils/cleanObject'
+import { getProp } from '@segmentstream/utils/dotProp'
+import each from '@segmentstream/utils/each'
+import { warn } from '@segmentstream/utils/safeConsole'
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -19,11 +19,11 @@ import {
   CLICKED_CAMPAIGN,
   VIEWED_PRODUCT,
   CLICKED_PRODUCT,
-  VIEWED_EXPERIMENT,
-} from '../../events/semanticEvents';
+  VIEWED_EXPERIMENT
+} from '../../events/semanticEvents'
 
-const CUSTOM_TYPE_NUMERIC = 'number';
-const CUSTOM_TYPE_STRING = 'string';
+const CUSTOM_TYPE_NUMERIC = 'number'
+const CUSTOM_TYPE_STRING = 'string'
 
 export const pageProps = [
   'name',
@@ -34,8 +34,8 @@ export const pageProps = [
   'path',
   'queryString',
   'title',
-  'hash',
-];
+  'hash'
+]
 
 export const websiteProps = [
   'type',
@@ -43,8 +43,8 @@ export const websiteProps = [
   'regionId',
   'language',
   'currency',
-  'environment',
-];
+  'environment'
+]
 
 export const productProps = [
   'id',
@@ -64,8 +64,8 @@ export const productProps = [
   'color',
   'size',
   'customDimensions',
-  'customMetrics',
-];
+  'customMetrics'
+]
 
 export const listingProps = [
   'listId',
@@ -77,14 +77,14 @@ export const listingProps = [
   'pagesCount',
   'currentPage',
   'sortBy',
-  'layout',
-];
+  'layout'
+]
 
 const lineItemProps = [
   ...productProps.map(productProp => ['product', productProp].join('.')),
   'quantity',
-  'subtotal',
-];
+  'subtotal'
+]
 
 export const cartProps = [
   ...lineItemProps.map(lineItemProp => ['lineItems[]', lineItemProp].join('.')),
@@ -95,8 +95,8 @@ export const cartProps = [
   'voucher',
   'voucherDiscount',
   'shippingCost',
-  'paymentMethod',
-];
+  'paymentMethod'
+]
 
 export const transactionProps = [
   ...lineItemProps.map(lineItemProp => ['lineItems[]', lineItemProp].join('.')),
@@ -108,8 +108,8 @@ export const transactionProps = [
   'shippingCost',
   'paymentMethod',
   'orderId',
-  'isFirst',
-];
+  'isFirst'
+]
 
 export const campaignProps = [
   'id',
@@ -117,53 +117,53 @@ export const campaignProps = [
   'category',
   'subcategory',
   'design',
-  'position',
-];
+  'position'
+]
 
 export const listItemProps = [
   ...productProps.map(productProp => ['product', productProp].join('.')),
   'position',
-  'listId',
-];
+  'listId'
+]
 
-function extractCustoms(source, variableMapping, type) {
-  const values = [];
+function extractCustoms (source, variableMapping, type) {
+  const values = []
   each(variableMapping, (key, sourceProp) => {
-    let value = getProp(source, sourceProp);
+    let value = getProp(source, sourceProp)
     if (value !== undefined) {
       if (type === CUSTOM_TYPE_NUMERIC && typeof value !== 'number') {
-        value = Number(value);
+        value = Number(value)
       } else if (type === CUSTOM_TYPE_STRING && typeof value !== 'string') {
-        value = value.toString();
+        value = value.toString()
       }
       values.push({
         name: key,
-        value,
-      });
+        value
+      })
     }
-  });
-  return values;
+  })
+  return values
 }
 
 const filterObject = (obj, propsSet, restrictedProps = []) => {
-  const filteredObject = {};
+  const filteredObject = {}
   propsSet.forEach((prop) => {
     if (obj[prop] !== undefined && restrictedProps.indexOf(prop) < 0) {
-      filteredObject[prop] = obj[prop];
+      filteredObject[prop] = obj[prop]
     }
-  });
-  return filteredObject;
-};
+  })
+  return filteredObject
+}
 
 class Filters {
-  constructor(dimensions, metrics, productDimensions, productMetrics) {
-    this.dimensions = dimensions;
-    this.metrics = metrics;
-    this.productDimensions = productDimensions;
-    this.productMetrics = productMetrics;
+  constructor (dimensions, metrics, productDimensions, productMetrics) {
+    this.dimensions = dimensions
+    this.metrics = metrics
+    this.productDimensions = productDimensions
+    this.productMetrics = productMetrics
   }
 
-  filterEventHit(event) {
+  filterEventHit (event) {
     const mapping = {
       [VIEWED_PAGE]: this.filterViewedPage.bind(this),
       [VIEWED_PRODUCT_DETAIL]: this.filterViewedProductDetail.bind(this),
@@ -180,29 +180,29 @@ class Filters {
       [CLICKED_CAMPAIGN]: this.filterClickedCampaign.bind(this),
       [VIEWED_PRODUCT]: this.filterViewedProduct.bind(this),
       [CLICKED_PRODUCT]: this.filterClickedProduct.bind(this),
-      [VIEWED_EXPERIMENT]: this.filterViewedExperiment.bind(this),
-    };
+      [VIEWED_EXPERIMENT]: this.filterViewedExperiment.bind(this)
+    }
 
     if (event.name && mapping[event.name]) {
-      return mapping[event.name](event);
+      return mapping[event.name](event)
     }
-    return this.filterCommonEvent(event);
+    return this.filterCommonEvent(event)
   }
 
-  filterProduct(product) {
-    if (!product) return undefined;
+  filterProduct (product) {
+    if (!product) return undefined
 
-    const customDimensions = extractCustoms(product, this.productDimensions, CUSTOM_TYPE_STRING);
-    const customMetrics = extractCustoms(product, this.productMetrics, CUSTOM_TYPE_NUMERIC);
+    const customDimensions = extractCustoms(product, this.productDimensions, CUSTOM_TYPE_STRING)
+    const customMetrics = extractCustoms(product, this.productMetrics, CUSTOM_TYPE_NUMERIC)
 
-    let { category } = product;
+    let { category } = product
     if (category) {
       if (Array.isArray(category)) {
-        category = category.join('/');
+        category = category.join('/')
       } else if (typeof category === 'object') {
-        category = Object.keys(category).map(k => category[k]).join('/');
+        category = Object.keys(category).map(k => category[k]).join('/')
       } else {
-        category = String(category);
+        category = String(category)
       }
     }
 
@@ -220,66 +220,66 @@ class Filters {
         imageUrl: (typeof product.imageUrl === 'string') ? product.imageUrl : undefined,
         url: (typeof product.url === 'string') ? product.url : undefined,
         customDimensions,
-        customMetrics,
+        customMetrics
       },
-      productProps,
-    );
+      productProps
+    )
   }
 
-  filterListing(listing = {}) {
+  filterListing (listing = {}) {
     return filterObject({
       ...listing,
       query: (listing.query) ? String(listing.query) : undefined,
       categoryId: (listing.categoryId) ? String(listing.categoryId) : undefined,
       category: (listing.category && Array.isArray(listing.category))
-        ? listing.category.join('/') : String(listing.category),
-    }, listingProps);
+        ? listing.category.join('/') : String(listing.category)
+    }, listingProps)
   }
 
-  filterLineItems(lineItems = []) {
+  filterLineItems (lineItems = []) {
     return lineItems.map(lineItem => cleanObject({
       product: this.filterProduct(lineItem.product),
       quantity: !isNaN(Number(lineItem.quantity)) ? Number(lineItem.quantity) : 1,
-      subtotal: !isNaN(Number(lineItem.subtotal)) ? Number(lineItem.subtotal) : undefined,
-    }));
+      subtotal: !isNaN(Number(lineItem.subtotal)) ? Number(lineItem.subtotal) : undefined
+    }))
   }
 
-  filterListItems(listItems = []) {
+  filterListItems (listItems = []) {
     return listItems.map(listItem => cleanObject({
       product: this.filterProduct(listItem.product),
       position: listItem.position !== undefined ? Number(listItem.position) : undefined,
-      listId: listItem.listId ? String(listItem.listId) : undefined,
-    }));
+      listId: listItem.listId ? String(listItem.listId) : undefined
+    }))
   }
 
-  filterCampaigns(campaigns = []) {
+  filterCampaigns (campaigns = []) {
     return campaigns.map(campaign => filterObject({
       ...campaign,
-      position: campaign.position !== undefined ? String(campaign.position) : undefined,
-    }, campaignProps));
+      position: campaign.position !== undefined ? String(campaign.position) : undefined
+    }, campaignProps))
   }
 
-  filterCart(cart = {}) {
+  filterCart (cart = {}) {
     return filterObject({
       ...cart,
       id: (cart.id) ? String(cart.id) : undefined,
-      voucher: Array.isArray(cart.vouchers) ? cart.vouchers.toString() : undefined,
-    }, cartProps);
+      voucher: Array.isArray(cart.vouchers) ? cart.vouchers.toString() : undefined
+    }, cartProps)
   }
 
-  filterTransaction(transaction = {}) {
+  filterTransaction (transaction = {}) {
     return filterObject({
       ...transaction,
       isFirst: typeof isFirst === 'boolean' ? transaction.isFirst : undefined,
       orderId: transaction.orderId ? String(transaction.orderId) : undefined,
-      voucher: Array.isArray(transaction.vouchers) ? transaction.vouchers.toString() : undefined,
-    }, transactionProps);
+      voucher: Array.isArray(transaction.vouchers) ? transaction.vouchers.toString() : undefined
+    }, transactionProps)
   }
 
-  filterPage(page = {}) {
-    let { url, queryString } = page;
-    try { url = (url) ? decodeURI(url) : undefined; } catch (e) { warn(e); }
-    try { queryString = (queryString) ? decodeURI(queryString) : undefined; } catch (e) { warn(e); }
+  filterPage (page = {}) {
+    let { url, queryString } = page
+    try { url = (url) ? decodeURI(url) : undefined } catch (e) { warn(e) }
+    try { queryString = (queryString) ? decodeURI(queryString) : undefined } catch (e) { warn(e) }
     return filterObject({
       type: (page.type) ? String(page.type) : undefined,
       name: (page.name) ? String(page.name) : undefined,
@@ -290,182 +290,182 @@ class Filters {
       path: (page.path) ? String(page.path) : undefined,
       queryString,
       hash: (page.hash) ? page.hash : undefined,
-      title: (page.title) ? page.title : undefined,
-    }, pageProps);
+      title: (page.title) ? page.title : undefined
+    }, pageProps)
   }
 
-  filterWebsite(website = {}) {
+  filterWebsite (website = {}) {
     return filterObject({
       ...website,
-      regionId: website.regionId ? String(website.regionId) : undefined,
-    }, websiteProps);
+      regionId: website.regionId ? String(website.regionId) : undefined
+    }, websiteProps)
   }
 
-  filterExperiment(experiment = {}) {
+  filterExperiment (experiment = {}) {
     return cleanObject({
       id: experiment.id,
       name: experiment.name,
       variantId: (experiment.variationId !== undefined)
         ? String(experiment.variationId) : undefined,
-      variantName: experiment.variationName,
-    });
+      variantName: experiment.variationName
+    })
   }
 
-  filterViewedPage(event) {
-    const filtered = this.filterCommonEvent(event);
+  filterViewedPage (event) {
+    const filtered = this.filterCommonEvent(event)
     return {
       ...filtered,
-      page: this.filterPage(event.page),
-    };
+      page: this.filterPage(event.page)
+    }
   }
 
-  filterViewedProductDetail(event) {
-    const filtered = this.filterCommonEvent(event);
-    const product = this.filterProduct(event.product);
-    return { ...filtered, product };
+  filterViewedProductDetail (event) {
+    const filtered = this.filterCommonEvent(event)
+    const product = this.filterProduct(event.product)
+    return { ...filtered, product }
   }
 
-  filterAddedProduct(event) {
-    const filtered = this.filterCommonEvent(event);
-    const quantity = Number(event.quantity);
+  filterAddedProduct (event) {
+    const filtered = this.filterCommonEvent(event)
+    const quantity = Number(event.quantity)
     return {
       ...filtered,
       product: this.filterProduct(event.product),
-      quantity: !isNaN(quantity) ? quantity : 1,
-    };
+      quantity: !isNaN(quantity) ? quantity : 1
+    }
   }
 
-  filterRemovedProduct(event) {
-    return this.filterAddedProduct(event);
+  filterRemovedProduct (event) {
+    return this.filterAddedProduct(event)
   }
 
-  filterAddedProductToWishlist(event) {
-    return this.filterAddedProduct(event);
+  filterAddedProductToWishlist (event) {
+    return this.filterAddedProduct(event)
   }
 
-  filterRemovedProductFromWishlist(event) {
-    return this.filterAddedProduct(event);
+  filterRemovedProductFromWishlist (event) {
+    return this.filterAddedProduct(event)
   }
 
-  filterViewedCheckoutStep(event) {
-    const filtered = this.filterCommonEvent(event);
-    const step = Number(event.step);
+  filterViewedCheckoutStep (event) {
+    const filtered = this.filterCommonEvent(event)
+    const step = Number(event.step)
     return {
       ...filtered,
-      step: !isNaN(step) ? step : undefined,
-    };
+      step: !isNaN(step) ? step : undefined
+    }
   }
 
-  filterCompeltedCheckoutStep(event) {
-    return this.filterViewedCheckoutStep(event);
+  filterCompeltedCheckoutStep (event) {
+    return this.filterViewedCheckoutStep(event)
   }
 
-  filterViewedCart(event) {
-    const filtered = this.filterCommonEvent(event);
-    const cart = this.filterCart(event.cart);
-    cart.lineItems = this.filterLineItems(getProp(event, 'cart.lineItems'));
+  filterViewedCart (event) {
+    const filtered = this.filterCommonEvent(event)
+    const cart = this.filterCart(event.cart)
+    cart.lineItems = this.filterLineItems(getProp(event, 'cart.lineItems'))
     return {
       ...filtered,
-      cart,
-    };
+      cart
+    }
   }
 
-  filterCompletedTransaction(event) {
-    const filtered = this.filterCommonEvent(event);
-    const transaction = this.filterTransaction(event.transaction);
-    transaction.lineItems = this.filterLineItems(getProp(event, 'transaction.lineItems'));
+  filterCompletedTransaction (event) {
+    const filtered = this.filterCommonEvent(event)
+    const transaction = this.filterTransaction(event.transaction)
+    transaction.lineItems = this.filterLineItems(getProp(event, 'transaction.lineItems'))
     return {
       ...filtered,
-      transaction,
-    };
+      transaction
+    }
   }
 
-  filterRefundedTransaction(event) {
-    return this.filterCompletedTransaction(event);
+  filterRefundedTransaction (event) {
+    return this.filterCompletedTransaction(event)
   }
 
-  filterViewedProductListing(event) {
-    const filtered = this.filterCommonEvent(event);
-    const listing = this.filterListing(event.listing);
+  filterViewedProductListing (event) {
+    const filtered = this.filterCommonEvent(event)
+    const listing = this.filterListing(event.listing)
     return {
       ...filtered,
-      listing,
-    };
+      listing
+    }
   }
 
-  filterSearchedProducts(event) {
-    return this.filterViewedProductListing(event);
+  filterSearchedProducts (event) {
+    return this.filterViewedProductListing(event)
   }
 
-  filterViewedCampaign(event) {
-    const filtered = this.filterCommonEvent(event);
-    let campaigns;
+  filterViewedCampaign (event) {
+    const filtered = this.filterCommonEvent(event)
+    let campaigns
     if (event.campaign) {
-      campaigns = [event.campaign];
+      campaigns = [event.campaign]
     } else if (event.campaigns) {
-      ({ campaigns } = event);
+      ({ campaigns } = event)
     }
 
     if (campaigns) {
       return {
         ...filtered,
-        campaigns: this.filterCampaigns(campaigns),
-      };
+        campaigns: this.filterCampaigns(campaigns)
+      }
     }
 
-    return filtered;
+    return filtered
   }
 
-  filterViewedProduct(event) {
-    const filtered = this.filterCommonEvent(event);
-    let listItems;
+  filterViewedProduct (event) {
+    const filtered = this.filterCommonEvent(event)
+    let listItems
     if (event.listItem) {
-      listItems = [event.listItem];
+      listItems = [event.listItem]
     } else if (event.listItems) {
-      ({ listItems } = event);
+      ({ listItems } = event)
     }
 
     if (listItems) {
       return {
         ...filtered,
-        listItems: this.filterListItems(listItems),
-      };
+        listItems: this.filterListItems(listItems)
+      }
     }
-    return filtered;
+    return filtered
   }
 
-  filterClickedProduct(event) {
-    return this.filterViewedProduct(event);
+  filterClickedProduct (event) {
+    return this.filterViewedProduct(event)
   }
 
-  filterClickedCampaign(event) {
-    return this.filterViewedCampaign(event);
+  filterClickedCampaign (event) {
+    return this.filterViewedCampaign(event)
   }
 
-  filterViewedExperiment(event) {
-    const filtered = this.filterCommonEvent(event);
-    const experiment = this.filterExperiment(event.experiment);
+  filterViewedExperiment (event) {
+    const filtered = this.filterCommonEvent(event)
+    const experiment = this.filterExperiment(event.experiment)
     return {
       ...filtered,
-      experiment,
-    };
+      experiment
+    }
   }
 
-  filterCommonEvent(event) {
-    const customDimensions = extractCustoms(event, this.dimensions, CUSTOM_TYPE_STRING);
-    const customMetrics = extractCustoms(event, this.metrics, CUSTOM_TYPE_NUMERIC);
+  filterCommonEvent (event) {
+    const customDimensions = extractCustoms(event, this.dimensions, CUSTOM_TYPE_STRING)
+    const customMetrics = extractCustoms(event, this.metrics, CUSTOM_TYPE_NUMERIC)
 
-    if (customDimensions.length) event.customDimensions = customDimensions;
-    if (customMetrics.length) event.customMetrics = customMetrics;
+    if (customDimensions.length) event.customDimensions = customDimensions
+    if (customMetrics.length) event.customMetrics = customMetrics
 
     return cleanObject({
       name: (event.name) ? String(event.name) : undefined,
       category: (event.category) ? String(event.category) : undefined,
       label: (event.label) ? String(event.label) : undefined,
       customDimensions: event.customDimensions,
-      customMetrics: event.customMetrics,
-    });
+      customMetrics: event.customMetrics
+    })
   }
 }
 
-export default Filters;
+export default Filters

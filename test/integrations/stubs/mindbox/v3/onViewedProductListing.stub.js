@@ -3,24 +3,23 @@ const onViewedProductListingCategoryViewStub = {
   data: {
     productCategory: {
       ids: {
-        bitrixId: '123',
-      },
-    },
-  },
-};
+        bitrixId: '123'
+      }
+    }
+  }
+}
 const onViewedProductListingCategoryViewCustomStub = {
   operation: 'CategoryViewCustom',
   data: {
     productCategory: {
       ids: {
-        bitrixId: '123',
-      },
-    },
-  },
-};
-
+        bitrixId: '123'
+      }
+    }
+  }
+}
 
 export {
   onViewedProductListingCategoryViewStub,
-  onViewedProductListingCategoryViewCustomStub,
-};
+  onViewedProductListingCategoryViewCustomStub
+}

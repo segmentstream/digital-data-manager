@@ -6,7 +6,7 @@ const basketProducts = [
     id: '123',
     name: 'Hat',
     price: 100,
-    quantity: 2,
+    quantity: 2
   },
   {
     brand: 'DB',
@@ -15,25 +15,25 @@ const basketProducts = [
     id: '124',
     name: 'Shirt',
     price: 300,
-    quantity: 1,
-  },
-];
+    quantity: 1
+  }
+]
 
 const onViewedHomePageAuthorizedStub = {
   user: {
-    email: 'test@test.com',
+    email: 'test@test.com'
   },
   basketProducts,
-  pageType: 1,
-};
+  pageType: 1
+}
 
 const onViewedHomePageUnauthorizedStub = {
   user: undefined,
   basketProducts,
-  pageType: 1,
-};
+  pageType: 1
+}
 
 export {
   onViewedHomePageUnauthorizedStub,
-  onViewedHomePageAuthorizedStub,
-};
+  onViewedHomePageAuthorizedStub
+}

@@ -1,5 +1,5 @@
 const onAddedProductAddProductStub = {
-  operation: 'AddProduct',
-};
+  operation: 'AddProduct'
+}
 
-export { onAddedProductAddProductStub };
+export { onAddedProductAddProductStub }

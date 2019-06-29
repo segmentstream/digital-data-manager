@@ -6,16 +6,16 @@ const onUpdateCartSetCartStub = {
         {
           productId: '123',
           count: 2,
-          price: 2000,
+          price: 2000
         },
         {
           productId: '234',
           count: 1,
-          price: 1000,
-        },
-      ],
-    },
-  },
-};
+          price: 1000
+        }
+      ]
+    }
+  }
+}
 
-export { onUpdateCartSetCartStub };
+export { onUpdateCartSetCartStub }

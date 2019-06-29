@@ -1,9 +1,9 @@
-import { getProp } from '@segmentstream/utils/dotProp';
-import arrayMerge from '@segmentstream/utils/arrayMerge';
+import { getProp } from '@segmentstream/utils/dotProp'
+import arrayMerge from '@segmentstream/utils/arrayMerge'
 
-const keyPersistedKeys = '_persistedKeys';
-const keyLastEventTimestamp = '_lastEventTimestamp';
-const keyAnonymousId = 'user.anonymousId';
+const keyPersistedKeys = '_persistedKeys'
+const keyLastEventTimestamp = '_lastEventTimestamp'
+const keyAnonymousId = 'user.anonymousId'
 
 /**
  * DDStorage also implements migrations between cookieStorage and localStorage
@@ -11,152 +11,152 @@ const keyAnonymousId = 'user.anonymousId';
  * local -> cookie is implemented using full transfer
  */
 class DDStorage {
-  constructor(digitalData, storage, reserveStorage) {
-    this.digitalData = digitalData;
-    this.storage = storage;
+  constructor (digitalData, storage, reserveStorage) {
+    this.digitalData = digitalData
+    this.storage = storage
     if (reserveStorage) {
-      this.ddReserveStorage = new DDStorage(digitalData, reserveStorage);
+      this.ddReserveStorage = new DDStorage(digitalData, reserveStorage)
       if (!reserveStorage.supportsSubDomains()) { // only for localStorage
-        this.transferFromReserveStorage();
+        this.transferFromReserveStorage()
       }
     }
   }
 
-  transferFromReserveStorage() {
+  transferFromReserveStorage () {
     if (this.ddReserveStorage.getLastEventTimestamp()) {
       // move lastEventTimestamp
       if (this.ddReserveStorage.getLastEventTimestamp() > this.getLastEventTimestamp()) {
-        this.setLastEventTimestamp(this.ddReserveStorage.getLastEventTimestamp());
+        this.setLastEventTimestamp(this.ddReserveStorage.getLastEventTimestamp())
       } else {
-        this.ddReserveStorage.removeLastEventTimestamp();
+        this.ddReserveStorage.removeLastEventTimestamp()
       }
       // move persisted values
       this.ddReserveStorage.getPersistedKeys().forEach((persistedKey) => {
-        const value = this.get(persistedKey);
-        const ttl = this.ddReserveStorage.getTtl(persistedKey);
+        const value = this.get(persistedKey)
+        const ttl = this.ddReserveStorage.getTtl(persistedKey)
         if (value !== undefined) {
-          this.storage.set(persistedKey, value, ttl);
+          this.storage.set(persistedKey, value, ttl)
         }
-        this.ddReserveStorage.getStorage().remove(persistedKey);
-      });
+        this.ddReserveStorage.getStorage().remove(persistedKey)
+      })
       // update persisted keys
-      this.updatePersistedKeys(this.getPersistedKeys());
-      this.ddReserveStorage.clearPersistedKeys();
+      this.updatePersistedKeys(this.getPersistedKeys())
+      this.ddReserveStorage.clearPersistedKeys()
     }
   }
 
-  getStorage() {
-    return this.storage;
+  getStorage () {
+    return this.storage
   }
 
-  getTtl(key) {
+  getTtl (key) {
     if (this.getStorage().getTtl) {
-      return this.getStorage().getTtl(key);
+      return this.getStorage().getTtl(key)
     }
-    return undefined;
+    return undefined
   }
 
-  persist(key, exp) {
-    const value = getProp(this.digitalData, key);
+  persist (key, exp) {
+    const value = getProp(this.digitalData, key)
     if (value !== undefined) {
-      this.addPersistedKey(key);
-      this.storage.set(key, value, exp);
+      this.addPersistedKey(key)
+      this.storage.set(key, value, exp)
 
       if (this.ddReserveStorage) {
         if (key === keyAnonymousId) { // keep in both storages
-          this.ddReserveStorage.persist(key, exp);
+          this.ddReserveStorage.persist(key, exp)
         } else {
-          this.ddReserveStorage.unpersist(key); // remove from old storage
+          this.ddReserveStorage.unpersist(key) // remove from old storage
         }
       }
     }
   }
 
-  getPersistedKeys() {
-    const persistedKeys = this.storage.get(keyPersistedKeys) || [];
+  getPersistedKeys () {
+    const persistedKeys = this.storage.get(keyPersistedKeys) || []
     // get persisted keys from oldStorage
     if (this.ddReserveStorage) {
-      const reservePersistedKeys = this.ddReserveStorage.getPersistedKeys();
-      arrayMerge(persistedKeys, reservePersistedKeys);
+      const reservePersistedKeys = this.ddReserveStorage.getPersistedKeys()
+      arrayMerge(persistedKeys, reservePersistedKeys)
     }
-    return persistedKeys;
+    return persistedKeys
   }
 
-  addPersistedKey(key) {
-    const persistedKeys = this.getPersistedKeys();
+  addPersistedKey (key) {
+    const persistedKeys = this.getPersistedKeys()
     if (persistedKeys.indexOf(key) < 0) {
-      persistedKeys.push(key);
-      this.updatePersistedKeys(persistedKeys);
+      persistedKeys.push(key)
+      this.updatePersistedKeys(persistedKeys)
     }
   }
 
-  removePersistedKey(key) {
-    const persistedKeys = this.getPersistedKeys();
-    const index = persistedKeys.indexOf(key);
+  removePersistedKey (key) {
+    const persistedKeys = this.getPersistedKeys()
+    const index = persistedKeys.indexOf(key)
     if (index > -1) {
-      persistedKeys.splice(index, 1);
+      persistedKeys.splice(index, 1)
     }
-    this.updatePersistedKeys(persistedKeys);
+    this.updatePersistedKeys(persistedKeys)
   }
 
-  getLastEventTimestamp() {
-    return this.storage.get(keyLastEventTimestamp);
+  getLastEventTimestamp () {
+    return this.storage.get(keyLastEventTimestamp)
   }
 
-  removeLastEventTimestamp() {
-    this.storage.remove(keyLastEventTimestamp);
+  removeLastEventTimestamp () {
+    this.storage.remove(keyLastEventTimestamp)
   }
 
-  setLastEventTimestamp(timestamp) {
+  setLastEventTimestamp (timestamp) {
     if (this.ddReserveStorage) {
-      this.ddReserveStorage.removeLastEventTimestamp();
+      this.ddReserveStorage.removeLastEventTimestamp()
     }
-    return this.storage.set(keyLastEventTimestamp, timestamp);
+    return this.storage.set(keyLastEventTimestamp, timestamp)
   }
 
-  updatePersistedKeys(persistedKeys) {
-    this.storage.set(keyPersistedKeys, persistedKeys);
+  updatePersistedKeys (persistedKeys) {
+    this.storage.set(keyPersistedKeys, persistedKeys)
   }
 
-  clearPersistedKeys() {
-    this.storage.remove(keyPersistedKeys);
+  clearPersistedKeys () {
+    this.storage.remove(keyPersistedKeys)
   }
 
-  get(key) {
-    let value = this.storage.get(key);
+  get (key) {
+    let value = this.storage.get(key)
 
     // check old cookie storage for possible value and clean if necessary
     if (value === undefined && this.ddReserveStorage) {
-      value = this.ddReserveStorage.get(key);
+      value = this.ddReserveStorage.get(key)
     }
 
     if (value === undefined) {
-      this.removePersistedKey(key);
+      this.removePersistedKey(key)
     }
 
-    return value;
+    return value
   }
 
-  unpersist(key) {
+  unpersist (key) {
     // unpersist from old cookie storage if possible
     if (this.ddReserveStorage) {
-      this.ddReserveStorage.unpersist(key);
+      this.ddReserveStorage.unpersist(key)
     }
-    this.removePersistedKey(key);
-    return this.storage.remove(key);
+    this.removePersistedKey(key)
+    return this.storage.remove(key)
   }
 
-  clear() {
+  clear () {
     if (this.ddReserveStorage) {
-      this.ddReserveStorage.clear();
+      this.ddReserveStorage.clear()
     }
-    const persistedKeys = this.getPersistedKeys();
+    const persistedKeys = this.getPersistedKeys()
     persistedKeys.forEach((key) => {
-      this.storage.remove(key);
-    });
-    this.storage.remove(keyPersistedKeys);
-    this.storage.remove(keyLastEventTimestamp);
+      this.storage.remove(key)
+    })
+    this.storage.remove(keyPersistedKeys)
+    this.storage.remove(keyLastEventTimestamp)
   }
 }
 
-export default DDStorage;
+export default DDStorage

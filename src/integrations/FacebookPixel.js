@@ -1,7 +1,7 @@
-import deleteProperty from '@segmentstream/utils/deleteProperty';
-import cleanObject from '@segmentstream/utils/cleanObject';
-import { getProp } from '@segmentstream/utils/dotProp';
-import Integration from '../Integration';
+import deleteProperty from '@segmentstream/utils/deleteProperty'
+import cleanObject from '@segmentstream/utils/cleanObject'
+import { getProp } from '@segmentstream/utils/dotProp'
+import Integration from '../Integration'
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -9,8 +9,8 @@ import {
   ADDED_PRODUCT,
   ADDED_PRODUCT_TO_WISHLIST,
   COMPLETED_TRANSACTION,
-  STARTED_ORDER,
-} from '../events/semanticEvents';
+  STARTED_ORDER
+} from '../events/semanticEvents'
 
 const FB_STANDARD_EVENTS = [
   'ViewContent',
@@ -21,29 +21,29 @@ const FB_STANDARD_EVENTS = [
   'AddPaymentInfo',
   'Purchase',
   'Lead',
-  'CompleteRegistration',
-];
+  'CompleteRegistration'
+]
 
-function getProductCategory(product) {
-  let { category } = product;
+function getProductCategory (product) {
+  let { category } = product
   if (Array.isArray(category)) {
-    category = category.join('/');
+    category = category.join('/')
   } else if (category && product.subcategory) {
-    category = `${category}/${product.subcategory}`;
+    category = `${category}/${product.subcategory}`
   }
-  return category;
+  return category
 }
 
 class FacebookPixel extends Integration {
-  constructor(digitalData, options) {
+  constructor (digitalData, options) {
     const optionsWithDefaults = Object.assign({
       pixelId: '',
       usePriceAsEventValue: false,
       feedWithGroupedProducts: false,
-      customEvents: {},
-    }, options);
+      customEvents: {}
+    }, options)
 
-    super(digitalData, optionsWithDefaults);
+    super(digitalData, optionsWithDefaults)
 
     this.SEMANTIC_EVENTS = [
       VIEWED_PAGE,
@@ -52,215 +52,214 @@ class FacebookPixel extends Integration {
       ADDED_PRODUCT_TO_WISHLIST,
       SEARCHED_PRODUCTS,
       STARTED_ORDER,
-      COMPLETED_TRANSACTION,
-    ];
+      COMPLETED_TRANSACTION
+    ]
 
-    this.customEvents = Object.keys(this.getOption('customEvents') || {});
+    this.customEvents = Object.keys(this.getOption('customEvents') || {})
     this.customEvents.forEach((customEvent) => {
       if (this.SEMANTIC_EVENTS.indexOf(customEvent) < 0) {
-        this.SEMANTIC_EVENTS.push(customEvent);
+        this.SEMANTIC_EVENTS.push(customEvent)
       }
-    });
+    })
 
     this.addTag({
       type: 'script',
       attr: {
-        src: '//connect.facebook.net/en_US/fbevents.js',
-      },
-    });
+        src: '//connect.facebook.net/en_US/fbevents.js'
+      }
+    })
   }
 
-  initialize() {
+  initialize () {
     // non-documented support for multiple facebook ids (if comma-separated)
-    const pixelIds = this.getOption('pixelId');
+    const pixelIds = this.getOption('pixelId')
     if (pixelIds && !window.fbq) {
-      window.fbq = window._fbq = function fbq() {
+      window.fbq = window._fbq = function fbq () {
         if (window.fbq.callMethod) {
-          window.fbq.callMethod(...arguments);
+          window.fbq.callMethod(...arguments)
         } else {
-          window.fbq.queue.push(arguments);
+          window.fbq.queue.push(arguments)
         }
-      };
-      window.fbq.push = window.fbq;
-      window.fbq.loaded = true;
-      window.fbq.version = '2.0';
-      window.fbq.queue = [];
+      }
+      window.fbq.push = window.fbq
+      window.fbq.loaded = true
+      window.fbq.version = '2.0'
+      window.fbq.queue = []
 
       pixelIds.split(',').forEach((pixelId) => {
-        window.fbq('init', pixelId);
-      });
+        window.fbq('init', pixelId)
+      })
     }
   }
 
-  getPixelIds() {
-    return this.getOption('pixelId').split(',');
+  getPixelIds () {
+    return this.getOption('pixelId').split(',')
   }
 
-  getSemanticEvents() {
-    return this.SEMANTIC_EVENTS;
+  getSemanticEvents () {
+    return this.SEMANTIC_EVENTS
   }
 
-  getEnrichableEventProps(event) {
-    let enrichableProps = [];
+  getEnrichableEventProps (event) {
+    let enrichableProps = []
     switch (event.name) {
       case VIEWED_PRODUCT_DETAIL:
         enrichableProps = [
-          'product',
-        ];
-        break;
+          'product'
+        ]
+        break
       case SEARCHED_PRODUCTS:
         enrichableProps = [
-          'listing.query',
-        ];
-        break;
+          'listing.query'
+        ]
+        break
       case STARTED_ORDER:
         enrichableProps = [
-          'cart',
-        ];
-        break;
+          'cart'
+        ]
+        break
       case COMPLETED_TRANSACTION:
         enrichableProps = [
           'website.currency',
-          'transaction',
-        ];
-        break;
+          'transaction'
+        ]
+        break
       default:
       // do nothing
     }
 
-    return enrichableProps;
+    return enrichableProps
   }
 
-  getEventValidationConfig(event) {
-    const productFields = ['product.id', 'product.name', 'product.category'];
+  getEventValidationConfig (event) {
+    const productFields = ['product.id', 'product.name', 'product.category']
     const productValidations = {
       'product.id': {
         errors: ['required'],
-        warnings: ['string'],
+        warnings: ['string']
       },
       'product.name': {
-        warnings: ['required', 'string'],
+        warnings: ['required', 'string']
       },
       'product.category': {
-        warnings: ['required', 'array'],
-      },
-    };
+        warnings: ['required', 'array']
+      }
+    }
     const config = {
       [VIEWED_PRODUCT_DETAIL]: {
         fields: productFields,
-        validations: productValidations,
+        validations: productValidations
       },
       [ADDED_PRODUCT]: {
         fields: productFields,
-        validations: productValidations,
+        validations: productValidations
       },
       [ADDED_PRODUCT_TO_WISHLIST]: {
         fields: productFields,
-        validations: productValidations,
+        validations: productValidations
       },
       [SEARCHED_PRODUCTS]: {
         fields: ['listing.query'],
         validations: {
           'listing.query': {
-            errors: ['required'],
-          },
-        },
+            errors: ['required']
+          }
+        }
       },
       [STARTED_ORDER]: {
         fields: [
           'cart.total',
           'cart.currency',
           'cart.lineItems[].product.id',
-          'cart.lineItems[].product.skuCode',
+          'cart.lineItems[].product.skuCode'
         ],
         validations: {
           'cart.total': {
-            errors: ['numeric'],
+            errors: ['numeric']
           },
           'cart.currency': {
-            errors: ['string'],
+            errors: ['string']
           },
           'cart.lineItems[].product.id': {
-            warnings: ['string'],
+            warnings: ['string']
           },
           'cart.lineItems[].product.skuCode': {
-            warnings: ['string'],
-          },
-        },
+            warnings: ['string']
+          }
+        }
       },
       [COMPLETED_TRANSACTION]: {
         fields: [
           'transaction.total',
           'transaction.currency',
           'transaction.lineItems[].product.id',
-          'transaction.lineItems[].product.skuCode',
+          'transaction.lineItems[].product.skuCode'
         ],
         validations: {
           'transaction.total': {
-            errors: ['required', 'numeric'],
+            errors: ['required', 'numeric']
           },
           'transaction.currency': {
-            errors: ['required', 'string'],
+            errors: ['required', 'string']
           },
           'transaction.lineItems[].product.id': {
             errors: ['required'],
-            warnings: ['string'],
+            warnings: ['string']
           },
           'transaction.lineItems[].product.skuCode': {
-            warnings: ['string'],
-          },
-        },
-      },
-    };
+            warnings: ['string']
+          }
+        }
+      }
+    }
 
-    return config[event.name];
+    return config[event.name]
   }
 
-  isLoaded() {
-    return !!(window.fbq && window.fbq.callMethod);
+  isLoaded () {
+    return !!(window.fbq && window.fbq.callMethod)
   }
 
-  reset() {
-    deleteProperty(window, 'fbq');
+  reset () {
+    deleteProperty(window, 'fbq')
   }
 
-  trackEvent(event) {
+  trackEvent (event) {
     if (event.name === VIEWED_PAGE) {
-      this.onViewedPage();
+      this.onViewedPage()
     } else if (event.name === VIEWED_PRODUCT_DETAIL) {
-      this.onViewedProductDetail(event);
+      this.onViewedProductDetail(event)
     } else if (event.name === ADDED_PRODUCT) {
-      this.onAddedProduct(event);
+      this.onAddedProduct(event)
     } else if (event.name === ADDED_PRODUCT_TO_WISHLIST) {
-      this.onAddedProductToWishlist(event);
+      this.onAddedProductToWishlist(event)
     } else if (event.name === SEARCHED_PRODUCTS) {
-      this.onSearchedProducts(event);
+      this.onSearchedProducts(event)
     } else if (event.name === STARTED_ORDER) {
-      this.onStartedOrder(event);
+      this.onStartedOrder(event)
     } else if (event.name === COMPLETED_TRANSACTION) {
-      this.onCompletedTransaction(event);
+      this.onCompletedTransaction(event)
     } else {
-      this.onCustomEvent(event);
+      this.onCustomEvent(event)
     }
   }
 
-  trackSingle(eventName, params) {
-    this.getPixelIds().forEach(pixelId => window.fbq('trackSingle', pixelId, eventName, params));
+  trackSingle (eventName, params) {
+    this.getPixelIds().forEach(pixelId => window.fbq('trackSingle', pixelId, eventName, params))
   }
 
-  trackSingleCustom(eventName, params) {
-    this.getPixelIds().forEach(pixelId => window.fbq('trackSingleCustom', pixelId, eventName, params));
+  trackSingleCustom (eventName, params) {
+    this.getPixelIds().forEach(pixelId => window.fbq('trackSingleCustom', pixelId, eventName, params))
   }
 
-  onViewedPage() {
-    this.trackSingle('PageView');
+  onViewedPage () {
+    this.trackSingle('PageView')
   }
 
-  onViewedProductDetail(event) {
-    const product = event.product || {};
-    const category = getProductCategory(product);
-    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
-
+  onViewedProductDetail (event) {
+    const product = event.product || {}
+    const category = getProductCategory(product)
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts')
 
     this.trackSingle('ViewContent', cleanObject({
       content_ids: [product.id || ''],
@@ -268,14 +267,14 @@ class FacebookPixel extends Integration {
       content_name: product.name || '',
       content_category: category || '',
       value: this.getOption('usePriceAsEventValue') ? product.unitSalePrice : event.value,
-      currency: this.getOption('usePriceAsEventValue') ? product.currency : undefined,
-    }));
+      currency: this.getOption('usePriceAsEventValue') ? product.currency : undefined
+    }))
   }
 
-  onAddedProduct(event) {
-    const product = event.product || {};
-    const category = getProductCategory(product);
-    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
+  onAddedProduct (event) {
+    const product = event.product || {}
+    const category = getProductCategory(product)
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts')
 
     this.trackSingle('AddToCart', cleanObject({
       content_ids: (feedWithGroupedProducts) ? [product.skuCode || ''] : [product.id || ''],
@@ -283,14 +282,14 @@ class FacebookPixel extends Integration {
       content_name: product.name,
       content_category: category,
       value: this.getOption('usePriceAsEventValue') ? product.unitSalePrice : event.value,
-      currency: this.getOption('usePriceAsEventValue') ? product.currency : undefined,
-    }));
+      currency: this.getOption('usePriceAsEventValue') ? product.currency : undefined
+    }))
   }
 
-  onAddedProductToWishlist(event) {
-    const product = event.product || {};
-    const category = getProductCategory(product);
-    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
+  onAddedProductToWishlist (event) {
+    const product = event.product || {}
+    const category = getProductCategory(product)
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts')
 
     this.trackSingle('AddToWishlist', cleanObject({
       content_ids: (feedWithGroupedProducts) ? [product.skuCode || ''] : [product.id || ''],
@@ -298,60 +297,60 @@ class FacebookPixel extends Integration {
       content_name: product.name,
       content_category: category,
       value: this.getOption('usePriceAsEventValue') ? product.unitSalePrice : event.value,
-      currency: this.getOption('usePriceAsEventValue') ? product.currency : undefined,
-    }));
+      currency: this.getOption('usePriceAsEventValue') ? product.currency : undefined
+    }))
   }
 
-  onSearchedProducts(event) {
-    const listing = event.listing || {};
+  onSearchedProducts (event) {
+    const listing = event.listing || {}
     this.trackSingle('Search', cleanObject({
-      search_string: listing.query,
-    }));
+      search_string: listing.query
+    }))
   }
 
-  onStartedOrder(event) {
-    const cart = event.cart || {};
-    const lineItems = cart.lineItems || [];
-    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
-    const idProp = (feedWithGroupedProducts) ? 'product.skuCode' : 'product.id';
+  onStartedOrder (event) {
+    const cart = event.cart || {}
+    const lineItems = cart.lineItems || []
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts')
+    const idProp = (feedWithGroupedProducts) ? 'product.skuCode' : 'product.id'
     const contentIds = lineItems.length
-      ? lineItems.map(lineItem => getProp(lineItem, idProp)) : undefined;
+      ? lineItems.map(lineItem => getProp(lineItem, idProp)) : undefined
 
     this.trackSingle('InitiateCheckout', cleanObject({
       content_ids: contentIds,
       content_type: 'product',
       currency: cart.currency,
-      value: (this.getOption('usePriceAsEventValue')) ? cart.total : event.value,
-    }));
+      value: (this.getOption('usePriceAsEventValue')) ? cart.total : event.value
+    }))
   }
 
-  onCompletedTransaction(event) {
-    const transaction = event.transaction || {};
-    const lineItems = transaction.lineItems || [];
-    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts');
-    const idProp = (feedWithGroupedProducts) ? 'product.skuCode' : 'product.id';
+  onCompletedTransaction (event) {
+    const transaction = event.transaction || {}
+    const lineItems = transaction.lineItems || []
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts')
+    const idProp = (feedWithGroupedProducts) ? 'product.skuCode' : 'product.id'
     const contentIds = lineItems.length
-      ? transaction.lineItems.map(lineItem => getProp(lineItem, idProp)) : undefined;
+      ? transaction.lineItems.map(lineItem => getProp(lineItem, idProp)) : undefined
 
     this.trackSingle('Purchase', cleanObject({
       content_ids: contentIds,
       content_type: 'product',
       currency: transaction.currency,
-      value: transaction.total,
-    }));
+      value: transaction.total
+    }))
   }
 
-  onCustomEvent(event) {
-    const customEvents = this.getOption('customEvents');
-    const customEventName = customEvents[event.name];
+  onCustomEvent (event) {
+    const customEvents = this.getOption('customEvents')
+    const customEventName = customEvents[event.name]
     if (customEventName) {
       if (FB_STANDARD_EVENTS.indexOf(customEventName) < 0) {
-        this.trackSingleCustom(customEventName);
+        this.trackSingleCustom(customEventName)
       } else {
-        this.trackSingle(customEventName);
+        this.trackSingle(customEventName)
       }
     }
   }
 }
 
-export default FacebookPixel;
+export default FacebookPixel

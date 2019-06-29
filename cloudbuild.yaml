@@ -4,9 +4,6 @@ steps:
   args: ['install']
 - name: node:10.13.0
   entrypoint: npm
-  args: ['run', 'lint']
-- name: node:10.13.0
-  entrypoint: npm
   args: ['test']
   env:
   - 'PHANTOMJS_VERSION=2.1.1'

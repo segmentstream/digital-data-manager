@@ -2,9 +2,9 @@ const onLoggedInLoggedInStub = {
   operation: 'EnterWebsite',
   identificator: {
     provider: 'TestWebsiteId',
-    identity: '123',
+    identity: '123'
   },
-  data: {},
-};
+  data: {}
+}
 
-export { onLoggedInLoggedInStub };
+export { onLoggedInLoggedInStub }

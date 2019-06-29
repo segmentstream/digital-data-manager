@@ -1,5 +1,5 @@
-export default function cyrillicToTranslit(config) {
-  const _preset = config ? config.preset : 'ru';
+export default function cyrillicToTranslit (config) {
+  const _preset = config ? config.preset : 'ru'
 
   const _firstLetterAssociations = {
     а: 'a',
@@ -38,8 +38,8 @@ export default function cyrillicToTranslit(config) {
     ь: '',
     э: 'e',
     ю: 'yu',
-    я: 'ya',
-  };
+    я: 'ya'
+  }
 
   if (_preset === 'uk') {
     Object.assign(_firstLetterAssociations, {
@@ -51,11 +51,11 @@ export default function cyrillicToTranslit(config) {
       щ: 'shch',
       "'": '',
       '’': '',
-      ʼ: '',
-    });
+      ʼ: ''
+    })
   }
 
-  const _associations = Object.assign({}, _firstLetterAssociations);
+  const _associations = Object.assign({}, _firstLetterAssociations)
 
   if (_preset === 'uk') {
     Object.assign(_associations, {
@@ -63,41 +63,41 @@ export default function cyrillicToTranslit(config) {
       ї: 'i',
       й: 'i',
       ю: 'iu',
-      я: 'ia',
-    });
+      я: 'ia'
+    })
   }
 
-  function transform(input, spaceReplacement) {
+  function transform (input, spaceReplacement) {
     if (!input) {
-      return '';
+      return ''
     }
 
-    let newStr = '';
+    let newStr = ''
     for (let i = 0; i < input.length; i += 1) {
-      const isUpperCaseOrWhatever = input[i] === input[i].toUpperCase();
-      const strLowerCase = input[i].toLowerCase();
+      const isUpperCaseOrWhatever = input[i] === input[i].toUpperCase()
+      const strLowerCase = input[i].toLowerCase()
       if (strLowerCase === ' ' && spaceReplacement) {
-        newStr += spaceReplacement;
+        newStr += spaceReplacement
       } else {
-        let newLetter;
+        let newLetter
         if (_preset === 'uk' && strLowerCase === 'г' && i > 0 && input[i - 1].toLowerCase() === 'з') {
-          newLetter = 'gh';
+          newLetter = 'gh'
         } else if (i === 0) {
-          newLetter = _firstLetterAssociations[strLowerCase];
+          newLetter = _firstLetterAssociations[strLowerCase]
         } else {
-          newLetter = _associations[strLowerCase];
+          newLetter = _associations[strLowerCase]
         }
         if (newLetter === undefined) {
-          newStr += isUpperCaseOrWhatever ? strLowerCase.toUpperCase() : strLowerCase;
+          newStr += isUpperCaseOrWhatever ? strLowerCase.toUpperCase() : strLowerCase
         } else {
-          newStr += isUpperCaseOrWhatever ? newLetter.toUpperCase() : newLetter;
+          newStr += isUpperCaseOrWhatever ? newLetter.toUpperCase() : newLetter
         }
       }
     }
-    return newStr;
+    return newStr
   }
 
   return {
-    transform,
-  };
+    transform
+  }
 }

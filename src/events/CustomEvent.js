@@ -1,102 +1,102 @@
-import { error as errorLog } from '@segmentstream/utils/safeConsole';
-import isPromise from '@segmentstream/utils/isPromise';
-import trackImpression from '../trackers/trackImpression';
-import trackLink from '../trackers/trackLink';
-import Handler from '../Handler';
-import { CUSTOM_EVENT_SOURCE } from '../constants';
+import { error as errorLog } from '@segmentstream/utils/safeConsole'
+import isPromise from '@segmentstream/utils/isPromise'
+import trackImpression from '../trackers/trackImpression'
+import trackLink from '../trackers/trackLink'
+import Handler from '../Handler'
+import { CUSTOM_EVENT_SOURCE } from '../constants'
 
-const TRIGGER_EVENT = 'event';
-const TRIGGER_IMPRESSION = 'impression';
-const TRIGGER_CLICK = 'click';
+const TRIGGER_EVENT = 'event'
+const TRIGGER_IMPRESSION = 'impression'
+const TRIGGER_CLICK = 'click'
 
 class CustomEvent {
-  constructor(name, trigger, settings, handler, digitalData, eventManager) {
-    this.name = name;
-    this.trigger = trigger;
-    this.settings = settings || {};
-    this.handler = handler;
-    this.digitalData = digitalData;
-    this.eventManager = eventManager;
+  constructor (name, trigger, settings, handler, digitalData, eventManager) {
+    this.name = name
+    this.trigger = trigger
+    this.settings = settings || {}
+    this.handler = handler
+    this.digitalData = digitalData
+    this.eventManager = eventManager
   }
 
-  track() {
+  track () {
     if (this.trigger === TRIGGER_EVENT) {
-      this.trackEvent();
+      this.trackEvent()
     } else if (this.trigger === TRIGGER_CLICK) {
-      this.trackClick();
+      this.trackClick()
     } else if (this.trigger === TRIGGER_IMPRESSION) {
-      this.trackImpression();
+      this.trackImpression()
     }
   }
 
-  newHandler(args) {
-    return new Handler(this.handler, this.digitalData, args);
+  newHandler (args) {
+    return new Handler(this.handler, this.digitalData, args)
   }
 
-  resolveHandlerAndFireEvent(args) {
-    const handler = this.newHandler(args);
+  resolveHandlerAndFireEvent (args) {
+    const handler = this.newHandler(args)
     try {
-      const result = handler.run();
+      const result = handler.run()
       if (result) {
         if (isPromise(result)) {
           result.then((event) => {
-            this.fireEvent(event);
-          });
+            this.fireEvent(event)
+          })
         } else {
-          this.fireEvent(result);
+          this.fireEvent(result)
         }
       }
     } catch (e) {
-      e.message = `DDManager Custom Event "${this.name}" Error\n\n ${e.message}`;
-      errorLog(e);
+      e.message = `DDManager Custom Event "${this.name}" Error\n\n ${e.message}`
+      errorLog(e)
     }
   }
 
-  trackEvent() {
-    if (!this.settings.event) return;
+  trackEvent () {
+    if (!this.settings.event) return
     this.eventManager.addCallback(['on', 'event', (event) => {
       if (event.name === this.settings.event && !event.stopPropagation) {
-        this.resolveHandlerAndFireEvent([event]);
+        this.resolveHandlerAndFireEvent([event])
       }
-    }]);
+    }])
   }
 
-  trackImpression() {
-    if (!this.settings.selector) return;
+  trackImpression () {
+    if (!this.settings.selector) return
     trackImpression(this.settings.selector, (elements) => {
-      this.resolveHandlerAndFireEvent([elements]);
-    });
+      this.resolveHandlerAndFireEvent([elements])
+    })
   }
 
-  trackClick() {
-    if (!this.settings.selector) return;
+  trackClick () {
+    if (!this.settings.selector) return
     trackLink(this.settings.selector, (element) => {
-      this.resolveHandlerAndFireEvent([element]);
-    }, this.settings.followLink);
+      this.resolveHandlerAndFireEvent([element])
+    }, this.settings.followLink)
   }
 
-  fireEvent(event) {
-    if (!event) return;
+  fireEvent (event) {
+    if (!event) return
     if (typeof event !== 'object') {
-      errorLog(`Custom Event "${this.name}" was disabled: returned event should be object`);
-      return;
+      errorLog(`Custom Event "${this.name}" was disabled: returned event should be object`)
+      return
     }
     if (!event.name) {
-      errorLog(`Custom Event "${this.name}" was disabled: returned event name is undefined`);
-      return;
+      errorLog(`Custom Event "${this.name}" was disabled: returned event name is undefined`)
+      return
     }
     if (this.trigger === TRIGGER_EVENT) {
       if (event.name === this.settings.event && !event.stopPropagation) {
-        errorLog(`Custom Event "${this.name}" was disabled: recursion error`);
-        return;
+        errorLog(`Custom Event "${this.name}" was disabled: recursion error`)
+        return
       }
     }
 
     if (!event.source) {
-      event.source = CUSTOM_EVENT_SOURCE;
+      event.source = CUSTOM_EVENT_SOURCE
     }
-    this.digitalData.events.push(event);
+    this.digitalData.events.push(event)
   }
 }
 
-export default CustomEvent;
+export default CustomEvent

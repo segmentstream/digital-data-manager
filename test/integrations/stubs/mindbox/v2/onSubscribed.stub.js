@@ -2,7 +2,7 @@ const onSubscribedSubscribedStub = {
   operation: 'EmailSubscribe',
   identificator: {
     provider: 'email',
-    identity: 'test@driveback.ru',
+    identity: 'test@driveback.ru'
   },
   data: {
     email: 'test@driveback.ru',
@@ -10,17 +10,17 @@ const onSubscribedSubscribedStub = {
     lastName: 'Dow',
     subscriptions: [
       {
-        pointOfContact: 'Email',
-      },
-    ],
-  },
-};
+        pointOfContact: 'Email'
+      }
+    ]
+  }
+}
 
 const onSubscribedEmailSubscribeCustomStub = {
   operation: 'EmailSubscribeCustom',
   identificator: {
     provider: 'email',
-    identity: 'test@driveback.ru',
+    identity: 'test@driveback.ru'
   },
   data: {
     email: 'test@driveback.ru',
@@ -28,10 +28,10 @@ const onSubscribedEmailSubscribeCustomStub = {
     lastName: 'Dow',
     subscriptions: [
       {
-        pointOfContact: 'Email',
-      },
-    ],
-  },
-};
+        pointOfContact: 'Email'
+      }
+    ]
+  }
+}
 
-export { onSubscribedSubscribedStub, onSubscribedEmailSubscribeCustomStub };
+export { onSubscribedSubscribedStub, onSubscribedEmailSubscribeCustomStub }

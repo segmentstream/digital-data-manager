@@ -7,10 +7,10 @@ const cartStub = {
         unitSalePrice: 100,
         manufacturer: 'DB',
         categoryId: '2',
-        category: ['Accessories', 'Headwear'],
+        category: ['Accessories', 'Headwear']
       },
       quantity: 2,
-      subtotal: 200,
+      subtotal: 200
     },
     {
       product: {
@@ -19,12 +19,12 @@ const cartStub = {
         unitSalePrice: 300,
         manufacturer: 'DB',
         categoryId: '1',
-        category: ['Tops', 'Shirts'],
+        category: ['Tops', 'Shirts']
       },
       quantity: 1,
-      subtotal: 300,
-    },
-  ],
-};
+      subtotal: 300
+    }
+  ]
+}
 
-export default cartStub;
+export default cartStub

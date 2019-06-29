@@ -1,43 +1,43 @@
-import Integration from '../Integration';
-import { VIEWED_PAGE, COMPLETED_TRANSACTION } from '../events/semanticEvents';
+import Integration from '../Integration'
+import { VIEWED_PAGE, COMPLETED_TRANSACTION } from '../events/semanticEvents'
 
 class VeInteractive extends Integration {
-  constructor(digitalData, options) {
+  constructor (digitalData, options) {
     const optionsWithDefaults = Object.assign({
       javaScriptUrl: '',
-      pixelUrl: '',
-    }, options);
+      pixelUrl: ''
+    }, options)
 
-    super(digitalData, optionsWithDefaults);
+    super(digitalData, optionsWithDefaults)
 
     this.addTag({
       type: 'script',
       attr: {
-        src: options.javaScriptUrl,
-      },
-    });
+        src: options.javaScriptUrl
+      }
+    })
 
     this.addTag('pixel', {
       type: 'img',
       attr: {
-        src: options.pixelUrl,
-      },
-    });
+        src: options.pixelUrl
+      }
+    })
   }
 
-  getSemanticEvents() {
-    return [VIEWED_PAGE, COMPLETED_TRANSACTION];
+  getSemanticEvents () {
+    return [VIEWED_PAGE, COMPLETED_TRANSACTION]
   }
 
-  isLoaded() {
-    return !!window.VeAPI;
+  isLoaded () {
+    return !!window.VeAPI
   }
 
-  trackEvent(event) {
+  trackEvent (event) {
     if (event.name === COMPLETED_TRANSACTION && this.getOption('pixelUrl')) {
-      this.load('pixel');
+      this.load('pixel')
     }
   }
 }
 
-export default VeInteractive;
+export default VeInteractive

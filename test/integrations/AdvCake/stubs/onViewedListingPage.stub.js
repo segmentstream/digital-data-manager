@@ -1,21 +1,21 @@
 
 const currentCategory = {
   id: '2',
-  name: 'Headwear',
-};
+  name: 'Headwear'
+}
 
 const products = [
   {
     id: '123',
     name: 'Hat',
-    price: 100,
+    price: 100
   },
   {
     id: '125',
     name: 'Cap',
-    price: 200,
-  },
-];
+    price: 200
+  }
+]
 
 const onViewedListingPageStub = {
   in: {
@@ -25,24 +25,24 @@ const onViewedListingPageStub = {
       {
         id: '123',
         name: 'Hat',
-        unitSalePrice: 100,
+        unitSalePrice: 100
       },
       {
         id: '125',
         name: 'Cap',
-        unitSalePrice: 200,
-      },
-    ],
+        unitSalePrice: 200
+      }
+    ]
   },
   out: {
     user: undefined,
     currentCategory,
     products,
     pageType: 3,
-    basketProducts: [],
-  },
-};
+    basketProducts: []
+  }
+}
 
 export {
-  onViewedListingPageStub,
-};
+  onViewedListingPageStub
+}

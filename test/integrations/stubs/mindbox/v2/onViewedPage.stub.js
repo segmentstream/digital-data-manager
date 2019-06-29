@@ -6,16 +6,16 @@ const onViewedPageSetCardStub = {
         {
           productId: '123',
           count: 2,
-          price: 2000,
+          price: 2000
         },
         {
           productId: '234',
           count: 1,
-          price: 1000,
-        },
-      ],
-    },
-  },
-};
+          price: 1000
+        }
+      ]
+    }
+  }
+}
 
-export { onViewedPageSetCardStub };
+export { onViewedPageSetCardStub }

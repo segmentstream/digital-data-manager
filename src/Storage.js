@@ -1,79 +1,79 @@
-import store from 'lockr';
+import store from 'lockr'
 
 class Storage {
-  constructor(options = {}) {
+  constructor (options = {}) {
     this.options = Object.assign({
-      prefix: 'ddl:',
-    }, options);
+      prefix: 'ddl:'
+    }, options)
   }
 
-  supportsSubDomains() {
-    return false;
+  supportsSubDomains () {
+    return false
   }
 
-  set(key, val, exp) {
-    key = this.getOption('prefix') + key;
+  set (key, val, exp) {
+    key = this.getOption('prefix') + key
     if (exp !== undefined) {
       store.set(key, {
         val,
         exp: exp * 1000,
-        time: Date.now(),
-      });
+        time: Date.now()
+      })
     } else {
-      store.set(key, val);
+      store.set(key, val)
     }
   }
 
-  get(key) {
-    key = this.getOption('prefix') + key;
+  get (key) {
+    key = this.getOption('prefix') + key
 
     if (!window.localStorage) { // SRP violation, but its ok for this case
       // TODO add logging;
-      return undefined;
+      return undefined
     }
-    const info = store.get(key);
+    const info = store.get(key)
 
     if (info instanceof Object) {
       if (info.val !== undefined && info.exp && info.time) {
         if ((Date.now() - info.time) > info.exp) {
-          store.rm(key);
-          return undefined;
+          store.rm(key)
+          return undefined
         }
-        return info.val;
+        return info.val
       }
     }
-    return info;
+    return info
   }
 
-  getTtl(key) {
-    key = this.getOption('prefix') + key;
-    const info = store.get(key);
+  getTtl (key) {
+    key = this.getOption('prefix') + key
+    const info = store.get(key)
     if (info !== undefined) {
       if (info.val !== undefined && info.exp && info.time) {
-        return info.exp - (Date.now() - info.time);
+        return info.exp - (Date.now() - info.time)
       }
     }
-    return undefined;
+    return undefined
   }
 
-  remove(key) {
-    key = this.getOption('prefix') + key;
-    return store.rm(key);
+  remove (key) {
+    key = this.getOption('prefix') + key
+    return store.rm(key)
   }
 
-  isEnabled() {
+  isEnabled () {
     try {
-      localStorage.setItem('ddm_localstorage_test', 1);
-      localStorage.removeItem('ddm_localstorage_test');
+      window.localStorage.setItem('ddm_localstorage_test', 1)
+      window.localStorage.removeItem('ddm_localstorage_test')
     } catch (e) {
-      return false;
+      return false
     }
-    return true;
+    return true
   }
 
-  getOption(name) {
-    return this.options[name];
+  getOption (name) {
+    return this.options[name]
   }
 }
 
-export default Storage;
+export default Storage

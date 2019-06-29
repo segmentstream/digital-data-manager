@@ -1,20 +1,20 @@
-import { getProp, setProp } from '@segmentstream/utils/dotProp';
-import cookie from 'js-cookie';
-import topDomain from '@segmentstream/utils/topDomain';
-import { VIEWED_PAGE } from '../events/semanticEvents';
-import Integration from '../Integration';
+import { getProp, setProp } from '@segmentstream/utils/dotProp'
+import cookie from 'js-cookie'
+import topDomain from '@segmentstream/utils/topDomain'
+import { VIEWED_PAGE } from '../events/semanticEvents'
+import Integration from '../Integration'
 
-const TAG_COOKIE_SYNC = 'cookieSync';
-const TAG_SUPER_SYNC = 'superSync';
-const COOKIE_DOMAIN = topDomain(window.location);
-const COOKIE_SYNC_NAME = '_1dmc_s';
-const COOKIE_SYNC_TTL = 90;
-const COOKIE_ENRICHMENT_NAME = '_1dmc_e';
-const PROFILE_ENRICHMENT_FOUND_TTL = 7;
-const PROFILE_ENRICHMENT_NOT_FOUND_TTL = 1;
+const TAG_COOKIE_SYNC = 'cookieSync'
+const TAG_SUPER_SYNC = 'superSync'
+const COOKIE_DOMAIN = topDomain(window.location)
+const COOKIE_SYNC_NAME = '_1dmc_s'
+const COOKIE_SYNC_TTL = 90
+const COOKIE_ENRICHMENT_NAME = '_1dmc_e'
+const PROFILE_ENRICHMENT_FOUND_TTL = 7
+const PROFILE_ENRICHMENT_NOT_FOUND_TTL = 1
 
 class OneDMC extends Integration {
-  constructor(digitalData, options) {
+  constructor (digitalData, options) {
     const optionsWithDefaults = Object.assign({
       clientId: '',
       brandId: '',
@@ -22,156 +22,156 @@ class OneDMC extends Integration {
       superSync: false,
       profileEnrichment: false,
       token: '',
-      attributesMapping: {},
-    }, options);
+      attributesMapping: {}
+    }, options)
 
-    super(digitalData, optionsWithDefaults);
+    super(digitalData, optionsWithDefaults)
 
     this.addTag(TAG_COOKIE_SYNC, {
       type: 'img',
       attr: {
         // eslint-disable-next-line max-len
-        src: `https://sync.1dmp.io/pixel.gif?cid=${options.clientId}&brid=${options.brandId}&pid=w&uid={{ anonymousId }}`,
-      },
-    });
+        src: `https://sync.1dmp.io/pixel.gif?cid=${options.clientId}&brid=${options.brandId}&pid=w&uid={{ anonymousId }}`
+      }
+    })
 
     this.addTag(TAG_SUPER_SYNC, {
       type: 'iframe',
       attr: {
-        src: `//sync.1dmp.io/supersync?cid=${options.clientId}&brid=${options.brandId}&pid=w&uid={{ anonymousId }}`,
-      },
-    });
+        src: `//sync.1dmp.io/supersync?cid=${options.clientId}&brid=${options.brandId}&pid=w&uid={{ anonymousId }}`
+      }
+    })
   }
 
-  getSemanticEvents() {
-    return [VIEWED_PAGE];
+  getSemanticEvents () {
+    return [VIEWED_PAGE]
   }
 
-  getEnrichableEventProps(event) {
+  getEnrichableEventProps (event) {
     if (event.name === VIEWED_PAGE) {
-      const anonymousIdVar = this.getOption('anonymousIdVar');
+      const anonymousIdVar = this.getOption('anonymousIdVar')
       if (anonymousIdVar) {
-        return [anonymousIdVar];
+        return [anonymousIdVar]
       }
     }
-    return [];
+    return []
   }
 
-  getEventValidationConfig(event) {
+  getEventValidationConfig (event) {
     if (event.name === VIEWED_PAGE) {
-      const anonymousIdVar = this.getOption('anonymousIdVar');
+      const anonymousIdVar = this.getOption('anonymousIdVar')
       if (anonymousIdVar) {
         return {
           fields: [anonymousIdVar],
           validations: {
             [anonymousIdVar]: {
-              errors: ['required'],
-            },
-          },
-        };
+              errors: ['required']
+            }
+          }
+        }
       }
     }
-    return undefined;
+    return undefined
   }
 
-  initialize() {
-    this._isLoaded = true;
+  initialize () {
+    this._isLoaded = true
 
-    const token = this.getOption('token');
-    const enrichmentCookie = cookie.get(COOKIE_ENRICHMENT_NAME);
+    const token = this.getOption('token')
+    const enrichmentCookie = cookie.get(COOKIE_ENRICHMENT_NAME)
     if (this.getOption('profileEnrichment') && token && !enrichmentCookie) {
-      this.enrichDigitalData(token);
+      this.enrichDigitalData(token)
     }
   }
 
-  getProfile(token, onComplete) {
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', `https://profiles.1dmp.io/v1/profiles?token=${token}`, true);
-    xhr.withCredentials = true;
-    xhr.send();
+  getProfile (token, onComplete) {
+    const xhr = new window.XMLHttpRequest()
+    xhr.open('GET', `https://profiles.1dmp.io/v1/profiles?token=${token}`, true)
+    xhr.withCredentials = true
+    xhr.send()
     xhr.onreadystatechange = () => {
       if (xhr.readyState !== 4) {
-        return;
+        return
       }
       if (xhr.status === 200) {
-        const profile = JSON.parse(xhr.responseText);
+        const profile = JSON.parse(xhr.responseText)
         if (profile && profile.attributes && Array.isArray(profile.attributes)) {
-          onComplete(profile);
+          onComplete(profile)
         }
         cookie.set(COOKIE_ENRICHMENT_NAME, 1, {
           expires: PROFILE_ENRICHMENT_FOUND_TTL,
-          domain: COOKIE_DOMAIN,
-        });
+          domain: COOKIE_DOMAIN
+        })
       } else {
         cookie.set(COOKIE_ENRICHMENT_NAME, 1, {
           expires: PROFILE_ENRICHMENT_NOT_FOUND_TTL,
-          domain: COOKIE_DOMAIN,
-        });
+          domain: COOKIE_DOMAIN
+        })
       }
-    };
-  }
-
-  enrichDigitalData(token) {
-    this.getProfile(token, (profile) => {
-      const ttlInSeconds = PROFILE_ENRICHMENT_FOUND_TTL * 24 * 60 * 60;
-      const { attributes } = profile;
-      const attributesMapping = this.getOption('attributesMapping');
-      attributes.forEach((attribute) => {
-        let key = attribute.primary;
-        if (key) {
-          let enrichableVar = attributesMapping[key];
-          if (enrichableVar) {
-            if (attribute.secondary) {
-              enrichableVar = [enrichableVar, attribute.secondary].join('.');
-            }
-            setProp(this.digitalData, enrichableVar, attribute.value);
-            this.ddManager.persist(enrichableVar, ttlInSeconds);
-          }
-          if (attribute.secondary) {
-            key = [key, attribute.secondary].join('.');
-            enrichableVar = attributesMapping[key];
-            if (enrichableVar) {
-              setProp(this.digitalData, enrichableVar, attribute.value);
-              this.ddManager.persist(enrichableVar, ttlInSeconds);
-            }
-          }
-        }
-      });
-    });
-  }
-
-  isLoaded() {
-    return this._isLoaded;
-  }
-
-  trackEvent(event) {
-    if (event.name === VIEWED_PAGE) {
-      this.onViewedPage(event);
     }
   }
 
-  onViewedPage(event) {
-    const syncCookie = cookie.get(COOKIE_SYNC_NAME);
-    if (syncCookie) return;
+  enrichDigitalData (token) {
+    this.getProfile(token, (profile) => {
+      const ttlInSeconds = PROFILE_ENRICHMENT_FOUND_TTL * 24 * 60 * 60
+      const { attributes } = profile
+      const attributesMapping = this.getOption('attributesMapping')
+      attributes.forEach((attribute) => {
+        let key = attribute.primary
+        if (key) {
+          let enrichableVar = attributesMapping[key]
+          if (enrichableVar) {
+            if (attribute.secondary) {
+              enrichableVar = [enrichableVar, attribute.secondary].join('.')
+            }
+            setProp(this.digitalData, enrichableVar, attribute.value)
+            this.ddManager.persist(enrichableVar, ttlInSeconds)
+          }
+          if (attribute.secondary) {
+            key = [key, attribute.secondary].join('.')
+            enrichableVar = attributesMapping[key]
+            if (enrichableVar) {
+              setProp(this.digitalData, enrichableVar, attribute.value)
+              this.ddManager.persist(enrichableVar, ttlInSeconds)
+            }
+          }
+        }
+      })
+    })
+  }
 
-    const anonymousIdVar = this.getOption('anonymousIdVar');
-    if (!anonymousIdVar) return;
+  isLoaded () {
+    return this._isLoaded
+  }
 
-    const anonymousId = getProp(event, anonymousIdVar);
-    if (!anonymousId) return;
+  trackEvent (event) {
+    if (event.name === VIEWED_PAGE) {
+      this.onViewedPage(event)
+    }
+  }
 
-    let tagName = TAG_COOKIE_SYNC;
+  onViewedPage (event) {
+    const syncCookie = cookie.get(COOKIE_SYNC_NAME)
+    if (syncCookie) return
+
+    const anonymousIdVar = this.getOption('anonymousIdVar')
+    if (!anonymousIdVar) return
+
+    const anonymousId = getProp(event, anonymousIdVar)
+    if (!anonymousId) return
+
+    let tagName = TAG_COOKIE_SYNC
     if (this.getOption('superSync')) {
-      tagName = TAG_SUPER_SYNC;
+      tagName = TAG_SUPER_SYNC
     }
 
     this.load(tagName, { anonymousId }, () => {
       cookie.set(COOKIE_SYNC_NAME, 1, {
         expires: COOKIE_SYNC_TTL,
-        domain: COOKIE_DOMAIN,
-      });
-    });
+        domain: COOKIE_DOMAIN
+      })
+    })
   }
 }
 
-export default OneDMC;
+export default OneDMC
