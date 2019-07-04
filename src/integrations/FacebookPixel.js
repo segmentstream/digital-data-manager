@@ -1,5 +1,6 @@
 import deleteProperty from '@segmentstream/utils/deleteProperty'
 import cleanObject from '@segmentstream/utils/cleanObject'
+import arrayMerge from '@segmentstream/utils/arrayMerge'
 import { getProp } from '@segmentstream/utils/dotProp'
 import Integration from '../Integration'
 import {
@@ -11,6 +12,10 @@ import {
   COMPLETED_TRANSACTION,
   STARTED_ORDER
 } from '../events/semanticEvents'
+import {
+  getEnrichableVariableMappingProps,
+  extractVariableMappingValues
+} from '../IntegrationUtils'
 
 const FB_STANDARD_EVENTS = [
   'ViewContent',
@@ -40,7 +45,8 @@ class FacebookPixel extends Integration {
       pixelId: '',
       usePriceAsEventValue: false,
       feedWithGroupedProducts: false,
-      customEvents: {}
+      customEvents: {},
+      eventParameters: {}
     }, options)
 
     super(digitalData, optionsWithDefaults)
@@ -101,33 +107,32 @@ class FacebookPixel extends Integration {
   }
 
   getEnrichableEventProps (event) {
-    let enrichableProps = []
+    let enrichableProps = getEnrichableVariableMappingProps(this.getOption('eventParameters'))
     switch (event.name) {
       case VIEWED_PRODUCT_DETAIL:
-        enrichableProps = [
+        arrayMerge(enrichableProps, [
           'product'
-        ]
+        ])
         break
       case SEARCHED_PRODUCTS:
-        enrichableProps = [
+        arrayMerge(enrichableProps, [
           'listing.query'
-        ]
+        ])
         break
       case STARTED_ORDER:
-        enrichableProps = [
+        arrayMerge(enrichableProps, [
           'cart'
-        ]
+        ])
         break
       case COMPLETED_TRANSACTION:
-        enrichableProps = [
+        arrayMerge(enrichableProps, [
           'website.currency',
           'transaction'
-        ]
+        ])
         break
       default:
-      // do nothing
+        // do nothing
     }
-
     return enrichableProps
   }
 
@@ -244,6 +249,26 @@ class FacebookPixel extends Integration {
     }
   }
 
+  getEventParams (event) {
+    return extractVariableMappingValues(event, this.getOption('eventParameters'))
+  }
+
+  getProductParams (event) {
+    const product = event.product || {}
+    const category = getProductCategory(product)
+    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts')
+    const value = this.getOption('usePriceAsEventValue') ? product.unitSalePrice : event.value
+    const currency = this.getOption('usePriceAsEventValue') ? product.currency : undefined
+    return cleanObject({
+      content_ids: [product.id || ''],
+      content_type: (feedWithGroupedProducts) ? 'product_group' : 'product',
+      content_name: product.name || '',
+      content_category: category || '',
+      value,
+      currency
+    })
+  }
+
   trackSingle (eventName, params) {
     this.getPixelIds().forEach(pixelId => window.fbq('trackSingle', pixelId, eventName, params))
   }
@@ -257,71 +282,52 @@ class FacebookPixel extends Integration {
   }
 
   onViewedProductDetail (event) {
-    const product = event.product || {}
-    const category = getProductCategory(product)
-    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts')
+    const productParams = this.getProductParams(event)
+    const eventParams = this.getEventParams(event)
 
-    this.trackSingle('ViewContent', cleanObject({
-      content_ids: [product.id || ''],
-      content_type: (feedWithGroupedProducts) ? 'product_group' : 'product',
-      content_name: product.name || '',
-      content_category: category || '',
-      value: this.getOption('usePriceAsEventValue') ? product.unitSalePrice : event.value,
-      currency: this.getOption('usePriceAsEventValue') ? product.currency : undefined
-    }))
+    this.trackSingle('ViewContent', Object.assign(productParams, eventParams))
   }
 
   onAddedProduct (event) {
-    const product = event.product || {}
-    const category = getProductCategory(product)
-    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts')
+    const productParams = this.getProductParams(event)
+    const eventParams = this.getEventParams(event)
 
-    this.trackSingle('AddToCart', cleanObject({
-      content_ids: (feedWithGroupedProducts) ? [product.skuCode || ''] : [product.id || ''],
-      content_type: 'product',
-      content_name: product.name,
-      content_category: category,
-      value: this.getOption('usePriceAsEventValue') ? product.unitSalePrice : event.value,
-      currency: this.getOption('usePriceAsEventValue') ? product.currency : undefined
-    }))
+    this.trackSingle('AddToCart', Object.assign(productParams, eventParams))
   }
 
   onAddedProductToWishlist (event) {
-    const product = event.product || {}
-    const category = getProductCategory(product)
-    const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts')
+    const productParams = this.getProductParams(event)
+    const eventParams = this.getEventParams(event)
 
-    this.trackSingle('AddToWishlist', cleanObject({
-      content_ids: (feedWithGroupedProducts) ? [product.skuCode || ''] : [product.id || ''],
-      content_type: 'product',
-      content_name: product.name,
-      content_category: category,
-      value: this.getOption('usePriceAsEventValue') ? product.unitSalePrice : event.value,
-      currency: this.getOption('usePriceAsEventValue') ? product.currency : undefined
-    }))
+    this.trackSingle('AddToWishlist', Object.assign(productParams, eventParams))
   }
 
   onSearchedProducts (event) {
     const listing = event.listing || {}
-    this.trackSingle('Search', cleanObject({
+    const searchListingParams = cleanObject({
       search_string: listing.query
-    }))
+    })
+    const eventParams = this.getEventParams(event)
+    this.trackSingle('Search', Object.assign(searchListingParams, eventParams))
   }
 
   onStartedOrder (event) {
     const cart = event.cart || {}
     const lineItems = cart.lineItems || []
     const feedWithGroupedProducts = this.getOption('feedWithGroupedProducts')
+    const value = this.getOption('usePriceAsEventValue') ? cart.total : event.value
     const idProp = (feedWithGroupedProducts) ? 'product.skuCode' : 'product.id'
     const contentIds = lineItems.length
       ? lineItems.map(lineItem => getProp(lineItem, idProp)) : undefined
-
-    this.trackSingle('InitiateCheckout', cleanObject({
+    const cartParams = cleanObject({
       content_ids: contentIds,
       content_type: 'product',
       currency: cart.currency,
-      value: (this.getOption('usePriceAsEventValue')) ? cart.total : event.value
-    }))
+      value
+    })
+    const eventParams = this.getEventParams(event)
+
+    this.trackSingle('InitiateCheckout', Object.assign(cartParams, eventParams))
   }
 
   onCompletedTransaction (event) {
@@ -331,23 +337,26 @@ class FacebookPixel extends Integration {
     const idProp = (feedWithGroupedProducts) ? 'product.skuCode' : 'product.id'
     const contentIds = lineItems.length
       ? transaction.lineItems.map(lineItem => getProp(lineItem, idProp)) : undefined
-
-    this.trackSingle('Purchase', cleanObject({
+    const transactionParams = cleanObject({
       content_ids: contentIds,
       content_type: 'product',
       currency: transaction.currency,
       value: transaction.total
-    }))
+    })
+    const eventParams = this.getEventParams(event)
+
+    this.trackSingle('Purchase', Object.assign(transactionParams, eventParams))
   }
 
   onCustomEvent (event) {
     const customEvents = this.getOption('customEvents')
     const customEventName = customEvents[event.name]
+    const eventParams = this.getEventParams(event)
     if (customEventName) {
       if (FB_STANDARD_EVENTS.indexOf(customEventName) < 0) {
-        this.trackSingleCustom(customEventName)
+        this.trackSingleCustom(customEventName, eventParams)
       } else {
-        this.trackSingle(customEventName)
+        this.trackSingle(customEventName, eventParams)
       }
     }
   }
