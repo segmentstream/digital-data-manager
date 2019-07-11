@@ -33,12 +33,6 @@ module.exports = function init (config) {
         platform: 'Windows 7',
         version: '56'
       },
-      slIe10Win7: {
-        base: 'SauceLabs',
-        browserName: 'internet explorer',
-        platform: 'Windows 7',
-        version: '10'
-      },
       slIe9Win7: {
         base: 'SauceLabs',
         browserName: 'internet explorer',
@@ -69,14 +63,6 @@ module.exports = function init (config) {
         version: '10.3',
         deviceName: 'iPhone 6s Plus Simulator'
       },
-      // commented out because of 10 minute test timeout limit
-      // slIpad: {
-      //   base: 'SauceLabs',
-      //   browserName: 'Safari',
-      //   platform: 'iOS',
-      //   version: '10.3',
-      //   deviceName: 'iPad Air Simulator',
-      // },
       slAndroid: {
         base: 'SauceLabs',
         browserName: 'Browser',
