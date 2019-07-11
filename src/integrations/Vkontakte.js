@@ -115,14 +115,20 @@ class Vkontakte extends Integration {
   }
 
   getPriceListId (event, pixelSetting) {
-    let priceListId
-    if (event) {
-      priceListId = getProp(event, 'priceListId')
-    }
-    if (!priceListId) {
-      ({ priceListId } = pixelSetting)
-    }
-    return priceListId
+    const priceListIdObject = pixelSetting.priceListId
+
+    // TODO remove legacy priceListId
+    if (typeof priceListIdObject === 'string') return priceListIdObject
+
+    const priceListIdVariableType = getProp(pixelSetting, 'priceListId.type')
+    const priceListIdVariableValue = getProp(pixelSetting, 'priceListId.value')
+
+    if (priceListIdVariableType === 'constant') return priceListIdVariableValue
+
+    if (priceListIdVariableType === 'event') return getProp(event, priceListIdVariableValue)
+
+    // TODO add digitalData type
+    return undefined
   }
 
   trackSingleProduct (event, method) {

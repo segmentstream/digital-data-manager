@@ -9,19 +9,30 @@ import vkStubs from './stubs'
 
 describe('Integrations: Vkontakte', () => {
   let vk
+  const pixelsPriceListIds = {
+    'VK-RTRG-96471-KZ24cpR': '2',
+    'VK-RTRG-96471-KZ24cpS': '1',
+    'VK-RTRG-96471-KZ24cpT': '42'
+  }
   const options = {
     pixels: [
       {
         pixelId: 'VK-RTRG-96471-KZ24cpR',
-        priceListId: 2
+        priceListId: {
+          type: 'constant',
+          value: '2'
+        }
       },
       {
         pixelId: 'VK-RTRG-96471-KZ24cpS',
-        priceListId: 1
+        priceListId: '1'
       },
       {
         pixelId: 'VK-RTRG-96471-KZ24cpT',
-        priceListId: 3
+        priceListId: {
+          type: 'event',
+          value: 'priceListId'
+        }
       }
     ],
     customEvents: {
@@ -30,7 +41,14 @@ describe('Integrations: Vkontakte', () => {
     eventPixels: {
       // eslint-disable-next-line
       'Viewed Product Detail': '//vk.com/rtrg?r=Ug6K6tdSZ*shxgTtjsI9bzDBp1ShCs3q3RdXVNHK1asqy2mLKDvJxuvWw8M7hqktulxtbSlnJsT7*/7Jf5MzEfqO3K5TF9z2zwlFLTuWCy3PiRkO9Ga1I6yOoseM*lfVbhVlQRoHjI5Bt66fOiB1TZLJEZ5nGwFALsuVd5WmSrk-'
-    }
+    },
+    eventEnrichments: [
+      {
+        scope: 'event',
+        prop: 'priceListId',
+        handler: (event) => '42'
+      }
+    ]
   }
 
   beforeEach(() => {
@@ -100,8 +118,9 @@ describe('Integrations: Vkontakte', () => {
           },
           callback: () => {
             setTimeout(() => {
-              vk.getOption('pixels').forEach((pixel) => {
-                assert.ok(window.VK.Retargeting.ProductEvent.calledWith(pixel.priceListId, 'view_other'))
+              const myPixels = vk.getOption('pixels')
+              myPixels.forEach((pixel) => {
+                assert.ok(window.VK.Retargeting.ProductEvent.calledWith(pixelsPriceListIds[pixel.pixelId], 'view_other'))
               })
               done()
             }, 120)
@@ -120,7 +139,7 @@ describe('Integrations: Vkontakte', () => {
           },
           callback: () => {
             vk.getOption('pixels').forEach((pixel) => {
-              assert.ok(window.VK.Retargeting.ProductEvent.calledWith(pixel.priceListId, 'view_category', {
+              assert.ok(window.VK.Retargeting.ProductEvent.calledWith(pixelsPriceListIds[pixel.pixelId], 'view_category', {
                 category_ids: ['2'],
                 products_recommended_ids: vkStubs.listingItemsStub.out
               }))
@@ -138,7 +157,7 @@ describe('Integrations: Vkontakte', () => {
           callback: () => {
             vk.getOption('pixels').forEach((pixel) => {
               assert.ok(window.VK.Retargeting.ProductEvent.calledWith(
-                pixel.priceListId,
+                pixelsPriceListIds[pixel.pixelId],
                 'view_product',
                 vkStubs.productStub.out
               ))
@@ -156,7 +175,7 @@ describe('Integrations: Vkontakte', () => {
           callback: () => {
             vk.getOption('pixels').forEach((pixel) => {
               assert.ok(window.VK.Retargeting.ProductEvent.calledWith(
-                pixel.priceListId,
+                pixelsPriceListIds[pixel.pixelId],
                 'add_to_cart',
                 vkStubs.productStub.out
               ))
@@ -174,7 +193,7 @@ describe('Integrations: Vkontakte', () => {
           callback: () => {
             vk.getOption('pixels').forEach((pixel) => {
               assert.ok(window.VK.Retargeting.ProductEvent.calledWith(
-                pixel.priceListId,
+                pixelsPriceListIds[pixel.pixelId],
                 'remove_from_cart',
                 vkStubs.productStub.out
               ))
@@ -192,7 +211,7 @@ describe('Integrations: Vkontakte', () => {
           callback: () => {
             vk.getOption('pixels').forEach((pixel) => {
               assert.ok(window.VK.Retargeting.ProductEvent.calledWith(
-                pixel.priceListId,
+                pixelsPriceListIds[pixel.pixelId],
                 'add_to_wishlist',
                 vkStubs.productStub.out
               ))
@@ -210,7 +229,7 @@ describe('Integrations: Vkontakte', () => {
           callback: () => {
             vk.getOption('pixels').forEach((pixel) => {
               assert.ok(window.VK.Retargeting.ProductEvent.calledWith(
-                pixel.priceListId,
+                pixelsPriceListIds[pixel.pixelId],
                 'remove_from_wishlist',
                 vkStubs.productStub.out
               ))
@@ -230,7 +249,7 @@ describe('Integrations: Vkontakte', () => {
           },
           callback: () => {
             vk.getOption('pixels').forEach((pixel) => {
-              assert.ok(window.VK.Retargeting.ProductEvent.calledWith(pixel.priceListId, 'view_search', {
+              assert.ok(window.VK.Retargeting.ProductEvent.calledWith(pixelsPriceListIds[pixel.pixelId], 'view_search', {
                 search_string: 'red',
                 products_recommended_ids: vkStubs.listingItemsStub.out
               }))
@@ -248,7 +267,7 @@ describe('Integrations: Vkontakte', () => {
           callback: () => {
             vk.getOption('pixels').forEach((pixel) => {
               assert.ok(window.VK.Retargeting.ProductEvent.calledWith(
-                pixel.priceListId,
+                pixelsPriceListIds[pixel.pixelId],
                 'init_checkout',
                 vkStubs.cartStub.out
               ))
@@ -266,7 +285,7 @@ describe('Integrations: Vkontakte', () => {
           callback: () => {
             vk.getOption('pixels').forEach((pixel) => {
               assert.ok(window.VK.Retargeting.ProductEvent.calledWith(
-                pixel.priceListId,
+                pixelsPriceListIds[pixel.pixelId],
                 'add_payment_info',
                 vkStubs.cartStub.out
               ))
@@ -284,7 +303,7 @@ describe('Integrations: Vkontakte', () => {
           callback: () => {
             vk.getOption('pixels').forEach((pixel) => {
               assert.ok(window.VK.Retargeting.ProductEvent.calledWith(
-                pixel.priceListId,
+                pixelsPriceListIds[pixel.pixelId],
                 'purchase',
                 vkStubs.cartStub.out
               ))
