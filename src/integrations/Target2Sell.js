@@ -19,6 +19,15 @@ const SEMANTIC_EVENTS = [
   COMPLETED_TRANSACTION
 ]
 
+export const HOME_PAGE_ID = '1000'
+export const OTHER_PAGE_ID = '2200'
+export const PRODUCT_PAGE_ID = '1200'
+export const LISTING_PAGE_ID = '1400'
+export const CART_PAGE_ID = '1600'
+export const SEARCH_PAGE_ID = '2000'
+export const EMPTY_SEARCH_PAGE_ID = '3400'
+export const CONFIRMATION_PAGE_ID = '2400'
+
 class TargetToSell extends Integration {
   constructor (digitalData, options) {
     const optionsWithDefaults = Object.assign({
@@ -124,20 +133,20 @@ class TargetToSell extends Integration {
       eN: eventType || 'view',
       cID: this.getOption('clientId'),
       pID: this.getPageId(event),
-      uEM: event.email,
-      uID: event.userId,
+      uEM: getProp(event, 'user.email'),
+      uID: getProp(event, 'user.userId'),
       hasRankOption: this.getOption('hasRankOption')
     }
   }
 
   getPageId (event) {
     return {
-      [VIEWED_PAGE]: getProp(event, 'page.type') === 'home' ? '1000' : '2200',
-      [VIEWED_PRODUCT_DETAIL]: '1200',
-      [VIEWED_PRODUCT_LISTING]: '1400',
-      [VIEWED_CART]: '1600',
-      [SEARCHED_PRODUCTS]: (getProp(event, 'listing.items') || []).length > 0 ? '2000' : '3400',
-      [COMPLETED_TRANSACTION]: '2400'
+      [VIEWED_PAGE]: getProp(event, 'page.type') === 'home' ? HOME_PAGE_ID : OTHER_PAGE_ID,
+      [VIEWED_PRODUCT_DETAIL]: PRODUCT_PAGE_ID,
+      [VIEWED_PRODUCT_LISTING]: LISTING_PAGE_ID,
+      [VIEWED_CART]: CART_PAGE_ID,
+      [SEARCHED_PRODUCTS]: (getProp(event, 'listing.items') || []).length > 0 ? SEARCH_PAGE_ID : EMPTY_SEARCH_PAGE_ID,
+      [COMPLETED_TRANSACTION]: CONFIRMATION_PAGE_ID
     }[event.name]
   }
 
