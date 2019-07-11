@@ -54,7 +54,8 @@ class DDManagerStreaming extends Integration {
       dimensions: {},
       metrics: {},
       internal: false,
-      streamingEndpoint: ''
+      streamingEndpoint: '',
+      streamingEndpoints: []
     }, options)
     super(digitalData, optionsWithDefaults)
     this.website = {}
@@ -99,10 +100,16 @@ class DDManagerStreaming extends Integration {
   }
 
   setupStreamingEndpoints () {
-    const streamingEndpoint = this.getOption('streamingEndpoint') || ''
+    const streamingEndpoints = this.getOption('streamingEndpoints') || []
 
-    this.streamingEndpoints = [this.getOption('trackingUrl')]
-    if (streamingEndpoint.match(/^(https?):\/\/[^ "]+$/)) this.streamingEndpoints.push(streamingEndpoint)
+    // TODO: remove (backward compatibility)
+    const streamingEndpoint = this.getOption('streamingEndpoint')
+    if (streamingEndpoint) streamingEndpoints.push(streamingEndpoint)
+
+    const trackingUrl = this.getOption('trackingUrl')
+    if (trackingUrl) streamingEndpoints.unshift(trackingUrl) // the main tracking url should be the first
+
+    this.streamingEndpoints = streamingEndpoints.filter(endpoint => endpoint.match(/^(https?):\/\/[^ "]+$/))
   }
 
   initialize () {
