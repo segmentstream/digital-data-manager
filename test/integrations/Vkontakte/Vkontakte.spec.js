@@ -92,18 +92,19 @@ describe('Integrations: Vkontakte', () => {
         assert.ok(window.VK.Retargeting.Hit.callCount === 3)
       })
 
-      it('should call retargeting other page event', () => {
+      it('should call retargeting other page event', (done) => {
         window.digitalData.events.push({
           name: 'Viewed Page',
           page: {
             type: 'content'
           },
           callback: () => {
-            vk.getOption('pixels').forEach((pixel) => {
-              setTimeout(() => {
+            setTimeout(() => {
+              vk.getOption('pixels').forEach((pixel) => {
                 assert.ok(window.VK.Retargeting.ProductEvent.calledWith(pixel.priceListId, 'view_other'))
-              }, 101)
-            })
+              })
+              done()
+            }, 120)
           }
         })
       })
@@ -294,18 +295,17 @@ describe('Integrations: Vkontakte', () => {
     })
 
     describe('#onAnyEvent', () => {
-      it('should add pixel to the page', (done) => {
+      it('should add pixel to the page', () => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           page: {},
           callback: () => {
             assert.ok(vk.addPixel.called)
-            done()
           }
         })
       })
 
-      it('should call custom event in universal pixel', (done) => {
+      it('should call custom event in universal pixel', () => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           page: {},
@@ -313,18 +313,16 @@ describe('Integrations: Vkontakte', () => {
             vk.getOption('pixels').forEach(() => {
               assert.ok(window.VK.Retargeting.Event.calledWith('product-detail'))
             })
-            done()
           }
         })
       })
 
-      it('should not add pixel to the page', (done) => {
+      it('should not add pixel to the page', () => {
         window.digitalData.events.push({
           name: 'Viewed Product',
           page: {},
           callback: () => {
             assert.ok(!vk.addPixel.called)
-            done()
           }
         })
       })

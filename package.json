@@ -8,6 +8,7 @@
   "scripts": {
     "start": "nps",
     "test": "nps test",
+    "lint": "standard",
     "build": "nps build",
     "dist": "nps build.prod",
     "build-test": "nps buildTest",
