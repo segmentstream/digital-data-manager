@@ -1,5 +1,6 @@
 import arrayMerge from '@segmentstream/utils/arrayMerge'
 import deleteProperty from '@segmentstream/utils/deleteProperty'
+import getVarValue from '@segmentstream/utils/getVarValue'
 import { getProp } from '@segmentstream/utils/dotProp'
 import AsyncQueue from './utils/AsyncQueue'
 import Integration from '../Integration'
@@ -84,22 +85,32 @@ class Vkontakte extends Integration {
   }
 
   getEnrichableEventProps (event) {
+    let enrichableProps = []
     if (event.name === VIEWED_PAGE) {
-      return ['page.type']
+      enrichableProps = ['page.type']
     }
     if (event.name === VIEWED_PRODUCT_DETAIL) {
-      return ['product']
+      enrichableProps = ['product']
     }
     if (event.name === STARTED_ORDER || event.name === ADDED_PAYMENT_INFO) {
-      return ['cart']
+      enrichableProps = ['cart']
     }
     if (event.name === COMPLETED_TRANSACTION) {
-      return ['transaction']
+      enrichableProps = ['transaction']
     }
     if (event.name === VIEWED_PRODUCT_LISTING || event.name === SEARCHED_PRODUCTS) {
-      return ['listing']
+      enrichableProps = ['listing']
     }
-    return []
+
+    this.getOption('pixels').forEach((pixel) => {
+      const priceListIdType = getProp(pixel, 'priceListId.type')
+      const priceListIdVariableName = getProp(pixel, 'priceListId.value')
+      if (priceListIdType === 'digitalData') {
+        enrichableProps.push(priceListIdVariableName)
+      }
+    })
+
+    return enrichableProps
   }
 
   allowNoConflictInitialization () {
@@ -120,15 +131,7 @@ class Vkontakte extends Integration {
     // TODO remove legacy priceListId
     if (typeof priceListIdObject === 'string') return priceListIdObject
 
-    const priceListIdVariableType = getProp(pixelSetting, 'priceListId.type')
-    const priceListIdVariableValue = getProp(pixelSetting, 'priceListId.value')
-
-    if (priceListIdVariableType === 'constant') return priceListIdVariableValue
-
-    if (priceListIdVariableType === 'event') return getProp(event, priceListIdVariableValue)
-
-    // TODO add digitalData type
-    return undefined
+    return getVarValue(priceListIdObject, event)
   }
 
   trackSingleProduct (event, method) {

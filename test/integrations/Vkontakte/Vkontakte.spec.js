@@ -10,28 +10,36 @@ import vkStubs from './stubs'
 describe('Integrations: Vkontakte', () => {
   let vk
   const pixelsPriceListIds = {
-    'VK-RTRG-96471-KZ24cpR': '2',
-    'VK-RTRG-96471-KZ24cpS': '1',
-    'VK-RTRG-96471-KZ24cpT': '42'
+    'VK-RTRG-12345-KV78const': '2',
+    'VK-RTRG-12345-KV78old': '1',
+    'VK-RTRG-12345-KV78evt': '42',
+    'VK-RTRG-12345-KV78DD': '99'
   }
   const options = {
     pixels: [
       {
-        pixelId: 'VK-RTRG-96471-KZ24cpR',
+        pixelId: 'VK-RTRG-12345-KV78const',
         priceListId: {
           type: 'constant',
           value: '2'
         }
       },
       {
-        pixelId: 'VK-RTRG-96471-KZ24cpS',
+        pixelId: 'VK-RTRG-12345-KV78old', // TODO drop support of old style on 1 sep 2019
         priceListId: '1'
       },
       {
-        pixelId: 'VK-RTRG-96471-KZ24cpT',
+        pixelId: 'VK-RTRG-12345-KV78evt',
         priceListId: {
           type: 'event',
           value: 'priceListId'
+        }
+      },
+      {
+        pixelId: 'VK-RTRG-12345-KV78DD',
+        priceListId: {
+          type: 'digitalData',
+          value: 'website.regionId'
         }
       }
     ],
@@ -55,6 +63,9 @@ describe('Integrations: Vkontakte', () => {
     window.digitalData = {
       page: {},
       user: {},
+      website: {
+        regionId: '99'
+      },
       events: []
     }
     vk = new Vkontakte(window.digitalData, options)
@@ -107,7 +118,7 @@ describe('Integrations: Vkontakte', () => {
 
     describe('#onViewedPageEvent', () => {
       it('should send a hit for each pixel', () => {
-        assert.ok(window.VK.Retargeting.Hit.callCount === 3)
+        assert.ok(window.VK.Retargeting.Hit.callCount === 4)
       })
 
       it('should call retargeting other page event', (done) => {
