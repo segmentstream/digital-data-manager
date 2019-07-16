@@ -56,7 +56,6 @@ class DDManagerStreaming extends Integration {
       dimensions: {},
       metrics: {},
       internal: false,
-      streamingEndpoint: '',
       streamingEndpoints: []
     }, options)
     super(digitalData, optionsWithDefaults)
@@ -103,10 +102,6 @@ class DDManagerStreaming extends Integration {
 
   setupStreamingEndpoints () {
     const streamingEndpoints = this.getOption('streamingEndpoints') || []
-
-    // TODO: remove (backward compatibility)
-    const streamingEndpoint = this.getOption('streamingEndpoint')
-    if (streamingEndpoint) streamingEndpoints.push(streamingEndpoint)
 
     const trackingUrl = this.getOption('trackingUrl')
     if (trackingUrl) streamingEndpoints.unshift(trackingUrl) // the main tracking url should be the first
