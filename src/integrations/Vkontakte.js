@@ -18,8 +18,8 @@ import {
   COMPLETED_TRANSACTION
 } from '../events/semanticEvents'
 
-const mapProduct = product => ({
-  id: product.id,
+const mapProduct = (product, feedWithGroupedProducts) => ({
+  id: !feedWithGroupedProducts ? product.id : product.skuCode,
   price: product.unitSalePrice,
   price_old: product.unitPrice
 })
@@ -125,6 +125,10 @@ class Vkontakte extends Integration {
     deleteProperty(window, 'VK')
   }
 
+  getProductId (item, pixelSetting) {
+    return !pixelSetting.feedWithGroupedProducts ? item.id : item.skuCode
+  }
+
   getPriceListId (event, pixelSetting) {
     const priceListIdObject = pixelSetting.priceListId
 
@@ -140,7 +144,7 @@ class Vkontakte extends Integration {
       this.getOption('pixels').forEach((pixelSetting) => {
         window.VK.Retargeting.Init(pixelSetting.pixelId)
         window.VK.Retargeting.ProductEvent(this.getPriceListId(event, pixelSetting), method, {
-          products: [mapProduct(product)],
+          products: [mapProduct(product, pixelSetting.feedWithGroupedProducts)],
           total_price: product.unitSalePrice,
           currency_code: getCurrencyCode(product.currency)
         })
@@ -154,7 +158,7 @@ class Vkontakte extends Integration {
       this.getOption('pixels').forEach((pixelSetting) => {
         window.VK.Retargeting.Init(pixelSetting.pixelId)
         window.VK.Retargeting.ProductEvent(this.getPriceListId(event, pixelSetting), method, {
-          products: lineItems.map(lineItem => mapProduct(lineItem.product)),
+          products: lineItems.map(lineItem => mapProduct(lineItem.product, pixelSetting.feedWithGroupedProducts)),
           total_price: subtotal,
           currency_code: getCurrencyCode(currency)
         })
@@ -264,7 +268,7 @@ class Vkontakte extends Integration {
         window.VK.Retargeting.Init(pixelSetting.pixelId)
         window.VK.Retargeting.ProductEvent(this.getPriceListId(event, pixelSetting), 'view_category', {
           category_ids: [getProp(event, 'listing.categoryId')],
-          products_recommended_ids: items.slice(0, 4).map(item => item.id)
+          products_recommended_ids: items.slice(0, 4).map(item => this.getProductId(item, pixelSetting))
         })
       })
     })
@@ -283,7 +287,7 @@ class Vkontakte extends Integration {
         window.VK.Retargeting.Init(pixelSetting.pixelId)
         window.VK.Retargeting.ProductEvent(this.getPriceListId(event, pixelSetting), 'view_search', {
           search_string: query,
-          products_recommended_ids: items.slice(0, 4).map(item => item.id)
+          products_recommended_ids: items.slice(0, 4).map(item => !pixelSetting.feedWithGroupedProducts ? item.id : item.skuCode)
         })
       })
     })

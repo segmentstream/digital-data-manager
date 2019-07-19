@@ -322,6 +322,32 @@ describe('Integrations: Vkontakte', () => {
           }
         })
       })
+
+      it('should call retargeting completed transaction event with grouped product feed setting', () => {
+        vk.setOption('pixels', [
+          {
+            pixelId: 'VK-RTRG-12345-KV78const',
+            feedWithGroupedProducts: true,
+            priceListId: {
+              type: 'constant',
+              value: '2'
+            }
+          }
+        ])
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          transaction: vkStubs.cartStub.in,
+          callback: () => {
+            vk.getOption('pixels').forEach((pixel) => {
+              assert.ok(window.VK.Retargeting.ProductEvent.calledWith(
+                pixelsPriceListIds[pixel.pixelId],
+                'purchase',
+                vkStubs.cartStub.outGrouped
+              ))
+            })
+          }
+        })
+      })
     })
 
     describe('#onAnyEvent', () => {
