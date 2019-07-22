@@ -2,7 +2,7 @@ import deleteProperty from '@segmentstream/utils/deleteProperty'
 import getVarValue from '@segmentstream/utils/getVarValue'
 import { getProp } from '@segmentstream/utils/dotProp'
 import Integration from '../Integration'
-import { DIGITALDATA_VAR } from '../variableTypes'
+import { DIGITALDATA_VAR, CONSTANT_VAR } from '../variableTypes'
 import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
@@ -20,22 +20,21 @@ function lineItemsToProductIds (lineItems, feedWithGroupedProducts) {
 
 class MyTarget extends Integration {
   constructor (digitalData, options) {
-    const counterDefaults = {
-      counterId: '',
-      listVar: {
-        type: 'constant',
-        value: '1'
-      },
-      feedWithGroupedProducts: false
-    }
-
     const counters = getProp(options, 'counters')
     if (counters) {
-      options.counters = counters.map(item => ({ ...counterDefaults, ...item }))
+      options.counters = counters.map(item => ({
+        counterId: '',
+        listVar: {
+          type: CONSTANT_VAR,
+          value: '1'
+        },
+        feedWithGroupedProducts: false,
+        ...item
+      }))
     }
 
     const optionsWithDefaults = Object.assign({
-      ...counterDefaults, // todo remove after migrate [backward compatibility]
+      counters: [],
       noConflict: false,
       goals: {}
     }, options)
@@ -61,18 +60,7 @@ class MyTarget extends Integration {
   }
 
   getCounters () {
-    const counters = this.getOption('counters')
-
-    if (counters) {
-      return counters
-    }
-
-    // todo remove after migrate [backward compatibility]
-    return [{
-      counterId: this.getOption('counterId'),
-      feedWithGroupedProducts: this.getOption('feedWithGroupedProducts'),
-      listVar: this.getOption('listVar')
-    }]
+    return this.getOption('counters')
   }
 
   getDigitalDataListVarValues () {
@@ -139,18 +127,15 @@ class MyTarget extends Integration {
   getEventValidationConfig (event) {
     const config = {
       [VIEWED_PAGE]: {
-        fields: ['page.type', 'integrations.mytarget.list'],
+        fields: ['page.type'],
         validations: {
           'page.type': {
             errors: ['required', 'string']
-          },
-          'integrations.mytarget.list': {
-            warnings: ['numeric']
           }
         }
       },
       [VIEWED_PRODUCT_DETAIL]: {
-        fields: ['product.id', 'product.unitSalePrice', 'integrations.mytarget.list'],
+        fields: ['product.id', 'product.unitSalePrice'],
         validations: {
           'product.id': {
             errors: ['required'],
@@ -158,14 +143,11 @@ class MyTarget extends Integration {
           },
           'product.unitSalePrice': {
             warings: ['required', 'numeric']
-          },
-          'integrations.mytarget.list': {
-            warnings: ['numeric']
           }
         }
       },
       [VIEWED_CART]: {
-        fields: ['cart.total', 'cart.lineItems[].product.id', 'integrations.mytarget.list'],
+        fields: ['cart.total', 'cart.lineItems[].product.id'],
         validations: {
           'cart.total': {
             errors: ['required'],
@@ -174,14 +156,11 @@ class MyTarget extends Integration {
           'cart.lineItems[].product.id': {
             errors: ['required'],
             warnings: ['string']
-          },
-          'integrations.mytarget.list': {
-            warnings: ['numeric']
           }
         }
       },
       [COMPLETED_TRANSACTION]: {
-        fields: ['transaction.total', 'transaction.lineItems[].product.id', 'integrations.mytarget.list'],
+        fields: ['transaction.total', 'transaction.lineItems[].product.id'],
         validations: {
           'transaction.total': {
             errors: ['required'],
@@ -190,9 +169,6 @@ class MyTarget extends Integration {
           'transaction.lineItems[].product.id': {
             errors: ['required'],
             warnings: ['string']
-          },
-          'integrations.mytarget.list': {
-            warnings: ['numeric']
           }
         }
       }
@@ -223,18 +199,10 @@ class MyTarget extends Integration {
   }
 
   getList (event, counter) {
-    let list
-    if (event) {
-      list = getProp(event, 'integrations.mytarget.list')
+    const listVar = getProp(counter, 'listVar')
+    if (listVar) {
+      return getVarValue(listVar, event)
     }
-    if (list === undefined) {
-      const listVar = getProp(counter, 'listVar')
-      if (listVar) {
-        list = getVarValue(listVar, event)
-      }
-    }
-
-    return list
   }
 
   trackEvent (event) {
