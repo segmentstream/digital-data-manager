@@ -51,6 +51,7 @@ import Getintent from './integrations/Getintent'
 import Glami from './integrations/Glami'
 import K50 from './integrations/K50'
 import Calltouch from './integrations/Calltouch'
+import DynamicYield from './integrations/DynamicYield'
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -105,7 +106,8 @@ const integrations = {
   Getintent,
   Glami,
   K50,
-  Calltouch
+  Calltouch,
+  'Dynamic Yield': DynamicYield
 }
 
 export default integrations

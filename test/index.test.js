@@ -57,6 +57,7 @@ import './integrations/Flocktory.spec'
 import './integrations/K50.spec'
 import './integrations/Target2Sell.spec'
 import './integrations/Calltouch.spec'
+import './integrations/DynamicYield.spec'
 
 window.localStorage.clear()
 console.error = () => {}
