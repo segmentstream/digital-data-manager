@@ -24,7 +24,7 @@ class K50 extends Integration {
   }
 
   initialize () {
-    this.asyncQueue = new AsyncQueue(this.isLoaded)
+    this.asyncQueue = new AsyncQueue(() => this.isLoaded())
   }
 
   onLoadInitiated () {
@@ -32,11 +32,11 @@ class K50 extends Integration {
   }
 
   isLoaded () {
-    return !!getProp(window, 'K50Tracker.init')
+    return !!getProp(window, 'k50Tracker.init')
   }
 
   reset () {
-    deleteProperty(window, 'K50Tracker')
+    deleteProperty(window, 'k50Tracker')
   }
 
   getSemanticEvents () {
@@ -69,7 +69,7 @@ class K50 extends Integration {
 
   onViewedPage (event) {
     this.asyncQueue.push(() => {
-      window.K50Tracker.init(
+      window.k50Tracker.init(
         cleanObject({
           siteId: this.getOption('siteId'),
           label: this.getLabel(event)

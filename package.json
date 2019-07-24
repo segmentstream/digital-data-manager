@@ -13,7 +13,6 @@
     "dist": "nps build.prod",
     "build-test": "nps buildTest",
     "mocha": "nps mocha",
-    "lint": "standard",
     "lint-fix": "standard --fix"
   },
   "standard": {

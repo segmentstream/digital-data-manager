@@ -38,7 +38,7 @@ describe('Integrations: K50', () => {
   describe('#Tracker', () => {
     beforeEach(() => {
       sinon.stub(k50, 'load').callsFake(() => {
-        window.K50Tracker = { init: sinon.spy() }
+        window.k50Tracker = { init: sinon.spy() }
         k50.onLoad()
       })
       ddManager.initialize()
@@ -54,7 +54,7 @@ describe('Integrations: K50', () => {
         name: 'Viewed Page',
         callback: () => {
           setTimeout(() => {
-            assert.ok(window.K50Tracker.init.calledWith(
+            assert.ok(window.k50Tracker.init.calledWith(
               { siteId: k50.getOption('siteId') }
             ))
             done()
@@ -73,7 +73,7 @@ describe('Integrations: K50', () => {
         name: 'Viewed Page',
         callback: () => {
           setTimeout(() => {
-            assert.ok(window.K50Tracker.init.calledWith(
+            assert.ok(window.k50Tracker.init.calledWith(
               { siteId: k50.getOption('siteId'), label: 'test' }
             ))
             done()
@@ -91,7 +91,7 @@ describe('Integrations: K50', () => {
         name: 'Viewed Page',
         callback: () => {
           setTimeout(() => {
-            assert.ok(window.K50Tracker.init.calledWith(
+            assert.ok(window.k50Tracker.init.calledWith(
               { siteId: k50.getOption('siteId'), label: 'test' }
             ))
             done()
