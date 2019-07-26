@@ -37,6 +37,7 @@ class K50 extends Integration {
 
   reset () {
     deleteProperty(window, 'k50Tracker')
+    this.pageTracked = false
   }
 
   getSemanticEvents () {
@@ -44,7 +45,7 @@ class K50 extends Integration {
   }
 
   getEnrichableEventProps (event) {
-    let enrichableProps = []
+    let enrichableProps = ['page.url']
     const labelVar = this.getOption('labelVar')
     if (labelVar && labelVar.type === 'digitalData') {
       enrichableProps.push(labelVar.value)
@@ -69,12 +70,22 @@ class K50 extends Integration {
 
   onViewedPage (event) {
     this.asyncQueue.push(() => {
+      if (this.pageTracked) {
+        return window.k50Tracker.change(
+          true,
+          cleanObject({
+            landing: getProp(event, 'page.url'),
+            label: this.getLabel(event)
+          })
+        )
+      }
       window.k50Tracker.init(
         cleanObject({
           siteId: this.getOption('siteId'),
           label: this.getLabel(event)
         })
       )
+      this.pageTracked = true
     })
   }
 }

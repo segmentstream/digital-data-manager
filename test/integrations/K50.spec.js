@@ -2,6 +2,7 @@ import assert from 'assert'
 import sinon from 'sinon'
 import reset from '../reset'
 import K50 from '../../src/integrations/K50'
+import htmlGlobals from '@segmentstream/utils/htmlGlobals'
 import ddManager from '../../src/ddManager'
 
 const K50LoadTime = 200
@@ -38,10 +39,10 @@ describe('Integrations: K50', () => {
   describe('#Tracker', () => {
     beforeEach(() => {
       sinon.stub(k50, 'load').callsFake(() => {
-        window.k50Tracker = { init: sinon.spy() }
+        window.k50Tracker = { init: sinon.spy(), change: sinon.spy() }
         k50.onLoad()
       })
-      ddManager.initialize()
+      ddManager.initialize({ sendViewedPageEvent: false })
     })
 
     afterEach(() => {
@@ -97,6 +98,44 @@ describe('Integrations: K50', () => {
             done()
           }, K50LoadTime)
         }
+      })
+    })
+
+    describe('SPA site', () => {
+      const _location = {
+        href: 'https://example.com/items/some-item?color=red'
+      }
+
+      const getCurrentLocation = () => {
+        return htmlGlobals.getLocation().href
+      }
+
+      before(() => {
+        sinon.stub(htmlGlobals, 'getLocation').callsFake(() => _location)
+      })
+
+      after(() => {
+        sinon.restore()
+      })
+
+      it('should send change event on viewed page with digitalData user label', (done) => {
+        k50.setOption('labelVar', {
+          type: 'constant',
+          value: 'test'
+        })
+        window.digitalData.events.push({ name: 'Viewed Page' })
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          callback: () => {
+            setTimeout(() => {
+              assert.ok(window.k50Tracker.change.calledWith(
+                true,
+                { landing: getCurrentLocation(), label: 'test' }
+              ))
+              done()
+            }, K50LoadTime)
+          }
+        })
       })
     })
   })
