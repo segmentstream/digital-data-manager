@@ -66,6 +66,8 @@ class Mindbox extends Integration {
       projectSystemName: '',
       webpush: false,
       firebaseMessagingSenderId: '',
+      useCustomServiceWorkerPath: false,
+      serviceWorkerPath: '',
       brandSystemName: '',
       pointOfContactSystemName: '',
       projectDomain: '',
@@ -154,6 +156,9 @@ class Mindbox extends Integration {
     if (this.isWebpush()) {
       this.load('webpush')
       options.firebaseMessagingSenderId = this.getOption('firebaseMessagingSenderId')
+      if (this.hasCustomServiceWorkerPath()) {
+        options.serviceWorkerPath = this.getOption('serviceWorkerPath')
+      }
     }
 
     window.mindbox('create', options)
@@ -163,6 +168,10 @@ class Mindbox extends Integration {
 
   isWebpush () {
     return this.getOption('webpush')
+  }
+
+  hasCustomServiceWorkerPath () {
+    return !!(this.getOption('useCustomServiceWorkerPath') && this.getOption('serviceWorkerPath'))
   }
 
   getSemanticEvents () {
