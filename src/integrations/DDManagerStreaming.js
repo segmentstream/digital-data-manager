@@ -52,7 +52,7 @@ class DDManagerStreaming extends Integration {
       projectId: '',
       projectName: '',
       buildNumber: 1,
-      trackingUrl: 'https://track.ddmanager.ru/collect',
+      trackingUrl: 'https://track.segmentstream.com/collect',
       dimensions: {},
       metrics: {},
       internal: false,
