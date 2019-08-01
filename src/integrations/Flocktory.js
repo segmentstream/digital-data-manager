@@ -17,7 +17,8 @@ class Flocktory extends Integration {
       siteId: '',
       preCheckout: false,
       postCheckout: true,
-      exchange: false
+      exchange: false,
+      exchangeTriggerEvent: 'Completed Transaction'
     }, options)
 
     super(digitalData, optionsWithDefaults)
@@ -38,7 +39,12 @@ class Flocktory extends Integration {
     window.flocktory = window.flocktory || []
   }
 
+  allowCustomEvents () {
+    return true
+  }
+
   getSemanticEvents () {
+    const exchangeTriggerEvent = this.getOption('exchangeTriggerEvent')
     if (this.getOption('preCheckout')) {
       this.SEMANTIC_EVENTS.push(...[
         VIEWED_PAGE,
@@ -48,167 +54,70 @@ class Flocktory extends Integration {
         REMOVED_PRODUCT,
         COMPLETED_TRANSACTION
       ])
-    } else if (this.getOption('postCheckout') || this.getOption('exchange')) {
+    } else if (this.getOption('postCheckout')) {
       this.SEMANTIC_EVENTS.push(COMPLETED_TRANSACTION)
+    }
+    if (this.getOption('exchange') && this.SEMANTIC_EVENTS.indexOf(exchangeTriggerEvent) < 0) {
+      this.SEMANTIC_EVENTS.push(exchangeTriggerEvent)
     }
     return this.SEMANTIC_EVENTS
   }
 
   getEnrichableEventProps (event) {
+    const exchangeTriggerEvent = this.getOption('exchangeTriggerEvent')
+    const enrichableEventProps = []
     switch (event.name) {
       case VIEWED_PAGE:
-        return [
+        enrichableEventProps.push(...[
           'user.email',
           'user.isLoggedIn',
           'user.firstName',
           'user.lastName',
           'user.fullName',
           'cart'
-        ]
+        ])
+        break
       case VIEWED_PRODUCT_DETAIL:
-        return [
+        enrichableEventProps.push(...[
           'product'
-        ]
+        ])
+        break
       case VIEWED_PRODUCT_LISTING:
-        return [
+        enrichableEventProps.push(...[
           'listing.categoryId'
-        ]
+        ])
+        break
       case ADDED_PRODUCT:
-        return [
+        enrichableEventProps.push(...[
           'product'
-        ]
+        ])
+        break
       case REMOVED_PRODUCT:
-        return [
+        enrichableEventProps.push(...[
           'product'
-        ]
+        ])
+        break
       case COMPLETED_TRANSACTION:
-        return [
+        enrichableEventProps.push(...[
           'user.email',
           'user.firstName',
           'user.lastName',
           'user.fullName',
           'transaction'
-        ]
+        ])
+        break
       default:
-        return []
+        // do nothing
     }
-  }
-
-  getEventValidationConfig (event) {
-    const config = {
-      [VIEWED_PAGE]: {
-        fields: [
-          'user.isLoggedIn',
-          'user.email',
-          'user.firstName',
-          'user.lastName',
-          'user.fullName'
-        ]
-      },
-      [VIEWED_PRODUCT_DETAIL]: {
-        fields: ['product.id'],
-        validations: {
-          'product.id': {
-            errors: ['required'],
-            warnings: ['string']
-          }
-        }
-      },
-      [ADDED_PRODUCT]: {
-        fields: ['product.id', 'product.unitSalePrice', 'quantity'],
-        validations: {
-          'product.id': {
-            errors: ['required'],
-            warnings: ['string']
-          },
-          'product.unitSalePrice': {
-            errors: ['required'],
-            warnings: ['numeric']
-          },
-          quantity: {
-            errors: ['required'],
-            warnings: ['numeric']
-          }
-        }
-      },
-      [REMOVED_PRODUCT]: {
-        fields: ['product.id', 'quantity'],
-        validations: {
-          'product.id': {
-            errors: ['required'],
-            warnings: ['string']
-          },
-          quantity: {
-            errors: ['required'],
-            warnings: ['numeric']
-          }
-        }
-      },
-      [VIEWED_PRODUCT_LISTING]: {
-        fields: ['listing.categoryId'],
-        validations: {
-          'listing.categoryId': {
-            errors: ['required'],
-            warnings: ['string']
-          }
-        }
-      },
-      [COMPLETED_TRANSACTION]: {
-        fields: [
-          'user.email',
-          'user.firstName',
-          'user.lastName',
-          'user.fullName',
-          'transaction.orderId',
-          'transaction.total',
-          'transaction.lineItems[].product.id',
-          'transaction.lineItems[].product.name',
-          'transaction.lineItems[].product.unitSalePrice',
-          'transaction.lineItems[].product.imageUrl',
-          'transaction.lineItems[].quantity',
-          'integrations.flocktory.spot'
-        ],
-        validations: {
-          'user.email': {
-            warnings: ['required', 'string']
-          },
-          'user.firstName': {
-            errors: ['string']
-          },
-          'user.lastName': {
-            errors: ['string']
-          },
-          'user.fullName': {
-            errors: ['string']
-          },
-          'transaction.orderId': {
-            errors: ['required'],
-            warnings: ['string']
-          },
-          'transaction.total': {
-            errors: ['required'],
-            warnings: ['numeric']
-          },
-          'transaction.lineItems[].product.id': {
-            warnings: ['string']
-          },
-          'transaction.lineItems[].product.name': {
-            warnings: ['string']
-          },
-          'transaction.lineItems[].product.unitSalePrice': {
-            warnings: ['numeric']
-          },
-          'transaction.lineItems[].product.imageUrl': {
-            warnings: ['string']
-          },
-          'transaction.lineItems[].quantity': {
-            warnings: ['numeric']
-          }
-        }
-      }
+    if (this.getOption('exchange') && event.name === exchangeTriggerEvent) {
+      enrichableEventProps.push(...[
+        'user.email',
+        'user.firstName',
+        'user.lastName',
+        'user.fullName'
+      ])
     }
-
-    return config[event.name]
+    return enrichableEventProps
   }
 
   isLoaded () {
@@ -257,6 +166,10 @@ class Flocktory extends Integration {
       [VIEWED_PRODUCT_DETAIL]: this.onViewedProductDetail.bind(this),
       [VIEWED_PRODUCT_LISTING]: this.onViewedProductListing.bind(this),
       [COMPLETED_TRANSACTION]: this.onCompletedTransaction.bind(this)
+    }
+
+    if (this.getOption('exchange') && this.getOption('exchangeTriggerEvent') === event.name) {
+      this.onExchangeTriggerEvent(event)
     }
 
     if (eventMap[event.name]) {
@@ -352,18 +265,20 @@ class Flocktory extends Integration {
             count: getProp(lineItem, 'quantity')
           }))
         },
-        spot: getProp(event, 'spot') || getProp(event, 'integrations.flocktory.spot')
+        spot: getProp(event, 'spot')
       })])
     }
+  }
 
-    if (this.getOption('exchange')) {
-      window.flocktory.push(['exchange', cleanObject({
-        user: {
-          name: this.getUserName(event),
-          email: this.getUserEmail(event)
-        }
-      })])
-    }
+  onExchangeTriggerEvent (event) {
+    window.flocktory.push(['exchange', cleanObject({
+      user: {
+        name: this.getUserName(event),
+        email: this.getUserEmail(event)
+      },
+      spot: getProp(event, 'spot'),
+      params: {}
+    })])
   }
 }
 
