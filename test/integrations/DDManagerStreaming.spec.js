@@ -172,6 +172,29 @@ describe('Integrations: DDManagerStreaming', () => {
       assert.ok(!ddManagerStreaming.normalize({}).context.campaign)
     })
 
+    describe('tracking events with non default params', () => {
+      it('should track event with custom source param', () => {
+        const _document = {
+          referrer: 'https://example.com/'
+        }
+        sinon.stub(htmlGlobals, 'getDocument').callsFake(() => _document)
+        sinon.stub(htmlGlobals, 'getLocation').callsFake(() => _location)
+
+        const sendingEvent = {
+          name: 'Custom Event',
+          nonInteraction: true
+        }
+
+        window.digitalData.events.push({
+          ...sendingEvent,
+          callback: () => {
+            const { event } = ddManagerStreaming.send.secondCall.args[0]
+            assert.strict.deepEqual(sendingEvent, event)
+          }
+        })
+      })
+    })
+
     describe('tracking wishlist events', () => {
       beforeEach(() => {
         const _document = {
@@ -190,9 +213,10 @@ describe('Integrations: DDManagerStreaming', () => {
           },
           callback: () => {
             const { event } = ddManagerStreaming.send.secondCall.args[0]
-            assert.deepStrictEqual({
+            assert.strict.deepEqual({
               category: 'Ecommerce',
               name: 'Added Product to Wishlist',
+              nonInteraction: false,
               product: {
                 id: '124',
                 customDimensions: [],
@@ -213,9 +237,10 @@ describe('Integrations: DDManagerStreaming', () => {
           },
           callback: () => {
             const { event } = ddManagerStreaming.send.secondCall.args[0]
-            assert.deepStrictEqual({
+            assert.strict.deepEqual({
               category: 'Ecommerce',
               name: 'Removed Product from Wishlist',
+              nonInteraction: false,
               product: {
                 id: '123',
                 customDimensions: [],

@@ -468,6 +468,7 @@ class Filters {
 
     return cleanObject({
       name: (event.name) ? String(event.name) : undefined,
+      nonInteraction: Boolean(event.nonInteraction || false),
       category: (event.category) ? String(event.category) : undefined,
       label: (event.label) ? String(event.label) : undefined,
       customDimensions: event.customDimensions,
