@@ -5,6 +5,8 @@ import MyTarget from '../../src/integrations/MyTarget'
 import ddManager from '../../src/ddManager'
 import { CONSTANT_VAR, DIGITALDATA_VAR, EVENT_VAR } from '../../src/variableTypes'
 
+import myTargetStubs from './stubs/MyTarget'
+
 describe('Integrations: MyTarget', () => {
   let myTarget
 
@@ -187,19 +189,6 @@ describe('Integrations: MyTarget', () => {
           }
         })
       })
-
-      it('should not send pageView event if noConflict setting is true', () => {
-        myTarget.setOption('noConflict', true)
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          page: {
-            type: 'home'
-          },
-          callback: () => {
-            assert.strict.equal(window._tmr.length, 0)
-          }
-        })
-      })
     })
 
     describe('#onViewedHome', () => {
@@ -281,37 +270,24 @@ describe('Integrations: MyTarget', () => {
           }
         })
       })
-
-      it('should not send itemView event if noConflict setting is true', () => {
-        myTarget.setOption('noConflict', true)
-        window.digitalData.events.push({
-          name: 'Viewed Product Category',
-          category: 'Content',
-          callback: () => {
-            assert.strict.equal(window._tmr.length, 0)
-          }
-        })
-      })
     })
 
     describe('#onViewedProductDetail', () => {
+      const { onViewedProductDetailStub } = myTargetStubs
       it('should send itemView event with product SKU for every "Viewed Product Detail" event', () => {
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           category: 'Ecommerce',
-          product: {
-            id: '123',
-            skuCode: 'sku123',
-            unitSalePrice: 150
-          },
+          product: onViewedProductDetailStub.in,
           callback: () => {
             myTarget.getOption('counters').forEach((counter, index) => {
               assert.strict.deepEqual(window._tmr[index], {
                 id: counter.counterId,
                 type: 'itemView',
-                productid: index === 1 ? 'sku123' : '123', // counter with index 1 use feedWithGroupedProducts
+                // counter with index 1 use feedWithGroupedProducts
+                productid: index === 1 ? onViewedProductDetailStub.outGroupedFeed : onViewedProductDetailStub.out,
                 pagetype: 'product',
-                totalvalue: 150,
+                totalvalue: onViewedProductDetailStub.outTotal,
                 list: countersListVarValues[counter.counterId]
               })
             })
@@ -320,11 +296,7 @@ describe('Integrations: MyTarget', () => {
       })
 
       it('should send itemView event for every "Viewed Product Detail" event (digitalData)', () => {
-        window.digitalData.product = {
-          id: '123',
-          skuCode: 'sku123',
-          unitSalePrice: 150
-        }
+        window.digitalData.product = onViewedProductDetailStub.in
         window.digitalData.events.push({
           name: 'Viewed Product Detail',
           callback: () => {
@@ -332,70 +304,22 @@ describe('Integrations: MyTarget', () => {
               assert.strict.deepEqual(window._tmr[index], {
                 id: counter.counterId,
                 type: 'itemView',
-                productid: index === 1 ? 'sku123' : '123', // counter with index 1 use feedWithGroupedProducts
+                // counter with index 1 use feedWithGroupedProducts
+                productid: index === 1 ? onViewedProductDetailStub.outGroupedFeed : onViewedProductDetailStub.out,
                 pagetype: 'product',
-                totalvalue: 150,
+                totalvalue: onViewedProductDetailStub.outTotal,
                 list: countersListVarValues[counter.counterId]
               })
             })
           }
         })
       })
-
-      it('should not send itemView event if noConflict option is true', () => {
-        myTarget.setOption('noConflict', true)
-        window.digitalData.events.push({
-          name: 'Viewed Product Detail',
-          category: 'Ecommerce',
-          product: {
-            id: '123'
-          },
-          callback: () => {
-            assert.strict.equal(window._tmr.length, 0)
-          }
-        })
-      })
     })
 
     describe('#onViewedCart', () => {
-      const cart = {
-        lineItems: [
-          {
-            product: {
-              id: '123',
-              skuCode: 'sku123',
-              unitSalePrice: 100
-            },
-            quantity: 1
-          },
-          {
-            product: {
-              id: '234',
-              skuCode: 'sku234',
-              unitPrice: 100,
-              unitSalePrice: 50
-            },
-            quantity: 2
-          },
-          {
-            product: {
-              id: '345',
-              skuCode: 'sku345',
-              unitPrice: 30
-            }
-          },
-          {
-            product: {
-              id: '456',
-              skuCode: 'sku456'
-            }
-          }
-        ],
-        total: 230
-      }
-
+      const { onViewedCartStub } = myTargetStubs
       it('should send itemView event if user visits cart page (digitalData)', () => {
-        window.digitalData.cart = cart
+        window.digitalData.cart = onViewedCartStub.in
         window.digitalData.events.push({
           name: 'Viewed Cart',
           callback: () => {
@@ -404,83 +328,33 @@ describe('Integrations: MyTarget', () => {
                 id: counter.counterId,
                 type: 'itemView',
                 // counter with index 1 use feedWithGroupedProducts
-                productid: index === 1 ? ['sku123', 'sku234', 'sku345', 'sku456'] : ['123', '234', '345', '456'],
+                productid: index === 1 ? onViewedCartStub.outGroupedFeed : onViewedCartStub.out,
                 pagetype: 'cart',
-                totalvalue: 230,
+                totalvalue: onViewedCartStub.outTotal,
                 list: countersListVarValues[counter.counterId]
               })
             })
           }
         })
       })
-
-      it('should not send itemView event if noConflict option is true', () => {
-        myTarget.setOption('noConflict', true)
-        window.digitalData.cart = cart
-        window.digitalData.events.push({
-          name: 'Viewed Page',
-          page: {
-            type: 'cart'
-          },
-          callback: () => {
-            assert.strict.equal(window._tmr.length, 0)
-          }
-        })
-      })
     })
 
     describe('#onCompletedTransaction', () => {
-      const lineItems = [
-        {
-          product: {
-            id: '123',
-            skuCode: 'sku123',
-            unitSalePrice: 100
-          },
-          quantity: 1
-        },
-        {
-          product: {
-            id: '234',
-            skuCode: 'sku234',
-            unitPrice: 100,
-            unitSalePrice: 50
-          },
-          quantity: 2
-        },
-        {
-          product: {
-            id: '345',
-            skuCode: 'sku345',
-            unitPrice: 30
-          }
-        },
-        {
-          product: {
-            id: '456',
-            skuCode: 'sku456'
-          }
-        }
-      ]
+      const { onCompletedTransactionStub } = myTargetStubs
 
       it('should send itemView event if transaction is completed', () => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
-          transaction: {
-            orderId: '123',
-            isFirst: true,
-            lineItems,
-            total: 230
-          },
+          transaction: onCompletedTransactionStub.in,
           callback: () => {
             myTarget.getOption('counters').forEach((counter, index) => {
               assert.strict.deepEqual(window._tmr[index], {
                 id: counter.counterId,
                 type: 'itemView',
                 // counter with index 1 use feedWithGroupedProducts
-                productid: index === 1 ? ['sku123', 'sku234', 'sku345', 'sku456'] : ['123', '234', '345', '456'],
+                productid: index === 1 ? onCompletedTransactionStub.outGroupedFeed : onCompletedTransactionStub.out,
                 pagetype: 'purchase',
-                totalvalue: 230,
+                totalvalue: onCompletedTransactionStub.outTotal,
                 list: countersListVarValues[counter.counterId]
               })
             })
@@ -489,12 +363,7 @@ describe('Integrations: MyTarget', () => {
       })
 
       it('should send itemView event if transaction is completed (digitalData)', () => {
-        window.digitalData.transaction = {
-          orderId: '123',
-          isFirst: true,
-          lineItems,
-          total: 230
-        }
+        window.digitalData.transaction = onCompletedTransactionStub.in
         window.digitalData.events.push({
           name: 'Completed Transaction',
           callback: () => {
@@ -503,27 +372,12 @@ describe('Integrations: MyTarget', () => {
                 id: counter.counterId,
                 type: 'itemView',
                 // counter with index 1 use feedWithGroupedProducts
-                productid: index === 1 ? ['sku123', 'sku234', 'sku345', 'sku456'] : ['123', '234', '345', '456'],
+                productid: index === 1 ? onCompletedTransactionStub.outGroupedFeed : onCompletedTransactionStub.out,
                 pagetype: 'purchase',
-                totalvalue: 230,
+                totalvalue: onCompletedTransactionStub.outTotal,
                 list: countersListVarValues[counter.counterId]
               })
             })
-          }
-        })
-      })
-
-      it('should not send trackTransaction event if noConflict option is true', () => {
-        myTarget.setOption('noConflict', true)
-        window.digitalData.events.push({
-          name: 'Completed Transaction',
-          category: 'Ecommerce',
-          transaction: {
-            orderId: '123',
-            lineItems
-          },
-          callback: () => {
-            assert.strict.equal(window._tmr.length, 0)
           }
         })
       })
@@ -593,9 +447,70 @@ describe('Integrations: MyTarget', () => {
           }
         })
       })
+    })
 
-      it('should send reachGoal event for any other DDL event event if noConflict option is true', () => {
+    describe('#on noConflict setting true', () => {
+      beforeEach(() => {
         myTarget.setOption('noConflict', true)
+      })
+      it('should not send pageView event', () => {
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'home'
+          },
+          callback: () => {
+            assert.strict.equal(window._tmr.length, 0)
+          }
+        })
+      })
+
+      it('should not send itemView event', () => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Category',
+          category: 'Content',
+          callback: () => {
+            assert.strict.equal(window._tmr.length, 0)
+          }
+        })
+      })
+
+      it('should not send itemView event', () => {
+        window.digitalData.events.push({
+          name: 'Viewed Product Detail',
+          category: 'Ecommerce',
+          product: myTargetStubs.onViewedProductDetailStub.in,
+          callback: () => {
+            assert.strict.equal(window._tmr.length, 0)
+          }
+        })
+      })
+
+      it('should not send itemView event', () => {
+        window.digitalData.cart = myTargetStubs.onViewedCartStub.in
+        window.digitalData.events.push({
+          name: 'Viewed Page',
+          page: {
+            type: 'cart'
+          },
+          callback: () => {
+            assert.strict.equal(window._tmr.length, 0)
+          }
+        })
+      })
+
+      it('should not send trackTransaction event', () => {
+        window.digitalData.events.push({
+          name: 'Completed Transaction',
+          category: 'Ecommerce',
+          transaction: myTargetStubs.onCompletedTransactionStub.in,
+          callback: () => {
+            assert.strict.equal(window._tmr.length, 0)
+          }
+        })
+      })
+
+      it('should send reachGoal event for any other DDL event', () => {
         myTarget.setOption('goals', {
           Subscribed: 'userSubscription'
         })
