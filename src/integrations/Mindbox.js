@@ -65,6 +65,7 @@ class Mindbox extends Integration {
       endpointId: '',
       projectSystemName: '',
       webpush: false,
+      includeManifest: true,
       firebaseMessagingSenderId: '',
       useCustomServiceWorkerPath: false,
       serviceWorkerPath: '',
@@ -127,7 +128,7 @@ class Mindbox extends Integration {
       }
     })
 
-    if (this.isWebpush()) {
+    if (this.isWebpush() && this.getOption('includeManifest')) {
       this.addTag('webpush', {
         type: 'link',
         attr: {
@@ -154,7 +155,9 @@ class Mindbox extends Integration {
       }
 
     if (this.isWebpush()) {
-      this.load('webpush')
+      if (this.getOption('includeManifest')) {
+        this.load('webpush')
+      }
       options.firebaseMessagingSenderId = this.getOption('firebaseMessagingSenderId')
       if (this.hasCustomServiceWorkerPath()) {
         options.serviceWorkerPath = this.getOption('serviceWorkerPath')

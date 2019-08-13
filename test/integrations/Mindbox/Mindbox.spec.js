@@ -9,6 +9,69 @@ import { options, webPushWithCustowServiceWorkerOptions, expectedInitOptions } f
 import V2Stubs from './stubs/v2'
 import V3Stubs from './stubs/v3'
 
+describe('Integrations: Mindbox web push manifest', () => {
+  let mindbox
+  const pushOptions = Object.assign({
+    webpush: true,
+    includeManifest: true,
+    pushSubscriptionTriggerEvent: 'Viewed Page'
+  }, options)
+
+  beforeEach(() => {
+    window.digitalData = {
+      events: []
+    }
+    mindbox = new Mindbox(window.digitalData, pushOptions)
+    ddManager.addIntegration('Mindbox', mindbox)
+  })
+
+  afterEach(() => {
+    ddManager.reset()
+    reset()
+  })
+
+  describe('on load with webpush and includeManifest options set', () => {
+    beforeEach(() => {
+      sinon.stub(mindbox, 'load')
+      ddManager.initialize()
+    })
+
+    afterEach(() => {
+      mindbox.load.restore()
+    })
+
+    it('should add webpush manifest', () => {
+      window.digitalData.events.push({
+        name: 'Viewed Page',
+        callback: () => {
+          assert.ok(mindbox.load.calledWith('webpush'))
+        }
+      })
+    })
+  })
+
+  describe('on load with webpush option set', () => {
+    beforeEach(() => {
+      mindbox.setOption('includeManifest', false)
+      sinon.stub(mindbox, 'load')
+      ddManager.initialize()
+    })
+
+    afterEach(() => {
+      mindbox.load.restore()
+    })
+
+    it('should not add webpush manifest', () => {
+      window.digitalData.events.push({
+        name: 'Viewed Page',
+        callback: () => {
+          assert.ok(!mindbox.load.calledWith('webpush'))
+        }
+      })
+    })
+  })
+})
+
 describe('Integrations: Mindbox web push', () => {
   let mindbox
   const pushOptions = Object.assign({
