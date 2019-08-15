@@ -1,69 +1,50 @@
-import { stringify } from '@segmentstream/utils/queryString'
 import cleanObject from '@segmentstream/utils/cleanObject'
 import {
   getEnrichableVariableMappingProps,
   extractVariableMappingValues
 } from '../IntegrationUtils'
 import Integration from '../Integration'
-import { COMPLETED_TRANSACTION } from '../events/semanticEvents'
 
-/**
-* Example:
-  events: [
-    {
-      event: 'Viewed Product Detail',
-      groupTag: 'test',
-      activityTag: 'test',
-      customVars: {
-        u1: {
-          type: 'digitalData',
-          value: 'user.isSubscribed',
-        },
-      },
-    },
-  ],
-*/
 class DoubleClickFloodlight extends Integration {
   constructor (digitalData, options) {
     const optionsWithDefaults = Object.assign({
-      advertiserId: '',
       events: []
     }, options)
 
     super(digitalData, optionsWithDefaults)
-
-    this._isLoaded = false
-
     this.enrichableEventProps = []
     this.SEMANTIC_EVENTS = []
 
     this.getOption('events').forEach((eventOptions) => {
       const eventName = eventOptions.event
+      const customVars = eventOptions.customVars
       if (!eventName) return
-
-      this.enrichableEventProps[eventName] = getEnrichableVariableMappingProps(eventOptions.customVars)
+      const variableMappingProps = getEnrichableVariableMappingProps(customVars)
+        .filter((item, i, ar) => ar.indexOf(item) === i)
+      this.enrichableEventProps[eventName] = (this.enrichableEventProps[eventName] || []).concat(variableMappingProps)
       this.SEMANTIC_EVENTS.push(eventName)
     })
 
-    this.addTag('counter', {
-      type: 'iframe',
+    this.addTag({
+      type: 'script',
       attr: {
-        // eslint-disable-next-line max-len
-        src: 'https://{{ src }}.fls.doubleclick.net/activityi;src={{ src }};type={{ type }};cat={{ cat }};dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;ord={{ ord }}{{ customVariables }}?'
-      }
-    })
-
-    this.addTag('sales', {
-      type: 'iframe',
-      attr: {
-        // eslint-disable-next-line max-len
-        src: 'https://{{ src }}.fls.doubleclick.net/activityi;src={{ src }};type={{ type }};cat={{ cat }};qty={{ qty }};cost={{ cost }};dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;ord={{ ord }}{{ customVariables }}?'
+        src: 'https://www.googletagmanager.com/gtag/js'
       }
     })
   }
 
   initialize () {
-    this._isLoaded = true
+    window.dataLayer = window.dataLayer || []
+    if (!window.gtag) {
+      window.gtag = function () { window.dataLayer.push(arguments) }
+      window.gtag('js', new Date())
+    }
+    this.getOption('events')
+      .map((event) => event.floodlightConfigID)
+      .filter((item, index, array) => array.indexOf(item) === index) // unique
+      .forEach((configId) => {
+        window.gtag('config', `DC-${configId}`)
+      })
   }
 
   getSemanticEvents () {
@@ -71,63 +52,43 @@ class DoubleClickFloodlight extends Integration {
   }
 
   getEnrichableEventProps (event) {
-    if (this.enrichableEventProps[event.name]) {
-      return this.enrichableEventProps[event.name]
-    }
-    return []
-  }
-
-  isLoaded () {
-    return this._isLoaded
+    return this.enrichableEventProps[event.name] || []
   }
 
   trackEvent (event) {
     const events = this.getOption('events').filter(eventOptions => (eventOptions.event === event.name))
-
     events.forEach((eventOptions) => {
-      const customVariables = extractVariableMappingValues(event, eventOptions.customVars, {
-        booleanToString: true
-      })
-      const customVariablesStr = stringify(customVariables).replace(/&/g, ';')
-
+      const {
+        floodlightConfigID,
+        activityGroupTagString,
+        activityTagString,
+        countingMethod,
+        customVars
+      } = eventOptions
+      const customVariables = extractVariableMappingValues(event, customVars)
       const commonTagParams = {
-        src: this.getOption('advertiserId'),
-        type: eventOptions.groupTag,
-        cat: eventOptions.activityTag,
-        customVariables: customVariablesStr
+        allow_custom_scripts: true,
+        send_to: `DC-${floodlightConfigID}/${activityGroupTagString}/${activityTagString}+${countingMethod}`
       }
 
-      let tagParams
-      let tagName
-      if (event.name === COMPLETED_TRANSACTION) {
-        tagParams = this.getSaleTagParams(event.transaction)
-        tagName = 'sales'
-      } else {
-        tagParams = this.getCounterTagParams()
-        tagName = 'counter'
+      let tagParams = commonTagParams
+      let tagName = 'conversion'
+      if (countingMethod === 'transactions') {
+        tagParams = Object.assign(commonTagParams, this.getPurchaseTagParams(event.transaction))
+        tagName = 'purchase'
       }
-      tagParams = Object.assign(commonTagParams, tagParams)
-      this.load(tagName, tagParams)
+
+      tagParams = Object.assign(tagParams, customVariables)
+      window.gtag('event', tagName, tagParams)
     })
   }
 
-  getSaleTagParams (transaction) {
+  getPurchaseTagParams (transaction) {
     if (transaction) {
-      const { lineItems } = transaction
-      const hasLineItems = lineItems && Array.isArray(lineItems)
       return cleanObject({
-        ord: transaction.orderId,
-        cost: transaction.total || transaction.subtotal,
-        qty: (hasLineItems)
-          ? lineItems.reduce((acc, lineItem) => acc + lineItem.quantity || 1, 0) : undefined
+        transaction_id: transaction.orderId,
+        value: transaction.total || transaction.subtotal
       })
-    }
-    return this.getCustomEventTagParams()
-  }
-
-  getCounterTagParams () {
-    return {
-      ord: Math.random() * 10000000000000000000
     }
   }
 }

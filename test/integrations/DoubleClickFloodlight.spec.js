@@ -1,5 +1,6 @@
 import assert from 'assert'
 import sinon from 'sinon'
+import noop from '@segmentstream/utils/noop'
 import reset from './../reset'
 import DoubleClickFloodlight from './../../src/integrations/DoubleClickFloodlight'
 import ddManager from './../../src/ddManager'
@@ -7,37 +8,59 @@ import ddManager from './../../src/ddManager'
 describe('Integrations: DoubleClick Floodlight', () => {
   let doubleClick
   const options = {
-    advertiserId: '123123',
-    eventTags: {
-      'Custom Event': {
-        groupTag: 'customGroup',
-        activityTag: 'customActivity',
+    events: [
+      {
+        event: 'Custom Event',
+        floodlightConfigID: '123',
+        activityGroupTagString: 'GROUP1',
+        activityTagString: 'TAG1',
+        countingMethod: 'standard',
         customVars: {
-          'u1': {
+          u1: {
             type: 'digitalData',
             value: 'user.userId'
           },
-          'u2': {
+          u2: {
             type: 'event',
-            value: 'testParam'
+            value: 'label'
           }
         }
       },
-      'Completed Transaction': {
-        groupTag: 'customSaleGroup',
-        activityTag: 'customSaleActivity',
+      {
+        event: 'Completed Transaction',
+        floodlightConfigID: '123',
+        activityGroupTagString: 'GROUP1',
+        activityTagString: 'TAG2',
+        countingMethod: 'transactions',
         customVars: {
-          'u1': {
+          u1: {
             type: 'digitalData',
             value: 'user.userId'
           },
-          'u2': {
+          u2: {
             type: 'event',
-            value: 'testParam'
+            value: 'label'
+          }
+        }
+      },
+      {
+        event: 'Completed Transaction',
+        floodlightConfigID: '124',
+        activityGroupTagString: 'GROUP2',
+        activityTagString: 'TAG3',
+        countingMethod: 'transactions',
+        customVars: {
+          u1: {
+            type: 'digitalData',
+            value: 'user.userId'
+          },
+          u2: {
+            type: 'event',
+            value: 'label'
           }
         }
       }
-    }
+    ]
   }
 
   beforeEach(() => {
@@ -50,39 +73,45 @@ describe('Integrations: DoubleClick Floodlight', () => {
       events: []
     }
     doubleClick = new DoubleClickFloodlight(window.digitalData, options)
-    ddManager.addIntegration('DoubleClick Floodlight', doubleClick)
+    ddManager.addIntegration('DoubleClickFloodlight', doubleClick)
+
+    window.gtag = window.gtag || noop
+    sinon.stub(window, 'gtag')
   })
 
   afterEach(() => {
+    window.gtag.restore()
     doubleClick.reset()
     ddManager.reset()
     reset()
   })
 
   describe('before loading', () => {
-    beforeEach(function () {
+    beforeEach(() => {
       sinon.stub(doubleClick, 'load')
     })
 
-    afterEach(function () {
+    afterEach(() => {
       doubleClick.load.restore()
     })
 
     describe('#constructor', () => {
       it('should add proper options', () => {
-        assert.strict.equal(options.advertiserId, doubleClick.getOption('advertiserId'))
+        assert.strict.equal(options.events, doubleClick.getOption('events'))
       })
     })
 
     describe('#initialize', () => {
-      it('should initialize', () => {
+      it('should initialize gtag', () => {
         ddManager.initialize()
-        assert.ok(doubleClick.isLoaded())
+        assert.ok(window.gtag)
+        assert.ok(window.gtag.calledWith('config', 'DC-123'))
+        assert.ok(window.gtag.calledWith('config', 'DC-124'))
       })
 
       it('should not load any tags load after initialization', () => {
         ddManager.initialize()
-        assert.ok(!doubleClick.load.calledOnce)
+        assert.ok(window.gtag.calledTwice)
       })
     })
   })
@@ -97,26 +126,24 @@ describe('Integrations: DoubleClick Floodlight', () => {
     })
 
     describe('#Custom Event', () => {
-      it('should track custom event', (done) => {
+      it('should track custom event', () => {
         window.digitalData.events.push({
           name: 'Custom Event',
-          testParam: 'testVal',
+          label: 'exampleLabel',
           callback: () => {
-            doubleClick.load.calledWith({
-              src: 123123,
-              type: 'customGroup',
-              cat: 'customActivity',
-              ord: sinon.match.number,
-              customVariables: 'u1=user123;u2=testVal'
-            })
-            done()
+            assert.ok(window.gtag.calledWith('event', 'conversion', {
+              allow_custom_scripts: true,
+              send_to: 'DC-123/GROUP1/TAG1+standard',
+              u1: 'user123',
+              u2: 'exampleLabel'
+            }))
           }
         })
       })
     })
 
     describe('#Completed Transaction', () => {
-      it('should track sale', (done) => {
+      it('should track sale', () => {
         window.digitalData.events.push({
           name: 'Completed Transaction',
           transaction: {
@@ -137,18 +164,24 @@ describe('Integrations: DoubleClick Floodlight', () => {
             ],
             total: 10000
           },
-          testParam: 'testVal',
+          label: 'exampleLabel',
           callback: () => {
-            doubleClick.load.calledWith({
-              src: 123123,
-              type: 'customGroup',
-              cat: 'customActivity',
-              ord: 'order123',
-              qty: 3,
-              cost: 10000,
-              customVariables: 'u1=user123;u2=testVal'
-            })
-            done()
+            assert.ok(window.gtag.calledWith('event', 'purchase', {
+              allow_custom_scripts: true,
+              send_to: 'DC-123/GROUP1/TAG2+transactions',
+              transaction_id: 'order123',
+              value: 10000,
+              u1: 'user123',
+              u2: 'exampleLabel'
+            }))
+            assert.ok(window.gtag.calledWith('event', 'purchase', {
+              allow_custom_scripts: true,
+              send_to: 'DC-124/GROUP2/TAG3+transactions',
+              transaction_id: 'order123',
+              value: 10000,
+              u1: 'user123',
+              u2: 'exampleLabel'
+            }))
           }
         })
       })
