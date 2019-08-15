@@ -195,6 +195,68 @@ describe('Integrations: DDManagerStreaming', () => {
       })
     })
 
+    describe('tracking Updated Transaction', () => {
+      it('should track with status param', () => {
+        const _document = {
+          referrer: 'https://example.com/'
+        }
+        sinon.stub(htmlGlobals, 'getDocument').callsFake(() => _document)
+        sinon.stub(htmlGlobals, 'getLocation').callsFake(() => _location)
+
+        const updatedTransactionEvent = {
+          name: 'Updated Transaction',
+          nonInteraction: true,
+          transaction: {
+            currency: 'RUB',
+            orderId: 'test',
+            status: 'updated',
+            total: 1,
+            subtotal: 1,
+            lineItems: [
+              {
+                product: {
+                  id: 'test',
+                  skuCode: 'test',
+                  unitSalePrice: 1,
+                  unitPrice: 1,
+                  name: 'test',
+                  category: ['test']
+                },
+                quantity: 1
+              }
+            ]
+          }
+        }
+
+        window.digitalData.events.push({
+          ...updatedTransactionEvent,
+          callback: () => {
+            const { event } = ddManagerStreaming.send.secondCall.args[0]
+            assert.strict.deepEqual(updatedTransactionEvent, {
+              ...event,
+              transaction: {
+                ...event.transaction,
+
+                lineItems: [{
+                  product: {
+                    id: 'test',
+                    skuCode: 'test',
+                    unitSalePrice: 1,
+                    unitPrice: 1,
+                    name: 'test',
+                    category: [
+                      'test'
+                    ]
+                  },
+                  quantity: 1
+                }]
+              }
+            })
+          }
+        })
+      })
+    })
+
     describe('tracking wishlist events', () => {
       beforeEach(() => {
         const _document = {

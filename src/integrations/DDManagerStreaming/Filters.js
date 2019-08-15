@@ -7,6 +7,7 @@ import {
   VIEWED_PAGE,
   VIEWED_PRODUCT_DETAIL,
   COMPLETED_TRANSACTION,
+  UPDATED_TRANSACTION,
   REFUNDED_TRANSACTION,
   VIEWED_CART,
   ADDED_PRODUCT,
@@ -106,6 +107,7 @@ export const transactionProps = [
   'subtotal',
   'currency',
   'voucher',
+  'status',
   'voucherDiscount',
   'shippingCost',
   'paymentMethod',
@@ -175,6 +177,7 @@ class Filters {
       [REMOVED_PRODUCT_FROM_WISHLIST]: this.filterRemovedProductFromWishlist.bind(this),
       [VIEWED_CART]: this.filterViewedCart.bind(this),
       [COMPLETED_TRANSACTION]: this.filterCompletedTransaction.bind(this),
+      [UPDATED_TRANSACTION]: this.filterUpdatedTransaction.bind(this),
       [REFUNDED_TRANSACTION]: this.filterRefundedTransaction.bind(this),
       [VIEWED_CHECKOUT_STEP]: this.filterViewedCheckoutStep.bind(this),
       [COMPLETED_CHECKOUT_STEP]: this.filterCompeltedCheckoutStep.bind(this),
@@ -276,7 +279,8 @@ class Filters {
       ...transaction,
       isFirst: typeof isFirst === 'boolean' ? transaction.isFirst : undefined,
       orderId: transaction.orderId ? String(transaction.orderId) : undefined,
-      voucher: Array.isArray(transaction.vouchers) ? transaction.vouchers.toString() : undefined
+      voucher: Array.isArray(transaction.vouchers) ? transaction.vouchers.toString() : undefined,
+      status: transaction.status ? String(transaction.status) : undefined
     }, transactionProps)
   }
 
@@ -386,6 +390,10 @@ class Filters {
       ...filtered,
       transaction
     }
+  }
+
+  filterUpdatedTransaction (event) {
+    return this.filterCompletedTransaction(event)
   }
 
   filterRefundedTransaction (event) {
