@@ -205,6 +205,7 @@ describe('Integrations: DDManagerStreaming', () => {
 
         const updatedTransactionEvent = {
           name: 'Updated Transaction',
+          isFirst: true,
           nonInteraction: true,
           transaction: {
             currency: 'RUB',
@@ -234,6 +235,7 @@ describe('Integrations: DDManagerStreaming', () => {
             const { event } = ddManagerStreaming.send.secondCall.args[0]
             assert.strict.deepEqual(updatedTransactionEvent, {
               ...event,
+              isFirst: true,
               transaction: {
                 ...event.transaction,
 

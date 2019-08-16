@@ -277,7 +277,7 @@ class Filters {
   filterTransaction (transaction = {}) {
     return filterObject({
       ...transaction,
-      isFirst: typeof isFirst === 'boolean' ? transaction.isFirst : undefined,
+      isFirst: typeof transaction.isFirst === 'boolean' ? transaction.isFirst : undefined,
       orderId: transaction.orderId ? String(transaction.orderId) : undefined,
       voucher: Array.isArray(transaction.vouchers) ? transaction.vouchers.toString() : undefined,
       status: transaction.status ? String(transaction.status) : undefined
