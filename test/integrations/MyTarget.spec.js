@@ -406,6 +406,30 @@ describe('Integrations: MyTarget', () => {
         })
       })
 
+      it('should send reachGoal event with value', () => {
+        myTarget.setOption('goals', {
+          Subscribed: 'userSubscription'
+        })
+        myTarget.addGoalsToSemanticEvents()
+        window.digitalData.events.push({
+          name: 'Subscribed',
+          user: {
+            email: 'test@driveback.ru'
+          },
+          value: 1000,
+          callback: () => {
+            myTarget.getOption('counters').forEach((counter, index) => {
+              assert.strict.deepEqual(window._tmr[index], {
+                id: counter.counterId,
+                type: 'reachGoal',
+                goal: 'userSubscription',
+                value: 1000
+              })
+            })
+          }
+        })
+      })
+
       it('should send reachGoal event for semantic events if goal defined in settings', () => {
         myTarget.setOption('goals', {
           'Completed Transaction': 'orderCompleted'

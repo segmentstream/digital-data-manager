@@ -1,6 +1,7 @@
 import deleteProperty from '@segmentstream/utils/deleteProperty'
 import getVarValue from '@segmentstream/utils/getVarValue'
 import { getProp } from '@segmentstream/utils/dotProp'
+import cleanObject from '@segmentstream/utils/cleanObject'
 import Integration from '../Integration'
 import { DIGITALDATA_VAR, CONSTANT_VAR } from '../variableTypes'
 import {
@@ -352,11 +353,12 @@ class MyTarget extends Integration {
     const goalIdentificator = goals[event.name]
     if (goalIdentificator) {
       this.getCounters().forEach((counter) => {
-        window._tmr.push({
+        window._tmr.push(cleanObject({
           id: counter.counterId,
           type: 'reachGoal',
-          goal: goalIdentificator
-        })
+          goal: goalIdentificator,
+          value: event.value ? Math.round(event.value) : undefined
+        }))
       })
     }
   }
