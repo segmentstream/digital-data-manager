@@ -272,6 +272,7 @@ describe('Integrations: DDManagerStreaming', () => {
         window.digitalData.events.push({
           name: 'Added Product to Wishlist',
           category: 'Ecommerce',
+          nonInteraction: false,
           product: {
             id: '124'
           },
@@ -304,7 +305,6 @@ describe('Integrations: DDManagerStreaming', () => {
             assert.strict.deepEqual({
               category: 'Ecommerce',
               name: 'Removed Product from Wishlist',
-              nonInteraction: false,
               product: {
                 id: '123',
                 customDimensions: [],
