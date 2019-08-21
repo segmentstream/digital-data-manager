@@ -1,4 +1,5 @@
 import { getProp } from '@segmentstream/utils/dotProp'
+import sha256 from 'crypto-js/sha256'
 import Integration from '../Integration'
 import {
   VIEWED_PAGE,
@@ -40,61 +41,61 @@ class RTBHouse extends Integration {
     this.addTag({
       type: 'script',
       attr: {
-        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}{{ userSegmentParams }}`
+        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}{{ userSegmentParams }}{{ uidParams }}`
       }
     })
     this.addTag('home', {
       type: 'script',
       attr: {
-        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_home{{ userSegmentParams }}`
+        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_home{{ userSegmentParams }}{{ uidParams }}`
       }
     })
     this.addTag('category2', {
       type: 'script',
       attr: {
         // eslint-disable-next-line max-len
-        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_category2_{{ categoryId }}{{ userSegmentParams }}`
+        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_category2_{{ categoryId }}{{ userSegmentParams }}{{ uidParams }}`
       }
     })
     this.addTag('offer', {
       type: 'script',
       attr: {
         // eslint-disable-next-line max-len
-        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_offer_{{ productId }}{{ userSegmentParams }}`
+        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_offer_{{ productId }}{{ userSegmentParams }}{{ uidParams }}`
       }
     })
     this.addTag('listing', {
       type: 'script',
       attr: {
         // eslint-disable-next-line max-len
-        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_listing_{{ productIds }}{{ userSegmentParams }}`
+        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_listing_{{ productIds }}{{ userSegmentParams }}{{ uidParams }}`
       }
     })
     this.addTag('basketadd', {
       type: 'script',
       attr: {
         // eslint-disable-next-line max-len
-        src: '//creativecdn.com/tags?type=script&id=pr_VB82iQFyqcxTg1HWJlJM_basketadd_{{ productId }}{{ userSegmentParams }}'
+        src: `//creativecdn.com/tags?type=script&id=pr_VB82iQFyqcxTg1HWJlJM_basketadd_{{ productId }}{{ userSegmentParams }}{{ uidParams }}`
       }
     })
     this.addTag('basketstatus', {
       type: 'script',
       attr: {
         // eslint-disable-next-line max-len
-        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_basketstatus_{{ productIds }}{{ userSegmentParams }}`
+        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_basketstatus_{{ productIds }}{{ userSegmentParams }}{{ uidParams }}`
       }
     })
     this.addTag('startorder', {
       type: 'script',
       attr: {
-        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_startorder{{ userSegmentParams }}`
+        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_startorder{{ userSegmentParams }}{{ uidParams }}`
       }
     })
     this.addTag('orderstatus2', {
       type: 'script',
       attr: {
         // eslint-disable-next-line max-len
-        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_orderstatus2_{{ total }}_{{ orderId }}_{{ productIds }}&cd={{ deduplication }}{{ userSegmentParams }}`
+        src: `//creativecdn.com/tags?type=script&id=pr_${options.accountKey}_orderstatus2_{{ total }}_{{ orderId }}_{{ productIds }}&cd={{ deduplication }}{{ userSegmentParams }}{{ uidParams }}`
       }
     })
   }
@@ -265,7 +266,7 @@ class RTBHouse extends Integration {
       userSegment = getProp(event, userSegmentVar)
     }
     if (userSegment !== undefined) {
-      return `&id1=pr_${this.getOption('accountKey')}_custom_user_${userSegment}`
+      return `&id=pr_${this.getOption('accountKey')}_custom_user_${userSegment}`
     }
     return ''
   }
@@ -276,6 +277,17 @@ class RTBHouse extends Integration {
 
   isLoaded () {
     return this._isLoaded
+  }
+
+  getUidParams (event) {
+    const email = getProp(event, 'user.email')
+    const accountKey = this.getOption('accountKey')
+
+    if (email) {
+      return `&id=pr_${accountKey}_uid_${sha256(email)}`
+    }
+
+    return ''
   }
 
   trackEvent (event) {
@@ -324,7 +336,8 @@ class RTBHouse extends Integration {
     }, '')
     this.load('basketstatus', {
       productIds,
-      userSegmentParams: this.getUserSegmentParams(event)
+      userSegmentParams: this.getUserSegmentParams(event),
+      uidParams: this.getUidParams(event)
     })
     this.pageTracked = true
   }
@@ -341,21 +354,24 @@ class RTBHouse extends Integration {
     }, '')
     this.load('basketstatus', {
       productIds,
-      userSegmentParams: this.getUserSegmentParams(event)
+      userSegmentParams: this.getUserSegmentParams(event),
+      uidParams: this.getUidParams(event)
     })
     this.pageTracked = true
   }
 
   onViewedHome (event) {
     this.load('home', {
-      userSegmentParams: this.getUserSegmentParams(event)
+      userSegmentParams: this.getUserSegmentParams(event),
+      uidParams: this.getUidParams(event)
     })
     this.pageTracked = true
   }
 
   onViewedOther (event) {
     this.load({
-      userSegmentParams: this.getUserSegmentParams(event)
+      userSegmentParams: this.getUserSegmentParams(event),
+      uidParams: this.getUidParams(event)
     })
     this.pageTracked = true
   }
@@ -366,7 +382,8 @@ class RTBHouse extends Integration {
 
     this.load('category2', {
       categoryId: listing.categoryId,
-      userSegmentParams: this.getUserSegmentParams(event)
+      userSegmentParams: this.getUserSegmentParams(event),
+      uidParams: this.getUidParams(event)
     })
     this.pageTracked = true
   }
@@ -387,7 +404,8 @@ class RTBHouse extends Integration {
 
     this.load('listing', {
       productIds,
-      userSegmentParams: this.getUserSegmentParams(event)
+      userSegmentParams: this.getUserSegmentParams(event),
+      uidParams: this.getUidParams(event)
     })
     this.pageTracked = true
   }
@@ -397,7 +415,8 @@ class RTBHouse extends Integration {
     if (product && product.id) {
       this.load('offer', {
         productId: product.id,
-        userSegmentParams: this.getUserSegmentParams(event)
+        userSegmentParams: this.getUserSegmentParams(event),
+        uidParams: this.getUidParams(event)
       })
       this.pageTracked = true
     }
@@ -414,7 +433,8 @@ class RTBHouse extends Integration {
 
   onStartedOrder (event) {
     this.load('startorder', {
-      userSegmentParams: this.getUserSegmentParams(event)
+      userSegmentParams: this.getUserSegmentParams(event),
+      uidParams: this.getUidParams(event)
     })
     this.pageTracked = true
   }
@@ -449,7 +469,8 @@ class RTBHouse extends Integration {
         orderId,
         total,
         deduplication,
-        userSegmentParams: this.getUserSegmentParams(event)
+        userSegmentParams: this.getUserSegmentParams(event),
+        uidParams: this.getUidParams(event)
       })
       this.pageTracked = true
     }
