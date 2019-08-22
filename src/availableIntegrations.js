@@ -50,6 +50,7 @@ import TryFit from './integrations/TryFit'
 import Getintent from './integrations/Getintent'
 import Glami from './integrations/Glami'
 import K50 from './integrations/K50'
+import Calltouch from './integrations/Calltouch'
 
 const integrations = {
   'Google Analytics': GoogleAnalytics,
@@ -103,7 +104,8 @@ const integrations = {
   'Try.Fit': TryFit,
   Getintent,
   Glami,
-  K50
+  K50,
+  Calltouch
 }
 
 export default integrations

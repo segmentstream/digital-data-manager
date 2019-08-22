@@ -56,6 +56,7 @@ import './integrations/GdeSlon.spec'
 import './integrations/Flocktory.spec'
 import './integrations/K50.spec'
 import './integrations/Target2Sell.spec'
+import './integrations/Calltouch.spec'
 
 window.localStorage.clear()
 console.error = () => {}
