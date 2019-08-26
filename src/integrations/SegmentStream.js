@@ -1,5 +1,6 @@
 import deleteProperty from '@segmentstream/utils/deleteProperty'
 import each from '@segmentstream/utils/each'
+import { getProp } from '@segmentstream/utils/dotProp'
 import Integration from '../Integration'
 
 import {
@@ -106,7 +107,7 @@ class SegmentStream extends Integration {
         ssAttributes[key] = value
       })
 
-      this.digitalData.user.anonymousId = window.ssApi.getAnonymousId()
+      this.digitalData.user.anonymousId = getProp(this.digitalData, 'user.anonymousId') || window.ssApi.getAnonymousId()
       this.digitalData.user.ssAttributes = ssAttributes
       this.onEnrich()
     })
