@@ -154,6 +154,8 @@ class RTBHouse extends Integration {
       enrichableProps.push(userSegmentVar)
     }
 
+    enrichableProps.push('user.email')
+
     return enrichableProps
   }
 

@@ -12,7 +12,11 @@ describe('Integrations: RTBHouse', () => {
   }
 
   beforeEach(() => {
-    window.digitalData = {}
+    window.digitalData = {
+      user: {
+        email: 'a@a.ru'
+      }
+    }
     rtbHouse = new RTBHouse(window.digitalData, options)
     ddManager.addIntegration('RTBHouse', rtbHouse)
   })
@@ -69,7 +73,7 @@ describe('Integrations: RTBHouse', () => {
           callback: () => {
             assert.ok(rtbHouse.load.calledWith('home', {
               userSegmentParams: '',
-              uidParams: ''
+              uidParams: '&id=pr_xxx_uid_4745a667f680c6dc4e74568dd828d6e8d9dfc2fdb142d8f90ef6aeac191be17e'
             }))
           }
         })
@@ -88,7 +92,7 @@ describe('Integrations: RTBHouse', () => {
           callback: () => {
             assert.ok(rtbHouse.load.calledWith('home', {
               userSegmentParams: '&id=pr_xxx_custom_user_0',
-              uidParams: ''
+              uidParams: '&id=pr_xxx_uid_4745a667f680c6dc4e74568dd828d6e8d9dfc2fdb142d8f90ef6aeac191be17e'
             }))
           }
         })
@@ -104,7 +108,7 @@ describe('Integrations: RTBHouse', () => {
             setTimeout(() => {
               assert.ok(rtbHouse.load.calledWith({
                 userSegmentParams: '',
-                uidParams: ''
+                uidParams: '&id=pr_xxx_uid_4745a667f680c6dc4e74568dd828d6e8d9dfc2fdb142d8f90ef6aeac191be17e'
               }))
               done()
             }, 200)
@@ -126,7 +130,7 @@ describe('Integrations: RTBHouse', () => {
             setTimeout(() => {
               assert.ok(rtbHouse.load.calledWith({
                 userSegmentParams: '&id=pr_xxx_custom_user_vip',
-                uidParams: ''
+                uidParams: '&id=pr_xxx_uid_4745a667f680c6dc4e74568dd828d6e8d9dfc2fdb142d8f90ef6aeac191be17e'
               }))
               done()
             }, 200)
@@ -143,9 +147,6 @@ describe('Integrations: RTBHouse', () => {
           name: 'Viewed Page',
           page: {
             type: 'home'
-          },
-          user: {
-            email: 'a@a.ru'
           },
           callback: () => {
             assert.ok(rtbHouse.load.calledWith('home', {
@@ -183,7 +184,7 @@ describe('Integrations: RTBHouse', () => {
             assert.ok(rtbHouse.load.calledWith('basketstatus', {
               productIds: '123,234',
               userSegmentParams: '',
-              uidParams: ''
+              uidParams: '&id=pr_xxx_uid_4745a667f680c6dc4e74568dd828d6e8d9dfc2fdb142d8f90ef6aeac191be17e'
             }))
           }
         })
@@ -216,7 +217,7 @@ describe('Integrations: RTBHouse', () => {
             assert.ok(rtbHouse.load.calledWith('basketstatus', {
               productIds: '123,234',
               userSegmentParams: '',
-              uidParams: ''
+              uidParams: '&id=pr_xxx_uid_4745a667f680c6dc4e74568dd828d6e8d9dfc2fdb142d8f90ef6aeac191be17e'
             }))
           }
         })
@@ -238,7 +239,7 @@ describe('Integrations: RTBHouse', () => {
             assert.ok(rtbHouse.load.calledWith('offer', {
               productId: '123',
               userSegmentParams: '',
-              uidParams: ''
+              uidParams: '&id=pr_xxx_uid_4745a667f680c6dc4e74568dd828d6e8d9dfc2fdb142d8f90ef6aeac191be17e'
             }))
           }
         })
@@ -260,7 +261,7 @@ describe('Integrations: RTBHouse', () => {
             assert.ok(rtbHouse.load.calledWith('category2', {
               categoryId: '123',
               userSegmentParams: '',
-              uidParams: ''
+              uidParams: '&id=pr_xxx_uid_4745a667f680c6dc4e74568dd828d6e8d9dfc2fdb142d8f90ef6aeac191be17e'
             }))
           }
         })
@@ -301,7 +302,7 @@ describe('Integrations: RTBHouse', () => {
             assert.ok(rtbHouse.load.calledWith('listing', {
               productIds: '123,234,345,456,567',
               userSegmentParams: '',
-              uidParams: ''
+              uidParams: '&id=pr_xxx_uid_4745a667f680c6dc4e74568dd828d6e8d9dfc2fdb142d8f90ef6aeac191be17e'
             }))
           }
         })
@@ -340,7 +341,7 @@ describe('Integrations: RTBHouse', () => {
           callback: () => {
             assert.ok(rtbHouse.load.calledWith('startorder', {
               userSegmentParams: '',
-              uidParams: ''
+              uidParams: '&id=pr_xxx_uid_4745a667f680c6dc4e74568dd828d6e8d9dfc2fdb142d8f90ef6aeac191be17e'
             }))
           }
         })
@@ -353,7 +354,7 @@ describe('Integrations: RTBHouse', () => {
           callback: () => {
             assert.ok(!rtbHouse.load.calledWith('startorder', {
               userSegmentParams: '',
-              uidParams: ''
+              uidParams: '&id=pr_xxx_uid_4745a667f680c6dc4e74568dd828d6e8d9dfc2fdb142d8f90ef6aeac191be17e'
             }))
           }
         })
@@ -393,7 +394,7 @@ describe('Integrations: RTBHouse', () => {
               productIds: '123,234',
               deduplication: 'default',
               userSegmentParams: '',
-              uidParams: ''
+              uidParams: '&id=pr_xxx_uid_4745a667f680c6dc4e74568dd828d6e8d9dfc2fdb142d8f90ef6aeac191be17e'
             }))
           }
         })
@@ -411,7 +412,7 @@ describe('Integrations: RTBHouse', () => {
               productIds: '123,234',
               deduplication: true,
               userSegmentParams: '',
-              uidParams: ''
+              uidParams: '&id=pr_xxx_uid_4745a667f680c6dc4e74568dd828d6e8d9dfc2fdb142d8f90ef6aeac191be17e'
             }))
           }
         })
@@ -434,7 +435,7 @@ describe('Integrations: RTBHouse', () => {
               productIds: '123,234',
               deduplication: false,
               userSegmentParams: '',
-              uidParams: ''
+              uidParams: '&id=pr_xxx_uid_4745a667f680c6dc4e74568dd828d6e8d9dfc2fdb142d8f90ef6aeac191be17e'
             }))
           }
         })
