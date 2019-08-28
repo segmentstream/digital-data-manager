@@ -24,7 +24,7 @@ const onRegisteredRegistrationCustomStub = {
   }
 }
 
-const onRegisteredRegistrationAndSubscriptionStub = {
+const onRegisteredRegistrationAndSubscriptionLegacyStub = {
   operation: 'Registration',
   identificator: {
     provider: 'email',
@@ -49,7 +49,19 @@ const onRegisteredRegistrationAndSubscriptionStub = {
   }
 }
 
-const onRegisteredUpdateProfileSubscriptionOnStub = {
+const onRegisteredRegistrationAndSubscriptionStub = {
+  operation: 'Registration',
+  identificator: {
+    provider: 'email',
+    identity: 'test@driveback.ru'
+  },
+  data: {
+    email: 'test@driveback.ru',
+    firstName: 'John',
+    lastName: 'Dow'
+  }
+}
+const onRegisteredUpdateProfileSubscriptionOnLegacyStub = {
   operation: 'UpdateProfile',
   identificator: {
     provider: 'email',
@@ -72,7 +84,7 @@ const onRegisteredUpdateProfileSubscriptionOnStub = {
     ]
   }
 }
-const onRegisteredUpdateProfileSubscriptionOffStub = {
+const onRegisteredUpdateProfileSubscriptionOnStub = {
   operation: 'UpdateProfile',
   identificator: {
     provider: 'email',
@@ -82,16 +94,19 @@ const onRegisteredUpdateProfileSubscriptionOffStub = {
     email: 'test@driveback.ru',
     firstName: 'John',
     lastName: 'Dow',
-    subscriptions: [
-      {
-        pointOfContact: 'Email',
-        isSubscribed: false
-      },
-      {
-        pointOfContact: 'Sms',
-        isSubscribed: false
-      }
-    ]
+    authenticationTicket: 'xxxxx'
+  }
+}
+const onRegisteredUpdateProfileSubscriptionOffStub = {
+  operation: 'UpdateProfile',
+  identificator: {
+    provider: 'email',
+    identity: 'test@driveback.ru'
+  },
+  data: {
+    email: 'test@driveback.ru',
+    firstName: 'John',
+    lastName: 'Dow'
   }
 }
 
@@ -99,6 +114,8 @@ export {
   onRegisteredRegistrationStub,
   onRegisteredRegistrationCustomStub,
   onRegisteredRegistrationAndSubscriptionStub,
+  onRegisteredRegistrationAndSubscriptionLegacyStub,
   onRegisteredUpdateProfileSubscriptionOnStub,
+  onRegisteredUpdateProfileSubscriptionOnLegacyStub,
   onRegisteredUpdateProfileSubscriptionOffStub
 }

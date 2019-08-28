@@ -58,7 +58,7 @@ const onRegisteredRegistrationCustomStub = {
   }
 }
 
-const onRegisteredRegistrationWithSubscriptionStub = {
+const onRegisteredRegistrationWithSubscriptionLegacyStub = {
   operation: 'Registration',
   data: {
     customer: {
@@ -90,6 +90,30 @@ const onRegisteredRegistrationWithSubscriptionStub = {
           valueByDefault: true
         }
       ]
+    }
+  }
+}
+
+const onRegisteredRegistrationWithSubscriptionStub = {
+  operation: 'Registration',
+  data: {
+    customer: {
+      ids: {
+        bitrixId: 'user123'
+      },
+      firstName: 'John',
+      lastName: 'Dow',
+      email: 'test@driveback.ru',
+      mobilePhone: '79374134389',
+      customFields: {
+        source: 'Driveback',
+        city: 'Moscow',
+        b2b: true,
+        childrenNames: [
+          'Helen',
+          'Bob'
+        ]
+      }
     }
   }
 }
@@ -142,5 +166,6 @@ export {
   onRegisteredRegistrationStub,
   onRegisteredRegistrationCustomStub,
   onRegisteredRegistrationWithSubscriptionStub,
-  onRegisteredRegistrationWithMassSubscriptionsStub
+  onRegisteredRegistrationWithMassSubscriptionsStub,
+  onRegisteredRegistrationWithSubscriptionLegacyStub
 }

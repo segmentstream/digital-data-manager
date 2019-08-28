@@ -697,6 +697,27 @@ describe('Integrations: Mindbox', () => {
         })
       })
 
+      it('should track registration with subscription to email and sms on legacy digitalData version', () => {
+        window.digitalData.version = '1.1.2'
+        window.digitalData.events.push({
+          name: 'Registered',
+          user: {
+            isSubscribed: true,
+            isSubscribedBySms: true,
+            email: 'test@driveback.ru',
+            firstName: 'John',
+            lastName: 'Dow',
+            authenticationTicket: 'xxx'
+          },
+          callback: () => {
+            assert.ok(window.mindbox.calledWith(
+              'identify',
+              V2Stubs.onRegisteredRegistrationAndSubscriptionLegacyStub
+            ))
+          }
+        })
+      })
+
       it('should track registration with subscription to email and sms', () => {
         window.digitalData.events.push({
           name: 'Registered',
@@ -712,6 +733,27 @@ describe('Integrations: Mindbox', () => {
             assert.ok(window.mindbox.calledWith(
               'identify',
               V2Stubs.onRegisteredRegistrationAndSubscriptionStub
+            ))
+          }
+        })
+      })
+
+      it('should track update profile info with subscription to email and sms on legacy digitalData version', () => {
+        window.digitalData.version = '1.1.2'
+        window.digitalData.events.push({
+          name: 'Updated Profile Info',
+          user: {
+            isSubscribed: true,
+            isSubscribedBySms: true,
+            authenticationTicket: 'xxxxx',
+            email: 'test@driveback.ru',
+            firstName: 'John',
+            lastName: 'Dow'
+          },
+          callback: () => {
+            assert.ok(window.mindbox.calledWith(
+              'identify',
+              V2Stubs.onRegisteredUpdateProfileSubscriptionOnLegacyStub
             ))
           }
         })
@@ -1323,6 +1365,25 @@ describe('Integrations: Mindbox', () => {
           operation: 'RegistrationCustom',
           callback: () => {
             assert.ok(window.mindbox.calledWith('async', V3Stubs.onRegisteredRegistrationCustomStub))
+          }
+        })
+      })
+
+      it('should track registration with subscription to email and sms on legacy digitalData version', () => {
+        window.digitalData.user = {
+          ...registeredUser,
+          isSubscribed: true,
+          isSubscribedBySms: true
+        }
+        window.digitalData.version = '1.1.2'
+        window.digitalData.events.push({
+          name: 'Registered',
+          source: 'Driveback',
+          callback: () => {
+            assert.ok(window.mindbox.calledWith(
+              'async',
+              V3Stubs.onRegisteredRegistrationWithSubscriptionLegacyStub
+            ))
           }
         })
       })

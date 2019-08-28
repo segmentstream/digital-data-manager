@@ -3,6 +3,7 @@ import deleteProperty from '@segmentstream/utils/deleteProperty'
 import cleanObject from '@segmentstream/utils/cleanObject'
 import isEmpty from '@segmentstream/utils/isEmpty'
 import arrayMerge from '@segmentstream/utils/arrayMerge'
+import semver from '@segmentstream/utils/semver'
 import Integration from '../Integration'
 import {
   VIEWED_PAGE,
@@ -517,7 +518,6 @@ class Mindbox extends Integration {
   getSubscriptions (event, useDefaultValue) {
     const userSubscriptions = getProp(event, 'user.subscriptions')
     let subscriptions
-
     if (userSubscriptions && Array.isArray(userSubscriptions)) { // version 1.1.3 is used
       subscriptions = userSubscriptions.map(subscription => ({
         pointOfContact: mapSubscriptionType(subscription.type),
@@ -525,7 +525,7 @@ class Mindbox extends Integration {
         isSubscribed: subscription.isSubscribed,
         valueByDefault: (useDefaultValue) ? true : undefined
       }))
-    } else {
+    } else if (this.digitalData.version && semver.cmp(this.digitalData.version, '1.1.3') < 0) {
       const isSubscribed = getProp(event, 'user.isSubscribed')
       if (isSubscribed !== undefined) {
         subscriptions = subscriptions || []

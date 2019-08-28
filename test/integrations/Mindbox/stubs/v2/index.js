@@ -31,7 +31,9 @@ import {
   onRegisteredRegistrationStub,
   onRegisteredRegistrationCustomStub,
   onRegisteredRegistrationAndSubscriptionStub,
+  onRegisteredRegistrationAndSubscriptionLegacyStub,
   onRegisteredUpdateProfileSubscriptionOnStub,
+  onRegisteredUpdateProfileSubscriptionOnLegacyStub,
   onRegisteredUpdateProfileSubscriptionOffStub
 } from './onRegistered.stub'
 
@@ -56,7 +58,9 @@ export default {
   onRegisteredRegistrationStub,
   onRegisteredRegistrationCustomStub,
   onRegisteredRegistrationAndSubscriptionStub,
+  onRegisteredRegistrationAndSubscriptionLegacyStub,
   onRegisteredUpdateProfileSubscriptionOnStub,
+  onRegisteredUpdateProfileSubscriptionOnLegacyStub,
   onRegisteredUpdateProfileSubscriptionOffStub,
   onLoggedInLoggedInStub
 }
