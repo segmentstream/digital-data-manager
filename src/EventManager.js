@@ -54,7 +54,9 @@ class EventManager {
         cleanObject({
           event: eventConfig.event,
           selector: eventConfig.selector,
-          followLink: eventConfig.followLink
+          followLink: eventConfig.followLink,
+          scrollDepth: eventConfig.scrollDepth,
+          seconds: eventConfig.seconds
         }),
         eventConfig.handler,
         _digitalData,

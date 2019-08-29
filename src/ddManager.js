@@ -16,12 +16,15 @@ import Storage from './Storage'
 import DDStorage from './DDStorage'
 import CookieStorage from './CookieStorage'
 import { isTestMode, showTestModeMessage } from './testMode'
-import { VIEWED_PAGE, mapEvent } from './events/semanticEvents'
+import { VIEWED_PAGE, SESSION_STARTED, mapEvent } from './events/semanticEvents'
 import { validateIntegrationEvent, trackValidationErrors } from './EventValidator'
 import { enableErrorTracking } from './ErrorTracker'
 import { trackLink, trackImpression } from './trackers'
 import DDManagerStreaming from './integrations/DDManagerStreaming'
 import ConsentManager from './ConsentManager'
+import { reset as resetTimeTrackingOnPage } from './trackers/trackTimeOnPage'
+import { reset as resetScrollTracking } from './trackers/trackScroll'
+import { reset as resetTimeTrackingOnSite } from './trackers/trackTimeOnSite'
 
 /**
  * @type {Object}
@@ -132,6 +135,7 @@ function _initializeIntegrations (settings) {
     const mappedEventName = mapEvent(event.name)
 
     const integrations = IntegrationsLoader.getIntegrationsByPriority()
+
     // initialization circle (only for "Viewed Page" event)
     if (mappedEventName === VIEWED_PAGE) {
       integrations.forEach((integration) => {
@@ -302,6 +306,18 @@ const ddManager = {
 
     // import custom events
     _initializeCustomEvents(settings)
+
+    // Reset trackers
+    _eventManager.addCallback(['on', 'event', (event) => {
+      if (event.name === SESSION_STARTED) {
+        resetTimeTrackingOnSite()
+      }
+
+      if (event.name === VIEWED_PAGE) {
+        resetTimeTrackingOnPage()
+        resetScrollTracking()
+      }
+    }])
 
     IntegrationsLoader.initialize(settings, ddManager)
     let streaming = IntegrationsLoader.getIntegration('DDManager Streaming')

@@ -2,12 +2,20 @@ import { error as errorLog } from '@segmentstream/utils/safeConsole'
 import isPromise from '@segmentstream/utils/isPromise'
 import trackImpression from '../trackers/trackImpression'
 import trackLink from '../trackers/trackLink'
+import trackScroll from '../trackers/trackScroll'
+import trackTimeOnPage from '../trackers/trackTimeOnPage'
+import trackTimeOnSite from '../trackers/trackTimeOnSite'
 import Handler from '../Handler'
 import { CUSTOM_EVENT_SOURCE } from '../constants'
 
 const TRIGGER_EVENT = 'event'
 const TRIGGER_IMPRESSION = 'impression'
 const TRIGGER_CLICK = 'click'
+const TRIGGER_SCROLL = 'scroll'
+const TRIGGER_ACTIVE_TIME_ON_SITE = 'activeTimeOnSite'
+const TRIGGER_ACTIVE_TIME_ON_PAGE = 'activeTimeOnPage'
+const TRIGGER_TIME_ON_SITE = 'timeOnSite'
+const TRIGGER_TIME_ON_PAGE = 'timeOnPage'
 
 class CustomEvent {
   constructor (name, trigger, settings, handler, digitalData, eventManager) {
@@ -19,14 +27,27 @@ class CustomEvent {
     this.eventManager = eventManager
   }
 
-  track () {
-    if (this.trigger === TRIGGER_EVENT) {
-      this.trackEvent()
-    } else if (this.trigger === TRIGGER_CLICK) {
-      this.trackClick()
-    } else if (this.trigger === TRIGGER_IMPRESSION) {
-      this.trackImpression()
+  getTracker () {
+    const map = {
+      [TRIGGER_EVENT]: this.trackEvent.bind(this),
+      [TRIGGER_CLICK]: this.trackClick.bind(this),
+      [TRIGGER_IMPRESSION]: this.trackImpression.bind(this),
+      [TRIGGER_SCROLL]: this.trackScroll.bind(this),
+      [TRIGGER_ACTIVE_TIME_ON_SITE]: this.trackActiveTimeOnSite.bind(this),
+      [TRIGGER_ACTIVE_TIME_ON_PAGE]: this.trackActiveTimeOnPage.bind(this),
+      [TRIGGER_TIME_ON_SITE]: this.trackTimeOnSite.bind(this),
+      [TRIGGER_TIME_ON_PAGE]: this.trackTimeOnPage.bind(this)
     }
+    return map[this.trigger]
+  }
+
+  track () {
+    const tracker = this.getTracker()
+    if (!tracker) {
+      errorLog(`Tracker for trigger "${this.trigger}" is not defined`)
+      return
+    }
+    tracker()
   }
 
   newHandler (args) {
@@ -73,6 +94,41 @@ class CustomEvent {
     trackLink(this.settings.selector, (element) => {
       this.resolveHandlerAndFireEvent([element])
     }, this.settings.followLink)
+  }
+
+  trackScroll () {
+    if (!this.settings.scrollDepth) return
+    trackScroll(this.settings.scrollDepth, (payload) => {
+      this.resolveHandlerAndFireEvent([payload])
+    })
+  }
+
+  trackActiveTimeOnSite () {
+    if (!this.settings.seconds) return
+    trackTimeOnSite(this.settings.seconds, (payload) => {
+      this.resolveHandlerAndFireEvent([payload])
+    }, this.name, true)
+  }
+
+  trackActiveTimeOnPage () {
+    if (!this.settings.seconds) return
+    trackTimeOnPage(this.settings.seconds, (payload) => {
+      this.resolveHandlerAndFireEvent([payload])
+    }, true)
+  }
+
+  trackTimeOnSite () {
+    if (!this.settings.seconds) return
+    trackTimeOnSite(this.settings.seconds, (payload) => {
+      this.resolveHandlerAndFireEvent([payload])
+    }, this.name)
+  }
+
+  trackTimeOnPage () {
+    if (!this.settings.seconds) return
+    trackTimeOnPage(this.settings.seconds, (payload) => {
+      this.resolveHandlerAndFireEvent([payload])
+    })
   }
 
   fireEvent (event) {
