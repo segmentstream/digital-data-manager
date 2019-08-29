@@ -286,18 +286,25 @@ class DigitalDataEnricher {
       const gclid = getQueryParam('gclid')
       const yclid = getQueryParam('yclid')
       const ymclid = getQueryParam('ymclid')
+
       const utmCampaign = getQueryParam('utm_campaign')
       let utmSource = getQueryParam('utm_source')
       let utmMedium = getQueryParam('utm_medium')
+      const utmTerm = getQueryParam('utm_term')
+      const utmContent = getQueryParam('utm_content')
+
       utmSource = gclid ? utmSource || 'google' : utmSource
       utmSource = yclid ? utmSource || 'yandex' : utmSource
       utmSource = ymclid ? utmSource || 'yandex_market' : utmSource
       utmMedium = (gclid || yclid || ymclid) ? utmMedium || 'cpc' : utmMedium
+
       if (utmSource || utmMedium || utmCampaign) {
         context.campaign = cleanObject({
           name: utmCampaign,
           source: utmSource,
-          medium: utmMedium
+          medium: utmMedium,
+          term: utmTerm,
+          content: utmContent
         })
         this.ddStorage.persist('context.campaign', 7776000) // 90 days
       }
