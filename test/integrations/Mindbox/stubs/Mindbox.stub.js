@@ -11,6 +11,7 @@ export const webPushWithCustowServiceWorkerOptions = {
   webpush: true,
   useCustomServiceWorkerPath: true,
   serviceWorkerPath: '/my-folder/mindbox-services-worker.js',
+  serviceWorkerScope: '/my-folder/',
   pushSubscriptionTriggerEvent: 'Viewed Page'
 }
 
@@ -20,5 +21,6 @@ export const expectedInitOptions = {
   pointOfContactSystemName: 'test-services.mindbox.ru',
   projectDomain: 'test.com',
   firebaseMessagingSenderId: '',
-  serviceWorkerPath: '/my-folder/mindbox-services-worker.js'
+  serviceWorkerPath: '/my-folder/mindbox-services-worker.js',
+  serviceWorkerScope: '/my-folder/'
 }

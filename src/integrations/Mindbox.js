@@ -70,6 +70,7 @@ class Mindbox extends Integration {
       firebaseMessagingSenderId: '',
       useCustomServiceWorkerPath: false,
       serviceWorkerPath: '',
+      serviceWorkerScope: '',
       brandSystemName: '',
       pointOfContactSystemName: '',
       projectDomain: '',
@@ -162,6 +163,10 @@ class Mindbox extends Integration {
       options.firebaseMessagingSenderId = this.getOption('firebaseMessagingSenderId')
       if (this.hasCustomServiceWorkerPath()) {
         options.serviceWorkerPath = this.getOption('serviceWorkerPath')
+        const serviceWorkerScope = this.getOption('serviceWorkerScope')
+        if(serviceWorkerScope) {
+          options.serviceWorkerScope = serviceWorkerScope
+        }
       }
     }
 
