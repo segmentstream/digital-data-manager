@@ -7,7 +7,14 @@ export const options = {
   endpointId: 'endpointId'
 }
 
-export const webPushWithCustowServiceWorkerOptions = {
+export const webPushWithCustomServiceWorkerOptions = {
+  webpush: true,
+  useCustomServiceWorkerPath: true,
+  serviceWorkerPath: '/my-folder/mindbox-services-worker.js',
+  pushSubscriptionTriggerEvent: 'Viewed Page'
+}
+
+export const webPushWithCustomServiceWorkerScopeOptions = {
   webpush: true,
   useCustomServiceWorkerPath: true,
   serviceWorkerPath: '/my-folder/mindbox-services-worker.js',
@@ -16,6 +23,15 @@ export const webPushWithCustowServiceWorkerOptions = {
 }
 
 export const expectedInitOptions = {
+  projectSystemName: 'Test',
+  brandSystemName: 'drivebackru',
+  pointOfContactSystemName: 'test-services.mindbox.ru',
+  projectDomain: 'test.com',
+  firebaseMessagingSenderId: '',
+  serviceWorkerPath: '/my-folder/mindbox-services-worker.js'
+}
+
+export const expectedInitOptionsWithServiceWorkerScope = {
   projectSystemName: 'Test',
   brandSystemName: 'drivebackru',
   pointOfContactSystemName: 'test-services.mindbox.ru',

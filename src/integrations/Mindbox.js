@@ -164,7 +164,7 @@ class Mindbox extends Integration {
       if (this.hasCustomServiceWorkerPath()) {
         options.serviceWorkerPath = this.getOption('serviceWorkerPath')
         const serviceWorkerScope = this.getOption('serviceWorkerScope')
-        if(serviceWorkerScope) {
+        if (serviceWorkerScope) {
           options.serviceWorkerScope = serviceWorkerScope
         }
       }

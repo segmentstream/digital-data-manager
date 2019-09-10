@@ -5,7 +5,7 @@ import reset from '../../reset'
 import Mindbox from '../../../src/integrations/Mindbox'
 import ddManager from '../../../src/ddManager'
 
-import { options, webPushWithCustowServiceWorkerOptions, expectedInitOptions } from './stubs/Mindbox.stub'
+import { options, webPushWithCustomServiceWorkerOptions, webPushWithCustomServiceWorkerScopeOptions, expectedInitOptions, expectedInitOptionsWithServiceWorkerScope } from './stubs/Mindbox.stub'
 import V2Stubs from './stubs/v2'
 import V3Stubs from './stubs/v3'
 
@@ -123,7 +123,7 @@ describe('Integrations: Mindbox web push', () => {
 
 describe('Integrations: Mindbox web push with custom service worker path', () => {
   let mindbox
-  const pushOptions = { ...webPushWithCustowServiceWorkerOptions, ...options }
+  const pushOptions = { ...webPushWithCustomServiceWorkerOptions, ...options }
 
   beforeEach(() => {
     window.digitalData = {
@@ -161,8 +161,53 @@ describe('Integrations: Mindbox web push with custom service worker path', () =>
     assert.ok(mindbox.hasCustomServiceWorkerPath())
   })
 
-  it('should success set serviceWorkerPath option', () => {
+  it('should success set serviceWorkerPath option without serviceWorkerScope', () => {
     assert.ok(window.mindbox.firstCall.calledWith('create', expectedInitOptions))
+  })
+})
+
+describe('Integrations: Mindbox web push with custom service worker path and serviceWorkerScope', () => {
+  let mindbox
+  const pushOptions = { ...webPushWithCustomServiceWorkerScopeOptions, ...options }
+
+  beforeEach(() => {
+    window.digitalData = {
+      website: {},
+      page: {},
+      product: {},
+      listing: {},
+      cart: {},
+      transaction: {},
+      user: {},
+      events: []
+    }
+    mindbox = new Mindbox(window.digitalData, pushOptions)
+    ddManager.addIntegration('Mindbox', mindbox)
+
+    window.mindbox = noop
+    sinon.stub(window, 'mindbox')
+    sinon.stub(mindbox, 'load').callsFake(() => {
+      mindbox.onLoad()
+    })
+    ddManager.initialize()
+  })
+
+  afterEach(() => {
+    mindbox.reset()
+    ddManager.reset()
+    reset()
+  })
+
+  it('should load webpush if option set', () => {
+    assert.ok(window.mindbox.calledWith('webpush.create'))
+  })
+
+  it('should return true by hasCustomServiceWorkerPath method', () => {
+    assert.ok(mindbox.hasCustomServiceWorkerPath())
+  })
+
+  it('should success set serviceWorkerPath option with serviceWorkerScope', () => {
+    assert.ok(window.mindbox.firstCall.calledWith('create', expectedInitOptionsWithServiceWorkerScope))
   })
 })
 
