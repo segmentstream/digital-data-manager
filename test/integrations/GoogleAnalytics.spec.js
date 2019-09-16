@@ -938,7 +938,7 @@ describe('Integrations: GoogleAnalytics', () => {
       reset()
     })
 
-    describe('after loading', () => {
+    describe('after loading without automatic viewed page', () => {
       beforeEach((done) => {
         sinon.stub(ga, 'load')
         ddManager.once('ready', done)
@@ -984,376 +984,6 @@ describe('Integrations: GoogleAnalytics', () => {
             name: 'Viewed Page',
             callback: () => {
               assert.ok(window.ga.calledWith('set', '&cu', 'EUR'))
-            }
-          })
-        })
-
-        it('should send added product data', () => {
-          window.digitalData.events.push({
-            name: 'Added Product',
-            product: {
-              id: '123',
-              currency: 'CAD',
-              unitPrice: 24.75,
-              name: 'my product',
-              category: 'cat 1',
-              skuCode: 'p-298'
-            },
-            quantity: 1,
-            callback: () => {
-              assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: '123',
-                name: 'my product',
-                category: 'cat 1',
-                quantity: 1,
-                price: 24.75,
-                brand: undefined,
-                variant: undefined,
-                currency: 'CAD'
-              }))
-              assert.ok(window.ga.calledWith('ec:setAction', 'add', {}))
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: false }))
-            }
-          })
-        })
-
-        it('should send added product data with custom dimensions and metrics', () => {
-          ga.setOption('productDimensions', {
-            dimension10: 'stock'
-          })
-          ga.setOption('productMetrics', {
-            metric10: 'weight'
-          })
-          ga.prepareCustomDimensions()
-          window.digitalData.events.push({
-            name: 'Added Product',
-            product: {
-              id: '123',
-              currency: 'CAD',
-              unitPrice: 24.75,
-              name: 'my product',
-              category: 'cat 1',
-              skuCode: 'p-298',
-              stock: 25,
-              weight: 100
-            },
-            quantity: 1,
-            callback: () => {
-              assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: '123',
-                name: 'my product',
-                category: 'cat 1',
-                quantity: 1,
-                price: 24.75,
-                brand: undefined,
-                variant: undefined,
-                currency: 'CAD',
-                dimension10: 25,
-                metric10: 100
-              }))
-              assert.ok(window.ga.calledWith('ec:setAction', 'add', {}))
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: false }))
-            }
-          })
-        })
-
-        it('should send added product data from digitalData', () => {
-          window.digitalData.product = {
-            id: 'p-298',
-            currency: 'CAD',
-            unitPrice: 24.75,
-            name: 'my product',
-            category: 'cat 1',
-            skuCode: 'p-298'
-          }
-          window.digitalData.events.push({
-            name: 'Added Product',
-            product: 'p-298',
-            quantity: 1,
-            callback: () => {
-              assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: 'p-298',
-                name: 'my product',
-                category: 'cat 1',
-                quantity: 1,
-                price: 24.75,
-                brand: undefined,
-                variant: undefined,
-                currency: 'CAD'
-              }))
-              assert.ok(window.ga.calledWith('ec:setAction', 'add', {}))
-              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: false }))
-            }
-          })
-        })
-
-        it('should send send label tracking enhanced ecommerce events with Univeral Analytics', () => {
-          window.digitalData.events.push({
-            name: 'Added Product',
-            label: 'sample label',
-            product: {
-              id: '123',
-              currency: 'CAD',
-              unitPrice: 24.75,
-              name: 'my product',
-              category: 'cat 1',
-              skuCode: 'p-298'
-            },
-            quantity: 1,
-            callback: () => {
-              assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: '123',
-                name: 'my product',
-                category: 'cat 1',
-                quantity: 1,
-                price: 24.75,
-                brand: undefined,
-                variant: undefined,
-                currency: 'CAD'
-              }))
-              assert.ok(window.ga.calledWith('ec:setAction', 'add', {}))
-              assert.ok(window.ga
-                .calledWith('send', 'event', 'Ecommerce', 'Added Product', 'sample label', { nonInteraction: false }))
-            }
-          })
-        })
-
-        it('should send removed product data', () => {
-          window.digitalData.events.push({
-            name: 'Removed Product',
-            product: {
-              id: '123',
-              currency: 'CAD',
-              unitPrice: 24.75,
-              name: 'my product',
-              category: 'cat 1',
-              skuCode: 'p-298'
-            },
-            quantity: 1,
-            callback: () => {
-              assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: '123',
-                name: 'my product',
-                category: 'cat 1',
-                quantity: 1,
-                price: 24.75,
-                brand: undefined,
-                variant: undefined,
-                currency: 'CAD'
-              }))
-              assert.ok(window.ga.calledWith('ec:setAction', 'remove', {}))
-              assert.ok(window.ga
-                .calledWith('send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: false }))
-            }
-          })
-        })
-
-        it('should send removed product data with custom dimensions and metrics', () => {
-          ga.setOption('productDimensions', {
-            dimension10: 'stock'
-          })
-          ga.setOption('productMetrics', {
-            metric10: 'weight'
-          })
-          ga.prepareCustomDimensions()
-          window.digitalData.events.push({
-            name: 'Removed Product',
-            product: {
-              id: '123',
-              currency: 'CAD',
-              unitPrice: 24.75,
-              name: 'my product',
-              category: 'cat 1',
-              skuCode: 'p-298',
-              stock: 25,
-              weight: 100
-            },
-            quantity: 1,
-            callback: () => {
-              assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: '123',
-                name: 'my product',
-                category: 'cat 1',
-                quantity: 1,
-                price: 24.75,
-                brand: undefined,
-                variant: undefined,
-                currency: 'CAD',
-                dimension10: 25,
-                metric10: 100
-              }))
-              assert.ok(window.ga.calledWith('ec:setAction', 'remove', {}))
-              assert.ok(window.ga
-                .calledWith('send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: false }))
-            }
-          })
-        })
-
-        it('should send viewed product detail data (legacy DDL product.category)', () => {
-          window.digitalData.events.push({
-            name: 'Viewed Product Detail',
-            product: {
-              id: '123',
-              currency: 'CAD',
-              unitPrice: 24.75,
-              name: 'my product',
-              category: 'cat 1',
-              skuCode: 'p-298'
-            },
-            callback: () => {
-              assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: '123',
-                name: 'my product',
-                category: 'cat 1',
-                price: 24.75,
-                brand: undefined,
-                variant: undefined,
-                currency: 'CAD'
-              }))
-              assert.ok(window.ga.calledWith('ec:setAction', 'detail', {}))
-              assert.ok(window.ga
-                .calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: true }))
-            }
-          })
-        })
-
-        it('should send viewed product detail data', () => {
-          window.digitalData.events.push({
-            name: 'Viewed Product Detail',
-            product: {
-              id: '123',
-              currency: 'CAD',
-              unitPrice: 24.75,
-              name: 'my product',
-              category: ['cat 1', 'cat 2'],
-              skuCode: 'p-298'
-            },
-            callback: () => {
-              assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: '123',
-                name: 'my product',
-                category: 'cat 1/cat 2',
-                price: 24.75,
-                brand: undefined,
-                variant: undefined,
-                currency: 'CAD'
-              }))
-              assert.ok(window.ga.calledWith('ec:setAction', 'detail', {}))
-              assert.ok(window.ga
-                .calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: true }))
-            }
-          })
-        })
-
-        it('should send viewed product detail data (digitalData)', () => {
-          window.digitalData.product = {
-            id: '123',
-            currency: 'CAD',
-            unitPrice: 24.75,
-            name: 'my product',
-            category: ['cat 1', 'cat 2'],
-            skuCode: 'p-298'
-          }
-          window.digitalData.events.push({
-            name: 'Viewed Product Detail',
-            callback: () => {
-              assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: '123',
-                name: 'my product',
-                category: 'cat 1/cat 2',
-                price: 24.75,
-                brand: undefined,
-                variant: undefined,
-                currency: 'CAD'
-              }))
-              assert.ok(window.ga.calledWith('ec:setAction', 'detail', {}))
-              assert.ok(window.ga
-                .calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: true }))
-            }
-          })
-        })
-
-        it('should send viewed product detail data with custom dimensions and metrics', () => {
-          ga.setOption('productDimensions', {
-            dimension10: 'stock'
-          })
-          ga.setOption('productMetrics', {
-            metric10: 'weight'
-          })
-          ga.prepareCustomDimensions()
-          window.digitalData.events.push({
-            name: 'Viewed Product Detail',
-            product: {
-              id: '123',
-              currency: 'CAD',
-              unitPrice: 24.75,
-              name: 'my product',
-              category: 'cat 1',
-              skuCode: 'p-298',
-              stock: 25,
-              weight: 100
-            },
-            callback: () => {
-              assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: '123',
-                name: 'my product',
-                category: 'cat 1',
-                price: 24.75,
-                brand: undefined,
-                variant: undefined,
-                currency: 'CAD',
-                dimension10: 25,
-                metric10: 100
-              }))
-              assert.ok(window.ga.calledWith('ec:setAction', 'detail', {}))
-              assert.ok(window.ga
-                .calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: true }))
-            }
-          })
-        })
-
-        it('should send viewed product detail data with custom dimensions and metrics (new initVersion)', () => {
-          ga.initVersion = '1.2.8'
-          ga.setOption('dimensions', {
-            dimension10: {
-              type: 'product',
-              value: 'stock'
-            }
-          })
-          ga.setOption('metrics', {
-            metric10: {
-              type: 'product',
-              value: 'weight'
-            }
-          })
-          ga.prepareCustomDimensions()
-          window.digitalData.events.push({
-            name: 'Viewed Product Detail',
-            product: {
-              id: '123',
-              currency: 'CAD',
-              unitPrice: 24.75,
-              name: 'my product',
-              category: 'cat 1',
-              skuCode: 'p-298',
-              stock: 25,
-              weight: 100
-            },
-            callback: () => {
-              assert.ok(window.ga.calledWith('ec:addProduct', {
-                id: '123',
-                name: 'my product',
-                category: 'cat 1',
-                price: 24.75,
-                brand: undefined,
-                variant: undefined,
-                currency: 'CAD',
-                dimension10: 25,
-                metric10: 100
-              }))
-              assert.ok(window.ga.calledWith('ec:setAction', 'detail', {}))
-              assert.ok(window.ga
-                .calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: true }))
             }
           })
         })
@@ -1417,6 +1047,465 @@ describe('Integrations: GoogleAnalytics', () => {
           })
         })
 
+        it('should send viewed product detail and pageview data with custom dimensions and metrics', () => {
+          ga.initVersion = '1.2.8'
+          ga.setOption('enhancedEcommerce', true)
+          ga.setOption('dimensions', {
+            dimension10: {
+              type: 'event',
+              value: 'label'
+            }
+          })
+          ga.setOption('metrics', {
+            metric11: {
+              type: 'event',
+              value: 'myMetric'
+            }
+          })
+          ga.prepareCustomDimensions()
+          window.digitalData.events.push({
+            name: 'Viewed Page',
+            page: {
+              type: 'product',
+              path: htmlGlobals.getLocation().pathname,
+              queryString: htmlGlobals.getLocation().search,
+              url: getCurrentLocation(),
+              title: htmlGlobals.getDocument().title
+            }
+          })
+          window.digitalData.events.push({
+            name: 'Viewed Product Detail',
+            label: 'some label',
+            myMetric: 'foo',
+            product: {
+              id: '123',
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298',
+              stock: 25,
+              weight: 100
+            },
+            callback: () => {
+              const page = htmlGlobals.getLocation().pathname + htmlGlobals.getLocation().search
+
+              // dimensions & metrics with type event set globaly
+              assert.ok(window.ga.calledWith('set', {
+                dimension10: 'some label',
+                metric11: 'foo'
+              }))
+
+              // enhancedEcommerce data sended with pagewiew
+              assert.ok(window.ga.calledWith('send', 'pageview', {
+                page,
+                title: htmlGlobals.getDocument().title,
+                location: getCurrentLocation()
+              }))
+            }
+          })
+        })
+      })
+    })
+
+    describe('after loading viewed page', () => {
+      beforeEach((done) => {
+        sinon.stub(ga, 'load')
+        ddManager.once('ready', done)
+        ddManager.initialize()
+      })
+
+      describe('enhanced ecommerce', () => {
+        beforeEach(() => {
+          window.ga = () => {}
+          sinon.stub(window, 'ga')
+        })
+
+        afterEach(() => {
+          window.ga.restore()
+        })
+
+        it('should send added product data', () => {
+          window.digitalData.events.push({
+            name: 'Added Product',
+            product: {
+              id: '123',
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298'
+            },
+            quantity: 1,
+            callback: () => {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
+                id: '123',
+                name: 'my product',
+                category: 'cat 1',
+                quantity: 1,
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD'
+              }))
+              assert.ok(window.ga.calledWith('set', '&cu', 'CAD'))
+              assert.ok(window.ga.calledWith('ec:setAction', 'add', {}))
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: false }))
+            }
+          })
+        })
+
+        it('should send added product data with custom dimensions and metrics', () => {
+          ga.setOption('productDimensions', {
+            dimension10: 'stock'
+          })
+          ga.setOption('productMetrics', {
+            metric10: 'weight'
+          })
+          ga.prepareCustomDimensions()
+          window.digitalData.events.push({
+            name: 'Added Product',
+            product: {
+              id: '123',
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298',
+              stock: 25,
+              weight: 100
+            },
+            quantity: 1,
+            callback: () => {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
+                id: '123',
+                name: 'my product',
+                category: 'cat 1',
+                quantity: 1,
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+                dimension10: 25,
+                metric10: 100
+              }))
+              assert.ok(window.ga.calledWith('set', '&cu', 'CAD'))
+              assert.ok(window.ga.calledWith('ec:setAction', 'add', {}))
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: false }))
+            }
+          })
+        })
+
+        it('should send added product data from digitalData', () => {
+          window.digitalData.product = {
+            id: 'p-298',
+            currency: 'CAD',
+            unitPrice: 24.75,
+            name: 'my product',
+            category: 'cat 1',
+            skuCode: 'p-298'
+          }
+          window.digitalData.events.push({
+            name: 'Added Product',
+            product: 'p-298',
+            quantity: 1,
+            callback: () => {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
+                id: 'p-298',
+                name: 'my product',
+                category: 'cat 1',
+                quantity: 1,
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD'
+              }))
+              assert.ok(window.ga.calledWith('set', '&cu', 'CAD'))
+              assert.ok(window.ga.calledWith('ec:setAction', 'add', {}))
+              assert.ok(window.ga.calledWith('send', 'event', 'Ecommerce', 'Added Product', { nonInteraction: false }))
+            }
+          })
+        })
+
+        it('should send send label tracking enhanced ecommerce events with Univeral Analytics', () => {
+          window.digitalData.events.push({
+            name: 'Added Product',
+            label: 'sample label',
+            product: {
+              id: '123',
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298'
+            },
+            quantity: 1,
+            callback: () => {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
+                id: '123',
+                name: 'my product',
+                category: 'cat 1',
+                quantity: 1,
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD'
+              }))
+              assert.ok(window.ga.calledWith('set', '&cu', 'CAD'))
+              assert.ok(window.ga.calledWith('ec:setAction', 'add', {}))
+              assert.ok(window.ga
+                .calledWith('send', 'event', 'Ecommerce', 'Added Product', 'sample label', { nonInteraction: false }))
+            }
+          })
+        })
+
+        it('should send removed product data', () => {
+          window.digitalData.events.push({
+            name: 'Removed Product',
+            product: {
+              id: '123',
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298'
+            },
+            quantity: 1,
+            callback: () => {
+              assert.ok(window.ga.calledWith('ec:addProduct', {
+                id: '123',
+                name: 'my product',
+                category: 'cat 1',
+                quantity: 1,
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD'
+              }))
+              assert.ok(window.ga.calledWith('set', '&cu', 'CAD'))
+              assert.ok(window.ga.calledWith('ec:setAction', 'remove', {}))
+              assert.ok(window.ga
+                .calledWith('send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: false }))
+            }
+          })
+        })
+
+        it('should send removed product data with custom dimensions and metrics', () => {
+          ga.setOption('productDimensions', {
+            dimension10: 'stock'
+          })
+          ga.setOption('productMetrics', {
+            metric10: 'weight'
+          })
+          ga.prepareCustomDimensions()
+          window.digitalData.events.push({
+            name: 'Removed Product',
+            product: {
+              id: '123',
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298',
+              stock: 25,
+              weight: 100
+            },
+            quantity: 1,
+            callback: () => {
+              assert.ok(window.ga.calledWith('set', '&cu', 'CAD'))
+              assert.ok(window.ga.calledWith('ec:addProduct', {
+                id: '123',
+                name: 'my product',
+                category: 'cat 1',
+                quantity: 1,
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+                dimension10: 25,
+                metric10: 100
+              }))
+              assert.ok(window.ga.calledWith('ec:setAction', 'remove', {}))
+              assert.ok(window.ga
+                .calledWith('send', 'event', 'Ecommerce', 'Removed Product', { nonInteraction: false }))
+            }
+          })
+        })
+
+        it('should send viewed product detail data (legacy DDL product.category)', () => {
+          window.digitalData.events.push({
+            name: 'Viewed Product Detail',
+            product: {
+              id: '123',
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298'
+            },
+            callback: () => {
+              assert.ok(window.ga.calledWith('set', '&cu', 'CAD'))
+              assert.ok(window.ga.calledWith('ec:addProduct', {
+                id: '123',
+                name: 'my product',
+                category: 'cat 1',
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD'
+              }))
+              assert.ok(window.ga.calledWith('ec:setAction', 'detail', {}))
+              assert.ok(window.ga
+                .calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: true }))
+            }
+          })
+        })
+
+        it('should send viewed product detail data', () => {
+          window.digitalData.events.push({
+            name: 'Viewed Product Detail',
+            product: {
+              id: '123',
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: ['cat 1', 'cat 2'],
+              skuCode: 'p-298'
+            },
+            callback: () => {
+              assert.ok(window.ga.calledWith('set', '&cu', 'CAD'))
+              assert.ok(window.ga.calledWith('ec:addProduct', {
+                id: '123',
+                name: 'my product',
+                category: 'cat 1/cat 2',
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD'
+              }))
+              assert.ok(window.ga.calledWith('ec:setAction', 'detail', {}))
+              assert.ok(window.ga
+                .calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: true }))
+            }
+          })
+        })
+
+        it('should send viewed product detail data (digitalData)', () => {
+          window.digitalData.product = {
+            id: '123',
+            currency: 'CAD',
+            unitPrice: 24.75,
+            name: 'my product',
+            category: ['cat 1', 'cat 2'],
+            skuCode: 'p-298'
+          }
+          window.digitalData.events.push({
+            name: 'Viewed Product Detail',
+            callback: () => {
+              assert.ok(window.ga.calledWith('set', '&cu', 'CAD'))
+              assert.ok(window.ga.calledWith('ec:addProduct', {
+                id: '123',
+                name: 'my product',
+                category: 'cat 1/cat 2',
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD'
+              }))
+              assert.ok(window.ga.calledWith('ec:setAction', 'detail', {}))
+              assert.ok(window.ga
+                .calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: true }))
+            }
+          })
+        })
+
+        it('should send viewed product detail data with custom dimensions and metrics', () => {
+          ga.setOption('productDimensions', {
+            dimension10: 'stock'
+          })
+          ga.setOption('productMetrics', {
+            metric10: 'weight'
+          })
+          ga.prepareCustomDimensions()
+          window.digitalData.events.push({
+            name: 'Viewed Product Detail',
+            product: {
+              id: '123',
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298',
+              stock: 25,
+              weight: 100
+            },
+            callback: () => {
+              assert.ok(window.ga.calledWith('set', '&cu', 'CAD'))
+              assert.ok(window.ga.calledWith('ec:addProduct', {
+                id: '123',
+                name: 'my product',
+                category: 'cat 1',
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+                dimension10: 25,
+                metric10: 100
+              }))
+              assert.ok(window.ga.calledWith('ec:setAction', 'detail', {}))
+              assert.ok(window.ga
+                .calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: true }))
+            }
+          })
+        })
+
+        it('should send viewed product detail data with custom dimensions and metrics (new initVersion)', () => {
+          ga.initVersion = '1.2.8'
+          ga.setOption('dimensions', {
+            dimension10: {
+              type: 'product',
+              value: 'stock'
+            }
+          })
+          ga.setOption('metrics', {
+            metric10: {
+              type: 'product',
+              value: 'weight'
+            }
+          })
+          ga.prepareCustomDimensions()
+          window.digitalData.events.push({
+            name: 'Viewed Product Detail',
+            product: {
+              id: '123',
+              currency: 'CAD',
+              unitPrice: 24.75,
+              name: 'my product',
+              category: 'cat 1',
+              skuCode: 'p-298',
+              stock: 25,
+              weight: 100
+            },
+            callback: () => {
+              assert.ok(window.ga.calledWith('set', '&cu', 'CAD'))
+              assert.ok(window.ga.calledWith('ec:addProduct', {
+                id: '123',
+                name: 'my product',
+                category: 'cat 1',
+                price: 24.75,
+                brand: undefined,
+                variant: undefined,
+                currency: 'CAD',
+                dimension10: 25,
+                metric10: 100
+              }))
+              assert.ok(window.ga.calledWith('ec:setAction', 'detail', {}))
+              assert.ok(window.ga
+                .calledWith('send', 'event', 'Ecommerce', 'Viewed Product Detail', { nonInteraction: true }))
+            }
+          })
+        })
+
         it('should send clicked product data with custom dimensions and metrics', () => {
           ga.setOption('productDimensions', {
             dimension10: 'stock'
@@ -1442,6 +1531,7 @@ describe('Integrations: GoogleAnalytics', () => {
               listName: 'Search Results'
             },
             callback: () => {
+              assert.ok(window.ga.calledWith('set', '&cu', 'CAD'))
               assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: '123',
                 name: 'my product',
@@ -1484,6 +1574,7 @@ describe('Integrations: GoogleAnalytics', () => {
               listId: 'search_results'
             },
             callback: () => {
+              assert.ok(window.ga.calledWith('set', '&cu', 'CAD'))
               assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
@@ -1554,7 +1645,7 @@ describe('Integrations: GoogleAnalytics', () => {
               {
                 product: {
                   id: 'p-298',
-                  currency: 'CAD',
+                  currency: 'EUR',
                   unitPrice: 24.75,
                   name: 'my product',
                   category: 'cat 1',
@@ -1567,7 +1658,7 @@ describe('Integrations: GoogleAnalytics', () => {
               {
                 product: {
                   id: 'p-299',
-                  currency: 'CAD',
+                  currency: 'USD',
                   unitPrice: 24.75,
                   name: 'my product',
                   category: 'cat 1',
@@ -1586,7 +1677,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 category: 'cat 1',
                 brand: undefined,
                 price: 24.75,
-                currency: 'CAD',
+                currency: 'EUR',
                 variant: undefined,
                 position: 2
               }))
@@ -1597,7 +1688,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 category: 'cat 1',
                 brand: undefined,
                 price: 24.75,
-                currency: 'CAD',
+                currency: 'USD',
                 variant: undefined,
                 position: 2
               }))
@@ -1668,7 +1759,7 @@ describe('Integrations: GoogleAnalytics', () => {
               },
               {
                 id: 'p-299',
-                currency: 'CAD',
+                currency: 'USD',
                 unitPrice: 24.75,
                 name: 'my other product',
                 category: 'cat 1',
@@ -1708,7 +1799,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 category: 'cat 1',
                 brand: undefined,
                 price: 24.75,
-                currency: 'CAD',
+                currency: 'USD',
                 variant: undefined,
                 position: 2
               }))
@@ -1896,6 +1987,7 @@ describe('Integrations: GoogleAnalytics', () => {
               {
                 product: {
                   id: 'p-298',
+                  currency: 'EUR',
                   unitPrice: 24.75,
                   name: 'my product',
                   skuCode: 'p-298',
@@ -1907,6 +1999,7 @@ describe('Integrations: GoogleAnalytics', () => {
               {
                 product: {
                   id: 'p-299',
+                  currency: 'USD',
                   unitPrice: 24.75,
                   name: 'other product',
                   skuCode: 'p-299',
@@ -1922,6 +2015,7 @@ describe('Integrations: GoogleAnalytics', () => {
             step: 1,
             paymentMethod: 'Visa',
             callback: () => {
+              assert.ok(window.ga.calledWith('set', '&cu', 'EUR'))
               assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
@@ -1930,10 +2024,11 @@ describe('Integrations: GoogleAnalytics', () => {
                 price: 24.75,
                 brand: undefined,
                 variant: undefined,
-                currency: 'CAD',
+                currency: 'EUR',
                 dimension10: 25,
                 metric10: 100
               }))
+              assert.ok(window.ga.calledWith('set', '&cu', 'USD'))
               assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-299',
                 name: 'other product',
@@ -1942,7 +2037,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 price: 24.75,
                 brand: undefined,
                 variant: undefined,
-                currency: 'CAD',
+                currency: 'USD',
                 dimension10: 30,
                 metric10: 200
               }))
@@ -2021,6 +2116,7 @@ describe('Integrations: GoogleAnalytics', () => {
             category: 'Ecommerce',
             transaction: {
               orderId: '7306cc06',
+              currency: 'RUB',
               lineItems: [
                 {
                   product: {
@@ -2031,6 +2127,7 @@ describe('Integrations: GoogleAnalytics', () => {
               ]
             },
             callback: () => {
+              assert.ok(window.ga.calledWith('set', '&cu', 'RUB'))
               assert.ok(window.ga.calledWith('ec:setAction', 'purchase', {
                 id: '7306cc06',
                 affiliation: undefined,
@@ -2051,7 +2148,8 @@ describe('Integrations: GoogleAnalytics', () => {
             lineItems: [
               {
                 product: {
-                  id: '123'
+                  id: '123',
+                  currency: 'CAD'
                 },
                 quantity: 1
               }
@@ -2061,6 +2159,7 @@ describe('Integrations: GoogleAnalytics', () => {
             name: 'Completed Transaction',
             category: 'Ecommerce',
             callback: () => {
+              assert.ok(window.ga.calledWith('set', '&cu', 'CAD'))
               assert.ok(window.ga.calledWith('ec:setAction', 'purchase', {
                 id: '7306cc06',
                 affiliation: undefined,
@@ -2123,6 +2222,7 @@ describe('Integrations: GoogleAnalytics', () => {
               ]
             },
             callback: () => {
+              assert.ok(window.ga.calledWith('set', '&cu', 'CAD'))
               assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
@@ -2135,6 +2235,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 dimension10: 25,
                 metric10: 100
               }))
+              assert.ok(window.ga.calledWith('set', '&cu', 'EUR'))
               assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: '234',
                 name: 'other product',
@@ -2199,6 +2300,7 @@ describe('Integrations: GoogleAnalytics', () => {
               ]
             },
             callback: () => {
+              assert.ok(window.ga.calledWith('set', '&cu', 'CAD'))
               assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: 'my product',
@@ -2210,6 +2312,7 @@ describe('Integrations: GoogleAnalytics', () => {
                 currency: 'CAD',
                 coupon: 'promo'
               }))
+              assert.ok(window.ga.calledWith('set', '&cu', 'EUR'))
               assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: '234',
                 name: 'other product',
@@ -2329,6 +2432,7 @@ describe('Integrations: GoogleAnalytics', () => {
               ]
             },
             callback: () => {
+              assert.ok(window.ga.calledWith('set', '&cu', 'CAD'))
               assert.ok(window.ga.calledWith('ec:addProduct', {
                 id: 'p-298',
                 name: undefined,

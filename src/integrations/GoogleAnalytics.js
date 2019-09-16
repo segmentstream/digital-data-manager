@@ -1200,7 +1200,7 @@ class GoogleAnalytics extends Integration {
       price: product.unitSalePrice || product.unitPrice,
       brand: this.transliterate(product.brand || product.manufacturer),
       variant: this.transliterate(product.variant),
-      currency: product.currency
+      currency: product.currency || this.getOption('defaultCurrency')
     }, custom)
     if (quantity) gaProduct.quantity = quantity
     if (position) gaProduct.position = position
@@ -1208,6 +1208,7 @@ class GoogleAnalytics extends Integration {
     // https://developers.google.com/analytics/devguides/collection
     //  /analyticsjs/enhanced-ecommerce#measuring-transactions
     if (product.voucher) gaProduct.coupon = product.voucher
+    this.ga(['set', '&cu', gaProduct.currency], this.getOption('noConflict'))
     this.ga(['ec:addProduct', gaProduct], this.getOption('noConflict'))
   }
 
