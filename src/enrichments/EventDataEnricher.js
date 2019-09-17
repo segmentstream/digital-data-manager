@@ -43,9 +43,8 @@ class EventDataEnricher {
   static enrichIntegrationData (event, digitalData, integration) {
     const enrichableProps = integration.getEnrichableEventProps(event)
     enrichableProps.forEach((prop) => {
-      if (!dotProp.getProp(event, prop) && digitalData) {
+      if (prop && !dotProp.getProp(event, prop) && digitalData) {
         let propToEnrich = prop
-
         // if prop is special case: *.length, *.first, *.last, etc
         // drawback - instead of enriching just length - whole object is enirched
         if (prop.endsWith('.length')) {
