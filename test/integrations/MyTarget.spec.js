@@ -316,6 +316,31 @@ describe('Integrations: MyTarget', () => {
       })
     })
 
+    describe('#onAddedProduct', () => {
+      const { onAddedProductStub } = myTargetStubs
+      const { product, quantity } = onAddedProductStub
+      it('should send itemView event when user add product to a cart', () => {
+        window.digitalData.product = product
+        window.digitalData.events.push({
+          name: 'Added Product',
+          quantity,
+          callback: () => {
+            myTarget.getOption('counters').forEach((counter, index) => {
+              assert.strict.deepEqual(window._tmr[index], {
+                id: counter.counterId,
+                type: 'itemView',
+                // counter with index 1 use feedWithGroupedProducts
+                productid: index === 1 ? product.skuCode : product.id,
+                pagetype: 'cart',
+                totalvalue: onAddedProductStub.totalValue,
+                list: countersListVarValues[counter.counterId]
+              })
+            })
+          }
+        })
+      })
+    })
+
     describe('#onViewedCart', () => {
       const { onViewedCartStub } = myTargetStubs
       it('should send itemView event if user visits cart page (digitalData)', () => {

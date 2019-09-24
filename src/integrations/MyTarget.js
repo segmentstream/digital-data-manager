@@ -9,6 +9,7 @@ import {
   VIEWED_PRODUCT_DETAIL,
   VIEWED_PRODUCT_LISTING,
   VIEWED_CART,
+  ADDED_PRODUCT,
   COMPLETED_TRANSACTION
 } from '../events/semanticEvents'
 
@@ -46,6 +47,7 @@ class MyTarget extends Integration {
       VIEWED_PAGE,
       VIEWED_PRODUCT_DETAIL,
       VIEWED_PRODUCT_LISTING,
+      ADDED_PRODUCT,
       VIEWED_CART,
       COMPLETED_TRANSACTION
     ]
@@ -102,6 +104,7 @@ class MyTarget extends Integration {
         ]
         break
       case VIEWED_PRODUCT_DETAIL:
+      case ADDED_PRODUCT:
         enrichableProps = [
           'product'
         ]
@@ -211,6 +214,7 @@ class MyTarget extends Integration {
       [VIEWED_PAGE]: 'onViewedPage',
       [VIEWED_PRODUCT_LISTING]: 'onViewedProductCategory',
       [VIEWED_PRODUCT_DETAIL]: 'onViewedProductDetail',
+      [ADDED_PRODUCT]: 'onAddedProduct',
       [VIEWED_CART]: 'onViewedCart',
       [COMPLETED_TRANSACTION]: 'onCompletedTransaction'
     }
@@ -285,6 +289,21 @@ class MyTarget extends Integration {
         productid: ((counter.feedWithGroupedProducts !== true) ? product.id : product.skuCode) || '',
         pagetype: 'product',
         totalvalue: product.unitSalePrice || '',
+        list: this.getList(event, counter)
+      })
+    })
+    this.pageTracked = true
+  }
+
+  onAddedProduct (event) {
+    const { product, quantity } = event
+    this.getCounters().forEach((counter) => {
+      window._tmr.push({
+        id: counter.counterId,
+        type: 'itemView',
+        productid: (counter.feedWithGroupedProducts !== true ? product.id : product.skuCode) || '',
+        pagetype: 'cart',
+        totalvalue: ((product.unitSalePrice || product.unitPrice) * quantity) || '',
         list: this.getList(event, counter)
       })
     })
