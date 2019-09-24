@@ -412,6 +412,7 @@ describe('DigitalDataEnricher', () => {
       // +2 quantity
       assert.ok(eventsSpy.calledWith(sinon.match({
         name: 'Added Product',
+        category: 'Ecommerce',
         product: {
           id: '1'
         },
@@ -421,6 +422,7 @@ describe('DigitalDataEnricher', () => {
       // +1 new item
       assert.ok(eventsSpy.calledWith(sinon.match({
         name: 'Added Product',
+        category: 'Ecommerce',
         product: {
           id: '2'
         },
@@ -430,6 +432,7 @@ describe('DigitalDataEnricher', () => {
       // -3 items
       assert.ok(eventsSpy.calledWith(sinon.match({
         name: 'Removed Product',
+        category: 'Ecommerce',
         product: {
           id: '3'
         },
@@ -439,6 +442,7 @@ describe('DigitalDataEnricher', () => {
       // -2 quantity
       assert.ok(eventsSpy.calledWith(sinon.match({
         name: 'Removed Product',
+        category: 'Ecommerce',
         product: {
           id: '4'
         },

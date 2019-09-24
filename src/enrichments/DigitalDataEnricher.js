@@ -125,6 +125,7 @@ class DigitalDataEnricher {
         const skuCode = getProp(lineItem, 'product.skuCode')
         this.digitalData.events.push({
           name: eventName,
+          category: 'Ecommerce',
           product: lineItem.product,
           quantity: diff[productKey(id, skuCode)] || lineItem.quantity,
           source: SDK_EVENT_SOURCE
