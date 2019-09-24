@@ -36,5 +36,13 @@ export default (scrollDepth, handler) => {
     throw new TypeError('Must pass function handler to `ddManager.trackScroll`.')
   }
 
-  addEvent(scrollDepth, handler)
+  String(scrollDepth)
+    .replace(/\s+/mg, '')
+    .split(',')
+    .forEach((scrollPersentStr) => {
+      const scrollPersent = parseInt(scrollPersentStr)
+      if (scrollPersent > 0 && scrollPersent <= 100) {
+        addEvent(scrollPersent, handler)
+      }
+    })
 }

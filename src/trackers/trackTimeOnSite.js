@@ -100,5 +100,13 @@ export default (seconds, handler, eventName, isActiveTime = false) => {
     throw new TypeError('Must pass function handler to `ddManager.trackTimeOnSite`.')
   }
 
-  addEvent(seconds, handler, eventName, isActiveTime)
+  String(seconds)
+    .replace(/\s+/mg, '')
+    .split(',')
+    .forEach((secondsStr) => {
+      const second = parseInt(secondsStr)
+      if (second > 0) {
+        addEvent(second, handler, eventName, isActiveTime)
+      }
+    })
 }
