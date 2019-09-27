@@ -54,9 +54,9 @@ const processEvents = () => {
   events.forEach((event) => {
     const timeForEvent = event.isActiveTime ? activeTime : time
 
-    if (!firedEvents.includes(event.name) && event.seconds <= timeForEvent) {
+    if (!firedEvents.includes(`${event.name}:${event.seconds}`) && event.seconds <= timeForEvent) {
       event.handler(timeForEvent)
-      fireEvent(event.name)
+      fireEvent(`${event.name}:${event.seconds}`)
     }
   })
 }

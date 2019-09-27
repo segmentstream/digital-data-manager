@@ -33,7 +33,7 @@ export default (scrollDepth, handler) => {
   if (!scrollDepth) return
 
   if (typeof handler !== 'function') {
-    throw new TypeError('Must pass function handler to `ddManager.trackScroll`')
+    throw new TypeError('Must pass function handler to `ddManager.trackScroll`.')
   }
 
   String(scrollDepth)
