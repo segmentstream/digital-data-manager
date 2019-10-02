@@ -222,7 +222,7 @@ function _initializeCustomEnrichments (settings) {
 
 const ddManager = {
 
-  VERSION: '1.2.259',
+  VERSION: '1.2.260',
 
   setConsent: ConsentManager.setConsent,
   getConsent: ConsentManager.getConsent,
