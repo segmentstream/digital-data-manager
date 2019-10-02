@@ -5,7 +5,7 @@ class CookieStorage {
   constructor (options = {}) {
     this.options = Object.assign({
       cookieDomain: topDomain(window.location.href),
-      cookieMaxAge: 31536000000, // default to a year
+      cookieMaxAge: 63072000, // default to a 2 years, in seconds
       prefix: 'dd_'
     }, options)
 
