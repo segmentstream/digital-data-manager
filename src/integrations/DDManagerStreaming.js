@@ -383,10 +383,6 @@ class DDManagerStreaming extends Integration {
         credentials: 'include',
         mode: 'cors',
         body: JSON.stringify(hitData)
-      }).then((response) => {
-        if (response.ok) {
-          // window.localStorage.removeItem(this.getCacheKey(hitData.hitId));
-        }
       }).catch((e) => {
         warn(e)
       })
