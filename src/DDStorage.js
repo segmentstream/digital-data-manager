@@ -32,7 +32,7 @@ class DDStorage {
       }
       // move persisted values
       this.ddReserveStorage.getPersistedKeys().forEach((persistedKey) => {
-        const value = this.get(persistedKey)
+        const value = this.ddReserveStorage.get(persistedKey)
         const ttl = this.ddReserveStorage.getTtl(persistedKey)
         if (value !== undefined) {
           this.storage.set(persistedKey, value, ttl)
